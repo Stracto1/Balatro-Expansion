@@ -43,7 +43,19 @@ local Delayed_gratification = Isaac.GetTrinketIdByName("Delayed gratification")
 local Egg = Isaac.GetTrinketIdByName("Egg")
 local Dna = Isaac.GetTrinketIdByName("Dna")
 
+--------------------------------
+local AllCurses = {}
+local NormalCurses = {}
+local BossCurses = {}
 
+AllCurses.THE_WALL = 1 << (Isaac.GetCurseIdByName("curse of the wall") - 1)
+
+NormalCurses[1] = AllCurses.THE_WALL
+---------------------------------
+local Challenges = {}
+Challenges.Balatro = Isaac.GetChallengeIdByName("Balatro")
+
+------------------------------
 local PastCoins
 local PastBombs
 local PastKeys
@@ -51,6 +63,7 @@ local PastKeys
 local MultEffect = Isaac.GetEntityVariantByName("MultEffect")
 local ChipsEffect = Isaac.GetEntityVariantByName("ChipsEffect")
 local ActivateEffect = Isaac.GetEntityVariantByName("ActivateEffect")
+local Nothing = Isaac.GetEntityVariantByName("Nothing")
 local PlayerWithEffect
 local LastWanted = 0
 local WantedEffect --needed to prevent effects from overlapping
@@ -58,13 +71,15 @@ local EffectText = " "
 local FirtsEffect = true --to prevent errors
 local LastEffect = EntityEffect
 local EffectRotation
-local TextTypes = {"+","X","ACTIVATE!","EXTINCT!","VALUE UP!","UPGRADE!","SAFE!"," REMAINING"}
+local TextTypes = {"+","X","ACTIVATE!","EXTINCT!","VALUE UP!","UPGRADE!","SAFE!","INTERESTS!","$"," REMAINING"}
 ---------------------
 local Game = Game()
 local Seed
 local PersistentGD
 local ItemsConfig = Isaac.GetItemConfig()
 local ItemPool = Game:GetItemPool()
+local Font = Font()
+Font:Load("resources/font/upheavalmini.fnt")
 -------------------------------------------
 local sfx = SFXManager()
 local ADDMULTSOUND = Isaac.GetSoundIdByName("ADDMULTSFX")
@@ -108,8 +123,7 @@ TrinketValues.Picked = {0}  --to prevent weird shenadigans
 TrinketValues.Tags = {}
 TrinketValues.EffectsAllowed = true
 -----------------------------
-local Font = Font()
-Font:Load("resources/font/upheavalmini.fnt")
+
 
 --heyo dear mod developer college! Fell free to take any of the code written here
 --but please make sure to give this mod credit when you take important/big chunks of code
@@ -123,13 +137,14 @@ Font:Load("resources/font/upheavalmini.fnt")
 
 -------------------OPTIMISATION FUNCTOINS------------------------------------
 --these functions limit the ammount of callbacks the game has to consider for this mod using REPENTOGON's custom tags,
---i have no idea if this change is actually noticable, but i think it's pretty well done
+--i have no idea if this change is actually noticable or not, but i think it's pretty well done
 
 --to see the list of all the custom tags and how they work, see the items.xml file
 
 
 --VVVVV-- big ass code wall incoming -VVVVV-
 function mod:OnGameStart(Continued)
+
     PersistentGD = Isaac.GetPersistentGameData()
     Seed = Game:GetSeeds():GetStartSeed() --gets the run's seed
 
@@ -183,7 +198,11 @@ function mod:OnGameStart(Continued)
         TrinketValues.Labyrinth = 1
         TrinketValues.Sacrificial_dagger = 0
         TrinketValues.Swashbuckler = 0
-        TrinketValues.ShopEntered = false
+        if mod:Contained(Challenges, Game.Challenge) then
+            TrinketValues.ShopEntered = true
+        else
+            TrinketValues.ShopEntered = false
+        end
         TrinketValues.TreasureEntered = false
         TrinketValues.Picked = {0}  --to prevent weird shenadigans
         TrinketValues.Tags = {}
@@ -205,7 +224,7 @@ function mod:OnGameStart(Continued)
     for j = 1, #TrinketValues.Tags, 1 do
         local TagX = TrinketValues.Tags[j]
         --print(TagX)
-        if not (TagX == "mult" or TagX == "chips" or TagX == "multm" or TagX == "mult/chips") then
+        if not (TagX == "mult" or TagX == "chips" or TagX == "multm") then
             if TagX == "newroom" then
                 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.OnNewRoom)
             
@@ -271,7 +290,7 @@ function mod:OnGameStart(Continued)
     end
     --print(TrinketValues.Tags)
 end
-mod:AddPriorityCallback(ModCallbacks.MC_POST_GAME_STARTED,CallbackPriority.LATE ,mod.OnGameStart)
+mod:AddPriorityCallback(ModCallbacks.MC_POST_GAME_STARTED, CallbackPriority.LATE ,mod.OnGameStart)
                                         --btw putting IMPORTANT as the prioriry here makes it not happen
 
 
@@ -392,7 +411,6 @@ mod:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT, mod.EffectSpawning, MultEffect
 mod:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT, mod.EffectSpawning, ChipsEffect)    --calls every time the custom effects are spawned
 mod:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT, mod.EffectSpawning, ActivateEffect)
 
-
 ---@param effect EntityEffect
 function mod:OnEffectUpdate(effect)
     local sprite = effect:GetSprite()
@@ -426,22 +444,26 @@ function mod:EffectConverter(TextType, Text, player, EffectID)
     if not TrinketValues.EffectsAllowed then
         return
     end
+
     if Text == 0 then --would be 0.00 otherwise
         Text = "0"
     end       
-    if TextType >= 3 and TextType ~= 8 then --no need for numbers on certain occasions
-        Text =""
-    end
-    if TextType == 8 then
+
+    if TextType == #TextTypes then
         Text = tostring(Text)..TextTypes[TextType]
     else
-        Text = TextTypes[TextType]..tostring(Text)
+        if TextType == 9 then --no need for numbers on certain occasions
+            Text = TextTypes[1]..tostring(Text)..TextTypes[9]
+        elseif TextType >= 3 then
+            Text = ""
+            Text = TextTypes[TextType]..tostring(Text)
+        end
     end
     mod:SpawnTheEffect(player, EffectID, Text)
 end
 
 
---ID: 0 = noting|1 = +Mult | 2 = *Mult | 3 = Chips | 4 = Activate | 5 = Activate mult | 6 = activate chips
+--ID: 0 = noting|1 = +Mult | 2 = *Mult | 3 = Chips | 4 = Activate | 5 = slice | 6 = money
 function mod:SpawnTheEffect(PlayerEffect, effectID, Text) 
     PlayerWithEffect = PlayerEffect  --needed for followparent [see on effect init]
     
@@ -474,6 +496,9 @@ function mod:SpawnTheEffect(PlayerEffect, effectID, Text)
     elseif effectID == 5 then --slice
         Isaac.Spawn(1000, MultEffect, 0, PlayerEffect.Position, Vector.Zero, PlayerEffect)
         sfx:Play(SLICESOUND, 1, 0, false, 1, 0)
+    elseif effectID == 6 then --money
+        Isaac.Spawn(1000, ActivateEffect, 0, PlayerEffect.Position, Vector.Zero, PlayerEffect)
+        sfx:Play(ACTIVATESOUND, 1, 0, false, 1, 0) --placeholdersound
     else
         return
     end
@@ -508,20 +533,304 @@ function mod:CalculateTearsUp(currentMaxFireDelay, TearsAdded)
     return FireDelayToAdd
 end
 
+
+---------------CURSES/CHALLENGES-----------------
+-------------------------------------------------
+--all the code regarding the custom challenges and curses
+--since i'm a masochist, the curse callbacks are only added when needed just like the trinket's do
+
+
+-----------CALLBACK SYSTEM/CHALLENGE FUNCTIONALITY--------------------
+
+--restores the callbacks for the curses
+function mod:ChallengeSetup(Continued)
+    --challenge functionality reset
+    mod:RemoveCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, mod.ChallengeRoomClear)
+    mod:RemoveCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.ChallengeRoomEntrance)
+    mod:RemoveCallback(ModCallbacks.MC_PRE_GRID_ENTITY_DOOR_UPDATE, mod.DoorBehaviour)
+    mod:RemoveCallback(ModCallbacks.MC_POST_PICKUP_INIT, mod.CoinWaveSpawn, PickupVariant.PICKUP_COIN)
+
+    --curse functions reset
+    mod:RemoveCallback(ModCallbacks.MC_POST_NPC_INIT, mod.CurseNPCInit)
+    mod:RemoveCallback(ModCallbacks.MC_PRE_NPC_UPDATE, mod.CurseNPCUpdate)
+
+    --only adds the required callbacks if it's a challenge
+    if mod:Contained(Challenges, Game.Challenge) then
+        --sets starting money
+        if not Continued then
+            Game:GetPlayer(0):AddCoins(4)
+        end
+        mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, mod.ChallengeRoomClear)
+        mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.ChallengeRoomEntrance)
+        mod:AddCallback(ModCallbacks.MC_PRE_GRID_ENTITY_DOOR_UPDATE, mod.DoorBehaviour)
+        mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT, mod.CoinWaveSpawn, PickupVariant.PICKUP_COIN)
+        
+        local CurrentCurse = Game:GetLevel():GetCurses()
+        if CurrentCurse == AllCurses.THE_WALL then
+            mod:AddCallback(ModCallbacks.MC_POST_NPC_INIT, mod.CurseNPCInit)
+            mod:AddCallback(ModCallbacks.MC_PRE_NPC_UPDATE, mod.CurseNPCUpdate)
+        end      
+    end
+end
+mod:AddPriorityCallback(ModCallbacks.MC_POST_GAME_STARTED, CallbackPriority.LATE ,mod.ChallengeSetup)
+
+
+
+--chooses a random custom curse when needed
+function mod:ChooseChallengeCurse(_)
+    --print("curse eval")
+    --if Challengecurses is something, then the floor's curse was already chosen
+    if mod:Contained(Challenges, Game.Challenge) then
+        --curses callbacks reset
+        mod:RemoveCallback(ModCallbacks.MC_POST_NPC_INIT, mod.CurseNPCInit)
+        mod:RemoveCallback(ModCallbacks.MC_PRE_NPC_UPDATE, mod.CurseNPCUpdate)
+
+        local RNG = RNG(Seed)
+        local ChosenCurse = RNG:RandomInt(1, #NormalCurses)
+        --only adds the required callbacks to make the curse function
+        if NormalCurses[ChosenCurse] == AllCurses.THE_WALL then
+            --print("wall chosen")
+            mod:AddCallback(ModCallbacks.MC_POST_NPC_INIT, mod.CurseNPCInit)
+            mod:AddCallback(ModCallbacks.MC_PRE_NPC_UPDATE, mod.CurseNPCUpdate)
+        end
+        return NormalCurses[ChosenCurse]
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_CURSE_EVAL, mod.ChooseChallengeCurse)
+
+
+--sets the ammont of coins spawned when waves are cleared
+function mod:ChallengeRoomClear()
+    --print("clear")
+    local Wave = Game:GetLevel().GreedModeWave
+    --print(Wave)
+    if Wave == 9 then
+        local Player = Game:GetPlayer(0)
+
+        local Interests = math.floor(Player:GetNumCoins()/5)
+        if Interests > 5 then
+            Interests = 5
+        end
+
+        Player:AddCoins(3)
+        mod:EffectConverter(9, 3,Player,4)
+
+        Isaac.CreateTimer(function ()
+            for i = 1, Interests, 1 do
+                Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position , RandomVector() * 3, Player, CoinSubType.COIN_PENNY, Seed)
+                mod:EffectConverter(8,0,Player,4)
+            end 
+        end, 21, 1, true)
+    
+    elseif Wave == 10 then
+        TrinketValues.ShopEntered = false
+        local Player = Game:GetPlayer(0)
+
+        local Interests = math.floor(Player:GetNumCoins()/5)
+        if Interests > 5 then
+            Interests = 5
+        end
+
+        Player:AddCoins(4)
+        mod:EffectConverter(9, 4,Player,4)
+
+        Isaac.CreateTimer(function ()
+            for i = 1, Interests, 1 do
+                Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position , RandomVector() * 3, Player, CoinSubType.COIN_PENNY, Seed)
+                mod:EffectConverter(8,0,Player,4)
+            end 
+        end, 21, 1, true)
+    elseif Wave == 11 then
+        TrinketValues.ShopEntered = false
+        local Player = Game:GetPlayer(0)
+
+        local Interests = math.floor(Player:GetNumCoins()/5)
+        if Interests > 5 then
+            Interests = 5
+        end
+
+        Player:AddCoins(5)
+        mod:EffectConverter(9, 5,Player,4)
+
+        Isaac.CreateTimer(function ()
+            for i = 1, Interests, 1 do
+                Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position , RandomVector() * 3, Player, CoinSubType.COIN_PENNY, Seed)
+                mod:EffectConverter(8,0,Player,4)
+            end 
+        end, 21, 1, true)
+    end
+end
+--mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, mod.ChallengeRoomClear)
+
+function mod:ChallengeRoomEntrance()
+    local Room =  Game:GetRoom()
+    print(TrinketValues.ShopEntered)
+    if Room:GetType() == RoomType.ROOM_SHOP and not TrinketValues.ShopEntered then
+        print("restock")
+        Room:ShopRestockFull()
+    elseif Room:GetType() == RoomType.ROOM_GREED_EXIT then
+        --for some reason it's bugges and the trapdoor for the next floor won't spawn
+        Isaac.GridSpawn(GridEntityType.GRID_TRAPDOOR, 0, Room:GetCenterPos())
+    end
+end
+--mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.ChallengeRoomEntrance)
+
+--this part is kind of complicated, so hope i explained it well in the code
+
+--the shops and cursed rooms only open when you completed the wave chunks (normal-boss-nightmare) and NOT in the middle of them
+--the golden treasure is always closed, while the silver one is always open 
+--the nightmare wave is now mandatory to finish the floor
+---@param Door GridEntityDoor
+function mod:DoorBehaviour(Door)
+
+    --door cannot be closed if it leads back to the startin room/if it's a silver treasure/if it's a secret room door
+    if not(Door.TargetRoomType == RoomType.ROOM_DEFAULT or Door.TargetRoomType == RoomType.ROOM_BOSS) and Door:GetGridIndex() ~= 179 and Door.TargetRoomType ~= RoomType.ROOM_SUPERSECRET and Door.CurrentRoomType ~= RoomType.ROOM_SUPERSECRET then
+
+        --always closes golden treasure
+        if Door.TargetRoomType == RoomType.ROOM_TREASURE then
+            Door:Bar()
+        
+        else
+            local Wave = Game:GetLevel().GreedModeWave
+            if Wave ~= 10 then --waves between the three segments
+            
+                if Wave ~= 11 then 
+
+                    --closes the exit if it's not after the nightmare wave
+                    if Door.TargetRoomType == RoomType.ROOM_GREED_EXIT then
+                        Door:Bar()
+
+                    --closes all doors when it's not an in-between of the waves
+                    elseif Wave ~= 9 then
+                        Door:Bar()
+                    end
+                end
+            else --wave 10 (between boss and nightmare)
+            
+                --closes the exit after the boss waves
+                if Door.TargetRoomType == RoomType.ROOM_GREED_EXIT then
+                    Door:Bar()
+                end
+            end
+        end
+    end    
+end
+--mod:AddCallback(ModCallbacks.MC_PRE_GRID_ENTITY_DOOR_UPDATE, mod.DoorBehaviour)
+
+---@param Pickup EntityPickup
+function mod:CoinWaveSpawn(Pickup)
+    local Spawner = Pickup.SpawnerEntity
+
+    --the coins given between waves in greed mode have a nil spawner variable
+    if not Spawner then
+        Pickup:Morph(1000, Nothing, 0, false, false, false) --entity which literally does nothing and is invisible
+    end
+
+end 
+--mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT, mod.CoinWaveSpawn, PickupVariant.PICKUP_COIN)
+
+
+function mod:ShopItems(Variant, SubType, _, Price)
+    local NewPrice = Price
+    if Variant == PickupVariant.PICKUP_COLLECTIBLE then
+        local Quality = ItemsConfig:GetCollectible(SubType).Quality
+        NewPrice = 2 + (math.ceil(1.83 ^ Quality)) -- |Q0 2 |Q1 4|Q2 6|Q3 9|Q4 13|
+
+        if Game:GetRoom():GetType() == RoomType.ROOM_DEVIL then --little discount for devil deals
+            NewPrice = NewPrice - math.floor(NewPrice/4) -- |Q0 2|Q1 3|Q2 5|Q3 7|Q4 10|
+        end
+
+    elseif Variant == PickupVariant.PICKUP_TAROTCARD then
+        NewPrice = 4
+    elseif Variant == PickupVariant.PICKUP_TRINKET then
+        NewPrice = 5
+        local TrinketConfig = ItemsConfig:GetTrinket(SubType)
+        if TrinketConfig:HasCustomTag("givescoins") then --increases cost if the trinket can give you money
+            local Tags = TrinketConfig:GetCustomTags()
+            NewPrice = NewPrice + 6 - #Tags
+        end
+    elseif Variant == PickupVariant.PICKUP_LIL_BATTERY or Variant == PickupVariant.PICKUP_BOMB or Variant == PickupVariant.PICKUP_HEART or Variant == PickupVariant.PICKUP_PILL then
+        NewPrice = 2
+    end
+
+    return NewPrice
+end
+mod:AddCallback(ModCallbacks.MC_GET_SHOP_ITEM_PRICE, mod.ShopItems)
+
+
+function mod:ChallengeTrinkets(Trinket, _)
+    local FirstTag = ItemsConfig:GetTrinket(Trinket):GetCustomTags()[1] --the mod's trinkets all have a specific first customtag
+    
+    if not (FirstTag == "mult" or FirstTag == "chips" or FirstTag == "activate" or FirstTag == "multm") then
+        repeat
+            Trinket = ItemPool:GetTrinket()
+            FirstTag = ItemsConfig:GetTrinket(Trinket):GetCustomTags()[1]
+        --only allows mod's trinkets to be chosen
+        until FirstTag == "mult" or FirstTag == "chips" or FirstTag == "activate" or FirstTag == "multm"
+        return Trinket
+    end
+end
+mod:AddCallback(ModCallbacks.MC_GET_TRINKET, mod.ChallengeTrinkets)
+
+
+-------------------CURSES FUNCTIONS--------------------------
+
+----------------WALL--------------------------
+---@param Entity EntityNPC 
+function mod:CurseNPCInit(Entity)
+    --print(Entity.Type)
+    local Level = Game:GetLevel()
+    if Level:GetCurses() & AllCurses.THE_WALL == AllCurses.THE_WALL then
+        --bosses gain a bit less buff
+        if Entity:IsBoss() then
+            Entity.MaxHitPoints = (Entity.MaxHitPoints * 1.3) + 10
+            Entity.HitPoints = (Entity.HitPoints * 1.3) + 10
+            Entity.Size = Entity.Size * 1.2 --Hitbox size
+            Entity.Scale = Entity.Scale * 1.2 --sprite size (also increases projectile size)
+        --normal enemies 
+        elseif Entity.Type ~= EntityType.ENTITY_FIREPLACE and Entity.Type ~= EntityType.ENTITY_MOVABLE_TNT and Entity.Type ~= EntityType.ENTITY_SHOPKEEPER then
+
+            Entity.MaxHitPoints = (Entity.MaxHitPoints * 1.4) + 1
+            Entity.HitPoints = (Entity.HitPoints * 1.4) + 1
+            Entity.Size = Entity.Size * 1.3 --hitbox size
+            Entity.Scale = Entity.Scale * 1.3 --sprite size
+        end
+    end
+end
+--mod:AddCallback(ModCallbacks.MC_POST_NPC_INIT, mod.CurseNPCInit)
+
+
+---@param Entity EntityNPC 
+function mod:CurseNPCUpdate(Entity)
+    --print("enemy update "..Entity.Type)
+    local Level = Game:GetLevel()
+    if Level:GetCurses() & AllCurses.THE_WALL == AllCurses.THE_WALL then
+        --print("wall")
+        if Entity:IsEnemy() then
+            Entity.Velocity = Entity.Velocity * 0.85
+        end
+    end
+end
+--mod:AddCallback(ModCallbacks.MC_PRE_NPC_UPDATE, mod.CurseNPCUpdate)
+
+
 --------------TRINKETS/ITEMS CALLBACKS---------------
 -----------------------------------------------------
+
 --all of the callbacks used by the trinkets and items made by this mod
 
 --STATS TRINKETS: their value is increassed/decreades in their assingned callbacks
                 --while the statups are given in their cache evaluation functions
 
 --ACTIVATE TRINKETS: usually all they do is put in function called whenever it needs to activate,
-                --   which are inside of the cache evaluation functions
+                --   which are inside the section of the cache evaluation functions
 
-function mod:OnGetTrinket(Selected, _)
-    if TrinketValues.MichaelDestroyed then
-        if TrinketValues.GoldenMichelGone then
-            local RNG = RNG(Seed)
+function mod:OnGetTrinket(Selected, SEED)
+    if TrinketValues.MichaelDestroyed then--michael was destroyed previously
+
+        if TrinketValues.GoldenMichelGone then --3% to replace with cavendish if a golden michael was destroyed
+            local RNG = RNG(SEED)
+
             if RNG:RandomFloat() <= 0.03 then
                 return Cavendish
             end
@@ -534,8 +843,9 @@ function mod:OnGetTrinket(Selected, _)
             return Trinket
         end
 
-    else
-        if Selected == Cavendish  then
+    else--michael was not destroyed
+
+        if Selected == Cavendish then  --prevents cavemdish from being chosen
             local Trinket
             repeat
                 Trinket = ItemPool:GetTrinket()
@@ -549,7 +859,7 @@ mod:AddCallback(ModCallbacks.MC_GET_TRINKET, mod.OnGetTrinket)
 
 ---@param player EntityPlayer
 function mod:SpecificTrinket(player,trinket,_)
-    if trinket == Blueprint then  --yea it's a shitty way of doing it but who cares
+    if trinket == Blueprint then 
         mod:BluePrint(player, true)
     end
     if trinket == Brainstorm then
@@ -663,7 +973,6 @@ end
 --mod:AddCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE, mod.OnItemPickup)
 
 function mod:AlwaysOnNewRoom()
-    TrinketValues.Delayed_gratification = true
     Room = Game:GetRoom():GetType()
     if Room == RoomType.ROOM_SHOP then
         TrinketValues.ShopEntered = true
@@ -682,7 +991,7 @@ function mod:AlwaysOnNewRoom()
         end
     end
 end
-mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.AlwaysOnNewRoom)
+mod:AddPriorityCallback(ModCallbacks.MC_POST_NEW_ROOM,CallbackPriority.LATE, mod.AlwaysOnNewRoom)
 
 function mod:OnNewRoom()
     for i=0, Game:GetNumPlayers()-1, 1 do --cycles through the players
@@ -710,6 +1019,7 @@ end
 
 --determines if shop/treasures can be skipped this floor
 function mod:AlwaysOnNewFloor()
+
     TrinketValues.Dna = true
     TrinketValues.Rocks = 0
     for i=0, Game:GetNumPlayers()-1, 1 do --cycles through the players
@@ -1221,7 +1531,7 @@ function mod:OnTakenDamage(player,_,_,_,_)
             until not player:HasTrinket(Ramen)
             player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, true)
             TrinketValues.Ramen = 1.3 --resets in case the player find another one
-            return --does nothing, just stops the function
+            return
         end
         player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, true)
     end
@@ -2059,6 +2369,7 @@ function mod:DelayedGratification(player)
         end
         mod:EffectConverter(3, 0, player, 4)
     end
+    TrinketValues.Delayed_gratification = true
 end
 
 ---------------------EGG------------------

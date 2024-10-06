@@ -15,24 +15,24 @@
 <!--CARDS || when a card is obtained/removed (includes cards,runes and pills)-->
 <!--ROCKS || when a rock is destroyed-->
 <!--RESTOCK || when a shop item is restocked-->
-
+<!--GIVESCOINS || increases its cost when appearing in the mod's challenge-->
 
 <items gfxroot="gfx/items/" version="1">
     <trinket gfx="invisiblejoker_trinket.png" name="Invisible joker" description="Now you see me, now you don't" customtags="activate newfloor"/>
-    <trinket gfx="rocket_trinket.png" name="Rocket" description="Blast off!" customtags="activate value newfloor"/>
-    <trinket gfx="goldenjoker_trinket.png" name="Golden joker" description="Ooh, so shiny!" customtags="activate newfloor"/>
+    <trinket gfx="rocket_trinket.png" name="Rocket" description="Blast off!" customtags="activate value newfloor givescoins"/>
+    <trinket gfx="goldenjoker_trinket.png" name="Golden joker" description="Ooh, so shiny!" customtags="activate newfloor givescoins"/>
     <trinket gfx="hallucination_trinket.png" name="Hallucination" description="Is it real?" customtags="activate bought"/>
     <trinket gfx="riffraff_trinket.png" name="Riff-raff" description="Better then nothing..." customtags="activate newfloor"/>
     <trinket gfx="vagabond_trinket.png" name="Vagabond" description="He lives under the Pontos" customtags="activate roomclear"/>
     <trinket gfx="blueprint_trinket.png" name="Blueprint" description="Your latest project" customtags="activate value items removal"/>
     <trinket gfx="brainstorm_trinket.png" name="Brainstorm" description="Your very first idea" customtags="activate value items removal"/>
-    <trinket gfx="smearedjoker_trinket.png" name="Smeared joker" description="Oops, my bad" customtags="activate hearts coins bombs keys"/>
+    <trinket gfx="smearedjoker_trinket.png" name="Smeared joker" description="Oops, my bad" customtags="activate hearts coins bombs keys givescoins"/>
     <trinket gfx="mrbones_trinket.png" name="Mr. Bones" description="Try again..." customtags="activate revive chancerevive"/>
-    <trinket gfx="roughgem_trinket.png" name="Rough gem" description="Who doesn't want one?" customtags="activate roomclear"/>
+    <trinket gfx="roughgem_trinket.png" name="Rough gem" description="Who doesn't want one?" customtags="activate roomclear givescoins"/>
     <trinket gfx="cartomancer_trinket.png" name="Cartomancer" description="Pick a card" customtags="activate newfloor"/>
-    <trinket gfx="dna_trinket.png" name="Dna" description="It copies" customtags="activate carduse activeuse"/>
+    <trinket gfx="dna_trinket.png" name="Dna" description="It duplicates" customtags="activate carduse activeuse"/>
     <trinket gfx="egg_trinket.png" name="Egg" description="Don't drop it!" customtags="activate value removal newfloor"/>
-    <trinket gfx="delayedgretification_trinket.png" name="Delayed gratification" description="play good, get rewards" customtags="activate roomclear newroom taken"/>
+    <trinket gfx="delayedgretification_trinket.png" name="Delayed gratification" description="play good, get rewards" customtags="activate roomclear taken givescoins"/>
 
     <trinket cache="flying" gfx="cloudnine_trinket.png" name="Cloud 9" description="Feels floaty... Sometimes" customtags="activate value hearts coins bombs keys"/>
     <trinket cache="damage" gfx="joker_trinket.png" name="Joker" description="It's just a classic" customtags="mult"/>
