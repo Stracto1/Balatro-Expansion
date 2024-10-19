@@ -1,6 +1,0 @@
-<entities anm2root="gfx/" version="5">
-    <entity anm2path="MultAnimation.anm2" id="1000" variant="3589" name="MultEffect"/>     
-    <entity anm2path="ChipsAnimation.anm2" id="1000" variant="3590" name="ChipsEffect"/>  
-    <entity anm2path="ActivateAnimation.anm2" id="1000" variant="3591" name="ActivateEffect"/>   
-    <entity anm2path="NothingAnim.anm2" id="1000" variant="3591" name="Nothing"/>
-</entities>
