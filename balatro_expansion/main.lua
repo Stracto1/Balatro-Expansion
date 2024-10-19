@@ -44,6 +44,9 @@ local Egg = Isaac.GetTrinketIdByName("Egg")
 local Dna = Isaac.GetTrinketIdByName("Dna")
 
 --------------------------------
+local The_Hand = Isaac.GetItemIdByName("The hand")
+---
+---
 local AllCurses = {}
 local NormalCurses = {}
 local BossCurses = {}
@@ -63,7 +66,6 @@ local PastKeys
 local MultEffect = Isaac.GetEntityVariantByName("MultEffect")
 local ChipsEffect = Isaac.GetEntityVariantByName("ChipsEffect")
 local ActivateEffect = Isaac.GetEntityVariantByName("ActivateEffect")
-local Nothing = Isaac.GetEntityVariantByName("Nothing")
 local PlayerWithEffect
 local LastWanted = 0
 local WantedEffect --needed to prevent effects from overlapping
@@ -75,6 +77,8 @@ local TextTypes = {"+","X","ACTIVATE!","EXTINCT!","VALUE UP!","UPGRADE!","SAFE!"
 ---------------------
 local Game = Game()
 local Seed
+---@type RNG
+local RunRNG 
 local PersistentGD
 local ItemsConfig = Isaac.GetItemConfig()
 local ItemPool = Game:GetItemPool()
@@ -114,14 +118,18 @@ TrinketValues.Supernova = {}
 TrinketValues.MichaelDestroyed = false
 TrinketValues.GoldenMichelGone = false
 TrinketValues.FirstBrain = true
-TrinketValues.Delayed_gratification = true
 TrinketValues.Dna = true
+TrinketValues.FullDeck = {}
+TrinketValues.DeckPointer = 1
 --OTHER VALUES
+TrinketValues.DamageTakenRoom = 0
+TrinketValues.DamageTakenFloor = 0
 TrinketValues.ShopEntered = false
 TrinketValues.TreasureEntered = false
 TrinketValues.Picked = {0}  --to prevent weird shenadigans
 TrinketValues.Tags = {}
 TrinketValues.EffectsAllowed = true
+local Suits = {"Spades", "Hearts", "Clubs", "Diamonds"}
 -----------------------------
 
 
@@ -142,12 +150,65 @@ TrinketValues.EffectsAllowed = true
 --to see the list of all the custom tags and how they work, see the items.xml file
 
 
+--[[
+LogoSprite:Load("gfx/ui/main menu/titlemenu.anm2", true)
+function mod:LogoAnimation()
+    if LogoSprite:IsLoaded() then
+        LogoSprite:
+        LogoSprite:ReplaceSpritesheet(2, "gfx/ui/main menu/logo_up.png", true)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_MAIN_MENU_RENDER, mod.LogoAnimation)
+
+]]--
+
+
+
+local jimboType = Isaac.GetPlayerTypeByName("Jimbo", false) -- Exactly as in the xml. The second argument is if you want the Tainted variant.
+local jesterhatCostume = Isaac.GetCostumeIdByPath("gfx/characters/gabriel_hair.anm2") -- Exact path, with the "resources" folder as the root
+local jesterstolesCostume = Isaac.GetCostumeIdByPath("gfx/characters/gabriel_stoles.anm2") -- Exact path, with the "resources" folder as the root
+
+local JimboCards = { BaseCards = Sprite()
+
+}
+
+JimboCards.BaseCards:Load("gfx/ui/HUD/BaseCards.anm2", true)
+---@param Player EntityPlayer
+function mod:PlayerRender(Player)
+    for i=0, 2, 1 do
+        local Card = 13 + i
+        --print(Card)
+        JimboCards.BaseCards.Offset = Vector(20 * i, -55)
+        JimboCards.BaseCards:SetAnimation(Suits[TrinketValues.FullDeck[Card].Suit], false)
+        JimboCards.BaseCards:SetFrame(TrinketValues.FullDeck[Card].Value)
+        JimboCards.BaseCards.Color.A = JimboCards.BaseCards.Color.A / (i+1)
+        JimboCards.BaseCards:Render(Isaac.WorldToRenderPosition(Player.Position))
+        JimboCards.BaseCards.Color:Reset()
+    end
+    TrinketValues.DeckPointer = TrinketValues.DeckPointer + 1
+end
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_RENDER, mod.PlayerRender)
+
+---@param player EntityPlayer
+function mod:GiveCostumesOnInit(player)
+    if player:GetPlayerType() ~= jimboType then
+        player:AddNullCostume(jesterhatCostume)
+        player:AddNullCostume(jesterstolesCostume)
+        
+        player:SetPocketActiveItem(The_Hand, ActiveSlot.SLOT_POCKET, true)
+        ItemPool:RemoveCollectible(The_Hand)
+    end
+
+end
+
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, mod.GiveCostumesOnInit)
+
 --VVVVV-- big ass code wall incoming -VVVVV-
 function mod:OnGameStart(Continued)
 
     PersistentGD = Isaac.GetPersistentGameData()
     Seed = Game:GetSeeds():GetStartSeed() --gets the run's seed
-
+    RunRNG = RNG(Seed)
     --removes every callback to prevent double callbacks on continues and to remove all of them on new runs
     mod:RemoveCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.OnNewRoom)
     mod:RemoveCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.OnNewFloor)
@@ -174,7 +235,7 @@ function mod:OnGameStart(Continued)
             --print("data")
             TrinketValues = json.decode(mod:LoadData())
         end
-    else
+    else --new run (reset all the saved values)
         mod:RemoveData()     --removes the saved trinket progress
         TrinketValues.LastMisprintDMG = 0
         TrinketValues.Fortune_Teller = 0
@@ -198,11 +259,31 @@ function mod:OnGameStart(Continued)
         TrinketValues.Labyrinth = 1
         TrinketValues.Sacrificial_dagger = 0
         TrinketValues.Swashbuckler = 0
+        TrinketValues.Egg = 3
+        TrinketValues.Supernova = {}
+        TrinketValues.Dna = true
+        TrinketValues.FullDeck = {}
+        TrinketValues.DeckPointer = 1
+        do
+        local index = 1
+        for i = 1, 4, 1 do --cycles between the suits
+            for j = 1, 13, 1 do --cycles for all the values
+                TrinketValues.FullDeck[index] = {}
+                TrinketValues.FullDeck[index].Suit = i --Spades - Hearts - clubs - diamonds
+                TrinketValues.FullDeck[index].Value = j
+                TrinketValues.FullDeck[index].Enhancement = 1
+                TrinketValues.FullDeck[index].Edition = 1
+                index = index +1
+            end
+        end
+        end
         if mod:Contained(Challenges, Game.Challenge) then
             TrinketValues.ShopEntered = true
         else
             TrinketValues.ShopEntered = false
         end
+        TrinketValues.DamageTakenRoom = 0
+        TrinketValues.DamageTakenFloor = 0
         TrinketValues.TreasureEntered = false
         TrinketValues.Picked = {0}  --to prevent weird shenadigans
         TrinketValues.Tags = {}
@@ -452,10 +533,11 @@ function mod:EffectConverter(TextType, Text, player, EffectID)
     if TextType == #TextTypes then
         Text = tostring(Text)..TextTypes[TextType]
     else
-        if TextType == 9 then --no need for numbers on certain occasions
+        if TextType == 9 then 
             Text = TextTypes[1]..tostring(Text)..TextTypes[9]
-        elseif TextType >= 3 then
+        elseif TextType >= 3 then --no need for numbers on certain occasions
             Text = ""
+        else
             Text = TextTypes[TextType]..tostring(Text)
         end
     end
@@ -509,6 +591,7 @@ end
 ----------------------------------------------------------------
 --general function used in the code
 
+--rounds down to numDecimal of spaces
 function mod:round(num, numDecimalPlaces)
     local mult = 10^(numDecimalPlaces or 0)
     return math.floor(num * mult + 0.5) / mult
@@ -533,7 +616,14 @@ function mod:CalculateTearsUp(currentMaxFireDelay, TearsAdded)
     return FireDelayToAdd
 end
 
-
+--returns a shuffled version of the given table
+function mod:Shuffle(table)
+    for i = #table, 2, -1 do
+        local j = RunRNG:RandomInt(i)
+        table[i], table[j] = table[j], table[i]
+    end
+    return table
+end
 ---------------CURSES/CHALLENGES-----------------
 -------------------------------------------------
 --all the code regarding the custom challenges and curses
@@ -547,6 +637,9 @@ function mod:ChallengeSetup(Continued)
     --challenge functionality reset
     mod:RemoveCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, mod.ChallengeRoomClear)
     mod:RemoveCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.ChallengeRoomEntrance)
+    mod:RemoveCallback(ModCallbacks.MC_GET_SHOP_ITEM_PRICE, mod.ShopItems)
+    mod:RemoveCallback(ModCallbacks.MC_GET_CARD, mod.ChallengeCards)
+    mod:RemoveCallback(ModCallbacks.MC_GET_TRINKET, mod.ChallengeTrinkets)
     mod:RemoveCallback(ModCallbacks.MC_PRE_GRID_ENTITY_DOOR_UPDATE, mod.DoorBehaviour)
     mod:RemoveCallback(ModCallbacks.MC_POST_PICKUP_INIT, mod.CoinWaveSpawn, PickupVariant.PICKUP_COIN)
 
@@ -561,6 +654,9 @@ function mod:ChallengeSetup(Continued)
             Game:GetPlayer(0):AddCoins(4)
         end
         mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, mod.ChallengeRoomClear)
+        mod:AddCallback(ModCallbacks.MC_GET_SHOP_ITEM_PRICE, mod.ShopItems)
+        mod:AddCallback(ModCallbacks.MC_GET_TRINKET, mod.ChallengeTrinkets)
+        mod:AddCallback(ModCallbacks.MC_GET_CARD, mod.ChallengeCards)
         mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.ChallengeRoomEntrance)
         mod:AddCallback(ModCallbacks.MC_PRE_GRID_ENTITY_DOOR_UPDATE, mod.DoorBehaviour)
         mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT, mod.CoinWaveSpawn, PickupVariant.PICKUP_COIN)
@@ -579,7 +675,6 @@ mod:AddPriorityCallback(ModCallbacks.MC_POST_GAME_STARTED, CallbackPriority.LATE
 --chooses a random custom curse when needed
 function mod:ChooseChallengeCurse(_)
     --print("curse eval")
-    --if Challengecurses is something, then the floor's curse was already chosen
     if mod:Contained(Challenges, Game.Challenge) then
         --curses callbacks reset
         mod:RemoveCallback(ModCallbacks.MC_POST_NPC_INIT, mod.CurseNPCInit)
@@ -622,7 +717,7 @@ function mod:ChallengeRoomClear()
             end 
         end, 21, 1, true)
     
-    elseif Wave == 10 then
+    elseif Wave == 11 then
         TrinketValues.ShopEntered = false
         local Player = Game:GetPlayer(0)
 
@@ -640,7 +735,7 @@ function mod:ChallengeRoomClear()
                 mod:EffectConverter(8,0,Player,4)
             end 
         end, 21, 1, true)
-    elseif Wave == 11 then
+    elseif Wave == 12 then
         TrinketValues.ShopEntered = false
         local Player = Game:GetPlayer(0)
 
@@ -664,9 +759,7 @@ end
 
 function mod:ChallengeRoomEntrance()
     local Room =  Game:GetRoom()
-    print(TrinketValues.ShopEntered)
     if Room:GetType() == RoomType.ROOM_SHOP and not TrinketValues.ShopEntered then
-        print("restock")
         Room:ShopRestockFull()
     elseif Room:GetType() == RoomType.ROOM_GREED_EXIT then
         --for some reason it's bugges and the trapdoor for the next floor won't spawn
@@ -692,9 +785,9 @@ function mod:DoorBehaviour(Door)
         
         else
             local Wave = Game:GetLevel().GreedModeWave
-            if Wave ~= 10 then --waves between the three segments
+            if Wave ~= 11 then --waves between the three segments
             
-                if Wave ~= 11 then 
+                if Wave ~= 12 then 
 
                     --closes the exit if it's not after the nightmare wave
                     if Door.TargetRoomType == RoomType.ROOM_GREED_EXIT then
@@ -719,14 +812,11 @@ end
 
 ---@param Pickup EntityPickup
 function mod:CoinWaveSpawn(Pickup)
-    local Spawner = Pickup.SpawnerEntity
-
     --the coins given between waves in greed mode have a nil spawner variable
-    if not Spawner then
-        Pickup:Morph(1000, Nothing, 0, false, false, false) --entity which literally does nothing and is invisible
+    if not Pickup.SpawnerEntity then
+        Pickup:Remove()
     end
-
-end 
+end
 --mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT, mod.CoinWaveSpawn, PickupVariant.PICKUP_COIN)
 
 
@@ -741,7 +831,17 @@ function mod:ShopItems(Variant, SubType, _, Price)
         end
 
     elseif Variant == PickupVariant.PICKUP_TAROTCARD then
-        NewPrice = 4
+        local CardType = ItemsConfig:GetCard(SubType).CardType
+        if CardType == ItemConfig.CARDTYPE_SPECIAL then
+            NewPrice = 4
+        elseif CardType == ItemConfig.CARDTYPE_SUIT or CardType == ItemConfig.CARDTYPE_TAROT_REVERSE then
+            NewPrice = 5
+        elseif CardType == ItemConfig.CARDTYPE_RUNE then
+            NewPrice = 3
+        else
+            NewPrice = 2
+        end
+
     elseif Variant == PickupVariant.PICKUP_TRINKET then
         NewPrice = 5
         local TrinketConfig = ItemsConfig:GetTrinket(SubType)
@@ -755,7 +855,7 @@ function mod:ShopItems(Variant, SubType, _, Price)
 
     return NewPrice
 end
-mod:AddCallback(ModCallbacks.MC_GET_SHOP_ITEM_PRICE, mod.ShopItems)
+--mod:AddCallback(ModCallbacks.MC_GET_SHOP_ITEM_PRICE, mod.ShopItems)
 
 
 function mod:ChallengeTrinkets(Trinket, _)
@@ -770,9 +870,19 @@ function mod:ChallengeTrinkets(Trinket, _)
         return Trinket
     end
 end
-mod:AddCallback(ModCallbacks.MC_GET_TRINKET, mod.ChallengeTrinkets)
+--mod:AddCallback(ModCallbacks.MC_GET_TRINKET, mod.ChallengeTrinkets)
 
-
+---@param Rng RNG
+function mod:ChallengeCards(Rng, SelectedCard, CanBeSuit, CanBeRunes, OnlyRunes)
+    --does not allow cards that generate too much money/ do useless things
+    if SelectedCard == Card.CARD_ACE_OF_DIAMONDS or SelectedCard == Card.CARD_SOUL_KEEPER or SelectedCard == Card.CARD_DIAMONDS_2 or SelectedCard == Card.CARD_GET_OUT_OF_JAIL then 
+        repeat
+            SelectedCard = ItemPool:GetCard(Rng:GetSeed(), CanBeSuit, CanBeRunes, OnlyRunes)
+        until SelectedCard ~= Card.CARD_ACE_OF_DIAMONDS or SelectedCard ~= Card.CARD_SOUL_KEEPER or SelectedCard ~= Card.CARD_DIAMONDS_2 or SelectedCard ~= Card.CARD_GET_OUT_OF_JAIL
+        return SelectedCard
+    end
+end
+--mod:AddCallback(ModCallbacks.MC_GET_CARD, mod.ChallengeCards)
 -------------------CURSES FUNCTIONS--------------------------
 
 ----------------WALL--------------------------
@@ -1019,7 +1129,7 @@ end
 
 --determines if shop/treasures can be skipped this floor
 function mod:AlwaysOnNewFloor()
-
+    TrinketValues.DamageTakenFloor = 0
     TrinketValues.Dna = true
     TrinketValues.Rocks = 0
     for i=0, Game:GetNumPlayers()-1, 1 do --cycles through the players
@@ -1048,6 +1158,7 @@ function mod:AlwaysOnNewFloor()
     local Stage = Level:GetAbsoluteStage()
     TrinketValues.ShopEntered = false
     TrinketValues.TreasureEntered = false
+    local LevelName = Level:GetName()
     if Stage == LevelStage.STAGE4_1 and not Greed  then
         if not PlayerManager.AnyoneHasTrinket(TrinketType.TRINKET_BLOODY_CROWN) then
             TrinketValues.TreasureEntered = true
@@ -1055,18 +1166,18 @@ function mod:AlwaysOnNewFloor()
         if not PlayerManager.AnyoneHasTrinket(TrinketType.TRINKET_SILVER_DOLLAR) then
             TrinketValues.ShopEntered = true
         end
-    elseif Level:GetName() == "Sheol" and not Greed then
+    elseif LevelName == "Sheol" and not Greed then
         if not PlayerManager.AnyoneHasTrinket(TrinketType.TRINKET_WICKED_CROWN) then
             TrinketValues.TreasureEntered = true
             TrinketValues.ShopEntered = true
         end
 
-    elseif Level:GetName() == "Cathedral" then
+    elseif LevelName == "Cathedral" then
         if not PlayerManager.AnyoneHasTrinket(TrinketType.TRINKET_HOLY_CROWN) then
             TrinketValues.TreasureEntered = true
             TrinketValues.ShopEntered = true
         end
-    elseif Level:GetName() == "Shop" then --greed mode floor
+    elseif LevelName == "Shop" then --greed mode floor
         TrinketValues.TreasureEntered = true
     elseif Stage >= LevelStage.STAGE6 then --anything after sheol/cathedral
         TrinketValues.TreasureEntered = true
@@ -1288,7 +1399,7 @@ function mod:OnPickupCollision(pickup, collider,_)
         end
 
         if pickup.Variant == PickupVariant.PICKUP_COIN then 
- 
+        
         elseif pickup.Variant == PickupVariant.PICKUP_KEY then
             
         elseif pickup.Variant == PickupVariant.PICKUP_BOMB then
@@ -1459,29 +1570,25 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.OnUpdate)
 ---@param player EntityPlayer
 function mod:OnRoomClear(player)
     --print("cleared")
-    if player:HasTrinket(Icecream) then
-        WantedEffect = Icecream
-        TrinketValues.Ice_cream = TrinketValues.Ice_cream - 0.05
-        if TrinketValues.Ice_cream <= 0 then
-            repeat
-                player:TryRemoveTrinket(Icecream)
-                player:TryRemoveSmeltedTrinket(Icecream)
-            until not player:HasTrinket(Icecream)
-            player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
-            TrinketValues.Ice_cream = 1 --resets in case the player find another one
-            return --does nothing, just stops the function
+
+    --MANY TRINKETS ONLY ACTIVATE IN GREED MODE WHEN THE MAJOR WAVE CHUNKS ARE COMPLETED
+    local Wave = Game:GetLevel().GreedModeWave --current wave in greed mode
+    local WantedWaves = {}
+    local IsGreed = Game:IsGreedMode()
+    if IsGreed then
+        if Game:IsHardMode() then
+            WantedWaves = {9,11,12} --greedier last waves
+        else
+            WantedWaves = {8,10,11} --greed last waves
         end
-        player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
     end
+    --if greed then only on specific waves, else happens anyways
+    if not IsGreed or mod:Contained(WantedWaves, Wave) or Game:GetLevel():GetName() == "shop" then
+        --print("consider clear")
     if player:HasTrinket(Vagabond) then
         --print("vagabond")
         WantedEffect = Vagabond
         mod:VAgabond(player)
-    end
-    if player:HasTrinket(Green_joker) then
-        WantedEffect = Green_joker
-        TrinketValues.Green_joker = TrinketValues.Green_joker + (0.04 * player:GetTrinketMultiplier(Green_joker))
-        player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, true)
     end
     if player:HasTrinket(Rough_gem) then
         WantedEffect = Rough_gem
@@ -1503,6 +1610,30 @@ function mod:OnRoomClear(player)
         WantedEffect = Loyalty_card
         player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, true)
     end
+    if player:HasTrinket(Delayed_gratification) then
+        mod:DelayedGratification(player)
+    end
+    end
+    --EXCEPTIONS TO THE GREED MODE WAVE CHECK
+    if player:HasTrinket(Icecream) then
+        WantedEffect = Icecream
+        TrinketValues.Ice_cream = TrinketValues.Ice_cream - 0.05
+        if TrinketValues.Ice_cream <= 0 then
+            repeat
+                player:TryRemoveTrinket(Icecream)
+                player:TryRemoveSmeltedTrinket(Icecream)
+            until not player:HasTrinket(Icecream)
+            player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
+            TrinketValues.Ice_cream = 1 --resets in case the player find another one
+            return --does nothing, just stops the function
+        end
+        player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
+    end
+    if player:HasTrinket(Green_joker) then
+        WantedEffect = Green_joker
+        TrinketValues.Green_joker = TrinketValues.Green_joker + (0.04 * player:GetTrinketMultiplier(Green_joker))
+        player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, true)
+    end
     if player:HasTrinket(Supernova) then
         for i = 0, 1, 1 do
             local Active = player:GetActiveItem(i)
@@ -1513,11 +1644,14 @@ function mod:OnRoomClear(player)
         WantedEffect = Supernova
         player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, true)
     end
-    if player:HasTrinket(Delayed_gratification) then
-        mod:DelayedGratification(player)
-    end
 end
 --mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, mod.OnRoomClear)
+
+function mod:AlwaysOnTakenDamage(_)
+    TrinketValues.DamageTakenRoom = TrinketValues.DamageTakenRoom + 1
+    TrinketValues.DamageTakenFloor = TrinketValues.DamageTakenFloor + 1
+end
+mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, mod.AlwaysOnTakenDamage, EntityType.ENTITY_PLAYER)
 
 function mod:OnTakenDamage(player,_,_,_,_)
     player = player:ToPlayer() --initially it's a generic entity
@@ -1542,9 +1676,6 @@ function mod:OnTakenDamage(player,_,_,_,_)
         end
         WantedEffect = Green_joker
         player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, true)
-    end
-    if player:HasTrinket(Delayed_gratification) then
-        TrinketValues.Delayed_gratification = false
     end
 end
 --mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, mod.OnTakenDamage, EntityType.ENTITY_PLAYER)
@@ -2363,7 +2494,7 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.SuperNova, CacheFlag.CACHE_D
 ---------------DELAYED GRATIFICATION------------------
 ---@param player EntityPlayer
 function mod:DelayedGratification(player)
-    if TrinketValues.Delayed_gratification then
+    if TrinketValues.DamageTakenRoom == 0 then --gives coins if no damage is taken when compleating rooms
         for i = 1, player:GetTrinketMultiplier(Delayed_gratification), 1 do 
             Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, player.Position , RandomVector() * 3, player, CoinSubType.COIN_PENNY, Seed)
         end
