@@ -1,5 +1,5 @@
 <AnimatedActor>
-	<Info CreatedBy="stracto" CreatedOn="18/09/2024 18:50:20" Version="17" Fps="30"/>
+	<Info CreatedBy="stracto" CreatedOn="02/11/2024 11:42:58" Version="20" Fps="30"/>
 	<Content>
 		<Spritesheets>
 			<Spritesheet Path="sprites\sprite activate.png" Id="0"/>

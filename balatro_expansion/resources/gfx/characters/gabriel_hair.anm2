@@ -1,11 +1,11 @@
 <AnimatedActor>
-	<Info CreatedBy="robot" CreatedOn="10/12/2023 9:36:02 PM" Version="115" Fps="30"/>
+	<Info CreatedBy="robot" CreatedOn="31/10/2024 21:54:12" Version="116" Fps="30"/>
 	<Content>
 		<Spritesheets>
 			<Spritesheet Path="costumes\gabriel hair.png" Id="0"/>
 		</Spritesheets>
 		<Layers>
-			<Layer Name="head0" Id="0" SpritesheetId="0"/>
+			<Layer Name="head3" Id="0" SpritesheetId="0"/>
 		</Layers>
 		<Nulls/>
 		<Events/>
