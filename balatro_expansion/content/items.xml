@@ -65,5 +65,5 @@
 
 
 
-    <active name="The hand" charge="timed" maxcharges="30" quality="4" craftquality="-1" hidden="true" gfx="the_hand_active.png" description="Need a hand?" tags="noeden">
+    <active name="The hand" chargetype="special" maxcharges="0" quality="2" craftquality="2" gfx="the_hand_active.png" description="Need a hand?"/>
 </items>    

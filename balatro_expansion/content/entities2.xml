@@ -1,6 +1,29 @@
+   
 <entities anm2root="gfx/" version="5">
-    <entity anm2path="MultAnimation.anm2" id="1000" variant="3589" name="MultEffect"/>     
-    <entity anm2path="ChipsAnimation.anm2" id="1000" variant="3590" name="ChipsEffect"/>  
-    <entity anm2path="ActivateAnimation.anm2" id="1000" variant="3591" name="ActivateEffect"/>   
-    <entity anm2path="NothingAnim.anm2" id="1000" variant="3591" name="Nothing"/>
+     <!--EFFECTS-->
+    <entity anm2path="MultAnimation.anm2" id="1000" variant="3589" subtype="1" name="ActivateEffect"/>
+    <entity anm2path="ChipsAnimation.anm2" id="1000" variant="3589" subtype="2" name="ActivateEffect"/>
+    <entity anm2path="ActivateAnimation.anm2" id="1000" variant="3589" subtype="3" name="ActivateEffect"/>
+
+    <!--TEAR VARIANTS-->
+    <entity anm2path="SpadeCardAnimation.anm2" id="2" variant="3590" name="TearSpadeCard" 
+            numGridCollisionPoints="8" friction="1" shadowSize="8" stageHP="0" gibAmount="1">
+            <gibs amount="1" rock="1" dust="1" sound_bone="1"/>
+    </entity>
+<!--
+    <entity anm2path="HeartCardAnimation.anm2" id="2" variant="3590" subtype="2" name="TearCard" 
+            numGridCollisionPoints="8" ShadowSize="8" stageHP="0">
+            <gibs ammount="0" blood="0" bone="0" eye="0" gut="0" large="0"/>
+    </entity>
+
+    <entity anm2path="ClubCardAnimation.anm2" id="2" variant="3590" subtype="3" name="TearCard" 
+            numGridCollisionPoints="8" ShadowSize="8" stageHP="0">
+            <gibs ammount="0" blood="0" bone="0" eye="0" gut="0" large="0"/>
+    </entity>
+
+    <entity anm2path="DiamondCardAnimation.anm2" id="2" variant="3590" subtype="4" name="TearCard" 
+            numGridCollisionPoints="8" ShadowSize="8" stageHP="0">
+            <gibs ammount="0" blood="0" bone="0" eye="0" gut="0" large="0"/>
+    </entity>
+    -->
 </entities>
