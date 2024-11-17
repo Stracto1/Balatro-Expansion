@@ -37,7 +37,6 @@ function Balatro_Expansion:EffectSpawning(effect)
     end
     effect:FollowParent(PlayerWithEffect) --makes the effect follow Isaac
     EffectRotation = math.random(90)    --slightly changes the rotation to give a little life
-    
     --tha first time always shows, then if another effect already exists it cancels it
     if not FirtsEffect and LastEffect.Exists(LastEffect) then
         LastEffect:Remove()
@@ -137,7 +136,7 @@ function Balatro_Expansion:SpawnTheEffect(PlayerEffect, effectID, Text)
         Isaac.Spawn(1000, ActivateEffect, 3, PlayerEffect.Position, Vector.Zero, PlayerEffect):GetData()
         sfx:Play(ACTIVATESOUND, 1, 0, false, 1, 0)
 
-    elseif effectID == 5 then --slice()
+    elseif effectID == 5 then --slice
         Isaac.Spawn(1000, ActivateEffect, 1, PlayerEffect.Position, Vector.Zero, PlayerEffect):GetData()
         sfx:Play(SLICESOUND, 1, 0, false, 1, 0)
 

@@ -63,9 +63,9 @@ function Balatro_Expansion:OnGameStart(Continued)
         TrinketValues.Supernova = {}
         TrinketValues.Dna = true
         TrinketValues.FullDeck = {}
-        if PlayerManager.AnyoneIsPlayerType(Balatro_Expansion.JimboType) then
+        if PlayerManager.AnyoneIsPlayerType(Balatro_Expansion.Characters.JimboType) then
             local index = 1
-            for i = 0, 3, 1 do --cycles between the suits
+            for i = 1, 4, 1 do --cycles between the suits
                 for j = 1, 13, 1 do --cycles for all the values
                     TrinketValues.FullDeck[index] = {}
                     TrinketValues.FullDeck[index].Suit = i --Spades - Hearts - clubs - diamonds
@@ -77,7 +77,7 @@ function Balatro_Expansion:OnGameStart(Continued)
             end
             for i = 0, Game:GetNumPlayers()-1, 1 do
                 local Player = Game:GetPlayer(i)
-                if Player:GetPlayerType() == Balatro_Expansion.JimboType then
+                if Player:GetPlayerType() == Balatro_Expansion.Characters.JimboType then
                     local HandRNG = Player:GetCollectibleRNG(CollectibleType.COLLECTIBLE_THE_HAND)
                     TrinketValues.FullDeck = Balatro_Expansion:Shuffle(TrinketValues.FullDeck, HandRNG)
                     break

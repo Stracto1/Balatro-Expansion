@@ -16,13 +16,22 @@ function Balatro_Expansion:Contained(list, x)
 	return false
 end
 
+
 function Balatro_Expansion:CalculateTearsUp(currentMaxFireDelay, TearsAdded)
-    --big ass math jumpscare (CHAT GPT moment) needed to give a stable tears up (like pisces)
+    --big ass math jumpscare (CHAT GPT moment) needed to give a stable tears up (like pisces does)
     local currentTearsPerSecond = 30 / (currentMaxFireDelay + 1)
     local targetTearsPerSecond = currentTearsPerSecond + TearsAdded
-    local FireDelayToAdd = currentMaxFireDelay - ((30 / targetTearsPerSecond) - 1) 
+    local FireDelayToAdd = currentMaxFireDelay - ((30 / targetTearsPerSecond) - 1)
 
     return FireDelayToAdd
+end
+
+function Balatro_Expansion:CalculateTearsValue(Player)
+    return 30 / (Player.MaxFireDelay + 1)
+end
+
+function Balatro_Expansion:CalculateMaxFireDelay(Tears)
+    return (30 - Tears)/Tears
 end
 
 --returns a shuffled version of the given table
@@ -53,7 +62,89 @@ function Balatro_Expansion:AddCardToHand(HandTable, card)
         HandTable[i] = HandTable[1]
         HandTable[1] = Temp
     end
-    return HandTable
+    --return HandTable
+end
+
+--determine the corresponding poker hand basing on the hand given
+function Balatro_Expansion:DeterminePokerHand(HandTable)
+    local ValidCardsNumber = 0
+    for _,Card in pairs(HandTable) do
+        if Card ~= 0 then
+            ValidCardsNumber = ValidCardsNumber + 1
+        end
+    end
+    --print(ValidCardsNumber)
+    local IsFlush = false
+    if ValidCardsNumber >= 4 then --no need to check if there aren't enough cards
+        IsFlush = Balatro_Expansion:IsFlush(HandTable)
+    end
+    local EqualCards = Balatro_Expansion:GetCardValueRepetitions(HandTable)
+
+    if EqualCards == 5 then
+        if IsFlush then
+            print("flush 5")
+            return
+        else
+            print("5 of a kind")
+            return
+        end
+    elseif EqualCards == 3.5 then
+        if IsFlush then
+            print("flush house")
+            return
+        else
+            print("full house")
+            return
+        end
+    end
+    local IsStraight = false
+    local IsRoyal = false
+
+    if ValidCardsNumber >= 4 then --no need to check if there aren't enough cards
+        local ValueTable = {}
+        for i, v in ipairs(HandTable) do
+            if v == 0 then
+                ValueTable[i] = 0
+            else
+                ValueTable[i] = TrinketValues.FullDeck[v].Value
+            end
+            print(ValueTable[i])
+        end
+        IsStraight,IsRoyal = Balatro_Expansion:IsStraight(ValueTable)
+    end
+
+    if IsFlush and not IsStraight then
+        print("flush")
+    end
+
+    if IsStraight then
+        if IsFlush then
+            if IsRoyal then
+                print("royal flush")
+                return
+            else
+                print("straight flush")
+                return
+            end
+        else
+            print("straight")
+            return
+        end
+    elseif EqualCards == 4 then
+        print("4 of a kind")
+        return
+    elseif EqualCards == 3 then
+        print("3 of a kind")
+        return
+    elseif EqualCards == 2.5 then
+        print("two pairs")
+        return
+    elseif EqualCards == 2 then
+        print("pair")
+        return
+    else
+        print("high card")
+    end
 end
 
 function Balatro_Expansion:IsFlush(HandTable)
