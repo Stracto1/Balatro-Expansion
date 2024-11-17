@@ -47,16 +47,19 @@ TrinketType.TRINKET_EGG = Isaac.GetTrinketIdByName("Egg")
 TrinketType.TRINKET_DNA = Isaac.GetTrinketIdByName("Dna")
 --------------------------------
 CollectibleType.COLLECTIBLE_THE_HAND = Isaac.GetItemIdByName("The hand")
-local HandHoldingFrames = 0
 ----------------------------------
+Balatro_Expansion.Characters = {}
+Balatro_Expansion.Characters.JimboType = Isaac.GetPlayerTypeByName("Jimbo", false) -- Exactly as in the xml. The second argument is if you want the Tainted variant.
+Balatro_Expansion.Suits = {}
+Balatro_Expansion.Suits.Spade = 1
+Balatro_Expansion.Suits.Heart = 2
+Balatro_Expansion.Suits.Club = 3
+Balatro_Expansion.Suits.Diamond = 4
 
-Balatro_Expansion.JimboType = Isaac.GetPlayerTypeByName("Jimbo", false) -- Exactly as in the xml. The second argument is if you want the Tainted variant.
-local jesterhatCostume = Isaac.GetCostumeIdByPath("gfx/characters/gabriel_hair.anm2") -- Exact path, with the "resources" folder as the root
-local jesterstolesCostume = Isaac.GetCostumeIdByPath("gfx/characters/gabriel_stoles.anm2") -- Exact path, with the "resources" folder as the root
-
-local JimboCards = {BaseCards = Sprite()
-}
-JimboCards.BaseCards:Load("gfx/ui/HUD/BaseCards.anm2", true)
+Balatro_Expansion.CARD_TEAR_VARIANTS = {Isaac.GetEntityVariantByName("Tear Spade Card"),
+                                        Isaac.GetEntityVariantByName("Tear Heart Card"),
+                                        Isaac.GetEntityVariantByName("Tear Club Card"),
+                                        Isaac.GetEntityVariantByName("Tear Diamond Card")}
 ---
 Balatro_Expansion.Challenges = {}
 Balatro_Expansion.Challenges.Balatro = Isaac.GetChallengeIdByName("Balatro")
@@ -74,9 +77,6 @@ Balatro_Expansion.WantedEffect = 0 --needed to prevent effects from overlapping
 local Game = Game()
 --local HUD = Game:GetHUD()
 
-local ItemPool = Game:GetItemPool()
-local sfx = SFXManager()
-local ChargeSprite = Sprite("gfx/chargebar.anm2")
 -------------------------------
 TrinketValues = {} --contains the "progress" for every trinket thet needs it and other stuff
 -------------BASE VALUES------------- (changed on game start or when loading data)
@@ -130,11 +130,6 @@ TrinketValues.Picked = {0}  --to prevent weird shenadigans
 TrinketValues.Tags = {}
 
 TrinketValues.EffectsAllowed = true
-
-local CARD_TEAR_VARIANTS = {Isaac.GetEntityVariantByName("TearSpadeCard")}
-local ENHANCEMENTS_ANIMATIONS = {"Base"}
-local WasTheHandHeld = false
-local IsHoldingCard = false --used to determine the effect of The Hand item
 -----------------------------
 
 
@@ -154,291 +149,41 @@ local IsHoldingCard = false --used to determine the effect of The Hand item
 
 --to see the list of all the custom tags and how they work, see the items.xml file
 
-require("Balatro_scripts.Callback_system")
+include("Balatro_scripts.Callback_system")
 
-local LogoSprite = Sprite()
-LogoSprite:Load("gfx/ui/main menu/titlemenu.anm2", true)
-LogoSprite:ReplaceSpritesheet(2, "gfx/ui/main menu/logo_up.png", true)
+--[[
+local LogoSprite = Sprite("gfx/ui/main menu/titlemenu.anm2",true)
+print(LogoSprite:GetAnimation())
 
+--LogoSprite:Load("gfx/ui/main menu/titlemenu.anm2", true)
 
-
-
----@param Player EntityPlayer
-function Balatro_Expansion:PlayerHeartsRender(_,HeartSprite,Position,HasCoTU,Player)
-    if Player:GetPlayerType() == Balatro_Expansion.JimboType then
-        --local Pindex = Player:GetPlayerIndex()
-
-        ----DECK RENERING----
-        JimboCards.BaseCards.Scale = Vector.One
-        for i=0, 2, 1 do
-            local Card = TrinketValues.FullDeck[TrinketValues.DeckPointer + i]
-            if Card then
-                JimboCards.BaseCards.Offset = Vector(85 + 17 * i, 0)
-                --SEE THE anm2 FILE TO UNDERSTAND BETTER THIS PART--
-                JimboCards.BaseCards:SetAnimation(ENHANCEMENTS_ANIMATIONS[Card.Enhancement], false) --sets the enhancement animation
-                JimboCards.BaseCards:SetFrame(4 * (Card.Value - 1) + Card.Suit) --sets the frame corresponding to the value and suit
-                -------------------------------------------------------------
-                JimboCards.BaseCards.Color.A = JimboCards.BaseCards.Color.A / (i+1) --reduces the transparency based on its order position
-                
-                --JimboCards.BaseCards:Render(Isaac.WorldToRenderPosition(Player.Position))
-                JimboCards.BaseCards:Render(Position)
-                JimboCards.BaseCards.Color:Reset()
-            end
-        end
-    end
-end
-Balatro_Expansion:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, Balatro_Expansion.PlayerHeartsRender)
-
-function Balatro_Expansion:OnJimboPocketRender(Player,CardSlot,Position,_,Scale)
-    if CardSlot == ActiveSlot.SLOT_POCKET then
-        ----HAND RENDERING----
-        JimboCards.BaseCards.Scale = Vector(0.8,0.8) * Scale
-
-        if Scale < 1 then --scale is lower if it's in a seconary slot (ex. holding a card in the primary slot)
-            JimboCards.BaseCards.Color.A = 0.5
-        end
-        for i=1, 5, 1 do --cycles between cards the plyer's hand
-            local Card = TrinketValues.FullDeck[TrinketValues.CurrentHand[i]]
-            if Card then
-                JimboCards.BaseCards.Offset = Vector(-30 + 13 * i, -15) * Scale
-                JimboCards.BaseCards:SetAnimation(ENHANCEMENTS_ANIMATIONS[Card.Enhancement], false) --sets the suit of the rendered card
-                JimboCards.BaseCards:SetFrame(4 * (Card.Value - 1) + Card.Suit) --sets the value of the randered card
-
-                JimboCards.BaseCards:Render(Position)
-            end
-        end
-        JimboCards.BaseCards.Color:Reset()
-    end
-end
-Balatro_Expansion:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_ACTIVE_ITEM, Balatro_Expansion.OnJimboPocketRender)
-
----@param player EntityPlayer
-function Balatro_Expansion:GiveCostumesOnInit(player)
-    if player:GetPlayerType() == Balatro_Expansion.JimboType then
-        player:AddNullCostume(jesterhatCostume)
-        player:AddNullCostume(jesterstolesCostume)
-        --print(The_Hand)
-        --player:AddCollectible(The_Hand, 0, true, ActiveSlot.SLOT_PRIMARY)
-        player:SetPocketActiveItem(CollectibleType.COLLECTIBLE_THE_HAND, ActiveSlot.SLOT_POCKET, true)
-        ItemPool:RemoveCollectible(CollectibleType.COLLECTIBLE_THE_HAND)
-    end
-end
-Balatro_Expansion:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, Balatro_Expansion.GiveCostumesOnInit)
-
----@param player EntityPlayer
-function Balatro_Expansion:TheHandUse(_,_, player, _,_,_)
-    if player:GetPlayerType() == Balatro_Expansion.JimboType then
-        Isaac.CreateTimer(function()
-            if HandHoldingFrames < 5 then --the button got released (add card to hand)
-                
-                if IsHoldingCard and TrinketValues.DeckPointer <= #TrinketValues.FullDeck then
-                    --jimbo is currently holding up a card 
-                    TrinketValues.CurrentHand = Balatro_Expansion:AddCardToHand(TrinketValues.CurrentHand, TrinketValues.DeckPointer)
-                    TrinketValues.DeckPointer = TrinketValues.DeckPointer + 1
-                else 
-                    --play the animation
-                    --(con animazione sparando onupdate spara la carta)
-                end
-    
-            else--player has held down the button (use the cards in hand)
-                --print("should use hand")
-                WasTheHandHeld = true
-                player:AnimateCollectible(CollectibleType.COLLECTIBLE_THE_HAND)
-            end
-        end, 6, 1, true)
-    end
-end
-Balatro_Expansion:AddCallback(ModCallbacks.MC_USE_ITEM, Balatro_Expansion.TheHandUse, CollectibleType.COLLECTIBLE_THE_HAND)
-
----@param Player EntityPlayer
-function Balatro_Expansion:OnJimboRender(Player)
-    if Player:GetPlayerType() ~= Balatro_Expansion.JimboType then
-        return
-    end
-
-    local pocketItem = Player:GetPocketItem(PillCardSlot.PRIMARY)
-    if pocketItem:GetType() ~= PocketItemType.ACTIVE_ITEM then --if player holds a pocketactive
-        return
-    end
-
-    local activeItemID = Player:GetActiveItem(pocketItem:GetSlot() - 1)
-    if activeItemID == CollectibleType.COLLECTIBLE_THE_HAND then --if that pocketactive is the hand
-
-        if Input.IsActionPressed(ButtonAction.ACTION_PILLCARD, Player.ControllerIndex) then
-            HandHoldingFrames = HandHoldingFrames + 1    
-            if WasTheHandHeld then
-                if HandHoldingFrames == 50 then --activates
-                    Balatro_Expansion:DeterminePokerHand(TrinketValues.CurrentHand)
-                    TrinketValues.CurrentHand = {0,0,0,0,0}
-                    sfx:Play(SoundEffect.SOUND_1UP)
-                    WasTheHandHeld = false
-                else
-                    ChargeSprite:SetAnimation("Charging")
-                    ChargeSprite:SetFrame(HandHoldingFrames * 2)
-                    local ProgressBar = ChargeSprite:GetLayer(1)
-
-                    ---@diagnostic disable-next-line: need-check-nil
-                    local BarColor = ProgressBar:GetColor()
-                    BarColor.BO = 0.9
-                    BarColor.GO = -0.3
-                    BarColor.RO = -1
-
-                    ---@diagnostic disable-next-line: need-check-nil
-                    ProgressBar:SetColor(BarColor)
-                    ChargeSprite.Offset = Vector(20,-20)
-                    ChargeSprite:Render(Isaac.WorldToRenderPosition(Player.Position))
-
-                    
-                end
-            end
-        else
-            HandHoldingFrames = 0
-            WasTheHandHeld = false
-        end
-    end
-end
-Balatro_Expansion:AddCallback(ModCallbacks.MC_POST_PLAYER_RENDER, Balatro_Expansion.OnJimboRender)
+--LogoSprite:ReplaceSpritesheet(2, "gfx/ui/main menu/logo_up.png", true)
+]]--
 
 
-function Balatro_Expansion:DeterminePokerHand(HandTable)
-    local ValidCardsNumber = 0
-    for _,Card in pairs(HandTable) do
-        if Card ~= 0 then
-            ValidCardsNumber = ValidCardsNumber + 1
-        end
-    end
-    --print(ValidCardsNumber)
-    local IsFlush = false
-    if ValidCardsNumber >= 4 then --no need to check if there aren't enough cards
-        IsFlush = Balatro_Expansion:IsFlush(HandTable)
-    end
-    local EqualCards = Balatro_Expansion:GetCardValueRepetitions(HandTable)
 
-    if EqualCards == 5 then
-        if IsFlush then
-            print("flush 5")
-            return
-        else
-            print("5 of a kind")
-            return
-        end
-    elseif EqualCards == 3.5 then
-        if IsFlush then
-            print("flush house")
-            return
-        else
-            print("full house")
-            return
-        end
-    end
-    local IsStraight = false
-    local IsRoyal = false
+include("Balatro_scripts.characters.jimbo")
 
-    if ValidCardsNumber >= 4 then --no need to check if there aren't enough cards
-        local ValueTable = {}
-        for i, v in ipairs(HandTable) do
-            if v == 0 then
-                ValueTable[i] = 0
-            else
-                ValueTable[i] = TrinketValues.FullDeck[v].Value
-            end
-            print(ValueTable[i])
-        end
-        IsStraight,IsRoyal = Balatro_Expansion:IsStraight(ValueTable)
-    end
-
-    if IsFlush and not IsStraight then
-        print("flush")
-    end
-
-    if IsStraight then
-        if IsFlush then
-            if IsRoyal then
-                print("royal flush")
-                return
-            else
-                print("straight flush")
-                return
-            end
-        else
-            print("straight")
-            return
-        end
-    elseif EqualCards == 4 then
-        print("4 of a kind")
-        return
-    elseif EqualCards == 3 then
-        print("3 of a kind")
-        return
-    elseif EqualCards == 2.5 then
-        print("two pairs")
-        return
-    elseif EqualCards == 2 then
-        print("pair")
-        return
-    else
-        print("high card")
-    end
-
-    
-    
-end
-
----@param Player EntityPlayer
-function Balatro_Expansion:FullDeckShuffle(Player)
-    if Player:GetPlayerType() == Balatro_Expansion.JimboType then
-        local HandRNG = Player:GetCollectibleRNG(CollectibleType.COLLECTIBLE_THE_HAND)
-        TrinketValues.FullDeck = Balatro_Expansion:Shuffle(TrinketValues.FullDeck, HandRNG)
-        TrinketValues.DeckPointer = 1
-        TrinketValues.CurrentHand = {0,0,0,0,0}
-    end 
-end
-Balatro_Expansion:AddCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, Balatro_Expansion.FullDeckShuffle)
-
----@param Tear EntityTear
-function Balatro_Expansion:OnJimboShoot(Tear)
-    local Player = Tear.Parent:ToPlayer()
-    if Player and Player:GetPlayerType() == Balatro_Expansion.JimboType then
-
-        Tear:ChangeVariant(CARD_TEAR_VARIANTS[1])
-        --Tear:ChangeVariant(CARD_TEAR_VARIANTS[TrinketValues.FullDeck[TrinketValues.DeckPointer].Suit])
-        --print(Tear.BaseScale)
-        local TearSprite = Tear:GetSprite()
-        TearSprite:Play("idle", true)
-        if TrinketValues.DeckPointer <= #TrinketValues.FullDeck then
-            TrinketValues.DeckPointer = TrinketValues.DeckPointer + 1
-        end
-    end
-end
-Balatro_Expansion:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, Balatro_Expansion.OnJimboShoot)
-
-
----@param Tear EntityTear
-function Balatro_Expansion:OnTearUpdate(Tear)
-    local TearSprite = Tear:GetSprite()
-    TearSprite.Rotation = math.deg(math.atan(Tear.Velocity.Y,Tear.Velocity.X))
-end
-Balatro_Expansion:AddCallback(ModCallbacks.MC_PRE_TEAR_RENDER, Balatro_Expansion.OnTearUpdate, CARD_TEAR_VARIANTS[1])
-
+include("Balatro_scripts.Custom_Cards")
+include("Balatro_scripts.Synergies")
 
 --------------------EFFECTS FUNCTIONS---------------------------
 ----------------------------------------------------------------
 --These functions make the whole additional gfx system work (both sound and graphics can be turend off in MOD CONFIG MENU)
-
-require("Balatro_scripts.Effects")
+include("Balatro_scripts.Effects")
 
 -----------------OTHER/OFTEN USED FUNCTIONS---------------------
 ----------------------------------------------------------------
 --general function used in the code
 
-require("Balatro_scripts.Utility")
+include("Balatro_scripts.Utility")
 
 ---------------CURSES/CHALLENGES-----------------
 -------------------------------------------------
 --all the code regarding the custom challenges and curses
 --since i'm a masochist, the curse callbacks are only added when needed just like the trinket's do
 
-require("Balatro_scripts.Challenges")
+include("Balatro_scripts.Challenges")
 
 -------------------CURSES FUNCTIONS--------------------------
 
@@ -492,14 +237,14 @@ end
 --ACTIVATE TRINKETS: usually all they do is put in a function called whenever it needs to activate,
                 --   which are inside the section of the cache evaluation functions
 
-require("Balatro_scripts.Trinket_Callbacks")
+include("Balatro_scripts.Trinket_Callbacks")
 
 ---------------------CACHE EVALUATION FUNCTIONS---------------------
 --------------------------------------------------------------------
 --these are all the cache evaluations for every trinekt/item
 --the functions for non-statup trinkets are also here
 
-require("Balatro_scripts.Trinkets_Effects")
+include("Balatro_scripts.Trinkets_Effects")
 --[[
 function Balatro_Expansion:Joker(player, _)
 
@@ -518,9 +263,9 @@ Balatro_Expansion:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Balatro_Expansion.
 
 ------------------EID----------------------
 -------------------------------------------
-require("Balatro_scripts.EID")
+include("Balatro_scripts.EID")
 
 -------------MOD CONFIG MENU -------------
 ------------------------------------------
-require("Balatro_scripts.ModConfigMenu")
+include("Balatro_scripts.ModConfigMenu")
 
