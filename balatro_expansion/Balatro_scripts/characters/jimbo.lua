@@ -119,8 +119,8 @@ function mod:TheHandUse(_,_, player, _,_,_)
         Isaac.CreateTimer(function()
             if HandHoldingFrames < 5 then --the button got released (add card to hand)
                 if IsHoldingCard and TrinketValues.DeckPointer <= #TrinketValues.FullDeck then
-                    --jimbo is already holding up a card
-                    mod:AddCardToHand(TrinketValues.CurrentHand, TrinketValues.DeckPointer-1)
+                    mod:AddCardToHand(TrinketValues.CurrentHand, TrinketValues.DeckPointer)
+                    TrinketValues.DeckPointer = TrinketValues.DeckPointer + 1
                     player:AnimatePickup(player:GetHeldSprite(), true, "HideItem")
                 end
 
