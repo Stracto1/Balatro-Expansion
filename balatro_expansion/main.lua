@@ -24,10 +24,10 @@ TrinketType.TRINKET_VAGABOND = Isaac.GetTrinketIdByName("Vagabond")
 TrinketType.TRINKET_RIFF_RAFF = Isaac.GetTrinketIdByName("Riff-raff")
 TrinketType.TRINKET_GOLDEN_JOKER = Isaac.GetTrinketIdByName("Golden joker")
 TrinketType.TRINKET_FORTUNETELLER = Isaac.GetTrinketIdByName("Fortune Teller")
-TrinketType.TRINEKT_BLUEPRINT = Isaac.GetTrinketIdByName("Blueprint")
+TrinketType.TRINKET_BLUEPRINT = Isaac.GetTrinketIdByName("Blueprint")
 TrinketType.TRINKET_BRAINSTORM = Isaac.GetTrinketIdByName("Brainstorm")
 TrinketType.TRINKET_SMEARED_JOKER = Isaac.GetTrinketIdByName("Smeared joker")
-TrinketType.TRINEKT_MADNESS = Isaac.GetTrinketIdByName("Madness")
+TrinketType.TRINKET_MADNESS = Isaac.GetTrinketIdByName("Madness")
 TrinketType.TRINKET_MR_BONES = Isaac.GetTrinketIdByName("Mr. Bones")
 TrinketType.TRINKET_ONIX_AGATE = Isaac.GetTrinketIdByName("Onyx agate")
 TrinketType.TRINKET_ARROWHEAD = Isaac.GetTrinketIdByName("Arrowhead")
@@ -71,65 +71,90 @@ Balatro_Expansion.BossCurses = {}
 Balatro_Expansion.AllCurses.THE_WALL = 1 << (Isaac.GetCurseIdByName("curse of the wall") - 1)
 
 Balatro_Expansion.NormalCurses[1] = Balatro_Expansion.AllCurses.THE_WALL
+
+Balatro_Expansion.BLINDS = {}
+Balatro_Expansion.BLINDS.SMALL = 0
+Balatro_Expansion.BLINDS.BIG = 1
+Balatro_Expansion.BLINDS.BOSS = 2
 ---------------------------------
 Balatro_Expansion.WantedEffect = 0 --needed to prevent effects from overlapping
+
+Balatro_Expansion.Fonts = {}
+Balatro_Expansion.Fonts.upheavalmini = Font()
+Balatro_Expansion.Fonts.upheavalmini:Load("resources/font/upheavalmini.fnt")
 ---------------------
 local Game = Game()
 --local HUD = Game:GetHUD()
 
+Balatro_Expansion.SavedValues = {} --every value thet needs to be store between game starts
 -------------------------------
-TrinketValues = {} --contains the "progress" for every trinket thet needs it and other stuff
+Balatro_Expansion.SavedValues.TrinketValues = {} --contains the "progress" for every trinket thet needs it
 -------------BASE VALUES------------- (changed on game start or when loading data)
-TrinketValues.LastMisprintDMG = 0
-TrinketValues.Fortune_Teller = 0
-TrinketValues.Stone_joker = 0
-TrinketValues.Ice_cream = 1
-TrinketValues.Popcorn = 2
-TrinketValues.Ramen = 1.3
-TrinketValues.Rocket = 3
-TrinketValues.Green_joker = 0
-TrinketValues.Red_card = 0
-TrinketValues.Blueprint = 0
-TrinketValues.Brainstorm = 0
-TrinketValues.Madness = 1
-TrinketValues.LastBPitem = 0
-TrinketValues.Flash_card = 0
-TrinketValues.Cloud_9 = 9
-TrinketValues.Loyalty_card = 6
-TrinketValues.Labyrinth = 1
-TrinketValues.Sacrificial_dagger = 0
-TrinketValues.Swashbuckler = 0
-TrinketValues.Egg = 3
-TrinketValues.Supernova = {}
-TrinketValues.MichaelDestroyed = false
-TrinketValues.GoldenMichelGone = false
-TrinketValues.FirstBrain = true
-TrinketValues.Dna = true
-TrinketValues.FullDeck = {} --the full deck of cards used by jimbo
+Balatro_Expansion.SavedValues.TrinketValues.LastMisprintDMG = 0
+Balatro_Expansion.SavedValues.TrinketValues.Fortune_Teller = 0
+Balatro_Expansion.SavedValues.TrinketValues.Stone_joker = 0
+Balatro_Expansion.SavedValues.TrinketValues.Ice_cream = 1
+Balatro_Expansion.SavedValues.TrinketValues.Popcorn = 2
+Balatro_Expansion.SavedValues.TrinketValues.Ramen = 1.3
+Balatro_Expansion.SavedValues.TrinketValues.Rocket = 3
+Balatro_Expansion.SavedValues.TrinketValues.Green_joker = 0
+Balatro_Expansion.SavedValues.TrinketValues.Red_card = 0
+Balatro_Expansion.SavedValues.TrinketValues.Blueprint = 0
+Balatro_Expansion.SavedValues.TrinketValues.Brainstorm = 0
+Balatro_Expansion.SavedValues.TrinketValues.Madness = 1
+Balatro_Expansion.SavedValues.TrinketValues.LastBPitem = 0
+Balatro_Expansion.SavedValues.TrinketValues.Flash_card = 0
+Balatro_Expansion.SavedValues.TrinketValues.Cloud_9 = 9
+Balatro_Expansion.SavedValues.TrinketValues.Loyalty_card = 6
+Balatro_Expansion.SavedValues.TrinketValues.Sacrificial_dagger = 0
+Balatro_Expansion.SavedValues.TrinketValues.Swashbuckler = 0
+Balatro_Expansion.SavedValues.TrinketValues.Egg = 3
+Balatro_Expansion.SavedValues.TrinketValues.Supernova = {}
+Balatro_Expansion.SavedValues.TrinketValues.MichaelDestroyed = false
+Balatro_Expansion.SavedValues.TrinketValues.GoldenMichelGone = false
+Balatro_Expansion.SavedValues.TrinketValues.FirstBrain = true
+Balatro_Expansion.SavedValues.TrinketValues.Dna = true
+
+-----------JIMBO-------------------
+Balatro_Expansion.SavedValues.Jimbo = {}
+Balatro_Expansion.SavedValues.Jimbo.FullDeck = {} --the full deck of cards used by jimbo
 do
 local index = 1
 for i = 1, 4, 1 do --cycles between the suits
     for j = 1, 13, 1 do --cycles for all the values
-        TrinketValues.FullDeck[index] = {}
-        TrinketValues.FullDeck[index].Suit = i --Spades - Hearts - clubs - diamonds
-        TrinketValues.FullDeck[index].Value = j
-        TrinketValues.FullDeck[index].Enhancement = 1
-        TrinketValues.FullDeck[index].Edition = 1
+        Balatro_Expansion.SavedValues.Jimbo.FullDeck[index] = {}
+        Balatro_Expansion.SavedValues.Jimbo.FullDeck[index].Suit = i --Spades - Hearts - clubs - diamonds
+        Balatro_Expansion.SavedValues.Jimbo.FullDeck[index].Value = j
+        Balatro_Expansion.SavedValues.Jimbo.FullDeck[index].Enhancement = 1
+        Balatro_Expansion.SavedValues.Jimbo.FullDeck[index].Edition = 1
         index = index +1
     end
 end
 end
-TrinketValues.DeckPointer = 1 --the card thet is going to be used
-TrinketValues.CurrentHand = {0,0,0,0,0} --the pointers of the cards in FullDeck that are stored in "the hand" active item
---OTHER VALUES
-TrinketValues.DamageTakenRoom = 0
-TrinketValues.DamageTakenFloor = 0
-TrinketValues.ShopEntered = false
-TrinketValues.TreasureEntered = false
-TrinketValues.Picked = {0}  --to prevent weird shenadigans
-TrinketValues.Tags = {}
+Balatro_Expansion.SavedValues.Jimbo.DeckPointer = 6 --the card thet is going to be picked next
+Balatro_Expansion.SavedValues.Jimbo.CurrentHand = {1,2,3,4,5} --the pointers of the cards in FullDeck that are stored in "the hand" active item
 
-TrinketValues.EffectsAllowed = true
+Balatro_Expansion.SavedValues.Jimbo.SmallBlind = 0
+Balatro_Expansion.SavedValues.Jimbo.BigBlind = 0
+Balatro_Expansion.SavedValues.Jimbo.ClearedRooms = 0
+Balatro_Expansion.SavedValues.Jimbo.SmallCleared = false
+Balatro_Expansion.SavedValues.Jimbo.BigCleared = false
+Balatro_Expansion.SavedValues.Jimbo.BossCleard = false
+Balatro_Expansion.SavedValues.Jimbo.StatsToAdd = {}
+Balatro_Expansion.SavedValues.Jimbo.StatsToAdd.Damage = 0
+Balatro_Expansion.SavedValues.Jimbo.StatsToAdd.Tears = 0
+--OTHER VALUES
+Balatro_Expansion.SavedValues.Other = {}
+Balatro_Expansion.SavedValues.Other.DamageTakenRoom = 0
+Balatro_Expansion.SavedValues.Other.DamageTakenFloor = 0
+Balatro_Expansion.SavedValues.Other.ShopEntered = false
+Balatro_Expansion.SavedValues.Other.TreasureEntered = false
+Balatro_Expansion.SavedValues.Other.Picked = {0}  --to prevent weird shenadigans
+Balatro_Expansion.SavedValues.Other.Tags = {}
+Balatro_Expansion.SavedValues.Other.Labyrinth = 1
+
+Balatro_Expansion.SavedValues.ModConfig = {}
+Balatro_Expansion.SavedValues.ModConfig.EffectsAllowed = true
 -----------------------------
 
 
@@ -161,11 +186,6 @@ print(LogoSprite:GetAnimation())
 ]]--
 
 
-
-include("Balatro_scripts.characters.jimbo")
-
-include("Balatro_scripts.Custom_Cards")
-include("Balatro_scripts.Synergies")
 
 --------------------EFFECTS FUNCTIONS---------------------------
 ----------------------------------------------------------------
@@ -236,6 +256,9 @@ end
 
 --ACTIVATE TRINKETS: usually all they do is put in a function called whenever it needs to activate,
                 --   which are inside the section of the cache evaluation functions
+include("Balatro_scripts.characters.jimbo")
+include("Balatro_scripts.Custom_Cards")
+include("Balatro_scripts.Synergies")
 
 include("Balatro_scripts.Trinket_Callbacks")
 
@@ -268,4 +291,3 @@ include("Balatro_scripts.EID")
 -------------MOD CONFIG MENU -------------
 ------------------------------------------
 include("Balatro_scripts.ModConfigMenu")
-
