@@ -1,3 +1,4 @@
+local mod = Balatro_Expansion
 
 local PlayerWithEffect
 local LastWanted = 0
@@ -18,8 +19,6 @@ local CHIPSSOUND = Isaac.GetSoundIdByName("CHIPSSFX")
 local SLICESOUND = Isaac.GetSoundIdByName("SLICESFX")
 
 local sfx = SFXManager()
-local Font = Font()
-Font:Load("resources/font/upheavalmini.fnt")
 
 --------------------EFFECTS FUNCTIONS---------------------------
 ----------------------------------------------------------------
@@ -28,7 +27,7 @@ Font:Load("resources/font/upheavalmini.fnt")
 
 
 ---@param effect EntityEffect
-function Balatro_Expansion:EffectSpawning(effect)
+function mod:EffectSpawning(effect)
     --sets the offset from the player
     if PlayerWithEffect.CanFly then
         effect.SpriteOffset = Vector(0, -39) * PlayerWithEffect.SpriteScale   --adjusts the position to over Isaac's head and scales it basing on how many effects there are
@@ -45,42 +44,42 @@ function Balatro_Expansion:EffectSpawning(effect)
     end
     LastEffect = effect
 end
---Balatro_Expansion:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT, Balatro_Expansion.EffectSpawning, MultEffect)
---Balatro_Expansion:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT, Balatro_Expansion.EffectSpawning, ChipsEffect)    --calls every time the custom effects are spawned
-Balatro_Expansion:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT, Balatro_Expansion.EffectSpawning, ActivateEffect)
+--mod:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT, mod.EffectSpawning, MultEffect)
+--mod:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT, mod.EffectSpawning, ChipsEffect)    --calls every time the custom effects are spawned
+mod:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT, mod.EffectSpawning, ActivateEffect)
 
 ---@param effect EntityEffect
-function Balatro_Expansion:OnEffectUpdate(effect)
+function mod:OnEffectUpdate(effect)
     local sprite = effect:GetSprite()
     sprite.Rotation = EffectRotation      --slightly changes the rotation to give a little life
     if not sprite:IsPlaying("idle") then  --removes the entity as the animation is finished
         effect:Remove()
     end
 end
---Balatro_Expansion:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, Balatro_Expansion.OnEffectUpdate, MultEffect)
---Balatro_Expansion:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, Balatro_Expansion.OnEffectUpdate, ChipsEffect)
-Balatro_Expansion:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, Balatro_Expansion.OnEffectUpdate, ActivateEffect)
+--mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, mod.OnEffectUpdate, MultEffect)
+--mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, mod.OnEffectUpdate, ChipsEffect)
+mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, mod.OnEffectUpdate, ActivateEffect)
 
-function Balatro_Expansion:OnEffectRender(_) 
-    local TextWidth = Font:GetStringWidth(EffectText)
+function mod:OnEffectRender(_) 
+    local TextWidth = mod.Fonts.upheavalmini:GetStringWidth(EffectText)
     local position
     if PlayerWithEffect.CanFly then
         position = Isaac.WorldToScreen(PlayerWithEffect.Position) + Vector(-TextWidth/2 ,(-39 * PlayerWithEffect.SpriteScale.Y )-4)    
     else
         position = Isaac.WorldToScreen(PlayerWithEffect.Position) + Vector(-TextWidth/2 ,(-35 * PlayerWithEffect.SpriteScale.Y )-4)
     end
-    Font:DrawString(EffectText, position.X, position.Y + 1, KColor(0.6,0.6,0.6,0.7),0,true) -- emulates little text shadow
-    Font:DrawString(EffectText, position.X, position.Y, KColor(1,1,1,1),0,true) --remember, always put these in render callbacks
+    mod.Fonts.upheavalmini:DrawString(EffectText, position.X, position.Y + 1, KColor(0.6,0.6,0.6,0.7),0,true) -- emulates little text shadow
+    mod.Fonts.upheavalmini:DrawString(EffectText, position.X, position.Y, KColor(1,1,1,1),0,true) --remember, always put these in render callbacks
 
 end
---Balatro_Expansion:AddCallback(ModCallbacks.MC_POST_EFFECT_RENDER, Balatro_Expansion.OnEffectRender, MultEffect)
---Balatro_Expansion:AddCallback(ModCallbacks.MC_POST_EFFECT_RENDER, Balatro_Expansion.OnEffectRender, ChipsEffect)
-Balatro_Expansion:AddCallback(ModCallbacks.MC_POST_EFFECT_RENDER, Balatro_Expansion.OnEffectRender, ActivateEffect)
+--mod:AddCallback(ModCallbacks.MC_POST_EFFECT_RENDER, mod.OnEffectRender, MultEffect)
+--mod:AddCallback(ModCallbacks.MC_POST_EFFECT_RENDER, mod.OnEffectRender, ChipsEffect)
+mod:AddCallback(ModCallbacks.MC_POST_EFFECT_RENDER, mod.OnEffectRender, ActivateEffect)
 
 --used to spawn the effect along with checking stuff easily
 --TYPE | 1 = + | 2 = X | 3 = activate | 4 = DESTROYED | 5 = VALUE UP
-function Balatro_Expansion:EffectConverter(TextType, Text, player, EffectID)     
-    if not TrinketValues.EffectsAllowed then
+function mod:EffectConverter(TextType, Text, player, EffectID)     
+    if not mod.SavedValues.ModConfig.EffectsAllowed then
         return
     end
 
@@ -100,25 +99,25 @@ function Balatro_Expansion:EffectConverter(TextType, Text, player, EffectID)
             Text = TEXT_TYPES[TextType]..tostring(Text)
         end
     end
-    Balatro_Expansion:SpawnTheEffect(player, EffectID, Text)
+    mod:SpawnTheEffect(player, EffectID, Text)
 end
 
 
 --ID: 1 = +Mult | 2 = *Mult | 3 = Chips | 4 = Activate | 5 = slice | 6 = money
-function Balatro_Expansion:SpawnTheEffect(PlayerEffect, effectID, Text) 
+function mod:SpawnTheEffect(PlayerEffect, effectID, Text) 
     PlayerWithEffect = PlayerEffect  --needed for followparent [see on effect init]
     
     --effects from different sources are displayed at an interval from each other instead of overriding
     --effects from the same source are cut off during the animation to spawn the second one
-    if (not FirtsEffect and LastEffect:Exists()) and (LastWanted ~= Balatro_Expansion.WantedEffect and 0) then
+    if (not FirtsEffect and LastEffect:Exists()) and (LastWanted ~= mod.WantedEffect and 0) then
         --print("delayed")
         Isaac.CreateTimer(function()
-                        Balatro_Expansion:SpawnTheEffect(PlayerEffect, effectID, Text)
+                        mod:SpawnTheEffect(PlayerEffect, effectID, Text)
                         end, 25, 1, false)
         return
     end
     EffectText = Text
-    --print(Balatro_Expansion.WantedEffect)
+    --print(mod.WantedEffect)
     --print("spawned")
     if effectID == 1 then --mult
         Isaac.Spawn(1000, ActivateEffect, 1, PlayerEffect.Position, Vector.Zero, PlayerEffect):GetData()
@@ -147,9 +146,9 @@ function Balatro_Expansion:SpawnTheEffect(PlayerEffect, effectID, Text)
     else
         return
     end
-    if Balatro_Expansion.WantedEffect ~= "MCdestroyed" and Balatro_Expansion.WantedEffect ~= "MCsafe" then
+    if mod.WantedEffect ~= "MCdestroyed" and mod.WantedEffect ~= "MCsafe" then
         ---@diagnostic disable-next-line: cast-local-type
-        LastWanted = Balatro_Expansion.WantedEffect
+        LastWanted = mod.WantedEffect
     end
-    Balatro_Expansion.WantedEffect = 0
+    mod.WantedEffect = 0
 end

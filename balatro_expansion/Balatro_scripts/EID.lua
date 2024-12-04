@@ -1,4 +1,5 @@
 if EID then
+    local mod = Balatro_Expansion
     local Game = Game()
     local ItemsConfig = Isaac.GetItemConfig()
     local Description
@@ -39,7 +40,7 @@ if EID then
                         Description = 9
                     elseif Trinket == TrinketType.TRINKET_CAVENDISH then
                         Description = 10
-                    elseif Trinket == TrinketType.TRINEKT_MADNESS or Trinket == TrinketType.TRINKET_SACRIFICIAL_DAGGER then
+                    elseif Trinket == TrinketType.TRINKET_MADNESS or Trinket == TrinketType.TRINKET_SACRIFICIAL_DAGGER then
                         Description = 12
                     end
                 else
@@ -54,7 +55,7 @@ if EID then
                         Description = 4
                     elseif Trinket == TrinketType.TRINKET_RIFF_RAFF then
                         Description = 5
-                    elseif Trinket == TrinketType.TRINEKT_BLUEPRINT or Trinket == TrinketType.TRINKET_BRAINSTORM then
+                    elseif Trinket == TrinketType.TRINKET_BLUEPRINT or Trinket == TrinketType.TRINKET_BRAINSTORM then
                         Description = 6
                     elseif Trinket == TrinketType.TRINKET_CLOUD_NINE then
                         Description = 7
@@ -107,7 +108,7 @@ if EID then
     EID:addDescriptionModifier("Balatro Flash card", BalatroFlashCondition, BalatroFlashCallback)
 
     local function BalatroKeeperHpMadnessCondition(descObj) -- descObj contains all informations about the currently described entity
-        if descObj.ObjType == EntityType.ENTITY_PICKUP and descObj.ObjVariant == PickupVariant.PICKUP_TRINKET and descObj.ObjSubType == TrinketType.TRINEKT_MADNESS then 
+        if descObj.ObjType == EntityType.ENTITY_PICKUP and descObj.ObjVariant == PickupVariant.PICKUP_TRINKET and descObj.ObjSubType == TrinketType.TRINKET_MADNESS then 
             if PlayerManager.AnyoneIsPlayerType(PlayerType.PLAYER_KEEPER) or PlayerManager.AnyoneIsPlayerType(PlayerType.PLAYER_KEEPER_B) then
                 return true
             end
@@ -135,7 +136,7 @@ if EID then
     EID:addDescriptionModifier("Balatro Keeper hp", BalatroKeeperHpDaggerCondition, BalatroKeeperHpDaggerCallback)
 
     local function BalatroLostHpCondition(descObj) -- descObj contains all informations about the currently described entity
-        if descObj.ObjType == EntityType.ENTITY_PICKUP and descObj.ObjVariant == PickupVariant.PICKUP_TRINKET and descObj.ObjSubType == TrinketType.TRINKET_SACRIFICIAL_DAGGER or descObj.ObjSubType == TrinketType.TRINEKT_MADNESS then 
+        if descObj.ObjType == EntityType.ENTITY_PICKUP and descObj.ObjVariant == PickupVariant.PICKUP_TRINKET and descObj.ObjSubType == TrinketType.TRINKET_SACRIFICIAL_DAGGER or descObj.ObjSubType == TrinketType.TRINKET_MADNESS then 
             if PlayerManager.AnyoneIsPlayerType(PlayerType.PLAYER_THELOST) or PlayerManager.AnyoneIsPlayerType(PlayerType.PLAYER_THELOST_B) then
                 return true
             end
@@ -190,16 +191,16 @@ if EID then
                             if player:HasTrinket(TrinketType.TRINKET_SUPERNOVA) then
                                 local FirstActive = player:GetActiveItem(0)
                                 local SecondActive = player:GetActiveItem(1)
-                                if TrinketValues.Supernova[FirstActive] and TrinketValues.Supernova[SecondActive] then
+                                if mod.SavedValues.TrinketValues.Supernova[FirstActive] and mod.SavedValues.TrinketValues.Supernova[SecondActive] then
                                     if FirstActive == 0 and SecondActive == 0 then
                                         ValueDescription = "#Currently: No {{Collectible}} Active item held"
                                         return true
                                     end
-                                    if TrinketValues.Supernova[FirstActive] >= TrinketValues.Supernova[SecondActive] and FirstActive ~= 0 then
-                                        ValueDescription = "#Currently: {{Collectible"..tostring(FirstActive).."}} gives {{Damage}} {{ColorRed}}+"..tostring(TrinketValues.Supernova[FirstActive]).."{{CR}} Damage "
+                                    if mod.SavedValues.TrinketValues.Supernova[FirstActive] >= mod.SavedValues.TrinketValues.Supernova[SecondActive] and FirstActive ~= 0 then
+                                        ValueDescription = "#Currently: {{Collectible"..tostring(FirstActive).."}} gives {{Damage}} {{ColorRed}}+"..tostring(mod.SavedValues.TrinketValues.Supernova[FirstActive]).."{{CR}} Damage "
                                         return true
                                     else
-                                        ValueDescription = "#Currently: {{Collectible"..tostring(SecondActive).."}} gives {{Damage}} {{ColorRed}}+"..tostring(TrinketValues.Supernova[SecondActive]).."{{CR}} Damage "
+                                        ValueDescription = "#Currently: {{Collectible"..tostring(SecondActive).."}} gives {{Damage}} {{ColorRed}}+"..tostring(mod.SavedValues.TrinketValues.Supernova[SecondActive]).."{{CR}} Damage "
                                         return true
                                     end
                                 end
@@ -209,39 +210,39 @@ if EID then
                         end
                         return false
                     else --anything other than supernova
-                        ValueDescription = "#Currently: {{Damage}} {{ColorRed}}+"..tostring(TrinketValues[Config.Name:gsub(" ","_")]).."{{CR}} Damage"
+                        ValueDescription = "#Currently: {{Damage}} {{ColorRed}}+"..tostring(mod.SavedValues.TrinketValues[Config.Name:gsub(" ","_")]).."{{CR}} Damage"
                         return true
                     end
 
                 elseif Config:HasCustomTag("multm") then
-                    ValueDescription = "#Currently: {{Damage}} {{ColorRed}}X"..tostring(TrinketValues[Config.Name:gsub(" ","_")]).."{{CR}} Damage Multiplier"
+                    ValueDescription = "#Currently: {{Damage}} {{ColorRed}}X"..tostring(mod.SavedValues.TrinketValues[Config.Name:gsub(" ","_")]).."{{CR}} Damage Multiplier"
                     return true
                 elseif Config:HasCustomTag("chips") then
-                    ValueDescription = "#Currently: {{Tears}} {{ColorCyan}}+"..tostring(TrinketValues[Config.Name:gsub(" ","_")]).."{{CR}} Tears "
+                    ValueDescription = "#Currently: {{Tears}} {{ColorCyan}}+"..tostring(mod.SavedValues.TrinketValues[Config.Name:gsub(" ","_")]).."{{CR}} Tears "
                     return true
                 else
                     --PUT ALL THE ACTIVATE JOKERS HERE
                     if Trinket == TrinketType.TRINKET_ROCKET then
-                        ValueDescription = "#Currently: "..tostring(TrinketValues.Rocket).." {{Coin}} Coins "
+                        ValueDescription = "#Currently: "..tostring(mod.SavedValues.TrinketValues.Rocket).." {{Coin}} Coins "
                         return true
                     elseif Trinket == TrinketType.TRINKET_CLOUD_NINE then
-                        ValueDescription = "#Currently: "..tostring(TrinketValues.Cloud_9).." pickups remaining"
+                        ValueDescription = "#Currently: "..tostring(mod.SavedValues.TrinketValues.Cloud_9).." pickups remaining"
                         return true
                     elseif Trinket == TrinketType.TRINKET_LOYALTY_CARD then
-                        ValueDescription = "#Currently: "..tostring(TrinketValues.Loyalty_card).." rooms remaining"
+                        ValueDescription = "#Currently: "..tostring(mod.SavedValues.TrinketValues.Loyalty_card).." rooms remaining"
                         return true
-                    elseif Trinket == TrinketType.TRINEKT_BLUEPRINT then
-                        if TrinketValues.Blueprint == 0 then
+                    elseif Trinket == TrinketType.TRINKET_BLUEPRINT then
+                        if mod.SavedValues.TrinketValues.Blueprint == 0 then
                             ValueDescription = "#{{Warning}} No {{Collectible}} Items picked up"
                         else
-                            ValueDescription = "#Currently giving: {{Collectible"..tostring(TrinketValues.Blueprint).."}}"
+                            ValueDescription = "#Currently giving: {{Collectible"..tostring(mod.SavedValues.TrinketValues.Blueprint).."}}"
                         end
                         return true
                     elseif Trinket == TrinketType.TRINKET_BRAINSTORM then
-                        if TrinketValues.Brainstorm == 0 then
+                        if mod.SavedValues.TrinketValues.Brainstorm == 0 then
                             ValueDescription = "#{{Warning}} No {{Collectible}} Items picked up"
                         else
-                            ValueDescription = "#Currently giving: {{Collectible"..tostring(TrinketValues.Brainstorm).."}}"
+                            ValueDescription = "#Currently giving: {{Collectible"..tostring(mod.SavedValues.TrinketValues.Brainstorm).."}}"
                         end
                         return true
                     end
@@ -317,14 +318,14 @@ if EID then
     EID:addTrinket(TrinketType.TRINKET_FORTUNETELLER, "\1 {{Damage}}{{ColorRed}}+0.05 {{CR}} Damage for every {{Card}} Tarot card used throughout the run#\2 {{Damage}}{{ColorRed}}-0.05 {{CR}} Damage for every {{Card}} Reverse tarot card used throughout the run" , "Fortune Teller", "en_us")
     EID:addTrinket(TrinketType.TRINKET_FORTUNETELLER, "\1 {{Damage}}{{ColorRed}}+0.05 {{CR}} Danno per ogni {{Card}} Carta dei tarocchi usata nella partita#\2 {{Damage}}{{ColorRed}}-0.05 {{CR}} Danno per ogni {{Card}} Carta dei tarocchi invertita usata nella partita", "Chiromante", "it")
 
-    EID:addTrinket(TrinketType.TRINEKT_BLUEPRINT, "Gives Isaac a copy of the latest picked up {{Collectible}} Passive item ", "Blueprint", "en_us")
-    EID:addTrinket(TrinketType.TRINEKT_BLUEPRINT, "Conferisce una copia dell'ultimo {{Collectible}} Oggetto passivo preso", "Cianografia", "it")
+    EID:addTrinket(TrinketType.TRINKET_BLUEPRINT, "Gives Isaac a copy of the latest picked up {{Collectible}} Passive item ", "Blueprint", "en_us")
+    EID:addTrinket(TrinketType.TRINKET_BLUEPRINT, "Conferisce una copia dell'ultimo {{Collectible}} Oggetto passivo preso", "Cianografia", "it")
 
     EID:addTrinket(TrinketType.TRINKET_BRAINSTORM, "Gives Isaac a copy of the first picked up {{Collectible}} Passive item in the run", "Brainstorm", "en_us")
     EID:addTrinket(TrinketType.TRINKET_BRAINSTORM, "Conferisce una copia del primo {{Collectible}} Oggetto passivo preso nella partita", "Raccolta di idee", "it")
 
-    EID:addTrinket(TrinketType.TRINEKT_MADNESS, "\1 This gives {{Damage}}Damage Multiplier for each thing it destroyed#{{Warning}} On every new floor -1 {{Heart}} Hp down and destoys a random {{Collectible}} item Isaac has", "Madness", "en_us")
-    EID:addTrinket(TrinketType.TRINEKT_MADNESS, "\1 Questo conferisce {{Damage}}moltiplicatore di danno per ogni cosa distrutta da esso#{{Warning}} Ogni nuovo piano -1 {{Heart}} Punti vita e distrugge un {{Collectible}} Oggetto posseduto casuale", "Follia", "it")
+    EID:addTrinket(TrinketType.TRINKET_MADNESS, "\1 This gives {{Damage}}Damage Multiplier for each thing it destroyed#{{Warning}} On every new floor -1 {{Heart}} Hp down and destoys a random {{Collectible}} item Isaac has", "Madness", "en_us")
+    EID:addTrinket(TrinketType.TRINKET_MADNESS, "\1 Questo conferisce {{Damage}}moltiplicatore di danno per ogni cosa distrutta da esso#{{Warning}} Ogni nuovo piano -1 {{Heart}} Punti vita e distrugge un {{Collectible}} Oggetto posseduto casuale", "Follia", "it")
 
     EID:addTrinket(TrinketType.TRINKET_MR_BONES, "Revives Isaac with -1 {{Heart}} Hp and full health if he died during any {{BossRoom}} Bossfight", "Mr. Bones", "en_us")
     EID:addTrinket(TrinketType.TRINKET_MR_BONES, "Resuscita Isaac con -1 {{Heart}} Punti vita e vita piena se è morto durante qualunque {{BossRoom}} Bossfight", "Signor Scheletro", "it")

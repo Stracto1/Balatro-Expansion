@@ -1,20 +1,22 @@
 local json = require("json")
-
+local mod = Balatro_Expansion
 
 -------------MOD CONFIG MENU STUFF----------------------------
 --------------------------------------------------------------
 
-function Balatro_Expansion:SaveStorage()
-    Balatro_Expansion:SaveData(json.encode(TrinketValues))
+function mod:SaveStorage()
+    mod:SaveData(json.encode(mod.SavedValues))
 end
+mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.SaveStorage)
+mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.SaveStorage)
 
 if ModConfigMenu then
 
 local function SaveModConfig()
-    if TrinketValues.EffectsAllowed then
-        Balatro_Expansion:SaveData("true")
+    if mod.SavedValues.ModConfig.EffectsAllowed then
+        mod:SaveData("true")
     else
-        Balatro_Expansion:SaveData("false")
+        mod:SaveData("false")
     end
 end
 
@@ -22,19 +24,17 @@ ModConfigMenu.AddSetting("Balatro Expansion", "Settings", {
     Type = ModConfigMenu.OptionType.BOOLEAN,
 Default = true,
 CurrentSetting = function()
-  return TrinketValues.EffectsAllowed
+  return mod.SavedValues.ModConfig.EffectsAllowed
 end,
 Display = function()
-  if TrinketValues.EffectsAllowed then return "Additional Effects: Enabled"
+  if mod.SavedValues.ModConfig.EffectsAllowed then return "Additional Effects: Enabled"
   else return "Additional Effects: Disabled" end
 end,
 OnChange = function(newvalue)
-    TrinketValues.EffectsAllowed = newvalue
+    mod.SavedValues.ModConfig.EffectsAllowed = newvalue
   --SaveModConfig()
 end,
 Info = {"Determines whether or not the additional Balatro VFX/SFX are used"}
 })
 end
 
-Balatro_Expansion:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, Balatro_Expansion.SaveStorage)
-Balatro_Expansion:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, Balatro_Expansion.SaveStorage)

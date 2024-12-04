@@ -1,12 +1,14 @@
+local mod = Balatro_Expansion
+local Game = Game()
+
 ---@param Player EntityPlayer
 ---@param card Card
-function Balatro_Expansion:OnJimboUseCard(card, Player,_)
-    if Player:GetPlayerType() == Balatro_Expansion.Characters.JimboType then
+function mod:OnJimboUseCard(card, Player,_)
+    if Player:GetPlayerType() == mod.Characters.JimboType then
         if card == Card.CARD_FOOL then
-            print("Jimbo used fool")
-            Player:AnimateCard(card)
-            return false
+            mod:SwitchCardSelectionStates(true, 1)
         end
+        return false
     end
 end
-Balatro_Expansion:AddCallback(ModCallbacks.MC_PRE_USE_CARD, Balatro_Expansion.OnJimboUseCard)
+mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.OnJimboUseCard)

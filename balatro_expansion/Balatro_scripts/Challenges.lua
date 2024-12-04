@@ -1,3 +1,4 @@
+local mod = Balatro_Expansion
 local Game  = Game()
 local ItemsConfig = Isaac.GetItemConfig()
 ---------------CURSES/CHALLENGES-----------------
@@ -8,67 +9,67 @@ local ItemsConfig = Isaac.GetItemConfig()
 -----------CALLBACK SYSTEM/CHALLENGE FUNCTIONALITY--------------------
 
 --restores the callbacks for the curses
-function Balatro_Expansion:ChallengeSetup(Continued)
+function mod:ChallengeSetup(Continued)
     --challenge functionality reset
-    Balatro_Expansion:RemoveCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, Balatro_Expansion.ChallengeRoomClear)
-    Balatro_Expansion:RemoveCallback(ModCallbacks.MC_POST_NEW_ROOM, Balatro_Expansion.ChallengeRoomEntrance)
-    Balatro_Expansion:RemoveCallback(ModCallbacks.MC_GET_SHOP_ITEM_PRICE, Balatro_Expansion.ShopItems)
-    Balatro_Expansion:RemoveCallback(ModCallbacks.MC_GET_CARD, Balatro_Expansion.ChallengeCards)
-    Balatro_Expansion:RemoveCallback(ModCallbacks.MC_GET_TRINKET, Balatro_Expansion.ChallengeTrinkets)
-    Balatro_Expansion:RemoveCallback(ModCallbacks.MC_PRE_GRID_ENTITY_DOOR_UPDATE, Balatro_Expansion.DoorBehaviour)
-    Balatro_Expansion:RemoveCallback(ModCallbacks.MC_POST_PICKUP_INIT, Balatro_Expansion.CoinWaveSpawn, PickupVariant.PICKUP_COIN)
+    mod:RemoveCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, mod.ChallengeRoomClear)
+    mod:RemoveCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.ChallengeRoomEntrance)
+    mod:RemoveCallback(ModCallbacks.MC_GET_SHOP_ITEM_PRICE, mod.ShopItems)
+    mod:RemoveCallback(ModCallbacks.MC_GET_CARD, mod.ChallengeCards)
+    mod:RemoveCallback(ModCallbacks.MC_GET_TRINKET, mod.ChallengeTrinkets)
+    mod:RemoveCallback(ModCallbacks.MC_PRE_GRID_ENTITY_DOOR_UPDATE, mod.DoorBehaviour)
+    mod:RemoveCallback(ModCallbacks.MC_POST_PICKUP_INIT, mod.CoinWaveSpawn, PickupVariant.PICKUP_COIN)
 
     --curse functions reset
-    Balatro_Expansion:RemoveCallback(ModCallbacks.MC_POST_NPC_INIT, Balatro_Expansion.CurseNPCInit)
-    Balatro_Expansion:RemoveCallback(ModCallbacks.MC_PRE_NPC_UPDATE, Balatro_Expansion.CurseNPCUpdate)
+    mod:RemoveCallback(ModCallbacks.MC_POST_NPC_INIT, mod.CurseNPCInit)
+    mod:RemoveCallback(ModCallbacks.MC_PRE_NPC_UPDATE, mod.CurseNPCUpdate)
 
     --only adds the required callbacks if it's a challenge
-    if Balatro_Expansion:Contained(Balatro_Expansion.Challenges, Game.Challenge) then
+    if mod:Contained(mod.Challenges, Game.Challenge) then
         --sets starting money
         if not Continued then
             Game:GetPlayer(0):AddCoins(4)
         end
-        Balatro_Expansion:AddCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, Balatro_Expansion.ChallengeRoomClear)
-        Balatro_Expansion:AddCallback(ModCallbacks.MC_GET_SHOP_ITEM_PRICE, Balatro_Expansion.ShopItems)
-        Balatro_Expansion:AddCallback(ModCallbacks.MC_GET_TRINKET, Balatro_Expansion.ChallengeTrinkets)
-        Balatro_Expansion:AddCallback(ModCallbacks.MC_GET_CARD, Balatro_Expansion.ChallengeCards)
-        Balatro_Expansion:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, Balatro_Expansion.ChallengeRoomEntrance)
-        Balatro_Expansion:AddCallback(ModCallbacks.MC_PRE_GRID_ENTITY_DOOR_UPDATE, Balatro_Expansion.DoorBehaviour)
-        Balatro_Expansion:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT, Balatro_Expansion.CoinWaveSpawn, PickupVariant.PICKUP_COIN)
+        mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, mod.ChallengeRoomClear)
+        mod:AddCallback(ModCallbacks.MC_GET_SHOP_ITEM_PRICE, mod.ShopItems)
+        mod:AddCallback(ModCallbacks.MC_GET_TRINKET, mod.ChallengeTrinkets)
+        mod:AddCallback(ModCallbacks.MC_GET_CARD, mod.ChallengeCards)
+        mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.ChallengeRoomEntrance)
+        mod:AddCallback(ModCallbacks.MC_PRE_GRID_ENTITY_DOOR_UPDATE, mod.DoorBehaviour)
+        mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT, mod.CoinWaveSpawn, PickupVariant.PICKUP_COIN)
         
         local CurrentCurse = Game:GetLevel():GetCurses()
-        if CurrentCurse == Balatro_Expansion.AllCurses.THE_WALL then
-            Balatro_Expansion:AddCallback(ModCallbacks.MC_POST_NPC_INIT, Balatro_Expansion.CurseNPCInit)
-            Balatro_Expansion:AddCallback(ModCallbacks.MC_PRE_NPC_UPDATE, Balatro_Expansion.CurseNPCUpdate)
+        if CurrentCurse == mod.AllCurses.THE_WALL then
+            mod:AddCallback(ModCallbacks.MC_POST_NPC_INIT, mod.CurseNPCInit)
+            mod:AddCallback(ModCallbacks.MC_PRE_NPC_UPDATE, mod.CurseNPCUpdate)
         end      
     end
 end
-Balatro_Expansion:AddPriorityCallback(ModCallbacks.MC_POST_GAME_STARTED, CallbackPriority.LATE ,Balatro_Expansion.ChallengeSetup)
+mod:AddPriorityCallback(ModCallbacks.MC_POST_GAME_STARTED, CallbackPriority.LATE ,mod.ChallengeSetup)
 
 --chooses a random custom curse when needed
-function Balatro_Expansion:ChooseChallengeCurse(_)
+function mod:ChooseChallengeCurse(_)
     --print("curse eval")
-    if Balatro_Expansion:Contained(Balatro_Expansion.Challenges, Game.Challenge) then
+    if mod:Contained(mod.Challenges, Game.Challenge) then
         --curses callbacks reset
-        Balatro_Expansion:RemoveCallback(ModCallbacks.MC_POST_NPC_INIT, Balatro_Expansion.CurseNPCInit)
-        Balatro_Expansion:RemoveCallback(ModCallbacks.MC_PRE_NPC_UPDATE, Balatro_Expansion.CurseNPCUpdate)
+        mod:RemoveCallback(ModCallbacks.MC_POST_NPC_INIT, mod.CurseNPCInit)
+        mod:RemoveCallback(ModCallbacks.MC_PRE_NPC_UPDATE, mod.CurseNPCUpdate)
 
         local RNG = RNG( Game:GetSeeds():GetStartSeed() )
-        local ChosenCurse = RNG:RandomInt(1, #Balatro_Expansion.NormalCurses)
+        local ChosenCurse = RNG:RandomInt(1, #mod.NormalCurses)
         --only adds the required callbacks to make the curse function
-        if Balatro_Expansion.NormalCurses[ChosenCurse] == Balatro_Expansion.AllCurses.THE_WALL then
+        if mod.NormalCurses[ChosenCurse] == mod.AllCurses.THE_WALL then
             --print("wall chosen")
-            Balatro_Expansion:AddCallback(ModCallbacks.MC_POST_NPC_INIT, Balatro_Expansion.CurseNPCInit)
-            Balatro_Expansion:AddCallback(ModCallbacks.MC_PRE_NPC_UPDATE, Balatro_Expansion.CurseNPCUpdate)
+            mod:AddCallback(ModCallbacks.MC_POST_NPC_INIT, mod.CurseNPCInit)
+            mod:AddCallback(ModCallbacks.MC_PRE_NPC_UPDATE, mod.CurseNPCUpdate)
         end
-        return Balatro_Expansion.NormalCurses[ChosenCurse]
+        return mod.NormalCurses[ChosenCurse]
     end
 end
-Balatro_Expansion:AddCallback(ModCallbacks.MC_POST_CURSE_EVAL, Balatro_Expansion.ChooseChallengeCurse)
+mod:AddCallback(ModCallbacks.MC_POST_CURSE_EVAL, mod.ChooseChallengeCurse)
 
 
 --sets the ammont of coins spawned when waves are cleared
-function Balatro_Expansion:ChallengeRoomClear()
+function mod:ChallengeRoomClear()
     --print("clear")
     local Wave = Game:GetLevel().GreedModeWave
     --print(Wave)
@@ -82,17 +83,17 @@ function Balatro_Expansion:ChallengeRoomClear()
         end
 
         Player:AddCoins(3)
-        Balatro_Expansion:EffectConverter(9, 3,Player,4)
+        mod:EffectConverter(9, 3,Player,4)
 
         Isaac.CreateTimer(function ()
             for i = 1, Interests, 1 do
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position , RandomVector() * 3, Player, CoinSubType.COIN_PENNY, Seed)
-                Balatro_Expansion:EffectConverter(8,0,Player,4)
+                mod:EffectConverter(8,0,Player,4)
             end 
         end, 21, 1, true)
     
     elseif Wave == 11 then
-        TrinketValues.ShopEntered = false
+        mod.SavedValues.Other.ShopEntered = false
         local Player = Game:GetPlayer(0)
 
         local Interests = math.floor(Player:GetNumCoins()/5)
@@ -101,16 +102,16 @@ function Balatro_Expansion:ChallengeRoomClear()
         end
 
         Player:AddCoins(4)
-        Balatro_Expansion:EffectConverter(9, 4,Player,4)
+        mod:EffectConverter(9, 4,Player,4)
 
         Isaac.CreateTimer(function ()
             for i = 1, Interests, 1 do
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position , RandomVector() * 3, Player, CoinSubType.COIN_PENNY, Seed)
-                Balatro_Expansion:EffectConverter(8,0,Player,4)
+                mod:EffectConverter(8,0,Player,4)
             end 
         end, 21, 1, true)
     elseif Wave == 12 then
-        TrinketValues.ShopEntered = false
+        mod.SavedValues.Other.ShopEntered = false
         local Player = Game:GetPlayer(0)
 
         local Interests = math.floor(Player:GetNumCoins()/5)
@@ -119,28 +120,28 @@ function Balatro_Expansion:ChallengeRoomClear()
         end
 
         Player:AddCoins(5)
-        Balatro_Expansion:EffectConverter(9, 5,Player,4)
+        mod:EffectConverter(9, 5,Player,4)
 
         Isaac.CreateTimer(function ()
             for i = 1, Interests, 1 do
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position , RandomVector() * 3, Player, CoinSubType.COIN_PENNY, Seed)
-                Balatro_Expansion:EffectConverter(8,0,Player,4)
+                mod:EffectConverter(8,0,Player,4)
             end 
         end, 21, 1, true)
     end
 end
---Balatro_Expansion:AddCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, Balatro_Expansion.ChallengeRoomClear)
+--mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, mod.ChallengeRoomClear)
 
-function Balatro_Expansion:ChallengeRoomEntrance()
+function mod:ChallengeRoomEntrance()
     local Room =  Game:GetRoom()
-    if Room:GetType() == RoomType.ROOM_SHOP and not TrinketValues.ShopEntered then
+    if Room:GetType() == RoomType.ROOM_SHOP and not mod.SavedValues.Other.ShopEntered then
         Room:ShopRestockFull()
     elseif Room:GetType() == RoomType.ROOM_GREED_EXIT then
         --for some reason it's bugges and the trapdoor for the next floor won't spawn
         Isaac.GridSpawn(GridEntityType.GRID_TRAPDOOR, 0, Room:GetCenterPos())
     end
 end
---Balatro_Expansion:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, Balatro_Expansion.ChallengeRoomEntrance)
+--mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.ChallengeRoomEntrance)
 
 --this part is kind of complicated, so hope i explained it well in the code
 
@@ -148,7 +149,7 @@ end
 --the golden treasure is always closed, while the silver one is always open 
 --the nightmare wave is now mandatory to finish the floor
 ---@param Door GridEntityDoor
-function Balatro_Expansion:DoorBehaviour(Door)
+function mod:DoorBehaviour(Door)
 
     --door cannot be closed if it leads back to the startin room/if it's a silver treasure/if it's a secret room door
     if not(Door.TargetRoomType == RoomType.ROOM_DEFAULT or Door.TargetRoomType == RoomType.ROOM_BOSS) and Door:GetGridIndex() ~= 179 and Door.TargetRoomType ~= RoomType.ROOM_SUPERSECRET and Door.CurrentRoomType ~= RoomType.ROOM_SUPERSECRET then
@@ -182,19 +183,19 @@ function Balatro_Expansion:DoorBehaviour(Door)
         end
     end    
 end
---Balatro_Expansion:AddCallback(ModCallbacks.MC_PRE_GRID_ENTITY_DOOR_UPDATE, Balatro_Expansion.DoorBehaviour)
+--mod:AddCallback(ModCallbacks.MC_PRE_GRID_ENTITY_DOOR_UPDATE, mod.DoorBehaviour)
 
 ---@param Pickup EntityPickup
-function Balatro_Expansion:CoinWaveSpawn(Pickup)
-    --the coins given between waves in greed Balatro_Expansione have a nil spawner variable
+function mod:CoinWaveSpawn(Pickup)
+    --the coins given between waves in greed mode have a nil spawner variable
     if not Pickup.SpawnerEntity then
         Pickup:Remove()
     end
 end
---Balatro_Expansion:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT, Balatro_Expansion.CoinWaveSpawn, PickupVariant.PICKUP_COIN)
+--mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT, mod.CoinWaveSpawn, PickupVariant.PICKUP_COIN)
 
 
-function Balatro_Expansion:ShopItems(Variant, SubType, _, Price)
+function mod:ShopItems(Variant, SubType, _, Price)
     local NewPrice = Price
     if Variant == PickupVariant.PICKUP_COLLECTIBLE then
         local Quality = ItemsConfig:GetCollectible(SubType).Quality
@@ -229,25 +230,25 @@ function Balatro_Expansion:ShopItems(Variant, SubType, _, Price)
 
     return NewPrice
 end
---Balatro_Expansion:AddCallback(ModCallbacks.MC_GET_SHOP_ITEM_PRICE, Balatro_Expansion.ShopItems)
+--mod:AddCallback(ModCallbacks.MC_GET_SHOP_ITEM_PRICE, mod.ShopItems)
 
 
-function Balatro_Expansion:ChallengeTrinkets(Trinket, _)
+function mod:ChallengeTrinkets(Trinket, _)
     local FirstTag = ItemsConfig:GetTrinket(Trinket):GetCustomTags()[1] --the mod's trinkets all have a specific first customtag
     
     if not (FirstTag == "mult" or FirstTag == "chips" or FirstTag == "activate" or FirstTag == "multm") then
         repeat
             Trinket = ItemPool:GetTrinket()
             FirstTag = ItemsConfig:GetTrinket(Trinket):GetCustomTags()[1]
-        --only allows Balatro_Expansion's trinkets to be chosen
+        --only allows mod's trinkets to be chosen
         until FirstTag == "mult" or FirstTag == "chips" or FirstTag == "activate" or FirstTag == "multm"
         return Trinket
     end
 end
---Balatro_Expansion:AddCallback(ModCallbacks.MC_GET_TRINKET, Balatro_Expansion.ChallengeTrinkets)
+--mod:AddCallback(ModCallbacks.MC_GET_TRINKET, mod.ChallengeTrinkets)
 
 ---@param Rng RNG
-function Balatro_Expansion:ChallengeCards(Rng, SelectedCard, CanBeSuit, CanBeRunes, OnlyRunes)
+function mod:ChallengeCards(Rng, SelectedCard, CanBeSuit, CanBeRunes, OnlyRunes)
     --does not allow cards that generate too much money/ do useless things
     if SelectedCard == Card.CARD_ACE_OF_DIAMONDS or SelectedCard == Card.CARD_SOUL_KEEPER or SelectedCard == Card.CARD_DIAMONDS_2 or SelectedCard == Card.CARD_GET_OUT_OF_JAIL then 
         repeat
@@ -256,4 +257,4 @@ function Balatro_Expansion:ChallengeCards(Rng, SelectedCard, CanBeSuit, CanBeRun
         return SelectedCard
     end
 end
---Balatro_Expansion:AddCallback(ModCallbacks.MC_GET_CARD, Balatro_Expansion.ChallengeCards)
+--mod:AddCallback(ModCallbacks.MC_GET_CARD, mod.ChallengeCards)

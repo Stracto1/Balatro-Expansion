@@ -1,3 +1,5 @@
+local mod = Balatro_Expansion
+local TrinketValues = mod.SavedValues.TrinketValues
 ---------------------CACHE EVALUATION CALLBACKS---------------------
 --------------------------------------------------------------------
 --these are all the cache evaluations for every trinekt/item
@@ -49,26 +51,36 @@ local Game = Game()
 local ItemsConfig = Isaac.GetItemConfig()
 local ItemPool = Game:GetItemPool()
 
+
+
+
+
+
 -------------------Joker------------------------
-function Balatro_Expansion:Joker(player, _)
+function mod:Joker(player, flag)
 
     if player.HasTrinket(player, Joker) then --controls if it has the trinket
-        local JokerDMG = 0.5 --base dmg
-        local DMGToAdd = JokerDMG * player.GetTrinketMultiplier(player ,Joker) --scalable DMG up
-        if Balatro_Expansion.WantedEffect == Joker then
-            --print("effect")
-            Balatro_Expansion:EffectConverter(1, DMGToAdd, player, 1)
+        if player:GetPlayerType() == mod.Characters.JimboType then
+            mod:IncreaseJimboStats(flag,0.5)
+
+        else
+            local JokerDMG = 0.5 --base dmg
+            local DMGToAdd = JokerDMG * player.GetTrinketMultiplier(player ,Joker) --scalable DMG up
+            if mod.WantedEffect == Joker then
+                --print("effect")
+                mod:EffectConverter(1, DMGToAdd, player, 1)
+            end
+            player.Damage = player.Damage + DMGToAdd --flat DMG up
         end
-        player.Damage = player.Damage + DMGToAdd --flat DMG up
     end
 end
 
-Balatro_Expansion:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Balatro_Expansion.Joker, CacheFlag.CACHE_DAMAGE)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.Joker, CacheFlag.CACHE_DAMAGE)
 
 ------------------bull---------------------------
 
 
-function Balatro_Expansion:Bull(player, _)
+function mod:Bull(player, _)
     if player.HasTrinket(player, Bull) then --controls if it has the trinket
         
         local CurrentCoins = player.GetNumCoins(player)  --gets the player's coins
@@ -82,18 +94,18 @@ function Balatro_Expansion:Bull(player, _)
             BullTears = 1.50 + 0.01 * (CurrentCoins - 50)
         end
         BullTears = BullTears * player.GetTrinketMultiplier(player ,Bull)
-        TearsToAdd = Balatro_Expansion:CalculateTearsUp(player.MaxFireDelay, BullTears)  --scalable tears up
-        if Balatro_Expansion.WantedEffect == Bull then
-            Balatro_Expansion:EffectConverter(1, BullTears, player, 3)
+        TearsToAdd = mod:CalculateTearsUp(player.MaxFireDelay, BullTears)  --scalable tears up
+        if mod.WantedEffect == Bull then
+            mod:EffectConverter(1, BullTears, player, 3)
         end
         player.MaxFireDelay = player.MaxFireDelay - TearsToAdd --flat tears up
     end
 end
 
-Balatro_Expansion:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Balatro_Expansion.Bull, CacheFlag.CACHE_FIREDELAY)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.Bull, CacheFlag.CACHE_FIREDELAY)
 
 ----------------------------invisible joker------------------------
-function Balatro_Expansion:InvisibleJoker(player)
+function mod:InvisibleJoker(player)
     local Seed = Game:GetSeeds():GetStartSeed() --gets the run's seed
     
     for i = 0, 3, 1 do --checks every consumable slot
@@ -106,8 +118,8 @@ function Balatro_Expansion:InvisibleJoker(player)
                     
                 Game:Spawn(EntityType.ENTITY_PICKUP, 300, player.Position , RandomVector() * 3, player, HeldCard, Seed)
             end
-            if Balatro_Expansion.WantedEffect == Invisible_Joker then
-                Balatro_Expansion:EffectConverter(3, 0, player, 4)
+            if mod.WantedEffect == Invisible_Joker then
+                mod:EffectConverter(3, 0, player, 4)
             end
             break --ends the initial FOR early
 
@@ -116,8 +128,8 @@ function Balatro_Expansion:InvisibleJoker(player)
                     
                 Game:Spawn(EntityType.ENTITY_PICKUP, 70, player.Position , RandomVector() * 3, player, HeldPill, Seed)
             end
-            if Balatro_Expansion.WantedEffect == Invisible_Joker then
-                Balatro_Expansion:EffectConverter(3, 0, player, 4)
+            if mod.WantedEffect == Invisible_Joker then
+                mod:EffectConverter(3, 0, player, 4)
             end
             break --ends the initial FOR early
 
@@ -128,29 +140,29 @@ end
 
 --------------------------abstract joker--------------------
 
-function Balatro_Expansion:AbstractJoker(player,_)
+function mod:AbstractJoker(player,_)
     if player.HasTrinket(player, Abstract_joker) then
         local AbstractDMG = 0.08
         local NumItems = player.GetCollectibleCount(player)
         local DMGToAdd = (AbstractDMG * NumItems) * player.GetTrinketMultiplier(player, Abstract_joker)
-        if Balatro_Expansion.WantedEffect == Abstract_joker then
-            Balatro_Expansion:EffectConverter(1, DMGToAdd, player, 1)
+        if mod.WantedEffect == Abstract_joker then
+            mod:EffectConverter(1, DMGToAdd, player, 1)
         end
         player.Damage = player.Damage + DMGToAdd 
     end
 end
-Balatro_Expansion:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Balatro_Expansion.AbstractJoker, CacheFlag.CACHE_DAMAGE)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.AbstractJoker, CacheFlag.CACHE_DAMAGE)
 
 --------------------------------------misprint----------------------------------------------
 
-function Balatro_Expansion:Misprint(player,_)
+function mod:Misprint(player,_)
     if player.HasTrinket(player, Misprint) then
-        if Balatro_Expansion.WantedEffect == Misprint then --basically changes the dmg up only when changing rooms
+        if mod.WantedEffect == Misprint then --basically changes the dmg up only when changing rooms
             local RNG = player:GetTrinketRNG(Misprint)
             local MisprintDMG = 1.5
             local MisprintDMGToAdd = ((MisprintDMG * RNG:RandomFloat()) * player.GetTrinketMultiplier(player, Misprint)) --random float is from 0 to 1
-            MisprintDMGToAdd = Balatro_Expansion:round(MisprintDMGToAdd, 2)
-            Balatro_Expansion:EffectConverter(1, MisprintDMGToAdd, player, 1)
+            MisprintDMGToAdd = mod:round(MisprintDMGToAdd, 2)
+            mod:EffectConverter(1, MisprintDMGToAdd, player, 1)
             player.Damage = player.Damage + MisprintDMGToAdd
             TrinketValues.LastMisprintDMG = MisprintDMGToAdd
             return
@@ -158,12 +170,12 @@ function Balatro_Expansion:Misprint(player,_)
         player.Damage = player.Damage + TrinketValues.LastMisprintDMG
     end
 end
-Balatro_Expansion:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Balatro_Expansion.Misprint, CacheFlag.CACHE_DAMAGE)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.Misprint, CacheFlag.CACHE_DAMAGE)
 
 -------------------joker stencil-------------------
 
 ---@param player EntityPlayer
-function Balatro_Expansion:JokerStencil(player,_)
+function mod:JokerStencil(player,_)
     if player:HasTrinket(Joker_stencil) then
         local JokerStencilMultiplier = 1
         if player.GetPlayerType(player) == PlayerType.PLAYER_ISAAC_B then --specific dmg up for Tisaac
@@ -192,139 +204,139 @@ function Balatro_Expansion:JokerStencil(player,_)
             end
         end
         JokerStencilMultiplier = JokerStencilMultiplier + ((JokerStencilMultiplier - 1) * (player:GetTrinketMultiplier(Joker_stencil) - 1))
-        if Balatro_Expansion.WantedEffect == Joker_stencil then
-            Balatro_Expansion:EffectConverter(2, JokerStencilMultiplier, player, 2)
+        if mod.WantedEffect == Joker_stencil then
+            mod:EffectConverter(2, JokerStencilMultiplier, player, 2)
         end
         player.Damage = player.Damage * JokerStencilMultiplier
     end
 end
-Balatro_Expansion:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE, Balatro_Expansion.JokerStencil, CacheFlag.CACHE_DAMAGE)
+mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE, mod.JokerStencil, CacheFlag.CACHE_DAMAGE)
 
 ------------------STONE JOKER---------------------
 
 ---@param player EntityPlayer
-function Balatro_Expansion:StoneJoker(player, _)
+function mod:StoneJoker(player, _)
     if player.HasTrinket(player, Stone_joker) then --controls if it has the trinket
         local StoneTears = TrinketValues.Stone_joker
-        if Balatro_Expansion.WantedEffect == Stone_joker then
-            Balatro_Expansion:EffectConverter(1, StoneTears, player, 3)
+        if mod.WantedEffect == Stone_joker then
+            mod:EffectConverter(1, StoneTears, player, 3)
         end
-        local TearsToAdd = Balatro_Expansion:CalculateTearsUp(player.MaxFireDelay, StoneTears)
+        local TearsToAdd = mod:CalculateTearsUp(player.MaxFireDelay, StoneTears)
         player.MaxFireDelay = player.MaxFireDelay - TearsToAdd --flat tears up
     end
 end
 
-Balatro_Expansion:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Balatro_Expansion.StoneJoker, CacheFlag.CACHE_FIREDELAY)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.StoneJoker, CacheFlag.CACHE_FIREDELAY)
 
 -----------------ICE CREAM-------------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:IceCream(player, _)
+function mod:IceCream(player, _)
     if player:HasTrinket(Icecream) then
         if TrinketValues.Ice_cream == 0 then
-            Balatro_Expansion:EffectConverter(4, 0, player, 6)
+            mod:EffectConverter(4, 0, player, 6)
             return
         end
         local IceTears = TrinketValues.Ice_cream * player:GetTrinketMultiplier(Icecream)
-        if Balatro_Expansion.WantedEffect == Icecream then
-            Balatro_Expansion:EffectConverter(1, IceTears, player, 3)
+        if mod.WantedEffect == Icecream then
+            mod:EffectConverter(1, IceTears, player, 3)
         end
-        local TearsToAdd = Balatro_Expansion:CalculateTearsUp(player.MaxFireDelay, IceTears)
+        local TearsToAdd = mod:CalculateTearsUp(player.MaxFireDelay, IceTears)
         player.MaxFireDelay = player.MaxFireDelay - TearsToAdd
     end
 end
-Balatro_Expansion:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Balatro_Expansion.IceCream, CacheFlag.CACHE_FIREDELAY)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.IceCream, CacheFlag.CACHE_FIREDELAY)
 
 -----------------POPCORN-------------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:Popcorn(player, _)
+function mod:Popcorn(player, _)
     if player:HasTrinket(Popcorn) then
         if TrinketValues.Popcorn == 0 then
-            Balatro_Expansion:EffectConverter(4, 0, player, 5)
+            mod:EffectConverter(4, 0, player, 5)
             return
         end
         local PopDamage = TrinketValues.Popcorn * player:GetTrinketMultiplier(Popcorn)
-        if Balatro_Expansion.WantedEffect == Popcorn then
-            Balatro_Expansion:EffectConverter(1, PopDamage, player, 1)
+        if mod.WantedEffect == Popcorn then
+            mod:EffectConverter(1, PopDamage, player, 1)
         end
         player.Damage = player.Damage + PopDamage
     end
 end
-Balatro_Expansion:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Balatro_Expansion.Popcorn, CacheFlag.CACHE_DAMAGE)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.Popcorn, CacheFlag.CACHE_DAMAGE)
 
 ---------------------RAMEN-------------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:Ramen(player, _)
+function mod:Ramen(player, _)
     if player:HasTrinket(Ramen) then
         if TrinketValues.Ramen == 0 then
-            Balatro_Expansion:EffectConverter(4, 0, player, 5)
+            mod:EffectConverter(4, 0, player, 5)
             return
         end
         local RamenMult = TrinketValues.Ramen + ((TrinketValues.Ramen -1 ) * (player:GetTrinketMultiplier(Ramen) - 1))
-        if Balatro_Expansion.WantedEffect == Ramen then
-            Balatro_Expansion:EffectConverter(2, RamenMult, player, 2)
+        if mod.WantedEffect == Ramen then
+            mod:EffectConverter(2, RamenMult, player, 2)
         end
         player.Damage = player.Damage * RamenMult
     end
 end
-Balatro_Expansion:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE, Balatro_Expansion.Ramen, CacheFlag.CACHE_DAMAGE)
+mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE, mod.Ramen, CacheFlag.CACHE_DAMAGE)
 
 ----------------------------ROCKET-----------------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:rocket(player)
+function mod:rocket(player)
     local Seed = Game:GetSeeds():GetStartSeed() --gets the run's seed
     for i = 1, TrinketValues.Rocket , 1 do --checks every consumable slot        
         Game:Spawn(EntityType.ENTITY_PICKUP, 20, player.Position, RandomVector() * 3, player, 1, Seed)
     end
     TrinketValues.Rocket = TrinketValues.Rocket + (2 * player:GetTrinketMultiplier(Rocket))
-    Balatro_Expansion:EffectConverter(3, 0, player, 4)
+    mod:EffectConverter(3, 0, player, 4)
 end
 
 --------------------------  EVEN STEVEN---------------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:EvenSteven(player, _)
+function mod:EvenSteven(player, _)
     if player:HasTrinket(Evensteven) then --controls if it has the trinket
         if player:GetCollectibleCount() % 2 == 0 then
             local StevenDMG = 0.1
             local DMGToAdd = (StevenDMG * player:GetCollectibleCount()) * player:GetTrinketMultiplier(Evensteven) --scalable DMG up
-            if Balatro_Expansion.WantedEffect == Evensteven then
-                Balatro_Expansion:EffectConverter(1, DMGToAdd, player, 1)
+            if mod.WantedEffect == Evensteven then
+                mod:EffectConverter(1, DMGToAdd, player, 1)
             end
             player.Damage = player.Damage + DMGToAdd --flat DMG up
         else
-            if Balatro_Expansion.WantedEffect == Evensteven then    
-                Balatro_Expansion:EffectConverter(1, 0, player, 1)
+            if mod.WantedEffect == Evensteven then    
+                mod:EffectConverter(1, 0, player, 1)
             end
         end
     end
 end
 
-Balatro_Expansion:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Balatro_Expansion.EvenSteven, CacheFlag.CACHE_DAMAGE)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.EvenSteven, CacheFlag.CACHE_DAMAGE)
 
 ------------------------ODD TODD----------------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:OddTodd(player, _)
+function mod:OddTodd(player, _)
 
     if player:HasTrinket(Oddtodd) then --controls if it has the trinket
         if player:GetCollectibleCount() % 2 == 1 then
             local OddTears = 0.07
             local TearsToAdd = (OddTears * player:GetCollectibleCount()) * player:GetTrinketMultiplier(Oddtodd) --scalable DMG up
-            if Balatro_Expansion.WantedEffect == Oddtodd then
-                Balatro_Expansion:EffectConverter(1, TearsToAdd, player, 3)
+            if mod.WantedEffect == Oddtodd then
+                mod:EffectConverter(1, TearsToAdd, player, 3)
             end
-            TearsToAdd = Balatro_Expansion:CalculateTearsUp(player.MaxFireDelay, TearsToAdd)
+            TearsToAdd = mod:CalculateTearsUp(player.MaxFireDelay, TearsToAdd)
             player.MaxFireDelay = player.MaxFireDelay - TearsToAdd--flat DMG up
         else   
-            if Balatro_Expansion.WantedEffect == Oddtodd then
-                Balatro_Expansion:EffectConverter(1, 0, player, 3)
+            if mod.WantedEffect == Oddtodd then
+                mod:EffectConverter(1, 0, player, 3)
             end
         end
     end
 end
 
-Balatro_Expansion:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Balatro_Expansion.OddTodd, CacheFlag.CACHE_FIREDELAY)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.OddTodd, CacheFlag.CACHE_FIREDELAY)
 -----------------------HALLUCINATION------------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:HAllucination(player, cost)
+function mod:HAllucination(player, cost)
     local Deal = 0
     local Chance = 0.2 + (cost * 0.02)
     if cost < 0 then --devil deal cost
@@ -355,12 +367,12 @@ function Balatro_Expansion:HAllucination(player, cost)
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, player.Position , RandomVector() * 3, player, Card, seed)    
             end
         end
-            Balatro_Expansion:EffectConverter(3, 0, player, 4)
+            mod:EffectConverter(3, 0, player, 4)
     end
 end
 -----------------------VAGABOND---------------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:VAgabond(player)
+function mod:VAgabond(player)
     local RNG = player:GetTrinketRNG(Vagabond)
     local seed = RNG:GetSeed()
     if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_LITTLE_BAGGY) then
@@ -375,34 +387,34 @@ function Balatro_Expansion:VAgabond(player)
             Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, player.Position , RandomVector() * 3, player, Card, seed)
         end
     end
-    Balatro_Expansion:EffectConverter(3, 0, player, 4)   
+    mod:EffectConverter(3, 0, player, 4)   
 end
 -----------------------GREEN JOKER------------------
-function Balatro_Expansion:GreenJoker(player,_)
+function mod:GreenJoker(player,_)
     if player:HasTrinket(Green_joker) then
         local Damage = TrinketValues.Green_joker 
-        if Balatro_Expansion.WantedEffect == Green_joker then
-            Balatro_Expansion:EffectConverter(1, Damage, player, 1)
+        if mod.WantedEffect == Green_joker then
+            mod:EffectConverter(1, Damage, player, 1)
         end
         player.Damage = player.Damage + Damage
     end
 end
-Balatro_Expansion:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Balatro_Expansion.GreenJoker, CacheFlag.CACHE_DAMAGE)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.GreenJoker, CacheFlag.CACHE_DAMAGE)
 --------------------RED CARD---------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:RedCard(player,_)
+function mod:RedCard(player,_)
     if player:HasTrinket(Red_card) then
         local Damage = TrinketValues.Red_card * player:GetTrinketMultiplier(Red_card)
-        if Balatro_Expansion.WantedEffect == Red_card then
-            Balatro_Expansion:EffectConverter(1, Damage, player, 1)
+        if mod.WantedEffect == Red_card then
+            mod:EffectConverter(1, Damage, player, 1)
         end
         player.Damage = player.Damage + Damage
     end
 end
-Balatro_Expansion:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Balatro_Expansion.RedCard, CacheFlag.CACHE_DAMAGE)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.RedCard, CacheFlag.CACHE_DAMAGE)
 --------------------RIFF RAFF----------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:RiffRaff(player)
+function mod:RiffRaff(player)
     local RNG = player:GetTrinketRNG(Riff_raff)
     local PersistentGD = Isaac.GetPersistentGameData()
     local seed = RNG:GetSeed()
@@ -414,40 +426,40 @@ function Balatro_Expansion:RiffRaff(player)
         Config = ItemsConfig:GetCollectible(Item)
     until  (Config.Quality <= 0 + player:GetTrinketMultiplier(Riff_raff)) and (PersistentGD:Unlocked(Config.AchievementID))
         
-    Balatro_Expansion:EffectConverter(3, 0, player, 4)
+    mod:EffectConverter(3, 0, player, 4)
     Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COLLECTIBLE, Isaac.GetFreeNearPosition(player.Position, 50), Vector.Zero, player, Item, seed)
 end
 -------------------GOLDEN JOKER--------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:Goldenjoker(player)
+function mod:Goldenjoker(player)
     local seed = player:GetTrinketRNG(Golden_joker):GetSeed()
     for i = 1, 2 + 2 * player:GetTrinketMultiplier(Golden_joker) do
         Game:Spawn(EntityType.ENTITY_PICKUP, 20, player.Position, RandomVector() * 3, player, 1, seed)
     end
-    Balatro_Expansion:EffectConverter(3, 0, player, 4)
+    mod:EffectConverter(3, 0, player, 4)
 end
 ----------------FORTUNETELLER----------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:FOrtuneteller(player)
+function mod:FOrtuneteller(player)
     if player:HasTrinket(Fortuneteller) then
         --print("fortune teller")
         local Damage = TrinketValues.Fortune_Teller * player:GetTrinketMultiplier(Fortuneteller)
-        if Balatro_Expansion.WantedEffect == Fortuneteller then
-            Balatro_Expansion:EffectConverter(1, Damage, player, 1)
+        if mod.WantedEffect == Fortuneteller then
+            mod:EffectConverter(1, Damage, player, 1)
         end
         player.Damage = player.Damage + Damage
     end
 end
-Balatro_Expansion:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Balatro_Expansion.FOrtuneteller, CacheFlag.CACHE_DAMAGE)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.FOrtuneteller, CacheFlag.CACHE_DAMAGE)
 -------------------BLUEPRINT--------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:BluePrint(player, Add)
+function mod:BluePrint(player, Add)
     if TrinketValues.Blueprint == 0 then
         return
     end
     if Add then
-        if Balatro_Expansion.WantedEffect == Blueprint then
-            Balatro_Expansion:EffectConverter(3, 0, player, 4)
+        if mod.WantedEffect == Blueprint then
+            mod:EffectConverter(3, 0, player, 4)
         end
         player:AddCollectible(TrinketValues.Blueprint, 0, false)
     end
@@ -456,11 +468,11 @@ function Balatro_Expansion:BluePrint(player, Add)
 end
 ------------------BRAINSTORM-----------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:BrainStorm(player, Add)
+function mod:BrainStorm(player, Add)
     if Add and TrinketValues.Brainstorm ~= 0 then
         TrinketValues.FirstBrain = false
-        if Balatro_Expansion.WantedEffect == Brainstorm then
-            Balatro_Expansion:EffectConverter(3, 0, player, 4)
+        if mod.WantedEffect == Brainstorm then
+            mod:EffectConverter(3, 0, player, 4)
         end
         player:AddCollectible(TrinketValues.Brainstorm, 0, false)
     else
@@ -470,7 +482,7 @@ end
 -------------------SMEARED JOKER------------------
 ---@param player EntityPlayer
 ---@param pickup EntityPickup
-function Balatro_Expansion:SmearedJoker(player, pickup)
+function mod:SmearedJoker(player, pickup)
     local RNG = player:GetTrinketRNG(Smeared_joker)
 
     if pickup.Variant == PickupVariant.PICKUP_HEART then
@@ -478,7 +490,7 @@ function Balatro_Expansion:SmearedJoker(player, pickup)
             if player:CanPickRedHearts() then
                 local Chance = 0.5
                 if RNG:RandomFloat() <= Chance then
-                    Balatro_Expansion:EffectConverter(3, 0, player, 4)
+                    mod:EffectConverter(3, 0, player, 4)
                     player:AddCoins(1 * player:GetTrinketMultiplier(Smeared_joker))
                 end
             end
@@ -488,7 +500,7 @@ function Balatro_Expansion:SmearedJoker(player, pickup)
             if player:CanPickRedHearts() then
                 local Chance = 0.4
                 if RNG:RandomFloat() <= Chance then
-                    Balatro_Expansion:EffectConverter(3, 0, player, 4)
+                    mod:EffectConverter(3, 0, player, 4)
                     player:AddHearts(1 * player:GetTrinketMultiplier(Smeared_joker))
                 end
             end
@@ -496,16 +508,16 @@ function Balatro_Expansion:SmearedJoker(player, pickup)
     elseif pickup.Variant == PickupVariant.PICKUP_BOMB then
         local Chance = 0.2
         if RNG:RandomFloat() <= Chance then
-            if Balatro_Expansion.WantedEffect == Smeared_joker then
-                Balatro_Expansion:EffectConverter(3, 0, player, 4)
+            if mod.WantedEffect == Smeared_joker then
+                mod:EffectConverter(3, 0, player, 4)
             end
             player:AddKeys(1 * player:GetTrinketMultiplier(Smeared_joker))
         end
     elseif pickup.Variant == PickupVariant.PICKUP_KEY then
         local Chance = 0.2
         if RNG:RandomFloat() <= Chance then
-            if Balatro_Expansion.WantedEffect == Smeared_joker then
-                Balatro_Expansion:EffectConverter(3, 0, player, 4)
+            if mod.WantedEffect == Smeared_joker then
+                mod:EffectConverter(3, 0, player, 4)
             end
             player:AddBombs(1 * player:GetTrinketMultiplier(Smeared_joker))
         end
@@ -514,40 +526,40 @@ end
 
 ------------------MADNESS-----------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:MAdness(player,_)
+function mod:MAdness(player,_)
     if player:HasTrinket(Madness) then
         --print("madness")
 
         local MadnessMult = TrinketValues.Madness + (((TrinketValues.Madness - 1)/2) * (player:GetTrinketMultiplier(Madness) - 1))
-        if Balatro_Expansion.WantedEffect == Madness then
-            Balatro_Expansion:EffectConverter(2, MadnessMult, player, 2)
+        if mod.WantedEffect == Madness then
+            mod:EffectConverter(2, MadnessMult, player, 2)
         end
         player.Damage = player.Damage * MadnessMult
     end
 end
-Balatro_Expansion:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE, Balatro_Expansion.MAdness, CacheFlag.CACHE_DAMAGE)
+mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE, mod.MAdness, CacheFlag.CACHE_DAMAGE)
 ------------------SACRIFICIAL DAGGER-----------------
 ---@param player EntityPlayer
-function Balatro_Expansion:SacrificialDagger(player)
+function mod:SacrificialDagger(player)
     if player:HasTrinket(Sacrificial_dagger) then
         --print("madness")
         --print(TrinketValues.Sacrificial_dagger)
         local Damage = (TrinketValues.Sacrificial_dagger +((TrinketValues.Sacrificial_dagger/2) * (player:GetTrinketMultiplier(Sacrificial_dagger)-1) ))
-        if Balatro_Expansion.WantedEffect == Sacrificial_dagger then
-            Balatro_Expansion:EffectConverter(1, Damage, player, 1)
+        if mod.WantedEffect == Sacrificial_dagger then
+            mod:EffectConverter(1, Damage, player, 1)
         end
         player.Damage = player.Damage + Damage
     end
 end
-Balatro_Expansion:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Balatro_Expansion.SacrificialDagger, CacheFlag.CACHE_DAMAGE)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.SacrificialDagger, CacheFlag.CACHE_DAMAGE)
 --------------------MR.BONES--------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:MrBones(player)
+function mod:MrBones(player)
     local Room = Game:GetRoom()
     if Room:GetBossID() ~= 0 then --only if there's a boss in the room
         player:Revive()
         player:SetMinDamageCooldown(120)
-        Balatro_Expansion:EffectConverter(3, 0, player, 4)
+        mod:EffectConverter(3, 0, player, 4)
         if player:GetMaxHearts() > 2 then
             player:AddMaxHearts(-2, true)
         end
@@ -559,7 +571,7 @@ function Balatro_Expansion:MrBones(player)
 end
 ------------------ONYX AGATE----------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:OnyxAgate(player,_)
+function mod:OnyxAgate(player,_)
     if player:HasTrinket(Onix_agate) then
         --print("onyx")
         local Bombs = player:GetNumBombs()
@@ -571,15 +583,15 @@ function Balatro_Expansion:OnyxAgate(player,_)
             Damage = (1.75 + Bombs * 0.03) * player:GetTrinketMultiplier(Onix_agate)
         end 
         player.Damage = player.Damage + Damage
-        if Balatro_Expansion.WantedEffect == Onix_agate then
-            Balatro_Expansion:EffectConverter(1, Damage, player, 1)
+        if mod.WantedEffect == Onix_agate then
+            mod:EffectConverter(1, Damage, player, 1)
         end
     end
 end
-Balatro_Expansion:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Balatro_Expansion.OnyxAgate, CacheFlag.CACHE_DAMAGE)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.OnyxAgate, CacheFlag.CACHE_DAMAGE)
 -----------------ARROWHEAD---------------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:ArrowHead(player,_)
+function mod:ArrowHead(player,_)
     if player:HasTrinket(Arrowhead) then
         --print("arrow")
         local Keys = player:GetNumKeys()
@@ -590,17 +602,17 @@ function Balatro_Expansion:ArrowHead(player,_)
         else
             Keys = (1.75 + Keys * 0.3) * player:GetTrinketMultiplier(Arrowhead)
         end
-        if Balatro_Expansion.WantedEffect == Arrowhead then
-            Balatro_Expansion:EffectConverter(1, Tears, player, 3)
+        if mod.WantedEffect == Arrowhead then
+            mod:EffectConverter(1, Tears, player, 3)
         end
-        Tears = Balatro_Expansion:CalculateTearsUp(player.MaxFireDelay, Tears)
+        Tears = mod:CalculateTearsUp(player.MaxFireDelay, Tears)
         player.MaxFireDelay = player.MaxFireDelay - Tears
     end
 end
-Balatro_Expansion:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Balatro_Expansion.ArrowHead, CacheFlag.CACHE_FIREDELAY)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.ArrowHead, CacheFlag.CACHE_FIREDELAY)
 ----------------BLOODSTONE----------------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:BloodStone(player,_)
+function mod:BloodStone(player,_)
     if player:HasTrinket(Bloodstone) then
         local RNG = player:GetTrinketRNG(Bloodstone)
         local Hearts = math.floor(player:GetHearts()/2)
@@ -612,15 +624,15 @@ function Balatro_Expansion:BloodStone(player,_)
             end
         end
         player.Damage = player.Damage * DamageMult
-        if Balatro_Expansion.WantedEffect == Bloodstone then
-            Balatro_Expansion:EffectConverter(2, DamageMult, player, 2)
+        if mod.WantedEffect == Bloodstone then
+            mod:EffectConverter(2, DamageMult, player, 2)
         end
     end
 end
-Balatro_Expansion:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE, Balatro_Expansion.BloodStone, CacheFlag.CACHE_DAMAGE)
+mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE, mod.BloodStone, CacheFlag.CACHE_DAMAGE)
 ------------------ROUGH GEM---------------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:RoughGem(player)
+function mod:RoughGem(player)
     local coins = player:GetNumCoins() * player:GetTrinketMultiplier(Rough_gem)
     local RNG = player:GetTrinketRNG(Rough_gem)
     local seed = RNG:GetSeed()
@@ -628,7 +640,7 @@ function Balatro_Expansion:RoughGem(player)
         local Random = RNG:RandomInt(1,25)
         if Random <= coins then
             Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, player.Position , RandomVector() * 3, player, CoinSubType.COIN_PENNY, seed)
-            Balatro_Expansion:EffectConverter(3,0,player,4)
+            mod:EffectConverter(3,0,player,4)
         end
         coins = coins - (Random * 2)
     until coins <= 0
@@ -636,78 +648,78 @@ function Balatro_Expansion:RoughGem(player)
 end
 ----------------------GROS MICHAEL--------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:GrosMichael(player, _)
+function mod:GrosMichael(player, _)
     if player:HasTrinket(Gros_michael) then --controls if it has the trinket
-        --print(Balatro_Expansion.WantedEffect)
+        --print(mod.WantedEffect)
         if TrinketValues.MichaelDestroyed then
-            if Balatro_Expansion.WantedEffect == "MCdestroyed" then
-                Balatro_Expansion:EffectConverter(4, 0, player, 4)
+            if mod.WantedEffect == "MCdestroyed" then
+                mod:EffectConverter(4, 0, player, 4)
                 return
-            elseif Balatro_Expansion.WantedEffect == "MCsafe" then
-                Balatro_Expansion:EffectConverter(7, 0, player, 4)
+            elseif mod.WantedEffect == "MCsafe" then
+                mod:EffectConverter(7, 0, player, 4)
                 return
             end
         end
         local Damage = 1 * player:GetTrinketMultiplier(Gros_michael) 
-        if Balatro_Expansion.WantedEffect == Gros_michael then
-            Balatro_Expansion:EffectConverter(1, Damage, player, 1)
+        if mod.WantedEffect == Gros_michael then
+            mod:EffectConverter(1, Damage, player, 1)
         end
         player.Damage = player.Damage + Damage --flat DMG up
     end
 end
 
-Balatro_Expansion:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Balatro_Expansion.GrosMichael, CacheFlag.CACHE_DAMAGE)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.GrosMichael, CacheFlag.CACHE_DAMAGE)
 ----------------------CAVENDISH--------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:Cavendish(player, _)
+function mod:Cavendish(player, _)
     if player:HasTrinket(Cavendish) then --controls if it has the trinket
         if not TrinketValues.MichaelDestroyed then
-            if Balatro_Expansion.WantedEffect == "MCdestroyed" then
-                Balatro_Expansion:EffectConverter(4, 0, player, 4)
+            if mod.WantedEffect == "MCdestroyed" then
+                mod:EffectConverter(4, 0, player, 4)
                 return
-            elseif Balatro_Expansion.WantedEffect == "MCsafe" then
-                Balatro_Expansion:EffectConverter(7, 0, player, 4)
+            elseif mod.WantedEffect == "MCsafe" then
+                mod:EffectConverter(7, 0, player, 4)
                 return
             end
         end
         local DamageMult = 1.2 + (0.1 * player:GetTrinketMultiplier(Cavendish)) 
-        if Balatro_Expansion.WantedEffect == Cavendish then
-            Balatro_Expansion:EffectConverter(2, DamageMult, player, 2)
+        if mod.WantedEffect == Cavendish then
+            mod:EffectConverter(2, DamageMult, player, 2)
         end
         player.Damage = player.Damage * DamageMult
     end
 end
 
-Balatro_Expansion:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE, Balatro_Expansion.Cavendish, CacheFlag.CACHE_DAMAGE)
+mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE, mod.Cavendish, CacheFlag.CACHE_DAMAGE)
 -------------------FLASH CARD---------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:FlashCard(player, _)
+function mod:FlashCard(player, _)
     if player:HasTrinket(Flash_card) then --controls if it has the trinket
         local Damage = TrinketValues.Flash_card * player:GetTrinketMultiplier(Flash_card)
-        if Balatro_Expansion.WantedEffect == Flash_card then
-            Balatro_Expansion:EffectConverter(1, Damage, player, 1)
+        if mod.WantedEffect == Flash_card then
+            mod:EffectConverter(1, Damage, player, 1)
         end
         player.Damage = player.Damage + Damage
     end
 end
 
-Balatro_Expansion:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Balatro_Expansion.FlashCard, CacheFlag.CACHE_DAMAGE)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.FlashCard, CacheFlag.CACHE_DAMAGE)
 
 -------------------CLOUD 9---------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:Cloudnine(player, _)
+function mod:Cloudnine(player, _)
     local Tanscendance = ItemsConfig:GetCollectible(CollectibleType.COLLECTIBLE_TRANSCENDENCE)
     if player:HasTrinket(Cloud_nine) then --controls if it has the trinket
     
         if TrinketValues.Cloud_9 == 0 then
             player.CanFly = true  
             player:AddCostume(Tanscendance)
-            if Balatro_Expansion.WantedEffect == Cloud_nine then
-                Balatro_Expansion:EffectConverter(3, 0, player, 4)
+            if mod.WantedEffect == Cloud_nine then
+                mod:EffectConverter(3, 0, player, 4)
             end
         else
-            if Balatro_Expansion.WantedEffect == Cloud_nine then
-                Balatro_Expansion:EffectConverter(8, TrinketValues.Cloud_9, player, 4)
+            if mod.WantedEffect == Cloud_nine then
+                mod:EffectConverter(8, TrinketValues.Cloud_9, player, 4)
             end
             if not player:HasCollectible(CollectibleType.COLLECTIBLE_TRANSCENDENCE) then
                 player:RemoveCostume(Tanscendance)
@@ -720,10 +732,10 @@ function Balatro_Expansion:Cloudnine(player, _)
     end
 end
 
-Balatro_Expansion:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Balatro_Expansion.Cloudnine, CacheFlag.CACHE_FLYING)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.Cloudnine, CacheFlag.CACHE_FLYING)
 -------------------CARTOMANCER---------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:CArtomancer(player)
+function mod:CArtomancer(player)
     if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_LITTLE_BAGGY) then
         for i = 1, 2 * player:GetTrinketMultiplier(Cartomancer), 1 do
             local RNG = player:GetTrinketRNG(Cartomancer)
@@ -740,46 +752,46 @@ function Balatro_Expansion:CArtomancer(player)
             Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, player.Position , RandomVector() * 3, player, Card, seed)
         end
     end      
-    Balatro_Expansion:EffectConverter(3, 0, player, 4)
+    mod:EffectConverter(3, 0, player, 4)
 end
 --------------------SWASHBUCKLER-------------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:SwashBuckler(player, _)
+function mod:SwashBuckler(player, _)
     if player:HasTrinket(Swashbuckler) then --controls if it has the trinket
         local Damage = TrinketValues.Swashbuckler * player:GetTrinketMultiplier(Swashbuckler)
-        if Balatro_Expansion.WantedEffect == Swashbuckler then
-            Balatro_Expansion:EffectConverter(1, Damage, player, 1)
+        if mod.WantedEffect == Swashbuckler then
+            mod:EffectConverter(1, Damage, player, 1)
         end
         player.Damage = player.Damage + Damage
     end
 end
 
-Balatro_Expansion:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Balatro_Expansion.SwashBuckler, CacheFlag.CACHE_DAMAGE)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.SwashBuckler, CacheFlag.CACHE_DAMAGE)
 
 
 --------------------LOYALTY CARD-------------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:LoyaltyCard(player)
+function mod:LoyaltyCard(player)
     if player:HasTrinket(Loyalty_card) then --controls if it has the trinket
     
         if TrinketValues.Loyalty_card == 0 then
             player.Damage = player.Damage * 1.3  
-            if Balatro_Expansion.WantedEffect == Loyalty_card then
-                Balatro_Expansion:EffectConverter(2, 1.3, player, 2)
+            if mod.WantedEffect == Loyalty_card then
+                mod:EffectConverter(2, 1.3, player, 2)
             end  
         else
-            if Balatro_Expansion.WantedEffect == Loyalty_card then
-                Balatro_Expansion:EffectConverter(8, TrinketValues.Loyalty_card, player, 4)
+            if mod.WantedEffect == Loyalty_card then
+                mod:EffectConverter(8, TrinketValues.Loyalty_card, player, 4)
             end
         end        
     end
 end
 
-Balatro_Expansion:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE, Balatro_Expansion.LoyaltyCard, CacheFlag.CACHE_DAMAGE)
+mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE, mod.LoyaltyCard, CacheFlag.CACHE_DAMAGE)
 
 ---------------------SUPERNOVA----------------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:SuperNova(player)
+function mod:SuperNova(player)
     local Damage = 0
     if player:HasTrinket(Supernova) then
         for i = 0, 1, 1 do --takes the higer value between the two held actives
@@ -789,22 +801,22 @@ function Balatro_Expansion:SuperNova(player)
             end
         end
         player.Damage = player.Damage + Damage  
-        if Balatro_Expansion.WantedEffect == Supernova then
-            Balatro_Expansion:EffectConverter(1, Damage, player, 1)
+        if mod.WantedEffect == Supernova then
+            mod:EffectConverter(1, Damage, player, 1)
         end
     end
 end
-Balatro_Expansion:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Balatro_Expansion.SuperNova, CacheFlag.CACHE_DAMAGE)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.SuperNova, CacheFlag.CACHE_DAMAGE)
 
 ---------------DELAYED GRATIFICATION------------------
 ---@param player EntityPlayer
-function Balatro_Expansion:DelayedGratification(player)
+function mod:DelayedGratification(player)
     if TrinketValues.DamageTakenRoom == 0 then --gives coins if no damage is taken when compleating rooms
         local seed = player:GetTrinketRNG(Delayed_gratification):GetSeed()
         for i = 1, player:GetTrinketMultiplier(Delayed_gratification), 1 do 
             Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, player.Position , RandomVector() * 3, player, CoinSubType.COIN_PENNY, seed)
         end
-        Balatro_Expansion:EffectConverter(3, 0, player, 4)
+        mod:EffectConverter(3, 0, player, 4)
     end
     TrinketValues.Delayed_gratification = true
 end
@@ -812,7 +824,7 @@ end
 ---------------------EGG------------------
 
 ---@param player EntityPlayer
-function Balatro_Expansion:EGG(player, Destroy)
+function mod:EGG(player, Destroy)
     --print(Destroy)
     if Destroy then
         local seed = player:GetTrinketRNG(Egg):GetSeed()
@@ -828,18 +840,18 @@ function Balatro_Expansion:EGG(player, Destroy)
             end
         end
         
-        Balatro_Expansion:EffectConverter(3, 0, player, 4)
+        mod:EffectConverter(3, 0, player, 4)
     else
         --print("false")
         TrinketValues.Egg = TrinketValues.Egg + (4 * player:GetTrinketMultiplier(Egg))
-        Balatro_Expansion:EffectConverter(5, 0, player, 4)
+        mod:EffectConverter(5, 0, player, 4)
     end
 end
 
 -------------------DNA----------------------
 
 ---@param player EntityPlayer
-function Balatro_Expansion:DNA(player, Variant, SubType)
+function mod:DNA(player, Variant, SubType)
     if TrinketValues.Dna then    
         local Copied = false --needed to not make the trinket deactivate in case of a wrong active item being used
         local seed = player:GetTrinketRNG(Golden_joker):GetSeed()
@@ -867,7 +879,7 @@ function Balatro_Expansion:DNA(player, Variant, SubType)
             else
                 TrinketValues.Dna = false
             end
-            Balatro_Expansion:EffectConverter(3, 0, player, 4)
+            mod:EffectConverter(3, 0, player, 4)
         end
     end
 end
