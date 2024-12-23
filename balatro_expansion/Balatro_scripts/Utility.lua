@@ -7,7 +7,6 @@ function mod:round(num, numDecimalPlaces)
     return math.floor(num * mult + 0.5) / mult
   end
 
-
 --if X is inside of list
 function mod:Contained(list, x)
 	for _, v in pairs(list) do
@@ -18,6 +17,14 @@ function mod:Contained(list, x)
 	return false
 end
 
+
+function mod:GetMax(Table)
+    local Result = 0
+    for _,v in ipairs(Table) do
+        Result = math.max(Result,v)
+    end
+    return Result
+end
 
 function mod:CalculateTearsUp(currentMaxFireDelay, TearsAdded)
     --big ass math jumpscare (CHAT GPT moment) needed to give a stable tears up (like pisces does)
@@ -34,6 +41,10 @@ end
 
 function mod:CalculateMaxFireDelay(Tears)
     return (30 - Tears)/Tears
+end
+
+function mod:CalculateTears(Firedelay)
+    return 30 / (Firedelay + 1)
 end
 
 --returns a shuffled version of the given table
@@ -73,96 +84,106 @@ function mod:SubstituteCards(ChosenTable)
     
 end
 
---determine the corresponding poker hand basing on the hand given
-function mod:DeterminePokerHand(HandTable)
-    local ValidCardsNumber = 0
-    for _,Card in pairs(HandTable) do
-        if Card ~= 0 then
-            ValidCardsNumber = ValidCardsNumber + 1
+--determines the corresponding poker hand basing on the hand given
+function mod:DeterminePokerHand()
+    local ElegibleHandTypes = {mod.HandTypes.HIGH_CARD} --always at least a high card
+
+    local RealHand = {}
+    for i,_ in ipairs(Balatro_Expansion.SavedValues.Jimbo.CurrentHand) do
+        if mod.CardSelectionParams.SelectedCards[i] then
+            table.insert(RealHand, Balatro_Expansion.SavedValues.Jimbo.FullDeck[Balatro_Expansion.SavedValues.Jimbo.CurrentHand[i]])
         end
     end
+
+    local ValueTable = {} --the value of every card used
+    local SuitTable = {} --the suit of every card used
+    for i, card in ipairs(RealHand) do
+        ValueTable[i] = card.Value
+        SuitTable[i] = card.Suit
+
+    end
+
+    local ValidCardsNumber = #RealHand
+
     --print(ValidCardsNumber)
     local IsFlush = false
-    if ValidCardsNumber >= 4 then --no need to check if there aren't enough cards
-        IsFlush = mod:IsFlush(HandTable)
-    end
-    local EqualCards = mod:GetCardValueRepetitions(HandTable)
-
-    if EqualCards == 5 then
-        if IsFlush then
-            print("flush 5")
-            return
-        else
-            print("5 of a kind")
-            return
-        end
-    elseif EqualCards == 3.5 then
-        if IsFlush then
-            print("flush house")
-            return
-        else
-            print("full house")
-            return
-        end
-    end
     local IsStraight = false
     local IsRoyal = false
 
     if ValidCardsNumber >= 4 then --no need to check if there aren't enough cards
-        local ValueTable = {}
-        for i, v in ipairs(HandTable) do
-            if v == 0 then
-                ValueTable[i] = 0
-            else
-                ValueTable[i] = mod.SavedValues.Jimbo.FullDeck[v].Value
-            end
-            print(ValueTable[i])
-        end
+        IsFlush = mod:IsFlush(SuitTable)
         IsStraight,IsRoyal = mod:IsStraight(ValueTable)
+    
     end
 
-    if IsFlush and not IsStraight then
-        print("flush")
-    end
+    local EqualCards = mod:GetCardValueRepetitions(ValueTable)
 
+    --general flush check
+    if IsFlush then
+        table.insert(ElegibleHandTypes,mod.HandTypes.FLUSH)
+    end
+    --straight check
     if IsStraight then
-        if IsFlush then
-            if IsRoyal then
-                print("royal flush")
-                return
-            else
-                print("straight flush")
-                return
-            end
-        else
-            print("straight")
-            return
+        table.insert(ElegibleHandTypes,mod.HandTypes.STRAIGHT)
+        if IsRoyal then
+            table.insert(ElegibleHandTypes,mod.HandTypes.STRAIGHT_FLUSH)
+            table.insert(ElegibleHandTypes,mod.HandTypes.ROYAL_FLUSH)
+        elseif IsFlush then
+            table.insert(ElegibleHandTypes,mod.HandTypes.STRAIGHT_FLUSH)
         end
-    elseif EqualCards == 4 then
-        print("4 of a kind")
-        return
-    elseif EqualCards == 3 then
-        print("3 of a kind")
-        return
-    elseif EqualCards == 2.5 then
-        print("two pairs")
-        return
-    elseif EqualCards == 2 then
-        print("pair")
-        return
-    else
-        print("high card")
     end
+
+    ------repetition based hands checks-------
+    if EqualCards < 2 then --not even a pair (lame)
+       return ElegibleHandTypes
+    end
+    --at least a pair
+    table.insert(ElegibleHandTypes,mod.HandTypes.PAIR)
+
+    if EqualCards < 3 then --not a three of a kind
+        if EqualCards == 2.5 then --in that case makes sure if it's a two pair
+            table.insert(ElegibleHandTypes,mod.HandTypes.TWO_PAIR)
+        end
+        return ElegibleHandTypes
+    end
+    --at least a three of a kind
+    table.insert(ElegibleHandTypes,mod.HandTypes.THREE)
+
+    if EqualCards < 4 then
+        if EqualCards == 3.5 then
+            if IsFlush then
+                table.insert(ElegibleHandTypes,mod.HandTypes.FLUSH_HOUSE)
+            end
+            table.insert(ElegibleHandTypes,mod.HandTypes.FULL_HOUSE)
+        end
+        return ElegibleHandTypes
+    end
+     --at least a four of a kind
+    table.insert(ElegibleHandTypes,mod.HandTypes.FOUR)
+
+    if EqualCards < 5 then 
+        return ElegibleHandTypes
+    end
+    --a five of a kind
+    if IsFlush then --not even a pair (lame)
+        table.insert(ElegibleHandTypes,mod.HandTypes.FIVE_FLUSH)
+    end
+    table.insert(ElegibleHandTypes,mod.HandTypes.FIVE)
+
+    --IN THE END THERE WILL BE A TABLE CONTAINING ALL THE POSSIBLE HAND TYPES
+    --THAT THE USED ONE CONTAINS, MAKING IT EASIER FOR JOKERS TO ACTIVATE CORRECTLY
+    --BUT ONLY THE "HIGEST" ONE WILL BE CONSIDERED AS USED
+
+    return ElegibleHandTypes
+
+
 end
 
-function mod:IsFlush(HandTable)
+function mod:IsFlush(SuitTable)
     local CardSuits = {0,0,0,0} --spades, hearts, clubs, diamonds
 
-    for _, Card in ipairs(HandTable) do --cycles between all the cards in the used hand
-        if Card == 0 then --checks if the card exists
-            break
-        end
-        CardSuits[mod.SavedValues.Jimbo.FullDeck[Card].Suit] = CardSuits[mod.SavedValues.Jimbo.FullDeck[Card].Suit] + 1
+    for _, Suit in ipairs(SuitTable) do --cycles between all the cards in the used hand
+        CardSuits[Suit] = CardSuits[Suit] + 1
     end
 
     for _, SuitNumber in ipairs(CardSuits) do
@@ -173,25 +194,15 @@ function mod:IsFlush(HandTable)
     return false
 end
 
-function mod:IsStraight(HandTable)
+function mod:IsStraight(ValueTable)
+    table.sort(ValueTable)
 
-    table.sort(HandTable, function(a,b) --sorts the hand to make it easier to detect straights
-        --a = mod.SavedValues,Jimbo.FullDeck[a].Value
-        --b = mod.SavedValues,Jimbo.FullDeck[b].Value
-        if (a < b and a ~= 0) or b == 0 then
-            return true
-        end
-        return false
-    end)
-
-    local LowestValue = mod.SavedValues.Jimbo.FullDeck[HandTable[1]].Value
+    local LowestValue = ValueTable[1]
     local ValueToKeepStreak = LowestValue + 1
     local StraightStreak = 1
-    for _, Card in ipairs(HandTable) do --cycles between all the cards in the used hand
-        if Card == 0 then --checks if the card exists
-            break
-        end
-        if mod.SavedValues.Jimbo.FullDeck[Card].Value == ValueToKeepStreak  then
+    for _, CardValue in ipairs(ValueTable) do --cycles between all the cards in the used hand
+
+        if CardValue == ValueToKeepStreak  then
             StraightStreak = StraightStreak + 1
             if ValueToKeepStreak == 13 then
                 ValueToKeepStreak = 1 --ace
@@ -210,15 +221,14 @@ function mod:IsStraight(HandTable)
     return false,false
 end
 
-function mod:GetCardValueRepetitions(HandTable)
+function mod:GetCardValueRepetitions(ValueTable)
 
     local CardValues = {0,0,0,0,0,0,0,0,0,0,0,0,0} -- all the card's possible values
 
     --PAIRS CHECK
-    for _, Card in ipairs(HandTable) do --cycles between all the cards in the used hand
-        if Card ~= 0 then --checks if the card exists
-            CardValues[mod.SavedValues.Jimbo.FullDeck[Card].Value] = CardValues[mod.SavedValues.Jimbo.FullDeck[Card].Value] + 1
-        end
+    for _, card in ipairs(ValueTable) do --cycles between all the cards in the used hand
+    
+        CardValues[mod.SavedValues.Jimbo.FullDeck[card].Value] = CardValues[mod.SavedValues.Jimbo.FullDeck[card].Value] + 1
     end
 
     local PairPresent = false --tells if there is a pair for a full house/two pairs
@@ -301,13 +311,14 @@ function mod:FloorHasShopOrTreasure()
     return Available
 end
 
-function mod:IncreaseJimboStats(flag,increase)
+function mod:IncreaseJimboStats(Player,flag,increase)
     if flag & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
         mod.SavedValues.Jimbo.StatsToAdd.Damage = mod.SavedValues.Jimbo.StatsToAdd.Damage + increase
-        
+        Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, true)
     elseif flag & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then
         mod.SavedValues.Jimbo.StatsToAdd.Tears = mod.SavedValues.Jimbo.StatsToAdd.Tears + increase
-        print(mod.SavedValues.Jimbo.StatsToAdd.Tears)
+        Player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
+        --print(mod.SavedValues.Jimbo.StatsToAdd.Tears)
     end
 end
 

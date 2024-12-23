@@ -6,8 +6,10 @@ local Challenges = {}
 Challenges.Balatro = Isaac.GetChallengeIdByName("Balatro")
 local ItemsConfig = Isaac.GetItemConfig()
 
+local GameHasStarted = false
 --VVVVV-- big ass code wall incoming -VVVVV-
 function mod:OnGameStart(Continued)
+    GameHasStarted = true
 
     --removes every callback to prevent double callbacks on continues and to remove all of them on new runs
     mod:RemoveCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.OnNewRoom)
@@ -30,14 +32,14 @@ function mod:OnGameStart(Continued)
     mod:RemoveCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, mod.OnRoomClear)
     mod:RemoveCallback(ModCallbacks.MC_USE_ITEM, mod.OnCardUse)
     
-    if  Continued then
-        if mod:HasData() then
-            --print("data")
-            mod.SavedValues = json.decode(mod:LoadData())
-        end
-        --print(mod.SavedValues.Jimbo.DeckPointer)
-    else --new run (reset all the saved values)
-        mod:RemoveData()     --removes the saved trinket progress
+
+    if mod:HasData() then
+        mod.SavedValues = json.decode(mod:LoadData())
+    end
+    print(mod.SavedValues.ModConfig.ExtraReadability)
+
+    if not Continued then --new run (reset most of the saved values)
+    
         mod.SavedValues.TrinketValues.LastMisprintDMG = 0
         mod.SavedValues.TrinketValues.Fortune_Teller = 0
         mod.SavedValues.TrinketValues.Stone_joker = 0
@@ -63,6 +65,7 @@ function mod:OnGameStart(Continued)
         mod.SavedValues.TrinketValues.Egg = 3
         mod.SavedValues.TrinketValues.Supernova = {}
         mod.SavedValues.TrinketValues.Dna = true
+
         mod.SavedValues.Jimbo.FullDeck = {}
         if PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
             local index = 1
@@ -98,16 +101,16 @@ function mod:OnGameStart(Continued)
         mod.SavedValues.Other.TreasureEntered = false
         mod.SavedValues.Other.Picked = {0}  --to prevent weird shenadigans
         mod.SavedValues.Other.Tags = {}
-        mod.SavedValues.ModConfig.EffectsAllowed = true
 
         mod.SavedValues.Jimbo.StatsToAdd.Damage = 0
         mod.SavedValues.Jimbo.StatsToAdd.Tears = 0
+
+        print(mod.SavedValues.ModConfig.ExtraReadability)
         return
     end
-
+    
     --all of this only happens on continue runs--
     ---------------------------------------------
-    --Game:GetPlayer(0):UseCard(Card.CARD_HIEROPHANT)  just tests
 
     for i = 0, Game:GetNumPlayers() - 1, 1 do   --evaluates again for the mod's trinkets since closing the game
                                                 --resets the callbacks and the pickedTrinkets table
@@ -278,3 +281,12 @@ function mod:TrinketPickup(_,trinket,_)
     --print(mod.SavedValues.Other.Tags)
 end
 mod:AddCallback(ModCallbacks.MC_POST_TRIGGER_TRINKET_ADDED, mod.TrinketPickup)
+
+
+function mod:SaveStorage()
+    if GameHasStarted then --needed since POST_NEW_LEVEL goes before GAME_STARTED 
+        mod:SaveData(json.encode(mod.SavedValues))
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.SaveStorage)
+mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.SaveStorage)

@@ -1,6 +1,5 @@
 local mod = Balatro_Expansion
 local TrinketValues = mod.SavedValues.TrinketValues
-local Joker = TrinketType.TRINKET_JOKER
 
 
 -----------------------------------

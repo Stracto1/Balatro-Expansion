@@ -1,24 +1,10 @@
-local json = require("json")
 local mod = Balatro_Expansion
-
+local json = require("json")
 -------------MOD CONFIG MENU STUFF----------------------------
 --------------------------------------------------------------
 
-function mod:SaveStorage()
-    mod:SaveData(json.encode(mod.SavedValues))
-end
-mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.SaveStorage)
-mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.SaveStorage)
 
 if ModConfigMenu then
-
-local function SaveModConfig()
-    if mod.SavedValues.ModConfig.EffectsAllowed then
-        mod:SaveData("true")
-    else
-        mod:SaveData("false")
-    end
-end
 
 ModConfigMenu.AddSetting("Balatro Expansion", "Settings", {
     Type = ModConfigMenu.OptionType.BOOLEAN,
@@ -32,9 +18,32 @@ Display = function()
 end,
 OnChange = function(newvalue)
     mod.SavedValues.ModConfig.EffectsAllowed = newvalue
-  --SaveModConfig()
+    mod:SaveStorage()
 end,
 Info = {"Determines whether or not the additional Balatro VFX/SFX are used"}
 })
+
+
+
+ModConfigMenu.AddSetting("Balatro Expansion", "Settings", {
+  Type = ModConfigMenu.OptionType.BOOLEAN,
+Default = false,
+CurrentSetting = function()
+return mod.SavedValues.ModConfig.ExtraReadability
+end,
+Display = function()
+if mod.SavedValues.ModConfig.ExtraReadability then return "Cards HUD: Readable"
+else return "Cards HUD: Normal" end
+end,
+OnChange = function(newvalue)
+  mod.SavedValues.ModConfig.ExtraReadability = newvalue
+  mod:SaveStorage()
+end,
+Info = {"Changes the sprites used for cards in the HUD"}
+})
+
+
 end
+
+
 

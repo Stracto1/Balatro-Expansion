@@ -1,0 +1,58 @@
+<shaders>
+    <shader name="Balatro_Pack_Opened">
+        <parameters>
+            <param name="Time" type="float"/>
+            <param name="BackgroundColor" type="vec4"/>
+        </parameters>
+        <vertex><![CDATA[
+            attribute vec3 Position;
+            attribute vec4 Color;
+            attribute vec2 TexCoord;
+            attribute vec4 RenderData;
+            attribute float Scale;
+            attribute float Time;
+            attribute vec4 BackgroundColor;
+            varying vec4 Color0;
+            varying vec2 TexCoord0;
+            varying vec4 RenderDataOut;
+            varying float ScaleOut;
+            varying float TimeOut;
+            varying vec4 BackgroundColorOut;
+            uniform mat4 Transform;
+
+            void main(void) {
+                Color0 = Color;
+                TexCoord0 = TexCoord;
+                TimeOut = Time;
+                BackgroundColorOut = BackgroundColor;
+                gl_Position = Transform * vec4(Position.xyz, 1.0);
+            }
+        ]]></vertex>
+        <fragment><![CDATA[#version 130
+            varying lowp vec4 Color0;
+            varying mediump vec2 TexCoord0;
+            varying lowp vec4 RenderDataOut;
+            varying lowp float ScaleOut;
+            varying mediump float TimeOut;
+            varying lowp vec4 BackgroundColorOut;
+            varying lowp float IntensityOut;
+            varying lowp float WaveSpeedOut;
+            uniform sampler2D Texture0;
+
+            void main(void) {
+
+        //    float Amount = TimeOut / 100;
+            vec4 color = Color0 * texture2D(Texture0, TexCoord0);
+
+            
+      //      color.r = BackgroundColorOut.r;
+        //    color.g = BackgroundColorOut.g;
+          //  color.b = BackgroundColorOut.b;
+                
+            //vec4 NewColor = mix(color, BackgroundColorOut, Amount);
+            gl_FragColor = color;
+
+            }
+        ]]></fragment>
+    </shader>
+</shaders>

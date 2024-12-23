@@ -29,4 +29,31 @@
             numGridCollisionPoints="8" friction="1" shadowSize="13" stageHP="0" gibAmount="1">
             <gibs amount="1" rock="1" dust="1" sound_bone="1"/>
     </entity>
+
+    <!--CARD ENTITIES-->
+
+    <entity name="Tarot pack" anm2path="CardPack_Tarot.anm2" id="5" variant="300" subtype="2476"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+
+    <entity name="Celestial pack" anm2path="CardPack_Planet.anm2" id="5" variant="300" subtype="2477"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+
+    <entity name="Standard pack" anm2path="CardPack_Standard.anm2" id="5" variant="300" subtype="2478"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+
+    <entity name="Buffon pack" anm2path="CardPack_Buffon.anm2" id="5" variant="300" subtype="2479"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+
+    <entity name="Spectral pack" anm2path="CardPack_Spectral.anm2" id="5" variant="300" subtype="2480"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
 </entities>

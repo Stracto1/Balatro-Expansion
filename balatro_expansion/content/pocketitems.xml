@@ -1,0 +1,7 @@
+<pocketitems>
+    <card type="object" name="Tarot pack" description="Tarots inside" hud="Tarot_Pack" pickup="2476"/>
+    <card type="object" name="Celestial pack" description="Planets inside" hud="Planet_Pack" pickup="2477"/>
+    <card type="object" name="Standard pack" description="Cards inside" hud="Standard_Pack" pickup="2478"/>
+    <card type="object" name="Buffon pack" description="Jokers inside" hud="Buffon_Pack" pickup="2479"/>
+    <card type="object" name="Spectral pack" description="Spectrals inside" hud="Spectral_Pack" pickup="2480"/>
+</pocketitems>

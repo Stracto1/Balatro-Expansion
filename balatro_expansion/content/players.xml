@@ -2,7 +2,7 @@
     <player name="Jimbo"
         skin="character_jimbo.png"
         nameimage="playername_jimbo.png"
-        items="The hand"
+        
         heartcontainers="6"
         redhearts="6"
         speedmodifier="0"

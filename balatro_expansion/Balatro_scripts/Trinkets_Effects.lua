@@ -80,10 +80,12 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.Joker, CacheFlag.CACHE_DAMAG
 ------------------bull---------------------------
 
 
-function mod:Bull(player, _)
+function mod:Bull(player, flag)
     if player.HasTrinket(player, Bull) then --controls if it has the trinket
-        
-        local CurrentCoins = player.GetNumCoins(player)  --gets the player's coins
+        if player:GetPlayerType() == mod.Characters.JimboType then
+            mod:IncreaseJimboStats(flag,player:GetNumCoins() * 0.03)
+        else
+        local CurrentCoins = player:GetNumCoins()  --gets the player's coins
         local BullTears = 0
 
         if CurrentCoins <= 25 then
@@ -99,6 +101,7 @@ function mod:Bull(player, _)
             mod:EffectConverter(1, BullTears, player, 3)
         end
         player.MaxFireDelay = player.MaxFireDelay - TearsToAdd --flat tears up
+        end
     end
 end
 
