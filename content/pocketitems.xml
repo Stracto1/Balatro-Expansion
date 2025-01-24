@@ -1,0 +1,28 @@
+<pocketitems>
+    <!-- -PACKS- -->
+    <card type="object" name="Tarot pack" description="Tarots inside" hud="Tarot_Pack" pickup="2476"/>
+    <card type="object" name="Celestial pack" description="Planets inside" hud="Planet_Pack" pickup="2477"/>
+    <card type="object" name="Standard pack" description="Cards inside" hud="Standard_Pack" pickup="2478"/>
+    <card type="object" name="Buffon pack" description="Jokers inside" hud="Buffon_Pack" pickup="2479"/>
+    <card type="object" name="Spectral pack" description="Spectrals inside" hud="Spectral_Pack" pickup="2480"/>
+    
+    <!-- -PLANETS- -->
+    <card type="special" name="Pluto" description="High card up" hud="Not_So_Planet_Pluto" pickup="2481"/>
+    <card type="special" name="Mercury" description="Pair up" hud="Planet_Mercury" pickup="2482"/>
+    <card type="special" name="Uranus" description="Two pair up" hud="Planet_Uranus" pickup="2483"/>
+    <card type="special" name="Venus" description="Three of a kind up" hud="Planet_Venus" pickup="2484"/>
+    <card type="special" name="Saturn" description="Straight up" hud="Planet_Saturn" pickup="2485"/>
+    <card type="special" name="Jupiter" description="Flushe up" hud="Planet_Jupiter" pickup="2486"/>
+    <card type="special" name="Earth" description="Full house up" hud="Planet_Earth" pickup="2487"/>
+    <card type="special" name="Mars" description="Poker up" hud="Planet_Mars" pickup="2488"/>
+    <card type="special" name="Neptune" description="Straight flush up" hud="Planet_Neptune" pickup="2489"/>
+    <card type="special" name="Planet X" description="Five of a kind up" hud="Planet_X" pickup="2490"/>
+    <card type="special" name="Ceres" description="Flush house up" hud="Planet_Ceres" pickup="2491"/>
+    <card type="special" name="Eris" description="Flush five up" hud="Planet_Eris" pickup="2492"/>
+
+
+    <!-- -SPECTARLS- -->
+
+
+
+</pocketitems>

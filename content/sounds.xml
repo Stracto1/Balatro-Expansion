@@ -1,0 +1,18 @@
+<sounds root="sfx/">
+    <sound name="ADDMULTSFX">
+        <sample weight="1" path="multhit1sfx.wav" />
+    </sound>
+    <sound name="CHIPSSFX">
+        <sample weight="1" path="chips1sfx.wav" />
+        <sample weight="1" path="chips2sfx.wav" />
+    </sound>
+    <sound name="ACTIVATESFX">
+        <sample weight="1" path="generic1sfx.wav" />
+    </sound>
+    <sound name="TIMESMULTSFX">
+        <sample weight="1" path="multhit2sfx.wav" />
+    </sound>
+    <sound name="SLICESFX">
+        <sample weight="1" path="slice1sfx.wav" />
+    </sound>
+</sounds>

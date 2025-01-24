@@ -1,0 +1,116 @@
+   
+<entities anm2root="gfx/" version="5">
+    <!--TEAR VARIANTS-->
+    <entity anm2path="SpadeCardAnimation.anm2" id="2" variant="6013" name="Tear Spade Card" 
+            collisionRadius="11"
+            numGridCollisionPoints="8" friction="1" shadowSize="13" stageHP="0" gibAmount="1">
+            <gibs amount="1" rock="1" dust="1" sound_bone="1"/>
+    </entity>
+
+    <entity anm2path="HeartCardAnimation.anm2" id="2" variant="6014" name="Tear Heart Card" 
+            collisionRadius="11"
+            numGridCollisionPoints="8" friction="1" shadowSize="13" stageHP="0" gibAmount="1">
+            <gibs amount="1" rock="1" dust="1" sound_bone="1"/>
+    </entity>
+
+    <entity anm2path="ClubCardAnimation.anm2" id="2" variant="6015" name="Tear Club Card" 
+            collisionRadius="11"
+            numGridCollisionPoints="8" friction="1" shadowSize="13" stageHP="0" gibAmount="1">
+            <gibs amount="1" rock="1" dust="1" sound_bone="1"/>
+    </entity>
+
+    <entity anm2path="DiamondCardAnimation.anm2" id="2" variant="6016" name="Tear Diamond Card" 
+            collisionRadius="11"
+            numGridCollisionPoints="8" friction="1" shadowSize="13" stageHP="0" gibAmount="1">
+            <gibs amount="1" rock="1" dust="1" sound_bone="1"/>
+    </entity>
+
+    <!--CARD ENTITIES-->
+
+    <entity name="Tarot pack" anm2path="CardPack_Tarot.anm2" id="5" variant="300" subtype="2476"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+
+    <entity name="Celestial pack" anm2path="CardPack_Planet.anm2" id="5" variant="300" subtype="2477"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+
+    <entity name="Standard pack" anm2path="CardPack_Standard.anm2" id="5" variant="300" subtype="2478"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+
+    <entity name="Buffon pack" anm2path="CardPack_Buffon.anm2" id="5" variant="300" subtype="2479"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+
+    <entity name="Spectral pack" anm2path="CardPack_Spectral.anm2" id="5" variant="300" subtype="2480"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+
+
+
+    <entity name="Pluto" anm2path="Not_So_Planet_pluto.anm2" id="5" variant="300" subtype="2481"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+
+    <entity name="Mercury" anm2path="Planet_mercury.anm2" id="5" variant="300" subtype="2482"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+
+    <entity name="Uranus" anm2path="Planet_uranus.anm2" id="5" variant="300" subtype="2483"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+
+    <entity name="Venus" anm2path="Planet_venus.anm2" id="5" variant="300" subtype="2484"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+
+    <entity name="Saturn" anm2path="Planet_saturn.anm2" id="5" variant="300" subtype="2485"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+
+    <entity name="Flush" anm2path="Planet_jupiter.anm2" id="5" variant="300" subtype="2486"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+
+    <entity name="Earth" anm2path="Planet_earth.anm2" id="5" variant="300" subtype="2487"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+
+    <entity name="Mars" anm2path="Planet_mars.anm2" id="5" variant="300" subtype="2488"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+
+    <entity name="Neptune" anm2path="Planet_neptune.anm2" id="5" variant="300" subtype="2489"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+
+    <entity name="Planet X" anm2path="Planet_X.anm2" id="5" variant="300" subtype="2490"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+
+    <entity name="Ceres" anm2path="Planet_ceres.anm2" id="5" variant="300" subtype="2491"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+
+    <entity name="Eris" anm2path="Planet_eris.anm2" id="5" variant="300" subtype="2492"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+</entities>

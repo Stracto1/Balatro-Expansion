@@ -1,0 +1,486 @@
+local mod = Balatro_Expansion
+local ItemsConfig = Isaac.GetItemConfig()
+local Game = Game()
+
+--rounds down to numDecimal of spaces
+function mod:round(num, numDecimalPlaces)
+    local mult = 10^(numDecimalPlaces or 0)
+    return math.floor(num * mult + 0.5) / mult
+end
+
+--if X is inside of list
+function mod:Contained(list, x)
+	for _, v in pairs(list) do
+	    if v == x then
+            return true 
+        end
+	end
+	return false
+end
+
+function mod:GetValueIndex(Table, Value, Stop)
+    local WantedIndexes = {}
+    for k, v in pairs(Table) do
+        if v == Value then
+            if Stop then
+                return k
+            end
+            table.insert(WantedIndexes, k)
+        end
+    end
+    if Stop then --if you got here with stop then didn't find anything
+        return 0 --prob won't give problems
+    end
+    return WantedIndexes
+end
+
+function mod:GetValueRepetitions(Table, Value)
+    local Repeat = 0
+    for _,v in pairs(Table) do
+        if v == Value then
+            Repeat = Repeat + 1
+        end
+    end
+    return Repeat
+end
+
+
+function mod:GetMax(Table)
+    local Result = 0
+    for _,v in ipairs(Table) do
+        Result = math.max(Result,v)
+    end
+    return Result
+end
+
+---@param Table tablelib
+---@param RNG RNG
+function mod:GetRandom(Table, RNG)
+    local Possibilities = {}
+    for _,v in pairs(Table) do
+        table.insert(Possibilities, v)
+    end
+    return Possibilities[RNG:RandomInt(1,#Possibilities)]
+end
+
+function mod:CalculateTearsUp(currentMaxFireDelay, TearsAdded)
+    --big ass math jumpscare (CHAT GPT moment) needed to give a stable tears up (like pisces does)
+    local currentTearsPerSecond = 30 / (currentMaxFireDelay + 1)
+    local targetTearsPerSecond = currentTearsPerSecond + TearsAdded
+    local FireDelayToAdd = currentMaxFireDelay - ((30 / targetTearsPerSecond) - 1)
+
+    return FireDelayToAdd
+end
+
+function mod:CalculateTearsValue(Player)
+    return 30 / (Player.MaxFireDelay + 1)
+end
+
+function mod:CalculateMaxFireDelay(Tears)
+    return (30 - Tears)/Tears
+end
+
+function mod:CalculateTears(Firedelay)
+    return 30 / (Firedelay + 1)
+end
+
+--returns a shuffled version of the given table
+function mod:Shuffle(table, RNG)
+    for i = #table, 2, -1 do
+        local j = RNG:RandomInt(i) + 1
+        table[i], table[j] = table[j], table[i]
+    end
+    return table
+end
+
+--adds a value in many ways and return the position it got put in
+---@param Table table
+---@param CanBeEmpty boolean?
+---@param Shift boolean?
+function mod:AddValueToTable(Table, Value, CanBeEmpty, Shift, Pos)
+
+    if CanBeEmpty then
+        for i,v in ipairs(Table) do
+            if v == 0 then
+                Table[i] = Value
+                return i
+            end
+        end
+    end
+
+    local minI
+    for i,_ in ipairs(Table) do
+        minI = i
+        break
+    end
+    
+    if Shift then --{1,2,3,4,5} ==> {6,1,2,3,4}
+        
+        table.remove(Table)
+        table.insert(Table, minI, Value)
+        return minI
+    else
+        Pos = Pos or minI
+        Table[Pos] = Value
+        return Pos
+    end
+    --[[
+    for i=1,#HandTable-1 do    --puts them in order{2,3,4,5,1}
+        local Temp = HandTable[i]
+        HandTable[i] = HandTable[i+1]
+        HandTable[i+1] = Temp
+    end
+    
+    --replaces 1 (oldest) with the new one
+    HandTable[#HandTable] = card
+    --return HandTable]]--
+end
+
+function mod:FloorHasShopOrTreasure()
+    --DETERMINATION FOR THE PRESENCE OF TRESURES ROOMS/SHOPS--
+    --FALSE = NO shops/treasures
+    --TRUE = AVAILABLE Shops/treasures
+    local Available = {}
+    Available.Treasure = true
+    Available.Shop = true
+
+    local Level = Game:GetLevel()
+    mod.SavedValues.Other.Labyrinth = 1
+    if Level:GetCurses() & LevelCurse.CURSE_OF_LABYRINTH == LevelCurse.CURSE_OF_LABYRINTH then
+        mod.SavedValues.Jimbo.Labyrinth = 2
+    end
+    if Level:IsAscent() then
+        Available.Treasure = false
+        Available.Shop = false
+        return Available
+    end
+    local Greed = Game:IsGreedMode()
+    local Stage = Level:GetAbsoluteStage()
+    local LevelName = Level:GetName()
+
+    if Stage == LevelStage.STAGE4_1 and not Greed  then
+        if not PlayerManager.AnyoneHasTrinket(TrinketType.TRINKET_BLOODY_CROWN) then
+            Available.Treasure = false
+        end
+        if not PlayerManager.AnyoneHasTrinket(TrinketType.TRINKET_SILVER_DOLLAR) then
+            Available.Shop = false
+        end
+    elseif LevelName == "Sheol" and not Greed then
+        if not PlayerManager.AnyoneHasTrinket(TrinketType.TRINKET_WICKED_CROWN) then
+            Available.Treasure = false
+            Available.Shop = false
+        end
+
+    elseif LevelName == "Cathedral" then
+        if not PlayerManager.AnyoneHasTrinket(TrinketType.TRINKET_HOLY_CROWN) then
+            Available.Treasure = false
+            Available.Shop = false
+        end
+    elseif LevelName == "Shop" then --greed mode floor
+        Available.Treasure = false
+        
+    elseif Stage >= LevelStage.STAGE6 then --anything after sheol/cathedral
+        Available.Treasure = false
+        Available.Shop = false
+    end
+    return Available
+end
+
+-------------JIMBO FUNCTIONS------------
+---------------------------------------
+
+function mod:SubstituteCards(ChosenTable)
+    for i = #ChosenTable, 1,-1 do
+        if ChosenTable[i] then
+            --first adds the ammount of new cards needed
+            table.insert(mod.SavedValues.Jimbo.CurrentHand,#mod.SavedValues.Jimbo.CurrentHand+1, mod.SavedValues.Jimbo.DeckPointer)
+            mod.SavedValues.Jimbo.DeckPointer = mod.SavedValues.Jimbo.DeckPointer +1
+            --then removes the selected cards 
+            table.remove(mod.SavedValues.Jimbo.CurrentHand,i)
+        end
+    end
+    
+end
+
+--determines the corresponding poker hand basing on the hand given
+function mod:DeterminePokerHand()
+    local ElegibleHandTypes = {mod.HandTypes.NONE}
+
+    
+    local RealHand = {}
+    for i,_ in ipairs(mod.SavedValues.Jimbo.CurrentHand) do
+        if mod.CardSelectionParams.SelectedCards[i] then
+            table.insert(RealHand, mod.SavedValues.Jimbo.FullDeck[mod.SavedValues.Jimbo.CurrentHand[i]])
+        end
+    end
+
+    if #RealHand > 0 then
+        table.insert(ElegibleHandTypes, mod.HandTypes.HIGH_CARD)
+    else
+        return ElegibleHandTypes --why bother if there nothing selected
+    end
+
+    local ValueTable = {} --the value of every card used
+    local SuitTable = {} --the suit of every card used
+    for i, card in ipairs(RealHand) do
+        
+        ValueTable[i] = card.Value
+        SuitTable[i] = card.Suit
+    end
+
+    local ValidCardsNumber = #RealHand
+
+    --print(ValidCardsNumber)
+    local IsFlush = false
+    local IsStraight = false
+    local IsRoyal = false
+
+    if ValidCardsNumber >= 4 then --no need to check if there aren't enough cards
+        IsFlush = mod:IsFlush(SuitTable)
+        IsStraight,IsRoyal = mod:IsStraight(ValueTable)
+    
+    end
+
+    local EqualCards = mod:GetCardValueRepetitions(ValueTable)
+
+    --general flush check
+    if IsFlush then
+        table.insert(ElegibleHandTypes,mod.HandTypes.FLUSH)
+    end
+    --straight check
+    if IsStraight then
+        table.insert(ElegibleHandTypes,mod.HandTypes.STRAIGHT)
+        if IsRoyal then
+            table.insert(ElegibleHandTypes,mod.HandTypes.STRAIGHT_FLUSH)
+            table.insert(ElegibleHandTypes,mod.HandTypes.ROYAL_FLUSH)
+        elseif IsFlush then
+            table.insert(ElegibleHandTypes,mod.HandTypes.STRAIGHT_FLUSH)
+        end
+    end
+
+    ------repetition based hands checks-------
+    if EqualCards < 2 then --not even a pair (lame)
+       return ElegibleHandTypes
+    end
+    --at least a pair
+    table.insert(ElegibleHandTypes,mod.HandTypes.PAIR)
+
+    if EqualCards < 3 then --not a three of a kind
+        if EqualCards == 2.5 then --in that case makes sure if it's a two pair
+            table.insert(ElegibleHandTypes,mod.HandTypes.TWO_PAIR)
+        end
+        return ElegibleHandTypes
+    end
+    --at least a three of a kind
+    table.insert(ElegibleHandTypes,mod.HandTypes.THREE)
+
+    if EqualCards < 4 then
+        if EqualCards == 3.5 then
+            if IsFlush then
+                table.insert(ElegibleHandTypes,mod.HandTypes.FLUSH_HOUSE)
+            end
+            table.insert(ElegibleHandTypes,mod.HandTypes.FULL_HOUSE)
+        end
+        return ElegibleHandTypes
+    end
+     --at least a four of a kind
+    table.insert(ElegibleHandTypes,mod.HandTypes.FOUR)
+
+    if EqualCards < 5 then 
+        return ElegibleHandTypes
+    end
+    --a five of a kind
+    if IsFlush then
+        table.insert(ElegibleHandTypes,mod.HandTypes.FIVE_FLUSH)
+    end
+    table.insert(ElegibleHandTypes,mod.HandTypes.FIVE)
+
+    --IN THE END THERE WILL BE A TABLE CONTAINING ALL THE POSSIBLE HAND TYPES
+    --THAT THE USED ONE CONTAINS, MAKING IT EASIER FOR JOKERS TO ACTIVATE CORRECTLY
+    --BUT ONLY THE "HIGEST" ONE WILL BE CONSIDERED AS USED
+
+    return ElegibleHandTypes
+
+
+end
+
+function mod:IsFlush(SuitTable)
+    local CardSuits = {0,0,0,0} --spades, hearts, clubs, diamonds
+
+    for _, Suit in ipairs(SuitTable) do --cycles between all the cards in the used hand
+        CardSuits[Suit] = CardSuits[Suit] + 1
+    end
+
+    for _, SuitNumber in ipairs(CardSuits) do
+        if SuitNumber >= 5 then --if 5 cards have the same suit
+            return true
+        end
+    end
+    return false
+end
+
+function mod:IsStraight(ValueTable)
+    table.sort(ValueTable)
+
+    local LowestValue = ValueTable[1]
+    local ValueToKeepStreak = LowestValue + 1
+    local StraightStreak = 1
+    for _, CardValue in ipairs(ValueTable) do --cycles between all the cards in the used hand
+
+        if CardValue == ValueToKeepStreak  then
+            StraightStreak = StraightStreak + 1
+            if ValueToKeepStreak == 13 then
+                ValueToKeepStreak = 1 --ace
+            elseif ValueToKeepStreak ~= 1 then
+                ValueToKeepStreak = ValueToKeepStreak + 1
+            end
+        end
+    end
+    if StraightStreak == 5 then
+        if LowestValue == 10 then --determines if it's a royal flush
+            return true,true
+        else
+            return true,false
+        end
+    end
+    return false,false
+end
+
+function mod:GetCardValueRepetitions(ValueTable)
+
+    local CardValues = {0,0,0,0,0,0,0,0,0,0,0,0,0} -- all the card's possible values
+
+    --PAIRS CHECK
+    for _, card in ipairs(ValueTable) do --cycles between all the cards in the used hand
+    
+        CardValues[mod.SavedValues.Jimbo.FullDeck[card].Value] = CardValues[mod.SavedValues.Jimbo.FullDeck[card].Value] + 1
+    end
+
+    local PairPresent = false --tells if there is a pair for a full house/two pairs
+    local ToaKPresent = false --tells if there is a ToaK for a possible full house
+
+    for _, ValueNum in ipairs(CardValues) do
+        if ValueNum == 5 then
+            return 5 --5 of a kind
+        elseif ValueNum == 4 then
+            return 4 --4 of a kind
+        elseif ValueNum == 3 then
+            if PairPresent then
+                return 3.5 --full house
+            end
+            ToaKPresent = true
+        elseif ValueNum == 2 then
+            if PairPresent then
+                return 2.5 --two pairs
+            elseif ToaKPresent then
+                return 3.5 --full house
+            end
+            PairPresent = true
+        end
+    end
+    if PairPresent then
+        return 2 --pair
+    elseif ToaKPresent then
+        return 3 --3 of a kind
+    end
+    return 1 --high card
+end
+
+
+function mod:GetActualCardValue(Value)
+    if Value >=10 then
+        return 10
+    elseif Value == 1 then
+        return 11
+    end
+    return Value
+end
+
+function mod:JimboHasTrinket(Player,Trinket)
+    for _,v in ipairs(mod.SavedValues.Jimbo.Inventory.Jokers) do
+        if v == Trinket then
+            return true
+        end
+    end
+    return false
+end
+
+function mod:GetJimboJokerIndex(Player, Joker)
+    local Indexes = {}
+
+    for i,v in ipairs(mod.SavedValues.Jimbo.Inventory.Jokers) do
+        if v == Joker then
+            table.insert(Indexes, i)
+        elseif ItemsConfig:GetTrinket(v):HasCustomTag("copiable") then
+            local CopiedJoker = Joker
+            local limit = 3
+            local tries = 1 --certain combinations could potentially make this algorithm endless
+            repeat
+                if CopiedJoker == TrinketType.TRINKET_BLUEPRINT then
+                    i = i + 1
+                    CopiedJoker = mod.SavedValues.Jimbo.Inventory.Jokers[i]
+                elseif CopiedJoker == TrinketType.TRINKET_BRAINSTORM then
+                    i = 1
+                    CopiedJoker = mod.SavedValues.Jimbo.Inventory.Jokers[i]
+                end
+            until tries > limit or not CopiedJoker or  --could be nil/stops after a while
+                 (CopiedJoker ~= TrinketType.TRINKET_BLUEPRINT and CopiedJoker ~= TrinketType.TRINKET_BRAINSTORM)
+            if CopiedJoker and CopiedJoker == Joker then
+                table.insert(Indexes, i)
+            end
+        end
+    end
+    return Indexes
+end
+
+function mod:IsSuit(Player, Suit, Enhancement, WantedSuit, MakeTable)
+    if MakeTable then --in this case makes a table telling the equivalent suits
+
+        if Enhancement == mod.Enhancement.WILD then
+            return {1,2,3,4} --every suit is good
+        end
+        local GoodSuits = {} 
+
+        table.insert(GoodSuits, Suit)
+        
+        if (mod:JimboHasTrinket(Player, TrinketType.TRINKET_SMEARED_JOKER)) then
+            --in this case spades/clubs and Hearts/diamonds are considered the same
+            local Jump = 2 --distance SPADE/HEART => CLUB/DIAMOND
+            if WantedSuit > 2 then  --the suits are in order: (SPADE,HEART,CLUB,DIAMOND)
+                Jump = -2 --distance CLUB/DIAMOND => SPADE/HEART
+            end
+            table.insert(GoodSuits, WantedSuit + Jump)
+            
+        end
+        return GoodSuits
+    else --in this case only says true or false if equal
+        if Suit == WantedSuit or Enhancement == mod.Enhancement.WILD then
+            return true
+        end
+        
+        if (mod:JimboHasTrinket(Player, TrinketType.TRINKET_SMEARED_JOKER)) then
+            --in this case spades/clubs and Hearts/diamonds are considered the same
+            local Jump = 2 --distance SPADE/HEART => CLUB/DIAMOND
+            if WantedSuit > 2 then  --the suits are in order: (SPADE,HEART,CLUB,DIAMOND)
+                Jump = -2 --distance CLUB/DIAMOND => SPADE/HEART
+            end
+            if Suit == WantedSuit + Jump then
+                return true
+            end
+        end
+        return false
+    end
+end
+
+function mod:TryGamble(Player, RNG, Chance)
+    --Chance = Chance * (2 ^ mod:GetValueRepetitions(mod.SavedValues.Jimbo.Inventory, TrinketType.TRINKET_OOPS_6) 
+    if RNG:RandomFloat() < Chance then
+        return true
+    end
+    return false
+end
+
+function mod:GetJokerCost(Joker)
+    --removes ! from the customtag (see items.xml) 
+    return tonumber(string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[1],"%!",""),2)
+end

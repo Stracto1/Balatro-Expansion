@@ -1,0 +1,31 @@
+<players root="gfx/characters/costumes/" portraitroot="gfx/ui/stage/" nameimageroot="gfx/ui/boss/">
+    <player name="Jimbo"
+        skin="character_jimbo.png"
+        nameimage="playername_jimbo.png"
+        
+        heartcontainers="6"
+        redhearts="6"
+        speedmodifier="0"
+        firedelaymodifier="-3.15"
+        damagemodifier="-2.5"
+        rangemodifier="2"
+        luckmodifier="1"
+        modcostume="5"
+        portrait="playerportrait_jimbo.png"
+        skinColor="0"
+        canShoot = "False"
+    />
+
+    <player name="Jimbo"
+        skin="character_jimbo_b.png"
+        nameimage="playername_jimbo.png"
+        hp="4"
+        armor="2"
+        keys="1"
+        portrait="playerportrait_jimbo_b.png"
+        skinColor="-1"
+        bSkinParent="Jimbo"
+        costumeSuffix="jimbob"
+        costume="104"
+    />
+</players>
