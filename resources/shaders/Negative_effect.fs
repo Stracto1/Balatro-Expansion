@@ -52,7 +52,7 @@ void main(void)
 	float XshinePoint = 0.66 * -TexCoord0.y + 0.12; //where the shine effect should be
 	float Distance = XshinePoint - TexCoord0.x; //the distance from the shine point
 
-	Color.rgb = mix(Color.rgb, vec3(1), clamp(0.4*cos(Distance * 20),0.05, 0.7)); //make it shine!
+	Color.rgb = mix(Color.rgb, vec3(1), clamp(0.36*cos(Distance * 20),0.05, 0.7)); //make it shine!
 
 
 	gl_FragColor = Color;

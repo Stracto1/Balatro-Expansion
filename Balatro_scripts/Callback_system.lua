@@ -1,15 +1,16 @@
 local mod = Balatro_Expansion
 local json = require("json")
+
 local Game = Game()
 
 local Challenges = {}
 Challenges.Balatro = Isaac.GetChallengeIdByName("Balatro")
 local ItemsConfig = Isaac.GetItemConfig()
 
-local GameHasStarted = false
 --VVVVV-- big ass code wall incoming -VVVVV-
 function mod:OnGameStart(Continued)
-    GameHasStarted = true
+    print("pre New Game "..tostring(mod.SavedValues.Jimbo.FloorEditions[206]))
+    mod.GameStarted = true
     --[[
     --removes every callback to prevent double callbacks on continues and to remove all of them on new runs
     mod:RemoveCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.OnNewRoom)
@@ -34,16 +35,31 @@ function mod:OnGameStart(Continued)
     --this got screpped cause it got more difficult to mantain when jimbo came in town
     
 
-    if mod:HasData() then
-        mod.SavedValues = json.decode(mod:LoadData())
-    end
-    --print(mod.SavedValues.ModConfig.ExtraReadability)
+    
     
     --sadly due to the unholy amount of values the mod needs to store i'll need to reset the all at once
 
-    if not Continued then --new run (reset most of the saved values)
+    if Continued then 
     
-        mod.SavedValues.TrinketValues.LastMisprintDMG = 0
+        if mod:HasData() then
+            mod.SavedValues = json.decode(mod:LoadData())
+        end
+        for _, player in ipairs(PlayerManager.GetPlayers()) do   --evaluates again for the mod's trinkets since closing the game
+            --resets the callbacks and the pickedTrinkets table
+            mod.StatEnable = true
+            player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, true)
+            player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
+            mod.StatEnable = false
+        end
+        print("post New Game "..tostring(mod.SavedValues.Jimbo.FloorEditions[206]))
+        return
+    end
+    
+    --all of this only happens on new runs--
+    ---------------------------------------------
+
+    --reset most of the saved values
+    mod.SavedValues.TrinketValues.LastMisprintDMG = 0
         mod.SavedValues.TrinketValues.Fortune_Teller = 0
         mod.SavedValues.TrinketValues.Stone_joker = 0
         mod.SavedValues.TrinketValues.Ice_cream = 1
@@ -79,7 +95,7 @@ function mod:OnGameStart(Continued)
                 mod.SavedValues.Jimbo.FullDeck[index].Value = j --1 ~ 13
                 mod.SavedValues.Jimbo.FullDeck[index].Enhancement = 1
                 mod.SavedValues.Jimbo.FullDeck[index].Seal = 1
-                mod.SavedValues.Jimbo.FullDeck[index].Edition = 1
+                mod.SavedValues.Jimbo.FullDeck[index].Edition = 2
                 index = index +1
             end
         end
@@ -96,8 +112,8 @@ function mod:OnGameStart(Continued)
         mod.SavedValues.Jimbo.DeckPointer = 6
         mod.SavedValues.Jimbo.CurrentHand = {5,4,3,2,1} --basically 5 different cards
         mod.SavedValues.Jimbo.Inventory= {}
-        mod.SavedValues.Jimbo.Inventory.Jokers = {0,0,0,0,0}
-        mod.SavedValues.Jimbo.Inventory.Editions = {0,0,0,0,0}
+        mod.SavedValues.Jimbo.Inventory.Jokers = {0,0,0}
+        mod.SavedValues.Jimbo.Inventory.Editions = {0,0,0}
 
         mod.SavedValues.Jimbo.Progress = {} --values used for jokers (reset every blind)
         mod.SavedValues.Jimbo.Progress.SuitUsed = {}
@@ -168,7 +184,7 @@ function mod:OnGameStart(Continued)
         mod.SavedValues.Jimbo.Progress.SuitUsed[mod.Suits.Club] = 0
         mod.SavedValues.Jimbo.Progress.SuitUsed[mod.Suits.Diamond] = 0
 
-        Balatro_Expansion.SavedValues.Jimbo.LastUsed = {}
+        mod.SavedValues.Jimbo.LastUsed = {}
     
 
         if mod:Contained(Challenges, Game.Challenge) then
@@ -186,18 +202,7 @@ function mod:OnGameStart(Continued)
         mod.SelectionParams.Purpose = mod.SelectionParams.Purposes.NONE
         mod.SelectionParams.Mode = mod.SelectionParams.Modes.NONE
         --print(mod.SavedValues.ModConfig.ExtraReadability)
-    end
-    
-    --all of this only happens on continue runs--
-    ---------------------------------------------
 
-    for _, player in ipairs(PlayerManager.GetPlayers()) do   --evaluates again for the mod's trinkets since closing the game
-                                                --resets the callbacks and the pickedTrinkets table
-        mod.StatEnable = true
-        player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, true)
-        player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
-        mod.StatEnable = false
-    end    
     --[[
     --print(#mod.SavedValues.Other.Tags)
     for j = 1, #mod.SavedValues.Other.Tags, 1 do
@@ -367,9 +372,12 @@ end
 --this got screpped cause it got more difficult to mantain when jimbo came in town
 
 
-function mod:SaveStorage()
-    if GameHasStarted then --needed since POST_NEW_LEVEL goes before GAME_STARTED 
+function mod:SaveStorage(IsExit)
+    if mod.GameStarted then --needed since POST_NEW_LEVEL goes before GAME_STARTED 
         mod:SaveData(json.encode(mod.SavedValues))
+    end
+    if IsExit ~= nil then --this variable exists only when the GAME_EXIT callback is called
+        mod.GameStarted = false
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.SaveStorage)

@@ -142,10 +142,10 @@ Balatro_Expansion.HandTypes.FLUSH = 6
 Balatro_Expansion.HandTypes.FULL_HOUSE = 7
 Balatro_Expansion.HandTypes.FOUR = 8
 Balatro_Expansion.HandTypes.STRAIGHT_FLUSH = 9
-Balatro_Expansion.HandTypes.ROYAL_FLUSH = 9.5
-Balatro_Expansion.HandTypes.FIVE = 10
-Balatro_Expansion.HandTypes.FLUSH_HOUSE = 11
-Balatro_Expansion.HandTypes.FIVE_FLUSH = 12
+Balatro_Expansion.HandTypes.ROYAL_FLUSH = 10
+Balatro_Expansion.HandTypes.FIVE = 11
+Balatro_Expansion.HandTypes.FLUSH_HOUSE = 12
+Balatro_Expansion.HandTypes.FIVE_FLUSH = 13
 
 Balatro_Expansion.CARD_TEAR_VARIANTS = {Isaac.GetEntityVariantByName("Tear Spade Card"),
                                         Isaac.GetEntityVariantByName("Tear Heart Card"),
@@ -175,6 +175,7 @@ Balatro_Expansion.Fonts.upheavalmini = Font()
 Balatro_Expansion.Fonts.upheavalmini:Load("resources/font/upheavalmini.fnt")
 ---------------------
 local Game = Game()
+Balatro_Expansion.GameStarted = false
 --local HUD = Game:GetHUD()
 
 Balatro_Expansion.SavedValues = {} --every value thet needs to be stored between game starts
@@ -218,7 +219,7 @@ for i = 1, 4, 1 do --cycles between the suits
         Balatro_Expansion.SavedValues.Jimbo.FullDeck[index].Value = j
         Balatro_Expansion.SavedValues.Jimbo.FullDeck[index].Enhancement = 1
         Balatro_Expansion.SavedValues.Jimbo.FullDeck[index].Seal = 1
-        Balatro_Expansion.SavedValues.Jimbo.FullDeck[index].Edition = 1
+        Balatro_Expansion.SavedValues.Jimbo.FullDeck[index].Edition = 2
         index = index +1
     end
 end
@@ -243,7 +244,7 @@ Balatro_Expansion.SavedValues.Jimbo.StatsToAdd.JokerTears = 0
 Balatro_Expansion.SavedValues.Jimbo.StatsToAdd.JokerMult = 1
 
 Balatro_Expansion.SavedValues.Jimbo.Progress = {} --values used for jokers (reset every blind)
-Balatro_Expansion.SavedValues.Jimbo.Progress.Inventory = {0,0,0,0,0}
+Balatro_Expansion.SavedValues.Jimbo.Progress.Inventory = {0,0,0}
 Balatro_Expansion.SavedValues.Jimbo.Progress.SuitUsed = {}
 Balatro_Expansion.SavedValues.Jimbo.Progress.SuitUsed[Balatro_Expansion.Suits.Spade] = 0
 Balatro_Expansion.SavedValues.Jimbo.Progress.SuitUsed[Balatro_Expansion.Suits.Heart] = 0
@@ -255,8 +256,8 @@ Balatro_Expansion.SavedValues.Jimbo.LastUsed = {} --the last card a player used
 Balatro_Expansion.SavedValues.Jimbo.MinimumTears = 0.8
 Balatro_Expansion.SavedValues.Jimbo.MinimumDamage = 0.5
 Balatro_Expansion.SavedValues.Jimbo.Inventory= {}
-Balatro_Expansion.SavedValues.Jimbo.Inventory.Jokers = {0,0,0,0,0}
-Balatro_Expansion.SavedValues.Jimbo.Inventory.Editions = {0,0,0,0,0}
+Balatro_Expansion.SavedValues.Jimbo.Inventory.Jokers = {0,0,0}
+Balatro_Expansion.SavedValues.Jimbo.Inventory.Editions = {0,0,0}
 
 Balatro_Expansion.SavedValues.Jimbo.HandLevels = {}
 Balatro_Expansion.SavedValues.Jimbo.HandLevels[Balatro_Expansion.HandTypes.HIGH_CARD] = 1

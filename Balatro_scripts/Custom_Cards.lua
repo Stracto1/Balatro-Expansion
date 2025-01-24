@@ -156,11 +156,13 @@ mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.NewTarotEffects)
 function mod:PlanetCards(card, Player,_)
     if card >= mod.Planets.PLUTO and card <= mod.Planets.ERIS then --if it's a planet Card
 
-        local Hand = card - mod.Planets.PLUTO + 1
+        local Hand = card - mod.Planets.PLUTO + 1 --gets the equivalent handtype
+        if Hand >= 10 then Hand = Hand + 1 end --creates an offset caused by royal flush existence
+
         mod.SavedValues.Jimbo.HandLevels[Hand] = mod.SavedValues.Jimbo.HandLevels[Hand] + 1
         mod.SavedValues.Jimbo.HandsStat[Hand] = mod.SavedValues.Jimbo.HandsStat[Hand] + mod.HandUpgrades[Hand]
         if Hand == 9 then
-            Hand = 9.5 --upgrades both royal flush and straight flush
+            Hand = 10 --upgrades both royal flush and straight flush
             mod.SavedValues.Jimbo.HandLevels[Hand] = mod.SavedValues.Jimbo.HandLevels[Hand] + 1
             mod.SavedValues.Jimbo.HandsStat[Hand] = mod.SavedValues.Jimbo.HandsStat[Hand] + mod.HandUpgrades[Hand]
         end

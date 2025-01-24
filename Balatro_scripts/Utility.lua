@@ -297,11 +297,9 @@ function mod:DeterminePokerHand()
 
     --IN THE END THERE WILL BE A TABLE CONTAINING ALL THE POSSIBLE HAND TYPES
     --THAT THE USED ONE CONTAINS, MAKING IT EASIER FOR JOKERS TO ACTIVATE CORRECTLY
-    --BUT ONLY THE "HIGEST" ONE WILL BE CONSIDERED AS USED
+    --BUT ONLY THE "HIGEST" ONE WILL BE CONSIDERED AS THE SCORING ONE
 
     return ElegibleHandTypes
-
-
 end
 
 function mod:IsFlush(SuitTable)
@@ -483,4 +481,25 @@ end
 function mod:GetJokerCost(Joker)
     --removes ! from the customtag (see items.xml) 
     return tonumber(string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[1],"%!",""),2)
+end
+
+function mod:AddJimboInventorySlots(Player, Amount)
+    if Amount >= 0 then
+        for i=1,Amount do --just adds empty spaces to fill
+            table.insert(mod.SavedValues.Jimbo.Inventory.Jokers, 0)
+            table.insert(mod.SavedValues.Jimbo.Inventory.Editions, 0)
+        end
+    else
+        for i,Joker in ipairs(mod.SavedValues.Jimbo.Inventory.Jokers) do
+            if Joker == 0 then --searches for an empty slot to remove
+                table.remove(mod.SavedValues.Jimbo.Inventory.Jokers, i)
+                table.remove(mod.SavedValues.Jimbo.Inventory.Editions, i)
+                return
+            end
+        end
+
+        Isaac.RunCallback("JOKER_SOLD", Player, mod.SavedValues.Jimbo.Inventory.Jokers[1], 1)
+        table.remove(mod.SavedValues.Jimbo.Inventory.Jokers, 1) --if none are present then sell the first joker
+        table.remove(mod.SavedValues.Jimbo.Inventory.Editions, 1)
+    end
 end

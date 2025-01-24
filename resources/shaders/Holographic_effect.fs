@@ -14,8 +14,7 @@ varying lowp vec3 ClipPlaneOut;
 uniform sampler2D Texture0;
 
 
-void main(void)
-{
+void main(void){
 	//tried as hard as i could to make this as similar the original as possible, it's not EXACLTY the same but good enough for me
 	//if you have some suggestions please let me know!!
 	vec4 Color = Color0 * texture2D(Texture0, TexCoord0);

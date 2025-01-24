@@ -5,7 +5,13 @@ JimboCards.PlayingCards:Load("gfx/ui/PlayingCards.anm2", true)
 JimboCards.Pack_PlayingCards:Load("gfx/ui/PackCards.anm2", true)
 JimboCards.TarotCards:Load("gfx/ui/TarotCards.anm2", true)
 JimboCards.PlanetCards:Load("gfx/ui/PlanetCards.anm2", true)
-local Edition_Overlay = Sprite("gfx/ui/Edition Overlay.anm2", true)
+local Edition_Overlay = Sprite("gfx/ui/Edition Overlay.anm2", true) --used on the cards sprites instead of the shaders
+local EditionShaders ={ --sadly these don't work for the bigger card spritesheet, if you know how to fix this please let me know!!
+    "shaders/Foil_effect",
+    "shaders/Holographic_effect",
+    "shaders/Polychrome_effect",
+    "shaders/Negative_effect"
+}
 
 JimboCards.TarotCards:SetAnimation("idle")
 JimboCards.PlanetCards:SetAnimation("idle")
@@ -109,11 +115,8 @@ function mod:JimboInventoryRender(offset,_,Position,_,Player)
             end
             TrinketSprite:ReplaceSpritesheet(0, ItemsConfig:GetTrinket(trinket).GfxFileName, true)
             TrinketSprite:SetFrame("Idle", 0)
+            TrinketSprite:SetCustomShader(EditionShaders[mod.SavedValues.Jimbo.Inventory.Editions[i]])
             TrinketSprite:Render(RenderPos)
-
-            Edition_Overlay:SetFrame("Editions", mod.SavedValues.Jimbo.Inventory.Editions[i])
-
-            Edition_Overlay:Render(RenderPos)
         end
     end
 
@@ -850,13 +853,21 @@ function mod:JimboAddTrinket(Player, Trinket, _)
         Player:TryRemoveTrinket(Trinket) -- a custom array is used instead since he needs to hold many of them
 
         local Slot = mod:AddValueToTable(mod.SavedValues.Jimbo.Inventory.Jokers, Trinket, true, false)
-
-        local JokerEdition = mod.SavedValues.Jimbo.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][Trinket]
+        local JokerEdition = mod.SavedValues.Jimbo.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Trinket).Name]
 
         mod.SavedValues.Jimbo.Inventory.Editions[Slot] = JokerEdition --gives the correct edition to the inventory slot
 
+        if JokerEdition == mod.Edition.NEGATIVE then
+            mod:AddJimboInventorySlots(Player, 1)
+        end
+
         local InitialProg = ItemsConfig:GetTrinket(Trinket):GetCustomTags()[2]
         mod.SavedValues.Jimbo.Progress.Inventory[Slot] = tonumber(InitialProg)
+        
+        mod.StatEnable = true
+        Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)
+        Player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY)
+        mod.StatEnable = false
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_TRIGGER_TRINKET_ADDED, mod.JimboAddTrinket)
@@ -896,39 +907,33 @@ mod:AddCallback(ModCallbacks.MC_GET_TRINKET, mod.JimboTrinketPool)
 ---@param Trinket EntityPickup
 function mod:TrinketEditionsRender(Trinket, Offset)
     local Index = Game:GetLevel():GetCurrentRoomDesc().ListIndex
-    if mod.SavedValues.Jimbo.FloorEditions[Index][Trinket.SubType]  then --just to be sure
-        
-        if mod.SavedValues.Jimbo.FloorEditions[Index][Trinket.SubType] == mod.Edition.NEGATIVE then
-            local Tsprite = Trinket:GetSprite()
-            --Tsprite:SetCustomShader("shaders/Negative_effect")
-            --Tsprite:SetCustomShader("shaders/Holographic_effect")
-            --Tsprite:SetCustomShader("shaders/Foil_effect")
-            Tsprite:SetCustomShader("shaders/Polychrome_effect")
-        else
-            Edition_Overlay:SetFrame("Editions", mod.SavedValues.Jimbo.FloorEditions[Index][Trinket.SubType])
-            
-            Edition_Overlay:Render(Isaac.WorldToScreen(Trinket.Position) + Offset + Vector(0, -9))
-        end
 
+    if mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name] then
+        if mod.SavedValues.Jimbo.FloorEditions[Index][Trinket.SubType] ~= mod.Edition.BASE then
+            Trinket:GetSprite():SetCustomShader(EditionShaders[mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name]])
+        end
     else
-        mod.SavedValues.Jimbo.FloorEditions[Index][Trinket.SubType] = 0
+        print("set to 0")
+        mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name] = 0
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PICKUP_RENDER, mod.TrinketEditionsRender, PickupVariant.PICKUP_TRINKET)
 
 ---@param Trinket EntityPickup
 function mod:GiveEditions(Trinket)
-    if ItemsConfig:GetTrinket(Trinket.SubType):HasCustomTag("balatro")
-       and PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then 
+    if mod.GameStarted and ItemsConfig:GetTrinket(Trinket.SubType):HasCustomTag("balatro")
+       and PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
 
         local Index = Game:GetLevel():GetCurrentRoomDesc().ListIndex
+        mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name] = mod.Edition.NEGATIVE
 
-        mod.SavedValues.Jimbo.FloorEditions[Index][Trinket.SubType] = mod.Edition.NEGATIVE
     end
+    
 end
 mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT, mod.GiveEditions, PickupVariant.PICKUP_TRINKET)
 
 function mod:EnableTrinketEditionsTable()
+    print("new level, reset list")
     mod.SavedValues.Jimbo.FloorEditions = {}
     local AllRoomsDesc = Game:GetLevel():GetRooms()
     for i=1, Game:GetLevel():GetRoomCount()-1 do
@@ -1425,25 +1430,21 @@ function mod:Select(Player)
                     end
                 end
             end
-        else
-            --the confirm button is pressed
+        else--the confirm button is pressed
+            
             if mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.SELLING then
-                local FirstI
+                local SoldSlot
                 for i,v in ipairs(mod.SelectionParams.SelectedCards) do
                     if v then
-                       FirstI = i
+                        SoldSlot = i
                        v = false
                        break
                     end
                 end
                 --print(FirstI)
-                local Trinket = mod.SavedValues.Jimbo.Inventory.Jokers[FirstI]
-                mod.SavedValues.Jimbo.Inventory.Jokers[FirstI] = 0
-                local SellValue = mod:GetJokerCost(Trinket)
-                for i=1, SellValue do
-                    Game:Spawn(EntityType.ENTITY_PICKUP,PickupVariant.PICKUP_COIN,Player.Position,RandomVector()*2,Player,CoinSubType.COIN_PENNY,RNG():GetSeed())
-                end
-                Isaac.RunCallback("JOKER_SOLD",Player, Trinket, FirstI)
+                local Trinket = mod.SavedValues.Jimbo.Inventory.Jokers[SoldSlot]
+
+                Isaac.RunCallback("JOKER_SOLD",Player, Trinket, SoldSlot)
                 mod.SelectionParams.Purpose = mod.SelectionParams.Purposes.NONE
             else
                 mod:SwitchCardSelectionStates(Player,mod.SelectionParams.Modes.NONE,mod.SelectionParams.Purposes.NONE)
@@ -1451,6 +1452,24 @@ function mod:Select(Player)
         end
     end
 end
+
+function mod:SellJoker(Player, Trinket, Slot)
+    mod.SavedValues.Jimbo.Inventory.Jokers[Slot] = 0
+    local SellValue = mod:GetJokerCost(Trinket)
+
+    if mod.SavedValues.Jimbo.Inventory.Editions[Slot] == mod.Edition.NEGATIVE then
+        --selling a negative joker reduces your inventory size
+        mod:AddJimboInventorySlots(Player, -1)
+        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.INVENTORY, mod.SelectionParams.Purposes.NONE)
+        mod.SelectionParams.Index = mod.SelectionParams.Index - 1
+    end
+
+    for i=1, SellValue do
+        Game:Spawn(EntityType.ENTITY_PICKUP,PickupVariant.PICKUP_COIN,Player.Position,RandomVector()*2,Player,CoinSubType.COIN_PENNY,RNG():GetSeed())
+    end
+
+end
+mod:AddCallback("JOKER_SOLD", mod.SellJoker)
 
 local DeathCopyCard
 local PurposeEnh = {nil,2,4,9,5,3,6,nil,7,8}
@@ -1565,7 +1584,7 @@ end
 
 -----------SHADERS----------------
 ----------------------------------
---man i hate working with shaders...
+--man i hate working with shaders... jk i like it now
 function mod:PackShader(Name)
     if Name == "Balatro_Pack_Opened" then
         if Game:GetHUD():IsVisible() then
