@@ -86,9 +86,9 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.EditionsStats)
 -------------------Joker------------------------
 function mod:Joker(player,_)
     if player:GetPlayerType() == mod.Characters.JimboType then
+ 
         if mod:JimboHasTrinket(player, TrinketType.TRINKET_JOKER) and mod.StatEnable then
-            print("increase")
-            mod:IncreaseJimboStats(player, 0.5, 0, 1, false, false)
+            mod:IncreaseJimboStats(player, 0.4, 0, 1, false, false)
         end
 
     elseif player:HasTrinket(Joker) then
@@ -660,7 +660,7 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.OnyxAgate, CacheFlag.CACHE_D
 -----------------ARROWHEAD---------------------------
 ---@param player EntityPlayer
 function mod:ArrowHead(player,_)
-    if player:GetPlayerType() == mod.Characters.JimboType and mod.SavedValues.Jimbo.StatEnable then
+    if player:GetPlayerType() == mod.Characters.JimboType and mod.StatEnable then
         if mod:JimboHasTrinket(player,Arrowhead) then
 
             mod:IncreaseJimboStats(player, 0, 0.1*mod.SavedValues.Jimbo.Progress.SuitUsed[mod.Suits.Spade],1,false,false)

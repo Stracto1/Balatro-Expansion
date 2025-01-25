@@ -62,10 +62,10 @@ function mod:OnJokerSold(Player,Joker,SlotSold)
 
     end
     mod:StatReset(Player,true,true,false,false,true)
-    mod.SavedValues.Jimbo.StatEnable = true
+    mod.StatEnable = true
     Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, false)
     Player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
-    mod.SavedValues.Jimbo.StatEnable = false
+    mod.StatEnable = false
 end
 mod:AddCallback("JOKER_SOLD", mod.OnJokerSold)
 

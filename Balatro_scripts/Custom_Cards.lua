@@ -2,6 +2,10 @@
 local mod = Balatro_Expansion
 local ItemsConfig = Isaac.GetItemConfig()
 local Game = Game()
+local CardEditionChance = {}
+CardEditionChance.Foil = 0.04
+CardEditionChance.Holo = 0.068 --is actually 0.028
+CardEditionChance.Poly = 0.080 --is actually 0.012
 
 --every tarot has a new effect when used by jimbo
 ---@param Player EntityPlayer
@@ -182,8 +186,29 @@ function mod:CardPacks(card, Player,_)
             local RandomCard = {}
             RandomCard.Suit = PackRng:RandomInt(1, 4)
             RandomCard.Value = PackRng:RandomInt(1,13)
-            RandomCard.Enhancement = PackRng:RandomInt(1,2)
-            RandomCard.Edition = 1
+
+            if PackRng:RandomFloat() < 0.4 then
+                RandomCard.Enhancement = PackRng:RandomInt(2,9) 
+            else
+                RandomCard.Enhancement = mod.Enhancement.NONE --no :(
+            end
+
+            if PackRng:RandomFloat() < 0.2 then
+                RandomCard.Seal = PackRng:RandomInt(1,4)
+            else
+                RandomCard.Seal = mod.Seals.NONE --no :(
+            end
+
+            local EdRoll = PackRng:RandomFloat()
+            if EdRoll < CardEditionChance.Foil then
+                RandomCard.Edition = mod.Edition.FOIL
+            elseif EdRoll < CardEditionChance.Holo then
+                RandomCard.Edition = mod.Edition.HOLOGRAPHIC
+            elseif EdRoll < CardEditionChance.Poly then
+                RandomCard.Edition = mod.Edition.POLYCROME
+            else
+                RandomCard.Edition = mod.Edition.BASE --no :(
+            end
 
             RandomPack[i] = RandomCard
         end

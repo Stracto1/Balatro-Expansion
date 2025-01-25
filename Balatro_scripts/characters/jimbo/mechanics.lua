@@ -12,6 +12,7 @@ local EditionShaders ={ --sadly these don't work for the bigger card spritesheet
     "shaders/Polychrome_effect",
     "shaders/Negative_effect"
 }
+EditionShaders[0] = "shaders/Nothing"
 
 JimboCards.TarotCards:SetAnimation("idle")
 JimboCards.PlanetCards:SetAnimation("idle")
@@ -250,9 +251,10 @@ function mod:JimboPackRender(_,_,_,_,Player)
 
         JimboCards.Pack_PlayingCards:SetFrame(ENHANCEMENTS_ANIMATIONS[Card.Enhancement], 4 * (Card.Value - 1) + Card.Suit-1) --sets the frame corresponding to the value and suit
         JimboCards.Pack_PlayingCards:SetOverlayFrame("Seals", Card.Seal)
-        Edition_Overlay:SetFrame("Editions", Card.Enhancement)
+        Edition_Overlay:SetFrame("Editions", Card.Edition)
 
         JimboCards.Pack_PlayingCards:Render(RenderPos)
+        Edition_Overlay:Render(RenderPos)
 
         if i == mod.SelectionParams.Index then 
             --RENDERS THE SELECTOR
@@ -665,20 +667,22 @@ function mod:JimboShootCardTear(Player,Direction)
 
     mod:StatReset(Player,true,true,false,true)
 
-    Isaac.RunCallback("CARD_SHOT", Player, CardShot ,true)
-
     mod:AddValueToTable(mod.SavedValues.Jimbo.CurrentHand, mod.SavedValues.Jimbo.DeckPointer,false,true)
     mod.SavedValues.Jimbo.DeckPointer = mod.SavedValues.Jimbo.DeckPointer + 1
-    Isaac.RunCallback("DECK_SHIFT",Player,true)
+
+    Isaac.RunCallback("DECK_SHIFT",Player)
+    Isaac.RunCallback("CARD_SHOT", Player, CardShot ,true)
 
 end
 
 ---@param Player EntityPlayer
-function mod:CardShotStats(Player,ShotCard,Retriggers,Evaluate)
+function mod:CardShotFinal(Player,ShotCard,Retriggers,Evaluate)
 
     local RandomSeed=Random()
     if RandomSeed == 0 then RandomSeed = 1 end
 
+    ----SEAL EFFECTS-----
+    ---------------------
     if ShotCard.Seal == mod.Seals.RED then
         Retriggers = Retriggers + 1
     elseif ShotCard.Seal == mod.Seals.GOLDEN then
@@ -690,9 +694,22 @@ function mod:CardShotStats(Player,ShotCard,Retriggers,Evaluate)
             Coin.Timeout = 60
         end
     end
-    --increases the chips basing on the value
-    --print(ShotCard.Enhancement)
+
+    --------EDITIONS EFFECTS----------
+    ----------------------------------
+    if ShotCard.Edition == mod.Edition.FOIL then
+        mod:IncreaseJimboStats(Player,0, 0.5, 1,false,true)
+    elseif ShotCard.Edition == mod.Edition.HOLOGRAPHIC then
+        mod:IncreaseJimboStats(Player,0.15, 0, 1,false,true)
+    elseif ShotCard.Edition == mod.Edition.POLYCROME then
+        mod:IncreaseJimboStats(Player,0, 0, 1.2,false,true)
+    end
+
+    --increases the chips basing on the card value
     local TearsToGet = mod:GetActualCardValue(ShotCard.Value)/75 + (mod.SavedValues.Jimbo.HandLevels[ShotCard.Value]-1)*0.01
+    
+    ---------ENHANCEMENT EFFECTS----------
+    --------------------------------------
     if ShotCard.Enhancement == mod.Enhancement.STONE then
         TearsToGet = 0.35
 
@@ -703,7 +720,7 @@ function mod:CardShotStats(Player,ShotCard,Retriggers,Evaluate)
         mod:IncreaseJimboStats(Player,0, 0.3, 1,false,true)
 
     elseif ShotCard.Enhancement == mod.Enhancement.GLASS then
-        mod:IncreaseJimboStats(Player,0, 0,0.1, false,true)
+        mod:IncreaseJimboStats(Player,0, 0, 1.3, false,true)
         if mod:TryGamble(Player, RNG(RandomSeed), 0.1) then
             table.remove(mod.SavedValues.Jimbo.FullDeck, ShotCard.Index)
             mod:CreateBalatroEffect(Player, EFFECT_COLORS.Yellow, ACTIVATESOUND, "BROKEN!", Vector(0, 20))
@@ -730,13 +747,13 @@ function mod:CardShotStats(Player,ShotCard,Retriggers,Evaluate)
     mod:IncreaseJimboStats(Player, 0, TearsToGet, 1,false, true)
 
     if Evaluate then
-        mod.SavedValues.Jimbo.StatEnable = true
+        mod.StatEnable = true
         Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, false)
         Player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
-        mod.SavedValues.Jimbo.StatEnable = false
+        mod.StatEnable = false
     end
 end
-mod:AddCallback("CARD_SHOT_FINAL", mod.CardShotStats)
+mod:AddCallback("CARD_SHOT_FINAL", mod.CardShotFinal)
 
 
 function mod:AddRoomsCleared(IsBoss)
@@ -761,8 +778,7 @@ mod:AddPriorityCallback("TRUE_ROOM_CLEAR",CallbackPriority.LATE, mod.AddRoomsCle
 
 --activates whenever the deckpointer is shifted
 ---@param Player EntityPlayer
----@param Evaluate boolean
-function mod:OnDeckShift(Player, Evaluate)
+function mod:OnDeckShift(Player)
 
     --take damage if the deck is finished
     if mod.SavedValues.Jimbo.DeckPointer > #mod.SavedValues.Jimbo.FullDeck + #mod.SavedValues.Jimbo.CurrentHand then
@@ -774,13 +790,6 @@ function mod:OnDeckShift(Player, Evaluate)
         for i=1, #mod.SavedValues.Jimbo.CurrentHand do
             mod.SavedValues.Jimbo.CurrentHand[i] = i
         end
-    end
-
-    if Evaluate then
-        mod.StatEnable = true
-        Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)
-        Player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
-        mod.StatEnable = false
     end
 end
 mod:AddCallback("DECK_SHIFT", mod.OnDeckShift)
@@ -863,10 +872,11 @@ function mod:JimboAddTrinket(Player, Trinket, _)
 
         local InitialProg = ItemsConfig:GetTrinket(Trinket):GetCustomTags()[2]
         mod.SavedValues.Jimbo.Progress.Inventory[Slot] = tonumber(InitialProg)
-        
+
+        mod:StatReset(Player, true, true, false, true, false)
         mod.StatEnable = true
-        Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)
-        Player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY)
+        Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, false)
+        Player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
         mod.StatEnable = false
     end
 end
@@ -908,12 +918,11 @@ mod:AddCallback(ModCallbacks.MC_GET_TRINKET, mod.JimboTrinketPool)
 function mod:TrinketEditionsRender(Trinket, Offset)
     local Index = Game:GetLevel():GetCurrentRoomDesc().ListIndex
 
-    if mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name] then
+    if mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name] then --just a precaution
         if mod.SavedValues.Jimbo.FloorEditions[Index][Trinket.SubType] ~= mod.Edition.BASE then
             Trinket:GetSprite():SetCustomShader(EditionShaders[mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name]])
         end
     else
-        print("set to 0")
         mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name] = 0
     end
 end
@@ -925,15 +934,24 @@ function mod:GiveEditions(Trinket)
        and PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
 
         local Index = Game:GetLevel():GetCurrentRoomDesc().ListIndex
-        mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name] = mod.Edition.NEGATIVE
 
+        local EdRoll = Trinket:GetDropRNG():RandomFloat()
+        if EdRoll <= 0.02 then --foil chance
+            mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name] = mod.Edition.FOIL
+        elseif EdRoll <= 0.034 then --holo chance
+            mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name] = mod.Edition.HOLOGRAPHIC
+        elseif EdRoll <= 0.037 then --poly chance
+            mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name] = mod.Edition.POLYCROME
+        elseif EdRoll <= 0.03 + 0.037 then --niggative chance (fixed chance)
+            mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name] = mod.Edition.NEGATIVE
+        else
+            mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name] = mod.Edition.NONE
+        end
     end
-    
 end
 mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT, mod.GiveEditions, PickupVariant.PICKUP_TRINKET)
 
 function mod:EnableTrinketEditionsTable()
-    print("new level, reset list")
     mod.SavedValues.Jimbo.FloorEditions = {}
     local AllRoomsDesc = Game:GetLevel():GetRooms()
     for i=1, Game:GetLevel():GetRoomCount()-1 do

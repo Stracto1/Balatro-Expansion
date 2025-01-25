@@ -9,7 +9,6 @@ local ItemsConfig = Isaac.GetItemConfig()
 
 --VVVVV-- big ass code wall incoming -VVVVV-
 function mod:OnGameStart(Continued)
-    print("pre New Game "..tostring(mod.SavedValues.Jimbo.FloorEditions[206]))
     mod.GameStarted = true
     --[[
     --removes every callback to prevent double callbacks on continues and to remove all of them on new runs
@@ -51,7 +50,6 @@ function mod:OnGameStart(Continued)
             player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
             mod.StatEnable = false
         end
-        print("post New Game "..tostring(mod.SavedValues.Jimbo.FloorEditions[206]))
         return
     end
     
