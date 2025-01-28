@@ -79,6 +79,27 @@ Balatro_Expansion.Planets.PLANET_X =Isaac.GetCardIdByName("Planet_X")
 Balatro_Expansion.Planets.CERES =  Isaac.GetCardIdByName("Planet_Ceres")
 Balatro_Expansion.Planets.ERIS = Isaac.GetCardIdByName("Planet_Eris")
 
+Balatro_Expansion.Spectrals = {}
+Balatro_Expansion.Spectrals.FAMILIAR =  Isaac.GetCardIdByName("Spectral_Familiar")
+Balatro_Expansion.Spectrals.GRIM = Isaac.GetCardIdByName("Spectral_Grim")
+Balatro_Expansion.Spectrals.INCANTATION = Isaac.GetCardIdByName("Spectral_Incantation")
+Balatro_Expansion.Spectrals.TALISMAN =  Isaac.GetCardIdByName("Spectral_Talisman")
+Balatro_Expansion.Spectrals.AURA = Isaac.GetCardIdByName("Spectral_Aura")
+Balatro_Expansion.Spectrals.WRAITH = Isaac.GetCardIdByName("Spectral_Wraith")
+Balatro_Expansion.Spectrals.SIGIL =  Isaac.GetCardIdByName("Spectral_Sigil")
+Balatro_Expansion.Spectrals.OUIJA = Isaac.GetCardIdByName("Spectral_Ouija")
+Balatro_Expansion.Spectrals.ECTOPLASM = Isaac.GetCardIdByName("Spectral_Ectoplasm")
+Balatro_Expansion.Spectrals.IMMOLATE =Isaac.GetCardIdByName("Spectral_Immolate")
+Balatro_Expansion.Spectrals.HANK =  Isaac.GetCardIdByName("Spectral_Hank")
+Balatro_Expansion.Spectrals.DEJA_VU = Isaac.GetCardIdByName("Spectral_Deja_vu")
+Balatro_Expansion.Spectrals.HEX =  Isaac.GetCardIdByName("Spectral_Hex")
+Balatro_Expansion.Spectrals.TRANCE = Isaac.GetCardIdByName("Spectral_Trance")
+Balatro_Expansion.Spectrals.MEDIUM = Isaac.GetCardIdByName("Spectral_Medium")
+Balatro_Expansion.Spectrals.CRYPTID =  Isaac.GetCardIdByName("Spectral_Cryptid")
+Balatro_Expansion.Spectrals.BLACK_HOLE = Isaac.GetCardIdByName("Spectral_Black_hole")
+Balatro_Expansion.Spectrals.SOUL = Isaac.GetCardIdByName("Spectral_Soul")
+
+
 Balatro_Expansion.Trinkets = {} --rarities used for spawn weight and stuff
 Balatro_Expansion.Trinkets.common = {TrinketType.TRINKET_JOKER,
 TrinketType.TRINKET_GOLDEN_JOKER, TrinketType.TRINKET_HALLUCINATION, TrinketType.TRINKET_RIFF_RAFF,
@@ -217,15 +238,19 @@ for i = 1, 4, 1 do --cycles between the suits
         Balatro_Expansion.SavedValues.Jimbo.FullDeck[index] = {}
         Balatro_Expansion.SavedValues.Jimbo.FullDeck[index].Suit = i --Spades - Hearts - clubs - diamonds
         Balatro_Expansion.SavedValues.Jimbo.FullDeck[index].Value = j
-        Balatro_Expansion.SavedValues.Jimbo.FullDeck[index].Enhancement = 1
-        Balatro_Expansion.SavedValues.Jimbo.FullDeck[index].Seal = 1
-        Balatro_Expansion.SavedValues.Jimbo.FullDeck[index].Edition = 2
+        Balatro_Expansion.SavedValues.Jimbo.FullDeck[index].Enhancement = Balatro_Expansion.Enhancement.NONE
+        Balatro_Expansion.SavedValues.Jimbo.FullDeck[index].Seal = Balatro_Expansion.Seals.NONE
+        Balatro_Expansion.SavedValues.Jimbo.FullDeck[index].Edition = Balatro_Expansion.Edition.BASE
         index = index +1
     end
 end
 end
 Balatro_Expansion.SavedValues.Jimbo.DeckPointer = 6 --the card that is going to be picked next
 Balatro_Expansion.SavedValues.Jimbo.CurrentHand = {5,4,3,2,1} --the pointers of the cards in FullDeck that are stored in "the hand" active item
+
+--these two don't do anything directly and are only used to not call #table every time
+Balatro_Expansion.SavedValues.Jimbo.HandSize = 5
+Balatro_Expansion.SavedValues.Jimbo.InventorySize = 3
 
 Balatro_Expansion.SavedValues.Jimbo.SmallBlind = 0
 Balatro_Expansion.SavedValues.Jimbo.BigBlind = 0
@@ -252,6 +277,7 @@ Balatro_Expansion.SavedValues.Jimbo.Progress.SuitUsed[Balatro_Expansion.Suits.Cl
 Balatro_Expansion.SavedValues.Jimbo.Progress.SuitUsed[Balatro_Expansion.Suits.Diamond] = 0
 
 Balatro_Expansion.SavedValues.Jimbo.LastUsed = {} --the last card a player used
+Balatro_Expansion.SavedValues.Jimbo.EctoUses = 0
 
 Balatro_Expansion.SavedValues.Jimbo.MinimumTears = 0.8
 Balatro_Expansion.SavedValues.Jimbo.MinimumDamage = 0.5
@@ -332,7 +358,7 @@ Balatro_Expansion.SelectionParams = {}
 Balatro_Expansion.SelectionParams.Frames = 0
 Balatro_Expansion.SelectionParams.SelectedCards = {false,false,false,false,false}
 Balatro_Expansion.SelectionParams.Index = 1
-Balatro_Expansion.SelectionParams.HandType = 0 
+Balatro_Expansion.SelectionParams.HandType = 0
 Balatro_Expansion.SelectionParams.PossibleHandTypes = {} --this contains every kind of hand that the selected one contains
 Balatro_Expansion.SelectionParams.Mode = 0
 Balatro_Expansion.SelectionParams.Purpose = 0
@@ -350,7 +376,7 @@ Balatro_Expansion.SelectionParams.Modes.INVENTORY = 3
 Balatro_Expansion.SelectionParams.Purposes = {}
 Balatro_Expansion.SelectionParams.Purposes.NONE = 0
 Balatro_Expansion.SelectionParams.Purposes.HAND = 1
---odd ones have 1 selectable card || even ones have 2 (why did i do this)((cause i didn't want to put like 20 if syayements in a row))
+--odd ones have 1 selectable card || even ones have 2 (why did i do this)((cause i didn't want to put like 20 if statements in a row))
 Balatro_Expansion.SelectionParams.Purposes.EMPRESS = 2
 Balatro_Expansion.SelectionParams.Purposes.LOVERS = 3
 Balatro_Expansion.SelectionParams.Purposes.MAGICIAN = 4
@@ -369,11 +395,19 @@ Balatro_Expansion.SelectionParams.Purposes.SUN = 15
 Balatro_Expansion.SelectionParams.Purposes.MOON = 16
 Balatro_Expansion.SelectionParams.Purposes.STARS = 17
 
-Balatro_Expansion.SelectionParams.Purposes.StandardPack = 18
-Balatro_Expansion.SelectionParams.Purposes.TarotPack = 19
-Balatro_Expansion.SelectionParams.Purposes.CelestialPack = 20
-Balatro_Expansion.SelectionParams.Purposes.SpectralPack = 21
-Balatro_Expansion.SelectionParams.Purposes.SELLING = 22
+Balatro_Expansion.SelectionParams.Purposes.DEJA_VU = 18
+Balatro_Expansion.SelectionParams.Purposes.TALISMAN = 19
+Balatro_Expansion.SelectionParams.Purposes.TRANCE = 20
+Balatro_Expansion.SelectionParams.Purposes.MADIUM = 21
+Balatro_Expansion.SelectionParams.Purposes.AURA = 22
+Balatro_Expansion.SelectionParams.Purposes.CRYPTID = 23
+
+Balatro_Expansion.SelectionParams.Purposes.StandardPack = 24
+Balatro_Expansion.SelectionParams.Purposes.TarotPack = 25
+Balatro_Expansion.SelectionParams.Purposes.CelestialPack = 26
+Balatro_Expansion.SelectionParams.Purposes.SpectralPack = 27
+Balatro_Expansion.SelectionParams.Purposes.BuffonPack = 28
+Balatro_Expansion.SelectionParams.Purposes.SELLING = 29
 ----------------------------- gaw damn that's a lot of variables
 
 

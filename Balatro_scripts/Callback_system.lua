@@ -91,9 +91,9 @@ function mod:OnGameStart(Continued)
                 mod.SavedValues.Jimbo.FullDeck[index] = {}
                 mod.SavedValues.Jimbo.FullDeck[index].Suit = i --Spades - Hearts - clubs - diamonds
                 mod.SavedValues.Jimbo.FullDeck[index].Value = j --1 ~ 13
-                mod.SavedValues.Jimbo.FullDeck[index].Enhancement = 1
-                mod.SavedValues.Jimbo.FullDeck[index].Seal = 1
-                mod.SavedValues.Jimbo.FullDeck[index].Edition = 2
+                mod.SavedValues.Jimbo.FullDeck[index].Enhancement = mod.Enhancement.NONE
+                mod.SavedValues.Jimbo.FullDeck[index].Seal = mod.Seals.NONE
+                mod.SavedValues.Jimbo.FullDeck[index].Edition = mod.Edition.BASE
                 index = index +1
             end
         end
@@ -113,6 +113,9 @@ function mod:OnGameStart(Continued)
         mod.SavedValues.Jimbo.Inventory.Jokers = {0,0,0}
         mod.SavedValues.Jimbo.Inventory.Editions = {0,0,0}
 
+        mod.SavedValues.Jimbo.HandSize = 5
+        mod.SavedValues.Jimbo.InventorySize = 3
+
         mod.SavedValues.Jimbo.Progress = {} --values used for jokers (reset every blind)
         mod.SavedValues.Jimbo.Progress.SuitUsed = {}
         mod.SavedValues.Jimbo.Progress.SuitUsed[mod.Suits.Spade] = 0
@@ -131,8 +134,6 @@ function mod:OnGameStart(Continued)
         
         mod.SavedValues.Jimbo.MinimumTears = 0.8
         mod.SavedValues.Jimbo.MinimumDamage = 0.5
-        mod.SavedValues.Jimbo.MaxDiscards = 2
-        mod.SavedValues.Jimbo.AvailableDiscards = 2
         
         mod.SavedValues.Jimbo.HandLevels = {}
         mod.SavedValues.Jimbo.HandLevels[mod.HandTypes.HIGH_CARD] = 1
@@ -183,6 +184,7 @@ function mod:OnGameStart(Continued)
         mod.SavedValues.Jimbo.Progress.SuitUsed[mod.Suits.Diamond] = 0
 
         mod.SavedValues.Jimbo.LastUsed = {}
+        mod.SavedValues.Jimbo.EctoUses = 0
     
 
         if mod:Contained(Challenges, Game.Challenge) then

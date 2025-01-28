@@ -1,10 +1,8 @@
 local mod = Balatro_Expansion
-local JimboCards = {PlayingCards = Sprite() , Pack_PlayingCards = Sprite() , TarotCards = Sprite(),
-                    PlanetCards = Sprite()}
-JimboCards.PlayingCards:Load("gfx/ui/PlayingCards.anm2", true)
-JimboCards.Pack_PlayingCards:Load("gfx/ui/PackCards.anm2", true)
-JimboCards.TarotCards:Load("gfx/ui/TarotCards.anm2", true)
-JimboCards.PlanetCards:Load("gfx/ui/PlanetCards.anm2", true)
+local JimboCards = {PlayingCards = Sprite("gfx/ui/PlayingCards.anm2"), 
+                    Pack_PlayingCards = Sprite("gfx/ui/PackPlayCards.anm2"), 
+                    SpecialCards = Sprite("gfx/ui/PackSpecialCards.anm2")}
+
 local Edition_Overlay = Sprite("gfx/ui/Edition Overlay.anm2", true) --used on the cards sprites instead of the shaders
 local EditionShaders ={ --sadly these don't work for the bigger card spritesheet, if you know how to fix this please let me know!!
     "shaders/Foil_effect",
@@ -13,9 +11,6 @@ local EditionShaders ={ --sadly these don't work for the bigger card spritesheet
     "shaders/Negative_effect"
 }
 EditionShaders[0] = "shaders/Nothing"
-
-JimboCards.TarotCards:SetAnimation("idle")
-JimboCards.PlanetCards:SetAnimation("idle")
 
 local ItemsConfig = Isaac.GetItemConfig()
 local sfx = SFXManager()
@@ -185,7 +180,7 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
         CardFrame:Render(RenderPos)
 
         --last confirm option
-        RenderPos = DECK_RENDERING_POSITION + Vector(14 * (#mod.SavedValues.Jimbo.CurrentHand + 1), 0)
+        RenderPos = DECK_RENDERING_POSITION + Vector(14 * (mod.SavedValues.Jimbo.HandSize + 1), 0)
         CardFrame:SetFrame(HUD_FRAME.Hand)
         CardFrame:Render(RenderPos)
 
@@ -197,7 +192,7 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
         local MousePosition = Isaac.WorldToScreen(Input.GetMousePosition(true))
         if MousePosition.X >= DECK_RENDERING_POSITION.X and MousePosition.Y >= DECK_RENDERING_POSITION.Y  then
             local HandMousePosition = math.ceil((MousePosition.X - (DECK_RENDERING_POSITION.X))/CardHUDWidth)
-            if HandMousePosition <= #mod.SavedValues.Jimbo.CurrentHand + 1 then
+            if HandMousePosition <= mod.SavedValues.Jimbo.HandSize + 1 then
                 mod.SelectionParams.Index = HandMousePosition
             end
         end
@@ -206,7 +201,7 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
         local CardsLeft = (#mod.SavedValues.Jimbo.FullDeck - mod.SavedValues.Jimbo.DeckPointer) + 1
         --shows how many cards are left in the deck
         if CardsLeft > 0 then
-            local RenderPos = DECK_RENDERING_POSITION + Vector(14 * (#mod.SavedValues.Jimbo.CurrentHand + 1),-3)
+            local RenderPos = DECK_RENDERING_POSITION + Vector(14 * (mod.SavedValues.Jimbo.HandSize + 1),-3)
             mod.Fonts.upheavalmini:DrawStringScaled("+"..tostring(CardsLeft),RenderPos.X + Minimap:GetShakeOffset().X,RenderPos.Y + Minimap:GetShakeOffset().Y,0.8,1,KColor(1,1,1,1))
         end
     end
@@ -240,7 +235,7 @@ function mod:JimboPackRender(_,_,_,_,Player)
     local PlayerPos = Isaac.WorldToScreen(Player.Position)
     local RenderPos = Vector(0,0)
     RenderPos.Y = PlayerPos.Y + 20 
-    --base point, increased wile rendering 
+    --base point, increased while rendering 
     RenderPos.X = PlayerPos.X - CardHUDWidth * mod.SelectionParams.OptionsNum /2 - PACK_CARD_DISTANCE * (mod.SelectionParams.OptionsNum - 1) /2
     RenderPos.X = RenderPos.X + 6.5--makes it centered
 
@@ -267,45 +262,30 @@ function mod:JimboPackRender(_,_,_,_,Player)
 
         end--end FOR
 
-    elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.TarotPack then
-        --SHOWS THE CHOICES AVAILABLE
+    elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.BuffonPack then
+        
 
-        for i,card in ipairs(mod.SelectionParams.PackOptions) do
 
-        --JimboCards.TarotCards:SetAnimation(ENHANCEMENTS_ANIMATIONS[Card.Enhancement], false) --sets the enhancement animation
-        JimboCards.TarotCards:SetFrame(card) --sets the frame corresponding to the value and suit
-
-        JimboCards.TarotCards:Render(RenderPos)
-
-        if i == mod.SelectionParams.Index then
-            --RENDERS THE SELECTOR
-            CardFrame:SetFrame(HUD_FRAME.Frame)
-            CardFrame:Render(RenderPos)
-
-        end
-
-        RenderPos.X = RenderPos.X + PACK_CARD_DISTANCE + CardHUDWidth
-
-        end--end FOR
+    else--TAROT, PLANET or SPECTRAL
     
-    elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.CelestialPack then
         --SHOWS THE CHOICES AVAILABLE
+        for i,Option in ipairs(mod.SelectionParams.PackOptions) do
 
-        for i,Planet in ipairs(mod.SelectionParams.PackOptions) do
+            if Option == 52 then --equivalent to the soul card
+                JimboCards.SpecialCards:SetFrame("Soul Stone",mod.SelectionParams.Frames % 47) --sets the frame corresponding to the value and suit
+            else
+                JimboCards.SpecialCards:SetFrame("idle",  Option)
+            end
+            JimboCards.SpecialCards:Render(RenderPos)
 
-        --JimboCards.TarotCards:SetAnimation(ENHANCEMENTS_ANIMATIONS[Card.Enhancement], false) --sets the enhancement animation
-        JimboCards.PlanetCards:SetFrame(Planet) --sets the frame corresponding to the value and suit
+            if i == mod.SelectionParams.Index then
+                --RENDERS THE SELECTOR
+                CardFrame:SetFrame(HUD_FRAME.Frame)
+                CardFrame:Render(RenderPos)
 
-        JimboCards.PlanetCards:Render(RenderPos)
+            end
 
-        if i == mod.SelectionParams.Index then
-            --RENDERS THE SELECTOR
-            CardFrame:SetFrame(HUD_FRAME.Frame)
-            CardFrame:Render(RenderPos)
-
-        end
-
-        RenderPos.X = RenderPos.X + PACK_CARD_DISTANCE + CardHUDWidth
+            RenderPos.X = RenderPos.X + PACK_CARD_DISTANCE + CardHUDWidth
 
         end--end FOR
 
@@ -352,23 +332,21 @@ function mod:JimboBarRender(Player)
     DiscardChargeSprite:Render(Isaac.WorldToScreen(Player.Position))
 
 
-
-    if mod.SelectionParams.Mode == mod.SelectionParams.Modes.NONE then
+    --------------HAND SELECTION COOLDOWN------------------
+    if mod.SelectionParams.Mode ~= mod.SelectionParams.Modes.NONE then
+        mod.SelectionParams.Frames = mod.SelectionParams.Frames + 1
+    else
         mod.SelectionParams.Frames = 0
         return
     end
-    mod.SelectionParams.Frames = mod.SelectionParams.Frames + 1
-
-
-    --------------HAND SELECTION COOLDOWN------------------
 
     local HandFrame = 100 - math.ceil(mod.SelectionParams.Frames/4.5)
-    HandChargeSprite:SetFrame(HandFrame)
-
+    
     if HandFrame == 0 then
         sfx:Play(SoundEffect.SOUND_DEATH_BURST_BONE)
         
     elseif HandFrame > 0 then
+        HandChargeSprite:SetFrame(HandFrame)
         --makes the bar flicker more as the timer runs out
         if HandFrame < 25 then
             if HandFrame % 3 == 0 then
@@ -473,8 +451,7 @@ function mod:JimboInputHandle(Player)
         else --not pressed
             Data.NotAlrPressed.right = true
         end
-        
-
+    
         Player.Velocity = Vector.Zero
     else --not selecting anything
         
@@ -494,6 +471,7 @@ function mod:JimboInputHandle(Player)
             mod:JimboShootCardTear(Player, AimDirection)
             Data.DiscardCD = 0
         end
+
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.JimboInputHandle)
@@ -625,8 +603,8 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.NoHarmRooms)
 ---@param Player EntityPlayer
 ---@param Direction Vector
 function mod:JimboShootCardTear(Player,Direction)
-    local CardShot = mod.SavedValues.Jimbo.FullDeck[mod.SavedValues.Jimbo.CurrentHand[#mod.SavedValues.Jimbo.CurrentHand]]
-    CardShot.Index = mod.SavedValues.Jimbo.CurrentHand[#mod.SavedValues.Jimbo.CurrentHand] --could be useful
+    local CardShot = mod.SavedValues.Jimbo.FullDeck[mod.SavedValues.Jimbo.CurrentHand[mod.SavedValues.Jimbo.HandSize]]
+    CardShot.Index = mod.SavedValues.Jimbo.CurrentHand[mod.SavedValues.Jimbo.HandSize] --could be useful
     --considers the possible ammounts of tears fired
     local ShotParams = Player:GetMultiShotParams()
 
@@ -781,15 +759,9 @@ mod:AddPriorityCallback("TRUE_ROOM_CLEAR",CallbackPriority.LATE, mod.AddRoomsCle
 function mod:OnDeckShift(Player)
 
     --take damage if the deck is finished
-    if mod.SavedValues.Jimbo.DeckPointer > #mod.SavedValues.Jimbo.FullDeck + #mod.SavedValues.Jimbo.CurrentHand then
-        local PlayerRNG = Player:GetDropRNG()
-
-        mod.SavedValues.Jimbo.FullDeck = mod:Shuffle(mod.SavedValues.Jimbo.FullDeck, PlayerRNG)
-        mod.SavedValues.Jimbo.DeckPointer = 6
+    if mod.SavedValues.Jimbo.DeckPointer > #mod.SavedValues.Jimbo.FullDeck + mod.SavedValues.Jimbo.HandSize then
         
-        for i=1, #mod.SavedValues.Jimbo.CurrentHand do
-            mod.SavedValues.Jimbo.CurrentHand[i] = i
-        end
+        mod:FullDeckShuffle(Player)
     end
 end
 mod:AddCallback("DECK_SHIFT", mod.OnDeckShift)
@@ -1241,7 +1213,7 @@ function mod:AddCardTearFalgs(Tear, CardShot)
         --damage dealt = Damage * TearRate of the player
         Tear.CollisionDamage = Player.Damage * mod:CalculateTearsValue(Player)
         Tear.Scale = 1
-        --local TearSuit = mod.SavedValues.Jimbo.FullDeck[mod.SavedValues.Jimbo.CurrentHand[#mod.SavedValues.Jimbo.CurrentHand]].Suit
+        --local TearSuit = mod.SavedValues.Jimbo.FullDeck[mod.SavedValues.Jimbo.CurrentHand[mod.SavedValues.Jimbo.HandSize]].Suit
         Tear:ChangeVariant(mod.CARD_TEAR_VARIANTS[CardShot.Suit])
 
         if mod:IsSuit(Player, CardShot.Suit, CardShot.Enhancement, mod.Suits.Spade, false) then --SPADES
@@ -1291,14 +1263,18 @@ mod:AddCallback(ModCallbacks.MC_PRE_TEAR_RENDER, mod.AdjustCardRotation, mod.CAR
 ---@param Player EntityPlayer
 function mod:FullDeckShuffle(Player)
     if Player:GetPlayerType() == mod.Characters.JimboType then
-        local HandRNG = Player:GetCollectibleRNG(CollectibleType.COLLECTIBLE_THE_HAND)
-        mod.SavedValues.Jimbo.FullDeck = mod:Shuffle(mod.SavedValues.Jimbo.FullDeck, HandRNG)
-        mod.SavedValues.Jimbo.DeckPointer = 6
-        mod.SavedValues.Jimbo.CurrentHand = {1,2,3,4,5}
+        local PlayerRNG = Player:GetDropRNG()
+        mod.SavedValues.Jimbo.FullDeck = mod:Shuffle(mod.SavedValues.Jimbo.FullDeck, PlayerRNG)
+
+        mod.SavedValues.Jimbo.DeckPointer = 1
+        for i,v in ipairs(mod.SavedValues.Jimbo.CurrentHand) do
+            mod.SavedValues.Jimbo.CurrentHand[i] = mod.SavedValues.Jimbo.DeckPointer
+            mod.SavedValues.Jimbo.DeckPointer = mod.SavedValues.Jimbo.DeckPointer + 1
+        end
     end
 end
 
---allows to activate/disable selection state easly
+--allows to activate/disable selection states easly
 function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
 
     if NewMode == mod.SelectionParams.Modes.NONE then
@@ -1315,24 +1291,29 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
         Game:GetRoom():SetPauseTimer(225)
 
         if NewMode == mod.SelectionParams.Modes.HAND then
-            mod.SelectionParams.OptionsNum = #mod.SavedValues.Jimbo.CurrentHand
+            mod.SelectionParams.OptionsNum = mod.SavedValues.Jimbo.HandSize
 
             if NewPurpose == mod.SelectionParams.Purposes.HAND then
                 mod.SelectionParams.MaxSelectionNum = 5
                 mod.SelectionParams.HandType = mod.HandTypes.NONE
                 return
-            elseif NewPurpose == mod.SelectionParams.Purposes.DEATH1 then
+            elseif NewPurpose >= mod.SelectionParams.Purposes.TALISMAN then
                 mod.SelectionParams.MaxSelectionNum = 1
-                return
-            elseif NewPurpose >= mod.SelectionParams.Purposes.WORLD then
-                mod.SelectionParams.MaxSelectionNum = 3
-            end
-            local Size = -(NewPurpose % 2) + 2 --se main.lua to understand why this works
-            if Player:HasCollectible(CollectibleType.COLLECTIBLE_TAROT_CLOTH) then
-                Size = Size + 1
-            end
-            mod.SelectionParams.MaxSelectionNum = Size
 
+            else --various tarot cards
+                if NewPurpose == mod.SelectionParams.Purposes.DEATH1 then
+                    mod.SelectionParams.MaxSelectionNum = 1
+                    return
+                elseif NewPurpose >= mod.SelectionParams.Purposes.WORLD then --any suit based tarot
+                    mod.SelectionParams.MaxSelectionNum = 3
+                end
+                local Size = -(NewPurpose % 2) + 2 --se main.lua to understand why this works
+                if Player:HasCollectible(CollectibleType.COLLECTIBLE_TAROT_CLOTH) then
+                    Size = Size + 1
+                end
+                mod.SelectionParams.MaxSelectionNum = Size
+            end
+                
         elseif NewMode == mod.SelectionParams.Modes.PACK then
 
             if NewPurpose == mod.SelectionParams.Purposes.StandardPack then
@@ -1362,7 +1343,7 @@ function mod:Select(Player)
 
     if mod.SelectionParams.Mode == mod.SelectionParams.Modes.HAND then
         --if its an actual option
-        if mod.SelectionParams.Index <= #mod.SavedValues.Jimbo.CurrentHand then
+        if mod.SelectionParams.Index <= mod.SavedValues.Jimbo.HandSize then
             local Choice = mod.SelectionParams.SelectedCards[mod.SelectionParams.Index]
             
             if Choice then
@@ -1398,16 +1379,17 @@ function mod:Select(Player)
             table.insert(mod.SavedValues.Jimbo.FullDeck, SelectedCard)
             mod:SwitchCardSelectionStates(Player,mod.SelectionParams.Modes.NONE, 0)
 
-        elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.TarotPack then
+        elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.BuffonPack then
 
             local Tarot = mod.SelectionParams.PackOptions[mod.SelectionParams.Index]
             Game:Spawn(EntityType.ENTITY_PICKUP,PickupVariant.PICKUP_TAROTCARD, Player.Position, RandomVector()*3,nil,Tarot,Game:GetSeeds():GetStartSeed())
             mod:SwitchCardSelectionStates(Player,mod.SelectionParams.Modes.NONE, 0)
 
-        elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.CelestialPack then
-            local Planet = mod.SelectionParams.PackOptions[mod.SelectionParams.Index]
-            local card = Planet + mod.Planets.PLUTO - 1
-            Player:UseCard(card)
+        else
+            local card = mod:FrameToSpecialCard(mod.SelectionParams.PackOptions[mod.SelectionParams.Index])
+            local RndSeed = Random()
+            if RndSeed == 0 then RndSeed = 1 end
+            Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position, RandomVector()* 2, nil, card, RndSeed)
             mod:SwitchCardSelectionStates(Player,mod.SelectionParams.Modes.NONE, 0)
         end
     elseif mod.SelectionParams.Mode == mod.SelectionParams.Modes.INVENTORY then
@@ -1492,6 +1474,7 @@ mod:AddCallback("JOKER_SOLD", mod.SellJoker)
 local DeathCopyCard
 local PurposeEnh = {nil,2,4,9,5,3,6,nil,7,8}
 --activates the current selection when finished
+---@param Player EntityPlayer
 function mod:UseSelection(Player)
     --print("Selection Used")
     if mod.SelectionParams.Mode == mod.SelectionParams.Modes.HAND then
@@ -1545,7 +1528,43 @@ function mod:UseSelection(Player)
                     end
                 end
             end
-        --didn't want to put ~10 more elseifs so did this instead
+        
+        elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.CRYPTID then
+            local Chosen
+            for i,v in ipairs(mod.SelectionParams.SelectedCards) do
+                if v then
+                    Chosen =mod.SavedValues.Jimbo.FullDeck[mod.SavedValues.Jimbo.CurrentHand[i]]
+                    break
+                end
+            end
+            for i=1, 2 do
+                table.insert(mod.SavedValues.Jimbo.FullDeck, Chosen)
+            end
+        elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.AURA then
+            for i,v in ipairs(mod.SelectionParams.SelectedCards) do
+                if v then
+                    local EdRoll = Player:GetCardRNG(mod.Spectrals.AURA):RandomFloat()
+                    if EdRoll <= 0.5 then
+                        mod.SavedValues.Jimbo.FullDeck[mod.SavedValues.Jimbo.CurrentHand[i]].Edition = mod.Edition.FOIL
+                    elseif EdRoll <= 0.85 then
+                        mod.SavedValues.Jimbo.FullDeck[mod.SavedValues.Jimbo.CurrentHand[i]].Edition = mod.Edition.HOLOGRAPHIC
+                    else
+                        mod.SavedValues.Jimbo.FullDeck[mod.SavedValues.Jimbo.CurrentHand[i]].Edition = mod.Edition.POLYCROME
+                    end
+                    break
+                end
+            end
+
+        --didn't want to put ~20 more elseifs so did this instead
+        elseif mod.SelectionParams.Purpose >= 18 then
+            local NewSeal = mod.SelectionParams.Purpose - 17 --put the purposes in order to make this work
+            for i,v in ipairs(mod.SelectionParams.SelectedCards) do
+                if v then
+                    mod.SavedValues.Jimbo.FullDeck[mod.SavedValues.Jimbo.CurrentHand[i]].Seal = NewSeal --kings become aces
+                    break
+                end
+            end
+
         elseif mod.SelectionParams.Purpose >= 10 then 
             local NewSuit = mod.SelectionParams.Purpose - 9 --put the purposes in order to make this work
             for i,v in ipairs(mod.SelectionParams.SelectedCards) do

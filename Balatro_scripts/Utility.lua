@@ -297,7 +297,7 @@ function mod:DeterminePokerHand()
 
     --IN THE END THERE WILL BE A TABLE CONTAINING ALL THE POSSIBLE HAND TYPES
     --THAT THE USED ONE CONTAINS, MAKING IT EASIER FOR JOKERS TO ACTIVATE CORRECTLY
-    --BUT ONLY THE "HIGEST" ONE WILL BE CONSIDERED AS THE SCORING ONE
+    --BUT ONLY THE "HIGHEST" ONE WILL BE CONSIDERED AS SCORED
 
     return ElegibleHandTypes
 end
@@ -484,6 +484,7 @@ function mod:GetJokerCost(Joker)
 end
 
 function mod:AddJimboInventorySlots(Player, Amount)
+    mod.SavedValues.Jimbo.InventorySize = mod.SavedValues.Jimbo.InventorySize + Amount
     if Amount >= 0 then
         for i=1,Amount do --just adds empty spaces to fill
             table.insert(mod.SavedValues.Jimbo.Inventory.Jokers, 0)
@@ -502,4 +503,40 @@ function mod:AddJimboInventorySlots(Player, Amount)
         table.remove(mod.SavedValues.Jimbo.Inventory.Jokers, 1) --if none are present then sell the first joker
         table.remove(mod.SavedValues.Jimbo.Inventory.Editions, 1)
     end
+end
+
+function mod:ChangeJimboHandSize(Player, Amount)
+    mod.SavedValues.Jimbo.HandSize = mod.SavedValues.Jimbo.HandSize + Amount
+    if Amount >= 0 then
+        for i=1,Amount do --just adds empty spaces to fill
+            table.insert(mod.SavedValues.Jimbo.CurrentHand, mod.SavedValues.Jimbo.DeckPointer)
+            mod.SavedValues.Jimbo.DeckPointer = mod.SavedValues.Jimbo.DeckPointer + 1
+        end
+    else
+        for i=-1,Amount, -1 do
+            if mod.SavedValues.Jimbo.HandSize == 1 then
+                return
+            end
+            table.remove(mod.SavedValues.Jimbo.CurrentHand, 1)
+        end
+    end
+end
+
+
+function mod:SpecialCardToFrame(CardID)
+    if CardID <= Card.CARD_WORLD then --tarot cards
+        return CardID
+    elseif CardID >= mod.Planets.PLUTO and CardID <= mod.Planets.ERIS then --planet cards
+        return 23 + CardID - mod.Planets.PLUTO
+    end
+    return 35 + CardID - mod.Spectrals.FAMILIAR --spectral cards
+end
+
+function mod:FrameToSpecialCard(Frame)
+    if Frame <= Card.CARD_WORLD then --tarot cards
+        return Frame
+    elseif Frame > Card.CARD_WORLD and Frame <= 34 then --planet cards
+        return Frame + mod.Planets.PLUTO - 23
+    end
+    return Frame + mod.Spectrals.FAMILIAR - 34 --spectral cards
 end

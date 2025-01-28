@@ -1,5 +1,4 @@
 local mod = Balatro_Expansion
-local json = require("json")
 -------------MOD CONFIG MENU STUFF----------------------------
 --------------------------------------------------------------
 
