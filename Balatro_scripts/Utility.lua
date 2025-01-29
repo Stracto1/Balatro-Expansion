@@ -506,18 +506,20 @@ function mod:AddJimboInventorySlots(Player, Amount)
 end
 
 function mod:ChangeJimboHandSize(Player, Amount)
-    mod.SavedValues.Jimbo.HandSize = mod.SavedValues.Jimbo.HandSize + Amount
+    
     if Amount >= 0 then
         for i=1,Amount do --just adds empty spaces to fill
-            table.insert(mod.SavedValues.Jimbo.CurrentHand, mod.SavedValues.Jimbo.DeckPointer)
+            table.insert(mod.SavedValues.Jimbo.CurrentHand,1, mod.SavedValues.Jimbo.DeckPointer)
             mod.SavedValues.Jimbo.DeckPointer = mod.SavedValues.Jimbo.DeckPointer + 1
         end
+        mod.SavedValues.Jimbo.HandSize = mod.SavedValues.Jimbo.HandSize + Amount
     else
         for i=-1,Amount, -1 do
             if mod.SavedValues.Jimbo.HandSize == 1 then
                 return
             end
-            table.remove(mod.SavedValues.Jimbo.CurrentHand, 1)
+            table.remove(mod.SavedValues.Jimbo.CurrentHand, mod.SavedValues.Jimbo.HandSize)
+            mod.SavedValues.Jimbo.HandSize = mod.SavedValues.Jimbo.HandSize - 1
         end
     end
 end
