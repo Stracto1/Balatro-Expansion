@@ -87,14 +87,14 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.EditionsStats)
 function mod:Joker(player,_)
     if player:GetPlayerType() == mod.Characters.JimboType then
  
-        if mod:JimboHasTrinket(player, TrinketType.TRINKET_JOKER) and mod.StatEnable then
+        for i,v in ipairs(mod:GetJimboJokerIndex(player, TrinketType.TRINKET_JOKER)) do
             mod:IncreaseJimboStats(player, 0.4, 0, 1, false, false)
         end
 
     elseif player:HasTrinket(Joker) then
          --controls if it has the trinket
     
-        local JokerDMG = 0.5 --base dmg
+        local JokerDMG = 0.4 --base dmg
         local DMGToAdd = JokerDMG * player:GetTrinketMultiplier(Joker) --scalable DMG up
         if mod.WantedEffect == Joker then
             --print("effect")

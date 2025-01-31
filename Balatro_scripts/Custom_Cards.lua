@@ -9,7 +9,7 @@ CardEditionChance.Holo = 0.068 --is actually 0.028
 CardEditionChance.Poly = 0.080 --is actually 0.012
 
 local SoulChance = 0.003
-local HoleChance = 0.003
+local HoleChance = 0.203
 
 --every tarot has a new effect when used by jimbo
 ---@param Player EntityPlayer
@@ -25,17 +25,29 @@ function mod:NewTarotEffects(card, Player, UseFlags)
 
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
                            RandomVector()*3, nil, mod.SavedValues.Jimbo.LastUsed[PIndex], RandomSeed)
-                return false
+            else
+                Player:AnimateSad()
             end
+            return false
         elseif card == Card.CARD_MAGICIAN then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.MAGICIAN)
             return false
         elseif card == Card.CARD_HIGH_PRIESTESS then
-            
-            Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
-                           RandomVector()*3, nil, mod.SavedValues.Jimbo.LastUsed[PIndex], RandomSeed)
-            --placeholder effect, should spawn 2 planet cards
+
+            local CardRNG = Player:GetCardRNG(card)
+            for i=1, 2 do
+                local Rplanet
+                if Player:GetPlayerType() == mod.Characters.JimboType then
+                    Rplanet = CardRNG:RandomInt(mod.Planets.PLUTO, mod.Planets.SUN)
+                elseif false then
+                    Rplanet = CardRNG:RandomInt(mod.Planets.PLUTO, mod.Planets.ERIS)
+                end
+
+                Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
+                               RandomVector()*2, nil, Rplanet, RandomSeed)
+                --placeholder effect, should spawn 2 planet cards
+            end
             return false
         
         elseif card == Card.CARD_EMPRESS then
@@ -102,7 +114,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
             return false
         elseif card == Card.CARD_DEATH then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
-                                                  mod.SelectionParams.Purposes.DEATH)
+                                                  mod.SelectionParams.Purposes.DEATH1)
             return false
         elseif card == Card.CARD_TEMPERANCE then
             local CoinsToGain
@@ -161,17 +173,23 @@ mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.NewTarotEffects)
 
 
 function mod:PlanetCards(card, Player,_)
-    if card >= mod.Planets.PLUTO and card <= mod.Planets.ERIS then --if it's a planet Card
+    if card >= mod.Planets.PLUTO and card <= mod.Planets.SUN then --if it's a planet Card
+        if Player:GetPlayerType() == mod.Characters.JimboType then
+            local Value = card - mod.Planets.PLUTO + 1 --gets the equivalent card value
 
-        local Hand = card - mod.Planets.PLUTO + 1 --gets the equivalent handtype
-        if Hand >= 10 then Hand = Hand + 1 end --creates an offset caused by royal flush existence
+            mod.SavedValues.Jimbo.CardLevels[Value] = mod.SavedValues.Jimbo.CardLevels[Value] + 1
 
-        mod.SavedValues.Jimbo.HandLevels[Hand] = mod.SavedValues.Jimbo.HandLevels[Hand] + 1
-        mod.SavedValues.Jimbo.HandsStat[Hand] = mod.SavedValues.Jimbo.HandsStat[Hand] + mod.HandUpgrades[Hand]
-        if Hand == 9 then
-            Hand = 10 --upgrades both royal flush and straight flush
+        elseif false then --TAINTED JIMBO
+            local Hand = card - mod.Planets.PLUTO + 1 --gets the equivalent handtype
+
             mod.SavedValues.Jimbo.HandLevels[Hand] = mod.SavedValues.Jimbo.HandLevels[Hand] + 1
             mod.SavedValues.Jimbo.HandsStat[Hand] = mod.SavedValues.Jimbo.HandsStat[Hand] + mod.HandUpgrades[Hand]
+            if Hand == mod.HandTypes.STRAIGHT_FLUSH then
+                Hand = mod.HandTypes.ROYAL_FLUSH --upgrades both royal flush and straight flush
+                mod.SavedValues.Jimbo.HandLevels[Hand] = mod.SavedValues.Jimbo.HandLevels[Hand] + 1
+                mod.SavedValues.Jimbo.HandsStat[Hand] = mod.SavedValues.Jimbo.HandsStat[Hand] + mod.HandUpgrades[Hand]
+            end
+
         end
     end
 end
@@ -241,30 +259,57 @@ function mod:CardPacks(card, Player,_)
 
         local PackRng = Player:GetCardRNG(Card.CARD_PACK_CELESTIAL)
         local RandomPack = {}
-        for i=1, 3, 1 do
-            repeat  --certain hand types should remain hidden until used one time
-                local IsPlanetUnlocked = true
-                if PackRng:RandomFloat() < HoleChance then
-                    RandomPack[i] = mod.Spectrals.BLACK_HOLE
-                else
-                    RandomPack[i] = PackRng:RandomInt(mod.Planets.PLUTO,mod.Planets.ERIS) --chooses a random planet
-                    
-                    if RandomPack[i] == mod.Planets.PLANET_X then
-                        if not mod.SavedValues.Jimbo.FiveUnlocked then
-                            IsPlanetUnlocked = false
-                        end
-                    elseif RandomPack[i] == mod.Planets.CERES then
-                        if not mod.SavedValues.Jimbo.FlushHouseUnlocked then
-                            IsPlanetUnlocked = false
-                        end
-                    elseif RandomPack[i] == mod.Planets.ERIS then
-                        if not mod.SavedValues.Jimbo.FiveFlushUnlocked then
-                            IsPlanetUnlocked = false
+        if Player:GetPlayerType() == mod.Characters.JimboType then
+            
+            for i=1, 3 do
+                local Rplanet
+                repeat  
+                    if PackRng:RandomFloat() < HoleChance then
+                        Rplanet = mod.Spectrals.BLACK_HOLE
+                    else
+                        Rplanet = PackRng:RandomInt(mod.Planets.PLUTO,mod.Planets.SUN) --chooses a random planet
+                    end
+                    print(Rplanet)
+                until not mod:Contained(RandomPack, Rplanet)
+                RandomPack[i] = Rplanet
+            end
+            --after the generation caonverts them to be useful
+            for i,_ in ipairs(RandomPack) do
+                RandomPack[i] = mod:SpecialCardToFrame(RandomPack[i])
+            end
+
+        elseif false then --TAINTED JIMBO
+            for i=1, 3, 1 do
+                local Rplanet
+                repeat  --certain hand types should remain hidden until used one time
+                    local IsPlanetUnlocked = true
+                    if PackRng:RandomFloat() < HoleChance then
+                        Rplanet = mod.Spectrals.BLACK_HOLE
+                    else
+                        Rplanet = PackRng:RandomInt(mod.Planets.PLUTO,mod.Planets.ERIS) --chooses a random planet
+
+                        if Rplanet == mod.Planets.PLANET_X then
+                            if not mod.SavedValues.Jimbo.FiveUnlocked then
+                                IsPlanetUnlocked = false
+                            end
+                        elseif Rplanet == mod.Planets.CERES then
+                            if not mod.SavedValues.Jimbo.FlushHouseUnlocked then
+                                IsPlanetUnlocked = false
+                            end
+                        elseif Rplanet == mod.Planets.ERIS then
+                            if not mod.SavedValues.Jimbo.FiveFlushUnlocked then
+                                IsPlanetUnlocked = false
+                            end
                         end
                     end
-                end
-                RandomPack[i] = mod:SpecialCardToFrame(RandomPack[i])
-            until IsPlanetUnlocked
+                until IsPlanetUnlocked and not mod:Contained(RandomPack, Rplanet)
+                RandomPack[i] = Rplanet
+            end
+            --after the generation caonverts them to be useful
+            for i,_ in ipairs(RandomPack) do
+                RandomPack[i] = mod.SpecialCardToFrame(RandomPack[i])
+            end
+            
         end
         mod.SelectionParams.PackOptions = RandomPack
 

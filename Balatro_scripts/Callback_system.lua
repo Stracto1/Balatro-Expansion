@@ -41,17 +41,9 @@ function mod:OnGameStart(Continued)
     if Continued then 
     
         if mod:HasData() then
-            mod.SavedValues = json.decode(mod:LoadData())
+            mod.SavedValues = json.decode(mod:LoadData()) --restores every saved progress from the run
         end
-        for _, player in ipairs(PlayerManager.GetPlayers()) do   --evaluates again for the mod's trinkets since closing the game
-            --resets the callbacks and the pickedTrinkets table
-            mod.StatEnable = true
-            player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, true)
-            player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
-            mod.StatEnable = false
-        end
-        return
-    end
+    else
     
     --all of this only happens on new runs--
     ---------------------------------------------
@@ -97,14 +89,9 @@ function mod:OnGameStart(Continued)
                 index = index +1
             end
         end
-        local AnyJimbo
-        for _, Player in ipairs(PlayerManager:GetPlayers()) do --finds the first jimbo and uses its rng
-            if Player:GetPlayerType() == mod.Characters.JimboType then
-                mod:StatReset(Player, true, true)
-                AnyJimbo = Player
-            end
-        end
-        local HandRNG = AnyJimbo:GetCollectibleRNG(CollectibleType.COLLECTIBLE_THE_HAND)
+
+        local HandRNG = Game:GetPlayer(0):GetDropRNG()
+
         mod.SavedValues.Jimbo.FullDeck = mod:Shuffle(mod.SavedValues.Jimbo.FullDeck, HandRNG)
 
         mod.SavedValues.Jimbo.DeckPointer = 6
@@ -131,10 +118,18 @@ function mod:OnGameStart(Continued)
         mod.SavedValues.Jimbo.StatsToAdd.JokerDamage = 0
         mod.SavedValues.Jimbo.StatsToAdd.JokerTears = 0
         mod.SavedValues.Jimbo.StatsToAdd.JokerMult = 1
-        
+
+        Balatro_Expansion.SavedValues.Jimbo.FirstDeck = true
+
         mod.SavedValues.Jimbo.MinimumTears = 0.8
         mod.SavedValues.Jimbo.MinimumDamage = 0.5
-        
+
+        mod.SavedValues.Jimbo.CardLevels = {}
+        for i=1, 13 do
+            mod.SavedValues.Jimbo.CardLevels[i] = 0
+        end
+
+        --[[
         mod.SavedValues.Jimbo.HandLevels = {}
         mod.SavedValues.Jimbo.HandLevels[mod.HandTypes.HIGH_CARD] = 1
         mod.SavedValues.Jimbo.HandLevels[mod.HandTypes.PAIR] = 1
@@ -168,7 +163,7 @@ function mod:OnGameStart(Continued)
 
         mod.SavedValues.Jimbo.FiveUnlocked = false
         mod.SavedValues.Jimbo.FlushHouseUnlocked = false
-        mod.SavedValues.Jimbo.FiveFlushUnlocked = false
+        mod.SavedValues.Jimbo.FiveFlushUnlocked = false]]--
 
         mod.SavedValues.Jimbo.ClearedRooms = 0
         mod.SavedValues.Jimbo.SmallCleared = false
@@ -201,6 +196,21 @@ function mod:OnGameStart(Continued)
 
         mod.SelectionParams.Purpose = mod.SelectionParams.Purposes.NONE
         mod.SelectionParams.Mode = mod.SelectionParams.Modes.NONE
+
+
+    end
+    
+    
+    for _, player in ipairs(PlayerManager.GetPlayers()) do  --evaluates again for the mod's trinkets since closing the game
+        --resets stuff
+        mod.StatEnable = true
+        mod:StatReset(player,true,true,false,true,true)
+        player:AddCacheFlags(CacheFlag.CACHE_ALL, true)
+        mod.StatEnable = false
+    end
+
+
+
         --print(mod.SavedValues.ModConfig.ExtraReadability)
 
     --[[

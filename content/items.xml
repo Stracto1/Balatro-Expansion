@@ -21,6 +21,8 @@
 
 <!--the custom tags are as follows: -->
 <!-- !BASEPRICE - INITIALPROGRESS - ?rarity -->
+<!-- COPY: the trinket can be copied by blueprint and brainstorm as jimbo -->
+
 <!--the extra "!" and "?" are to force certain order when using GetCustomTags() since apparently it sorts them alfabetically-->
 
 <items gfxroot="gfx/items/" version="1">
@@ -41,7 +43,7 @@
     <trinket gfx="delayedgretification_trinket.png" name="Delayed gratification" description="play good, get rewards" customtags=" !0 0 common balatro activate givescoins greedchange "/>
 
     <trinket cache="flying" gfx="cloudnine_trinket.png" name="Cloud 9" description="Feels floaty... Sometimes" customtags=" !0 0 common balatro activate value "/>
-    <trinket cache="damage" gfx="joker_trinket.png" name="Joker" description="It's just a classic" customtags=" !0 0 common balatro mult "/>
+    <trinket cache="damage" gfx="joker_trinket.png" name="Joker" description="It's just a classic" customtags=" !0 0 common balatro mult copy"/>
     <trinket cache="firedelay" gfx="bull_trinket.png" name="Bull" description="Let's get in the market!" coins="5" customtags=" !0 0 uncommon balatro chips "/>
     <trinket cache="damage" gfx="abstractjoker_trinket.png" name="Abstract joker" description="Such a piece of art" customtags=" !0 0 common balatro mult "/>
     <trinket cache="damage" gfx="misprint_trinket.png" name="Misprint" description="It jussic's stcla a" customtags=" !0 0 common balatro mult "/>

@@ -1,5 +1,6 @@
 local mod = Balatro_Expansion
 local Game = Game()
+local ItemsConfig = Isaac.GetItemConfig()
 
 --local INVENTORY_RENDERING_POSITION = Vector(20,220)<== should be this but \_(T_T)_/
 
@@ -27,7 +28,7 @@ function mod:OnCardShot(Player,ShotCard,Evaluate)
                 mod.SavedValues.Jimbo.Progress.SuitUsed[RanOutOfNames] = mod.SavedValues.Jimbo.Progress.SuitUsed[RanOutOfNames] + 1
             end
         end   
-        Isaac.RunCallback("CARD_SHOT_FINAL",Player,ShotCard,Retriggers,Evaluate)
+        Isaac.RunCallback("CARD_SHOT_FINAL",Player,ShotCard,Retriggers, Evaluate and mod.SavedValues.Jimbo.FirstDeck) --after the first deck got finished, no longer activate card effects
     end
 end
 mod:AddCallback("CARD_SHOT", mod.OnCardShot)
@@ -58,10 +59,10 @@ function mod:OnJokerSold(Player,Joker,SlotSold)
             --print(RandomJoker)
             mod.SavedValues.Jimbo.Inventory[SlotSold] = RandomJoker
         end
-    elseif ACTIVATESOUND==0 then
+    elseif false then
 
     end
-    mod:StatReset(Player,true,true,false,false,true)
+    mod:StatReset(Player,true,true,false,true,false)
     mod.StatEnable = true
     Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, false)
     Player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
@@ -248,3 +249,48 @@ function mod:OnRoomClear(IsBoss)
     end
 end
 mod:AddCallback("TRUE_ROOM_CLEAR", mod.OnRoomClear)
+
+--adjusts the "copy" values for brainstorm and blueprint whenever the inventory is changed
+function mod:CopyAdjustments(Player)
+
+    for i,Joker in ipairs(mod.SavedValues.Jimbo.Inventory.Jokers) do
+        local StartI = i
+        repeat
+
+            if Joker == TrinketType.TRINKET_BLUEPRINT then --copies the joker to its right
+                i = i + 1
+                Joker = mod.SavedValues.Jimbo.Inventory.Jokers[i] or 0 --if nothing is there then just put 0
+            
+                if i == StartI then --some combinations can lead to an infinite loop
+                    Joker = 0
+                end
+
+            elseif Joker == TrinketType.TRINKET_BRAINSTORM then --copies the leftmost joker
+                i = 1
+                Joker = mod.SavedValues.Jimbo.Inventory.Jokers[i] or 0 --if nothing is there then just put 0
+            
+                if i == StartI then --some combinations can lead to an infinite loop
+                    Joker = 0
+                end
+            end
+        until (Joker ~= TrinketType.TRINKET_BLUEPRINT and Joker ~= TrinketType.TRINKET_BRAINSTORM)
+
+
+        if Joker == 0 then --ItemsConfig:GetTrinket(Joker) is nil otherwise
+            mod.SavedValues.Jimbo.Progress.Inventory[StartI] = 0
+
+        elseif ItemsConfig:GetTrinket(Joker):HasCustomTag("copy") then --not every joker can be copied
+            mod.SavedValues.Jimbo.Progress.Inventory[StartI] = Joker
+        else
+            mod.SavedValues.Jimbo.Progress.Inventory[StartI] = 0
+        end
+
+    end
+
+    mod:StatReset(Player,true,true,false,true,false)
+    mod.StatEnable = true
+    Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, false)
+    Player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
+    mod.StatEnable = false
+end
+mod:AddCallback("INVENTORY_CHANGE", mod.CopyAdjustments)

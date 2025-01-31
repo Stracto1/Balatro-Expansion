@@ -242,4 +242,6 @@
 		"XMLNode",
 		"REPENTOGON",
         "ModConfigMenu"
-	]}
+	],
+    "diagnostics.disable": [
+    ]}

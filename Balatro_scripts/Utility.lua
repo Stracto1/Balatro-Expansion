@@ -409,21 +409,9 @@ function mod:GetJimboJokerIndex(Player, Joker)
     for i,v in ipairs(mod.SavedValues.Jimbo.Inventory.Jokers) do
         if v == Joker then
             table.insert(Indexes, i)
-        elseif ItemsConfig:GetTrinket(v):HasCustomTag("copiable") then
-            local CopiedJoker = Joker
-            local limit = 3
-            local tries = 1 --certain combinations could potentially make this algorithm endless
-            repeat
-                if CopiedJoker == TrinketType.TRINKET_BLUEPRINT then
-                    i = i + 1
-                    CopiedJoker = mod.SavedValues.Jimbo.Inventory.Jokers[i]
-                elseif CopiedJoker == TrinketType.TRINKET_BRAINSTORM then
-                    i = 1
-                    CopiedJoker = mod.SavedValues.Jimbo.Inventory.Jokers[i]
-                end
-            until tries > limit or not CopiedJoker or  --could be nil/stops after a while
-                 (CopiedJoker ~= TrinketType.TRINKET_BLUEPRINT and CopiedJoker ~= TrinketType.TRINKET_BRAINSTORM)
-            if CopiedJoker and CopiedJoker == Joker then
+        elseif v == TrinketType.TRINKET_BLUEPRINT or v == TrinketType.TRINKET_BRAINSTORM   then
+
+            if mod.SavedValues.Jimbo.Progress.Inventory[i] == Joker then
                 table.insert(Indexes, i)
             end
         end
@@ -528,17 +516,17 @@ end
 function mod:SpecialCardToFrame(CardID)
     if CardID <= Card.CARD_WORLD then --tarot cards
         return CardID
-    elseif CardID >= mod.Planets.PLUTO and CardID <= mod.Planets.ERIS then --planet cards
+    elseif CardID >= mod.Planets.PLUTO and CardID <= mod.Planets.SUN then --planet cards
         return 23 + CardID - mod.Planets.PLUTO
     end
-    return 35 + CardID - mod.Spectrals.FAMILIAR --spectral cards
+    return 36 + CardID - mod.Spectrals.FAMILIAR --spectral cards
 end
 
 function mod:FrameToSpecialCard(Frame)
     if Frame <= Card.CARD_WORLD then --tarot cards
         return Frame
-    elseif Frame > Card.CARD_WORLD and Frame <= 34 then --planet cards
+    elseif Frame > Card.CARD_WORLD and Frame <= 35 then --planet cards
         return Frame + mod.Planets.PLUTO - 23
     end
-    return Frame + mod.Spectrals.FAMILIAR - 34 --spectral cards
+    return Frame + mod.Spectrals.FAMILIAR - 35 --spectral cards
 end

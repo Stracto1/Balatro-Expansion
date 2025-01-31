@@ -78,6 +78,7 @@ Balatro_Expansion.Planets.NEPTUNE = Isaac.GetCardIdByName("Planet_Neptune")
 Balatro_Expansion.Planets.PLANET_X =Isaac.GetCardIdByName("Planet_X")
 Balatro_Expansion.Planets.CERES =  Isaac.GetCardIdByName("Planet_Ceres")
 Balatro_Expansion.Planets.ERIS = Isaac.GetCardIdByName("Planet_Eris")
+Balatro_Expansion.Planets.SUN = Isaac.GetCardIdByName("Planet_Sun")
 
 Balatro_Expansion.Spectrals = {}
 Balatro_Expansion.Spectrals.FAMILIAR =  Isaac.GetCardIdByName("Spectral_Familiar")
@@ -163,10 +164,10 @@ Balatro_Expansion.HandTypes.FLUSH = 6
 Balatro_Expansion.HandTypes.FULL_HOUSE = 7
 Balatro_Expansion.HandTypes.FOUR = 8
 Balatro_Expansion.HandTypes.STRAIGHT_FLUSH = 9
-Balatro_Expansion.HandTypes.ROYAL_FLUSH = 10
-Balatro_Expansion.HandTypes.FIVE = 11
-Balatro_Expansion.HandTypes.FLUSH_HOUSE = 12
-Balatro_Expansion.HandTypes.FIVE_FLUSH = 13
+Balatro_Expansion.HandTypes.ROYAL_FLUSH = 9.5
+Balatro_Expansion.HandTypes.FIVE = 10
+Balatro_Expansion.HandTypes.FLUSH_HOUSE = 11
+Balatro_Expansion.HandTypes.FIVE_FLUSH = 12
 
 Balatro_Expansion.CARD_TEAR_VARIANTS = {Isaac.GetEntityVariantByName("Tear Spade Card"),
                                         Isaac.GetEntityVariantByName("Tear Heart Card"),
@@ -285,6 +286,14 @@ Balatro_Expansion.SavedValues.Jimbo.Inventory= {}
 Balatro_Expansion.SavedValues.Jimbo.Inventory.Jokers = {0,0,0}
 Balatro_Expansion.SavedValues.Jimbo.Inventory.Editions = {0,0,0}
 
+Balatro_Expansion.SavedValues.Jimbo.FirstDeck = true
+
+Balatro_Expansion.SavedValues.Jimbo.CardLevels = {}
+for i=1, 13 do
+    Balatro_Expansion.SavedValues.Jimbo.CardLevels[i] = 0
+end
+
+--[[
 Balatro_Expansion.SavedValues.Jimbo.HandLevels = {}
 Balatro_Expansion.SavedValues.Jimbo.HandLevels[Balatro_Expansion.HandTypes.HIGH_CARD] = 1
 Balatro_Expansion.SavedValues.Jimbo.HandLevels[Balatro_Expansion.HandTypes.PAIR] = 1
@@ -334,11 +343,12 @@ Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FIVE_FLUSH] = Vector(
 
 Balatro_Expansion.SavedValues.Jimbo.FiveUnlocked = false
 Balatro_Expansion.SavedValues.Jimbo.FlushHouseUnlocked = false
-Balatro_Expansion.SavedValues.Jimbo.FiveFlushUnlocked = false
+Balatro_Expansion.SavedValues.Jimbo.FiveFlushUnlocked = false]]--
 
 Balatro_Expansion.SavedValues.Jimbo.FloorEditions = {} --used to save which trinkets have certaain edition modifiers applied
 
 --OTHER VALUES
+Balatro_Expansion.Counters = {}--table used for variuos counters increased every update (mainly used for animated HUD stuff)
 
 Balatro_Expansion.SavedValues.Other = {}
 Balatro_Expansion.SavedValues.Other.DamageTakenRoom = 0
@@ -388,27 +398,26 @@ Balatro_Expansion.SelectionParams.Purposes.TOWER = 9
 Balatro_Expansion.SelectionParams.Purposes.HANGED = 10
 Balatro_Expansion.SelectionParams.Purposes.DEVIL = 11
 Balatro_Expansion.SelectionParams.Purposes.DEATH1 = 12
-Balatro_Expansion.SelectionParams.Purposes.DEATH2 = 13
 --3 selectiable cards
-Balatro_Expansion.SelectionParams.Purposes.WORLD = 14
-Balatro_Expansion.SelectionParams.Purposes.SUN = 15
-Balatro_Expansion.SelectionParams.Purposes.MOON = 16
-Balatro_Expansion.SelectionParams.Purposes.STARS = 17
+Balatro_Expansion.SelectionParams.Purposes.WORLD = 13
+Balatro_Expansion.SelectionParams.Purposes.SUN = 14
+Balatro_Expansion.SelectionParams.Purposes.MOON = 15
+Balatro_Expansion.SelectionParams.Purposes.STARS = 16
 
-Balatro_Expansion.SelectionParams.Purposes.DEJA_VU = 18
-Balatro_Expansion.SelectionParams.Purposes.TALISMAN = 19
-Balatro_Expansion.SelectionParams.Purposes.TRANCE = 20
-Balatro_Expansion.SelectionParams.Purposes.MADIUM = 21
-Balatro_Expansion.SelectionParams.Purposes.AURA = 22
-Balatro_Expansion.SelectionParams.Purposes.CRYPTID = 23
+Balatro_Expansion.SelectionParams.Purposes.DEJA_VU = 17
+Balatro_Expansion.SelectionParams.Purposes.TALISMAN = 18
+Balatro_Expansion.SelectionParams.Purposes.TRANCE = 19
+Balatro_Expansion.SelectionParams.Purposes.MADIUM = 20
+Balatro_Expansion.SelectionParams.Purposes.AURA = 21
+Balatro_Expansion.SelectionParams.Purposes.CRYPTID = 22
 
-Balatro_Expansion.SelectionParams.Purposes.StandardPack = 24
-Balatro_Expansion.SelectionParams.Purposes.TarotPack = 25
-Balatro_Expansion.SelectionParams.Purposes.CelestialPack = 26
-Balatro_Expansion.SelectionParams.Purposes.SpectralPack = 27
-Balatro_Expansion.SelectionParams.Purposes.BuffonPack = 28
-Balatro_Expansion.SelectionParams.Purposes.SELLING = 29
------------------------------ gaw damn that's a lot of variables
+Balatro_Expansion.SelectionParams.Purposes.StandardPack = 23
+Balatro_Expansion.SelectionParams.Purposes.TarotPack = 24
+Balatro_Expansion.SelectionParams.Purposes.CelestialPack = 25
+Balatro_Expansion.SelectionParams.Purposes.SpectralPack = 26
+Balatro_Expansion.SelectionParams.Purposes.BuffonPack = 27
+Balatro_Expansion.SelectionParams.Purposes.SELLING = 28
+----------------------------- gaw damn those were a lot of variables
 
 
 --heyo dear mod developer college! Fell free to take any of the code written here
