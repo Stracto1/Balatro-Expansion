@@ -17,18 +17,20 @@ local SLICESOUND = Isaac.GetSoundIdByName("SLICESFX")
 
 --effects when a card is shot
 function mod:OnCardShot(Player,ShotCard,Evaluate)
-    local Retriggers = 0 --how many times the card needs to be activated again
+    local Triggers = 1 --how many times the card needs to be activated again
 
-    if not Game:GetRoom():IsClear() then
+    if Evaluate then --if the room is not cleared 
 
         mod:StatReset(Player,true, true, false, true, false)
 
         for _,RanOutOfNames in ipairs(mod:IsSuit(Player, ShotCard.Suit,ShotCard.Enhancement, 0, true)) do
-            for i = 0, Retriggers do
+            for i = 1, Triggers do
                 mod.SavedValues.Jimbo.Progress.SuitUsed[RanOutOfNames] = mod.SavedValues.Jimbo.Progress.SuitUsed[RanOutOfNames] + 1
             end
         end   
-        Isaac.RunCallback("CARD_SHOT_FINAL",Player,ShotCard,Retriggers, Evaluate and mod.SavedValues.Jimbo.FirstDeck) --after the first deck got finished, no longer activate card effects
+        --after the first deck got finished, no longer activate card effects
+        --(joker effects always activate no matter what)
+        Isaac.RunCallback("CARD_SHOT_FINAL",Player,ShotCard,Triggers, mod.SavedValues.Jimbo.FirstDeck)
     end
 end
 mod:AddCallback("CARD_SHOT", mod.OnCardShot)

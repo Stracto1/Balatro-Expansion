@@ -9,7 +9,7 @@ CardEditionChance.Holo = 0.068 --is actually 0.028
 CardEditionChance.Poly = 0.080 --is actually 0.012
 
 local SoulChance = 0.003
-local HoleChance = 0.203
+local HoleChance = 0.003
 
 --every tarot has a new effect when used by jimbo
 ---@param Player EntityPlayer
