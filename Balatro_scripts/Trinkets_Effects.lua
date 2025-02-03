@@ -85,10 +85,10 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.EditionsStats)
 
 -------------------Joker------------------------
 function mod:Joker(player,_)
-    if player:GetPlayerType() == mod.Characters.JimboType then
+    if player:GetPlayerType() == mod.Characters.JimboType and mod.StatEnable then
  
         for i,v in ipairs(mod:GetJimboJokerIndex(player, TrinketType.TRINKET_JOKER)) do
-            mod:IncreaseJimboStats(player, 0.4, 0, 1, false, false)
+            mod:IncreaseJimboStats(player, 0.2, 0, 1, false, false)
         end
 
     elseif player:HasTrinket(Joker) then

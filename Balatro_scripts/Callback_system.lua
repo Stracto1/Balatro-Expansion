@@ -181,6 +181,11 @@ function mod:OnGameStart(Continued)
         mod.SavedValues.Jimbo.LastUsed = {}
         mod.SavedValues.Jimbo.EctoUses = 0
     
+        do
+            local RandomSeed = Random()
+            if RandomSeed == 0 then RandomSeed = 1 end
+            mod.SavedValues.GeneralRNG = RNG(RandomSeed) --RNG object used in various ways 
+        end
 
         if mod:Contained(Challenges, Game.Challenge) then
             mod.SavedValues.Other.ShopEntered = true

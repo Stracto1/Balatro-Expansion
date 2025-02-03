@@ -147,6 +147,7 @@ Balatro_Expansion.Seals.BLUE = 3
 Balatro_Expansion.Seals.PURPLE = 4
 
 Balatro_Expansion.Edition = {}
+Balatro_Expansion.Edition.NOT_CHOSEN = -1
 Balatro_Expansion.Edition.BASE = 0
 Balatro_Expansion.Edition.FOIL = 1
 Balatro_Expansion.Edition.HOLOGRAPHIC = 2
@@ -228,6 +229,14 @@ Balatro_Expansion.SavedValues.TrinketValues.MichaelDestroyed = false
 Balatro_Expansion.SavedValues.TrinketValues.GoldenMichelGone = false
 Balatro_Expansion.SavedValues.TrinketValues.FirstBrain = true
 Balatro_Expansion.SavedValues.TrinketValues.Dna = true
+
+do
+    local RandomSeed = Random()
+    if RandomSeed == 0 then RandomSeed = 1 end
+
+    Balatro_Expansion.SavedValues.GeneralRNG = RNG(RandomSeed) --RNG object used in various ways 
+end
+
 
 -----------JIMBO-------------------
 Balatro_Expansion.SavedValues.Jimbo = {}

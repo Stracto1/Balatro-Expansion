@@ -488,36 +488,65 @@ function mod:JimboInputHandle(Player)
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.JimboInputHandle)
 
-
+--changes the shop items to be in a specific pattern and rolls for the edition
 ---@param Pickup EntityPickup
----@param RNG RNG
-function mod:ShopItemChanger(Pickup,_, _, ReqVariant, ReqSubType, RNG)
-    local Room = Game:GetRoom()
-    if (ReqSubType == 0 or ReqVariant == 0) and 
-        Pickup:IsShopItem() and Room:GetType() == RoomType.ROOM_SHOP then
+---@param rNG RNG
+function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rNG)
 
-        if Pickup.ShopItemId < 2 then
-            return{PickupVariant.PICKUP_TAROTCARD,mod:GetRandom(mod.Packs, RNG),true}
-        
-        elseif Pickup.ShopItemId < 5 then
-            local Trinket
-            repeat
-                local RarityRoll = RNG:RandomFloat()
-                if RarityRoll < 0.75 then
-                    Trinket = mod:GetRandom(mod.Trinkets.common,RNG,true)
-                elseif RarityRoll < 0.95 then
-                    Trinket = mod:GetRandom(mod.Trinkets.uncommon,RNG,true)
-                else
-                    Trinket = mod:GetRandom(mod.Trinkets.rare,RNG,true)
-                end
-            until not PlayerManager.AnyoneHasTrinket(Trinket)
-            return{PickupVariant.PICKUP_TRINKET, Trinket ,false}
-        else 
-            return {PickupVariant.PICKUP_COLLECTIBLE,
-                    ItemPool:GetCollectible(ItemPoolType.POOL_SHOP, true, RNG:GetSeed())}
+    print(Variant)
+    print(SubType)
+    print(ReqVariant)
+    print(ReqSubType)
+
+    --print("shop")
+    local ReturnTable = {Variant, SubType, true} 
+    if PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) and (ReqSubType == 0 or ReqVariant == 0) then
+        if Pickup:IsShopItem() and Game:GetRoom():GetType() == RoomType.ROOM_SHOP then
+
+            if Pickup.ShopItemId < 2 then
+                ReturnTable = {PickupVariant.PICKUP_TAROTCARD,mod:GetRandom(mod.Packs, mod.SavedValues.GeneralRNG),false}
+            
+            elseif Pickup.ShopItemId < 5 then
+                local Trinket
+                repeat
+                    local RarityRoll = mod.SavedValues.GeneralRNG:RandomFloat()
+                    if RarityRoll < 0.75 then
+                        Trinket = mod:GetRandom(mod.Trinkets.common,mod.SavedValues.GeneralRNG)
+                    elseif RarityRoll < 0.95 then
+                        Trinket = mod:GetRandom(mod.Trinkets.uncommon,mod.SavedValues.GeneralRNG)
+                    else
+                        Trinket = mod:GetRandom(mod.Trinkets.rare,mod.SavedValues.GeneralRNG)
+                    end
+                until not PlayerManager.AnyoneHasTrinket(Trinket)
+
+                ReturnTable = {PickupVariant.PICKUP_TRINKET, Trinket ,false}
+            else 
+                ReturnTable = {PickupVariant.PICKUP_COLLECTIBLE,
+                        ItemPool:GetCollectible(ItemPoolType.POOL_SHOP, true, mod.SavedValues.GeneralRNG:GetSeed()), false}
+            end
         end
-
     end
+
+    --if a trinket is selected, then also roll for its edition
+    if ReturnTable[1] == PickupVariant.PICKUP_TRINKET then
+        local Index = Game:GetLevel():GetCurrentRoomDesc().ListIndex
+
+        local EdRoll = mod.SavedValues.GeneralRNG:RandomFloat()
+        if EdRoll <= 0.02 then --foil chance
+            mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(ReturnTable[2]).Name] = mod.Edition.FOIL
+        elseif EdRoll <= 0.034 then --holo chance
+            mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(ReturnTable[2]).Name] = mod.Edition.HOLOGRAPHIC
+        elseif EdRoll <= 0.037 then --poly chance
+            mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(ReturnTable[2]).Name] = mod.Edition.POLYCROME
+        elseif EdRoll <= 0.03 + 0.037 then --niggative chance (fixed chance)
+            mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(ReturnTable[2]).Name] = mod.Edition.NEGATIVE
+        else
+            mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(ReturnTable[2]).Name] = mod.Edition.NONE
+        end
+    end
+
+
+    return ReturnTable
 end
 mod:AddCallback(ModCallbacks.MC_POST_PICKUP_SELECTION, mod.ShopItemChanger)
 
@@ -583,11 +612,11 @@ function mod:CalculateBlinds()
     mod.SavedValues.Jimbo.BossCleared = false
     mod.SavedValues.Jimbo.ClearedRooms = 0
 
-    --the more rooms the less you need to complete
+    --the more rooms, the less you need to complete
     if BasicRoomNum < 40 then
-        BasicRoomNum = math.ceil(BasicRoomNum * (1 - BasicRoomNum/100))
+        BasicRoomNum = math.floor(BasicRoomNum * (0.9 - BasicRoomNum/100))
     else
-        BasicRoomNum = BasicRoomNum * 0.60
+        BasicRoomNum =  math.floor(BasicRoomNum * 0.45)
     end
  
     mod.SavedValues.Jimbo.SmallBlind = math.ceil(BasicRoomNum/3) -- about 1/3 of the rooms
@@ -601,15 +630,20 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.CalculateBlinds)
 --mod:AddPriorityCallback(ModCallbacks.MC_POST_GAME_STARTED, CallbackPriority.LATE,mod.CalculateBlinds)
 
---handles the rooms which cleared by default 
-function mod:NoHarmRooms()
+--handles the rooms which are cleared by default 
+function mod:HandleNoHarmRoomsClear()
     local Desc = Game:GetLevel():GetCurrentRoomDesc()
     
     if Desc.VisitedCount == 1 and Desc.Clear and Desc.GridIndex ~= Game:GetLevel():GetStartingRoomIndex() then
-        Isaac.RunCallback("TRUE_ROOM_CLEAR",false)
+        if Desc.Data.Type == RoomType.ROOM_DEFAULT then
+            Isaac.RunCallback("TRUE_ROOM_CLEAR",false)
+        elseif Desc.Data.Type == RoomType.ROOM_SHOP then
+            Game:Spawn(EntityType.ENTITY_SLOT, SlotVariant.SHOP_RESTOCK_MACHINE,
+                       Game:GetRoom():GetGridPosition(25),Vector.Zero, nil, 0, Game:GetRoom():GetSpawnSeed())
+        end
     end
 end
-mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.NoHarmRooms)
+mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.HandleNoHarmRoomsClear)
 
 --handles the shooting 
 ---@param Player EntityPlayer
@@ -687,23 +721,47 @@ end
 mod:AddPriorityCallback("TRUE_ROOM_CLEAR",CallbackPriority.LATE, mod.AddRoomsCleared)
 
 
---activates whenever the deckpointer is shifted
+--activates whenever the deckpointer is shifted (has the steel cards effect)
 ---@param Player EntityPlayer
 function mod:OnDeckShift(Player)
-    print("shifted")
-    --take damage if the deck is finished
+
+    --shuffle the deck if finished
     if mod.SavedValues.Jimbo.DeckPointer > #mod.SavedValues.Jimbo.FullDeck + mod.SavedValues.Jimbo.HandSize then
-        print("do it")
+
         if mod.SavedValues.Jimbo.FirstDeck then
-            mod.SavedValues.Jimbo.FirstDeck = false
+            mod.SavedValues.Jimbo.FirstDeck = false --no more stat boosts from cards in the cuurent room
             Player:AnimateSad()
         end
         mod:FullDeckShuffle(Player)
     end
+
+    Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, true)
+
 end
 mod:AddCallback("DECK_SHIFT", mod.OnDeckShift)
 
+
+function mod:SteelStatBoosts(Player, Cache)
+    for _,index in ipairs(mod.SavedValues.Jimbo.CurrentHand) do
+        local Triggers = 0
+        if mod.SavedValues.Jimbo.FullDeck[index]
+           and mod.SavedValues.Jimbo.FullDeck[index].Enhancement == mod.Enhancement.STEEL then
+
+            Triggers = Triggers + 1
+
+            if mod.SavedValues.Jimbo.FullDeck[index].Seal == mod.Seals.RED then
+                Triggers = Triggers + 1
+            end
+            --if mod:JimboHasTrinket(Player, TrinkrtType.MIME) then Triggers = Triggers + 1
+
+            mod:IncreaseJimboStats(Player,0, 0, 1.1^Triggers, false,false) --steel cards use the joker stats cause they are variable and need to be reset each time
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.SteelStatBoosts, CacheFlag.CACHE_DAMAGE)
+
 function mod:GiveRewards(BlindType)
+
 
     local Seed = Game:GetSeeds():GetStartSeed()
     local Jimbo
@@ -792,9 +850,9 @@ function mod:JimboTrinketPool(_, RNG)
     if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
         return
     end
+    print("pool")
 
     local RarityRoll = RNG:RandomFloat()
-
     if RarityRoll < 0.70 then --common
         local Joker
         repeat
@@ -833,28 +891,6 @@ function mod:TrinketEditionsRender(Trinket, Offset)
 end
 mod:AddCallback(ModCallbacks.MC_POST_PICKUP_RENDER, mod.TrinketEditionsRender, PickupVariant.PICKUP_TRINKET)
 
----@param Trinket EntityPickup
-function mod:GiveEditions(Trinket)
-    if mod.GameStarted and ItemsConfig:GetTrinket(Trinket.SubType):HasCustomTag("balatro")
-       and PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
-
-        local Index = Game:GetLevel():GetCurrentRoomDesc().ListIndex
-
-        local EdRoll = Trinket:GetDropRNG():RandomFloat()
-        if EdRoll <= 0.02 then --foil chance
-            mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name] = mod.Edition.FOIL
-        elseif EdRoll <= 0.034 then --holo chance
-            mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name] = mod.Edition.HOLOGRAPHIC
-        elseif EdRoll <= 0.037 then --poly chance
-            mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name] = mod.Edition.POLYCROME
-        elseif EdRoll <= 0.03 + 0.037 then --niggative chance (fixed chance)
-            mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name] = mod.Edition.NEGATIVE
-        else
-            mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name] = mod.Edition.NONE
-        end
-    end
-end
-mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT, mod.GiveEditions, PickupVariant.PICKUP_TRINKET)
 
 function mod:EnableTrinketEditions()
     mod.SavedValues.Jimbo.FloorEditions = {}
@@ -980,6 +1016,30 @@ function mod:JimboRoomClear(Player)
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, mod.JimboRoomClear)
 
+
+---@param Player EntityPlayer
+function mod:DiscardEffects(Player)
+
+    local PlayerRNG = Player:GetDropRNG()
+    local SealTriggers = 1
+    for i,index in ipairs(mod.SavedValues.Jimbo.CurrentHand) do
+        local card = mod.SavedValues.Jimbo.FullDeck[index]
+
+        if card then --could be nil
+            if card.Seal == mod.Seals.PURPLE and PlayerRNG:RandomFloat() <= 1/SealTriggers then
+
+                --spawns a random basic tarotcard
+                local RandomSeed = Random()
+                if RandomSeed == 0 then RandomSeed = 1 end
+                Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
+                           RandomVector()*2, nil, PlayerRNG:RandomInt(1,22), RandomSeed)
+                SealTriggers = SealTriggers + 1 --decreases the chance te more trigger at the same time
+            end
+        end
+    end
+end
+mod:AddCallback("HAND_DISCARD", mod.DiscardEffects)
+
 -----------------------JIMBO STATS-----------------------
 ----------------------------------------------------------
 
@@ -1047,13 +1107,7 @@ function mod:CardShotFinal(Player,ShotCard,Triggers,Evaluate)
                 end
             end
         end
-        for _,index in ipairs(mod.SavedValues.Jimbo.CurrentHand) do
-            if mod.SavedValues.Jimbo.FullDeck[index] then
-                if mod.SavedValues.Jimbo.FullDeck[index].Enhancement == mod.Enhancement.STEEL then
-                    mod:IncreaseJimboStats(Player,0, 0, 1.02, false,true)
-                end
-            end
-        end
+        
         mod:IncreaseJimboStats(Player, 0, TearsToGet, 1,false, true)
 
 
@@ -1064,30 +1118,6 @@ function mod:CardShotFinal(Player,ShotCard,Triggers,Evaluate)
     end
 end
 mod:AddCallback("CARD_SHOT_FINAL", mod.CardShotFinal)
-
-
----@param Player EntityPlayer
-function mod:DiscardEffects(Player)
-
-    local PlayerRNG = Player:GetDropRNG()
-    local SealTriggers = 1
-    for i,index in ipairs(mod.SavedValues.Jimbo.CurrentHand) do
-        local card = mod.SavedValues.Jimbo.FullDeck[index]
-
-        if card then --could be nil
-            if card.Seal == mod.Seals.PURPLE and PlayerRNG:RandomFloat() <= 1/SealTriggers then
-
-                --spawns a random basic tarotcard
-                local RandomSeed = Random()
-                if RandomSeed == 0 then RandomSeed = 1 end
-                Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
-                           RandomVector()*2, nil, PlayerRNG:RandomInt(1,22), RandomSeed)
-                SealTriggers = SealTriggers + 1 --decreases the chance te more trigger at the same time
-            end
-        end
-    end
-end
-mod:AddCallback("HAND_DISCARD", mod.DiscardEffects)
 
 
 --these calculations are used for normal items, NOT stats given by jokers or mod related stuff
@@ -1107,7 +1137,7 @@ function mod:JimboStatCalculator(Player, Cache)
 
     if Player:HasCollectible(CollectibleType.COLLECTIBLE_POLYPHEMUS) then
         mod.SavedValues.Jimbo.MinimumTears = 0.6
-        PositiveDamageMult = 0.25
+        PositiveDamageMult = 0.3
         TearsMult = 0.7
     elseif Player:HasCollectible(CollectibleType.COLLECTIBLE_MUTANT_SPIDER) then
         mod.SavedValues.Jimbo.MinimumTears = 0.7
@@ -1207,7 +1237,15 @@ function mod:StatReset(Player, Damage, Tears, Evaluate, Jokers, Basic)
         end
     end
 end
---mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.IMPORTANT, mod.StatReset)
+
+function mod:JokerStatReset(Player, Cache)
+
+    --resets the joker stat boosts every time since otherwise they would infinitely stack
+    mod:StatReset(Player, Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE,
+                  Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY,
+                  false, true, false)
+end
+mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.IMPORTANT, mod.JokerStatReset)
 
 --finally gives the actual stat changes to jimbo, also used for always active buffs
 function mod:StatGiver(Player, Cache)
