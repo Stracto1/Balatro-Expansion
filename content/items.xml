@@ -72,6 +72,7 @@
 
 
     <active name="The hand" chargetype="special" maxcharges="0" quality="2" craftquality="2" gfx="the_hand_active.png" description="Need a hand?"/>
+    
     <passive name="Grabber"  quality="2" craftquality="2" gfx="grabber_voucher.png" description="hands up!"/>
     <passive name="Nacho tong"  quality="3" craftquality="2" gfx="nacho_tong_voucher.png" description="just one more!"/>
     <passive name="Overstock"  quality="2" craftquality="2" gfx="overstock_voucher.png" description="more options!"/>
@@ -79,7 +80,13 @@
     <passive name="Clearance sale"  quality="2" craftquality="2" gfx="clearance_sale_voucher.png" description="don't miss it!"/>
     <passive name="Liquidation"  quality="3" craftquality="2" gfx="liquidation_voucher.png" description="buy what you see!"/>
     <passive name="Hone"  quality="2" craftquality="2" gfx="hone_voucher.png" description="shiny!"/>
-    <passive name="Glow up"  quality="3" craftquality="2" gfx="glow_up_tong_voucher.png" description="blinding colors!"/>
+    <passive name="Glow up"  quality="3" craftquality="2" gfx="glow_up_voucher.png" description="blinding colors!"/>
+    <passive name="Reroll surplus"  quality="2" craftquality="2" gfx="reroll_surplus_voucher.png" description="high standards!"/>
+    <passive name="Reroll glut"  quality="3" craftquality="2" gfx="reroll_glut_voucher.png" description="see all!"/>
+    <passive name="Crystal ball"  quality="2" craftquality="2" gfx="crystal_ball_voucher.png" description="choose your fate!"/>
+    <passive name="Omen globe"  quality="3" craftquality="2" gfx="omen_globe_voucher.png" description="more power!"/>
+    <passive name="Telescope"  quality="2" craftquality="2" gfx="telescope_voucher.png" description="see the stars!"/>
+    <passive name="Observatory"  quality="3" craftquality="2" gfx="observatory_voucher.png" description="see the galaxies!"/>
 
 
 
