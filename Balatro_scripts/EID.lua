@@ -281,10 +281,10 @@ if EID then
     EID:addTrinket(TrinketType.TRINKET_STONE_JOKER, "\1 {{Tears}} {{ColorCyan}}+0.04 {{CR}}Lacrime per ogni roccia distrutta nel piano corrente#Le tinted rocks danno statistiche aggiuntive#{{Warning}} Diminuisce in base al quantitativo di roccie distrutte", "Jolly di pietra", "it")
 
     EID:addTrinket(TrinketType.TRINKET_ICECREAM, "\1 {{Tears}} {{ColorCyan}}+1 {{CR}}Tears#\2 Loses {{ColorCyan}}-0.05{{CR}} every room completed while held", "Icecream", "en_us")
-    EID:addTrinket(TrinketType.TRINKET_ICECREAM, "\1 {{Tears}} {{ColorCyan}}+1 {{CR}}Lacrime #\2 Perde {{ColorCyan}}-0.05{{CR}} ogni completamento di stanza mentre lo tiene", "Gelato", "it")
+    EID:addTrinket(TrinketType.TRINKET_ICECREAM, "\1 {{Tears}} {{ColorCyan}}+1 {{CR}}Lacrime #\2 Perde {{ColorCyan}}-0.05{{CR}} ogni stanza completata mentre lo si tiene", "Gelato", "it")
 
     EID:addTrinket(TrinketType.TRINKET_POPCORN, "\1 {{Damage}} {{ColorRed}}+2 {{CR}}Damage #\2 Loses {{ColorRed}}-0.4{{CR}} Damage when entering a new floor while held", "Popcorn", "en_us")
-    EID:addTrinket(TrinketType.TRINKET_POPCORN, "\1 {{Damage}} {{ColorRed}}+2 {{CR}}Danno #\2 Perde {{ColorRed}}-0.4{{CR}} Danno qunado entri in un nuovo piano mentre lo tiene", "Popcorn", "it")
+    EID:addTrinket(TrinketType.TRINKET_POPCORN, "\1 {{Damage}} {{ColorRed}}+2 {{CR}}Danno #\2 Perde {{ColorRed}}-0.4{{CR}} Danno qunado entrando in un nuovo piano mentre lo si tiene", "Popcorn", "it")
 
     EID:addTrinket(TrinketType.TRINKET_RAMEN, "\1 {{Damage}} {{ColorRed}}X1.3 {{CR}}Damage multiplier#\2 loses {{ColorRed}}X0.01 {{CR}} each time Isaac takes damage while held", "Ramen", "en_us")
     EID:addTrinket(TrinketType.TRINKET_RAMEN, "\1 {{Damage}} {{ColorRed}}X1.3 {{CR}}Moltiplicatore danno#\2 Perde X0.01 ogni volta che Isaac prende danno mentre lo tiene", "Ramen", "it")
@@ -304,8 +304,8 @@ if EID then
     EID:addTrinket(TrinketType.TRINKET_GREEN_JOKER, "\1 {{Damage}}{{ColorRed}}+0.04 {{CR}} Damage for every for every room completed while held#\2 {{Damage}}{{ColorRed}}-0.5 {{CR}}Damage each time Isaac takes damage while held" , "Green Joker", "en_us")
     EID:addTrinket(TrinketType.TRINKET_GREEN_JOKER, "\1 {{Damage}}{{ColorRed}}+0.04 {{CR}} Danno per ogni stanza completata mentre lo si tiene#\2 {{Damage}}{{ColorRed}}-0.5 {{CR}}Danno ogni danno preso mentre lo si tiene", "Jolly verde", "it")
 
-    EID:addTrinket(TrinketType.TRINKET_RED_CARD, "\1 {{Damage}}{{ColorRed}}+0.20 {{CR}} Damage if {{Shop}}Shops or all {{TreasureRoom}}Treasure room in a floor were skipped#{{Warning}} Skipping only one of 2 {{TreasureRoom}} Treasure room won't give any stat up" , "Red Card", "en_us")
-    EID:addTrinket(TrinketType.TRINKET_RED_CARD, "\1 {{Damage}}{{ColorRed}}+0.20 {{CR}} Danno se il {{Shop}} Negozio o tutte le {{TreasureRoom}}Stanze del tesoro vengono saltate#{{Warning}} Saltare solo una delle 2 {{TreasureRoom}} Stanze del tasoro non conferirà statistiche", "Cartellino rosso", "it")
+    EID:addTrinket(TrinketType.TRINKET_RED_CARD, "\1 {{Damage}}{{ColorRed}}+0.20 {{CR}} Damage if {{Shop}}Shops or all {{TreasureRoom}}Treasure rooms in a floor were skipped" , "Red Card", "en_us")
+    EID:addTrinket(TrinketType.TRINKET_RED_CARD, "\1 {{Damage}}{{ColorRed}}+0.20 {{CR}} Danno se il {{Shop}} Negozio o tutte le {{TreasureRoom}}Stanze del tesoro vengono saltate", "Cartellino rosso", "it")
 
     EID:addTrinket(TrinketType.TRINKET_VAGABOND, "Spawns a random {{Card}} basic Tarot card when compleating a room with 0 {{Coin}} coins#", "Vagabond", "en_us")
     EID:addTrinket(TrinketType.TRINKET_VAGABOND, "Crea una {{Card}}Carta dei tarocchi completando una stanza avendo 0 {{Coin}} monete", "Vagabondo", "it")
