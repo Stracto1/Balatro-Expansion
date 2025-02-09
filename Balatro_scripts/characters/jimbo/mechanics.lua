@@ -18,7 +18,7 @@ local DiscardChargeSprite = Sprite("gfx/chargebar.anm2")
 local HandChargeSprite = Sprite("gfx/chargebar.anm2")
 local CardFrame = Sprite("gfx/ui/CardSelection.anm2")
 CardFrame:SetAnimation("Frame")
-local HUD_FRAME = {}
+
 
 local TrinketSprite = Sprite("gfx/005.350_custom.anm2", true)
 
@@ -26,11 +26,11 @@ local ENHANCEMENTS_ANIMATIONS = {"Base","Mult","Bonus","Wild","Glass","Steel","S
 local HAND_TYPE_NAMES = {"high card","pair","Two pair","three of a kind","straight","flush","full house","four of a kind", "straight flush", "royal flush","five of a kind","fluah house","flush five"}
 HAND_TYPE_NAMES[0] = "none"
 
-local HandCooldown = 75  -- can be changed to lower/increase the charge time
+local HandCooldown = 60  -- can be changed to lower/increase the charge time
 local CHARGED_ANIMATION = 11 --the length of an animation for chargebars
 local CHARGED_LOOP_ANIMATION = 5
 
-local DECK_RENDERING_POSITION = Vector(135,25) --in screen coordinates
+local DECK_RENDERING_POSITION = Vector(155,25) --in screen coordinates
 local INVENTORY_RENDERING_POSITION = Vector(20,250)
 --local DECK_RENDERING_POSITION = Isaac.WorldToRenderPosition(Isaac.ScreenToWorld(Vector(760,745)))
 
@@ -45,6 +45,7 @@ local ACTIVATESOUND = Isaac.GetSoundIdByName("ACTIVATESFX")
 local CHIPSSOUND = Isaac.GetSoundIdByName("CHIPSSFX")
 local SLICESOUND = Isaac.GetSoundIdByName("SLICESFX")
 
+local HUD_FRAME = {}
 HUD_FRAME.Frame = 0
 HUD_FRAME.Arrow = 1
 HUD_FRAME.Hand = 2
@@ -56,7 +57,7 @@ local PACK_CARD_DISTANCE = 10
 local BasicRoomNum = 0
 local ShopAddedThisFloor = false
 local DeathCopyCard
-local PurposeEnh = {nil,2,4,9,5,3,6,nil,7,8}
+
 
 --charge bars color modifiers
 do
@@ -96,7 +97,7 @@ local ItemPool = Game:GetItemPool()
 --------------HUD RENDER-----------------
 -----------------------------------------
 
-function mod:JimboInventoryRender(offset,_,Position,_,Player)
+function mod:JimboInventoryHUD(offset,_,Position,_,Player)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
@@ -134,16 +135,119 @@ function mod:JimboInventoryRender(offset,_,Position,_,Player)
         CardFrame:Render(RenderPos)
     end
 end
-mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.JimboInventoryRender)
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.JimboInventoryHUD)
 
-
+local ScaleMult = 0.5
 --renders the entirety of the extra HUD for Jimbo
 function mod:JimboDeckHUD(offset,_,Position,_,Player)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+    if Player:GetPlayerType() ~= mod.Characters.JimboType or RoomTransition.GetTransitionMode()~=0 then
         return
     end
 
-    ----DECK RENERING----
+    local TargetScale = 0.5
+    if mod.SelectionParams.Mode == mod.SelectionParams.Modes.HAND then
+        TargetScale = 1
+    end
+    if ScaleMult ~= TargetScale then
+        --ScaleMult = mod:Lerp(ScaleMult,TargetScale, mod.SelectionParams.Frames/100)
+        ScaleMult = mod:Lerp(1.5 - TargetScale,TargetScale, mod.SelectionParams.Frames/15)
+    end
+
+    local BaseRenderPos = Vector(Player.Position.X - (7*mod.SavedValues.Jimbo.HandSize + 3.5) * ScaleMult + 1.5*(5-mod.SavedValues.Jimbo.HandSize), Player.Position.Y + 26 * ScaleMult)
+    BaseRenderPos = Isaac.WorldToScreen(BaseRenderPos)
+    
+    local RenderPos = BaseRenderPos + Vector.Zero
+
+    for i, Pointer in ipairs(mod.SavedValues.Jimbo.CurrentHand) do
+        local Card = mod.SavedValues.Jimbo.FullDeck[Pointer]
+        if Card then
+
+            RenderPos.Y = BaseRenderPos.Y + 0
+            if mod.SelectionParams.SelectedCards[i] and mod.SelectionParams.Mode == mod.SelectionParams.Modes.HAND then
+                RenderPos.Y = RenderPos.Y - 8 --moves up selected cards
+            end
+
+            JimboCards.PlayingCards:SetFrame(ENHANCEMENTS_ANIMATIONS[Card.Enhancement], 4 * (Card.Value - 1) + Card.Suit-1) --sets the frame corresponding to the value and suit
+            --JimboCards.PlayingCards:PlayOverlay("Seals")
+            JimboCards.PlayingCards:SetOverlayFrame("Seals", Card.Seal)
+            Edition_Overlay:SetFrame("Editions", Card.Edition)
+
+            JimboCards.PlayingCards.Scale = Vector(ScaleMult,ScaleMult)
+            Edition_Overlay.Scale = Vector(ScaleMult,ScaleMult)
+            -------------------------------------------------------------
+            JimboCards.PlayingCards:Render(RenderPos)
+            Edition_Overlay:Render(RenderPos)
+            --150 // 10.4
+            --360//122
+
+        end
+        RenderPos.X = RenderPos.X + 14*ScaleMult
+    end
+
+    if mod.SelectionParams.Mode == mod.SelectionParams.Modes.HAND then
+
+        RenderPos = BaseRenderPos + Vector(14 * (mod.SelectionParams.Index - 1) * ScaleMult, 0)
+
+        if mod.SelectionParams.SelectedCards[mod.SelectionParams.Index] then
+            RenderPos.Y = RenderPos.Y - 9
+        end
+
+        CardFrame.Scale = Vector(ScaleMult, ScaleMult)
+        CardFrame:SetFrame(HUD_FRAME.Frame)
+        CardFrame:Render(RenderPos)
+
+
+        --last confirm option
+        RenderPos = BaseRenderPos + Vector(14 * (mod.SavedValues.Jimbo.HandSize), 0)
+        CardFrame:SetFrame(HUD_FRAME.Hand)
+        CardFrame:Render(RenderPos)
+
+
+        --HAND TYPE TEXT RENDER--
+        --mod.Fonts.upheavalmini:DrawString(HAND_TYPE_NAMES[mod.SelectionParams.HandType],DECK_RENDERING_POSITION.X + 50,DECK_RENDERING_POSITION.Y -100,KColor(1,1,1,1))
+
+        --allows mouse controls to be used as a way to select cards--
+        local MousePosition = Isaac.WorldToScreen(Input.GetMousePosition(true))
+        if MousePosition.X >= DECK_RENDERING_POSITION.X and MousePosition.Y >= DECK_RENDERING_POSITION.Y  then
+            local HandMousePosition = math.ceil((MousePosition.X - (DECK_RENDERING_POSITION.X))/CardHUDWidth)
+            if HandMousePosition <= mod.SavedValues.Jimbo.HandSize + 1 then
+                mod.SelectionParams.Index = HandMousePosition
+            end
+        end
+
+    else
+        RenderPos = BaseRenderPos + Vector(14 * (mod.SavedValues.Jimbo.HandSize - 1) * ScaleMult, 0)
+
+        if mod.SelectionParams.SelectedCards[mod.SelectionParams.Index] then
+            RenderPos.Y = RenderPos.Y - 9
+        end
+
+        CardFrame.Scale = Vector(ScaleMult, ScaleMult)
+        CardFrame:SetFrame(HUD_FRAME.Frame)
+        CardFrame:Render(RenderPos)
+    end
+
+    RenderPos = DECK_RENDERING_POSITION + Vector.Zero
+
+
+    local CardsLeft = mod:Clamp((#mod.SavedValues.Jimbo.FullDeck - mod.SavedValues.Jimbo.DeckPointer)+1,1000,0)
+
+    --shows how many cards are left in the deck
+    JimboCards.PlayingCards.Scale = Vector.One
+    JimboCards.PlayingCards:SetFrame("Covered",1)
+    for i=1, math.ceil(CardsLeft/9) do
+        JimboCards.PlayingCards:Render(RenderPos)
+        RenderPos.Y = RenderPos.Y - 1
+    end
+    local String = "+"..tostring(CardsLeft)
+
+    mod.Fonts.upheavalmini:DrawStringScaled(String, 
+    DECK_RENDERING_POSITION.X - mod.Fonts.upheavalmini:GetStringWidth(String)/2 + Minimap:GetShakeOffset().X,
+    DECK_RENDERING_POSITION.Y +15 + Minimap:GetShakeOffset().Y,0.8,1,KColor(1,1,1,1))
+
+
+    --[[
+    ---DECK RENERING----
     for i, Pointer in ipairs(mod.SavedValues.Jimbo.CurrentHand) do
         local Card = mod.SavedValues.Jimbo.FullDeck[Pointer]
         if Card then
@@ -216,29 +320,29 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
         elseif not mod.SavedValues.Jimbo.BigCleared then
             mod.Fonts.upheavalmini:DrawString(tostring(mod.SavedValues.Jimbo.ClearedRooms).."/"..tostring(mod.SavedValues.Jimbo.BigBlind),100 + Minimap:GetShakeOffset().X,Minimap:GetShakeOffset().Y,KColor(1,1,1,1))        
         end
-    end
+    end]]
 end
-mod:AddPriorityCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS,CallbackPriority.LATE, mod.JimboDeckHUD)
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.JimboDeckHUD)
 
 
 --handles the charge bar when the player is selecting cards
 ---@param Player EntityPlayer
 function mod:JimboPackRender(_,_,_,_,Player)
 
-    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+    if Player:GetPlayerType() ~= mod.Characters.JimboType 
+    or mod.SelectionParams.Mode ~= mod.SelectionParams.Modes.PACK then
         return
     end
     
-    if mod.SelectionParams.Mode ~= mod.SelectionParams.Modes.PACK then
-        return
-    end
 
     local PlayerPos = Isaac.WorldToScreen(Player.Position)
-    local RenderPos = Vector(0,0)
-    RenderPos.Y = PlayerPos.Y + 20 
+    local BaseRenderPos = Vector(0,0)
+    BaseRenderPos.Y = PlayerPos.Y + 20 
     --base point, increased while rendering 
-    RenderPos.X = PlayerPos.X - CardHUDWidth * mod.SelectionParams.OptionsNum /2 - PACK_CARD_DISTANCE * (mod.SelectionParams.OptionsNum - 1) /2
-    RenderPos.X = RenderPos.X + 6.5--makes it centered
+    BaseRenderPos.X = PlayerPos.X - CardHUDWidth * mod.SelectionParams.OptionsNum /2 - PACK_CARD_DISTANCE * (mod.SelectionParams.OptionsNum - 1) /2
+    BaseRenderPos.X = BaseRenderPos.X + 6.5--makes it centered
+
+    local RenderPos = BaseRenderPos + Vector.Zero
 
     if mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.StandardPack then
         --SHOWS THE CHOICES AVAILABLE
@@ -252,12 +356,6 @@ function mod:JimboPackRender(_,_,_,_,Player)
         JimboCards.Pack_PlayingCards:Render(RenderPos)
         Edition_Overlay:Render(RenderPos)
 
-        if i == mod.SelectionParams.Index then 
-            --RENDERS THE SELECTOR
-            CardFrame:SetFrame(HUD_FRAME.Frame)
-            CardFrame:Render(RenderPos)
-
-        end
 
         RenderPos.X = RenderPos.X + PACK_CARD_DISTANCE + CardHUDWidth
 
@@ -265,7 +363,17 @@ function mod:JimboPackRender(_,_,_,_,Player)
 
     elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.BuffonPack then
         
+        for i,card in ipairs(mod.SelectionParams.PackOptions) do
+    
+            TrinketSprite:ReplaceSpritesheet(0, ItemsConfig:GetTrinket(card.Joker).GfxFileName, true)
+            TrinketSprite:SetFrame("Idle", 0)
 
+            TrinketSprite:SetCustomShader(EditionShaders[card.Edition])
+            TrinketSprite:Render(RenderPos)
+
+            RenderPos.X = RenderPos.X + PACK_CARD_DISTANCE + CardHUDWidth
+
+        end
 
     else--TAROT, PLANET or SPECTRAL
     
@@ -279,26 +387,20 @@ function mod:JimboPackRender(_,_,_,_,Player)
             end
             JimboCards.SpecialCards:Render(RenderPos)
 
-            if i == mod.SelectionParams.Index then
-                --RENDERS THE SELECTOR
-                CardFrame:SetFrame(HUD_FRAME.Frame)
-                CardFrame:Render(RenderPos)
-
-            end
-
             RenderPos.X = RenderPos.X + PACK_CARD_DISTANCE + CardHUDWidth
 
         end--end FOR
 
     end--end PURPOSES
 
+    CardFrame.Scale = Vector.One
     CardFrame:SetFrame(HUD_FRAME.Confirm)
     CardFrame:Render(RenderPos)
 
-    if mod.SelectionParams.Index == mod.SelectionParams.OptionsNum + 1 then
-        CardFrame:SetFrame(HUD_FRAME.Frame)
-        CardFrame:Render(RenderPos)
-    end
+    RenderPos.X = BaseRenderPos.X + (mod.SelectionParams.Index - 1)*(PACK_CARD_DISTANCE + CardHUDWidth)
+
+    CardFrame:SetFrame(HUD_FRAME.Frame)
+    CardFrame:Render(RenderPos)
 
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.JimboPackRender)
@@ -318,7 +420,7 @@ function mod:JimboBarRender(Player)
     if Data.DiscardCD < HandCooldown then --charging frames needed
 
         DiscardChargeSprite:SetAnimation("Charging")
-        DiscardChargeSprite:SetFrame(math.floor(Data.DiscardCD * 1.33))
+        DiscardChargeSprite:SetFrame(math.floor(Data.DiscardCD * 1.66))
 
     elseif Data.DiscardCD < HandCooldown + CHARGED_ANIMATION then --Charging frames + StartCharged frames
         DiscardChargeSprite:SetAnimation("StartCharged")
@@ -334,10 +436,7 @@ function mod:JimboBarRender(Player)
 
 
     --------------HAND SELECTION COOLDOWN------------------
-    if mod.SelectionParams.Mode ~= mod.SelectionParams.Modes.NONE then
-        mod.SelectionParams.Frames = mod.SelectionParams.Frames + 1
-    else
-        mod.SelectionParams.Frames = 0
+    if mod.SelectionParams.Mode == mod.SelectionParams.Modes.NONE then
         return
     end
 
@@ -355,7 +454,7 @@ function mod:JimboBarRender(Player)
             end
         
         elseif HandFrame < 40 then
-            if HandFrame % 3 ~=0 then
+            if HandFrame % 3 ~= 0 then
                 HandChargeSprite:Render(Isaac.WorldToScreen(Player.Position))
             end
         
@@ -400,6 +499,7 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, mod.JimboInit)
 --makes basically every input possible when using jimbo (+ other stuff)
 ---@param Player EntityPlayer
 function mod:JimboInputHandle(Player)
+
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
@@ -416,6 +516,7 @@ function mod:JimboInputHandle(Player)
 
     local Data = Player:GetData()
     --print(Isaac.WorldToScreen(Player.Position))
+
     -----------DISCARD COOLDOWN-------------
     if Data.DiscardCD <= HandCooldown + CHARGED_ANIMATION + CHARGED_LOOP_ANIMATION then
         Data.DiscardCD = Data.DiscardCD + 1
@@ -428,6 +529,9 @@ function mod:JimboInputHandle(Player)
     if mod.SelectionParams.Mode ~= mod.SelectionParams.Modes.NONE then --while in the card selection menu cheks for inputs
         -------------INPUT HANDLING-------------------(big ass if statements ik lol)
         
+        mod.SelectionParams.Frames = mod.SelectionParams.Frames + 1
+
+
         --confirming/canceling 
         if  Input.IsActionPressed(ButtonAction.ACTION_MENUCONFIRM, Player.ControllerIndex)
             and not Input.IsActionPressed(ButtonAction.ACTION_ITEM, Player.ControllerIndex)--usually they share buttons
@@ -467,6 +571,8 @@ function mod:JimboInputHandle(Player)
         Player.Velocity = Vector.Zero
     else --not selecting anything
         
+        mod.SelectionParams.Frames = mod.SelectionParams.Frames - 1
+    
         if Input.IsActionPressed(ButtonAction.ACTION_DROP, Player.ControllerIndex) then
             Data.CTRLhold = Data.CTRLhold + 1
             if Data.CTRLhold == 45 then --if held long enough starts the inventory selection
@@ -493,15 +599,12 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.JimboInputHandle)
 ---@param rNG RNG
 function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rNG)
 
-    print(Variant)
-    print(SubType)
-    print(ReqVariant)
-    print(ReqSubType)
-
     --print("shop")
-    local ReturnTable = {Variant, SubType, true} 
+    local ReturnTable = {Variant, SubType, true}
     if PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) and (ReqSubType == 0 or ReqVariant == 0) then
         if Pickup:IsShopItem() and Game:GetRoom():GetType() == RoomType.ROOM_SHOP then
+
+            local RollRNG = Game:GetPlayer(0):GetDropRNG() --tried using the rng from the callback but it gave the same results each time
 
             if Pickup.ShopItemId < 2 then
                 ReturnTable = {PickupVariant.PICKUP_TAROTCARD,mod:GetRandom(mod.Packs, mod.SavedValues.GeneralRNG),false}
@@ -509,20 +612,20 @@ function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rN
             elseif Pickup.ShopItemId < 5 then
                 local Trinket
                 repeat
-                    local RarityRoll = mod.SavedValues.GeneralRNG:RandomFloat()
+                    local RarityRoll = RollRNG:RandomFloat()
                     if RarityRoll < 0.75 then
-                        Trinket = mod:GetRandom(mod.Trinkets.common,mod.SavedValues.GeneralRNG)
+                        Trinket = mod:GetRandom(mod.Trinkets.common,RollRNG)
                     elseif RarityRoll < 0.95 then
-                        Trinket = mod:GetRandom(mod.Trinkets.uncommon,mod.SavedValues.GeneralRNG)
+                        Trinket = mod:GetRandom(mod.Trinkets.uncommon,RollRNG)
                     else
-                        Trinket = mod:GetRandom(mod.Trinkets.rare,mod.SavedValues.GeneralRNG)
+                        Trinket = mod:GetRandom(mod.Trinkets.rare,RollRNG)
                     end
-                until not PlayerManager.AnyoneHasTrinket(Trinket)
+                until not PlayerManager.AnyoneHasTrinket(Trinket) and not mod:JimboHasTrinket(Trinket)
 
                 ReturnTable = {PickupVariant.PICKUP_TRINKET, Trinket ,false}
             else 
                 ReturnTable = {PickupVariant.PICKUP_COLLECTIBLE,
-                        ItemPool:GetCollectible(ItemPoolType.POOL_SHOP, true, mod.SavedValues.GeneralRNG:GetSeed()), false}
+                        ItemPool:GetCollectible(ItemPoolType.POOL_SHOP, true, RollRNG:GetSeed()), false}
             end
         end
     end
@@ -579,18 +682,22 @@ function mod:FloorModifier(RoomLevel,RoomConfig,Seed)
     if PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
         --changes all the shops and treasures with Tkeeper's shops
         local RoomIndex = RoomLevel:Column() + RoomLevel:Row()*13
-        if RoomConfig.Type == RoomType.ROOM_TREASURE or RoomConfig.Type == RoomType.ROOM_SHOP then
-            --("t or s")
+        if RoomConfig.Type == RoomType.ROOM_SHOP then
+            --("s")
             
             local NewRoom = RoomConfigHolder.GetRandomRoom(Seed,false, StbType.SPECIAL_ROOMS, RoomType.ROOM_SHOP, RoomShape.ROOMSHAPE_1x1,-1,-1,0,10,0, RoomSubType.SHOP_KEEPER_LEVEL_3)
+
+            Game:GetLevel():GetRoomByIdx(RoomIndex).DisplayFlags = 3
+            --Game:GetLevel():UpdateVisibility() this function make sthe whole game crash, no idea why
+
 
             return NewRoom --replaces the room with the new one
 
         elseif RoomConfig.Type == RoomType.ROOM_DEFAULT and (RoomIndex ~= Game:GetLevel():GetStartingRoomIndex())  then
-            --adds a shop in floors where there usually wouldn't be
+            --adds an extra shop on every floor
             --print("normal")
             
-            if not mod:FloorHasShopOrTreasure().Shop and RoomLevel:IsDeadEnd() and not ShopAddedThisFloor and RoomLevel:Shape()==RoomShape.ROOMSHAPE_1x1 then
+            if RoomLevel:IsDeadEnd() and not ShopAddedThisFloor and RoomLevel:Shape()==RoomShape.ROOMSHAPE_1x1 then
                 --local RoomRNG = RNG(Seed)
                 --local ChosenSubType = RoomRNG:RandomInt(RoomSubType.SHOP_KEEPER_LEVEL_3, RoomSubType.SHOP_KEEPER_LEVEL_5)
                 
@@ -598,6 +705,7 @@ function mod:FloorModifier(RoomLevel,RoomConfig,Seed)
                 ShopAddedThisFloor = true
                 return NewRoom --replaces the room with the new one
             end
+
             BasicRoomNum = BasicRoomNum + 1 --idk why but this is always much higher than needed
         end
     end
@@ -619,7 +727,7 @@ function mod:CalculateBlinds()
         BasicRoomNum =  math.floor(BasicRoomNum * 0.45)
     end
  
-    mod.SavedValues.Jimbo.SmallBlind = math.ceil(BasicRoomNum/3) -- about 1/3 of the rooms
+    mod.SavedValues.Jimbo.SmallBlind = math.floor(BasicRoomNum/2) -- about half of the rooms
     mod.SavedValues.Jimbo.BigBlind = BasicRoomNum - mod.SavedValues.Jimbo.SmallBlind --about 2/3 of the rooms
     
     BasicRoomNum = 0 --resets the counter
@@ -630,17 +738,29 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.CalculateBlinds)
 --mod:AddPriorityCallback(ModCallbacks.MC_POST_GAME_STARTED, CallbackPriority.LATE,mod.CalculateBlinds)
 
---handles the rooms which are cleared by default 
+--handles the rooms which are cleared by default and shuffels if they are not
 function mod:HandleNoHarmRoomsClear()
     local Desc = Game:GetLevel():GetCurrentRoomDesc()
     
-    if Desc.VisitedCount == 1 and Desc.Clear and Desc.GridIndex ~= Game:GetLevel():GetStartingRoomIndex() then
+    if Desc.VisitedCount ~= 1 or Desc.GridIndex == Game:GetLevel():GetStartingRoomIndex()
+       or not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
+        return
+    end
+
+
+    if Desc.Clear then --if the room is not hostile
+        --print("clear")
         if Desc.Data.Type == RoomType.ROOM_DEFAULT then
             Isaac.RunCallback("TRUE_ROOM_CLEAR",false)
+
         elseif Desc.Data.Type == RoomType.ROOM_SHOP then
             Game:Spawn(EntityType.ENTITY_SLOT, SlotVariant.SHOP_RESTOCK_MACHINE,
                        Game:GetRoom():GetGridPosition(25),Vector.Zero, nil, 0, Game:GetRoom():GetSpawnSeed())
         end
+    else
+        ---@diagnostic disable-next-line: param-type-mismatch
+        mod:FullDeckShuffle(PlayerManager.FirstPlayerByType(mod.Characters.JimboType))
+
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.HandleNoHarmRoomsClear)
@@ -702,6 +822,10 @@ end
 
 
 function mod:AddRoomsCleared(IsBoss)
+
+    ---@diagnostic disable-next-line: param-type-mismatch
+    mod:StatReset(PlayerManager.FirstPlayerByType(mod.Characters.JimboType), true, true, true, false, true)
+
     if IsBoss and not mod.SavedValues.Jimbo.BossCleard then
         Isaac.RunCallback("BLIND_CLEARED", mod.BLINDS.BOSS)
         mod.SavedValues.Jimbo.BossCleard = true
@@ -754,7 +878,8 @@ function mod:SteelStatBoosts(Player, Cache)
             end
             --if mod:JimboHasTrinket(Player, TrinkrtType.MIME) then Triggers = Triggers + 1
 
-            mod:IncreaseJimboStats(Player,0, 0, 1.1^Triggers, false,false) --steel cards use the joker stats cause they are variable and need to be reset each time
+            --steel cards use the joker stats cause they are variable and need to be reset each time
+            mod:IncreaseJimboStats(Player,0, 0, 1.1^Triggers, false,false)
         end
     end
 end
@@ -882,9 +1007,8 @@ function mod:TrinketEditionsRender(Trinket, Offset)
     local Index = Game:GetLevel():GetCurrentRoomDesc().ListIndex
 
     if mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name] then --just a precaution
-        if mod.SavedValues.Jimbo.FloorEditions[Index][Trinket.SubType] ~= mod.Edition.BASE then
-            Trinket:GetSprite():SetCustomShader(EditionShaders[mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name]])
-        end
+
+        Trinket:GetSprite():SetCustomShader(EditionShaders[mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name]])
     else
         mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name] = 0
     end
@@ -1006,7 +1130,6 @@ mod:AddCallback(ModCallbacks.MC_FAMILIAR_INIT, mod.JimboBlueFliesSpiders, Famili
 --shuffles the deck
 ---@param Player EntityPlayer
 function mod:JimboRoomClear(Player)
-    mod:FullDeckShuffle(Player)
     local Room = Game:GetRoom():GetType()
     if Room == RoomType.ROOM_DEFAULT then
         Isaac.RunCallback("TRUE_ROOM_CLEAR",false)
@@ -1039,6 +1162,7 @@ function mod:DiscardEffects(Player)
     end
 end
 mod:AddCallback("HAND_DISCARD", mod.DiscardEffects)
+
 
 -----------------------JIMBO STATS-----------------------
 ----------------------------------------------------------
@@ -1074,7 +1198,7 @@ function mod:CardShotFinal(Player,ShotCard,Triggers,Evaluate)
         end
 
         --increases the chips basing on the card value
-        local TearsToGet = (mod:GetActualCardValue(ShotCard.Value)/75 + mod.SavedValues.Jimbo.CardLevels[ShotCard.Value]*0.01) * Triggers
+        local TearsToGet = (mod:GetActualCardValue(ShotCard.Value)/50 + mod.SavedValues.Jimbo.CardLevels[ShotCard.Value]*0.02) * Triggers
 
         ---------ENHANCEMENT EFFECTS----------
         --------------------------------------
@@ -1210,7 +1334,7 @@ end
 --mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.IMPORTANT, mod.JimboMinimumStats)
 mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE + 1, mod.JimboMinimumStats)
 
----@param Player EntityPlayer 
+---@param Player EntityPlayer
 function mod:StatReset(Player, Damage, Tears, Evaluate, Jokers, Basic)
     if Damage then
         if Basic then
@@ -1405,6 +1529,7 @@ end
 --allows to activate/disable selection states easly
 function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
 
+    mod.SelectionParams.Frames = 0
     if NewMode == mod.SelectionParams.Modes.NONE then
 
         mod.SelectionParams.Index = 1
@@ -1458,6 +1583,10 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
                 mod.SelectionParams.OptionsNum = 3
 
             elseif NewPurpose == mod.SelectionParams.Purposes.CelestialPack then
+                mod.SelectionParams.MaxSelectionNum = 1
+                mod.SelectionParams.OptionsNum = 3
+
+            elseif NewPurpose == mod.SelectionParams.Purposes.BuffonPack then
                 mod.SelectionParams.MaxSelectionNum = 1
                 mod.SelectionParams.OptionsNum = 3
             end
@@ -1532,8 +1661,14 @@ function mod:Select(Player)
 
         elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.BuffonPack then
 
-            local Tarot = mod.SelectionParams.PackOptions[mod.SelectionParams.Index]
-            Game:Spawn(EntityType.ENTITY_PICKUP,PickupVariant.PICKUP_TAROTCARD, Player.Position, RandomVector()*3,nil,Tarot,Game:GetSeeds():GetStartSeed())
+            local Joker = mod.SelectionParams.PackOptions[mod.SelectionParams.Index].Joker
+            local Edition = mod.SelectionParams.PackOptions[mod.SelectionParams.Index].Edition
+            local Index = Game:GetLevel():GetCurrentRoomDesc().ListIndex
+
+            Game:Spawn(EntityType.ENTITY_PICKUP,PickupVariant.PICKUP_TRINKET, Player.Position, RandomVector()*3,nil,Joker,Game:GetSeeds():GetStartSeed())
+            mod.SavedValues.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Joker).Name] = Edition
+            
+            
             mod:SwitchCardSelectionStates(Player,mod.SelectionParams.Modes.NONE, 0)
 
         else --tarot/planet/Spectral pack
@@ -1627,6 +1762,7 @@ function mod:SellJoker(Player, Trinket, Slot)
 end
 
 
+local PurposeEnh = {nil,2,4,9,5,3,6,nil,7,8}
 --activates the current selection when finished
 ---@param Player EntityPlayer
 function mod:UseSelection(Player)

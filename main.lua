@@ -122,6 +122,7 @@ TrinketType.TRINKET_BRAINSTORM,TrinketType.TRINKET_VAGABOND, TrinketType.TRINKET
 Balatro_Expansion.Trinkets.legendary = {}
 
 
+
 Balatro_Expansion.Suits = {}
 Balatro_Expansion.Suits.Spade = 1
 Balatro_Expansion.Suits.Heart = 2
@@ -374,7 +375,7 @@ Balatro_Expansion.SavedValues.ModConfig.ExtraReadability = false
 
 
 Balatro_Expansion.SelectionParams = {}
-Balatro_Expansion.SelectionParams.Frames = 0
+Balatro_Expansion.SelectionParams.Frames = 0 -- in update frames
 Balatro_Expansion.SelectionParams.SelectedCards = {false,false,false,false,false}
 Balatro_Expansion.SelectionParams.Index = 1
 Balatro_Expansion.SelectionParams.HandType = 0

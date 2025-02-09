@@ -7,8 +7,15 @@ local CardEditionChance = {}
 CardEditionChance.Foil = 0.04
 CardEditionChance.Holo = 0.068 --is actually 0.028
 CardEditionChance.Poly = 0.080 --is actually 0.012
+CardEditionChance.Negative = 0.003 --is actually 0.012
 
-local SoulChance = 0.003
+local JokerEdChance = {}
+JokerEdChance.Negative = 0.003 
+JokerEdChance.Foil = 0.02  --is actually 0.012
+JokerEdChance.Holo = 0.034 --is actually 0.028
+JokerEdChance.Poly = 0.037 --is actually 0.012
+
+local SoulChance = 0.5
 local HoleChance = 0.003
 
 --every tarot has a new effect when used by jimbo
@@ -336,6 +343,50 @@ function mod:CardPacks(card, Player,_)
 
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
                                               mod.SelectionParams.Purposes.TarotPack)
+
+    elseif card == mod.Packs.BUFFON then
+
+        local RandomPack = {}
+        local PackRng = Player:GetCardRNG(mod.Packs.BUFFON)
+        for i=1, 3, 1 do
+            RandomPack[i] = {}
+            repeat
+                local RarityRoll = PackRng:RandomFloat()
+                if RarityRoll < 0.75 then
+                    Trinket = mod:GetRandom(mod.Trinkets.common,PackRng)
+                elseif RarityRoll < 0.95 then
+                    Trinket = mod:GetRandom(mod.Trinkets.uncommon,PackRng)
+                else
+                    Trinket = mod:GetRandom(mod.Trinkets.rare,PackRng)
+                end
+            until not PlayerManager.AnyoneHasTrinket(Trinket) and not mod:JimboHasTrinket(Trinket)
+                  and not mod:Contained(RandomPack, Trinket)
+
+            RandomPack[i].Joker = Trinket
+
+            local EdRoll = PackRng:RandomFloat()
+            if EdRoll <= JokerEdChance.Negative then --negative chance
+                RandomPack[i].Edition = mod.Edition.NEGATIVE
+
+            elseif EdRoll <= JokerEdChance.Foil + JokerEdChance.Negative then --foil chance
+                RandomPack[i].Edition = mod.Edition.FOIL   
+                
+            elseif EdRoll <= JokerEdChance.Holo + JokerEdChance.Negative then --holo chance
+                RandomPack[i].Edition = mod.Edition.HOLOGRAPHIC
+
+            elseif EdRoll <= JokerEdChance.Poly + JokerEdChance.Negative then --poly chance
+                RandomPack[i].Edition = mod.Edition.POLYCROME
+                
+            else
+                RandomPack[i].Edition = mod.Edition.BASE
+            end
+        end
+
+        mod.SelectionParams.PackOptions = RandomPack
+
+        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
+                                              mod.SelectionParams.Purposes.BuffonPack)
+
     end
 
 end

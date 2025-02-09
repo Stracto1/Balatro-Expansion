@@ -186,6 +186,23 @@ function mod:FloorHasShopOrTreasure()
     return Available
 end
 
+function mod:Lerp(a, b, t) --ty sheriff (ye i'm lazy)
+    if t < 0 then
+        t = -t
+    end 
+    t = mod:Clamp(t, 1,0)
+    return a + (b - a) * t
+end
+
+function mod:VectorLerp(vec1, vec2, percent) --ty sheriff (ye i'm lazy)
+    percent = mod:Clamp(percent, 1,0)
+    return vec1 * (1 - percent) + vec2 * percent
+end
+
+function mod:Clamp(Num,Max,Min)
+    return math.max(Min,math.min(Num, Max))
+end
+
 -------------JIMBO FUNCTIONS------------
 ---------------------------------------
 
