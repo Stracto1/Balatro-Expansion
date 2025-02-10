@@ -785,15 +785,15 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_PICKUP_SHOP_PURCHASE, mod.OnShopPurchase)
 
 function mod:OnDeath(player)
-if player:GetPlayerType() == mod.Characters.JimboType then
-    if mod:JimboHasTrinket(player, TrinketType.TRINKET_MR_BONES) then
-        mod:MrBones(player, true)
+    if player:GetPlayerType() == mod.Characters.JimboType then
+        if mod:JimboHasTrinket(player, TrinketType.TRINKET_MR_BONES) then
+            mod:MrBones(player, true)
+        end
+    else
+        if player:HasTrinket(TrinketType.TRINKET_MR_BONES) then
+            mod:MrBones(player)
+        end
     end
-else
-    if player:HasTrinket(TrinketType.TRINKET_MR_BONES) then
-        mod:MrBones(player)
-    end
-end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_TRIGGER_PLAYER_DEATH, mod.OnDeath)
 

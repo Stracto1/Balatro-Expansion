@@ -64,7 +64,7 @@ EFFECT_COLORS.Yellow = 3
 
 
 function mod:EditionsStats(Player, Flags)
-    if Player:GetPlayerType() == mod.Characters.JimboType and mod.StatEnable then
+    if Player:GetPlayerType() == mod.Characters.JimboType then
         for i,Edition in ipairs(mod.SavedValues.Jimbo.Inventory.Editions) do
             if Flags & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
                 if Edition == mod.Edition.HOLOGRAPHIC then
@@ -85,7 +85,7 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.EditionsStats)
 
 -------------------Joker------------------------
 function mod:Joker(player,_)
-    if player:GetPlayerType() == mod.Characters.JimboType and mod.StatEnable then
+    if player:GetPlayerType() == mod.Characters.JimboType then
  
         for i,v in ipairs(mod:GetJimboJokerIndex(player, TrinketType.TRINKET_JOKER)) do
             mod:IncreaseJimboStats(player, 0.2, 0, 1, false, false)
@@ -588,7 +588,7 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.SacrificialDagger, CacheFlag
 ---@param player EntityPlayer
 function mod:MrBones(player, Jimbo)
     if Jimbo then --jimbo has a different effect but on the same callback
-        print("Jimbo died")
+
         local Revive = false
         if mod.SavedValues.Jimbo.BossCleard then --on boss cleared revive anyways
             Revive = true
@@ -660,7 +660,7 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.OnyxAgate, CacheFlag.CACHE_D
 -----------------ARROWHEAD---------------------------
 ---@param player EntityPlayer
 function mod:ArrowHead(player,_)
-    if player:GetPlayerType() == mod.Characters.JimboType and mod.StatEnable then
+    if player:GetPlayerType() == mod.Characters.JimboType then
         if mod:JimboHasTrinket(player,Arrowhead) then
 
             mod:IncreaseJimboStats(player, 0, 0.1*mod.SavedValues.Jimbo.Progress.SuitUsed[mod.Suits.Spade],1,false,false)

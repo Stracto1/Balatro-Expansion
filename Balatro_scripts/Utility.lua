@@ -189,7 +189,7 @@ end
 function mod:Lerp(a, b, t) --ty sheriff (ye i'm lazy)
     if t < 0 then
         t = -t
-    end 
+    end
     t = mod:Clamp(t, 1,0)
     return a + (b - a) * t
 end
@@ -477,8 +477,14 @@ end
 
 function mod:TryGamble(Player, RNG, Chance)
     --Chance = Chance * (2 ^ mod:GetValueRepetitions(mod.SavedValues.Jimbo.Inventory, TrinketType.TRINKET_OOPS_6) 
-    if RNG:RandomFloat() < Chance then
-        return true
+    if RNG then
+        if RNG:RandomFloat() < Chance then
+            return true
+        end
+    else
+        if math.random() < Chance then
+            return true
+        end
     end
     return false
 end

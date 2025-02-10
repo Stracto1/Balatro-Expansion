@@ -137,98 +137,14 @@ function mod:JimboInventoryHUD(offset,_,Position,_,Player)
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.JimboInventoryHUD)
 
-local ScaleMult = 0.5
+
 --renders the entirety of the extra HUD for Jimbo
 function mod:JimboDeckHUD(offset,_,Position,_,Player)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType or RoomTransition.GetTransitionMode()~=0 then
+    if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
 
-    local TargetScale = 0.5
-    if mod.SelectionParams.Mode == mod.SelectionParams.Modes.HAND then
-        TargetScale = 1
-    end
-    if ScaleMult ~= TargetScale then
-        --ScaleMult = mod:Lerp(ScaleMult,TargetScale, mod.SelectionParams.Frames/100)
-        ScaleMult = mod:Lerp(1.5 - TargetScale,TargetScale, mod.SelectionParams.Frames/15)
-    end
-
-    local BaseRenderPos = Vector(Player.Position.X - (7*mod.SavedValues.Jimbo.HandSize + 3.5) * ScaleMult + 1.5*(5-mod.SavedValues.Jimbo.HandSize), Player.Position.Y + 26 * ScaleMult)
-    BaseRenderPos = Isaac.WorldToScreen(BaseRenderPos)
-    
-    local RenderPos = BaseRenderPos + Vector.Zero
-
-    for i, Pointer in ipairs(mod.SavedValues.Jimbo.CurrentHand) do
-        local Card = mod.SavedValues.Jimbo.FullDeck[Pointer]
-        if Card then
-
-            RenderPos.Y = BaseRenderPos.Y + 0
-            if mod.SelectionParams.SelectedCards[i] and mod.SelectionParams.Mode == mod.SelectionParams.Modes.HAND then
-                RenderPos.Y = RenderPos.Y - 8 --moves up selected cards
-            end
-
-            JimboCards.PlayingCards:SetFrame(ENHANCEMENTS_ANIMATIONS[Card.Enhancement], 4 * (Card.Value - 1) + Card.Suit-1) --sets the frame corresponding to the value and suit
-            --JimboCards.PlayingCards:PlayOverlay("Seals")
-            JimboCards.PlayingCards:SetOverlayFrame("Seals", Card.Seal)
-            Edition_Overlay:SetFrame("Editions", Card.Edition)
-
-            JimboCards.PlayingCards.Scale = Vector(ScaleMult,ScaleMult)
-            Edition_Overlay.Scale = Vector(ScaleMult,ScaleMult)
-            -------------------------------------------------------------
-            JimboCards.PlayingCards:Render(RenderPos)
-            Edition_Overlay:Render(RenderPos)
-            --150 // 10.4
-            --360//122
-
-        end
-        RenderPos.X = RenderPos.X + 14*ScaleMult
-    end
-
-    if mod.SelectionParams.Mode == mod.SelectionParams.Modes.HAND then
-
-        RenderPos = BaseRenderPos + Vector(14 * (mod.SelectionParams.Index - 1) * ScaleMult, 0)
-
-        if mod.SelectionParams.SelectedCards[mod.SelectionParams.Index] then
-            RenderPos.Y = RenderPos.Y - 9
-        end
-
-        CardFrame.Scale = Vector(ScaleMult, ScaleMult)
-        CardFrame:SetFrame(HUD_FRAME.Frame)
-        CardFrame:Render(RenderPos)
-
-
-        --last confirm option
-        RenderPos = BaseRenderPos + Vector(14 * (mod.SavedValues.Jimbo.HandSize), 0)
-        CardFrame:SetFrame(HUD_FRAME.Hand)
-        CardFrame:Render(RenderPos)
-
-
-        --HAND TYPE TEXT RENDER--
-        --mod.Fonts.upheavalmini:DrawString(HAND_TYPE_NAMES[mod.SelectionParams.HandType],DECK_RENDERING_POSITION.X + 50,DECK_RENDERING_POSITION.Y -100,KColor(1,1,1,1))
-
-        --allows mouse controls to be used as a way to select cards--
-        local MousePosition = Isaac.WorldToScreen(Input.GetMousePosition(true))
-        if MousePosition.X >= DECK_RENDERING_POSITION.X and MousePosition.Y >= DECK_RENDERING_POSITION.Y  then
-            local HandMousePosition = math.ceil((MousePosition.X - (DECK_RENDERING_POSITION.X))/CardHUDWidth)
-            if HandMousePosition <= mod.SavedValues.Jimbo.HandSize + 1 then
-                mod.SelectionParams.Index = HandMousePosition
-            end
-        end
-
-    else
-        RenderPos = BaseRenderPos + Vector(14 * (mod.SavedValues.Jimbo.HandSize - 1) * ScaleMult, 0)
-
-        if mod.SelectionParams.SelectedCards[mod.SelectionParams.Index] then
-            RenderPos.Y = RenderPos.Y - 9
-        end
-
-        CardFrame.Scale = Vector(ScaleMult, ScaleMult)
-        CardFrame:SetFrame(HUD_FRAME.Frame)
-        CardFrame:Render(RenderPos)
-    end
-
-    RenderPos = DECK_RENDERING_POSITION + Vector.Zero
-
+    local RenderOff = DECK_RENDERING_POSITION + Vector.Zero
 
     local CardsLeft = mod:Clamp((#mod.SavedValues.Jimbo.FullDeck - mod.SavedValues.Jimbo.DeckPointer)+1,1000,0)
 
@@ -236,8 +152,8 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
     JimboCards.PlayingCards.Scale = Vector.One
     JimboCards.PlayingCards:SetFrame("Covered",1)
     for i=1, math.ceil(CardsLeft/9) do
-        JimboCards.PlayingCards:Render(RenderPos)
-        RenderPos.Y = RenderPos.Y - 1
+        JimboCards.PlayingCards:Render(RenderOff)
+        RenderOff.Y = RenderOff.Y - 1
     end
     local String = "+"..tostring(CardsLeft)
 
@@ -315,7 +231,7 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
     if Minimap:GetState()== MinimapState.NORMAL then
         if not mod.SavedValues.Jimbo.SmallCleared then
             mod.Fonts.upheavalmini:DrawString(tostring(mod.SavedValues.Jimbo.ClearedRooms).."/"..tostring(mod.SavedValues.Jimbo.SmallBlind),100 + Minimap:GetShakeOffset().X,Minimap:GetShakeOffset().Y,KColor(1,1,1,1))
-            --mod.Fonts.upheavalmini:DrawString(tostring(ClearedRooms).."/"..tostring(BigBlind),Isaac.WorldToScreen(Player.Position).X+20,Isaac.WorldToScreen(Player.Position).Y+30,KColor(1,1,1,1))        
+            --mod.Fonts.upheavalmini:DrawString(tostring(ClearedRooms).."/"..tostring(BigBlind),Isaac.WorldToScreen(PlayerScreenPos).X+20,Isaac.WorldToScreen(PlayerScreenPos).Y+30,KColor(1,1,1,1))        
 
         elseif not mod.SavedValues.Jimbo.BigCleared then
             mod.Fonts.upheavalmini:DrawString(tostring(mod.SavedValues.Jimbo.ClearedRooms).."/"..tostring(mod.SavedValues.Jimbo.BigBlind),100 + Minimap:GetShakeOffset().X,Minimap:GetShakeOffset().Y,KColor(1,1,1,1))        
@@ -323,6 +239,108 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
     end]]
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.JimboDeckHUD)
+
+local ScaleMult = 0.5
+local LastCardFullPoss = {}
+---@param Player EntityPlayer
+function mod:JimboHandRender(Player, Offset)
+    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+        return
+    end
+
+    local TargetScale = 0.5 --while selecting the the cards get biggerm
+    if mod.SelectionParams.Mode == mod.SelectionParams.Modes.HAND then
+        TargetScale = 1
+    end
+    if ScaleMult ~= TargetScale then
+        --ScaleMult = mod:Lerp(ScaleMult,TargetScale, mod.SelectionParams.Frames/100)
+        ScaleMult = mod:Lerp(1.5 - TargetScale,TargetScale, mod.SelectionParams.Frames/5)
+    end
+
+    local PlayerScreenPos = Isaac.WorldToRenderPosition(Player.Position)
+    local BaseRenderOff = Vector( (-7*mod.SavedValues.Jimbo.HandSize + 3.5) * ScaleMult + 1.5*(5-mod.SavedValues.Jimbo.HandSize),26 * ScaleMult)
+    
+    local RenderOff = BaseRenderOff + Vector.Zero
+    local TrueOffset
+
+    for i, Pointer in ipairs(mod.SavedValues.Jimbo.CurrentHand) do
+        local Card = mod.SavedValues.Jimbo.FullDeck[Pointer]
+        if Card then
+
+            RenderOff.Y = BaseRenderOff.Y + 0
+            if mod.SelectionParams.SelectedCards[i] and mod.SelectionParams.Mode == mod.SelectionParams.Modes.HAND then
+                RenderOff.Y = RenderOff.Y - 8 --moves up selected cards
+            end
+
+            JimboCards.PlayingCards:SetFrame(ENHANCEMENTS_ANIMATIONS[Card.Enhancement], 4 * (Card.Value - 1) + Card.Suit-1) --sets the frame corresponding to the value and suit
+            --JimboCards.PlayingCards:PlayOverlay("Seals")
+            JimboCards.PlayingCards:SetOverlayFrame("Seals", Card.Seal)
+            Edition_Overlay:SetFrame("Editions", Card.Edition)
+
+            JimboCards.PlayingCards.Scale = Vector(ScaleMult,ScaleMult)
+            Edition_Overlay.Scale = Vector(ScaleMult,ScaleMult)
+            -------------------------------------------------------------
+            LastCardFullPoss[Pointer] = LastCardFullPoss[Pointer] or RenderOff.X --check nil
+
+            TrueOffset = Vector(mod:Lerp(LastCardFullPoss[Pointer], RenderOff.X, mod.Counters.SinceShift/10)
+                                ,RenderOff.Y)
+            
+
+            if TrueOffset.X == RenderOff.X then
+                LastCardFullPoss[Pointer] = RenderOff.X + 0
+            end
+            
+            JimboCards.PlayingCards:Render(PlayerScreenPos + TrueOffset + Offset)
+            Edition_Overlay:Render(PlayerScreenPos + TrueOffset + Offset)
+
+        end
+        RenderOff.X = RenderOff.X + 14*ScaleMult
+    end
+
+    if mod.SelectionParams.Mode == mod.SelectionParams.Modes.HAND then
+
+        RenderOff = BaseRenderOff + Vector(14 * (mod.SelectionParams.Index - 1) * ScaleMult, 0)
+
+        if mod.SelectionParams.SelectedCards[mod.SelectionParams.Index] then
+            RenderOff.Y = RenderOff.Y - 8
+        end
+
+        CardFrame.Scale = Vector(ScaleMult, ScaleMult)
+        CardFrame:SetFrame(HUD_FRAME.Frame)
+        CardFrame:Render(PlayerScreenPos + RenderOff + Offset)
+
+
+        --last confirm option
+        RenderOff = BaseRenderOff + Vector(14 * (mod.SavedValues.Jimbo.HandSize), 0)
+        CardFrame:SetFrame(HUD_FRAME.Hand)
+        CardFrame:Render(PlayerScreenPos + RenderOff + Offset)
+
+
+        --HAND TYPE TEXT RENDER--
+        --mod.Fonts.upheavalmini:DrawString(HAND_TYPE_NAMES[mod.SelectionParams.HandType],DECK_RENDERING_POSITION.X + 50,DECK_RENDERING_POSITION.Y -100,KColor(1,1,1,1))
+
+        --allows mouse controls to be used as a way to select cards--
+        local MousePosition = Isaac.WorldToScreen(Input.GetMousePosition(true))
+        if MousePosition.X >= DECK_RENDERING_POSITION.X and MousePosition.Y >= DECK_RENDERING_POSITION.Y  then
+            local HandMousePosition = math.ceil((MousePosition.X - (DECK_RENDERING_POSITION.X))/CardHUDWidth)
+            if HandMousePosition <= mod.SavedValues.Jimbo.HandSize + 1 then
+                mod.SelectionParams.Index = HandMousePosition
+            end
+        end
+
+    else
+        RenderOff = BaseRenderOff + Vector(14 * (mod.SavedValues.Jimbo.HandSize - 1) * ScaleMult, 0)
+
+        if mod.SelectionParams.SelectedCards[mod.SelectionParams.Index] then
+            RenderOff.Y = RenderOff.Y - 8
+        end
+
+        CardFrame.Scale = Vector(ScaleMult, ScaleMult)
+        CardFrame:SetFrame(HUD_FRAME.Frame)
+        CardFrame:Render(PlayerScreenPos + TrueOffset + Offset)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_RENDER, mod.JimboHandRender,PlayerVariant.PLAYER)
 
 
 --handles the charge bar when the player is selecting cards
@@ -771,7 +789,9 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.HandleNoHarmRoomsClear)
 function mod:JimboShootCardTear(Player,Direction)
     local CardShot = mod.SavedValues.Jimbo.FullDeck[mod.SavedValues.Jimbo.CurrentHand[mod.SavedValues.Jimbo.HandSize]]
     CardShot.Index = mod.SavedValues.Jimbo.CurrentHand[mod.SavedValues.Jimbo.HandSize] --could be useful
-    
+
+    LastCardFullPoss[CardShot.Index] = nil --needed to make the Hand HUD work properly
+
     --considers the possible ammounts of tears fired
     local ShotParams = Player:GetMultiShotParams()
 
@@ -809,8 +829,6 @@ function mod:JimboShootCardTear(Player,Direction)
             mod:AddCardTearFalgs(Tear, CardShot)
         end
     end
-
-    mod:StatReset(Player,true,true,false,true)
 
     mod:AddValueToTable(mod.SavedValues.Jimbo.CurrentHand, mod.SavedValues.Jimbo.DeckPointer,false,true)
     mod.SavedValues.Jimbo.DeckPointer = mod.SavedValues.Jimbo.DeckPointer + 1
@@ -859,6 +877,7 @@ function mod:OnDeckShift(Player)
         mod:FullDeckShuffle(Player)
     end
 
+    mod.Counters.SinceShift = 0
     Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, true)
 
 end
@@ -898,7 +917,6 @@ function mod:GiveRewards(BlindType)
     --gives coins basing on the blind cleared and finds jimbo
     for _,Player in ipairs(PlayerManager:GetPlayers()) do
         if Player:GetPlayerType() == mod.Characters.JimboType then
-            mod:StatReset(Player, true, true, true, false, true)
 
             Jimbo = Player
             Isaac.CreateTimer(function ()
@@ -1235,10 +1253,8 @@ function mod:CardShotFinal(Player,ShotCard,Triggers,Evaluate)
         mod:IncreaseJimboStats(Player, 0, TearsToGet, 1,false, true)
 
 
-        mod.StatEnable = true
         Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, false)
         Player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
-        mod.StatEnable = false
     end
 end
 mod:AddCallback("CARD_SHOT_FINAL", mod.CardShotFinal)
@@ -1364,7 +1380,7 @@ end
 
 function mod:JokerStatReset(Player, Cache)
 
-    --resets the joker stat boosts every time since otherwise they would infinitely stack
+    --resets the jokers stat boosts every evaluation since otherwise they would infinitely stack
     mod:StatReset(Player, Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE,
                   Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY,
                   false, true, false)
@@ -1379,7 +1395,9 @@ function mod:StatGiver(Player, Cache)
         if Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
             --print(stats.Damage + stats.JokerDamage)
             --print(Player.Damage * stats.JokerMult * stats.Mult)
-            Player.Damage = (Player.Damage + (stats.Damage + stats.JokerDamage)) * Player.Damage * stats.JokerMult * stats.Mult
+
+            Player.Damage = Player.Damage + (stats.Damage + stats.JokerDamage) * Player.Damage * stats.JokerMult * stats.Mult
+
         end
         if Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then
             --print(mod.CalculateTearsValue(Player))
@@ -1402,10 +1420,8 @@ function mod:IncreaseJimboStats(Player,DamageUp,TearsUp,Mult, Evaluate, Basic)
     end
     
     if Evaluate then
-        mod.StatEnable = true
-        Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, true)
+        Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, false)
         Player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
-        mod.StatEnable = false
         --print(mod.SavedValues.Jimbo.StatsToAdd.Tears)
     end
 
