@@ -1,5 +1,5 @@
 local mod = Balatro_Expansion
-local TrinketValues = mod.SavedValues.TrinketValues
+local TrinketValues = mod.Saved.TrinketValues
 
 -----------------------------------
 local SLICESOUND = Isaac.GetSoundIdByName("SLICESFX")

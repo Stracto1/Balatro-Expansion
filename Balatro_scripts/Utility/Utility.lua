@@ -145,9 +145,9 @@ function mod:FloorHasShopOrTreasure()
     Available.Shop = true
 
     local Level = Game:GetLevel()
-    mod.SavedValues.Other.Labyrinth = 1
+    mod.Saved.Other.Labyrinth = 1
     if Level:GetCurses() & LevelCurse.CURSE_OF_LABYRINTH == LevelCurse.CURSE_OF_LABYRINTH then
-        mod.SavedValues.Jimbo.Labyrinth = 2
+        mod.Saved.Jimbo.Labyrinth = 2
     end
     if Level:IsAscent() then
         Available.Treasure = false
@@ -210,10 +210,10 @@ function mod:SubstituteCards(ChosenTable)
     for i = #ChosenTable, 1,-1 do
         if ChosenTable[i] then
             --first adds the ammount of new cards needed
-            table.insert(mod.SavedValues.Jimbo.CurrentHand,#mod.SavedValues.Jimbo.CurrentHand+1, mod.SavedValues.Jimbo.DeckPointer)
-            mod.SavedValues.Jimbo.DeckPointer = mod.SavedValues.Jimbo.DeckPointer +1
+            table.insert(mod.Saved.Jimbo.CurrentHand,#mod.Saved.Jimbo.CurrentHand+1, mod.Saved.Jimbo.DeckPointer)
+            mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer +1
             --then removes the selected cards 
-            table.remove(mod.SavedValues.Jimbo.CurrentHand,i)
+            table.remove(mod.Saved.Jimbo.CurrentHand,i)
         end
     end
     
@@ -225,9 +225,9 @@ function mod:DeterminePokerHand()
 
     
     local RealHand = {}
-    for i,_ in ipairs(mod.SavedValues.Jimbo.CurrentHand) do
+    for i,_ in ipairs(mod.Saved.Jimbo.CurrentHand) do
         if mod.CardSelectionParams.SelectedCards[i] then
-            table.insert(RealHand, mod.SavedValues.Jimbo.FullDeck[mod.SavedValues.Jimbo.CurrentHand[i]])
+            table.insert(RealHand, mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[i]])
         end
     end
 
@@ -368,7 +368,7 @@ function mod:GetCardValueRepetitions(ValueTable)
     --PAIRS CHECK
     for _, card in ipairs(ValueTable) do --cycles between all the cards in the used hand
     
-        CardValues[mod.SavedValues.Jimbo.FullDeck[card].Value] = CardValues[mod.SavedValues.Jimbo.FullDeck[card].Value] + 1
+        CardValues[mod.Saved.Jimbo.FullDeck[card].Value] = CardValues[mod.Saved.Jimbo.FullDeck[card].Value] + 1
     end
 
     local PairPresent = false --tells if there is a pair for a full house/two pairs
@@ -412,7 +412,7 @@ function mod:GetActualCardValue(Value)
 end
 
 function mod:JimboHasTrinket(Player,Trinket)
-    for _,v in ipairs(mod.SavedValues.Jimbo.Inventory.Jokers) do
+    for _,v in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
         if v == Trinket then
             return true
         end
@@ -423,12 +423,12 @@ end
 function mod:GetJimboJokerIndex(Player, Joker)
     local Indexes = {}
 
-    for i,v in ipairs(mod.SavedValues.Jimbo.Inventory.Jokers) do
+    for i,v in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
         if v == Joker then
             table.insert(Indexes, i)
         elseif v == TrinketType.TRINKET_BLUEPRINT or v == TrinketType.TRINKET_BRAINSTORM   then
 
-            if mod.SavedValues.Jimbo.Progress.Inventory[i] == Joker then
+            if mod.Saved.Jimbo.Progress.Inventory[i] == Joker then
                 table.insert(Indexes, i)
             end
         end
@@ -476,7 +476,7 @@ function mod:IsSuit(Player, Suit, Enhancement, WantedSuit, MakeTable)
 end
 
 function mod:TryGamble(Player, RNG, Chance)
-    --Chance = Chance * (2 ^ mod:GetValueRepetitions(mod.SavedValues.Jimbo.Inventory, TrinketType.TRINKET_OOPS_6) 
+    --Chance = Chance * (2 ^ mod:GetValueRepetitions(mod.Saved.Jimbo.Inventory, TrinketType.TRINKET_OOPS_6) 
     if RNG then
         if RNG:RandomFloat() < Chance then
             return true
@@ -495,24 +495,24 @@ function mod:GetJokerCost(Joker)
 end
 
 function mod:AddJimboInventorySlots(Player, Amount)
-    mod.SavedValues.Jimbo.InventorySize = mod.SavedValues.Jimbo.InventorySize + Amount
+    mod.Saved.Jimbo.InventorySize = mod.Saved.Jimbo.InventorySize + Amount
     if Amount >= 0 then
         for i=1,Amount do --just adds empty spaces to fill
-            table.insert(mod.SavedValues.Jimbo.Inventory.Jokers, 0)
-            table.insert(mod.SavedValues.Jimbo.Inventory.Editions, 0)
+            table.insert(mod.Saved.Jimbo.Inventory.Jokers, 0)
+            table.insert(mod.Saved.Jimbo.Inventory.Editions, 0)
         end
     else
-        for i,Joker in ipairs(mod.SavedValues.Jimbo.Inventory.Jokers) do
+        for i,Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
             if Joker == 0 then --searches for an empty slot to remove
-                table.remove(mod.SavedValues.Jimbo.Inventory.Jokers, i)
-                table.remove(mod.SavedValues.Jimbo.Inventory.Editions, i)
+                table.remove(mod.Saved.Jimbo.Inventory.Jokers, i)
+                table.remove(mod.Saved.Jimbo.Inventory.Editions, i)
                 return
             end
         end
 
-        Isaac.RunCallback("JOKER_SOLD", Player, mod.SavedValues.Jimbo.Inventory.Jokers[1], 1)
-        table.remove(mod.SavedValues.Jimbo.Inventory.Jokers, 1) --if none are present then sell the first joker
-        table.remove(mod.SavedValues.Jimbo.Inventory.Editions, 1)
+        Isaac.RunCallback("JOKER_SOLD", Player, mod.Saved.Jimbo.Inventory.Jokers[1], 1)
+        table.remove(mod.Saved.Jimbo.Inventory.Jokers, 1) --if none are present then sell the first joker
+        table.remove(mod.Saved.Jimbo.Inventory.Editions, 1)
     end
 end
 
@@ -520,17 +520,17 @@ function mod:ChangeJimboHandSize(Player, Amount)
     
     if Amount >= 0 then
         for i=1,Amount do --just adds empty spaces to fill
-            table.insert(mod.SavedValues.Jimbo.CurrentHand,1, mod.SavedValues.Jimbo.DeckPointer)
-            mod.SavedValues.Jimbo.DeckPointer = mod.SavedValues.Jimbo.DeckPointer + 1
+            table.insert(mod.Saved.Jimbo.CurrentHand,1, mod.Saved.Jimbo.DeckPointer)
+            mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer + 1
         end
-        mod.SavedValues.Jimbo.HandSize = mod.SavedValues.Jimbo.HandSize + Amount
+        mod.Saved.Jimbo.HandSize = mod.Saved.Jimbo.HandSize + Amount
     else
         for i=-1,Amount, -1 do
-            if mod.SavedValues.Jimbo.HandSize == 1 then
+            if mod.Saved.Jimbo.HandSize == 1 then
                 return
             end
-            table.remove(mod.SavedValues.Jimbo.CurrentHand, mod.SavedValues.Jimbo.HandSize)
-            mod.SavedValues.Jimbo.HandSize = mod.SavedValues.Jimbo.HandSize - 1
+            table.remove(mod.Saved.Jimbo.CurrentHand, mod.Saved.Jimbo.HandSize)
+            mod.Saved.Jimbo.HandSize = mod.Saved.Jimbo.HandSize - 1
         end
     end
 end

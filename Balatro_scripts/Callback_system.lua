@@ -41,7 +41,7 @@ function mod:OnGameStart(Continued)
     if Continued then 
     
         if mod:HasData() then
-            mod.SavedValues = json.decode(mod:LoadData()) --restores every saved progress from the run
+            mod.Saved = json.decode(mod:LoadData()) --restores every saved progress from the run
         end
     else
     
@@ -49,154 +49,156 @@ function mod:OnGameStart(Continued)
     ---------------------------------------------
 
     --reset most of the saved values
-    mod.SavedValues.TrinketValues.LastMisprintDMG = 0
-        mod.SavedValues.TrinketValues.Fortune_Teller = 0
-        mod.SavedValues.TrinketValues.Stone_joker = 0
-        mod.SavedValues.TrinketValues.Ice_cream = 1
-        mod.SavedValues.TrinketValues.Popcorn = 2
-        mod.SavedValues.TrinketValues.Ramen = 1.3
-        mod.SavedValues.TrinketValues.Rocket = 3
-        mod.SavedValues.TrinketValues.Green_joker = 0
-        mod.SavedValues.TrinketValues.Red_card = 0
-        mod.SavedValues.TrinketValues.Blueprint = 0
-        mod.SavedValues.TrinketValues.Brainstorm = 0
-        mod.SavedValues.TrinketValues.Madness = 1
-        mod.SavedValues.TrinketValues.LastBPitem = 0
-        mod.SavedValues.TrinketValues.Flash_card = 0
-        mod.SavedValues.TrinketValues.MichaelDestroyed = false
-        mod.SavedValues.TrinketValues.GoldenMichelGone = false
-        mod.SavedValues.TrinketValues.FirstBrain = true
-        mod.SavedValues.TrinketValues.Cloud_9 = 9
-        mod.SavedValues.TrinketValues.Loyalty_card = 6
-        mod.SavedValues.TrinketValues.Labyrinth = 1
-        mod.SavedValues.TrinketValues.Sacrificial_dagger = 0
-        mod.SavedValues.TrinketValues.Swashbuckler = 0
-        mod.SavedValues.TrinketValues.Egg = 3
-        mod.SavedValues.TrinketValues.Supernova = {}
-        mod.SavedValues.TrinketValues.Dna = true
+    mod.Saved.TrinketValues.LastMisprintDMG = 0
+        mod.Saved.TrinketValues.Fortune_Teller = 0
+        mod.Saved.TrinketValues.Stone_joker = 0
+        mod.Saved.TrinketValues.Ice_cream = 1
+        mod.Saved.TrinketValues.Popcorn = 2
+        mod.Saved.TrinketValues.Ramen = 1.3
+        mod.Saved.TrinketValues.Rocket = 3
+        mod.Saved.TrinketValues.Green_joker = 0
+        mod.Saved.TrinketValues.Red_card = 0
+        mod.Saved.TrinketValues.Blueprint = 0
+        mod.Saved.TrinketValues.Brainstorm = 0
+        mod.Saved.TrinketValues.Madness = 1
+        mod.Saved.TrinketValues.LastBPitem = 0
+        mod.Saved.TrinketValues.Flash_card = 0
+        mod.Saved.TrinketValues.MichaelDestroyed = false
+        mod.Saved.TrinketValues.GoldenMichelGone = false
+        mod.Saved.TrinketValues.FirstBrain = true
+        mod.Saved.TrinketValues.Cloud_9 = 9
+        mod.Saved.TrinketValues.Loyalty_card = 6
+        mod.Saved.TrinketValues.Labyrinth = 1
+        mod.Saved.TrinketValues.Sacrificial_dagger = 0
+        mod.Saved.TrinketValues.Swashbuckler = 0
+        mod.Saved.TrinketValues.Egg = 3
+        mod.Saved.TrinketValues.Supernova = {}
+        mod.Saved.TrinketValues.Dna = true
 
     
-        mod.SavedValues.Jimbo.FullDeck = {}
+        mod.Saved.Jimbo.FullDeck = {}
         local index = 1
         for i = 1, 4, 1 do --cycles between the suits
             for j = 1, 13, 1 do --cycles for all the values
-                mod.SavedValues.Jimbo.FullDeck[index] = {}
-                mod.SavedValues.Jimbo.FullDeck[index].Suit = i --Spades - Hearts - clubs - diamonds
-                mod.SavedValues.Jimbo.FullDeck[index].Value = j --1 ~ 13
-                mod.SavedValues.Jimbo.FullDeck[index].Enhancement = mod.Enhancement.NONE
-                mod.SavedValues.Jimbo.FullDeck[index].Seal = mod.Seals.NONE
-                mod.SavedValues.Jimbo.FullDeck[index].Edition = mod.Edition.BASE
+                mod.Saved.Jimbo.FullDeck[index] = {}
+                mod.Saved.Jimbo.FullDeck[index].Suit = i --Spades - Hearts - clubs - diamonds
+                mod.Saved.Jimbo.FullDeck[index].Value = j --1 ~ 13
+                mod.Saved.Jimbo.FullDeck[index].Enhancement = mod.Enhancement.NONE
+                mod.Saved.Jimbo.FullDeck[index].Seal = mod.Seals.NONE
+                mod.Saved.Jimbo.FullDeck[index].Edition = mod.Edition.BASE
                 index = index +1
             end
         end
 
         local HandRNG = Game:GetPlayer(0):GetDropRNG()
 
-        mod.SavedValues.Jimbo.FullDeck = mod:Shuffle(mod.SavedValues.Jimbo.FullDeck, HandRNG)
+        mod.Saved.Jimbo.FullDeck = mod:Shuffle(mod.Saved.Jimbo.FullDeck, HandRNG)
 
-        mod.SavedValues.Jimbo.DeckPointer = 6
-        mod.SavedValues.Jimbo.CurrentHand = {5,4,3,2,1} --basically 5 different cards
-        mod.SavedValues.Jimbo.Inventory= {}
-        mod.SavedValues.Jimbo.Inventory.Jokers = {0,0,0}
-        mod.SavedValues.Jimbo.Inventory.Editions = {0,0,0}
+        mod.Saved.Jimbo.DeckPointer = 6
+        mod.Saved.Jimbo.CurrentHand = {5,4,3,2,1} --basically 5 different cards
+        mod.Saved.Jimbo.Inventory= {}
+        mod.Saved.Jimbo.Inventory.Jokers = {0,0,0}
+        mod.Saved.Jimbo.Inventory.Editions = {0,0,0}
 
-        mod.SavedValues.Jimbo.HandSize = 5
-        mod.SavedValues.Jimbo.InventorySize = 3
-
-        mod.SavedValues.Jimbo.Progress = {} --values used for jokers (reset every blind)
-        mod.SavedValues.Jimbo.Progress.SuitUsed = {}
-        mod.SavedValues.Jimbo.Progress.SuitUsed[mod.Suits.Spade] = 0
-        mod.SavedValues.Jimbo.Progress.SuitUsed[mod.Suits.Heart] = 0
-        mod.SavedValues.Jimbo.Progress.SuitUsed[mod.Suits.Club] = 0
-        mod.SavedValues.Jimbo.Progress.SuitUsed[mod.Suits.Diamond] = 0
+        mod.Saved.Jimbo.HandSize = 5
+        mod.Saved.Jimbo.InventorySize = 3
 
 
-        mod.SavedValues.Jimbo.StatsToAdd = {}
-        mod.SavedValues.Jimbo.StatsToAdd.Damage = 0
-        mod.SavedValues.Jimbo.StatsToAdd.Tears = 0
-        mod.SavedValues.Jimbo.StatsToAdd.Mult = 1
-        mod.SavedValues.Jimbo.StatsToAdd.JokerDamage = 0
-        mod.SavedValues.Jimbo.StatsToAdd.JokerTears = 0
-        mod.SavedValues.Jimbo.StatsToAdd.JokerMult = 1
+        mod.Saved.Jimbo.StatsToAdd = {}
+        mod.Saved.Jimbo.StatsToAdd.Damage = 0
+        mod.Saved.Jimbo.StatsToAdd.Tears = 0
+        mod.Saved.Jimbo.StatsToAdd.Mult = 1
+        mod.Saved.Jimbo.StatsToAdd.JokerDamage = 0
+        mod.Saved.Jimbo.StatsToAdd.JokerTears = 0
+        mod.Saved.Jimbo.StatsToAdd.JokerMult = 1
 
-        Balatro_Expansion.SavedValues.Jimbo.FirstDeck = true
+        Balatro_Expansion.Saved.Jimbo.FirstDeck = true
 
-        mod.SavedValues.Jimbo.MinimumTears = 0.8
-        mod.SavedValues.Jimbo.MinimumDamage = 0.5
+        mod.Saved.Jimbo.MinimumTears = 0.8
+        mod.Saved.Jimbo.MinimumDamage = 0.5
 
-        mod.SavedValues.Jimbo.CardLevels = {}
+        mod.Saved.Jimbo.CardLevels = {}
         for i=1, 13 do
-            mod.SavedValues.Jimbo.CardLevels[i] = 0
+            mod.Saved.Jimbo.CardLevels[i] = 0
         end
 
         --[[
-        mod.SavedValues.Jimbo.HandLevels = {}
-        mod.SavedValues.Jimbo.HandLevels[mod.HandTypes.HIGH_CARD] = 1
-        mod.SavedValues.Jimbo.HandLevels[mod.HandTypes.PAIR] = 1
-        mod.SavedValues.Jimbo.HandLevels[mod.HandTypes.TWO_PAIR] = 1
-        mod.SavedValues.Jimbo.HandLevels[mod.HandTypes.THREE] = 1
-        mod.SavedValues.Jimbo.HandLevels[mod.HandTypes.STRAIGHT] = 1
-        mod.SavedValues.Jimbo.HandLevels[mod.HandTypes.FLUSH] = 1
-        mod.SavedValues.Jimbo.HandLevels[mod.HandTypes.FULL_HOUSE] = 1
-        mod.SavedValues.Jimbo.HandLevels[mod.HandTypes.FOUR] = 1
-        mod.SavedValues.Jimbo.HandLevels[mod.HandTypes.STRAIGHT_FLUSH] = 1
-        mod.SavedValues.Jimbo.HandLevels[mod.HandTypes.ROYAL_FLUSH] = 1
-        mod.SavedValues.Jimbo.HandLevels[mod.HandTypes.FIVE] = 1
-        mod.SavedValues.Jimbo.HandLevels[mod.HandTypes.FLUSH_HOUSE] = 1
-        mod.SavedValues.Jimbo.HandLevels[mod.HandTypes.FIVE_FLUSH] = 1
+        mod.Saved.Jimbo.HandLevels = {}
+        mod.Saved.Jimbo.HandLevels[mod.HandTypes.HIGH_CARD] = 1
+        mod.Saved.Jimbo.HandLevels[mod.HandTypes.PAIR] = 1
+        mod.Saved.Jimbo.HandLevels[mod.HandTypes.TWO_PAIR] = 1
+        mod.Saved.Jimbo.HandLevels[mod.HandTypes.THREE] = 1
+        mod.Saved.Jimbo.HandLevels[mod.HandTypes.STRAIGHT] = 1
+        mod.Saved.Jimbo.HandLevels[mod.HandTypes.FLUSH] = 1
+        mod.Saved.Jimbo.HandLevels[mod.HandTypes.FULL_HOUSE] = 1
+        mod.Saved.Jimbo.HandLevels[mod.HandTypes.FOUR] = 1
+        mod.Saved.Jimbo.HandLevels[mod.HandTypes.STRAIGHT_FLUSH] = 1
+        mod.Saved.Jimbo.HandLevels[mod.HandTypes.ROYAL_FLUSH] = 1
+        mod.Saved.Jimbo.HandLevels[mod.HandTypes.FIVE] = 1
+        mod.Saved.Jimbo.HandLevels[mod.HandTypes.FLUSH_HOUSE] = 1
+        mod.Saved.Jimbo.HandLevels[mod.HandTypes.FIVE_FLUSH] = 1
         
-        mod.SavedValues.Jimbo.HandsStat = {}
-        mod.SavedValues.Jimbo.HandsStat[mod.HandTypes.NONE] = Vector(0,0)
-        mod.SavedValues.Jimbo.HandsStat[mod.HandTypes.HIGH_CARD] = Vector(0.05,0.2)
-        mod.SavedValues.Jimbo.HandsStat[mod.HandTypes.PAIR] = Vector(0.1,0.4)
-        mod.SavedValues.Jimbo.HandsStat[mod.HandTypes.TWO_PAIR] = Vector(0.1,0.8)
-        mod.SavedValues.Jimbo.HandsStat[mod.HandTypes.THREE] = Vector(0.15,1.2)
-        mod.SavedValues.Jimbo.HandsStat[mod.HandTypes.STRAIGHT] = Vector(0.2,1.2)
-        mod.SavedValues.Jimbo.HandsStat[mod.HandTypes.FLUSH] = Vector(0.2,1.4)
-        mod.SavedValues.Jimbo.HandsStat[mod.HandTypes.FULL_HOUSE] = Vector(0.2,1.6)
-        mod.SavedValues.Jimbo.HandsStat[mod.HandTypes.FOUR] = Vector(0.35,2.4)
-        mod.SavedValues.Jimbo.HandsStat[mod.HandTypes.STRAIGHT_FLUSH] = Vector(0.4,4)
-        mod.SavedValues.Jimbo.HandsStat[mod.HandTypes.ROYAL_FLUSH] = Vector(0.4,4)
-        mod.SavedValues.Jimbo.HandsStat[mod.HandTypes.FIVE] = Vector(0.6,4.8)
-        mod.SavedValues.Jimbo.HandsStat[mod.HandTypes.FLUSH_HOUSE] = Vector(0.7,5.6)
-        mod.SavedValues.Jimbo.HandsStat[mod.HandTypes.FIVE_FLUSH] = Vector(0.8,6.4)
+        mod.Saved.Jimbo.HandsStat = {}
+        mod.Saved.Jimbo.HandsStat[mod.HandTypes.NONE] = Vector(0,0)
+        mod.Saved.Jimbo.HandsStat[mod.HandTypes.HIGH_CARD] = Vector(0.05,0.2)
+        mod.Saved.Jimbo.HandsStat[mod.HandTypes.PAIR] = Vector(0.1,0.4)
+        mod.Saved.Jimbo.HandsStat[mod.HandTypes.TWO_PAIR] = Vector(0.1,0.8)
+        mod.Saved.Jimbo.HandsStat[mod.HandTypes.THREE] = Vector(0.15,1.2)
+        mod.Saved.Jimbo.HandsStat[mod.HandTypes.STRAIGHT] = Vector(0.2,1.2)
+        mod.Saved.Jimbo.HandsStat[mod.HandTypes.FLUSH] = Vector(0.2,1.4)
+        mod.Saved.Jimbo.HandsStat[mod.HandTypes.FULL_HOUSE] = Vector(0.2,1.6)
+        mod.Saved.Jimbo.HandsStat[mod.HandTypes.FOUR] = Vector(0.35,2.4)
+        mod.Saved.Jimbo.HandsStat[mod.HandTypes.STRAIGHT_FLUSH] = Vector(0.4,4)
+        mod.Saved.Jimbo.HandsStat[mod.HandTypes.ROYAL_FLUSH] = Vector(0.4,4)
+        mod.Saved.Jimbo.HandsStat[mod.HandTypes.FIVE] = Vector(0.6,4.8)
+        mod.Saved.Jimbo.HandsStat[mod.HandTypes.FLUSH_HOUSE] = Vector(0.7,5.6)
+        mod.Saved.Jimbo.HandsStat[mod.HandTypes.FIVE_FLUSH] = Vector(0.8,6.4)
 
-        mod.SavedValues.Jimbo.FiveUnlocked = false
-        mod.SavedValues.Jimbo.FlushHouseUnlocked = false
-        mod.SavedValues.Jimbo.FiveFlushUnlocked = false]]--
+        mod.Saved.Jimbo.FiveUnlocked = false
+        mod.Saved.Jimbo.FlushHouseUnlocked = false
+        mod.Saved.Jimbo.FiveFlushUnlocked = false]]--
 
-        mod.SavedValues.Jimbo.ClearedRooms = 0
-        mod.SavedValues.Jimbo.SmallCleared = false
-        mod.SavedValues.Jimbo.BigCleared = false
-        mod.SavedValues.Jimbo.BossCleard = false
+        mod.Saved.Jimbo.ClearedRooms = 0
+        mod.Saved.Jimbo.SmallCleared = false
+        mod.Saved.Jimbo.BigCleared = false
+        mod.Saved.Jimbo.BossCleard = false
 
-        mod.SavedValues.Jimbo.Progress = {} --values used for jokers (reset every blind)
-        mod.SavedValues.Jimbo.Progress.Inventory = {0,0,0}
-        mod.SavedValues.Jimbo.Progress.SuitUsed = {}
-        mod.SavedValues.Jimbo.Progress.SuitUsed[mod.Suits.Spade] = 0
-        mod.SavedValues.Jimbo.Progress.SuitUsed[mod.Suits.Heart] = 0
-        mod.SavedValues.Jimbo.Progress.SuitUsed[mod.Suits.Club] = 0
-        mod.SavedValues.Jimbo.Progress.SuitUsed[mod.Suits.Diamond] = 0
+        mod.Saved.Jimbo.Progress = {} --values used for jokers
+        mod.Saved.Jimbo.Progress.Inventory = {0,0,0} --never reset, changed in different ways basing on the joker
 
-        mod.SavedValues.Jimbo.LastUsed = {}
-        mod.SavedValues.Jimbo.EctoUses = 0
+        mod.Saved.Jimbo.Progress.Blind = {} --reset every new blind
+        mod.Saved.Jimbo.Progress.Blind.Shots = 0
+
+        mod.Saved.Jimbo.Progress.Room = {} --reset every new room
+        mod.Saved.Jimbo.Progress.Room.SuitUsed = {}
+        mod.Saved.Jimbo.Progress.Room.SuitUsed[mod.Suits.Spade] = 0
+        mod.Saved.Jimbo.Progress.Room.SuitUsed[mod.Suits.Heart] = 0
+        mod.Saved.Jimbo.Progress.Room.SuitUsed[mod.Suits.Club] = 0
+        mod.Saved.Jimbo.Progress.Room.SuitUsed[mod.Suits.Diamond] = 0
+
+        mod.Saved.Jimbo.Progress.Floor = {}
+
+
+
+        mod.Saved.Jimbo.LastUsed = {}
+        mod.Saved.Jimbo.EctoUses = 0
     
         do
             local RandomSeed = Random()
             if RandomSeed == 0 then RandomSeed = 1 end
-            mod.SavedValues.GeneralRNG = RNG(RandomSeed) --RNG object used in various ways 
+            mod.Saved.GeneralRNG = RNG(RandomSeed) --RNG object used in various ways 
         end
 
         if mod:Contained(Challenges, Game.Challenge) then
-            mod.SavedValues.Other.ShopEntered = true
+            mod.Saved.Other.ShopEntered = true
         else
-            mod.SavedValues.Other.ShopEntered = false
+            mod.Saved.Other.ShopEntered = false
         end
-        mod.SavedValues.Other.DamageTakenRoom = 0
-        mod.SavedValues.Other.DamageTakenFloor = 0
-        mod.SavedValues.Other.TreasureEntered = false
-        mod.SavedValues.Other.Picked = {0}  --to prevent weird shenadigans
-        mod.SavedValues.Other.Tags = {}
+        mod.Saved.Other.DamageTakenRoom = 0
+        mod.Saved.Other.DamageTakenFloor = 0
+        mod.Saved.Other.TreasureEntered = false
+        mod.Saved.Other.Picked = {0}  --to prevent weird shenadigans
+        mod.Saved.Other.Tags = {}
 
 
         mod.SelectionParams.Purpose = mod.SelectionParams.Purposes.NONE
@@ -216,12 +218,12 @@ function mod:OnGameStart(Continued)
 
 
 
-        --print(mod.SavedValues.ModConfig.ExtraReadability)
+        --print(mod.Saved.ModConfig.ExtraReadability)
 
     --[[
-    --print(#mod.SavedValues.Other.Tags)
-    for j = 1, #mod.SavedValues.Other.Tags, 1 do
-        local TagX = mod.SavedValues.Other.Tags[j]
+    --print(#mod.Saved.Other.Tags)
+    for j = 1, #mod.Saved.Other.Tags, 1 do
+        local TagX = mod.Saved.Other.Tags[j]
         --print(TagX)
         if not (TagX == "mult" or TagX == "chips" or TagX == "multm") then
             if TagX == "newroom" then
@@ -287,7 +289,7 @@ function mod:OnGameStart(Continued)
             end
         end
     end
-    --print(mod.SavedValues.Other.Tags)]]--
+    --print(mod.Saved.Other.Tags)]]--
     --this got screpped cause it got more difficult to mantain when jimbo came in town
 end
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED ,mod.OnGameStart)
@@ -305,18 +307,18 @@ function mod:TrinketPickup(_,trinket,_)
         return --not a mod's trinket
     end
     --print("mod")
-    if mod:Contained(mod.SavedValues.Other.Picked, trinket) then --checks if the trinket was already taken this run
+    if mod:Contained(mod.Saved.Other.Picked, trinket) then --checks if the trinket was already taken this run
         return
     else
-        mod.SavedValues.Other.Picked[#mod.SavedValues.Other.Picked+1] = trinket
-        --table.insert((mod.SavedValues.Other.Picked), trinket)
+        mod.Saved.Other.Picked[#mod.Saved.Other.Picked+1] = trinket
+        --table.insert((mod.Saved.Other.Picked), trinket)
         --dude i swear to god, table.insert just won't work
     end
     --print("not contained")
     for i=1, #Trinket:GetCustomTags(), 1 do --needed since certain trinkets have the same tags, whick would double the callbacks
         local TagX = Trinket:GetCustomTags()[i]
-        if not mod:Contained(mod.SavedValues.Other.Tags, TagX) then
-            mod.SavedValues.Other.Tags[#mod.SavedValues.Other.Tags+1] =  TagX
+        if not mod:Contained(mod.Saved.Other.Tags, TagX) then
+            mod.Saved.Other.Tags[#mod.Saved.Other.Tags+1] =  TagX
             if not (TagX == "mult" or TagX == "chips" or TagX == "multm" or TagX == "mult/chips") then
                 --print("idk")
                 if TagX == "newroom" then
@@ -381,7 +383,7 @@ function mod:TrinketPickup(_,trinket,_)
         end
 
     end
-    --print(mod.SavedValues.Other.Tags)]]--
+    --print(mod.Saved.Other.Tags)]]--
 end
 --mod:AddCallback(ModCallbacks.MC_POST_TRIGGER_TRINKET_ADDED, mod.TrinketPickup)
 --this got screpped cause it got more difficult to mantain when jimbo came in town
@@ -389,11 +391,11 @@ end
 
 function mod:SaveStorage(IsExit)
     if mod.GameStarted then --needed since POST_NEW_LEVEL goes before GAME_STARTED 
-        mod:SaveData(json.encode(mod.SavedValues))
+        mod:SaveData(json.encode(mod.Saved))
     end
     if IsExit ~= nil then --this variable exists only when the GAME_EXIT callback is called
         mod.GameStarted = false
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.SaveStorage)
-mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.SaveStorage)
+mod:AddPriorityCallback(ModCallbacks.MC_POST_NEW_LEVEL,CallbackPriority.LATE, mod.SaveStorage)

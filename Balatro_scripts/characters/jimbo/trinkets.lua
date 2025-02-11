@@ -25,6 +25,7 @@ local SLICESOUND = Isaac.GetSoundIdByName("SLICESFX")
 
 --effects when a card is shot
 function mod:OnCardShot(Player,ShotCard,Evaluate)
+
     if not Evaluate then --basically if the room is hostile
         return
     end
@@ -38,31 +39,44 @@ function mod:OnCardShot(Player,ShotCard,Evaluate)
     ----- PROGRESS CALCULATION------------------
     for _,RanOutOfNames in ipairs(mod:IsSuit(Player, ShotCard.Suit,ShotCard.Enhancement, 0, true)) do
         for i = 1, Triggers do
-            mod.SavedValues.Jimbo.Progress.SuitUsed[RanOutOfNames] = mod.SavedValues.Jimbo.Progress.SuitUsed[RanOutOfNames] + 1
+            mod.Saved.Jimbo.Progress.Room.SuitUsed[RanOutOfNames] = mod.Saved.Jimbo.Progress.Room.SuitUsed[RanOutOfNames] + 1
         end
     end
+    mod.Saved.Jimbo.Progress.Blind.Shots = mod.Saved.Jimbo.Progress.Blind.Shots + 1
     --------------------------------------------------
 
     if mod:IsSuit(Player, ShotCard.Suit,ShotCard.Enhancement, mod.Suits.Diamond, false) then
 
-        if mod:JimboHasTrinket(Player, TrinketType.TRINKET_ROUGH_GEM) then
+        for Index,Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
 
-            for i = 1, Triggers do
-                if mod:TryGamble(Player, nil, 0.5) then
-                    local Coin = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
-                                            RandomVector()*3, nil, CoinSubType.COIN_PENNY, RandomSeed)
-                    Coin:ToPickup().Timeout = 50
-                    mod:CreateBalatroEffect(Index,EFFECT_COLORS.Yellow, ACTIVATESOUND, "ACTIVATE!")
+            if Joker == TrinketType.TRINKET_ROUGH_GEM then
+                for i = 1, Triggers do
+                    if mod:TryGamble(Player, nil, 0.5) then
+                        local Coin = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
+                                                RandomVector()*3, nil, CoinSubType.COIN_PENNY, RandomSeed)
+                        Coin:ToPickup().Timeout = 50
+                        mod:CreateBalatroEffect(Index,EFFECT_COLORS.Yellow, ACTIVATESOUND, "ACTIVATE!")
+                    end
                 end
             end
         end
     end
     
+    if mod.Saved.Jimbo.Progress.Blind.Shots == 1 then --if it's the first fired card in a blind
+        for Index,Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
+            if Joker == TrinketType.TRINKET_DNA then
+                table.insert(mod.Saved.Jimbo.FullDeck, mod.Saved.Jimbo.FullDeck[ShotCard.Index])
+                mod:CreateBalatroEffect(Index,EFFECT_COLORS.Yellow, ACTIVATESOUND, "ACTIVATE!")
+            end
+        end
+    end
+
+
 
 
     --after the first deck got finished, no longer activate card effects
     --(joker effects always activate no matter what)
-    Isaac.RunCallback("CARD_SHOT_FINAL",Player,ShotCard,Triggers, mod.SavedValues.Jimbo.FirstDeck)
+    Isaac.RunCallback("CARD_SHOT_FINAL",Player,ShotCard,Triggers, mod.Saved.Jimbo.FirstDeck)
 end
 mod:AddCallback("CARD_SHOT", mod.OnCardShot)
 
@@ -71,11 +85,11 @@ mod:AddCallback("CARD_SHOT", mod.OnCardShot)
 function mod:OnJokerSold(Player,Joker,SlotSold)
     --print("sold")
     if Joker == TrinketType.TRINKET_INVISIBLE_JOKER then
-        if mod.SavedValues.Jimbo.Progress.Inventory[SlotSold] ~= 3 then
+        if mod.Saved.Jimbo.Progress.Inventory[SlotSold] ~= 3 then
             return
         end
         local HasSomethingElse = false
-        for _, trinket in ipairs(mod.SavedValues.Jimbo.Inventory) do
+        for _, trinket in ipairs(mod.Saved.Jimbo.Inventory) do
             --can only copy something other than itself and nothing
             if trinket ~= 0 and trinket ~= TrinketType.TRINKET_INVISIBLE_JOKER then
                 HasSomethingElse = true
@@ -87,10 +101,10 @@ function mod:OnJokerSold(Player,Joker,SlotSold)
             local RandomJoker
             local Rng = Player:GetTrinketRNG(TrinketType.TRINKET_INVISIBLE_JOKER)
             repeat
-                RandomJoker = mod.SavedValues.Jimbo.Inventory[Rng:RandomInt(1, #mod.SavedValues.Jimbo.Inventory)]
+                RandomJoker = mod.Saved.Jimbo.Inventory[Rng:RandomInt(1, #mod.Saved.Jimbo.Inventory)]
             until RandomJoker ~= 0 and RandomJoker ~= TrinketType.TRINKET_INVISIBLE_JOKER
             --print(RandomJoker)
-            mod.SavedValues.Jimbo.Inventory[SlotSold] = RandomJoker
+            mod.Saved.Jimbo.Inventory[SlotSold] = RandomJoker
         end
     elseif false then
 
@@ -103,6 +117,19 @@ mod:AddCallback("JOKER_SOLD", mod.OnJokerSold)
 
 --effects when a blind gets completed
 function mod:OnBlindClear(BlindType)
+
+    for i,v in pairs(mod.Saved.Jimbo.Progress.Blind) do
+
+        if type(v) == "table" then
+
+            for j,_ in ipairs(mod.Saved.Jimbo.Progress.Blind[i]) do
+                mod.Saved.Jimbo.Progress.Blind[i][j] = 0
+            end
+        else
+            mod.Saved.Jimbo.Progress.Blind[i] = 0 --resets the blind progress
+        end
+    end
+
     for _, Player in ipairs(PlayerManager.GetPlayers()) do
 
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
@@ -112,57 +139,63 @@ function mod:OnBlindClear(BlindType)
     local RandomSeed = Random()
     if RandomSeed == 0 then RandomSeed = 1 end --would crash the game otherwise
 
-    for _, Index in ipairs(mod:GetJimboJokerIndex(Player, TrinketType.TRINKET_INVISIBLE_JOKER)) do
-        mod.SavedValues.Jimbo.Progress.Inventory[Index] = mod.SavedValues.Jimbo.Progress.Inventory[Index] + 1
-        local Value = mod.SavedValues.Jimbo.Progress.Inventory[Index]
+    --cycles between all the held jokers
+    for Index,Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
 
-        if Value < 3 then --still charging
+        if Joker == 0 then --could save some time
+        elseif Joker == TrinketType.TRINKET_INVISIBLE_JOKER then
+            mod.Saved.Jimbo.Progress.Inventory[Index] = mod.Saved.Jimbo.Progress.Inventory[Index] + 1
+            local Value = mod.Saved.Jimbo.Progress.Inventory[Index]
+
+            if Value < 3 then --still charging
+                mod:CreateBalatroEffect(Index, EFFECT_COLORS.Yellow, 
+                                        ACTIVATESOUND, tostring(Value).."/3")
+            else --usable
+                mod:CreateBalatroEffect(Index,EFFECT_COLORS.Yellow, 
+                                        ACTIVATESOUND, "ACTIVE!")
+            end
+
+        elseif Joker == TrinketType.TRINKET_ROCKET then
+            --spawns this many coins
+            local MoneyAmount = mod.Saved.Jimbo.Progress.Inventory[Index]
+            for i=1, MoneyAmount do
+                Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN,
+                           Player.Position, RandomVector()*3, Player,
+                           CoinSubType.COIN_PENNY, RandomSeed)
+            end
             mod:CreateBalatroEffect(Index, EFFECT_COLORS.Yellow, 
-                                    ACTIVATESOUND, tostring(Value).."/3")
-        else --usable
-            mod:CreateBalatroEffect(Index,EFFECT_COLORS.Yellow, 
-                                    ACTIVATESOUND, "READY!")
-        end
-    end
-    for _, Index in ipairs(mod:GetJimboJokerIndex(Player, TrinketType.TRINKET_ROCKET)) do
-        
-        --spawns this many coins
-        local MoneyAmount = mod.SavedValues.Jimbo.Progress.Inventory[Index]
-        for i=1, MoneyAmount do
-            Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN,
-                       Player.Position, RandomVector()*3, Player,
-                       CoinSubType.COIN_PENNY, RandomSeed)
-        end
-        mod:CreateBalatroEffect(Index, EFFECT_COLORS.Yellow, 
-                                ACTIVATESOUND, "+"..tostring(MoneyAmount).." $")
-        --on boss beaten it upgrades
-        if BlindType == mod.BLINDS.BOSS then
-            mod.SavedValues.Jimbo.Progress.Inventory[Index] = mod.SavedValues.Jimbo.Progress.Inventory[Index] + 1
+                                    ACTIVATESOUND, "+"..tostring(MoneyAmount).." $")
+            --on boss beaten it upgrades
+            if BlindType == mod.BLINDS.BOSS then
+                mod.Saved.Jimbo.Progress.Inventory[Index] = mod.Saved.Jimbo.Progress.Inventory[Index] + 1
+                mod:CreateBalatroEffect(Index, EFFECT_COLORS.Yellow, 
+                                    ACTIVATESOUND, "UPGRADE!")
+            end
+        elseif Joker == TrinketType.TRINKET_GOLDEN_JOKER then
+
+            --spawns this many coins
+            local MoneyAmmount = 3
+            for i=1, MoneyAmmount do
+                Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN,
+                           Player.Position, RandomVector()*3, Player,
+                           CoinSubType.COIN_PENNY, RandomSeed)
+            end
             mod:CreateBalatroEffect(Index, EFFECT_COLORS.Yellow, 
-                                ACTIVATESOUND, "UPGRADE!")
-        end
+                                    ACTIVATESOUND, "+"..tostring(MoneyAmmount).." $")
 
-    end
-    for _, Index in ipairs(mod:GetJimboJokerIndex(Player, TrinketType.TRINKET_GOLDEN_JOKER)) do
-        
-        --spawns this many coins
-        local MoneyAmmount = 3
-        for i=1, MoneyAmmount do
-            Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN,
-                       Player.Position, RandomVector()*3, Player,
-                       CoinSubType.COIN_PENNY, RandomSeed)
-        end
-        mod:CreateBalatroEffect(Index, EFFECT_COLORS.Yellow, 
-                                ACTIVATESOUND, "+"..tostring(MoneyAmmount).." $")
-    end
-    for _, Index in ipairs(mod:GetJimboJokerIndex(Player, TrinketType.TRINKET_RIFF_RAFF)) do
+        elseif Joker == TrinketType.TRINKET_RIFF_RAFF then
+            local RandomJoker = mod:GetRandom(mod.Trinkets, Player:GetTrinketRNG(TrinketType.TRINKET_RIFF_RAFF), true)
+            Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET, Player.Position,
+                       RandomVector()*3, nil, RandomJoker, RandomSeed)
 
-        local RandomJoker = mod:GetRandom(mod.Trinkets, Player:GetTrinketRNG(TrinketType.TRINKET_RIFF_RAFF), true)
-        Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET, Player.Position,
-                   RandomVector()*3, nil, RandomJoker, RandomSeed)
+            mod:CreateBalatroEffect(Index,EFFECT_COLORS.Yellow, ACTIVATESOUND, "ACTIVATE!")
+        elseif Joker == TrinketType.TRINKET_CARTOMANCER then
+            local RandomTarot = Player:GetTrinketRNG(TrinketType.TRINKET_RIFF_RAFF):RandomInt(1,22)
+            Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
+                       RandomVector()*3, nil, RandomTarot, RandomSeed)
 
-        mod:CreateBalatroEffect(Index,EFFECT_COLORS.Yellow, ACTIVATESOUND, "ACTIVATE!")
-        
+            mod:CreateBalatroEffect(Index,EFFECT_COLORS.Yellow, ACTIVATESOUND, "ACTIVATE!")
+            end
     end
 
 
@@ -199,7 +232,7 @@ function mod:OnBlindStart(BlindType)
         ::skip_player::
     end
 end
---mod:AddCallback("BLIND_STARTED", mod.OnBlindStart)
+--mod:AddCallback("BLIND_STARTED", mod.OnBlindStart) remained unused due to similarity with BLIND_CLEARED
 
 
 ---@param Player EntityPlayer
@@ -211,8 +244,9 @@ function mod:OnPackOpened(Player,Pack)
     local RandomSeed = Random()
     if RandomSeed == 0 then RandomSeed = 1 end --would crash the game otherwise
 
-    for _, Index in ipairs(mod:GetJimboJokerIndex(Player, TrinketType.TRINKET_HALLUCINATION)) do
-        local TrinketRNG = Player:GetTrinketRNG(TrinketType.TRINKET_HALLUCINATION)
+    for Index,Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
+        if Joker == TrinketType.TRINKET_HALLUCINATION then
+            local TrinketRNG = Player:GetTrinketRNG(TrinketType.TRINKET_HALLUCINATION)
         if TrinketRNG:RandomFloat() < 0.5 then
 
             local RandomTarot = TrinketRNG:RandomInt(Card.CARD_FOOL, Card.CARD_WORLD)
@@ -220,7 +254,7 @@ function mod:OnPackOpened(Player,Pack)
                        RandomVector()*3, nil, RandomTarot, RandomSeed)
             mod:CreateBalatroEffect(Index, EFFECT_COLORS.Yellow, ACTIVATESOUND, "ACTIVATE!")
         end
-
+        end
     end
 
 end
@@ -243,38 +277,88 @@ function mod:OnRoomClear(IsBoss)
     local RandomSeed = Random()
     if RandomSeed == 0 then RandomSeed = 1 end --would crash the game otherwise
 
-    if mod:JimboHasTrinket(Player, TrinketType.TRINKET_VAGABOND) then
-        if Player:GetNumCoins() < 4 then
-            local TrinketRNG = Player:GetTrinketRNG(TrinketType.TRINKET_VAGABOND)
-            local JokerIndexes = mod:GetJimboJokerIndex(Player, TrinketType.TRINKET_VAGABOND)
-            for _, Index in ipairs(JokerIndexes) do
+    for Index,Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
+        if Joker == TrinketType.TRINKET_VAGABOND then
+            if Player:GetNumCoins() < 4 then
+                local TrinketRNG = Player:GetTrinketRNG(TrinketType.TRINKET_VAGABOND)
 
                 local RandomTarot = TrinketRNG:RandomInt(Card.CARD_FOOL, Card.CARD_WORLD)
 
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
                            RandomVector()*3, nil, RandomTarot, RandomSeed)
                 mod:CreateBalatroEffect(Index, EFFECT_COLORS.Yellow, ACTIVATESOUND, "ACTIVATE!")
-
-
             end
         end
     end
+
 
     ::skip_player::
     end
 end
 mod:AddCallback("TRUE_ROOM_CLEAR", mod.OnRoomClear)
 
+
+function mod:OnNewRoomJokers()
+
+    for i,v in pairs(mod.Saved.Jimbo.Progress.Room) do
+        if type(v) == "table" then
+
+            for j,_ in ipairs(mod.Saved.Jimbo.Progress.Room[i]) do
+                mod.Saved.Jimbo.Progress.Room[i][j] = 0
+            end
+        else
+
+            mod.Saved.Jimbo.Progress.Room[i] = 0 --resets the blind progress
+        end
+    end
+
+    for _, Player in ipairs(PlayerManager.GetPlayers()) do
+
+        if Player:GetPlayerType() ~= mod.Characters.JimboType then
+            goto skip_player
+        end
+    
+        local RandomSeed = Random()
+        if RandomSeed == 0 then RandomSeed = 1 end --would crash the game otherwise
+
+
+        ::skip_player::
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.OnNewRoomJokers)
+
+function mod:OnNewLevelJokers()
+
+    for i,_ in pairs(mod.Saved.Jimbo.Progress.Floor) do
+        mod.Saved.Jimbo.Progress.Floor[i] = 0 --resets the blind progress
+    end
+
+    for _, Player in ipairs(PlayerManager.GetPlayers()) do
+
+        if Player:GetPlayerType() ~= mod.Characters.JimboType then
+            goto skip_player
+        end
+    
+        local RandomSeed = Random()
+        if RandomSeed == 0 then RandomSeed = 1 end --would crash the game otherwise
+
+
+        ::skip_player::
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.OnNewLevelJokers)
+
+
 --adjusts the "copy" values for brainstorm and blueprint whenever the inventory is changed
 function mod:CopyAdjustments(Player)
 
-    for i,Joker in ipairs(mod.SavedValues.Jimbo.Inventory.Jokers) do
+    for i,Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
         local StartI = i
-        repeat
+        repeat --continues to 
 
             if Joker == TrinketType.TRINKET_BLUEPRINT then --copies the joker to its right
                 i = i + 1
-                Joker = mod.SavedValues.Jimbo.Inventory.Jokers[i] or 0 --if nothing is there then just put 0
+                Joker = mod.Saved.Jimbo.Inventory.Jokers[i] or 0 --if nothing is there then just put 0
             
                 if i == StartI then --some combinations can lead to an infinite loop
                     Joker = 0
@@ -282,22 +366,25 @@ function mod:CopyAdjustments(Player)
 
             elseif Joker == TrinketType.TRINKET_BRAINSTORM then --copies the leftmost joker
                 i = 1
-                Joker = mod.SavedValues.Jimbo.Inventory.Jokers[i] or 0 --if nothing is there then just put 0
+                Joker = mod.Saved.Jimbo.Inventory.Jokers[i] or 0 --if nothing is there then just put 0
             
                 if i == StartI then --some combinations can lead to an infinite loop
                     Joker = 0
                 end
+            else
+                Joker = 0 --needed to check if bp or bs copied something
             end
         until (Joker ~= TrinketType.TRINKET_BLUEPRINT and Joker ~= TrinketType.TRINKET_BRAINSTORM)
 
+        --at this point if Joker~=0 then StartI is the index of a bb or bs
 
-        if Joker == 0 then --ItemsConfig:GetTrinket(Joker) is nil otherwise
-            mod.SavedValues.Jimbo.Progress.Inventory[StartI] = 0
+        if Joker ~= 0 then --ItemsConfig:GetTrinket(Joker) is nil otherwise
 
-        elseif ItemsConfig:GetTrinket(Joker):HasCustomTag("copy") then --not every joker can be copied
-            mod.SavedValues.Jimbo.Progress.Inventory[StartI] = Joker
-        else
-            mod.SavedValues.Jimbo.Progress.Inventory[StartI] = 0
+            if ItemsConfig:GetTrinket(Joker):HasCustomTag("copy") then --not every joker can be copied
+                mod.Saved.Jimbo.Progress.Inventory[StartI] = Joker --saves in its progress the joker it is copying
+            else
+                mod.Saved.Jimbo.Progress.Inventory[StartI] = 0 --if not compatible
+            end
         end
 
     end

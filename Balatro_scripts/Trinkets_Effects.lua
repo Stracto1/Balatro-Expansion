@@ -1,5 +1,5 @@
 local mod = Balatro_Expansion
-local TrinketValues = mod.SavedValues.TrinketValues
+local TrinketValues = mod.Saved.TrinketValues
 ---------------------CACHE EVALUATION CALLBACKS---------------------
 --------------------------------------------------------------------
 --these are all the cache evaluations for every trinekt/item
@@ -65,7 +65,7 @@ EFFECT_COLORS.Yellow = 3
 
 function mod:EditionsStats(Player, Flags)
     if Player:GetPlayerType() == mod.Characters.JimboType then
-        for i,Edition in ipairs(mod.SavedValues.Jimbo.Inventory.Editions) do
+        for i,Edition in ipairs(mod.Saved.Jimbo.Inventory.Editions) do
             if Flags & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
                 if Edition == mod.Edition.HOLOGRAPHIC then
                     mod.IncreaseJimboStats(Player,0.5, 0, 1, false, false)
@@ -590,22 +590,22 @@ function mod:MrBones(player, Jimbo)
     if Jimbo then --jimbo has a different effect but on the same callback
 
         local Revive = false
-        if mod.SavedValues.Jimbo.BossCleard then --on boss cleared revive anyways
+        if mod.Saved.Jimbo.BossCleard then --on boss cleared revive anyways
             Revive = true
             
-        elseif mod.SavedValues.Jimbo.BigCleared then --if big is cleared then you need to be fighting boss to revive
+        elseif mod.Saved.Jimbo.BigCleared then --if big is cleared then you need to be fighting boss to revive
             if Game:GetRoom():GetBossID() ~= 0 then
                 Revive = true
             end
-        elseif mod.SavedValues.Jimbo.SmallCleared then
-            local BlindProgress  = mod.SavedValues.Jimbo.ClearedRooms
-            if BlindProgress >= mod.SavedValues.Jimbo.BigBlind / 2 then
+        elseif mod.Saved.Jimbo.SmallCleared then
+            local BlindProgress  = mod.Saved.Jimbo.ClearedRooms
+            if BlindProgress >= mod.Saved.Jimbo.BigBlind / 2 then
                 Revive = true
             end
         else --before clearing small blind
-            local BlindProgress  = mod.SavedValues.Jimbo.ClearedRooms
+            local BlindProgress  = mod.Saved.Jimbo.ClearedRooms
             
-            if BlindProgress >= mod.SavedValues.Jimbo.SmallBlind / 2 then
+            if BlindProgress >= mod.Saved.Jimbo.SmallBlind / 2 then
                 Revive = true
             end
         end
@@ -617,8 +617,8 @@ function mod:MrBones(player, Jimbo)
         player:SetFullHearts() --full health
         player:SetMinDamageCooldown(120) --some iframes
 
-        local MRindex = mod:GetValueIndex(mod.SavedValues.Jimbo.Inventory, TrinketType.TRINKET_MR_BONES, true)
-        mod.SavedValues.Jimbo.Inventory[MRindex] = 0 --removes the trinket
+        local MRindex = mod:GetValueIndex(mod.Saved.Jimbo.Inventory, TrinketType.TRINKET_MR_BONES, true)
+        mod.Saved.Jimbo.Inventory[MRindex] = 0 --removes the trinket
         mod:CreateBalatroEffect(MRindex, EFFECT_COLORS.Yellow, ACTIVATESOUND, "ACTIVATE!")
 
     else
@@ -663,7 +663,7 @@ function mod:ArrowHead(player,_)
     if player:GetPlayerType() == mod.Characters.JimboType then
         if mod:JimboHasTrinket(player,Arrowhead) then
 
-            mod:IncreaseJimboStats(player, 0, 0.1*mod.SavedValues.Jimbo.Progress.SuitUsed[mod.Suits.Spade],1,false,false)
+            mod:IncreaseJimboStats(player, 0, 0.1*mod.Saved.Jimbo.Progress.SuitUsed[mod.Suits.Spade],1,false,false)
         end
     
     elseif player:HasTrinket(Arrowhead) then

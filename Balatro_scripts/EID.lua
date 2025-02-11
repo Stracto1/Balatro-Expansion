@@ -192,16 +192,16 @@ if EID then
                                 
                                 local FirstActive = player:GetActiveItem(0)
                                 local SecondActive = player:GetActiveItem(1)
-                                if mod.SavedValues.TrinketValues.Supernova[FirstActive] and mod.SavedValues.TrinketValues.Supernova[SecondActive] then
+                                if mod.Saved.TrinketValues.Supernova[FirstActive] and mod.Saved.TrinketValues.Supernova[SecondActive] then
                                     if FirstActive == 0 and SecondActive == 0 then
                                         ValueDescription = "#Currently: No {{Collectible}} Active item held"
                                         return true
                                     
-                                    elseif mod.SavedValues.TrinketValues.Supernova[FirstActive] >= mod.SavedValues.TrinketValues.Supernova[SecondActive] and FirstActive ~= 0 then
-                                        ValueDescription = "#Currently: {{Collectible"..tostring(FirstActive).."}} gives {{Damage}} {{ColorRed}}+"..tostring(mod.SavedValues.TrinketValues.Supernova[FirstActive]).."{{CR}} Damage "
+                                    elseif mod.Saved.TrinketValues.Supernova[FirstActive] >= mod.Saved.TrinketValues.Supernova[SecondActive] and FirstActive ~= 0 then
+                                        ValueDescription = "#Currently: {{Collectible"..tostring(FirstActive).."}} gives {{Damage}} {{ColorRed}}+"..tostring(mod.Saved.TrinketValues.Supernova[FirstActive]).."{{CR}} Damage "
                                         return true
                                     else
-                                        ValueDescription = "#Currently: {{Collectible"..tostring(SecondActive).."}} gives {{Damage}} {{ColorRed}}+"..tostring(mod.SavedValues.TrinketValues.Supernova[SecondActive]).."{{CR}} Damage "
+                                        ValueDescription = "#Currently: {{Collectible"..tostring(SecondActive).."}} gives {{Damage}} {{ColorRed}}+"..tostring(mod.Saved.TrinketValues.Supernova[SecondActive]).."{{CR}} Damage "
                                         return true
                                     end
                                 end
@@ -210,39 +210,39 @@ if EID then
                         end
                         return false
                     else --anything other than supernova
-                        ValueDescription = "#Currently: {{Damage}} {{ColorRed}}+"..tostring(mod.SavedValues.TrinketValues[Config.Name:gsub(" ","_")]).."{{CR}} Damage"
+                        ValueDescription = "#Currently: {{Damage}} {{ColorRed}}+"..tostring(mod.Saved.TrinketValues[Config.Name:gsub(" ","_")]).."{{CR}} Damage"
                         return true
                     end
 
                 elseif Config:HasCustomTag("multm") then
-                    ValueDescription = "#Currently: {{Damage}} {{ColorRed}}X"..tostring(mod.SavedValues.TrinketValues[Config.Name:gsub(" ","_")]).."{{CR}} Damage Multiplier"
+                    ValueDescription = "#Currently: {{Damage}} {{ColorRed}}X"..tostring(mod.Saved.TrinketValues[Config.Name:gsub(" ","_")]).."{{CR}} Damage Multiplier"
                     return true
                 elseif Config:HasCustomTag("chips") then
-                    ValueDescription = "#Currently: {{Tears}} {{ColorCyan}}+"..tostring(mod.SavedValues.TrinketValues[Config.Name:gsub(" ","_")]).."{{CR}} Tears "
+                    ValueDescription = "#Currently: {{Tears}} {{ColorCyan}}+"..tostring(mod.Saved.TrinketValues[Config.Name:gsub(" ","_")]).."{{CR}} Tears "
                     return true
                 else
                     --PUT ALL THE ACTIVATE JOKERS HERE
                     if Trinket == TrinketType.TRINKET_ROCKET then
-                        ValueDescription = "#Currently: "..tostring(mod.SavedValues.TrinketValues.Rocket).." {{Coin}} Coins "
+                        ValueDescription = "#Currently: "..tostring(mod.Saved.TrinketValues.Rocket).." {{Coin}} Coins "
                         return true
                     elseif Trinket == TrinketType.TRINKET_CLOUD_NINE then
-                        ValueDescription = "#Currently: "..tostring(mod.SavedValues.TrinketValues.Cloud_9).." pickups remaining"
+                        ValueDescription = "#Currently: "..tostring(mod.Saved.TrinketValues.Cloud_9).." pickups remaining"
                         return true
                     elseif Trinket == TrinketType.TRINKET_LOYALTY_CARD then
-                        ValueDescription = "#Currently: "..tostring(mod.SavedValues.TrinketValues.Loyalty_card).." rooms remaining"
+                        ValueDescription = "#Currently: "..tostring(mod.Saved.TrinketValues.Loyalty_card).." rooms remaining"
                         return true
                     elseif Trinket == TrinketType.TRINKET_BLUEPRINT then
-                        if mod.SavedValues.TrinketValues.Blueprint == 0 then
+                        if mod.Saved.TrinketValues.Blueprint == 0 then
                             ValueDescription = "#{{Warning}} No {{Collectible}} Items picked up"
                         else
-                            ValueDescription = "#Currently giving: {{Collectible"..tostring(mod.SavedValues.TrinketValues.Blueprint).."}}"
+                            ValueDescription = "#Currently giving: {{Collectible"..tostring(mod.Saved.TrinketValues.Blueprint).."}}"
                         end
                         return true
                     elseif Trinket == TrinketType.TRINKET_BRAINSTORM then
-                        if mod.SavedValues.TrinketValues.Brainstorm == 0 then
+                        if mod.Saved.TrinketValues.Brainstorm == 0 then
                             ValueDescription = "#{{Warning}} No {{Collectible}} Items picked up"
                         else
-                            ValueDescription = "#Currently giving: {{Collectible"..tostring(mod.SavedValues.TrinketValues.Brainstorm).."}}"
+                            ValueDescription = "#Currently giving: {{Collectible"..tostring(mod.Saved.TrinketValues.Brainstorm).."}}"
                         end
                         return true
                     end

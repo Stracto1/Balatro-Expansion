@@ -85,11 +85,11 @@ function mod:RenderEffect()
                 RenderPos = Params.Position + Params.Offset
             end
             Sprite:Render(RenderPos)
-            local TextWidthOff = mod.Fonts.upheavalmini:GetStringWidth(Params.Text) * 0.4
-            local LineHeightOff = mod.Fonts.upheavalmini:GetBaselineHeight() / 2
+            local TextWidthOff = mod.Fonts.Balatro:GetStringWidth(Params.Text) * 0.4
+            local LineHeightOff = mod.Fonts.Balatro:GetBaselineHeight() / 2
             if Params.Frames < 15 then
-                mod.Fonts.upheavalmini:DrawStringScaled(Params.Text, RenderPos.X - TextWidthOff + 0.5, RenderPos.Y -LineHeightOff + 0.5, 0.8,1, KColor(0.6,0.6,0.6,0.7),0,true) -- emulates little text shadow
-                mod.Fonts.upheavalmini:DrawStringScaled(Params.Text, RenderPos.X - TextWidthOff, RenderPos.Y - LineHeightOff, 0.8,1, KColor(1,1,1,1),0,true)
+                mod.Fonts.Balatro:DrawString(Params.Text, RenderPos.X - TextWidthOff + 0.5, RenderPos.Y -LineHeightOff + 0.5, KColor(0.6,0.6,0.6,0.7),0,true) -- emulates little text shadow
+                mod.Fonts.Balatro:DrawString(Params.Text, RenderPos.X - TextWidthOff, RenderPos.Y - LineHeightOff, KColor(1,1,1,1),0,true)
 
             end
         end
