@@ -18,8 +18,8 @@ local CHIPSSOUND = Isaac.GetSoundIdByName("CHIPSSFX")
 local SLICESOUND = Isaac.GetSoundIdByName("SLICESFX")
 
 
---a couple of trinkets still have their effects/ callbacks in Trinket_Effects.lua and Trinket_Callbacks.lua
---MR.Bones || ...
+--a lot of trinkets still have their effects/ callbacks in Trinket_Effects.lua and Trinket_Callbacks.lua
+--MR.Bones || Any stat based joker
 
 
 
@@ -352,6 +352,15 @@ function mod:OnNewRoomJokers()
         local RandomSeed = Random()
         if RandomSeed == 0 then RandomSeed = 1 end --would crash the game otherwise
 
+        for Index, Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
+            if Joker == TrinketType.TRINKET_MISPRINT then
+                local MisDMG = Player:GetTrinketRNG(TrinketType.TRINKET_MISPRINT):RandomFloat() * 0.23
+                mod.Saved.Jimbo.Progress.Inventory[Index] = MisDMG
+            end
+        end
+
+        Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, true)
+        --Player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
 
         ::skip_player::
     end
@@ -424,3 +433,56 @@ function mod:CopyAdjustments(Player)
     Player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
 end
 mod:AddCallback("INVENTORY_CHANGE", mod.CopyAdjustments)
+
+
+
+function mod:DamageJokers(Player,_)
+
+    for _, Player in ipairs(PlayerManager.GetPlayers()) do
+
+        if Player:GetPlayerType() ~= mod.Characters.JimboType then
+            goto skip_player
+        end
+
+        for Index, Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
+            if Joker == TrinketType.TRINKET_JOKER then
+                mod:IncreaseJimboStats(Player, 0.1, 0, 1, false, false)
+
+            elseif Joker == TrinketType.TRINKET_ABSTRACT_JOKER then
+                local NumJokers = 0
+                for j,Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
+                    if Joker ~= 0 then
+                        NumJokers = NumJokers + 1
+                    end
+                end
+                mod:IncreaseJimboStats(Player, 0.06 * NumJokers, 0, 1, false, false)
+
+            elseif Joker == TrinketType.TRINKET_MISPRINT then
+                 mod:IncreaseJimboStats(Player, mod.Saved.Jimbo.Progress.Inventory[Index], 0, 1, false, false)
+            end
+        end
+
+        ::skip_player::
+    end
+end
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.DamageJokers, CacheFlag.CACHE_DAMAGE)
+
+
+function mod:TearsJokers(Player, _)
+    for _, Player in ipairs(PlayerManager.GetPlayers()) do
+
+        if Player:GetPlayerType() ~= mod.Characters.JimboType then
+            goto skip_player
+        end
+
+        for Index, Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
+            if Joker == TrinketType.TRINKET_BULL then
+                local Tears = Player:GetNumCoins() * 0.04
+                mod:IncreaseJimboStats(Player, 0, Tears, 1, false, false)
+            end
+        end
+
+        ::skip_player::
+    end
+end
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.TearsJokers, CacheFlag.CACHE_FIREDELAY)

@@ -85,13 +85,8 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.EditionsStats)
 
 -------------------Joker------------------------
 function mod:Joker(player,_)
-    if player:GetPlayerType() == mod.Characters.JimboType then
  
-        for i,v in ipairs(mod:GetJimboJokerIndex(player, TrinketType.TRINKET_JOKER)) do
-            mod:IncreaseJimboStats(player, 0.2, 0, 1, false, false)
-        end
-
-    elseif player:HasTrinket(Joker) then
+    if player:GetPlayerType() ~= mod.Characters.JimboType and player:HasTrinket(Joker) then
          --controls if it has the trinket
     
         local JokerDMG = 0.4 --base dmg
@@ -110,7 +105,8 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.Joker, CacheFlag.CACHE_DAMAG
 
 
 function mod:Bull(player, flag)
-    if player.HasTrinket(player, Bull) then --controls if it has the trinket
+ 
+    if player:GetPlayerType() ~= mod.Characters.JimboType and player.HasTrinket(player, Bull) then --controls if it has the trinket
         if player:GetPlayerType() == mod.Characters.JimboType then
             mod:IncreaseJimboStats(flag,player:GetNumCoins() * 0.03)
         else
@@ -173,10 +169,11 @@ end
 --------------------------abstract joker--------------------
 
 function mod:AbstractJoker(player,_)
-    if player.HasTrinket(player, Abstract_joker) then
+
+    if player:GetPlayerType() ~= mod.Characters.JimboType and player.HasTrinket(player, Abstract_joker) then
         local AbstractDMG = 0.08
         local NumItems = player.GetCollectibleCount(player)
-        local DMGToAdd = (AbstractDMG * NumItems) * player.GetTrinketMultiplier(player, Abstract_joker)
+        local DMGToAdd = AbstractDMG * NumItems * player.GetTrinketMultiplier(player, Abstract_joker)
         if mod.WantedEffect == Abstract_joker then
             mod:EffectConverter(1, DMGToAdd, player, 1)
         end
@@ -188,11 +185,12 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.AbstractJoker, CacheFlag.CAC
 --------------------------------------misprint----------------------------------------------
 
 function mod:Misprint(player,_)
-    if player.HasTrinket(player, Misprint) then
+        
+    if player:GetPlayerType() ~= mod.Characters.JimboType and player:HasTrinket(Misprint) then
         if mod.WantedEffect == Misprint then --basically changes the dmg up only when changing rooms
             local RNG = player:GetTrinketRNG(Misprint)
             local MisprintDMG = 1.5
-            local MisprintDMGToAdd = ((MisprintDMG * RNG:RandomFloat()) * player.GetTrinketMultiplier(player, Misprint)) --random float is from 0 to 1
+            local MisprintDMGToAdd = MisprintDMG * RNG:RandomFloat() * player.GetTrinketMultiplier(player, Misprint)
             MisprintDMGToAdd = mod:round(MisprintDMGToAdd, 2)
             mod:EffectConverter(1, MisprintDMGToAdd, player, 1)
             player.Damage = player.Damage + MisprintDMGToAdd
@@ -208,7 +206,7 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.Misprint, CacheFlag.CACHE_DA
 
 ---@param player EntityPlayer
 function mod:JokerStencil(player,_)
-    if player:HasTrinket(Joker_stencil) then
+    if player:GetPlayerType() ~= mod.Characters.JimboType and player:HasTrinket(Joker_stencil) then
         local JokerStencilMultiplier = 1
         if player.GetPlayerType(player) == PlayerType.PLAYER_ISAAC_B then --specific dmg up for Tisaac
             if player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT, true) then
@@ -248,7 +246,7 @@ mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE, mo
 
 ---@param player EntityPlayer
 function mod:StoneJoker(player, _)
-    if player.HasTrinket(player, Stone_joker) then --controls if it has the trinket
+    if player:GetPlayerType() ~= mod.Characters.JimboType and player.HasTrinket(player, Stone_joker) then --controls if it has the trinket
         local StoneTears = TrinketValues.Stone_joker
         if mod.WantedEffect == Stone_joker then
             mod:EffectConverter(1, StoneTears, player, 3)
@@ -263,7 +261,7 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.StoneJoker, CacheFlag.CACHE_
 -----------------ICE CREAM-------------------------
 ---@param player EntityPlayer
 function mod:IceCream(player, _)
-    if player:HasTrinket(Icecream) then
+    if player:GetPlayerType() ~= mod.Characters.JimboType and player:HasTrinket(Icecream) then
         if TrinketValues.Ice_cream == 0 then
             mod:EffectConverter(4, 0, player, 6)
             return
@@ -281,7 +279,7 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.IceCream, CacheFlag.CACHE_FI
 -----------------POPCORN-------------------------
 ---@param player EntityPlayer
 function mod:Popcorn(player, _)
-    if player:HasTrinket(Popcorn) then
+    if player:GetPlayerType() ~= mod.Characters.JimboType and player:HasTrinket(Popcorn) then
         if TrinketValues.Popcorn == 0 then
             mod:EffectConverter(4, 0, player, 5)
             return
@@ -298,7 +296,7 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.Popcorn, CacheFlag.CACHE_DAM
 ---------------------RAMEN-------------------------
 ---@param player EntityPlayer
 function mod:Ramen(player, _)
-    if player:HasTrinket(Ramen) then
+    if player:GetPlayerType() ~= mod.Characters.JimboType and player:HasTrinket(Ramen) then
         if TrinketValues.Ramen == 0 then
             mod:EffectConverter(4, 0, player, 5)
             return
@@ -326,7 +324,7 @@ end
 --------------------------  EVEN STEVEN---------------------------
 ---@param player EntityPlayer
 function mod:EvenSteven(player, _)
-    if player:HasTrinket(Evensteven) then --controls if it has the trinket
+    if player:GetPlayerType() ~= mod.Characters.JimboType and player:HasTrinket(Evensteven) then --controls if it has the trinket
         if player:GetCollectibleCount() % 2 == 0 then
             local StevenDMG = 0.1
             local DMGToAdd = (StevenDMG * player:GetCollectibleCount()) * player:GetTrinketMultiplier(Evensteven) --scalable DMG up
@@ -348,7 +346,7 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.EvenSteven, CacheFlag.CACHE_
 ---@param player EntityPlayer
 function mod:OddTodd(player, _)
 
-    if player:HasTrinket(Oddtodd) then --controls if it has the trinket
+    if player:GetPlayerType() ~= mod.Characters.JimboType and player:HasTrinket(Oddtodd) then --controls if it has the trinket
         if player:GetCollectibleCount() % 2 == 1 then
             local OddTears = 0.07
             local TearsToAdd = (OddTears * player:GetCollectibleCount()) * player:GetTrinketMultiplier(Oddtodd) --scalable DMG up
@@ -423,7 +421,7 @@ function mod:VAgabond(player)
 end
 -----------------------GREEN JOKER------------------
 function mod:GreenJoker(player,_)
-    if player:HasTrinket(Green_joker) then
+    if player:GetPlayerType() ~= mod.Characters.JimboType and player:HasTrinket(Green_joker) then
         local Damage = TrinketValues.Green_joker 
         if mod.WantedEffect == Green_joker then
             mod:EffectConverter(1, Damage, player, 1)
@@ -435,7 +433,7 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.GreenJoker, CacheFlag.CACHE_
 --------------------RED CARD---------------------
 ---@param player EntityPlayer
 function mod:RedCard(player,_)
-    if player:HasTrinket(Red_card) then
+    if player:GetPlayerType() ~= mod.Characters.JimboType and player:HasTrinket(Red_card) then
         local Damage = TrinketValues.Red_card * player:GetTrinketMultiplier(Red_card)
         if mod.WantedEffect == Red_card then
             mod:EffectConverter(1, Damage, player, 1)
@@ -473,7 +471,7 @@ end
 ----------------FORTUNETELLER----------------------
 ---@param player EntityPlayer
 function mod:FOrtuneteller(player)
-    if player:HasTrinket(Fortuneteller) then
+    if player:GetPlayerType() ~= mod.Characters.JimboType and player:HasTrinket(Fortuneteller) then
         --print("fortune teller")
         local Damage = TrinketValues.Fortune_Teller * player:GetTrinketMultiplier(Fortuneteller)
         if mod.WantedEffect == Fortuneteller then
@@ -559,7 +557,7 @@ end
 ------------------MADNESS-----------------------
 ---@param player EntityPlayer
 function mod:MAdness(player,_)
-    if player:HasTrinket(Madness) then
+    if player:GetPlayerType() ~= mod.Characters.JimboType and player:HasTrinket(Madness) then
         --print("madness")
 
         local MadnessMult = TrinketValues.Madness + (((TrinketValues.Madness - 1)/2) * (player:GetTrinketMultiplier(Madness) - 1))
@@ -573,7 +571,7 @@ mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE, mo
 ------------------SACRIFICIAL DAGGER-----------------
 ---@param player EntityPlayer
 function mod:SacrificialDagger(player)
-    if player:HasTrinket(Sacrificial_dagger) then
+    if player:GetPlayerType() ~= mod.Characters.JimboType and player:HasTrinket(Sacrificial_dagger) then
         --print("madness")
         --print(TrinketValues.Sacrificial_dagger)
         local Damage = (TrinketValues.Sacrificial_dagger +((TrinketValues.Sacrificial_dagger/2) * (player:GetTrinketMultiplier(Sacrificial_dagger)-1) ))
@@ -640,7 +638,7 @@ end
 ------------------ONYX AGATE----------------------
 ---@param player EntityPlayer
 function mod:OnyxAgate(player,_)
-    if player:HasTrinket(Onix_agate) then
+    if player:GetPlayerType() ~= mod.Characters.JimboType and player:HasTrinket(Onix_agate) then
         --print("onyx")
         local Bombs = player:GetNumBombs()
         if Bombs <= 10 then
@@ -660,7 +658,7 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.OnyxAgate, CacheFlag.CACHE_D
 -----------------ARROWHEAD---------------------------
 ---@param player EntityPlayer
 function mod:ArrowHead(player,_)
-    if player:GetPlayerType() == mod.Characters.JimboType then
+    if player:GetPlayerType() ~= mod.Characters.JimboType and player:GetPlayerType() == mod.Characters.JimboType then
         if mod:JimboHasTrinket(player,Arrowhead) then
 
             mod:IncreaseJimboStats(player, 0, 0.1*mod.Saved.Jimbo.Progress.SuitUsed[mod.Suits.Spade],1,false,false)
@@ -687,7 +685,7 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.ArrowHead, CacheFlag.CACHE_F
 ----------------BLOODSTONE----------------------------
 ---@param player EntityPlayer
 function mod:BloodStone(player,_)
-    if player:HasTrinket(Bloodstone) then
+    if player:GetPlayerType() ~= mod.Characters.JimboType and player:HasTrinket(Bloodstone) then
         local RNG = player:GetTrinketRNG(Bloodstone)
         local Hearts = math.floor(player:GetHearts()/2)
         local Chance = 0.5 + 0.25*(player:GetTrinketMultiplier(Bloodstone)-1)
@@ -723,7 +721,7 @@ end
 ----------------------GROS MICHAEL--------------------
 ---@param player EntityPlayer
 function mod:GrosMichael(player, _)
-    if player:HasTrinket(Gros_michael) then --controls if it has the trinket
+    if player:GetPlayerType() ~= mod.Characters.JimboType and player:HasTrinket(Gros_michael) then --controls if it has the trinket
         --print(mod.WantedEffect)
         if TrinketValues.MichaelDestroyed then
             if mod.WantedEffect == "MCdestroyed" then
@@ -746,7 +744,7 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.GrosMichael, CacheFlag.CACHE
 ----------------------CAVENDISH--------------------
 ---@param player EntityPlayer
 function mod:Cavendish(player, _)
-    if player:HasTrinket(Cavendish) then --controls if it has the trinket
+    if player:GetPlayerType() ~= mod.Characters.JimboType and player:HasTrinket(Cavendish) then --controls if it has the trinket
         if not TrinketValues.MichaelDestroyed then
             if mod.WantedEffect == "MCdestroyed" then
                 mod:EffectConverter(4, 0, player, 4)
@@ -768,7 +766,7 @@ mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE, mo
 -------------------FLASH CARD---------------------
 ---@param player EntityPlayer
 function mod:FlashCard(player, _)
-    if player:HasTrinket(Flash_card) then --controls if it has the trinket
+    if player:GetPlayerType() ~= mod.Characters.JimboType and player:HasTrinket(Flash_card) then --controls if it has the trinket
         local Damage = TrinketValues.Flash_card * player:GetTrinketMultiplier(Flash_card)
         if mod.WantedEffect == Flash_card then
             mod:EffectConverter(1, Damage, player, 1)
@@ -783,7 +781,7 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.FlashCard, CacheFlag.CACHE_D
 ---@param player EntityPlayer
 function mod:Cloudnine(player, _)
     local Tanscendance = ItemsConfig:GetCollectible(CollectibleType.COLLECTIBLE_TRANSCENDENCE)
-    if player:HasTrinket(Cloud_nine) then --controls if it has the trinket
+    if player:GetPlayerType() ~= mod.Characters.JimboType and player:HasTrinket(Cloud_nine) then --controls if it has the trinket
     
         if TrinketValues.Cloud_9 == 0 then
             player.CanFly = true  
@@ -831,7 +829,7 @@ end
 --------------------SWASHBUCKLER-------------------------
 ---@param player EntityPlayer
 function mod:SwashBuckler(player, _)
-    if player:HasTrinket(Swashbuckler) then --controls if it has the trinket
+    if player:GetPlayerType() ~= mod.Characters.JimboType and player:HasTrinket(Swashbuckler) then --controls if it has the trinket
         local Damage = TrinketValues.Swashbuckler * player:GetTrinketMultiplier(Swashbuckler)
         if mod.WantedEffect == Swashbuckler then
             mod:EffectConverter(1, Damage, player, 1)
@@ -846,7 +844,7 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.SwashBuckler, CacheFlag.CACH
 --------------------LOYALTY CARD-------------------------
 ---@param player EntityPlayer
 function mod:LoyaltyCard(player)
-    if player:HasTrinket(Loyalty_card) then --controls if it has the trinket
+    if player:GetPlayerType() ~= mod.Characters.JimboType and player:HasTrinket(Loyalty_card) then --controls if it has the trinket
     
         if TrinketValues.Loyalty_card == 0 then
             player.Damage = player.Damage * 1.3  
@@ -866,8 +864,8 @@ mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE, mo
 ---------------------SUPERNOVA----------------------------
 ---@param player EntityPlayer
 function mod:SuperNova(player)
-    local Damage = 0
-    if player:HasTrinket(Supernova) then
+    if player:GetPlayerType() ~= mod.Characters.JimboType and player:HasTrinket(Supernova) then
+        local Damage = 0
         for i = 0, 1, 1 do --takes the higer value between the two held actives
             local Active = player:GetActiveItem(i)
             if TrinketValues.Supernova[Active] > Damage then

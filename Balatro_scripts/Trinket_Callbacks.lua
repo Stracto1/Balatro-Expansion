@@ -591,7 +591,7 @@ function mod:OnUpdate(player)
                 player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, true)
             end
         end
-        if player:HasTrinket(TrinketType.TRINKET_BULL) then
+        if player:HasTrinket(TrinketType.TRINKET_BULL) or player:GetPlayerType() == mod.Characters.JimboType then
             mod.WantedEffect = TrinketType.TRINKET_BULL
             player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
         end
@@ -750,7 +750,7 @@ function mod:OnShopPurchase(_,player,cost)
         mod.WantedEffect = TrinketType.TRINKET_HALLUCINATION
         mod:HAllucination(player, cost)
     end
-    if player:HasTrinket(TrinketType.TRINEKT_SWASHBUCKLER) then
+    if player:HasTrinket(TrinketType.TRINKET_SWASHBUCKLER) then
         --print(cost)
         local increase = 0
         if cost > 0 then
@@ -777,7 +777,7 @@ function mod:OnShopPurchase(_,player,cost)
         end
         TrinketValues.Swashbuckler = TrinketValues.Swashbuckler + increase
         if increase > 0 then
-            mod.WantedEffect = TrinketType.TRINEKT_SWASHBUCKLER
+            mod.WantedEffect = TrinketType.TRINKET_SWASHBUCKLER
             player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, true)
         end
     end
