@@ -155,6 +155,17 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
         JimboCards.PlayingCards:Render(RenderOff)
         RenderOff.Y = RenderOff.Y - 1
     end
+
+    if Minimap:GetState()== MinimapState.NORMAL then
+        if not mod.Saved.Jimbo.SmallCleared then
+            mod.Fonts.Balatro:DrawStringScaled(tostring(mod.Saved.Jimbo.ClearedRooms).."/"..tostring(mod.Saved.Jimbo.SmallBlind),380 + Minimap:GetShakeOffset().X,51 +Minimap:GetShakeOffset().Y,0.5,0.5,KColor(0.7,0.7,0.7,1))
+            mod.Fonts.Balatro:DrawStringScaled(tostring(mod.Saved.Jimbo.ClearedRooms).."/"..tostring(mod.Saved.Jimbo.SmallBlind),380 + Minimap:GetShakeOffset().X,50 +Minimap:GetShakeOffset().Y,0.5,0.5,KColor(1,1,1,1))
+            --mod.Fonts.Balatro:DrawString(tostring(ClearedRooms).."/"..tostring(BigBlind),Isaac.WorldToScreen(PlayerScreenPos).X+20,Isaac.WorldToScreen(PlayerScreenPos).Y+30,KColor(1,1,1,1))        
+
+        elseif not mod.Saved.Jimbo.BigCleared then
+            mod.Fonts.Balatro:DrawStringScaled(tostring(mod.Saved.Jimbo.ClearedRooms).."/"..tostring(mod.Saved.Jimbo.BigBlind),100 + Minimap:GetShakeOffset().X,Minimap:GetShakeOffset().Y,0.5,0.5,KColor(1,1,1,1))        
+        end
+    end
     
     --local String = "+"..tostring(CardsLeft)
 
@@ -398,7 +409,7 @@ function mod:JimboPackRender(_,_,_,_,Player)
     
         --SHOWS THE CHOICES AVAILABLE
         for i,Option in ipairs(mod.SelectionParams.PackOptions) do
-
+            
             if Option == 53 then --equivalent to the soul card
                 JimboCards.SpecialCards:SetFrame("Soul Stone",mod.SelectionParams.Frames % 47) --sets the frame corresponding to the value and suit
             else
@@ -459,7 +470,7 @@ function mod:JimboBarRender(Player)
         return
     end
 
-    local HandFrame = 100 - math.ceil(mod.SelectionParams.Frames/4.5)
+    local HandFrame = 100 - math.ceil(mod.SelectionParams.Frames/2.25)
     
     if HandFrame == 0 then
         sfx:Play(SoundEffect.SOUND_DEATH_BURST_BONE)
@@ -523,16 +534,6 @@ function mod:JimboInputHandle(Player)
         return
     end
 
-    for i,v in pairs(mod.Counters) do
-        if type(v) == "table" then
-            for j,w in ipairs(v) do
-                mod.Counters[i][j] = mod.Counters[i][j] + 1
-            end
-        else
-            mod.Counters[i] = mod.Counters[i] + 1
-        end
-    end
-
     local Data = Player:GetData()
     --print(Isaac.WorldToScreen(Player.Position))
 
@@ -548,9 +549,6 @@ function mod:JimboInputHandle(Player)
     if mod.SelectionParams.Mode ~= mod.SelectionParams.Modes.NONE then --while in the card selection menu cheks for inputs
         -------------INPUT HANDLING-------------------(big ass if statements ik lol)
         
-        mod.SelectionParams.Frames = mod.SelectionParams.Frames + 1
-
-
         --confirming/canceling 
         if  Input.IsActionPressed(ButtonAction.ACTION_MENUCONFIRM, Player.ControllerIndex)
             and not Input.IsActionPressed(ButtonAction.ACTION_ITEM, Player.ControllerIndex)--usually they share buttons
@@ -589,8 +587,6 @@ function mod:JimboInputHandle(Player)
     
         Player.Velocity = Vector.Zero
     else --not selecting anything
-        
-        mod.SelectionParams.Frames = mod.SelectionParams.Frames - 1
     
         if Input.IsActionPressed(ButtonAction.ACTION_DROP, Player.ControllerIndex) then
             Data.CTRLhold = Data.CTRLhold + 1
@@ -612,6 +608,27 @@ function mod:JimboInputHandle(Player)
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.JimboInputHandle)
+
+
+function mod:CountersUpdate()
+    for i,v in pairs(mod.Counters) do
+        if type(v) == "table" then
+            for j,w in ipairs(v) do
+                mod.Counters[i][j] = mod.Counters[i][j] + 1
+            end
+        else
+            mod.Counters[i] = mod.Counters[i] + 1
+        end
+    end
+
+    if mod.SelectionParams.Mode ~= mod.SelectionParams.Modes.NONE then
+        mod.SelectionParams.Frames = mod.SelectionParams.Frames + 1
+    else
+        mod.SelectionParams.Frames = mod.SelectionParams.Frames - 1
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.CountersUpdate)
+
 
 --changes the shop items to be in a specific pattern and rolls for the edition
 ---@param Pickup EntityPickup
@@ -743,11 +760,11 @@ function mod:CalculateBlinds()
     if BasicRoomNum < 40 then
         BasicRoomNum = math.floor(BasicRoomNum * (0.9 - BasicRoomNum/100))
     else
-        BasicRoomNum =  math.floor(BasicRoomNum * 0.45)
+        BasicRoomNum =  math.floor(BasicRoomNum * 0.55) --the minimum is 55% of rooms
     end
  
     mod.Saved.Jimbo.SmallBlind = math.floor(BasicRoomNum/2) -- about half of the rooms
-    mod.Saved.Jimbo.BigBlind = BasicRoomNum - mod.Saved.Jimbo.SmallBlind --about 2/3 of the rooms
+    mod.Saved.Jimbo.BigBlind = BasicRoomNum - mod.Saved.Jimbo.SmallBlind --about half of the rooms
     
     BasicRoomNum = 0 --resets the counter
     ShopAddedThisFloor = false
@@ -911,7 +928,7 @@ function mod:GiveRewards(BlindType)
     local Seed = Game:GetSeeds():GetStartSeed()
     local Jimbo
 
-    --calculates the ammount of interests BEFORE giving the clear money
+    --calculates the ammount of interests BEFORE giving the clear reward
     local Interests = math.floor(Game:GetPlayer(0):GetNumCoins()/5)
     if Interests > 5 then Interests = 5 end
 
@@ -920,6 +937,9 @@ function mod:GiveRewards(BlindType)
         if Player:GetPlayerType() == mod.Characters.JimboType then
 
             Jimbo = Player
+
+            Jimbo:AddHearts(Jimbo:GetHeartLimit()) --fully heals 
+
             Isaac.CreateTimer(function ()
                 if BlindType == mod.BLINDS.SMALL then
                     
@@ -943,9 +963,14 @@ function mod:GiveRewards(BlindType)
     end
     for _,index in ipairs(mod.Saved.Jimbo.CurrentHand) do
         if mod.Saved.Jimbo.FullDeck[index].Enhancement == mod.Enhancement.GOLDEN then
-            Game:GetPlayer(0):AddCoins(3)
+            Jimbo:AddCoins(3)
         end
     end
+
+    if mod.Saved.Jimbo.FirstDeck then
+        Jimbo:AddCoins(2)
+    end
+
     --gives interest
     Isaac.CreateTimer(function ()
         for i = 1, Interests, 1 do
@@ -1761,7 +1786,15 @@ end
 
 function mod:SellJoker(Player, Trinket, Slot)
     mod.Saved.Jimbo.Inventory.Jokers[Slot] = 0
-    local SellValue = mod:GetJokerCost(Trinket)
+    local SellValue
+    if Trinket == TrinketType.TRINKET_EGG then --egg holds its sell value in its progress
+        
+        SellValue = mod.Saved.Jimbo.Progress.Inventory[Slot]
+        print(SellValue)
+    else
+        SellValue = math.ceil(mod:GetJokerCost(Trinket) / 2)
+    end
+    
 
     if mod.Saved.Jimbo.Inventory.Editions[Slot] == mod.Edition.NEGATIVE then
         --selling a negative joker reduces your inventory size

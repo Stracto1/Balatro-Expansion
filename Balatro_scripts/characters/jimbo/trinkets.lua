@@ -189,13 +189,44 @@ function mod:OnBlindClear(BlindType)
                        RandomVector()*3, nil, RandomJoker, RandomSeed)
 
             mod:CreateBalatroEffect(Index,EFFECT_COLORS.Yellow, ACTIVATESOUND, "ACTIVATE!")
+
         elseif Joker == TrinketType.TRINKET_CARTOMANCER then
             local RandomTarot = Player:GetTrinketRNG(TrinketType.TRINKET_RIFF_RAFF):RandomInt(1,22)
             Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
                        RandomVector()*3, nil, RandomTarot, RandomSeed)
 
             mod:CreateBalatroEffect(Index,EFFECT_COLORS.Yellow, ACTIVATESOUND, "ACTIVATE!")
+
+        elseif Joker == TrinketType.TRINKET_EGG then
+
+            mod.Saved.Jimbo.Progress.Inventory[Index] = mod.Saved.Jimbo.Progress.Inventory[Index] + 2
+
+            mod:CreateBalatroEffect(Index,EFFECT_COLORS.Yellow, ACTIVATESOUND, "UPGRADE!")
+
+        elseif Joker == TrinketType.TRINKET_DELAYED_GRATIFICATION then
+
+            local NumCoins = Player:GetHearts()/2 - 1 --gives coins basing on how many extra heatrs are left
+
+            for i = 1, NumCoins do
+                Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
+                           RandomVector()*3, nil, CoinSubType.COIN_PENNY, RandomSeed)
             end
+            mod:CreateBalatroEffect(Index,EFFECT_COLORS.Yellow, ACTIVATESOUND, "+"..tostring(NumCoins).."$")
+        
+
+        elseif Joker == TrinketType.TRINKET_CLOUD_NINE then
+            local Nines = 0
+            for _,card in ipairs(mod.Saved.Jimbo.FullDeck) do
+                if card.Value == 9 then
+                    Nines = Nines + 1
+                end
+            end
+            for i=1, Nines do
+                Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
+                           RandomVector()*3, nil, CoinSubType.COIN_PENNY, RandomSeed)
+            end
+            mod:CreateBalatroEffect(Index,EFFECT_COLORS.Yellow, ACTIVATESOUND, "+"..tostring(Nines).."$")
+        end
     end
 
 

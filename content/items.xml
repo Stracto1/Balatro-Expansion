@@ -20,54 +20,54 @@
 <!--GREEDCHANGE || tells if in its OnRoomClear callback it checks for greed wave num before activating-->
 
 <!--the custom tags are as follows: -->
-<!-- !BASEPRICE - INITIALPROGRESS - ?rarity -->
+<!-- !BASEPRICE - INITIALPROGRESS - ?rarity - OTHERS -->
 <!-- COPY: the trinket can be copied by blueprint and brainstorm as jimbo -->
 
-<!--the extra "!" and "?" are to force certain order when using GetCustomTags() since apparently it sorts them alfabetically-->
+<!--the extra "!" and "?" are to force a certain order when using GetCustomTags() since apparently it sorts them alfabetically-->
 
 <items gfxroot="gfx/items/" version="1">
-    <trinket gfx="invisiblejoker_trinket.png" name="Invisible joker" description="Now you see me, now you don't" customtags=" !7 0 ?uncommon balatro activate "/>
-    <trinket gfx="rocket_trinket.png" name="Rocket" description="Blast off!" customtags=" !6 2 uncommon balatro activate value "/>
-    <trinket gfx="goldenjoker_trinket.png" name="Golden joker" description="Ooh, so shiny!" customtags=" !0 0 common balatro activate givescoins "/>
-    <trinket gfx="hallucination_trinket.png" name="Hallucination" description="Is it real?" customtags=" !0 0 common balatro activate "/>
-    <trinket gfx="riffraff_trinket.png" name="Riff-raff" description="Better than nothing..." customtags=" !0 0 common balatro activate "/>
-    <trinket gfx="vagabond_trinket.png" name="Vagabond" description="He lives under the Pontos" customtags=" !0 0 rare balatro activate greedchange "/>
-    <trinket gfx="blueprint_trinket.png" name="Blueprint" description="Your latest project" customtags=" !0 0 rare balatro activate value "/>
-    <trinket gfx="brainstorm_trinket.png" name="Brainstorm" description="Your very first idea" customtags=" !0 0 rare balatro activate value "/>
-    <trinket gfx="smearedjoker_trinket.png" name="Smeared joker" description="Oops, my bad" customtags=" !0 0 uncommon balatro activate "/>
-    <trinket gfx="mrbones_trinket.png" name="Mr. Bones" description="Try again..." customtags=" !0 0 uncommon balatro activate revive chancerevive "/>
-    <trinket gfx="roughgem_trinket.png" name="Rough gem" description="Who doesn't want one?" customtags=" !0 0 uncommon balatro activate greedchange "/>
-    <trinket gfx="cartomancer_trinket.png" name="Cartomancer" description="Pick a card" customtags=" !0 0 uncommon balatro activate "/>
-    <trinket gfx="dna_trinket.png" name="Dna" description="It duplicates" customtags=" !0 0 rare balatro activate "/>
-    <trinket gfx="egg_trinket.png" name="Egg" description="Don't drop it!" customtags=" !0 0 common balatro activate value "/>
-    <trinket gfx="delayedgretification_trinket.png" name="Delayed gratification" description="play good, get rewards" customtags=" !0 0 common balatro activate givescoins greedchange "/>
+    <trinket gfx="invisiblejoker_trinket.png" name="Invisible joker" description="Now you see me, now you don't" customtags=" !7 0 ??uncommon balatro activate "/>
+    <trinket gfx="rocket_trinket.png" name="Rocket" description="Blast off!" customtags=" !6 2 ?uncommon balatro activate value "/>
+    <trinket gfx="goldenjoker_trinket.png" name="Golden joker" description="Ooh, so shiny!" customtags=" !0 0 ?common balatro activate givescoins "/>
+    <trinket gfx="hallucination_trinket.png" name="Hallucination" description="Is it real?" customtags=" !0 0 ?common balatro activate "/>
+    <trinket gfx="riffraff_trinket.png" name="Riff-raff" description="Better than nothing..." customtags=" !0 0 ?common balatro activate "/>
+    <trinket gfx="vagabond_trinket.png" name="Vagabond" description="He lives under the Pontos" customtags=" !0 0 ?rare balatro activate greedchange "/>
+    <trinket gfx="blueprint_trinket.png" name="Blueprint" description="Your latest project" customtags=" !0 0 ?rare balatro activate value "/>
+    <trinket gfx="brainstorm_trinket.png" name="Brainstorm" description="Your very first idea" customtags=" !0 0 ?rare balatro activate value "/>
+    <trinket gfx="smearedjoker_trinket.png" name="Smeared joker" description="Oops, my bad" customtags=" !0 0 ?uncommon balatro activate "/>
+    <trinket gfx="mrbones_trinket.png" name="Mr. Bones" description="Try again..." customtags=" !0 0 ?uncommon balatro activate revive chancerevive "/>
+    <trinket gfx="roughgem_trinket.png" name="Rough gem" description="Who doesn't want one?" customtags=" !0 0 ?uncommon balatro activate greedchange "/>
+    <trinket gfx="cartomancer_trinket.png" name="Cartomancer" description="Pick a card" customtags=" !0 0 ?uncommon balatro activate "/>
+    <trinket gfx="dna_trinket.png" name="Dna" description="It duplicates" customtags=" !0 0 ?rare balatro activate "/>
+    <trinket gfx="egg_trinket.png" name="Egg" description="Don't drop it!" customtags=" !5 2 ?common balatro activate value "/>
+    <trinket gfx="delayedgretification_trinket.png" name="Delayed gratification" description="play good, get rewards" customtags=" !0 0 ?common balatro activate givescoins greedchange "/>
 
-    <trinket cache="flying" gfx="cloudnine_trinket.png" name="Cloud 9" description="Feels floaty... Sometimes" customtags=" !0 0 common balatro activate value "/>
-    <trinket cache="damage" gfx="joker_trinket.png" name="Joker" description="It's just a classic" customtags=" !0 0 common balatro mult copy"/>
-    <trinket cache="firedelay" gfx="bull_trinket.png" name="Bull" description="Let's get in the market!" coins="5" customtags=" !0 0 uncommon balatro chips "/>
-    <trinket cache="damage" gfx="abstractjoker_trinket.png" name="Abstract joker" description="Such a piece of art" customtags=" !0 0 common balatro mult "/>
-    <trinket cache="damage" gfx="misprint_trinket.png" name="Misprint" description="It jussic's stcla a" customtags=" !0 0 common balatro mult "/>
-    <trinket cache="damage" gfx="jokerstencil_trinket.png" name="Joker stencil" description="Keep it hollow" customtags=" !0 0 uncommon balatro multm value "/>
-    <trinket cache="firedelay" gfx="stonejoker_trinket.png" name="Stone joker" description="Rock the rocks" customtags=" !0 0 uncommon balatro chips value "/>
-    <trinket cache="firedelay" gfx="icecream_trinket.png" name="Ice cream" description="Enjoy it until it lasts" customtags=" !0 0 common balatro chips value "/>
-    <trinket cache="damage" gfx="popcorn_trinket.png" name="Popcorn" description="It's never enough" customtags=" !0 0 common balatro mult value " />
-    <trinket cache="damage" gfx="ramen_trinket.png" name="Ramen" description="Good but make it last" customtags=" !0 0 uncommon balatro multm value "/>
-    <trinket cache="damage" gfx="evensteven_trinket.png" name="Even steven" description="Even he dislikes you" customtags=" !0 0 common balatro mult "/>
-    <trinket cache="firedelay" gfx="oddtodd_trinket.png" name="Odd todd" description="what an odd character" customtags=" !0 0 common balatro chips "/>
-    <trinket cache="damage" gfx="greenjoker_trinket.png" name="Green joker" description="The classic... but green" customtags=" !0 0 common balatro mult value "/>
-    <trinket cache="damage" gfx="redcard_trinket.png" name="Red card" description="Stop right there!" customtags=" !0 0 common balatro mult value "/>
-    <trinket cache="damage" gfx="fortuneteller_trinket.png" name="Fortune Teller" description="Your future is in the cards" customtags=" !0 0 common balatro mult value "/>
-    <trinket cache="damage" gfx="madness_trinket.png" name="Madness" description="Embrace your true self" customtags=" !0 0 uncommon balatro multm value "/>
-    <trinket cache="damage" gfx="agateonyx_trinket.png" name="Onyx agate" description="What's this?" customtags=" !0 0 uncommon balatro mult "/>
-    <trinket cache="firedelay" gfx="arrowhead_trinket.png" name="Arrowhead" description="Where's the rest?" customtags=" !0 0 uncommon 10 balatro chips "/>
-    <trinket cache="damage" gfx="bloodstone_trinket.png" name="Bloodstone" description="How did it end up here?" customtags=" !0 0 uncommon balatro multm "/>
-    <trinket cache="damage" gfx="grosmichael_trinket.png" name="Gros Michel" description="Please don't go..." customtags=" !0 0 common balatro mult "/>
-    <trinket cache="damage" gfx="cavendish_trinket.png" name="Cavendish" description="Better than michel" customtags=" !0 0 common balatro multm "/>
-    <trinket cache="damage" gfx="flashcard_trinket.png" name="Flash card" description="Learn you ABCs!" customtags=" !0 0 uncommon balatro mult value "/>
-    <trinket cache="damage" gfx="swashbuckler_trinket.png" name="Swashbuckler" description="Spending's power" customtags=" !0 0 common balatro mult value "/>
-    <trinket cache="damage" gfx="sacrificialdagger_trinket.png" name="Sacrificial dagger" description="Give to gain" customtags=" !0 0 uncommon balatro mult value "/>
-    <trinket cache="damage" gfx="loyaltycard_trinket.png" name="Loyalty card" description="Good prize once every while" customtags=" !0 0 uncommon balatro multm value greedchange "/>
-    <trinket cache="damage" gfx="supernova_trinket.png" name="Supernova" description="Let it grow..." customtags=" !0 0 common balatro mult value roomclear "/>
+    <trinket cache="flying" gfx="cloudnine_trinket.png" name="Cloud 9" description="Feels floaty... Sometimes" customtags=" !0 0 ?common balatro activate value "/>
+    <trinket cache="damage" gfx="joker_trinket.png" name="Joker" description="It's just a classic" customtags=" !0 0 ?common balatro mult copy"/>
+    <trinket cache="firedelay" gfx="bull_trinket.png" name="Bull" description="Let's get in the market!" coins="5" customtags=" !0 0 ?uncommon balatro chips "/>
+    <trinket cache="damage" gfx="abstractjoker_trinket.png" name="Abstract joker" description="Such a piece of art" customtags=" !0 0 ?common balatro mult "/>
+    <trinket cache="damage" gfx="misprint_trinket.png" name="Misprint" description="It jussic's stcla a" customtags=" !0 0 ?common balatro mult "/>
+    <trinket cache="damage" gfx="jokerstencil_trinket.png" name="Joker stencil" description="Keep it hollow" customtags=" !0 0 ?uncommon balatro multm value "/>
+    <trinket cache="firedelay" gfx="stonejoker_trinket.png" name="Stone joker" description="Rock the rocks" customtags=" !0 0 ?uncommon balatro chips value "/>
+    <trinket cache="firedelay" gfx="icecream_trinket.png" name="Ice cream" description="Enjoy it until it lasts" customtags=" !0 0 ?common balatro chips value "/>
+    <trinket cache="damage" gfx="popcorn_trinket.png" name="Popcorn" description="It's never enough" customtags=" !0 0 ?common balatro mult value " />
+    <trinket cache="damage" gfx="ramen_trinket.png" name="Ramen" description="Good but make it last" customtags=" !0 0 ?uncommon balatro multm value "/>
+    <trinket cache="damage" gfx="evensteven_trinket.png" name="Even steven" description="Even he dislikes you" customtags=" !0 0 ?common balatro mult "/>
+    <trinket cache="firedelay" gfx="oddtodd_trinket.png" name="Odd todd" description="what an odd character" customtags=" !0 0 ?common balatro chips "/>
+    <trinket cache="damage" gfx="greenjoker_trinket.png" name="Green joker" description="The classic... but green" customtags=" !0 0 ?common balatro mult value "/>
+    <trinket cache="damage" gfx="redcard_trinket.png" name="Red card" description="Stop right there!" customtags=" !0 0 ?common balatro mult value "/>
+    <trinket cache="damage" gfx="fortuneteller_trinket.png" name="Fortune Teller" description="Your future is in the cards" customtags=" !0 0 ?common balatro mult value "/>
+    <trinket cache="damage" gfx="madness_trinket.png" name="Madness" description="Embrace your true self" customtags=" !0 0 ?uncommon balatro multm value "/>
+    <trinket cache="damage" gfx="agateonyx_trinket.png" name="Onyx agate" description="What's this?" customtags=" !0 0 ?uncommon balatro mult "/>
+    <trinket cache="firedelay" gfx="arrowhead_trinket.png" name="Arrowhead" description="Where's the rest?" customtags=" !0 0 ?uncommon 10 balatro chips "/>
+    <trinket cache="damage" gfx="bloodstone_trinket.png" name="Bloodstone" description="How did it end up here?" customtags=" !0 0 ?uncommon balatro multm "/>
+    <trinket cache="damage" gfx="grosmichael_trinket.png" name="Gros Michel" description="Please don't go..." customtags=" !0 0 ?common balatro mult "/>
+    <trinket cache="damage" gfx="cavendish_trinket.png" name="Cavendish" description="Better than michel" customtags=" !0 0 ?common balatro multm "/>
+    <trinket cache="damage" gfx="flashcard_trinket.png" name="Flash card" description="Learn you ABCs!" customtags=" !0 0 ?uncommon balatro mult value "/>
+    <trinket cache="damage" gfx="swashbuckler_trinket.png" name="Swashbuckler" description="Spending's power" customtags=" !0 0 ?common balatro mult value "/>
+    <trinket cache="damage" gfx="sacrificialdagger_trinket.png" name="Sacrificial dagger" description="Give to gain" customtags=" !0 0 ?uncommon balatro mult value "/>
+    <trinket cache="damage" gfx="loyaltycard_trinket.png" name="Loyalty card" description="Good prize once every while" customtags=" !0 0 ?uncommon balatro multm value greedchange "/>
+    <trinket cache="damage" gfx="supernova_trinket.png" name="Supernova" description="Let it grow..." customtags=" !0 0 ?common balatro mult value roomclear "/>
 
 
 

@@ -202,12 +202,12 @@
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Soul" anm2path="Spectral_soul.anm2" id="5" variant="300" subtype="2510"
+    <entity name="Balck hole" anm2path="Spectral_black_hole.anm2" id="5" variant="300" subtype="2510"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Balck hole" anm2path="Spectral_black_hole.anm2" id="5" variant="300" subtype="2511"
+    <entity name="The Soul" anm2path="Spectral_soul.anm2" id="5" variant="300" subtype="2511"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>

@@ -4,7 +4,7 @@
         nameimage="playername_jimbo.png"
         
         heartcontainers="6"
-        redhearts="8"
+        redhearts="6"
         speedmodifier="0"
         firedelaymodifier="-3.15"
         damagemodifier="-2.5"

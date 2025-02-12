@@ -68,14 +68,14 @@ function mod:EditionsStats(Player, Flags)
         for i,Edition in ipairs(mod.Saved.Jimbo.Inventory.Editions) do
             if Flags & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
                 if Edition == mod.Edition.HOLOGRAPHIC then
-                    mod.IncreaseJimboStats(Player,0.5, 0, 1, false, false)
+                    mod:IncreaseJimboStats(Player,0.5, 0, 1, false, false)
                 elseif Edition == mod.Edition.POLYCROME then
-                    mod.IncreaseJimboStats(Player,0, 0, 1.25, false, false)
+                    mod:IncreaseJimboStats(Player,0, 0, 1.2, false, false)
                 end
             end
             if Flags & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_FIREDELAY then
                 if Edition == mod.Edition.FOIL then
-                    mod.IncreaseJimboStats(Player,0, 1, 1, false, false)
+                    mod:IncreaseJimboStats(Player,0, 1, 1, false, false)
                 end
             end
         end

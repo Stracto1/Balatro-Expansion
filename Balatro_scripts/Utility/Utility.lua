@@ -551,5 +551,5 @@ function mod:FrameToSpecialCard(Frame)
     elseif Frame > Card.CARD_WORLD and Frame <= 35 then --planet cards
         return Frame + mod.Planets.PLUTO - 23
     end
-    return Frame + mod.Spectrals.FAMILIAR - 35 --spectral cards
+    return Frame + mod.Spectrals.FAMILIAR - 36 --spectral cards
 end
