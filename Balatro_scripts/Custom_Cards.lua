@@ -39,6 +39,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
         elseif card == Card.CARD_MAGICIAN then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.MAGICIAN)
+            
             return false
         elseif card == Card.CARD_HIGH_PRIESTESS then
 
@@ -53,13 +54,14 @@ function mod:NewTarotEffects(card, Player, UseFlags)
 
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
                                RandomVector()*2, nil, Rplanet, RandomSeed)
-                --placeholder effect, should spawn 2 planet cards
             end
+            
             return false
         
         elseif card == Card.CARD_EMPRESS then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.EMPRESS)
+            
             return false
         
         elseif card == Card.CARD_EMPEROR then
@@ -78,19 +80,23 @@ function mod:NewTarotEffects(card, Player, UseFlags)
         elseif card == Card.CARD_HIEROPHANT then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.HIEROPHANT)
+            
             return false
         elseif card == Card.CARD_LOVERS then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.LOVERS)
+            
             return false
         
         elseif card == Card.CARD_CHARIOT then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.CHARIOT)
+            
             return false
         elseif card == Card.CARD_JUSTICE then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.JUSTICE)
+            
             return false
         elseif card == Card.CARD_HERMIT then
             local CoinsToAdd = Player:GetNumCoins()
@@ -105,6 +111,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
             if CardRNG:RandomFloat() < 0.25 then
                 
                 --sets a random joker to stuff (needs time ok?!?)
+                Isaac.RunCallback("INVENTORY_CHANGE", Player)
             else
                 --mod:CreateBalatroEffect() purple
             end
@@ -114,14 +121,17 @@ function mod:NewTarotEffects(card, Player, UseFlags)
         elseif card == Card.CARD_STRENGTH then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.STRENGTH)
+            
             return false
         elseif card == Card.CARD_HANGED_MAN then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.HANGED)
+            
             return false
         elseif card == Card.CARD_DEATH then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.DEATH1)
+            
             return false
         elseif card == Card.CARD_TEMPERANCE then
             local CoinsToGain
@@ -129,7 +139,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
                 if Joker == 0 then
                     goto skip
                 end
-                local SellValue = math.floor(ItemsConfig:GetTrinket(Joker):GetCustomTags()[1] / 2)
+                local SellValue = math.floor(mod:GetJokerCost(Joker)/2) --placeholder
                 CoinsToGain = CoinsToGain + SellValue
                 ::skip::
             end
@@ -138,22 +148,27 @@ function mod:NewTarotEffects(card, Player, UseFlags)
         elseif card == Card.CARD_DEVIL then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.DEVIL)
+            
             return false
         elseif card == Card.CARD_TOWER then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.TOWER)
+            
             return false
         elseif card == Card.CARD_STARS then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.STARS)
+            
             return false
         elseif card == Card.CARD_MOON then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.MOON)
+            
             return false
         elseif card == Card.CARD_SUN then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.SUN)
+            
             return false
         elseif card == Card.CARD_JUDGEMENT then
             for i, Joker in ipairs(mod.Saved.Jimbo.Inventory) do
@@ -162,16 +177,17 @@ function mod:NewTarotEffects(card, Player, UseFlags)
                     local RandomJoker = mod.GetRandom(mod.Trinkets, CardRNG, true)
                     mod.Saved.Jimbo.Inventory[i] = RandomJoker
                     mod.Saved.Jimbo.Progress = ItemsConfig:GetTrinket(RandomJoker):GetCustomTags()[2] --sets the base progress
-
-                    break
+                    Isaac.RunCallback("INVENTORY_CHANGE", Player)
+                    return false
                 end
             end
+            Player:AnimateSad()
             return false
         elseif card == Card.CARD_WORLD then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.WORLD)
+            
             return false
-        
         end
         mod.Saved.Jimbo.LastUsed[PIndex] = Card
     end
@@ -422,11 +438,14 @@ function mod:SpectralCards(card, Player)
                 local RandomFace = {}
                 RandomFace.Value = CardRNG:RandomInt(11,13)
                 RandomFace.Suit = CardRNG:RandomInt(1,4)
-                RandomFace.Enhancement = CardRNG:RandomInt(2,9)
+                repeat 
+                    RandomFace.Enhancement = CardRNG:RandomInt(2,9)
+                until RandomFace.Enhancement ~= mod.Enhancement.STONE
                 RandomFace.Seal = mod.Seals.NONE
-                RandomFace.Edition = mod.Edition.BASE   
+                RandomFace.Edition = mod.Edition.BASE
                 table.insert(mod.Saved.Jimbo.FullDeck, RandomFace)
             end
+            Isaac.RunCallback("DECK_SHIFT", Player)
         elseif card == mod.Spectrals.GRIM then
 
             local Valid = 0
@@ -450,11 +469,14 @@ function mod:SpectralCards(card, Player)
                 local RandomAce = {}
                 RandomAce.Value = 1
                 RandomAce.Suit = CardRNG:RandomInt(1,4)
-                RandomAce.Enhancement = CardRNG:RandomInt(2,9)
+                repeat 
+                    RandomAce.Enhancement = CardRNG:RandomInt(2,9)
+                until RandomAce.Enhancement ~= mod.Enhancement.STONE
                 RandomAce.Seal = mod.Seals.NONE
                 RandomAce.Edition = mod.Edition.BASE    
                 table.insert(mod.Saved.Jimbo.FullDeck, RandomAce)
             end 
+            Isaac.RunCallback("DECK_SHIFT", Player)
         elseif card == mod.Spectrals.INCANTATION then
 
             local Valid = 0
@@ -478,17 +500,22 @@ function mod:SpectralCards(card, Player)
                 local RandomAce = {}
                 RandomAce.Value = CardRNG:RandomInt(2,10)
                 RandomAce.Suit = CardRNG:RandomInt(1,4)
-                RandomAce.Enhancement = CardRNG:RandomInt(2,9)
+                repeat 
+                    RandomCard.Enhancement = CardRNG:RandomInt(2,9)
+                until RandomCard.Enhancement ~= mod.Enhancement.STONE
                 RandomAce.Seal = mod.Seals.NONE
                 RandomAce.Edition = mod.Edition.BASE    
-                table.insert(mod.Saved.Jimbo.FullDeck, RandomAce)
-            end 
+                table.insert(mod.Saved.Jimbo.FullDeck, RandomCard)
+            end
+            Isaac.RunCallback("DECK_SHIFT", Player)
         elseif card == mod.Spectrals.TALISMAN then
-            mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, 
-                                                  mod.SelectionParams.Purposes.TALISMAN)    
+            mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
+                                                  mod.SelectionParams.Purposes.TALISMAN)
+            
         elseif card == mod.Spectrals.AURA then  
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, 
-                                                  mod.SelectionParams.Purposes.AURA)    
+                                                  mod.SelectionParams.Purposes.AURA)
+            
         elseif card == mod.Spectrals.WRAITH then    
             Player:AddCoins(-Player:GetNumCoins()) --mekes him poor 
             local RandomJoker = mod:GetRandom(mod.Trinkets.rare, CardRNG)
@@ -496,10 +523,11 @@ function mod:SpectralCards(card, Player)
                 if Joker == 0 then --the first empty slot
                     mod.Saved.Jimbo.Inventory.Jokers[i] = RandomJoker
                     mod.Saved.Jimbo.Inventory.Editions[i] = mod.Edition.BASE
+                    Isaac.RunCallback("INVENTORY_CHANGE", Player)
                     return
                 end
             end
-            Player:AnimateSad() --no joker for you :(   
+            Player:AnimateSad() --no joker for you if no slot is empty :(   
         elseif card == mod.Spectrals.SIGIL then
             local RandomSuit = CardRNG:RandomInt(1,4)
             for i,v in ipairs(mod.Saved.Jimbo.CurrentHand) do
@@ -507,7 +535,7 @@ function mod:SpectralCards(card, Player)
                     mod.Saved.Jimbo.FullDeck[v].Suit = RandomSuit
                 end
             end
-        
+            Isaac.RunCallback("DECK_SHIFT", Player)
         elseif card == mod.Spectrals.OUIJA then 
             if mod.Saved.Jimbo.HandSize == 1 then
                 Player:AnimateSad()
@@ -520,8 +548,8 @@ function mod:SpectralCards(card, Player)
                     mod.Saved.Jimbo.FullDeck[v].Value = RandomValue
                 end
             end
-
-            mod:ChangeJimboHandSize(Player, -1) 
+            mod:ChangeJimboHandSize(Player, -1)
+            Isaac.RunCallback("DECK_SHIFT", Player)
         elseif card == mod.Spectrals.ECTOPLASM then 
             if mod.Saved.Jimbo.HandSize == 1 then
                 Player:AnimateSad()
@@ -544,7 +572,7 @@ function mod:SpectralCards(card, Player)
             mod:AddJimboInventorySlots(Player, 1)
             mod:ChangeJimboHandSize(Player, -mod.Saved.Jimbo.EctoUses)    
         elseif card == mod.Spectrals.IMMOLATE then  
-            local ValidCards = {} --counts how many cards in the hand exixst in the deck
+            local ValidCards = {} --counts how many cards in the hand exist in the deck
             for i,v in ipairs(mod.Saved.Jimbo.CurrentHand) do 
                 if mod.Saved.Jimbo.FullDeck[v] then
                     table.insert(ValidCards, mod.Saved.Jimbo.CurrentHand[i])
@@ -572,7 +600,8 @@ function mod:SpectralCards(card, Player)
             for _,v in ipairs(RandomCards) do
                 table.remove(mod.Saved.Jimbo.FullDeck, v)
                 Player:AddCoins(4)
-            end 
+            end
+            Isaac.RunCallback("DECK_SHIFT", Player)
         elseif card == mod.Spectrals.ANKH then  
             local FilledSlots = {} --gets the slot filled with a joker
             for i,v in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
@@ -604,7 +633,8 @@ function mod:SpectralCards(card, Player)
                         Added = true
                     end
                 end
-            end 
+            end
+            Isaac.RunCallback("INVENTORY_CHANGE", Player)
         elseif card == mod.Spectrals.DEJA_VU then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, 
                                                   mod.SelectionParams.Purposes.DEJA_VU)
@@ -630,7 +660,7 @@ function mod:SpectralCards(card, Player)
                     mod.Saved.Jimbo.Inventory.Editions[i] = mod.Edition.POLYCROME
                 end
             end 
-
+            Isaac.RunCallback("INVENTORY_CHANGE", Player)
         elseif card == mod.Spectrals.TRANCE then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, 
                                                   mod.SelectionParams.Purposes.TRANCE)
@@ -643,7 +673,7 @@ function mod:SpectralCards(card, Player)
         elseif card == mod.Spectrals.CRYPTID then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, 
                                                   mod.SelectionParams.Purposes.CRYPTID)
-
+            
         elseif card == mod.Spectrals.SOUL then
 
             local Legendary = mod:GetRandom(mod.Trinkets.legendary, CardRNG)
@@ -651,6 +681,7 @@ function mod:SpectralCards(card, Player)
             if RandomSeed == 0 then RandomSeed = 1 end
             Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
                            RandomVector()*2, nil, Legendary, RandomSeed)
+            Isaac.RunCallback("INVENTORY_CHANGE", Player)
         elseif card == mod.Spectrals.BLACK_HOLE then
             
         end

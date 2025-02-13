@@ -260,21 +260,23 @@ function mod:JimboHandRender(Player, Offset)
         return
     end
 
-    local TargetScale = 0.5 --while selecting the the cards get biggerm
+    local TargetScale = 0.5 
     if mod.SelectionParams.Mode == mod.SelectionParams.Modes.HAND then
-        TargetScale = 1
+        TargetScale = 1 --while selecting the the cards gets bigger
     end
     if ScaleMult ~= TargetScale then
         --ScaleMult = mod:Lerp(ScaleMult,TargetScale, mod.SelectionParams.Frames/100)
         ScaleMult = mod:Lerp(1.5 - TargetScale,TargetScale, mod.SelectionParams.Frames/5)
+        
     end
 
     local PlayerScreenPos = Isaac.WorldToRenderPosition(Player.Position)
     local BaseRenderOff = Vector( (-7*mod.Saved.Jimbo.HandSize + 3.5) * ScaleMult + 1.5*(5-mod.Saved.Jimbo.HandSize),26 * ScaleMult)
-    
+
     local RenderOff = BaseRenderOff + Vector.Zero
     local TrueOffset
 
+    
     for i, Pointer in ipairs(mod.Saved.Jimbo.CurrentHand) do
         local Card = mod.Saved.Jimbo.FullDeck[Pointer]
         if Card then
@@ -294,7 +296,7 @@ function mod:JimboHandRender(Player, Offset)
             -------------------------------------------------------------
             LastCardFullPoss[Pointer] = LastCardFullPoss[Pointer] or RenderOff.X --check nil
 
-            TrueOffset = Vector(mod:Lerp(LastCardFullPoss[Pointer], RenderOff.X, mod.Counters.SinceShift/10)
+            TrueOffset = Vector(mod:Lerp(LastCardFullPoss[Pointer], RenderOff.X, mod.Counters.SinceShift/5)
                                 ,RenderOff.Y)
             
 
@@ -896,6 +898,8 @@ function mod:OnDeckShift(Player)
     end
 
     mod.Counters.SinceShift = 0
+
+    Player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, false)
     Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, true)
 
 end
@@ -1234,15 +1238,16 @@ function mod:CardShotFinal(Player,ShotCard,Triggers,Evaluate)
         --------EDITIONS EFFECTS----------
         ----------------------------------
         if ShotCard.Edition == mod.Edition.FOIL then
-            mod:IncreaseJimboStats(Player,0, 0.5 * Triggers, 1,false,true)
+            mod:IncreaseJimboStats(Player,Triggers, 0, 1,false,true) --Equal to 1*Triggers
         elseif ShotCard.Edition == mod.Edition.HOLOGRAPHIC then
-            mod:IncreaseJimboStats(Player,0.15 * Triggers, 0, 1,false,true)
+            mod:IncreaseJimboStats(Player,0, 0.15 * Triggers, 1,false,true)
         elseif ShotCard.Edition == mod.Edition.POLYCROME then
             mod:IncreaseJimboStats(Player,0, 0, 1.2 ^ Triggers,false,true)
         end
 
         --increases the chips basing on the card value
         local TearsToGet = (mod:GetActualCardValue(ShotCard.Value)/50 + mod.Saved.Jimbo.CardLevels[ShotCard.Value]*0.02) * Triggers
+        local PlayerRNG = Player:GetDropRNG()
 
         ---------ENHANCEMENT EFFECTS----------
         --------------------------------------
@@ -1250,33 +1255,33 @@ function mod:CardShotFinal(Player,ShotCard,Triggers,Evaluate)
             TearsToGet = 0.5 * Triggers
 
         elseif ShotCard.Enhancement == mod.Enhancement.MULT then
-            mod:IncreaseJimboStats(Player,0.04 * Triggers, 0,1, false,true)
+            mod:IncreaseJimboStats(Player, 0, 0.04 * Triggers,1, false,true)
 
         elseif ShotCard.Enhancement == mod.Enhancement.BONUS then
-            mod:IncreaseJimboStats(Player,0, 0.4 * Triggers, 1,false,true)
+            mod:IncreaseJimboStats(Player,0.6 * Triggers, 0 , 1,false,true)
 
         elseif ShotCard.Enhancement == mod.Enhancement.GLASS then
             mod:IncreaseJimboStats(Player,0, 0, 1.3 ^ Triggers, false,true)
-            if mod:TryGamble(Player, RNG(RandomSeed), 0.1) then
+            if mod:TryGamble(Player, PlayerRNG, 0.1) then
                 table.remove(mod.Saved.Jimbo.FullDeck, ShotCard.Index)
                 mod:CreateBalatroEffect(Player, EFFECT_COLORS.Yellow, ACTIVATESOUND, "BROKEN!", Vector(0, 20))
             end
 
         elseif ShotCard.Enhancement == mod.Enhancement.LUCKY then
             for i = 1, Triggers do
-                if mod:TryGamble(Player, RNG(RandomSeed), 0.20) then
-                    mod:IncreaseJimboStats(Player, 0.2 * Triggers, 0, 1, false,true)
+                if mod:TryGamble(Player, PlayerRNG, 0.20) then
+                    mod:IncreaseJimboStats(Player, 0, 0.2, 1, false,true)
+                    mod:CreateBalatroEffect(Player, EFFECT_COLORS.Red, ACTIVATESOUND, "+0.2", Vector(0, 20))
                 end
 
-                if mod:TryGamble(Player, RNG(RandomSeed), 0.07) then
-                    mod:IncreaseJimboStats(Player, 0.2 * Triggers, 0, 1, false,true)
+                if mod:TryGamble(Player, PlayerRNG, 0.07) then
                     Player:AddCoins(10)
                     mod:CreateBalatroEffect(Player, EFFECT_COLORS.Yellow, ACTIVATESOUND, "+10 $", Vector(0, 20))
                 end
             end
         end
         
-        mod:IncreaseJimboStats(Player, 0, TearsToGet, 1,false, true)
+        mod:IncreaseJimboStats(Player, TearsToGet, 0, 1,false, true)
 
 
         Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, false)
@@ -1286,7 +1291,7 @@ end
 mod:AddCallback("CARD_SHOT_FINAL", mod.CardShotFinal)
 
 
---these calculations are used for normal items, NOT stats given by jokers or mod related stuff
+--these calculations are used for normal items, NOT stats given by jokers or mod related stuff, as they are flat sta ups
 ---@param Player EntityPlayer
 ---@param Cache CacheFlag
 function mod:JimboStatCalculator(Player, Cache)
@@ -1422,7 +1427,7 @@ function mod:StatGiver(Player, Cache)
             --print(stats.Damage + stats.JokerDamage)
             --print(Player.Damage * stats.JokerMult * stats.Mult)
 
-            Player.Damage = Player.Damage + (stats.Damage + stats.JokerDamage) * Player.Damage * stats.JokerMult * stats.Mult
+            Player.Damage = (Player.Damage + (stats.Damage + stats.JokerDamage) * Player.Damage) * stats.JokerMult * stats.Mult
 
         end
         if Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then
@@ -1434,7 +1439,7 @@ end
 mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE, mod.StatGiver)
 
 
-function mod:IncreaseJimboStats(Player,DamageUp,TearsUp,Mult, Evaluate, Basic)
+function mod:IncreaseJimboStats(Player,TearsUp,DamageUp,Mult, Evaluate, Basic)
     if Basic then
         mod.Saved.Jimbo.StatsToAdd.Damage = mod.Saved.Jimbo.StatsToAdd.Damage + DamageUp
         mod.Saved.Jimbo.StatsToAdd.Tears = mod.Saved.Jimbo.StatsToAdd.Tears + TearsUp
@@ -1784,40 +1789,13 @@ function mod:Select(Player)
     end
 end
 
-function mod:SellJoker(Player, Trinket, Slot)
-    mod.Saved.Jimbo.Inventory.Jokers[Slot] = 0
-    local SellValue
-    if Trinket == TrinketType.TRINKET_EGG then --egg holds its sell value in its progress
-        
-        SellValue = mod.Saved.Jimbo.Progress.Inventory[Slot]
-        print(SellValue)
-    else
-        SellValue = math.ceil(mod:GetJokerCost(Trinket) / 2)
-    end
-    
-
-    if mod.Saved.Jimbo.Inventory.Editions[Slot] == mod.Edition.NEGATIVE then
-        --selling a negative joker reduces your inventory size
-        mod:AddJimboInventorySlots(Player, -1)
-        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.INVENTORY, mod.SelectionParams.Purposes.NONE)
-        mod.SelectionParams.Index = mod.SelectionParams.Index - 1
-    end
-
-    for i=1, SellValue do
-        Game:Spawn(EntityType.ENTITY_PICKUP,PickupVariant.PICKUP_COIN,Player.Position,RandomVector()*2,Player,CoinSubType.COIN_PENNY,RNG():GetSeed())
-    end
-
-    Isaac.RunCallback("INEVNTORY_CHANGED", Player)
-    Isaac.RunCallback("JOKER_SOLD", Player, Trinket, Slot)
-end
-
 
 local PurposeEnh = {nil,2,4,9,5,3,6,nil,7,8}
 --activates the current selection when finished
 ---@param Player EntityPlayer
 function mod:UseSelection(Player)
     if mod.SelectionParams.Mode == mod.SelectionParams.Modes.HAND then
-        --could've done something nicer then teese elseifs but works anyways
+        --could've done something nicer then these elseifs but works anyways
         if mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.HAND then
             --effects
             mod:ActivateHandEffect(Player)
@@ -1829,6 +1807,7 @@ function mod:UseSelection(Player)
                 if v then
                     local selection = mod.Saved.Jimbo.CurrentHand[i] --gets the card that will be modified
                     mod.Saved.Jimbo.FullDeck[selection] = mod.Saved.Jimbo.FullDeck[DeathCopyCard]
+                    Isaac.RunCallback("DECK_SHIFT", Player)
                 end
             end
         elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.HANGED then
@@ -1847,6 +1826,7 @@ function mod:UseSelection(Player)
             for _,v in ipairs(selection) do
                 table.remove(mod.Saved.Jimbo.FullDeck, v)
             end
+            Isaac.RunCallback("DECK_SHIFT", Player)
         elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.STRENGTH then
             for i,v in ipairs(mod.SelectionParams.SelectedCards) do
                 if v then
@@ -1858,7 +1838,7 @@ function mod:UseSelection(Player)
                     end
                 end
             end
-        
+            Isaac.RunCallback("DECK_SHIFT", Player)
         elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.CRYPTID then
             local Chosen
             for i,v in ipairs(mod.SelectionParams.SelectedCards) do
@@ -1870,6 +1850,7 @@ function mod:UseSelection(Player)
             for i=1, 2 do
                 table.insert(mod.Saved.Jimbo.FullDeck, Chosen)
             end
+            Isaac.RunCallback("DECK_SHIFT", Player)
         elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.AURA then
             for i,v in ipairs(mod.SelectionParams.SelectedCards) do
                 if v then
@@ -1884,6 +1865,7 @@ function mod:UseSelection(Player)
                     break
                 end
             end
+            Isaac.RunCallback("INVENTORY_CHANGE", Player)
 
         --didn't want to put ~20 more elseifs so did this instead
         elseif mod.SelectionParams.Purpose >= mod.SelectionParams.Purposes.DEJA_VU then
@@ -1894,6 +1876,7 @@ function mod:UseSelection(Player)
                     break
                 end
             end
+            Isaac.RunCallback("DECK_SHIFT", Player)
 
         elseif mod.SelectionParams.Purpose >= mod.SelectionParams.Purposes.WORLD then 
             local NewSuit = mod.SelectionParams.Purpose - mod.SelectionParams.Purposes.WORLD + 1--put the purposes in order to make this work
@@ -1902,6 +1885,7 @@ function mod:UseSelection(Player)
                     mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[i]].Suit = NewSuit
                 end
             end
+            Isaac.RunCallback("DECK_SHIFT", Player)
         elseif mod.SelectionParams.Purpose >= mod.SelectionParams.Purposes.EMPRESS then
             local NewEnh = PurposeEnh[mod.SelectionParams.Purpose] --put the purposes in order to make this work
             for i,v in ipairs(mod.SelectionParams.SelectedCards) do
@@ -1909,6 +1893,7 @@ function mod:UseSelection(Player)
                     mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[i]].Enhancement = NewEnh
                 end
             end
+            Isaac.RunCallback("DECK_SHIFT", Player)
         end
     end
     for i,_ in ipairs(mod.SelectionParams.SelectedCards) do

@@ -319,10 +319,23 @@ function mod:OnRoomClear(IsBoss)
                            RandomVector()*3, nil, RandomTarot, RandomSeed)
                 mod:CreateBalatroEffect(Index, EFFECT_COLORS.Yellow, ACTIVATESOUND, "ACTIVATE!")
             end
+
+        elseif Joker == TrinketType.TRINKET_ICECREAM then
+            mod.Saved.Jimbo.Progress.Inventory[Index] = mod.Saved.Jimbo.Progress.Inventory[Index] - 1
+            if mod.Saved.Jimbo.Progress.Inventory[Index] == 0 then --at 0 it self destructs
+                
+                mod.Saved.Jimbo.Inventory.Jokers[Index] = 0
+                mod:CreateBalatroEffect(Index, EFFECT_COLORS.Blue, ACTIVATESOUND, "EXTINCT!")
+
+                Isaac.RunCallback("INVENTORY_CHANGE", Player)
+            else
+                mod:CreateBalatroEffect(Index, EFFECT_COLORS.Blue, ACTIVATESOUND, "-0.1")
+            end
         end
     end
 
-
+    --Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, false)
+    Player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
     ::skip_player::
     end
 end
@@ -435,7 +448,6 @@ end
 mod:AddCallback("INVENTORY_CHANGE", mod.CopyAdjustments)
 
 
-
 function mod:DamageJokers(Player,_)
 
     for _, Player in ipairs(PlayerManager.GetPlayers()) do
@@ -446,7 +458,7 @@ function mod:DamageJokers(Player,_)
 
         for Index, Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
             if Joker == TrinketType.TRINKET_JOKER then
-                mod:IncreaseJimboStats(Player, 0.1, 0, 1, false, false)
+                mod:IncreaseJimboStats(Player, 0, 0.1, 1, false, false)
 
             elseif Joker == TrinketType.TRINKET_ABSTRACT_JOKER then
                 local NumJokers = 0
@@ -455,10 +467,10 @@ function mod:DamageJokers(Player,_)
                         NumJokers = NumJokers + 1
                     end
                 end
-                mod:IncreaseJimboStats(Player, 0.06 * NumJokers, 0, 1, false, false)
+                mod:IncreaseJimboStats(Player, 0, 0.06 * NumJokers, 1, false, false)
 
             elseif Joker == TrinketType.TRINKET_MISPRINT then
-                 mod:IncreaseJimboStats(Player, mod.Saved.Jimbo.Progress.Inventory[Index], 0, 1, false, false)
+                 mod:IncreaseJimboStats(Player, 0, mod.Saved.Jimbo.Progress.Inventory[Index], 1, false, false)
             end
         end
 
@@ -467,6 +479,30 @@ function mod:DamageJokers(Player,_)
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.DamageJokers, CacheFlag.CACHE_DAMAGE)
 
+function mod:DamageMultJokers(Player,_)
+    for _, Player in ipairs(PlayerManager.GetPlayers()) do
+
+        if Player:GetPlayerType() ~= mod.Characters.JimboType then
+            goto skip_player
+        end
+
+        for Index, Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
+            if Joker == TrinketType.TRINKET_JOKER_STENCIL then
+                local EmptySlots = 0
+                for i,v in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
+                    if v == 0 then
+                        EmptySlots = EmptySlots + 1
+                    end
+                end
+                mod:IncreaseJimboStats(Player, 0,0, 1 + 0.15*EmptySlots, false, false)
+            end
+
+        end
+
+        ::skip_player::
+    end
+end
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.DamageMultJokers, CacheFlag.CACHE_DAMAGE)
 
 function mod:TearsJokers(Player, _)
     for _, Player in ipairs(PlayerManager.GetPlayers()) do
@@ -476,9 +512,23 @@ function mod:TearsJokers(Player, _)
         end
 
         for Index, Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
-            if Joker == TrinketType.TRINKET_BULL then
+            if Joker == TrinketType.TRINKET_BULL then --this works with mod:OnUpdate() in TrinketCallbacks.lua
                 local Tears = Player:GetNumCoins() * 0.04
-                mod:IncreaseJimboStats(Player, 0, Tears, 1, false, false)
+                mod:IncreaseJimboStats(Player, Tears, 0, 1, false, false)
+            
+            elseif Joker == TrinketType.TRINKET_STONE_JOKER then
+                local StoneCards = 0
+                for i,card in ipairs(mod.Saved.Jimbo.FullDeck) do
+                    if card.Enhancement == mod.Enhancement.STONE then
+                        StoneCards = StoneCards + 1
+                    end
+                end
+                mod:IncreaseJimboStats(Player, 0.25 * StoneCards, 0, 1, false, false)
+            
+            elseif Joker == TrinketType.TRINKET_ICECREAM then
+                --icecream stores how many rooms are "left" in its progress
+                mod:IncreaseJimboStats(Player, 0.1 * mod.Saved.Jimbo.Progress.Inventory[Index], 0, 1, false, false)
+                print(mod.Saved.Jimbo.StatsToAdd.JokerTears)
             end
         end
 

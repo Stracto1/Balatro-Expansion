@@ -553,3 +553,29 @@ function mod:FrameToSpecialCard(Frame)
     end
     return Frame + mod.Spectrals.FAMILIAR - 36 --spectral cards
 end
+
+function mod:SellJoker(Player, Trinket, Slot)
+    mod.Saved.Jimbo.Inventory.Jokers[Slot] = 0
+    local SellValue
+    if Trinket == TrinketType.TRINKET_EGG then --egg holds its sell value in its progress
+        
+        SellValue = mod.Saved.Jimbo.Progress.Inventory[Slot]
+    else
+        SellValue = math.ceil(mod:GetJokerCost(Trinket) / 2)
+    end
+    
+
+    if mod.Saved.Jimbo.Inventory.Editions[Slot] == mod.Edition.NEGATIVE then
+        --selling a negative joker reduces your inventory size
+        mod:AddJimboInventorySlots(Player, -1)
+        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.INVENTORY, mod.SelectionParams.Purposes.NONE)
+        mod.SelectionParams.Index = mod.SelectionParams.Index - 1
+    end
+
+    for i=1, SellValue do
+        Game:Spawn(EntityType.ENTITY_PICKUP,PickupVariant.PICKUP_COIN,Player.Position,RandomVector()*2,Player,CoinSubType.COIN_PENNY,RNG():GetSeed())
+    end
+
+    Isaac.RunCallback("INEVNTORY_CHANGED", Player)
+    Isaac.RunCallback("JOKER_SOLD", Player, Trinket, Slot)
+end
