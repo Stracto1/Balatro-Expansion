@@ -4,7 +4,7 @@ local LastWanted = 0
 local FirtsEffect = true --to prevent errors
 local LastEffect
 
-local FIRST_EFFECT_POS = Vector(20,213)
+local FIRST_EFFECT_POS = Vector(20,225)
 local EFFECT_SLOT_DISTANCE = Vector(16, 0)
 
 local EffectParams = {}
@@ -25,11 +25,10 @@ local sfx = SFXManager()
 ----------------------------------------------------------------
 --These functions make the whole additional gfx system work 
 --(both sound and graphics can be turend off in MOD CONFIG MENU)
---initially this system was based on EntityEffects but i had many problems regarding lighting and the screen=>world coordinete conversion
+--initially this system was based on EntityEffects but i had many problems regarding lighting and the screen=>world coordinate conversion
 
 
 --here Position colud be an entity, in that case 
---ID: 1 = +Mult | 2 = *Mult | 3 = Chips | 4 = Activate | 5 = slice | 6 = money
 function mod:CreateBalatroEffect(Slot, Type, Sound, Text, Offset)
     if EffectParams[Slot] then
         --effects from different sources are displayed at an interval from each other instead of overriding
@@ -49,12 +48,13 @@ function mod:CreateBalatroEffect(Slot, Type, Sound, Text, Offset)
     EffectParams[Slot].Frames = 0
     EffectParams[Slot].Type = Type
     EffectParams[Slot].Text = Text
-    EffectParams[Slot].Offset = Offset or Vector.Zero
 
     if type(Slot) == "userdata" then --basically checks if it's an entity
         EffectParams[Slot].Position = Slot
+        EffectParams[Slot].Offset = Offset or Vector(0,20)
     else
         EffectParams[Slot].Position = FIRST_EFFECT_POS + EFFECT_SLOT_DISTANCE * Slot
+        EffectParams[Slot].Offset = Offset or Vector.Zero
     end
     
     if mod.WantedEffect ~= "MCdestroyed" and mod.WantedEffect ~= "MCsafe" then
@@ -85,7 +85,7 @@ function mod:RenderEffect()
                 RenderPos = Params.Position + Params.Offset
             end
             Sprite:Render(RenderPos)
-            local TextWidthOff = mod.Fonts.Balatro:GetStringWidth(Params.Text) * 0.4
+            local TextWidthOff = mod.Fonts.Balatro:GetStringWidth(Params.Text) /2
             local LineHeightOff = mod.Fonts.Balatro:GetBaselineHeight() / 2
             if Params.Frames < 15 then
                 mod.Fonts.Balatro:DrawString(Params.Text, RenderPos.X - TextWidthOff + 0.5, RenderPos.Y -LineHeightOff + 0.5, KColor(0.6,0.6,0.6,0.7),0,true) -- emulates little text shadow

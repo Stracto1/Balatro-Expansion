@@ -32,24 +32,22 @@ function mod:OnGameStart(Continued)
     mod:RemoveCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, mod.OnRoomClear)
     mod:RemoveCallback(ModCallbacks.MC_USE_ITEM, mod.OnCardUse)]]--
     --this got screpped cause it got more difficult to mantain when jimbo came in town
-    
 
-    
-    
+
     --sadly due to the unholy amount of values the mod needs to store i'll need to reset the all at once
 
     if Continued then 
-    
+
         if mod:HasData() then
             mod.Saved = json.decode(mod:LoadData()) --restores every saved progress from the run
         end
     else
-    
-    --all of this only happens on new runs--
-    ---------------------------------------------
 
-    --reset most of the saved values
-    mod.Saved.TrinketValues.LastMisprintDMG = 0
+        --all of this only happens on new runs--
+        ---------------------------------------------
+        
+        --reset most of the saved values
+        mod.Saved.TrinketValues.LastMisprintDMG = 0
         mod.Saved.TrinketValues.Fortune_Teller = 0
         mod.Saved.TrinketValues.Stone_joker = 0
         mod.Saved.TrinketValues.Ice_cream = 1
@@ -175,6 +173,10 @@ function mod:OnGameStart(Continued)
         mod.Saved.Jimbo.Progress.Room.SuitUsed[mod.Suits.Heart] = 0
         mod.Saved.Jimbo.Progress.Room.SuitUsed[mod.Suits.Club] = 0
         mod.Saved.Jimbo.Progress.Room.SuitUsed[mod.Suits.Diamond] = 0
+        mod.Saved.Jimbo.Progress.Room.ValueUsed = {}
+        for Value =1, 13 do
+            mod.Saved.Jimbo.Progress.Room.ValueUsed[Value] = 0
+        end
 
         mod.Saved.Jimbo.Progress.Floor = {}
 

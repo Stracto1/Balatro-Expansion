@@ -49,9 +49,9 @@
     <trinket cache="damage" gfx="misprint_trinket.png" name="Misprint" description="It jussic's stcla a" customtags=" !0 0 ?common balatro mult "/>
     <trinket cache="damage" gfx="jokerstencil_trinket.png" name="Joker stencil" description="Keep it hollow" customtags=" !0 0 ?uncommon balatro multm value "/>
     <trinket cache="firedelay" gfx="stonejoker_trinket.png" name="Stone joker" description="Rock the rocks" customtags=" !0 0 ?uncommon balatro chips value "/>
-    <trinket cache="firedelay" gfx="icecream_trinket.png" name="Ice cream" description="Enjoy it until it lasts" customtags=" !0 30 ?common balatro chips value "/>
-    <trinket cache="damage" gfx="popcorn_trinket.png" name="Popcorn" description="It's never enough" customtags=" !0 0 ?common balatro mult value " />
-    <trinket cache="damage" gfx="ramen_trinket.png" name="Ramen" description="Good but make it last" customtags=" !0 0 ?uncommon balatro multm value "/>
+    <trinket cache="firedelay" gfx="icecream_trinket.png" name="Ice cream" description="Enjoy it until it lasts" customtags=" !0 25 ?common balatro chips value "/>
+    <trinket cache="damage" gfx="popcorn_trinket.png" name="Popcorn" description="It's never enough" customtags=" !0 5 ?common balatro mult value " />
+    <trinket cache="damage" gfx="ramen_trinket.png" name="Ramen" description="Good but make it last" customtags=" !0 50 ?uncommon balatro multm value "/>
     <trinket cache="damage" gfx="evensteven_trinket.png" name="Even steven" description="Even he dislikes you" customtags=" !0 0 ?common balatro mult "/>
     <trinket cache="firedelay" gfx="oddtodd_trinket.png" name="Odd todd" description="what an odd character" customtags=" !0 0 ?common balatro chips "/>
     <trinket cache="damage" gfx="greenjoker_trinket.png" name="Green joker" description="The classic... but green" customtags=" !0 0 ?common balatro mult value "/>

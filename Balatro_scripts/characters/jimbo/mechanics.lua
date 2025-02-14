@@ -362,7 +362,7 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_RENDER, mod.JimboHandRender,PlayerVar
 function mod:JimboPackRender(_,_,_,_,Player)
 
     if Player:GetPlayerType() ~= mod.Characters.JimboType 
-    or mod.SelectionParams.Mode ~= mod.SelectionParams.Modes.PACK then
+       or mod.SelectionParams.Mode ~= mod.SelectionParams.Modes.PACK then
         return
     end
     
@@ -1082,11 +1082,6 @@ function mod:JimboTakeDamage(Player,Amount,_,Source,_)
     Player = Player:ToPlayer()
     if Player and Player:GetPlayerType() == mod.Characters.JimboType and Amount ~= 0 then
 
-        --[[fixes problems with rotten/eternal hearts
-        if Player:GetHearts() % 2 == 1 then
-            --on 1 damage go down (-1) || on 2 damage go up (1)
-            Player:AddHearts(Amount * 2 - 3)
-        end]]
         --only remove one eternal/rotten heart if he has any
         if Player:GetEternalHearts() ~= 0  then
 
@@ -1203,8 +1198,8 @@ function mod:DiscardEffects(Player)
                 local RandomSeed = Random()
                 if RandomSeed == 0 then RandomSeed = 1 end
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
-                           RandomVector()*2, nil, PlayerRNG:RandomInt(1,22), RandomSeed)
-                SealTriggers = SealTriggers + 1 --decreases the chance te more trigger at the same time
+                           RandomVector()*2.5, nil, PlayerRNG:RandomInt(1,22), RandomSeed)
+                SealTriggers = SealTriggers + 1 --decreases the chance the more trigger at the same time
             end
         end
     end
@@ -1218,75 +1213,64 @@ mod:AddCallback("HAND_DISCARD", mod.DiscardEffects)
 ---@param Player EntityPlayer
 function mod:CardShotFinal(Player,ShotCard,Triggers,Evaluate)
 
+    if not Evaluate then --basically if its the first time the deck is cycled in
+        return
+    end
+
     local RandomSeed=Random()
     if RandomSeed == 0 then RandomSeed = 1 end
 
-    if Evaluate then --basically if its the first time the deck is cycled in
-        ----SEAL EFFECTS-----
-        ---------------------
-        if ShotCard.Seal == mod.Seals.RED then
-            Retriggers = Retriggers + 1
-        elseif ShotCard.Seal == mod.Seals.GOLDEN then
-            for i=0, Triggers do
-                local Coin = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
-                                        RandomVector()*4, nil, CoinSubType.COIN_PENNY, RandomSeed)
-
-                Coin:ToPickup().Timeout = 45 --disappers short after spawning (would be too OP otherwise)
+    ----SEAL EFFECTS-----
+    ---------------------
+    if ShotCard.Seal == mod.Seals.RED then
+        Retriggers = Retriggers + 1
+    elseif ShotCard.Seal == mod.Seals.GOLDEN then
+        for i=0, Triggers do
+            local Coin = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
+                                    RandomVector()*4, nil, CoinSubType.COIN_PENNY, RandomSeed)  
+            Coin:ToPickup().Timeout = 45 --disappers short after spawning (would be too OP otherwise)
+        end
+    end 
+    --------EDITIONS EFFECTS----------
+    ----------------------------------
+    if ShotCard.Edition == mod.Edition.FOIL then
+        mod:IncreaseJimboStats(Player,1.25*Triggers, 0, 1,false,true)
+    elseif ShotCard.Edition == mod.Edition.HOLOGRAPHIC then
+        mod:IncreaseJimboStats(Player,0, 0.25 * Triggers, 1,false,true)
+    elseif ShotCard.Edition == mod.Edition.POLYCROME then
+        mod:IncreaseJimboStats(Player,0, 0, 1.2 ^ Triggers,false,true)
+    end 
+    --increases the chips basing on the card value
+    local TearsToGet = (mod:GetActualCardValue(ShotCard.Value)/50 + mod.Saved.Jimbo.CardLevels[ShotCard.Value]*0.02) * Triggers
+    local PlayerRNG = Player:GetDropRNG()   
+    ---------ENHANCEMENT EFFECTS----------
+    --------------------------------------
+    if ShotCard.Enhancement == mod.Enhancement.STONE then
+        TearsToGet = 0.5 * Triggers 
+    elseif ShotCard.Enhancement == mod.Enhancement.MULT then
+        mod:IncreaseJimboStats(Player, 0, 0.2 * Triggers,1, false,true) 
+    elseif ShotCard.Enhancement == mod.Enhancement.BONUS then
+        mod:IncreaseJimboStats(Player,0.75 * Triggers, 0 , 1,false,true)    
+    elseif ShotCard.Enhancement == mod.Enhancement.GLASS then
+        mod:IncreaseJimboStats(Player,0, 0, 1.3 ^ Triggers, false,true)
+        if mod:TryGamble(Player, PlayerRNG, 0.1) then
+            table.remove(mod.Saved.Jimbo.FullDeck, ShotCard.Index)
+            mod:CreateBalatroEffect(Player, EFFECT_COLORS.Yellow, ACTIVATESOUND, "BROKEN!", Vector(0, 20))
+        end 
+    elseif ShotCard.Enhancement == mod.Enhancement.LUCKY then
+        for i = 1, Triggers do
+            if mod:TryGamble(Player, PlayerRNG, 0.2) then
+                mod:IncreaseJimboStats(Player, 0, 1, 1, false,true)
+                mod:CreateBalatroEffect(Player, EFFECT_COLORS.Red, ACTIVATESOUND, "+0.2", Vector(0, 20))
+            end 
+            if mod:TryGamble(Player, PlayerRNG, 0.07) then
+                Player:AddCoins(10)
+                mod:CreateBalatroEffect(Player, EFFECT_COLORS.Yellow, ACTIVATESOUND, "+10 $", Vector(0, 20))
             end
         end
-
-        --------EDITIONS EFFECTS----------
-        ----------------------------------
-        if ShotCard.Edition == mod.Edition.FOIL then
-            mod:IncreaseJimboStats(Player,Triggers, 0, 1,false,true) --Equal to 1*Triggers
-        elseif ShotCard.Edition == mod.Edition.HOLOGRAPHIC then
-            mod:IncreaseJimboStats(Player,0, 0.15 * Triggers, 1,false,true)
-        elseif ShotCard.Edition == mod.Edition.POLYCROME then
-            mod:IncreaseJimboStats(Player,0, 0, 1.2 ^ Triggers,false,true)
-        end
-
-        --increases the chips basing on the card value
-        local TearsToGet = (mod:GetActualCardValue(ShotCard.Value)/50 + mod.Saved.Jimbo.CardLevels[ShotCard.Value]*0.02) * Triggers
-        local PlayerRNG = Player:GetDropRNG()
-
-        ---------ENHANCEMENT EFFECTS----------
-        --------------------------------------
-        if ShotCard.Enhancement == mod.Enhancement.STONE then
-            TearsToGet = 0.5 * Triggers
-
-        elseif ShotCard.Enhancement == mod.Enhancement.MULT then
-            mod:IncreaseJimboStats(Player, 0, 0.04 * Triggers,1, false,true)
-
-        elseif ShotCard.Enhancement == mod.Enhancement.BONUS then
-            mod:IncreaseJimboStats(Player,0.6 * Triggers, 0 , 1,false,true)
-
-        elseif ShotCard.Enhancement == mod.Enhancement.GLASS then
-            mod:IncreaseJimboStats(Player,0, 0, 1.3 ^ Triggers, false,true)
-            if mod:TryGamble(Player, PlayerRNG, 0.1) then
-                table.remove(mod.Saved.Jimbo.FullDeck, ShotCard.Index)
-                mod:CreateBalatroEffect(Player, EFFECT_COLORS.Yellow, ACTIVATESOUND, "BROKEN!", Vector(0, 20))
-            end
-
-        elseif ShotCard.Enhancement == mod.Enhancement.LUCKY then
-            for i = 1, Triggers do
-                if mod:TryGamble(Player, PlayerRNG, 0.20) then
-                    mod:IncreaseJimboStats(Player, 0, 0.2, 1, false,true)
-                    mod:CreateBalatroEffect(Player, EFFECT_COLORS.Red, ACTIVATESOUND, "+0.2", Vector(0, 20))
-                end
-
-                if mod:TryGamble(Player, PlayerRNG, 0.07) then
-                    Player:AddCoins(10)
-                    mod:CreateBalatroEffect(Player, EFFECT_COLORS.Yellow, ACTIVATESOUND, "+10 $", Vector(0, 20))
-                end
-            end
-        end
-        
-        mod:IncreaseJimboStats(Player, TearsToGet, 0, 1,false, true)
-
-
-        Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, false)
-        Player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
     end
+
+    mod:IncreaseJimboStats(Player, TearsToGet, 0, 1,false, true)
 end
 mod:AddCallback("CARD_SHOT_FINAL", mod.CardShotFinal)
 

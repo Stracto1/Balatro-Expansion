@@ -294,6 +294,10 @@ Balatro_Expansion.Saved.Jimbo.Progress.Room.SuitUsed[Balatro_Expansion.Suits.Spa
 Balatro_Expansion.Saved.Jimbo.Progress.Room.SuitUsed[Balatro_Expansion.Suits.Heart] = 0
 Balatro_Expansion.Saved.Jimbo.Progress.Room.SuitUsed[Balatro_Expansion.Suits.Club] = 0
 Balatro_Expansion.Saved.Jimbo.Progress.Room.SuitUsed[Balatro_Expansion.Suits.Diamond] = 0
+Balatro_Expansion.Saved.Jimbo.Progress.Room.ValueUsed = {}
+for Value =1, 13 do
+    Balatro_Expansion.Saved.Jimbo.Progress.Room.ValueUsed[Value] = 0
+end
 
 Balatro_Expansion.Saved.Jimbo.Progress.Floor = {}
 

@@ -63,25 +63,6 @@ EFFECT_COLORS.Blue = 2
 EFFECT_COLORS.Yellow = 3
 
 
-function mod:EditionsStats(Player, Flags)
-    if Player:GetPlayerType() == mod.Characters.JimboType then
-        for i,Edition in ipairs(mod.Saved.Jimbo.Inventory.Editions) do
-            if Flags & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
-                if Edition == mod.Edition.HOLOGRAPHIC then
-                    mod:IncreaseJimboStats(Player,0.5, 0, 1, false, false)
-                elseif Edition == mod.Edition.POLYCROME then
-                    mod:IncreaseJimboStats(Player,0, 0, 1.2, false, false)
-                end
-            end
-            if Flags & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_FIREDELAY then
-                if Edition == mod.Edition.FOIL then
-                    mod:IncreaseJimboStats(Player,0, 1, 1, false, false)
-                end
-            end
-        end
-    end
-end
-mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.EditionsStats)
 
 -------------------Joker------------------------
 function mod:Joker(player,_)
@@ -658,13 +639,8 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.OnyxAgate, CacheFlag.CACHE_D
 -----------------ARROWHEAD---------------------------
 ---@param player EntityPlayer
 function mod:ArrowHead(player,_)
-    if player:GetPlayerType() ~= mod.Characters.JimboType and player:GetPlayerType() == mod.Characters.JimboType then
-        if mod:JimboHasTrinket(player,Arrowhead) then
-
-            mod:IncreaseJimboStats(player, 0, 0.1*mod.Saved.Jimbo.Progress.SuitUsed[mod.Suits.Spade],1,false,false)
-        end
     
-    elseif player:HasTrinket(Arrowhead) then
+    if player:GetPlayerType() ~= mod.Characters.JimboType and player:HasTrinket(Arrowhead) then
         --print("arrow")
         local Keys = player:GetNumKeys()
         if Keys <= 10 then

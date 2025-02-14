@@ -15,7 +15,7 @@ JokerEdChance.Foil = 0.02  --is actually 0.012
 JokerEdChance.Holo = 0.034 --is actually 0.028
 JokerEdChance.Poly = 0.037 --is actually 0.012
 
-local SoulChance = 0.5
+local SoulChance = 0.003
 local HoleChance = 0.003
 
 --every tarot has a new effect when used by jimbo
@@ -264,15 +264,19 @@ function mod:CardPacks(card, Player,_)
         Isaac.RunCallback("PACK_OPENED",Player,card)
 
         local PackRng = Player:GetCardRNG(Card.CARD_PACK_TAROT)
-        local RandomPack = {}
+        local RandomCard
+        mod.SelectionParams.PackOptions ={}
         for i=1, 3, 1 do
-            if PackRng:RandomFloat() < SoulChance then
-                RandomPack[i] = mod.Spectrals.Soul
-            else
-                RandomPack[i] = PackRng:RandomInt(1,22) --chooses a random not reversed tarot
-            end
+            repeat
+                if PackRng:RandomFloat() < SoulChance then
+                    RandomCard = mod.Spectrals.SOUL
+                else
+                    RandomCard = PackRng:RandomInt(1,22) --chooses a random not reversed tarot
+                end
+                
+            until not mod:Contained(mod.SelectionParams.PackOptions, RandomCard)
+            mod.SelectionParams.PackOptions[i] = mod:SpecialCardToFrame(RandomCard)
         end
-        mod.SelectionParams.PackOptions = RandomPack
 
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
                                               mod.SelectionParams.Purposes.TarotPack)
@@ -292,13 +296,9 @@ function mod:CardPacks(card, Player,_)
                     else
                         Rplanet = PackRng:RandomInt(mod.Planets.PLUTO,mod.Planets.SUN) --chooses a random planet
                     end
-                    print(Rplanet)
+
                 until not mod:Contained(RandomPack, Rplanet)
-                RandomPack[i] = Rplanet
-            end
-            --after the generation caonverts them to be useful
-            for i,_ in ipairs(RandomPack) do
-                RandomPack[i] = mod:SpecialCardToFrame(RandomPack[i])
+                RandomPack[i] = mod:SpecialCardToFrame(Rplanet)
             end
 
         elseif false then --TAINTED JIMBO
@@ -342,20 +342,20 @@ function mod:CardPacks(card, Player,_)
         Isaac.RunCallback("PACK_OPENED",Player,card)
         
         local PackRng = Player:GetCardRNG(Card.CARD_PACK_SPECTRAL)
-        local RandomPack = {}
+        local RandomSpectral
         for i=1, 3, 1 do
-            local SuperRoll = PackRng:RandomFloat()
-            if SuperRoll <= SoulChance then
-                RandomPack[i] = mod.Spectrals.SOUL
-            elseif SuperRoll <= SoulChance + HoleChance then
-                RandomPack[i] = mod.Spectrals.BLACK_HOLE
-            else
-                RandomPack[i] = PackRng:RandomInt(mod.Spectrals.FAMILIAR,mod.Spectrals.CRYPTID) --chooses a random spectral card
-            end
-            RandomPack[i] = mod:SpecialCardToFrame(RandomPack[i])
+            repeat
+                local SuperRoll = PackRng:RandomFloat()
+                if SuperRoll <= SoulChance then
+                    RandomSpectral = mod.Spectrals.SOUL
+                elseif SuperRoll <= SoulChance + HoleChance then
+                    RandomSpectral = mod.Spectrals.BLACK_HOLE
+                else
+                    RandomSpectral = PackRng:RandomInt(mod.Spectrals.FAMILIAR,mod.Spectrals.CRYPTID) --chooses a random spectral card
+                end
+                mod.SelectionParams.PackOptions[i] = mod:SpecialCardToFrame(RandomSpectral)
+            until not mod:Contained(mod.SelectionParams.PackOptions, RandomSpectral)
         end
-
-        mod.SelectionParams.PackOptions = RandomPack
 
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
                                               mod.SelectionParams.Purposes.TarotPack)

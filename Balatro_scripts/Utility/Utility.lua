@@ -187,10 +187,7 @@ function mod:FloorHasShopOrTreasure()
 end
 
 function mod:Lerp(a, b, t) --ty sheriff (ye i'm lazy)
-    if t < 0 then
-        t = -t
-    end
-    t = mod:Clamp(t, 1,0)
+    t = mod:Clamp(math.abs(t), 1,0)
     return a + (b - a) * t
 end
 
