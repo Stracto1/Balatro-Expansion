@@ -122,6 +122,22 @@ TrinketType.TRINKET_BRAINSTORM,TrinketType.TRINKET_VAGABOND, TrinketType.TRINKET
 Balatro_Expansion.Trinkets.legendary = {}
 
 
+Balatro_Expansion.Pools = {}
+Balatro_Expansion.Pools.Vouchers = Isaac.GetPoolIdByName("Balatro Vouchers")
+
+Balatro_Expansion.Vouchers = {}
+Balatro_Expansion.Vouchers.Grabber = Isaac.GetItemIdByName("Grabber")
+Balatro_Expansion.Vouchers.NachoTong = Isaac.GetItemIdByName("Nacho Tong")
+Balatro_Expansion.Vouchers.Overstock = Isaac.GetItemIdByName("Overstock")
+Balatro_Expansion.Vouchers.OverstockPlus = Isaac.GetItemIdByName("Ocerstock Plus")
+
+--used to keep track of the pool (normal pools weren't good due to the "upgrade mechanich")
+Balatro_Expansion.AvailableVouchers = {Balatro_Expansion.Vouchers.Grabber,
+                                       Balatro_Expansion.Vouchers.Overstock
+}
+
+Balatro_Expansion.VoucherOff = Balatro_Expansion.Vouchers.Grabber % 2 --used for interal pools and stuff
+
 
 Balatro_Expansion.Suits = {}
 Balatro_Expansion.Suits.Spade = 1
@@ -261,6 +277,7 @@ end
 end
 Balatro_Expansion.Saved.Jimbo.DeckPointer = 6 --the card that is going to be picked next
 Balatro_Expansion.Saved.Jimbo.CurrentHand = {5,4,3,2,1} --the pointers of the cards in FullDeck that are stored in "the hand" active item
+Balatro_Expansion.Saved.Jimbo.MaxCards = 25 --the total amount of cards you can shoot before gettign debuffed
 
 --these two don't do anything directly and are only used to not call #table every time
 Balatro_Expansion.Saved.Jimbo.HandSize = 5
@@ -298,6 +315,7 @@ Balatro_Expansion.Saved.Jimbo.Progress.Room.ValueUsed = {}
 for Value =1, 13 do
     Balatro_Expansion.Saved.Jimbo.Progress.Room.ValueUsed[Value] = 0
 end
+Balatro_Expansion.Saved.Jimbo.Progress.Room.Shots = 0 --used to tell how many cards are already used
 
 Balatro_Expansion.Saved.Jimbo.Progress.Floor = {}
 

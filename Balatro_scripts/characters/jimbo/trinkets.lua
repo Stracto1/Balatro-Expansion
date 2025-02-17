@@ -84,6 +84,17 @@ for Index,Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
             table.insert(mod.Saved.Jimbo.FullDeck, mod.Saved.Jimbo.FullDeck[ShotCard.Index])
             mod:CreateBalatroEffect(Index,EFFECT_COLORS.Yellow, ACTIVATESOUND, "Activate!")
         end --ADDED TO DECK
+    elseif Joker == TrinketType.TRINKET_BLOODSTONE then
+        if mod:IsSuit(Player, ShotCard.Suit,ShotCard.Enhancement, mod.Suits.Heart, false) then
+            for i = 1, Triggers do
+            
+                if mod:TryGamble(Player, nil, 0.5) then
+                    
+                    mod.Saved.Jimbo.Progress.Inventory[Index] = mod.Saved.Jimbo.Progress.Inventory[Index]
+                    mod:CreateBalatroEffect(Index,EFFECT_COLORS.Red, TIMESMULTSOUND, "X1.2")
+                end
+            end
+        end
     end
 end
 
@@ -299,7 +310,25 @@ function mod:OnBlindClear(BlindType)
             else
                 mod:CreateBalatroEffect(Index, EFFECT_COLORS.Red, ACTIVATESOUND, "-0.2")
             end
-        
+
+        elseif Joker == TrinketType.TRINKET_MADNESS then
+            mod.Saved.Jimbo.Progress.Inventory[Index] = mod.Saved.Jimbo.Progress.Inventory[Index] + 1
+            
+            mod:CreateBalatroEffect(Index, EFFECT_COLORS.Red, ACTIVATESOUND, "+0.15X")
+            
+            local Removable = {}
+            for i, v in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
+                if i ~= Index and v ~= 0 then --any joker other than this one
+                    table.insert(Removable, i)
+                end
+            end
+            if Removable ~= {} then --if at leat one is present
+                local Rindex = mod:GetRandom(Removable, Player:GetTrinketRNG(TrinketType.TRINKET_MADNESS))
+                mod.Saved.Jimbo.Inventory.Jokers[Rindex] = 0
+                mod.Saved.Jimbo.Inventory.Editions[Rindex] = 0
+
+                Isaac.RunCallback("INVENTORY_CHANGE", Player)
+            end
         end
     end
 
@@ -388,6 +417,33 @@ function mod:OnPackSkipped(Player,Pack)
 
 end
 mod:AddCallback("PACK_SKIPPED", mod.OnPackSkipped)
+
+
+function mod:OnCardUsed(CardUsed,Player,Flag)
+    if Player:GetPlayerType() ~= mod.Characters.JimboType or
+        Flag & UseFlag.USE_MIMIC == UseFlag.USE_MIMIC then
+        return
+    end
+
+    for Index, Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
+        if Joker == TrinketType.TRINKET_CARTOMANCER then
+            if CardUsed <= Card.CARD_WORLD then --is a tarot
+                local Step = 1
+                if Flag & UseFlag.USE_CARBATTERY == UseFlag.USE_CARBATTERY then
+                    Step = 2
+                end
+                mod.Saved.Jimbo.Progress.Inventory[Index] = mod.Saved.Jimbo.Progress.Inventory[Index] + Step
+            
+                mod:CreateBalatroEffect(Index, EFFECT_COLORS.Red, ACTIVATESOUND, "+0.05")
+            end
+        end
+    end
+        
+    --Player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY)
+    Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, true)
+
+end
+mod:AddCallback(ModCallbacks.MC_USE_CARD, mod.OnCardUsed)
 
 
 --usually used as a kind of hand played (ex. Vagabond)
@@ -632,7 +688,7 @@ function mod:DamageJokers(Player,_)
 
             elseif Joker == TrinketType.TRINKET_EVENSTEVEN then
                 local NumEven = 0
-                for Num=2,10,2 do
+                for Num=2, 10, 2 do
                     NumEven = NumEven + mod.Saved.Jimbo.Progress.Room.ValueUsed[Num]
                 end
                 if NumEven > mod.Saved.Jimbo.Progress.Inventory[Index] then
@@ -648,6 +704,18 @@ function mod:DamageJokers(Player,_)
             
             elseif Joker == TrinketType.TRINKET_RED_CARD then
                 mod:IncreaseJimboStats(Player, 0,0.15*mod.Saved.Jimbo.Progress.Inventory[Index],1, false, false)
+            elseif Joker == TrinketType.TRINKET_CARTOMANCER then
+                mod:IncreaseJimboStats(Player, 0,0.05*mod.Saved.Jimbo.Progress.Inventory[Index],1, false, false)
+            
+            elseif Joker == TrinketType.TRINKET_ONIX_AGATE then
+                local NumClubs = mod.Saved.Jimbo.Progress.Room.SuitUsed[mod.Suits.Club]
+                if NumClubs > mod.Saved.Jimbo.Progress.Inventory[Index] then
+                    mod:CreateBalatroEffect(Index, EFFECT_COLORS.Red,ADDMULTSOUND,
+                    "+"..tostring(0.1*(NumClubs - mod.Saved.Jimbo.Progress.Inventory[Index])))
+                end
+                mod.Saved.Jimbo.Progress.Inventory[Index] = NumClubs --only used to tell when to spawn an effect
+            
+                mod:IncreaseJimboStats(Player, 0,0.1 * NumClubs,1, false, false)
             
             end
         end
@@ -676,8 +744,11 @@ function mod:DamageMultJokers(Player,_)
                 mod:IncreaseJimboStats(Player, 0,0, 1 + 0.15*EmptySlots, false, false)
             elseif Joker == TrinketType.TRINKET_RAMEN then
                 mod:IncreaseJimboStats(Player,0,0,1 + 0.01*mod.Saved.Jimbo.Progress.Inventory[Index],false,false)
+            elseif Joker == TrinketType.TRINKET_MADNESS then
+                mod:IncreaseJimboStats(Player,0,0,1 + 0.15*mod.Saved.Jimbo.Progress.Inventory[Index],false,false)
+            elseif Joker == TrinketType.TRINKET_BLOODSTONE then
+                mod:IncreaseJimboStats(Player,0,0,1 + 0.15*mod.Saved.Jimbo.Progress.Inventory[Index],false,false)
             end
-
         end
 
         ::skip_player::

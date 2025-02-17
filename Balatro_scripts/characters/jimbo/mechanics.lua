@@ -72,7 +72,7 @@ do
 
     ---@diagnostic disable-next-line: need-check-nil
     DiscardProgressBar:SetColor(BarColor)
-    DiscardChargeSprite.Offset = Vector(20,-20)
+    DiscardChargeSprite.Offset = Vector(-20,-20)
 
     --SETS THE COLOR FOR THE HAND CHARGE BAR
     local HandProgressBar = HandChargeSprite:GetLayer(1)
@@ -85,8 +85,7 @@ do
 
     ---@diagnostic disable-next-line: need-check-nil
     HandProgressBar:SetColor(BarColor)
-    HandChargeSprite.Offset = Vector(-20,-20)
-    HandChargeSprite:SetAnimation("Charging")
+    HandChargeSprite.Offset = Vector(20,-20)
 end
 
 --local jesterhatCostume = Isaac.GetCostumeIdByPath("gfx/characters/gabriel_hair.anm2") -- Exact path, with the "resources" folder as the root
@@ -260,15 +259,21 @@ function mod:JimboHandRender(Player, Offset)
         return
     end
 
+    local TargAlpha = 1
+    if mod.Saved.Jimbo.Progress.Room.Shots >= mod.Saved.Jimbo.MaxCards then
+        TargAlpha = 0.5
+    end
+
     local TargetScale = 0.5 
     if mod.SelectionParams.Mode == mod.SelectionParams.Modes.HAND then
         TargetScale = 1 --while selecting the the cards gets bigger
+        TargAlpha = 1
     end
     if ScaleMult ~= TargetScale then
         --ScaleMult = mod:Lerp(ScaleMult,TargetScale, mod.SelectionParams.Frames/100)
         ScaleMult = mod:Lerp(1.5 - TargetScale,TargetScale, mod.SelectionParams.Frames/5)
-        
     end
+    JimboCards.PlayingCards.Color.A = TargAlpha
 
     local PlayerScreenPos = Isaac.WorldToRenderPosition(Player.Position)
     local BaseRenderOff = Vector( (-7*mod.Saved.Jimbo.HandSize + 3.5) * ScaleMult + 1.5*(5-mod.Saved.Jimbo.HandSize),26 * ScaleMult)
@@ -451,20 +456,17 @@ function mod:JimboBarRender(Player)
     local Data = Player:GetData()
     if Data.DiscardCD < HandCooldown then --charging frames needed
 
-        DiscardChargeSprite:SetAnimation("Charging")
-        DiscardChargeSprite:SetFrame(math.floor(Data.DiscardCD * 1.66))
+        HandChargeSprite:SetFrame("Charging", math.floor(Data.DiscardCD * 1.66))
 
     elseif Data.DiscardCD < HandCooldown + CHARGED_ANIMATION then --Charging frames + StartCharged frames
-        DiscardChargeSprite:SetAnimation("StartCharged")
-        DiscardChargeSprite:SetFrame(Data.DiscardCD - HandCooldown)
+        HandChargeSprite:SetFrame("StartCharged", Data.DiscardCD - HandCooldown)
 
     else
-        DiscardChargeSprite:SetAnimation("Charged")
-        DiscardChargeSprite:SetFrame(Data.DiscardCD - (HandCooldown + CHARGED_ANIMATION + CHARGED_LOOP_ANIMATION))
+        HandChargeSprite:SetFrame("Charged", Data.DiscardCD - (HandCooldown + CHARGED_ANIMATION + CHARGED_LOOP_ANIMATION))
     end
 
     --renders a timer as a charge bar next to the player
-    DiscardChargeSprite:Render(Isaac.WorldToScreen(Player.Position))
+    HandChargeSprite:Render(Isaac.WorldToScreen(Player.Position))
 
 
     --------------HAND SELECTION COOLDOWN------------------
@@ -475,27 +477,29 @@ function mod:JimboBarRender(Player)
     local HandFrame = 100 - math.ceil(mod.SelectionParams.Frames/2.25)
     
     if HandFrame == 0 then
-        sfx:Play(SoundEffect.SOUND_DEATH_BURST_BONE)
+        sfx:Play(SoundEffect.SOUND_DEATH_BURST_BONE) --PLACEHOLDER
         
     elseif HandFrame > 0 then
-        HandChargeSprite:SetFrame(HandFrame)
+        DiscardChargeSprite:SetFrame("Charging", HandFrame)
         --makes the bar flicker more as the timer runs out
         if HandFrame < 25 then
-            if HandFrame % 3 == 0 then
-                HandChargeSprite:Render(Isaac.WorldToScreen(Player.Position))
+            if HandFrame % 3 == 0 then  
+                DiscardChargeSprite:Render(Isaac.WorldToScreen(Player.Position))
             end
         
         elseif HandFrame < 40 then
             if HandFrame % 3 ~= 0 then
-                HandChargeSprite:Render(Isaac.WorldToScreen(Player.Position))
+
+                DiscardChargeSprite:Render(Isaac.WorldToScreen(Player.Position))
             end
         
         elseif HandFrame < 70 then
             if HandFrame % 5 ~= 0 then
-                HandChargeSprite:Render(Isaac.WorldToScreen(Player.Position))
+
+                DiscardChargeSprite:Render(Isaac.WorldToScreen(Player.Position))
             end
         else
-            HandChargeSprite:Render(Isaac.WorldToScreen(Player.Position))
+            DiscardChargeSprite:Render(Isaac.WorldToScreen(Player.Position))
         end
     end
 
@@ -792,8 +796,18 @@ function mod:HandleNoHarmRoomsClear()
             Isaac.RunCallback("TRUE_ROOM_CLEAR",false)
 
         elseif Desc.Data.Type == RoomType.ROOM_SHOP then
+            local Seed = Game:GetRoom():GetSpawnSeed()
             Game:Spawn(EntityType.ENTITY_SLOT, SlotVariant.SHOP_RESTOCK_MACHINE,
-                       Game:GetRoom():GetGridPosition(25),Vector.Zero, nil, 0, Game:GetRoom():GetSpawnSeed())
+                       Game:GetRoom():GetGridPosition(25),Vector.Zero, nil, 0, Seed)
+            
+            local Rvoucher
+            repeat
+                ---@diagnostic disable-next-line: undefined-field
+                Rvoucher =  Isaac.GetItemPool():GetCollectible(mod.Pools.Vouchers, false, Seed)
+            until not PlayerManager.AnyoneHasCollectible(Rvoucher) and (Rvoucher % 2 == 1)
+
+            local Item = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COLLECTIBLE, Game:GetRoom():GetGridPosition(50),
+                                    Vector.Zero, nil, 1, Seed)
         end
     else
         ---@diagnostic disable-next-line: param-type-mismatch
@@ -852,10 +866,21 @@ function mod:JimboShootCardTear(Player,Direction)
 
     mod:AddValueToTable(mod.Saved.Jimbo.CurrentHand, mod.Saved.Jimbo.DeckPointer,false,true)
     mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer + 1
+    mod.Saved.Jimbo.Progress.Room.Shots = mod.Saved.Jimbo.Progress.Room.Shots + 1
 
     Isaac.RunCallback("DECK_SHIFT",Player)
     Isaac.RunCallback("CARD_SHOT", Player, CardShot , not Game:GetRoom():IsClear())
 
+    --[[mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize -mod.Saved.Jimbo.Progress.Hand] = 0 --removes the used card
+    mod.Saved.Jimbo.Progress.Hand = mod.Saved.Jimbo.Progress.Hand + 1
+
+    if mod.Saved.Jimbo.Progress.Hand > mod.Saved.Jimbo.HandSize then--if all the hand is empty replace it with a new one
+        for i=1, mod.Saved.Jimbo.HandSize do
+            mod.Saved.Jimbo.CurrentHand[i] = mod.Saved.Jimbo.DeckPointer
+            mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer +1
+        end
+        mod.Saved.Jimbo.Progress.Hand = 1
+    end]]
 end
 
 

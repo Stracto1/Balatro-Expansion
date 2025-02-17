@@ -100,6 +100,7 @@ function mod:OnGameStart(Continued)
 
         mod.Saved.Jimbo.HandSize = 5
         mod.Saved.Jimbo.InventorySize = 3
+        mod.Saved.Jimbo.MaxCards = 25
 
 
         mod.Saved.Jimbo.StatsToAdd = {}
@@ -163,6 +164,7 @@ function mod:OnGameStart(Continued)
 
         mod.Saved.Jimbo.Progress = {} --values used for jokers
         mod.Saved.Jimbo.Progress.Inventory = {0,0,0} --never reset, changed in different ways basing on the joker
+        mod.Saved.Jimbo.Progress.Cards = 0
 
         mod.Saved.Jimbo.Progress.Blind = {} --reset every new blind
         mod.Saved.Jimbo.Progress.Blind.Shots = 0
@@ -177,6 +179,7 @@ function mod:OnGameStart(Continued)
         for Value =1, 13 do
             mod.Saved.Jimbo.Progress.Room.ValueUsed[Value] = 0
         end
+        mod.Saved.Jimbo.Progress.Room.Shots = 0
 
         mod.Saved.Jimbo.Progress.Floor = {}
 
