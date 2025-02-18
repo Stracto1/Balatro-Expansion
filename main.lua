@@ -122,14 +122,40 @@ TrinketType.TRINKET_BRAINSTORM,TrinketType.TRINKET_VAGABOND, TrinketType.TRINKET
 Balatro_Expansion.Trinkets.legendary = {}
 
 
-Balatro_Expansion.Pools = {}
-Balatro_Expansion.Pools.Vouchers = Isaac.GetPoolIdByName("Balatro Vouchers")
-
 Balatro_Expansion.Vouchers = {}
 Balatro_Expansion.Vouchers.Grabber = Isaac.GetItemIdByName("Grabber")
 Balatro_Expansion.Vouchers.NachoTong = Isaac.GetItemIdByName("Nacho Tong")
 Balatro_Expansion.Vouchers.Overstock = Isaac.GetItemIdByName("Overstock")
 Balatro_Expansion.Vouchers.OverstockPlus = Isaac.GetItemIdByName("Ocerstock Plus")
+Balatro_Expansion.Vouchers.Wasteful = Isaac.GetItemIdByName("Wasteful")
+Balatro_Expansion.Vouchers.Recyclomancy = Isaac.GetItemIdByName("Recyclomancy")
+Balatro_Expansion.Vouchers.RerollSurplus = Isaac.GetItemIdByName("Reroll Surplus")
+Balatro_Expansion.Vouchers.RerollGlut = Isaac.GetItemIdByName("Reroll Glut")
+Balatro_Expansion.Vouchers.TarotMerch = Isaac.GetItemIdByName("Tarot Merchant")
+Balatro_Expansion.Vouchers.TarotTycoon = Isaac.GetItemIdByName("Tarot Tycoon")
+Balatro_Expansion.Vouchers.PlanetMerch = Isaac.GetItemIdByName("Planet Merchant")
+Balatro_Expansion.Vouchers.PlanetTycoon = Isaac.GetItemIdByName("Planet Tycoon")
+Balatro_Expansion.Vouchers.Liquidation = Isaac.GetItemIdByName("Liquidation")
+Balatro_Expansion.Vouchers.Clearance = Isaac.GetItemIdByName("Clearance Sale")
+Balatro_Expansion.Vouchers.Hone = Isaac.GetItemIdByName("Hone")
+Balatro_Expansion.Vouchers.GlowUp = Isaac.GetItemIdByName("Glow Up")
+Balatro_Expansion.Vouchers.Crystal = Isaac.GetItemIdByName("Crystal Ball")
+Balatro_Expansion.Vouchers.Omen = Isaac.GetItemIdByName("Omen Globe")
+Balatro_Expansion.Vouchers.Antimatter = Isaac.GetItemIdByName("Antimatter")
+Balatro_Expansion.Vouchers.Blank = Isaac.GetItemIdByName("Blank")
+Balatro_Expansion.Vouchers.Telescope = Isaac.GetItemIdByName("Telescope")
+Balatro_Expansion.Vouchers.Observatory = Isaac.GetItemIdByName("Observatory")
+Balatro_Expansion.Vouchers.Brush = Isaac.GetItemIdByName("Brush")
+Balatro_Expansion.Vouchers.Palette = Isaac.GetItemIdByName("Palette")
+Balatro_Expansion.Vouchers.Director = Isaac.GetItemIdByName("Director's Cut")
+Balatro_Expansion.Vouchers.Retcon = Isaac.GetItemIdByName("Retcon")
+Balatro_Expansion.Vouchers.Hieroglyph = Isaac.GetItemIdByName("Hieroglyph")
+Balatro_Expansion.Vouchers.Petroglyph = Isaac.GetItemIdByName("Petroglyph")
+Balatro_Expansion.Vouchers.MagicTrick = Isaac.GetItemIdByName("Magic Trick")
+Balatro_Expansion.Vouchers.Illusion = Isaac.GetItemIdByName("Illusion")
+Balatro_Expansion.Vouchers.MoneySeed = Isaac.GetItemIdByName("Money Seed")
+Balatro_Expansion.Vouchers.MoneyTree = Isaac.GetItemIdByName("Money Tree")
+
 
 --used to keep track of the pool (normal pools weren't good due to the "upgrade mechanich")
 Balatro_Expansion.AvailableVouchers = {Balatro_Expansion.Vouchers.Grabber,
@@ -257,6 +283,25 @@ do
     Balatro_Expansion.Saved.GeneralRNG = RNG(RandomSeed) --RNG object used in various ways 
 end
 
+Balatro_Expansion.Saved.Pools = {}
+Balatro_Expansion.Saved.Pools.Vouchers = {
+Balatro_Expansion.Vouchers.Grabber,
+Balatro_Expansion.Vouchers.Overstock,
+Balatro_Expansion.Vouchers.Wasteful,
+Balatro_Expansion.Vouchers.RerollSurplus,
+Balatro_Expansion.Vouchers.TarotMerch,
+Balatro_Expansion.Vouchers.PlanetMerch,
+Balatro_Expansion.Vouchers.Clearance,
+Balatro_Expansion.Vouchers.Hone,
+Balatro_Expansion.Vouchers.Crystal,
+Balatro_Expansion.Vouchers.Blank,
+Balatro_Expansion.Vouchers.Telescope,
+Balatro_Expansion.Vouchers.Brush,
+Balatro_Expansion.Vouchers.Director,
+Balatro_Expansion.Vouchers.Hieroglyph,
+Balatro_Expansion.Vouchers.MagicTrick,
+Balatro_Expansion.Vouchers.MoneySeed
+}
 
 -----------JIMBO-------------------
 Balatro_Expansion.Saved.Jimbo = {}
@@ -318,6 +363,7 @@ end
 Balatro_Expansion.Saved.Jimbo.Progress.Room.Shots = 0 --used to tell how many cards are already used
 
 Balatro_Expansion.Saved.Jimbo.Progress.Floor = {}
+Balatro_Expansion.Saved.Jimbo.Progress.Floor.Vouchers = {} --says which vouchers have already been spawned in a floor
 
 
 Balatro_Expansion.Saved.Jimbo.LastUsed = {} --the last card a player used

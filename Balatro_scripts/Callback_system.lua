@@ -46,7 +46,7 @@ function mod:OnGameStart(Continued)
         --all of this only happens on new runs--
         ---------------------------------------------
         
-        --reset most of the saved values
+        --[[reset most of the saved values
         mod.Saved.TrinketValues.LastMisprintDMG = 0
         mod.Saved.TrinketValues.Fortune_Teller = 0
         mod.Saved.TrinketValues.Stone_joker = 0
@@ -71,8 +71,27 @@ function mod:OnGameStart(Continued)
         mod.Saved.TrinketValues.Swashbuckler = 0
         mod.Saved.TrinketValues.Egg = 3
         mod.Saved.TrinketValues.Supernova = {}
-        mod.Saved.TrinketValues.Dna = true
+        mod.Saved.TrinketValues.Dna = true]]
 
+        mod.Pools = {}
+        mod.Pools.Vouchers = {
+        mod.Vouchers.Grabber,
+        mod.Vouchers.Overstock,
+        mod.Vouchers.Wasteful,
+        mod.Vouchers.RerollSurplus,
+        mod.Vouchers.TarotMerch,
+        mod.Vouchers.PlanetMerch,
+        mod.Vouchers.Clearance,
+        mod.Vouchers.Hone,
+        mod.Vouchers.Crystal,
+        mod.Vouchers.Blank,
+        mod.Vouchers.Telescope,
+        mod.Vouchers.Brush,
+        mod.Vouchers.Director,
+        mod.Vouchers.Hieroglyph,
+        mod.Vouchers.MagicTrick,
+        mod.Vouchers.MoneySeed
+        }
     
         mod.Saved.Jimbo.FullDeck = {}
         local index = 1
@@ -111,7 +130,7 @@ function mod:OnGameStart(Continued)
         mod.Saved.Jimbo.StatsToAdd.JokerTears = 0
         mod.Saved.Jimbo.StatsToAdd.JokerMult = 1
 
-        Balatro_Expansion.Saved.Jimbo.FirstDeck = true
+        mod.Saved.Jimbo.FirstDeck = true
 
         mod.Saved.Jimbo.MinimumTears = 0.8
         mod.Saved.Jimbo.MinimumDamage = 0.5
@@ -182,6 +201,7 @@ function mod:OnGameStart(Continued)
         mod.Saved.Jimbo.Progress.Room.Shots = 0
 
         mod.Saved.Jimbo.Progress.Floor = {}
+        mod.Saved.Jimbo.Progress.Floor.Vouchers = {}
 
 
 

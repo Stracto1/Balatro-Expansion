@@ -55,12 +55,17 @@ end
 
 ---@param Table tablelib
 ---@param RNG RNG
-function mod:GetRandom(Table, RNG)
+---@param Phantom boolean
+function mod:GetRandom(Table, RNG, Phantom)
     local Possibilities = {}
     for _,v in pairs(Table) do
         table.insert(Possibilities, v)
     end
-    return Possibilities[RNG:RandomInt(1,#Possibilities)]
+    if Phantom then
+        return Possibilities[RNG:PhantomInt(#Possibilities) + 1] -- +1 is to set it from 1 to #possibilities (sill no PhantomInt(min, max))
+    else
+        return Possibilities[RNG:RandomInt(1,#Possibilities)]
+    end
 end
 
 function mod:CalculateTearsUp(currentMaxFireDelay, TearsAdded)

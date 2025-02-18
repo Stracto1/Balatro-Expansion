@@ -10,12 +10,14 @@ local EditionShaders ={ --sadly these don't work for the bigger card spritesheet
     "shaders/Polychrome_effect",
     "shaders/Negative_effect"
 }
-EditionShaders[0] = "shaders/Nothing"
+EditionShaders[0] = "shaders/Nothing" --prevents extra if statements on render
 
 local ItemsConfig = Isaac.GetItemConfig()
 local sfx = SFXManager()
 local DiscardChargeSprite = Sprite("gfx/chargebar.anm2")
 local HandChargeSprite = Sprite("gfx/chargebar.anm2")
+local HandsBar = Sprite("gfx/Cards_Bar.anm2")
+HandsBar.Scale=Vector(0.5,0.5)
 local CardFrame = Sprite("gfx/ui/CardSelection.anm2")
 CardFrame:SetAnimation("Frame")
 
@@ -348,11 +350,15 @@ function mod:JimboHandRender(Player, Offset)
         end
 
     else
-        RenderOff = BaseRenderOff + Vector(14 * (mod.Saved.Jimbo.HandSize - 1) * ScaleMult, 0)
+        local Frame = (mod.Saved.Jimbo.Progress.Room.Shots/mod.Saved.Jimbo.MaxCards) * -26 +26
+        Frame = math.floor(Frame)
 
-        if mod.SelectionParams.SelectedCards[mod.SelectionParams.Index] then
-            RenderOff.Y = RenderOff.Y - 8
-        end
+        HandsBar:SetFrame("Charge", Frame)
+
+        HandsBar:PlayOverlay("overlay_"..tostring(mod.Saved.Jimbo.MaxCards))
+        HandsBar:Render(PlayerScreenPos + RenderOff + Offset)
+
+        RenderOff = BaseRenderOff + Vector(14 * (mod.Saved.Jimbo.HandSize - 1) * ScaleMult, 0)
 
         CardFrame.Scale = Vector(ScaleMult, ScaleMult)
         CardFrame:SetFrame(HUD_FRAME.Frame)
@@ -641,17 +647,65 @@ mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.CountersUpdate)
 ---@param rNG RNG
 function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rNG)
 
-    --print("shop")
-    local ReturnTable = {Variant, SubType, true}
-    if PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) and (ReqSubType == 0 or ReqVariant == 0) then
-        if Pickup:IsShopItem() and Game:GetRoom():GetType() == RoomType.ROOM_SHOP then
+    local ReturnTable = {Variant, SubType, true} --basic return equal to not returning anything
 
-            local RollRNG = Game:GetPlayer(0):GetDropRNG() --tried using the rng from the callback but it gave the same results each time
+    if PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) 
+       and (ReqSubType == 0 or ReqVariant == 0) and Pickup:IsShopItem() 
+       and  Game:GetRoom():GetType() == RoomType.ROOM_SHOP then
 
-            if Pickup.ShopItemId < 2 then
-                ReturnTable = {PickupVariant.PICKUP_TAROTCARD,mod:GetRandom(mod.Packs, mod.Saved.GeneralRNG),false}
-            
-            elseif Pickup.ShopItemId < 5 then
+
+        local RollRNG = Game:GetPlayer(0):GetDropRNG() --tried using the rng from the callback but it gave the same results each time
+
+        if Pickup.ShopItemId < 2 then --card pack
+            ReturnTable = {PickupVariant.PICKUP_TAROTCARD,mod:GetRandom(mod.Packs, mod.Saved.GeneralRNG),false}
+        
+        elseif Pickup.ShopItemId < 4 then --jokers
+            local Trinket
+            repeat
+                local RarityRoll = RollRNG:RandomFloat()
+                if RarityRoll < 0.75 then
+                    Trinket = mod:GetRandom(mod.Trinkets.common,RollRNG)
+                elseif RarityRoll < 0.95 then
+                    Trinket = mod:GetRandom(mod.Trinkets.uncommon,RollRNG)
+                else
+                    Trinket = mod:GetRandom(mod.Trinkets.rare,RollRNG)
+                end
+            until not mod:JimboHasTrinket(Trinket)
+
+            ReturnTable = {PickupVariant.PICKUP_TRINKET, Trinket ,false}
+
+        elseif Pickup.ShopItemId == 4 then --voucher / joker if already bought
+            --ngl i'm really proud of the algorithm i wrote on this section
+
+            ---@type boolean | integer
+            local VoucherPresent = false
+            for i,v in ipairs(Isaac.FindByType(5, 100)) do
+                if v:ToPickup().ShopItemId == Pickup.ShopItemId then --if yes, the item voucher wasn't bought
+                    VoucherPresent = v.SubType
+                    break
+                end
+            end
+
+            if not Game:GetRoom():IsInitialized() then --if room is just being entered
+                --predicts the current voucher so it can exit the /repeat until/ statement
+                VoucherPresent = mod:GetRandom(mod.Saved.Pools.Vouchers, rNG, true)
+            end
+
+            if VoucherPresent then --voucher still here with us
+
+                local Rvoucher
+                repeat
+                    Rvoucher = mod:GetRandom(mod.Saved.Pools.Vouchers, rNG) --using this rng basically makes it un rerollable with mechines
+                    --PLEASE tell me if the RNG not advancing gets patched cause it'll break the voucher generation 
+                
+                until not mod:Contained(mod.Saved.Jimbo.Progress.Floor.Vouchers, Rvoucher) --no dupes per floor
+                      or Rvoucher == VoucherPresent --if it's getting rerolled (kinda)
+
+                table.insert(mod.Saved.Jimbo.Progress.Floor.Vouchers, Rvoucher)
+
+                ReturnTable = {PickupVariant.PICKUP_COLLECTIBLE,Rvoucher, false}
+
+            else --replace with a joker if already bought instead
                 local Trinket
                 repeat
                     local RarityRoll = RollRNG:RandomFloat()
@@ -662,13 +716,13 @@ function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rN
                     else
                         Trinket = mod:GetRandom(mod.Trinkets.rare,RollRNG)
                     end
-                until not PlayerManager.AnyoneHasTrinket(Trinket) and not mod:JimboHasTrinket(Trinket)
+                until not mod:JimboHasTrinket(Trinket)
 
                 ReturnTable = {PickupVariant.PICKUP_TRINKET, Trinket ,false}
-            else 
-                ReturnTable = {PickupVariant.PICKUP_COLLECTIBLE,
-                        ItemPool:GetCollectible(ItemPoolType.POOL_SHOP, true, RollRNG:GetSeed()), false}
             end
+        else --basic shop item
+            ReturnTable = {PickupVariant.PICKUP_COLLECTIBLE,
+                    ItemPool:GetCollectible(ItemPoolType.POOL_SHOP, true, RollRNG:GetSeed()), false}
         end
     end
 
@@ -690,7 +744,7 @@ function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rN
         end
     end
 
-
+    --print(tostring(Pickup.ShopItemId).." "..tostring(ReturnTable[1]).." "..tostring(ReturnTable[2]))
     return ReturnTable
 end
 mod:AddCallback(ModCallbacks.MC_POST_PICKUP_SELECTION, mod.ShopItemChanger)
@@ -700,7 +754,7 @@ mod:AddCallback(ModCallbacks.MC_POST_PICKUP_SELECTION, mod.ShopItemChanger)
 ---@param Pickup EntityPickup
 function mod:SetItemAsShop(Pickup)
     if not Pickup:IsShopItem() then
-        Pickup:MakeShopItem(-1)
+        Pickup:MakeShopItem(-2)
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT,mod.SetItemAsShop, PickupVariant.PICKUP_COLLECTIBLE)
@@ -709,9 +763,12 @@ mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT,mod.SetItemAsShop, PickupVarian
 --sets the price for every item basing on quality and room
 function mod:SetItemPrices(Variant,SubType,_,Price)
     if Variant == PickupVariant.PICKUP_COLLECTIBLE then
-        local Quality = ItemsConfig:GetCollectible(SubType).Quality
-        return (Quality+2)*2
-
+        if ItemsConfig:GetCollectible(SubType):HasCustomTag("balatro") then
+            return 10
+        else
+            local Quality = ItemsConfig:GetCollectible(SubType).Quality
+            return (Quality+2)*2
+        end
     end
 end
 mod:AddCallback(ModCallbacks.MC_GET_SHOP_ITEM_PRICE, mod.SetItemPrices)
@@ -799,15 +856,6 @@ function mod:HandleNoHarmRoomsClear()
             local Seed = Game:GetRoom():GetSpawnSeed()
             Game:Spawn(EntityType.ENTITY_SLOT, SlotVariant.SHOP_RESTOCK_MACHINE,
                        Game:GetRoom():GetGridPosition(25),Vector.Zero, nil, 0, Seed)
-            
-            local Rvoucher
-            repeat
-                ---@diagnostic disable-next-line: undefined-field
-                Rvoucher =  Isaac.GetItemPool():GetCollectible(mod.Pools.Vouchers, false, Seed)
-            until not PlayerManager.AnyoneHasCollectible(Rvoucher) and (Rvoucher % 2 == 1)
-
-            local Item = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COLLECTIBLE, Game:GetRoom():GetGridPosition(50),
-                                    Vector.Zero, nil, 1, Seed)
         end
     else
         ---@diagnostic disable-next-line: param-type-mismatch
@@ -816,6 +864,8 @@ function mod:HandleNoHarmRoomsClear()
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.HandleNoHarmRoomsClear)
+
+
 
 --handles the shooting 
 ---@param Player EntityPlayer
