@@ -213,7 +213,8 @@ function mod:OnGameStart(Continued)
             if RandomSeed == 0 then RandomSeed = 1 end
             mod.Saved.GeneralRNG = RNG(RandomSeed) --RNG object used in various ways 
         end
-
+        mod.HpEnable = false
+        mod.ShopAddedThisFloor = false
         if mod:Contained(Challenges, Game.Challenge) then
             mod.Saved.Other.ShopEntered = true
         else

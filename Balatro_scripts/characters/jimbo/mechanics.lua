@@ -57,7 +57,6 @@ local CardHUDWidth = 13
 local PACK_CARD_DISTANCE = 10
 
 local BasicRoomNum = 0
-local ShopAddedThisFloor = false
 local DeathCopyCard
 
 
@@ -93,7 +92,9 @@ end
 --local jesterhatCostume = Isaac.GetCostumeIdByPath("gfx/characters/gabriel_hair.anm2") -- Exact path, with the "resources" folder as the root
 --local jesterstolesCostume = Isaac.GetCostumeIdByPath("gfx/characters/gabriel_stoles.anm2") -- Exact path, with the "resources" folder as the root
 local Game = Game()
+local Level = Game:GetLevel()
 local ItemPool = Game:GetItemPool()
+
 
 --------------HUD RENDER-----------------
 -----------------------------------------
@@ -350,12 +351,14 @@ function mod:JimboHandRender(Player, Offset)
         end
 
     else
-        local Frame = (mod.Saved.Jimbo.Progress.Room.Shots/mod.Saved.Jimbo.MaxCards) * -26 +26
+        local Frame = (mod.Saved.Jimbo.Progress.Room.Shots/mod.Saved.Jimbo.MaxCards) * -26 + 26
         Frame = math.floor(Frame)
 
         HandsBar:SetFrame("Charge", Frame)
 
         HandsBar:PlayOverlay("overlay_"..tostring(mod.Saved.Jimbo.MaxCards))
+        HandsBar:SetOverlayFrame(0)
+
         HandsBar:Render(PlayerScreenPos + RenderOff + Offset)
 
         RenderOff = BaseRenderOff + Vector(14 * (mod.Saved.Jimbo.HandSize - 1) * ScaleMult, 0)
@@ -649,32 +652,18 @@ function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rN
 
     local ReturnTable = {Variant, SubType, true} --basic return equal to not returning anything
 
-    if PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) 
-       and (ReqSubType == 0 or ReqVariant == 0) and Pickup:IsShopItem() 
+    if PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType)
+       and (ReqSubType == 0 or ReqVariant == 0) and Pickup:IsShopItem()
        and  Game:GetRoom():GetType() == RoomType.ROOM_SHOP then
 
 
         local RollRNG = Game:GetPlayer(0):GetDropRNG() --tried using the rng from the callback but it gave the same results each time
 
-        if Pickup.ShopItemId < 2 then --card pack
-            ReturnTable = {PickupVariant.PICKUP_TAROTCARD,mod:GetRandom(mod.Packs, mod.Saved.GeneralRNG),false}
         
-        elseif Pickup.ShopItemId < 4 then --jokers
-            local Trinket
-            repeat
-                local RarityRoll = RollRNG:RandomFloat()
-                if RarityRoll < 0.75 then
-                    Trinket = mod:GetRandom(mod.Trinkets.common,RollRNG)
-                elseif RarityRoll < 0.95 then
-                    Trinket = mod:GetRandom(mod.Trinkets.uncommon,RollRNG)
-                else
-                    Trinket = mod:GetRandom(mod.Trinkets.rare,RollRNG)
-                end
-            until not mod:JimboHasTrinket(Trinket)
+        if Pickup.ShopItemId <= 1 then --card pack
+            ReturnTable = {PickupVariant.PICKUP_TAROTCARD,mod:GetRandom(mod.Packs, mod.Saved.GeneralRNG),false}
 
-            ReturnTable = {PickupVariant.PICKUP_TRINKET, Trinket ,false}
-
-        elseif Pickup.ShopItemId == 4 then --voucher / joker if already bought
+        elseif Pickup.ShopItemId == 2 then --voucher / joker if already bought
             --ngl i'm really proud of the algorithm i wrote on this section
 
             ---@type boolean | integer
@@ -720,15 +709,29 @@ function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rN
 
                 ReturnTable = {PickupVariant.PICKUP_TRINKET, Trinket ,false}
             end
-        else --basic shop item
+        elseif Pickup.ShopItemId == 3 then --basic shop item
             ReturnTable = {PickupVariant.PICKUP_COLLECTIBLE,
                     ItemPool:GetCollectible(ItemPoolType.POOL_SHOP, true, RollRNG:GetSeed()), false}
+        else
+            local Trinket
+            repeat
+                local RarityRoll = RollRNG:RandomFloat()
+                if RarityRoll < 0.75 then
+                    Trinket = mod:GetRandom(mod.Trinkets.common,RollRNG)
+                elseif RarityRoll < 0.95 then
+                    Trinket = mod:GetRandom(mod.Trinkets.uncommon,RollRNG)
+                else
+                    Trinket = mod:GetRandom(mod.Trinkets.rare,RollRNG)
+                end
+            until not mod:JimboHasTrinket(Trinket)
+
+            ReturnTable = {PickupVariant.PICKUP_TRINKET, Trinket ,false}
         end
     end
 
     --if a trinket is selected, then also roll for its edition
     if ReturnTable[1] == PickupVariant.PICKUP_TRINKET then
-        local Index = Game:GetLevel():GetCurrentRoomDesc().ListIndex
+        local Index = Level:GetCurrentRoomDesc().ListIndex
 
         local EdRoll = mod.Saved.GeneralRNG:RandomFloat()
         if EdRoll <= 0.02 then --foil chance
@@ -762,51 +765,107 @@ mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT,mod.SetItemAsShop, PickupVarian
 
 --sets the price for every item basing on quality and room
 function mod:SetItemPrices(Variant,SubType,_,Price)
-    if Variant == PickupVariant.PICKUP_COLLECTIBLE then
-        if ItemsConfig:GetCollectible(SubType):HasCustomTag("balatro") then
-            return 10
-        else
-            local Quality = ItemsConfig:GetCollectible(SubType).Quality
-            return (Quality+2)*2
-        end
+    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
+        return
     end
+    local Cost = 1
+    if Variant == PickupVariant.PICKUP_COLLECTIBLE then
+        if ItemsConfig:GetCollectible(SubType):HasCustomTag("balatro") then --vouchers
+            Cost = 10
+        else --any item in the game
+            Cost = (ItemsConfig:GetCollectible(SubType).Quality +2) *2
+        end
+    elseif Variant == PickupVariant.PICKUP_TRINKET then --jokers
+        Cost = mod:GetJokerCost(SubType)
+    else --prob stuff like booster packs
+        Cost = 5
+    end
+
+    if PlayerManager.AnyoneHasCollectible(mod.Vouchers.Liquidation) then --50% off
+        Cost = Cost * 0.5
+    elseif PlayerManager.AnyoneHasCollectible(mod.Vouchers.Clearance) then --25% off
+        Cost = Cost * 0.75
+    end
+    Cost = math.floor(Cost) --rounds it down 
+
+    return Cost
 end
 mod:AddCallback(ModCallbacks.MC_GET_SHOP_ITEM_PRICE, mod.SetItemPrices)
 
 
 --modifies the floor generation and calculates the number of normal rooms
 ---@param RoomConfig RoomConfigRoom
----@param RoomLevel LevelGeneratorRoom
-function mod:FloorModifier(RoomLevel,RoomConfig,Seed)
-    if PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
-        --changes all the shops and treasures with Tkeeper's shops
-        local RoomIndex = RoomLevel:Column() + RoomLevel:Row()*13
-        if RoomConfig.Type == RoomType.ROOM_SHOP then
-            --("s")
-            
-            local NewRoom = RoomConfigHolder.GetRandomRoom(Seed,false, StbType.SPECIAL_ROOMS, RoomType.ROOM_SHOP, RoomShape.ROOMSHAPE_1x1,-1,-1,0,10,0, RoomSubType.SHOP_KEEPER_LEVEL_3)
+---@param LevelGen LevelGeneratorRoom
+function mod:FloorModifier(LevelGen,RoomConfig,Seed)
+    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
+        return
+    end
+    mod.ShopAddedThisFloor = false
+    local RoomIndex = LevelGen:Column() + LevelGen:Row()*13
+    
+    --print(RoomIndex)
 
-            Game:GetLevel():GetRoomByIdx(RoomIndex).DisplayFlags = 3
-            --Game:GetLevel():UpdateVisibility() this function make sthe whole game crash, no idea why
-
-
-            return NewRoom --replaces the room with the new one
-
-        elseif RoomConfig.Type == RoomType.ROOM_DEFAULT and (RoomIndex ~= Game:GetLevel():GetStartingRoomIndex())  then
-            --adds an extra shop on every floor
-            --print("normal")
-            
-            if RoomLevel:IsDeadEnd() and not ShopAddedThisFloor and RoomLevel:Shape()==RoomShape.ROOMSHAPE_1x1 then
-                --local RoomRNG = RNG(Seed)
-                --local ChosenSubType = RoomRNG:RandomInt(RoomSubType.SHOP_KEEPER_LEVEL_3, RoomSubType.SHOP_KEEPER_LEVEL_5)
-                
-                local NewRoom = RoomConfigHolder.GetRandomRoom(Seed,false, StbType.SPECIAL_ROOMS, RoomType.ROOM_SHOP, RoomShape.ROOMSHAPE_1x1,-1,-1,0,10,0, RoomSubType.SHOP_KEEPER_LEVEL_3)
-                ShopAddedThisFloor = true
-                return NewRoom --replaces the room with the new one
+    if RoomConfig.Type == RoomType.ROOM_SHOP then
+        --("s")
+        local ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_3
+            if PlayerManager.AnyoneHasCollectible(mod.Vouchers.OverstockPlus) then
+                ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_4
+            elseif PlayerManager.AnyoneHasCollectible(mod.Vouchers.Overstock) then
+                ShopQuality= RoomSubType.SHOP_KEEPER_LEVEL_5
             end
+        local NewRoom = RoomConfigHolder.GetRandomRoom(Seed,false, StbType.SPECIAL_ROOMS, RoomType.ROOM_SHOP, RoomShape.ROOMSHAPE_1x1,-1,-1,0,10,0, ShopQuality)
 
-            BasicRoomNum = BasicRoomNum + 1 --idk why but this is always much higher than needed
+        Isaac.CreateTimer(
+        function()
+            Level:GetRoomByIdx(RoomIndex).DisplayFlags = 5
+
+            Level:UpdateVisibility()
+        end, 1, 1, true)
+
+        return NewRoom --replaces the room with the new one
+
+    elseif RoomConfig.Type == RoomType.ROOM_DEFAULT then
+        --adds an extra shop on every floor (on basement I/II has a ~8% to fail due to lack of options)
+
+        if RoomIndex ~= Level:GetStartingRoomIndex() then
+            BasicRoomNum = BasicRoomNum + 1
         end
+
+        local ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_3
+
+        if PlayerManager.AnyoneHasCollectible(mod.Vouchers.OverstockPlus) then
+            ShopQuality= RoomSubType.SHOP_KEEPER_LEVEL_5
+        elseif PlayerManager.AnyoneHasCollectible(mod.Vouchers.Overstock) then
+            ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_4
+        end
+
+        local NewRoom = RoomConfigHolder.GetRandomRoom(Seed,false, StbType.SPECIAL_ROOMS, RoomType.ROOM_SHOP, RoomShape.ROOMSHAPE_1x1,-1,-1,0,10,0, ShopQuality)
+
+        for Slot = DoorSlot.LEFT0, DoorSlot.DOWN1 do
+            if RoomConfig.Doors & (1 << Slot) ~= 0 then --if door is available
+                --print("door at "..tostring(Slot))
+                Isaac.CreateTimer(
+                function()
+                    if mod.ShopAddedThisFloor then
+                        return
+                    end
+
+                    ---@diagnostic disable-next-line: redundant-parameter
+                    local YeRoom = Level:TryPlaceRoomAtDoor(NewRoom, Level:GetRoomByIdx(RoomIndex), Slot,Seed, false, false)
+                    if YeRoom then
+                        YeRoom.DisplayFlags = 5
+                        mod.ShopAddedThisFloor = true
+                    end
+                end,1,1,true)
+            end
+        end
+    elseif RoomConfig.Type == RoomType.ROOM_BOSS then
+        Isaac.CreateTimer(
+        function()
+            Level:GetRoomByIdx(RoomIndex).DisplayFlags = 5
+
+            Level:UpdateVisibility()
+        end, 1, 1, true)
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_LEVEL_PLACE_ROOM, mod.FloorModifier)
@@ -839,9 +898,9 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.CalculateBlinds)
 
 --handles the rooms which are cleared by default and shuffels if they are not
 function mod:HandleNoHarmRoomsClear()
-    local Desc = Game:GetLevel():GetCurrentRoomDesc()
+    local Desc = Level:GetCurrentRoomDesc()
     
-    if Desc.VisitedCount ~= 1 or Desc.GridIndex == Game:GetLevel():GetStartingRoomIndex()
+    if Desc.VisitedCount ~= 1 or Desc.GridIndex == Level:GetStartingRoomIndex()
        or not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
         return
     end
@@ -1077,7 +1136,7 @@ function mod:JimboAddTrinket(Player, Trinket, _)
         Player:TryRemoveTrinket(Trinket) -- a custom array is used instead since he needs to hold many of them
 
         local Slot = mod:AddValueToTable(mod.Saved.Jimbo.Inventory.Jokers, Trinket, true, false)
-        local JokerEdition = mod.Saved.Jimbo.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Trinket).Name] or mod.Edition.BASE 
+        local JokerEdition = mod.Saved.Jimbo.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Trinket).Name] or mod.Edition.BASE 
 
         mod.Saved.Jimbo.Inventory.Editions[Slot] = JokerEdition --gives the correct edition to the inventory slot
 
@@ -1120,14 +1179,12 @@ function mod:JimboTrinketPool(_, RNG)
         until not mod:JimboHasTrinket(nil, Joker)
         return Joker
     end
-
-
 end
 mod:AddCallback(ModCallbacks.MC_GET_TRINKET, mod.JimboTrinketPool)
 
 ---@param Trinket EntityPickup
 function mod:TrinketEditionsRender(Trinket, Offset)
-    local Index = Game:GetLevel():GetCurrentRoomDesc().ListIndex
+    local Index = Level:GetCurrentRoomDesc().ListIndex
 
     if mod.Saved.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name] then --just a precaution
 
@@ -1141,11 +1198,13 @@ mod:AddCallback(ModCallbacks.MC_POST_PICKUP_RENDER, mod.TrinketEditionsRender, P
 
 function mod:EnableTrinketEditions()
     mod.Saved.Jimbo.FloorEditions = {}
-    local AllRoomsDesc = Game:GetLevel():GetRooms()
-    for i=1, Game:GetLevel():GetRoomCount()-1 do
-        local RoomDesc = AllRoomsDesc:Get(i)
-        mod.Saved.Jimbo.FloorEditions[RoomDesc.ListIndex] = {}
-    end
+    Isaac.CreateTimer(function()
+        local AllRoomsDesc = Level:GetRooms()
+        for i=1, Level:GetRoomCount()-1 do
+            local RoomDesc = AllRoomsDesc:Get(i)
+            mod.Saved.Jimbo.FloorEditions[RoomDesc.ListIndex] = {}
+        end
+    end, 1,1,true )
 end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.EnableTrinketEditions)
 
@@ -1208,18 +1267,28 @@ mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, mod.JimboTakeDamage)
 ---@param HpType AddHealthType
 function mod:JimboOnlyRedHearts(Player, Amount, HpType, _)
 
-    if Amount == 0 then
+    if Amount == 0 or Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
-
+    
     if (HpType | AddHealthType.SOUL == AddHealthType.SOUL or
        HpType | AddHealthType.BLACK == AddHealthType.BLACK) then
 
         Player:AddBlueFlies(Amount * 2, Player.Position, Player)
         return 0 -- no hearts given
 
-    elseif HpType | AddHealthType.MAX == AddHealthType.MAX  then
+    elseif HpType | AddHealthType.MAX == AddHealthType.MAX and not mod.HpEnable then --can't get hp us normally
+        for i = 1, Amount do
+            local RPack = mod:GetRandom(mod.Packs, Player:GetDropRNG())
+            Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
+                       RandomVector()*2.5, nil, RPack, Player:GetDropRNG():GetSeed())
+        end
+        Player:StopExtraAnimation() --PLACEHOLDER
+        Player:AnimateSad()
+        return 0
 
+    elseif HpType | AddHealthType.RED == AddHealthType.RED and Amount % 2 == 1 then
+        return Amount + 1
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_ADD_HEARTS, mod.JimboOnlyRedHearts)
@@ -1769,7 +1838,7 @@ function mod:Select(Player)
 
             local Joker = mod.SelectionParams.PackOptions[mod.SelectionParams.Index].Joker
             local Edition = mod.SelectionParams.PackOptions[mod.SelectionParams.Index].Edition
-            local Index = Game:GetLevel():GetCurrentRoomDesc().ListIndex
+            local Index = Level:GetCurrentRoomDesc().ListIndex
 
             Game:Spawn(EntityType.ENTITY_PICKUP,PickupVariant.PICKUP_TRINKET, Player.Position, RandomVector()*3,nil,Joker,Game:GetSeeds():GetStartSeed())
             mod.Saved.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Joker).Name] = Edition

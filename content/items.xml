@@ -73,8 +73,8 @@
 
     <active name="The hand" chargetype="special" maxcharges="0" quality="2" craftquality="2" gfx="the_hand_active.png" description="Need a hand?"/>
     
-    <passive name="Grabber"  quality="2" craftquality="2" gfx="grabber_voucher.png" description="hands up!" customtags="balatro"/>
-    <passive name="Nacho Tong"  quality="3" craftquality="2" gfx="nacho_tong_voucher.png" description="just one more!" customtags="balatro"/>
+    <passive name="Grabber"  customcache="hands"  quality="2" craftquality="2" gfx="grabber_voucher.png" description="hands up!" customtags="balatro"/>
+    <passive name="Nacho Tong"  customcache="hands" quality="3" craftquality="2" gfx="nacho_tong_voucher.png" description="just one more!" customtags="balatro"/>
     <passive name="Overstock"  quality="2" craftquality="2" gfx="overstock_voucher.png" description="more options!" customtags="balatro"/>
     <passive name="Overstock Plus"  quality="3" craftquality="2" gfx="overstock_plus_voucher.png" description="even more options!" customtags="balatro"/>
     <passive name="Clearance Sale"  quality="2" craftquality="2" gfx="clearance_sale_voucher.png" description="don't miss it!" customtags="balatro"/>

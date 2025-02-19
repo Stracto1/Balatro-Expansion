@@ -437,6 +437,9 @@ Balatro_Expansion.Saved.Jimbo.FiveFlushUnlocked = false]]--
 Balatro_Expansion.Saved.Jimbo.FloorEditions = {} --used to save which trinkets have certaain edition modifiers applied
 
 --OTHER VALUES
+Balatro_Expansion.HpEnable = false
+Balatro_Expansion.ShopAddedThisFloor = false
+
 Balatro_Expansion.Counters = {}--table used for variuos counters increased every update (mainly used for animated HUD stuff)
 Balatro_Expansion.Counters.SinceShift = 0
 
@@ -604,6 +607,7 @@ end
                 --   which can be found inside the section of the cache evaluation functions
 include("Balatro_scripts.characters.jimbo.mechanics")
 include("Balatro_scripts.characters.jimbo.trinkets") --jimbo trinkets/items effects
+include("Balatro_scripts.characters.jimbo.items")
 include("Balatro_scripts.Custom_Cards") --jimbo cards effects
 include("Balatro_scripts.Synergies")
 
