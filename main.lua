@@ -36,7 +36,7 @@ TrinketType.TRINKET_ROUGH_GEM = Isaac.GetTrinketIdByName("Rough gem")
 TrinketType.TRINKET_GROS_MICHAEL = Isaac.GetTrinketIdByName("Gros Michel")
 TrinketType.TRINKET_CAVENDISH = Isaac.GetTrinketIdByName("Cavendish")
 TrinketType.TRINKET_FLASH_CARD = Isaac.GetTrinketIdByName("Flash card")
-TrinketType.TRINKET_SACRIFICIAL_DAGGER = Isaac.GetTrinketIdByName("Sacrificial dagger")
+TrinketType.TRINKET_SACRIFICIAL_DAGGER = Isaac.GetTrinketIdByName("Cerimonial dagger")
 TrinketType.TRINKET_LOYALTY_CARD = Isaac.GetTrinketIdByName("Loyalty card")
 TrinketType.TRINKET_SWASHBUCKLER = Isaac.GetTrinketIdByName("Swashbuckler")
 TrinketType.TRINKET_CLOUD_NINE = Isaac.GetTrinketIdByName("Cloud 9")
@@ -57,6 +57,20 @@ Card.CARD_PACK_TAROT =  Isaac.GetCardIdByName("Tarot_Pack")
 ------------------------
 Balatro_Expansion.Characters = {}
 Balatro_Expansion.Characters.JimboType = Isaac.GetPlayerTypeByName("Jimbo", false) -- Exactly as in the xml. The second argument is if you want the Tainted variant.
+
+Balatro_Expansion.Sounds = {}
+Balatro_Expansion.Sounds.ADDMULT = Isaac.GetSoundIdByName("ADDMULTSFX")
+Balatro_Expansion.Sounds.TIMESMULT = Isaac.GetSoundIdByName("TIMESMULTSFX")
+Balatro_Expansion.Sounds.ACTIVATE = Isaac.GetSoundIdByName("ACTIVATESFX")
+Balatro_Expansion.Sounds.CHIPS = Isaac.GetSoundIdByName("CHIPSSFX")
+Balatro_Expansion.Sounds.MONEY = Isaac.GetSoundIdByName("ACTIVATESFX")
+Balatro_Expansion.Sounds.SLICE = Isaac.GetSoundIdByName("SLICESFX")
+
+Balatro_Expansion.EffectColors = {}
+Balatro_Expansion.EffectColors.RED = 1
+Balatro_Expansion.EffectColors.BLUE = 2
+Balatro_Expansion.EffectColors.YELLOW = 3
+
 
 Balatro_Expansion.Packs = {}
 Balatro_Expansion.Packs.ARCANA =  Isaac.GetCardIdByName("Tarot_Pack")

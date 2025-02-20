@@ -4,7 +4,8 @@ local Game = Game()
 local ItemsConfig = Isaac.GetItemConfig()
 
 
---SOME VOUCHERS STILL HAVE THEIR EFFECT IN mechanics.lua (Wasteful/recyclomancy - clearance/liquidation - Overstock/plus)
+--SOME VOUCHERS STILL HAVE THEIR EFFECT IN mechanics.lua 
+--(Wasteful/recyclomancy - clearance/liquidation - Overstock/plus - Hone/Glow Up)
 
 
 ---@param Player EntityPlayer
@@ -42,6 +43,33 @@ function mod:DiscardVoucher(Item,_,_,_,_,Player)
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE, mod.DiscardVoucher)
+
+
+function mod:RerollVoucher(Partial)
+    if Partial or not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
+        return
+    end
+    local GlutOwner = PlayerManager.FirstCollectibleOwner(mod.Vouchers.RerollGlut)
+
+    if GlutOwner then
+        GlutOwner:AddCoins(2)
+        mod:CreateBalatroEffect(GlutOwner, mod.EffectColors.YELLOW,
+        mod.Sounds.MONEY, "+2 $")
+        return
+    end
+    
+    local SurplusOwner = PlayerManager.FirstCollectibleOwner(mod.Vouchers.RerollSurplus)
+    
+    if SurplusOwner then
+        Game:GetPlayer(0):AddCoins(1)
+        mod:CreateBalatroEffect(SurplusOwner, mod.EffectColors.YELLOW,
+        mod.Sounds.MONEY, "+1 $")
+        return
+    end
+    
+end
+mod:AddCallback(ModCallbacks.MC_POST_RESTOCK_SHOP, mod.RerollVoucher)
+
 
 ---@param Player EntityPlayer
 function mod:HandsCache(Player, Cache, Value)

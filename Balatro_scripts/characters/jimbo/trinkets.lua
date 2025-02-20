@@ -6,16 +6,6 @@ local ItemsConfig = Isaac.GetItemConfig()
 
 --local INVENTORY_RENDERING_POSITION = Vector(20,220) 
 
-local EFFECT_COLORS = {}
-EFFECT_COLORS.Red = 1
-EFFECT_COLORS.Blue = 2
-EFFECT_COLORS.Yellow = 3
-
-local ADDMULTSOUND = Isaac.GetSoundIdByName("ADDMULTSFX")
-local TIMESMULTSOUND = Isaac.GetSoundIdByName("TIMESMULTSFX")
-local ACTIVATESOUND = Isaac.GetSoundIdByName("ACTIVATESFX")
-local CHIPSSOUND = Isaac.GetSoundIdByName("CHIPSSFX")
-local SLICESOUND = Isaac.GetSoundIdByName("SLICESFX")
 
 
 --a some trinkets still have their effects/ callbacks in Trinket_Effects.lua and Trinket_Callbacks.lua
@@ -75,14 +65,14 @@ for Index,Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
                     local Coin = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
                                             RandomVector()*3, nil, CoinSubType.COIN_PENNY, RandomSeed)
                     Coin:ToPickup().Timeout = 50
-                    mod:CreateBalatroEffect(Index,EFFECT_COLORS.Yellow, ACTIVATESOUND, "Activate!")
+                    mod:CreateBalatroEffect(Index,mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Activate!")
                 end
             end
         end
     elseif Joker == TrinketType.TRINKET_DNA then
         if mod.Saved.Jimbo.Progress.Blind.Shots == 1 then --if it's the first fired card in a blind
             table.insert(mod.Saved.Jimbo.FullDeck, mod.Saved.Jimbo.FullDeck[ShotCard.Index])
-            mod:CreateBalatroEffect(Index,EFFECT_COLORS.Yellow, ACTIVATESOUND, "Activate!")
+            mod:CreateBalatroEffect(Index,mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Activate!")
         end --ADDED TO DECK
     elseif Joker == TrinketType.TRINKET_BLOODSTONE then
         if mod:IsSuit(Player, ShotCard.Suit,ShotCard.Enhancement, mod.Suits.Heart, false) then
@@ -91,7 +81,7 @@ for Index,Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
                 if mod:TryGamble(Player, nil, 0.5) then
                     
                     mod.Saved.Jimbo.Progress.Inventory[Index] = mod.Saved.Jimbo.Progress.Inventory[Index]
-                    mod:CreateBalatroEffect(Index,EFFECT_COLORS.Red, TIMESMULTSOUND, "X1.2")
+                    mod:CreateBalatroEffect(Index,mod.EffectColors.RED, mod.Sounds.TIMESMULT, "X1.2")
                 end
             end
         end
@@ -124,12 +114,12 @@ function mod:OnHandDiscard(Player)
             if mod.Saved.Jimbo.Progress.Inventory[Index] == 0 then --at 0 it self destructs
                 
                 mod.Saved.Jimbo.Inventory.Jokers[Index] = 0
-                mod:CreateBalatroEffect(Index, EFFECT_COLORS.Red, ACTIVATESOUND, "Extinct!")
+                mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "Extinct!")
 
                 Isaac.RunCallback("INVENTORY_CHANGE", Player)
             else
                 local Loss = mod.Saved.Jimbo.HandSize / 100
-                mod:CreateBalatroEffect(Index, EFFECT_COLORS.Red, ACTIVATESOUND, "-"..tostring(Loss).."X")
+                mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "-"..tostring(Loss).."X")
             end
         
         elseif Joker == TrinketType.TRINKET_GREEN_JOKER then
@@ -139,7 +129,7 @@ function mod:OnHandDiscard(Player)
                 if mod.Saved.Jimbo.Progress.Inventory[Index] < 0 then
                     mod.Saved.Jimbo.Progress.Inventory[Index] = 0
                 end
-                mod:CreateBalatroEffect(Index, EFFECT_COLORS.Red, ACTIVATESOUND, "-"..tostring((InitialProg - mod.Saved.Jimbo.Progress.Inventory[Index])*0.05))
+                mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "-"..tostring((InitialProg - mod.Saved.Jimbo.Progress.Inventory[Index])*0.05))
         
             end
         end
@@ -220,11 +210,11 @@ function mod:OnBlindClear(BlindType)
             local Value = mod.Saved.Jimbo.Progress.Inventory[Index]
 
             if Value < 3 then --still charging
-                mod:CreateBalatroEffect(Index, EFFECT_COLORS.Yellow, 
-                                        ACTIVATESOUND, tostring(Value).."/3")
+                mod:CreateBalatroEffect(Index, mod.EffectColors.YELLOW, 
+                                        mod.Sounds.ACTIVATE, tostring(Value).."/3")
             else --usable
-                mod:CreateBalatroEffect(Index,EFFECT_COLORS.Yellow, 
-                                        ACTIVATESOUND, "ACTIVE!")
+                mod:CreateBalatroEffect(Index,mod.EffectColors.YELLOW, 
+                                        mod.Sounds.ACTIVATE, "ACTIVE!")
             end
 
         elseif Joker == TrinketType.TRINKET_ROCKET then
@@ -235,13 +225,13 @@ function mod:OnBlindClear(BlindType)
                            Player.Position, RandomVector()*3, Player,
                            CoinSubType.COIN_PENNY, RandomSeed)
             end
-            mod:CreateBalatroEffect(Index, EFFECT_COLORS.Yellow, 
-                                    ACTIVATESOUND, "+"..tostring(MoneyAmount).." $")
+            mod:CreateBalatroEffect(Index, mod.EffectColors.YELLOW, 
+                                    mod.Sounds.ACTIVATE, "+"..tostring(MoneyAmount).." $")
             --on boss beaten it upgrades
             if BlindType == mod.BLINDS.BOSS then
                 mod.Saved.Jimbo.Progress.Inventory[Index] = mod.Saved.Jimbo.Progress.Inventory[Index] + 1
-                mod:CreateBalatroEffect(Index, EFFECT_COLORS.Yellow, 
-                                    ACTIVATESOUND, "Upgrade!")
+                mod:CreateBalatroEffect(Index, mod.EffectColors.YELLOW, 
+                                    mod.Sounds.ACTIVATE, "Upgrade!")
             end
         elseif Joker == TrinketType.TRINKET_GOLDEN_JOKER then
 
@@ -252,28 +242,28 @@ function mod:OnBlindClear(BlindType)
                            Player.Position, RandomVector()*3, Player,
                            CoinSubType.COIN_PENNY, RandomSeed)
             end
-            mod:CreateBalatroEffect(Index, EFFECT_COLORS.Yellow, 
-                                    ACTIVATESOUND, "+"..tostring(MoneyAmmount).." $")
+            mod:CreateBalatroEffect(Index, mod.EffectColors.YELLOW, 
+                                    mod.Sounds.ACTIVATE, "+"..tostring(MoneyAmmount).." $")
 
         elseif Joker == TrinketType.TRINKET_RIFF_RAFF then
             local RandomJoker = mod:GetRandom(mod.Trinkets, Player:GetTrinketRNG(TrinketType.TRINKET_RIFF_RAFF), true)
             Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET, Player.Position,
                        RandomVector()*3, nil, RandomJoker, RandomSeed)
 
-            mod:CreateBalatroEffect(Index,EFFECT_COLORS.Yellow, ACTIVATESOUND, "Activate!")
+            mod:CreateBalatroEffect(Index,mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Activate!")
 
         elseif Joker == TrinketType.TRINKET_CARTOMANCER then
             local RandomTarot = Player:GetTrinketRNG(TrinketType.TRINKET_RIFF_RAFF):RandomInt(1,22)
             Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
                        RandomVector()*3, nil, RandomTarot, RandomSeed)
 
-            mod:CreateBalatroEffect(Index,EFFECT_COLORS.Yellow, ACTIVATESOUND, "Activate!")
+            mod:CreateBalatroEffect(Index,mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Activate!")
 
         elseif Joker == TrinketType.TRINKET_EGG then
 
             mod.Saved.Jimbo.Progress.Inventory[Index] = mod.Saved.Jimbo.Progress.Inventory[Index] + 2
 
-            mod:CreateBalatroEffect(Index,EFFECT_COLORS.Yellow, ACTIVATESOUND, "Upgrade!")
+            mod:CreateBalatroEffect(Index,mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Upgrade!")
 
         elseif Joker == TrinketType.TRINKET_DELAYED_GRATIFICATION then
 
@@ -283,7 +273,7 @@ function mod:OnBlindClear(BlindType)
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
                            RandomVector()*3, nil, CoinSubType.COIN_PENNY, RandomSeed)
             end
-            mod:CreateBalatroEffect(Index,EFFECT_COLORS.Yellow, ACTIVATESOUND, "+"..tostring(NumCoins).."$")
+            mod:CreateBalatroEffect(Index,mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "+"..tostring(NumCoins).."$")
         
 
         elseif Joker == TrinketType.TRINKET_CLOUD_NINE then
@@ -297,24 +287,24 @@ function mod:OnBlindClear(BlindType)
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
                            RandomVector()*3, nil, CoinSubType.COIN_PENNY, RandomSeed)
             end
-            mod:CreateBalatroEffect(Index,EFFECT_COLORS.Yellow, ACTIVATESOUND, "+"..tostring(Nines).."$")
+            mod:CreateBalatroEffect(Index,mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "+"..tostring(Nines).."$")
         
         elseif Joker == TrinketType.TRINKET_POPCORN then
             mod.Saved.Jimbo.Progress.Inventory[Index] = mod.Saved.Jimbo.Progress.Inventory[Index] - 1
             if mod.Saved.Jimbo.Progress.Inventory[Index] == 0 then --at 0 it self destructs
                 
                 mod.Saved.Jimbo.Inventory.Jokers[Index] = 0
-                mod:CreateBalatroEffect(Index, EFFECT_COLORS.Red, ACTIVATESOUND, "Extinct!")
+                mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "Extinct!")
 
                 Isaac.RunCallback("INVENTORY_CHANGE", Player)
             else
-                mod:CreateBalatroEffect(Index, EFFECT_COLORS.Red, ACTIVATESOUND, "-0.2")
+                mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "-0.2")
             end
 
         elseif Joker == TrinketType.TRINKET_MADNESS then
             mod.Saved.Jimbo.Progress.Inventory[Index] = mod.Saved.Jimbo.Progress.Inventory[Index] + 1
             
-            mod:CreateBalatroEffect(Index, EFFECT_COLORS.Red, ACTIVATESOUND, "+0.15X")
+            mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+0.15X")
             
             local Removable = {}
             for i, v in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
@@ -357,8 +347,8 @@ function mod:OnBlindStart(BlindType)
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET, Player.Position,
                            RandomVector()*3, nil, RandomJoker, RandomSeed)
 
-                mod:CreateBalatroEffect(Index,EFFECT_COLORS.Yellow, 
-                                        ACTIVATESOUND, "ACTIVATE!")
+                mod:CreateBalatroEffect(Index,mod.EffectColors.YELLOW, 
+                                        mod.Sounds.ACTIVATE, "ACTIVATE!")
                 
             end
 
@@ -388,7 +378,7 @@ function mod:OnPackOpened(Player,Pack)
             local RandomTarot = TrinketRNG:RandomInt(Card.CARD_FOOL, Card.CARD_WORLD)
             Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
                        RandomVector()*3, nil, RandomTarot, RandomSeed)
-            mod:CreateBalatroEffect(Index, EFFECT_COLORS.Yellow, ACTIVATESOUND, "Activate!")
+            mod:CreateBalatroEffect(Index, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Activate!")
         end
         end
     end
@@ -408,7 +398,7 @@ function mod:OnPackSkipped(Player,Pack)
         if Joker == 0 then
         elseif Joker == TrinketType.TRINKET_RED_CARD then
             mod.Saved.Jimbo.Progress.Inventory[Index] = mod.Saved.Jimbo.Progress.Inventory[Index] + 1
-            mod:CreateBalatroEffect(Index, EFFECT_COLORS.Red, ACTIVATESOUND, "+0.15")
+            mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+0.15")
         end
     end
 
@@ -434,7 +424,7 @@ function mod:OnCardUsed(CardUsed,Player,Flag)
                 end
                 mod.Saved.Jimbo.Progress.Inventory[Index] = mod.Saved.Jimbo.Progress.Inventory[Index] + Step
             
-                mod:CreateBalatroEffect(Index, EFFECT_COLORS.Red, ACTIVATESOUND, "+0.05")
+                mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+0.05")
             end
         end
     end
@@ -467,7 +457,7 @@ function mod:OnRoomClear(IsBoss)
 
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
                            RandomVector()*3, nil, RandomTarot, RandomSeed)
-                mod:CreateBalatroEffect(Index, EFFECT_COLORS.Yellow, ACTIVATESOUND, "Activate!")
+                mod:CreateBalatroEffect(Index, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Activate!")
             end
 
         elseif Joker == TrinketType.TRINKET_ICECREAM then
@@ -475,15 +465,15 @@ function mod:OnRoomClear(IsBoss)
             if mod.Saved.Jimbo.Progress.Inventory[Index] == 0 then --at 0 it self destructs
                 
                 mod.Saved.Jimbo.Inventory.Jokers[Index] = 0
-                mod:CreateBalatroEffect(Index, EFFECT_COLORS.Blue, ACTIVATESOUND, "Extinct!")
+                mod:CreateBalatroEffect(Index, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, "Extinct!")
 
                 Isaac.RunCallback("INVENTORY_CHANGE", Player)
             else
-                mod:CreateBalatroEffect(Index, EFFECT_COLORS.Blue, ACTIVATESOUND, "-0.1")
+                mod:CreateBalatroEffect(Index, mod.EffectColors.Blue, mod.Sounds.ACTIVATE, "-0.1")
             end
         elseif Joker == TrinketType.TRINKET_GREEN_JOKER then
             mod.Saved.Jimbo.Progress.Inventory[Index] = mod.Saved.Jimbo.Progress.Inventory[Index] + 1
-            mod:CreateBalatroEffect(Index, EFFECT_COLORS.Red, ACTIVATESOUND, "+0.05")
+            mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+0.05")
         end
     end
 
@@ -522,6 +512,7 @@ function mod:OnNewRoomJokers()
             if Joker == TrinketType.TRINKET_MISPRINT then
                 local MisDMG = Player:GetTrinketRNG(TrinketType.TRINKET_MISPRINT):RandomFloat()
                 mod.Saved.Jimbo.Progress.Inventory[Index] = MisDMG
+                mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ADDMULT, "+"..tostring(MisDMG))
             end
         end
 
@@ -634,7 +625,7 @@ function mod:TearsJokers(Player, _)
                     NumOdd = NumOdd + mod.Saved.Jimbo.Progress.Room.ValueUsed[Num]
                 end
                 if NumOdd > mod.Saved.Jimbo.Progress.Inventory[Index] then
-                    mod:CreateBalatroEffect(Index, EFFECT_COLORS.Blue,CHIPSSOUND,
+                    mod:CreateBalatroEffect(Index, mod.EffectColors.Blue,mod.Sounds.CHIPS,
                     "+"..tostring(0.75*(NumOdd - mod.Saved.Jimbo.Progress.Inventory[Index])))
                 end
                 mod.Saved.Jimbo.Progress.Inventory[Index] = NumOdd --only used to tell when to spawn an effect
@@ -644,7 +635,7 @@ function mod:TearsJokers(Player, _)
             elseif Joker == TrinketType.TRINKET_ARROWHEAD then
                 local NumSpades = mod.Saved.Jimbo.Progress.Room.SuitUsed[mod.Suits.Spade]
                 if NumSpades > mod.Saved.Jimbo.Progress.Inventory[Index] then
-                    mod:CreateBalatroEffect(Index, EFFECT_COLORS.Blue,CHIPSSOUND,
+                    mod:CreateBalatroEffect(Index, mod.EffectColors.Blue, mod.Sounds.CHIPS,
                     "+"..tostring(1.25*(NumSpades - mod.Saved.Jimbo.Progress.Inventory[Index])))
                 end
                 mod.Saved.Jimbo.Progress.Inventory[Index] = NumSpades --only used to tell when to spawn an effect
@@ -692,7 +683,7 @@ function mod:DamageJokers(Player,_)
                     NumEven = NumEven + mod.Saved.Jimbo.Progress.Room.ValueUsed[Num]
                 end
                 if NumEven > mod.Saved.Jimbo.Progress.Inventory[Index] then
-                    mod:CreateBalatroEffect(Index, EFFECT_COLORS.Red,ADDMULTSOUND,
+                    mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ADDMULTSOUND,
                     "+"..tostring(0.1*(NumEven - mod.Saved.Jimbo.Progress.Inventory[Index])))
                 end
                 mod.Saved.Jimbo.Progress.Inventory[Index] = NumEven --this is only to tell when to spawn the effect
@@ -710,7 +701,7 @@ function mod:DamageJokers(Player,_)
             elseif Joker == TrinketType.TRINKET_ONIX_AGATE then
                 local NumClubs = mod.Saved.Jimbo.Progress.Room.SuitUsed[mod.Suits.Club]
                 if NumClubs > mod.Saved.Jimbo.Progress.Inventory[Index] then
-                    mod:CreateBalatroEffect(Index, EFFECT_COLORS.Red,ADDMULTSOUND,
+                    mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ADDMULT,
                     "+"..tostring(0.1*(NumClubs - mod.Saved.Jimbo.Progress.Inventory[Index])))
                 end
                 mod.Saved.Jimbo.Progress.Inventory[Index] = NumClubs --only used to tell when to spawn an effect

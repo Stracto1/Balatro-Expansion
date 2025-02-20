@@ -108,12 +108,30 @@ function mod:NewTarotEffects(card, Player, UseFlags)
         elseif card == Card.CARD_WHEEL_OF_FORTUNE then
             local CardRNG = Player:GetCardRNG(card)
 
-            if CardRNG:RandomFloat() < 0.25 then
+            local BaseJokers = {}
+            for i,Edition in ipairs(mod.Saved.Jimbo.Inventory.Editions) do
+                if Edition == mod.Edition.BASE then
+                    table.insert(BaseJokers, i)
+                end
+            end
+
+            if CardRNG:RandomFloat() < 0.25 and BaseJokers ~= {} then 
                 
-                --sets a random joker to stuff (needs time ok?!?)
+                local RandIndex = mod:GetRandom(BaseJokers,CardRNG)
+
+                local EdRoll = Player:GetCardRNG(mod.Spectrals.AURA):RandomFloat()
+                if EdRoll <= 0.5 then
+                    mod.Saved.Jimbo.Inventory.Editions[RandIndex] = mod.Edition.FOIL
+                    --PLACEHOLDER place editions sounds
+                elseif EdRoll <= 0.85 then
+                    mod.Saved.Jimbo.Inventory.Editions[RandIndex] = mod.Edition.HOLOGRAPHIC
+                else
+                    mod.Saved.Jimbo.Inventory.Editions[RandIndex] = mod.Edition.POLYCROME
+                end
+
                 Isaac.RunCallback("INVENTORY_CHANGE", Player)
             else
-                --mod:CreateBalatroEffect() purple
+                mod:CreateBalatroEffect(Player, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, "No!")--PLACEHOLDER
             end
 
             return false
@@ -363,39 +381,11 @@ function mod:CardPacks(card, Player,_)
     elseif card == mod.Packs.BUFFON then
 
         local RandomPack = {}
+        local Jokers = {}
         local PackRng = Player:GetCardRNG(mod.Packs.BUFFON)
-        for i=1, 3, 1 do
-            RandomPack[i] = {}
-            repeat
-                local RarityRoll = PackRng:RandomFloat()
-                if RarityRoll < 0.75 then
-                    Trinket = mod:GetRandom(mod.Trinkets.common,PackRng)
-                elseif RarityRoll < 0.95 then
-                    Trinket = mod:GetRandom(mod.Trinkets.uncommon,PackRng)
-                else
-                    Trinket = mod:GetRandom(mod.Trinkets.rare,PackRng)
-                end
-            until not PlayerManager.AnyoneHasTrinket(Trinket) and not mod:JimboHasTrinket(Trinket)
-                  and not mod:Contained(RandomPack, Trinket)
-
-            RandomPack[i].Joker = Trinket
-
-            local EdRoll = PackRng:RandomFloat()
-            if EdRoll <= JokerEdChance.Negative then --negative chance
-                RandomPack[i].Edition = mod.Edition.NEGATIVE
-
-            elseif EdRoll <= JokerEdChance.Foil + JokerEdChance.Negative then --foil chance
-                RandomPack[i].Edition = mod.Edition.FOIL   
-                
-            elseif EdRoll <= JokerEdChance.Holo + JokerEdChance.Negative then --holo chance
-                RandomPack[i].Edition = mod.Edition.HOLOGRAPHIC
-
-            elseif EdRoll <= JokerEdChance.Poly + JokerEdChance.Negative then --poly chance
-                RandomPack[i].Edition = mod.Edition.POLYCROME
-                
-            else
-                RandomPack[i].Edition = mod.Edition.BASE
-            end
+        for i=1, 2, 1 do
+            RandomPack[i] = mod:RandomJoker(PackRng, Jokers)
+            table.insert(Jokers, RandomPack[i].Joker)
         end
 
         mod.SelectionParams.PackOptions = RandomPack

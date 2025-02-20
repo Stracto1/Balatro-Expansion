@@ -36,16 +36,10 @@ local DECK_RENDERING_POSITION = Vector(155,25) --in screen coordinates
 local INVENTORY_RENDERING_POSITION = Vector(20,250)
 --local DECK_RENDERING_POSITION = Isaac.WorldToRenderPosition(Isaac.ScreenToWorld(Vector(760,745)))
 
-local EFFECT_COLORS = {}
-EFFECT_COLORS.Red = 1
-EFFECT_COLORS.Blue = 2
-EFFECT_COLORS.Yellow = 3
 
-local ADDMULTSOUND = Isaac.GetSoundIdByName("ADDMULTSFX")
-local TIMESMULTSOUND = Isaac.GetSoundIdByName("TIMESMULTSFX")
-local ACTIVATESOUND = Isaac.GetSoundIdByName("ACTIVATESFX")
-local CHIPSSOUND = Isaac.GetSoundIdByName("CHIPSSFX")
-local SLICESOUND = Isaac.GetSoundIdByName("SLICESFX")
+local JeditionChance = {0.02, 0.034, 0.037, 0.03}
+
+
 
 local HUD_FRAME = {}
 HUD_FRAME.Frame = 0
@@ -652,98 +646,78 @@ function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rN
 
     local ReturnTable = {Variant, SubType, true} --basic return equal to not returning anything
 
+    local RollRNG = Game:GetPlayer(0):GetDropRNG() --tried using the rng from the callback but it gave the same results each time
+
+
     if PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType)
-       and (ReqSubType == 0 or ReqVariant == 0) and Pickup:IsShopItem()
-       and  Game:GetRoom():GetType() == RoomType.ROOM_SHOP then
-
-
-        local RollRNG = Game:GetPlayer(0):GetDropRNG() --tried using the rng from the callback but it gave the same results each time
-
+       and (ReqSubType == 0 or ReqVariant == 0) then
         
-        if Pickup.ShopItemId <= 1 then --card pack
-            ReturnTable = {PickupVariant.PICKUP_TAROTCARD,mod:GetRandom(mod.Packs, mod.Saved.GeneralRNG),false}
+        if Game:GetRoom():GetType() == RoomType.ROOM_SHOP and Pickup:IsShopItem() then
 
-        elseif Pickup.ShopItemId == 2 then --voucher / joker if already bought
-            --ngl i'm really proud of the algorithm i wrote on this section
 
-            ---@type boolean | integer
-            local VoucherPresent = false
-            for i,v in ipairs(Isaac.FindByType(5, 100)) do
-                if v:ToPickup().ShopItemId == Pickup.ShopItemId then --if yes, the item voucher wasn't bought
-                    VoucherPresent = v.SubType
-                    break
-                end
-            end
+            if Pickup.ShopItemId <= 1 then --card pack
+                ReturnTable = {PickupVariant.PICKUP_TAROTCARD,mod:GetRandom(mod.Packs, mod.Saved.GeneralRNG),false}
 
-            if not Game:GetRoom():IsInitialized() then --if room is just being entered
-                --predicts the current voucher so it can exit the /repeat until/ statement
-                VoucherPresent = mod:GetRandom(mod.Saved.Pools.Vouchers, rNG, true)
-            end
+            elseif Pickup.ShopItemId == 2 then --voucher / joker if already bought
+                --ngl i'm really proud of the algorithm i wrote on this section
 
-            if VoucherPresent then --voucher still here with us
-
-                local Rvoucher
-                repeat
-                    Rvoucher = mod:GetRandom(mod.Saved.Pools.Vouchers, rNG) --using this rng basically makes it un rerollable with mechines
-                    --PLEASE tell me if the RNG not advancing gets patched cause it'll break the voucher generation 
-                
-                until not mod:Contained(mod.Saved.Jimbo.Progress.Floor.Vouchers, Rvoucher) --no dupes per floor
-                      or Rvoucher == VoucherPresent --if it's getting rerolled (kinda)
-
-                table.insert(mod.Saved.Jimbo.Progress.Floor.Vouchers, Rvoucher)
-
-                ReturnTable = {PickupVariant.PICKUP_COLLECTIBLE,Rvoucher, false}
-
-            else --replace with a joker if already bought instead
-                local Trinket
-                repeat
-                    local RarityRoll = RollRNG:RandomFloat()
-                    if RarityRoll < 0.75 then
-                        Trinket = mod:GetRandom(mod.Trinkets.common,RollRNG)
-                    elseif RarityRoll < 0.95 then
-                        Trinket = mod:GetRandom(mod.Trinkets.uncommon,RollRNG)
-                    else
-                        Trinket = mod:GetRandom(mod.Trinkets.rare,RollRNG)
+                ---@type boolean | integer
+                local VoucherPresent = false
+                for i,v in ipairs(Isaac.FindByType(5, 100)) do
+                    if v:ToPickup().ShopItemId == Pickup.ShopItemId then --if yes, the item voucher wasn't bought
+                        VoucherPresent = v.SubType
+                        break
                     end
-                until not mod:JimboHasTrinket(Trinket)
-
-                ReturnTable = {PickupVariant.PICKUP_TRINKET, Trinket ,false}
-            end
-        elseif Pickup.ShopItemId == 3 then --basic shop item
-            ReturnTable = {PickupVariant.PICKUP_COLLECTIBLE,
-                    ItemPool:GetCollectible(ItemPoolType.POOL_SHOP, true, RollRNG:GetSeed()), false}
-        else
-            local Trinket
-            repeat
-                local RarityRoll = RollRNG:RandomFloat()
-                if RarityRoll < 0.75 then
-                    Trinket = mod:GetRandom(mod.Trinkets.common,RollRNG)
-                elseif RarityRoll < 0.95 then
-                    Trinket = mod:GetRandom(mod.Trinkets.uncommon,RollRNG)
-                else
-                    Trinket = mod:GetRandom(mod.Trinkets.rare,RollRNG)
                 end
-            until not mod:JimboHasTrinket(Trinket)
 
-            ReturnTable = {PickupVariant.PICKUP_TRINKET, Trinket ,false}
+                if not Game:GetRoom():IsInitialized() then --if room is just being entered
+                    --predicts the current voucher so it can exit the /repeat until/ statement
+                    VoucherPresent = mod:GetRandom(mod.Saved.Pools.Vouchers, rNG, true)
+                end
+
+                if VoucherPresent then --voucher still here with us
+
+                    local Rvoucher
+                    repeat
+                        Rvoucher = mod:GetRandom(mod.Saved.Pools.Vouchers, rNG) --using this rng basically makes it un rerollable with mechines
+                        --PLEASE tell me if the RNG not advancing gets patched cause it'll break the voucher generation 
+
+                    until not mod:Contained(mod.Saved.Jimbo.Progress.Floor.Vouchers, Rvoucher) --no dupes per floor
+                          or Rvoucher == VoucherPresent --if it's getting rerolled (kinda)
+
+                    table.insert(mod.Saved.Jimbo.Progress.Floor.Vouchers, Rvoucher)
+
+                    ReturnTable = {PickupVariant.PICKUP_COLLECTIBLE,Rvoucher, false}
+
+                else --replace with a joker if already bought instead
+
+                    ReturnTable = {PickupVariant.PICKUP_TRINKET, 1, false}
+                end
+
+            elseif Pickup.ShopItemId == 3 then --basic shop item
+                ReturnTable = {PickupVariant.PICKUP_COLLECTIBLE,
+                        ItemPool:GetCollectible(ItemPoolType.POOL_SHOP, true, RollRNG:GetSeed()), false}
+
+            else
+                ReturnTable = {PickupVariant.PICKUP_TRINKET, 1 ,false}
+            end
         end
-    end
 
-    --if a trinket is selected, then also roll for its edition
-    if ReturnTable[1] == PickupVariant.PICKUP_TRINKET then
-        local Index = Level:GetCurrentRoomDesc().ListIndex
+        --if a trinket is selected, then roll for joker and edition
+        if ReturnTable[1] == PickupVariant.PICKUP_TRINKET then
+            local ExistingJokers = {}
+            for i,v in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
+                table.insert(ExistingJokers, v)
+            end
+            for i, Trinket in ipairs(Isaac.FindByType(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET)) do
+                table.insert(ExistingJokers, Trinket.SubType)
+            end
 
-        local EdRoll = mod.Saved.GeneralRNG:RandomFloat()
-        if EdRoll <= 0.02 then --foil chance
-            mod.Saved.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(ReturnTable[2]).Name] = mod.Edition.FOIL
-        elseif EdRoll <= 0.034 then --holo chance
-            mod.Saved.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(ReturnTable[2]).Name] = mod.Edition.HOLOGRAPHIC
-        elseif EdRoll <= 0.037 then --poly chance
-            mod.Saved.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(ReturnTable[2]).Name] = mod.Edition.POLYCROME
-        elseif EdRoll <= 0.03 + 0.037 then --niggative chance (fixed chance)
-            mod.Saved.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(ReturnTable[2]).Name] = mod.Edition.NEGATIVE
-        else
-            mod.Saved.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(ReturnTable[2]).Name] = mod.Edition.NONE
+            local RandomJoker = mod:RandomJoker(RollRNG, ExistingJokers)
+
+            ReturnTable = {PickupVariant.PICKUP_TRINKET, RandomJoker.Joker ,false}
+
+            mod.Saved.Jimbo.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(RandomJoker.Joker).Name] = RandomJoker.Edition
         end
     end
 
@@ -764,10 +738,13 @@ mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT,mod.SetItemAsShop, PickupVarian
 
 
 --sets the price for every item basing on quality and room
-function mod:SetItemPrices(Variant,SubType,_,Price)
+function mod:SetItemPrices(Variant,SubType,ShopID,Price)
     if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
         return
     end
+
+    Level:GetCurrentRoomDesc().ShopItemDiscountIdx = -1 --no discounts ever
+
     local Cost = 1
     if Variant == PickupVariant.PICKUP_COLLECTIBLE then
         if ItemsConfig:GetCollectible(SubType):HasCustomTag("balatro") then --vouchers
@@ -775,18 +752,24 @@ function mod:SetItemPrices(Variant,SubType,_,Price)
         else --any item in the game
             Cost = (ItemsConfig:GetCollectible(SubType).Quality +2) *2
         end
+
     elseif Variant == PickupVariant.PICKUP_TRINKET then --jokers
         Cost = mod:GetJokerCost(SubType)
+
     else --prob stuff like booster packs
         Cost = 5
     end
 
+    if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_STEAM_SALE) then
+        Cost = Cost * 2 - 1 --nullifies the usual stem sale effect and subratcts 1 instead
+    end
     if PlayerManager.AnyoneHasCollectible(mod.Vouchers.Liquidation) then --50% off
         Cost = Cost * 0.5
     elseif PlayerManager.AnyoneHasCollectible(mod.Vouchers.Clearance) then --25% off
         Cost = Cost * 0.75
     end
-    Cost = math.floor(Cost) --rounds it down 
+    Cost = math.ceil(Cost) --rounds it down 
+    Cost = math.max(Cost, 1)
 
     return Cost
 end
@@ -1079,20 +1062,20 @@ function mod:GiveRewards(BlindType)
             Jimbo:AddHearts(Jimbo:GetHeartLimit()) --fully heals 
 
             Isaac.CreateTimer(function ()
-                if BlindType == mod.BLINDS.SMALL then
+                if BlindType == mod.BLINDS.SMALL then --PLACEHOLDER SOUND
                     
-                    Player:AddCoins(4)
-                    mod:CreateBalatroEffect(Player,EFFECT_COLORS.Yellow ,ACTIVATESOUND, "+4 $", Vector(0,20))
+                    Player:AddCoins(3)
+                    mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+3 $", Vector(0,20))
                     --Isaac.RunCallback("BLIND_STARTED", mod.BLINDS.BIG)
 
                 elseif BlindType == mod.BLINDS.BIG then
-                    Player:AddCoins(5)
-                    mod:CreateBalatroEffect(Player,EFFECT_COLORS.Yellow ,ACTIVATESOUND, "+5 $", Vector(0,20))
+                    Player:AddCoins(4)
+                    mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+4 $", Vector(0,20))
                     --Isaac.RunCallback("BLIND_STARTED", mod.BLINDS.BOSS)
                     
                 elseif BlindType == mod.BLINDS.BOSS then
-                    Player:AddCoins(6)
-                    mod:CreateBalatroEffect(Player,EFFECT_COLORS.Yellow ,ACTIVATESOUND, "+6 $", Vector(0,20))
+                    Player:AddCoins(5)
+                    mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+5 $", Vector(0,20))
     
                 end
             end, 15,1, true)
@@ -1398,18 +1381,18 @@ function mod:CardShotFinal(Player,ShotCard,Triggers,Evaluate)
     elseif ShotCard.Enhancement == mod.Enhancement.GLASS then
         mod:IncreaseJimboStats(Player,0, 0, 1.3 ^ Triggers, false,true)
         if mod:TryGamble(Player, PlayerRNG, 0.1) then
-            table.remove(mod.Saved.Jimbo.FullDeck, ShotCard.Index)
-            mod:CreateBalatroEffect(Player, EFFECT_COLORS.Yellow, ACTIVATESOUND, "BROKEN!", Vector(0, 20))
+            table.remove(mod.Saved.Jimbo.FullDeck, ShotCard.Index) --PLACEHOLDER SOUND
+            mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "BROKEN!", Vector(0, 20))
         end 
     elseif ShotCard.Enhancement == mod.Enhancement.LUCKY then
         for i = 1, Triggers do
             if mod:TryGamble(Player, PlayerRNG, 0.2) then
                 mod:IncreaseJimboStats(Player, 0, 1, 1, false,true)
-                mod:CreateBalatroEffect(Player, EFFECT_COLORS.Red, ACTIVATESOUND, "+0.2", Vector(0, 20))
+                mod:CreateBalatroEffect(Player, mod.EffectColors.RED, mod.Sounds.ADDMULT, "+0.2", Vector(0, 20))
             end 
             if mod:TryGamble(Player, PlayerRNG, 0.07) then
                 Player:AddCoins(10)
-                mod:CreateBalatroEffect(Player, EFFECT_COLORS.Yellow, ACTIVATESOUND, "+10 $", Vector(0, 20))
+                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+10 $", Vector(0, 20))
             end
         end
     end
