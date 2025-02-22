@@ -430,7 +430,7 @@ function mod:GetJimboJokerIndex(Player, Joker)
             table.insert(Indexes, i)
         elseif v == TrinketType.TRINKET_BLUEPRINT or v == TrinketType.TRINKET_BRAINSTORM   then
 
-            if mod.Saved.Jimbo.Progress.Inventory[i] == Joker then
+            if mod.Saved.Jimbo.Inventory.Jokers[mod.Saved.Jimbo.Progress.Inventory[i]] == Joker then
                 table.insert(Indexes, i)
             end
         end
@@ -491,14 +491,14 @@ function mod:TryGamble(Player, RNG, Chance)
     return false
 end
 
-
 ---@param SellSlot integer?
 function mod:GetJokerCost(Joker, SellSlot)
     --removes ! from the customtag (see items.xml) 
     local numstring = string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[1],"%!","")
 
-    if SellSlot then
-        local BaseValue = math.floor(tonumber(numstring) / 2)
+    if SellSlot then --also tells of you want the sell value as the return
+    
+        local BaseValue = math.floor(tonumber(numstring + mod.Saved.Jimbo.Inventory.Editions[SellSlot]) / 2)
         if Joker == TrinketType.TRINKET_EGG then
             BaseValue = BaseValue + mod.Saved.Jimbo.Progress.Inventory[SellSlot]
         else
@@ -595,7 +595,7 @@ function mod:SellJoker(Player, Trinket, Slot)
         Game:Spawn(EntityType.ENTITY_PICKUP,PickupVariant.PICKUP_COIN,Player.Position,RandomVector()*2,Player,CoinSubType.COIN_PENNY,RNG():GetSeed())
     end
 
-    Isaac.RunCallback("INEVNTORY_CHANGED", Player)
+    Isaac.RunCallback("INEVNTORY_CHANGE", Player)
     Isaac.RunCallback("JOKER_SOLD", Player, Trinket, Slot)
 end
 
@@ -613,7 +613,9 @@ function mod:RandomJoker(Rng, Exeptions)
         else
             Trinket.Joker = mod:GetRandom(mod.Trinkets.rare, Rng)
         end
-    until not mod:JimboHasTrinket(Trinket.Joker) and not mod:Contained(Exeptions, Trinket.Joker)
+    until not mod:JimboHasTrinket(Trinket.Joker) and not mod:Contained(Exeptions, Trinket.Joker) --basic criteria
+          and (Trinket.Joker ~= TrinketType.TRINKET_GROS_MICHAEL or not mod.Saved.Jimbo.MichelDestroyed) --if it's michel, check if it was destroyed
+          and (Trinket.Joker ~= TrinketType.TRINKET_CAVENDISH or mod.Saved.Jimbo.MichelDestroyed) --if it's cavendish do the same but opposite
 
     local EdRoll = Rng:RandomFloat()
     

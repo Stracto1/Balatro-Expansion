@@ -263,7 +263,7 @@ Balatro_Expansion.GameStarted = false
 
 Balatro_Expansion.Saved = {} --every value that needs to be stored between game starts
 -------------------------------
-Balatro_Expansion.Saved.TrinketValues = {} --contains the "progress" for every trinket that needs it
+--[[Balatro_Expansion.Saved.TrinketValues = {} --contains the "progress" for every trinket that needs it
 -------------BASE VALUES------------- (changed on game start or when loading data)
 Balatro_Expansion.Saved.TrinketValues.LastMisprintDMG = 0
 Balatro_Expansion.Saved.TrinketValues.Fortune_Teller = 0
@@ -289,7 +289,7 @@ Balatro_Expansion.Saved.TrinketValues.MichaelDestroyed = false
 Balatro_Expansion.Saved.TrinketValues.GoldenMichelGone = false
 Balatro_Expansion.Saved.TrinketValues.FirstBrain = true
 Balatro_Expansion.Saved.TrinketValues.Dna = true
-
+]]
 do
     local RandomSeed = Random()
     if RandomSeed == 0 then RandomSeed = 1 end
@@ -341,6 +341,7 @@ Balatro_Expansion.Saved.Jimbo.MaxCards = 25 --the total amount of cards you can 
 --these two don't do anything directly and are only used to not call #table every time
 Balatro_Expansion.Saved.Jimbo.HandSize = 5
 Balatro_Expansion.Saved.Jimbo.InventorySize = 3
+Balatro_Expansion.Saved.Jimbo.MichelDestroyed = false
 
 Balatro_Expansion.Saved.Jimbo.SmallBlind = 0
 Balatro_Expansion.Saved.Jimbo.BigBlind = 0
@@ -456,6 +457,7 @@ Balatro_Expansion.ShopAddedThisFloor = false
 
 Balatro_Expansion.Counters = {}--table used for variuos counters increased every update (mainly used for animated HUD stuff)
 Balatro_Expansion.Counters.SinceShift = 0
+Balatro_Expansion.Counters.Activated = {}
 
 Balatro_Expansion.Saved.Other = {}
 Balatro_Expansion.Saved.Other.DamageTakenRoom = 0
@@ -625,7 +627,7 @@ include("Balatro_scripts.characters.jimbo.items")
 include("Balatro_scripts.Custom_Cards") --jimbo cards effects
 include("Balatro_scripts.Synergies")
 
-include("Balatro_scripts.Trinket_Callbacks")
+--include("Balatro_scripts.Trinket_Callbacks")
 
 ---------------------CACHE EVALUATION FUNCTIONS---------------------
 --------------------------------------------------------------------
@@ -634,7 +636,7 @@ include("Balatro_scripts.Trinket_Callbacks")
 --all the stats given by these trinkets are completely flat and can't be increset with multipliera and such
 
 
-include("Balatro_scripts.Trinkets_Effects")
+--include("Balatro_scripts.Trinkets_Effects")
 --[[
 function Balatro_Expansion:Joker(player, _)
 

@@ -1,11 +1,10 @@
 local mod = Balatro_Expansion
 
-local LastWanted = 0
-local FirtsEffect = true --to prevent errors
-local LastEffect
+--local FirtsEffect = true --to prevent errors (was used for EntityEffects)
 
-local FIRST_EFFECT_POS = Vector(20,225)
-local EFFECT_SLOT_DISTANCE = Vector(16, 0)
+local FIRST_EFFECT_POS = Vector(5,225)
+local EFFECT_SLOT_DISTANCE = Vector(19, 0)
+local EffectsInterval = 20 --frames between 2 different effect on a same entity
 
 local EffectParams = {}
 EffectParams[1] = {}
@@ -19,6 +18,8 @@ local EffectAnimations = {Sprite("gfx/MultAnimation.Anm2"),
                           Sprite("gfx/ChipsAnimation.Anm2"),
                           Sprite("gfx/ActivateAnimation.Anm2")}
 
+local AnimLength = EffectAnimations[1]:GetAnimationData("idle"):GetLength()
+
 local sfx = SFXManager()
 
 --------------------EFFECTS FUNCTIONS---------------------------
@@ -30,21 +31,18 @@ local sfx = SFXManager()
 
 --here Position colud be an entity, in that case 
 function mod:CreateBalatroEffect(Slot, Type, Sound, Text, Offset)
-    if EffectParams[Slot] then
-        --effects from different sources are displayed at an interval from each other instead of overriding
-        --effects from the same source are cut off during the animation to spawn the second one
-        if (EffectParams[Slot].Frames > 0) and (LastWanted ~= mod.WantedEffect and LastWanted ~= 0) then
-            --print("delayed")
-            Isaac.CreateTimer(function()
-                            mod:SpawnTheEffect(Slot, Type, Sound, Text, Offset)
-                            end, 20, 1, false)
-            --return
-        end
+
+    if EffectParams[Slot] then --if an effect is already playing on the same target
+
+        Isaac.CreateTimer(function()
+                        mod:CreateBalatroEffect(Slot, Type, Sound, Text, Offset)
+                        end, 20 - EffectParams[Slot].Frames, 1, false)
+        return
     else
-        
+
         EffectParams[Slot] = {}
     end
-    
+
     EffectParams[Slot].Frames = 0
     EffectParams[Slot].Type = Type
     EffectParams[Slot].Text = Text
@@ -56,12 +54,6 @@ function mod:CreateBalatroEffect(Slot, Type, Sound, Text, Offset)
         EffectParams[Slot].Position = FIRST_EFFECT_POS + EFFECT_SLOT_DISTANCE * Slot
         EffectParams[Slot].Offset = Offset or Vector.Zero
     end
-    
-    if mod.WantedEffect ~= "MCdestroyed" and mod.WantedEffect ~= "MCsafe" then
-        ---@diagnostic disable-next-line: cast-local-type
-        LastWanted = mod.WantedEffect
-    end
-    mod.WantedEffect = 0
 
     sfx:Play(Sound, 1, 0, false, 1, 0)
     --print("created")
@@ -100,7 +92,7 @@ mod:AddCallback(ModCallbacks.MC_HUD_RENDER, mod.RenderEffect)
 
 function mod:Increaseframes()
     for Slot, _ in pairs(EffectParams) do
-        if EffectParams[Slot].Frames < 17 then
+        if EffectParams[Slot].Frames < AnimLength then
             EffectParams[Slot].Frames = EffectParams[Slot].Frames + 1
         else
             EffectParams[Slot] = nil

@@ -33,11 +33,12 @@ local CHARGED_ANIMATION = 11 --the length of an animation for chargebars
 local CHARGED_LOOP_ANIMATION = 5
 
 local DECK_RENDERING_POSITION = Vector(155,25) --in screen coordinates
-local INVENTORY_RENDERING_POSITION = Vector(20,250)
+local INVENTORY_RENDERING_POSITION = Vector(5,250)
 --local DECK_RENDERING_POSITION = Isaac.WorldToRenderPosition(Isaac.ScreenToWorld(Vector(760,745)))
 
 
 local JeditionChance = {0.02, 0.034, 0.037, 0.03}
+local JactivateLength = TrinketSprite:GetAnimationData("Effect"):GetLength()
 
 
 
@@ -101,21 +102,29 @@ function mod:JimboInventoryHUD(offset,_,Position,_,Player)
     for i,trinket in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
 
         if trinket ~= 0 then
-            local RenderPos = INVENTORY_RENDERING_POSITION + Vector(16*i,0)
+            local RenderPos = INVENTORY_RENDERING_POSITION + Vector(19*i , 0)
 
             if mod.SelectionParams.Mode == mod.SelectionParams.Modes.INVENTORY and 
                mod.SelectionParams.SelectedCards[i] then
                 RenderPos.Y = RenderPos.Y - 9
             end
             TrinketSprite:ReplaceSpritesheet(0, ItemsConfig:GetTrinket(trinket).GfxFileName, true)
-            TrinketSprite:SetFrame("Idle", 0)
+            if mod.Counters.Activated[i] then
+                TrinketSprite:SetFrame("Effect", mod.Counters.Activated[i])
+
+                if mod.Counters.Activated[i] == JactivateLength then --stops the animation
+                    mod.Counters.Activated[i] = nil
+                end
+            else
+                TrinketSprite:SetFrame("Idle", 0)
+            end
             TrinketSprite:SetCustomShader(EditionShaders[mod.Saved.Jimbo.Inventory.Editions[i]])
             TrinketSprite:Render(RenderPos)
         end
     end
 
     if mod.SelectionParams.Mode == mod.SelectionParams.Modes.INVENTORY then
-        local RenderPos 
+        local RenderPos
         if mod.SelectionParams.SelectedCards[mod.SelectionParams.Index] then
             RenderPos = INVENTORY_RENDERING_POSITION + Vector(16 * mod.SelectionParams.Index, -9)
         else
@@ -123,6 +132,7 @@ function mod:JimboInventoryHUD(offset,_,Position,_,Player)
         end
 
         CardFrame:SetFrame(HUD_FRAME.Frame)
+        CardFrame.Scale = Vector.One
         CardFrame:Render(RenderPos)
 
         --last confirm option
@@ -892,7 +902,7 @@ function mod:HandleNoHarmRoomsClear()
     if Desc.Clear then --if the room is not hostile
         --print("clear")
         if Desc.Data.Type == RoomType.ROOM_DEFAULT then
-            Isaac.RunCallback("TRUE_ROOM_CLEAR",false)
+            Isaac.RunCallback("TRUE_ROOM_CLEAR",false, false)
 
         elseif Desc.Data.Type == RoomType.ROOM_SHOP then
             local Seed = Game:GetRoom():GetSpawnSeed()
@@ -976,14 +986,14 @@ function mod:JimboShootCardTear(Player,Direction)
 end
 
 
-function mod:AddRoomsCleared(IsBoss)
+function mod:AddRoomsCleared(IsBoss, _)
 
     ---@diagnostic disable-next-line: param-type-mismatch
     mod:StatReset(PlayerManager.FirstPlayerByType(mod.Characters.JimboType), true, true, true, false, true)
 
-    if IsBoss and not mod.Saved.Jimbo.BossCleard then
+    if IsBoss and not mod.Saved.Jimbo.BossCleared then
         Isaac.RunCallback("BLIND_CLEARED", mod.BLINDS.BOSS)
-        mod.Saved.Jimbo.BossCleard = true
+        mod.Saved.Jimbo.BossCleared = true
     else
         mod.Saved.Jimbo.ClearedRooms = mod.Saved.Jimbo.ClearedRooms + 1
         if mod.Saved.Jimbo.ClearedRooms == mod.Saved.Jimbo.SmallBlind and not mod.Saved.Jimbo.SmallCleared then
@@ -1131,6 +1141,7 @@ function mod:JimboAddTrinket(Player, Trinket, _)
         mod.Saved.Jimbo.Progress.Inventory[Slot] = tonumber(InitialProg)
 
         Isaac.RunCallback("INVENTORY_CHANGE", Player)
+
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_TRIGGER_TRINKET_ADDED, mod.JimboAddTrinket)
@@ -1286,9 +1297,8 @@ function mod:JimboBlueFliesSpiders(Familiar)
 
         --for whaterver reason i need to set a timer or it won't do anything
         Isaac.CreateTimer(function () 
-            Familiar.CollisionDamage = (Player.Damage + mod:CalculateTearsValue(Player)) * 1.5
+            Familiar.CollisionDamage = (Player.Damage * mod:CalculateTearsValue(Player)) * 2
         end, 1,1,true)
-        
 
         --print(Familiar.CollisionDamage)
     end
@@ -1300,11 +1310,12 @@ mod:AddCallback(ModCallbacks.MC_FAMILIAR_INIT, mod.JimboBlueFliesSpiders, Famili
 --shuffles the deck
 ---@param Player EntityPlayer
 function mod:JimboRoomClear(Player)
+
     local Room = Game:GetRoom():GetType()
     if Room == RoomType.ROOM_DEFAULT then
-        Isaac.RunCallback("TRUE_ROOM_CLEAR",false)
+        Isaac.RunCallback("TRUE_ROOM_CLEAR",false, true)
     elseif Room == RoomType.ROOM_BOSS then
-        Isaac.RunCallback("TRUE_ROOM_CLEAR",true)
+        Isaac.RunCallback("TRUE_ROOM_CLEAR",true, true)
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, mod.JimboRoomClear)
@@ -1386,11 +1397,13 @@ function mod:CardShotFinal(Player,ShotCard,Triggers,Evaluate)
         end 
     elseif ShotCard.Enhancement == mod.Enhancement.LUCKY then
         for i = 1, Triggers do
-            if mod:TryGamble(Player, PlayerRNG, 0.2) then
+            --if mod:TryGamble(Player, PlayerRNG, 0.2) then
+            if mod:TryGamble(Player, PlayerRNG, 1) then
                 mod:IncreaseJimboStats(Player, 0, 1, 1, false,true)
                 mod:CreateBalatroEffect(Player, mod.EffectColors.RED, mod.Sounds.ADDMULT, "+0.2", Vector(0, 20))
             end 
-            if mod:TryGamble(Player, PlayerRNG, 0.07) then
+            --if mod:TryGamble(Player, PlayerRNG, 0.07) then
+            if mod:TryGamble(Player, PlayerRNG, 1) then
                 Player:AddCoins(10)
                 mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+10 $", Vector(0, 20))
             end
@@ -1398,6 +1411,7 @@ function mod:CardShotFinal(Player,ShotCard,Triggers,Evaluate)
     end
 
     mod:IncreaseJimboStats(Player, TearsToGet, 0, 1,false, true)
+
 end
 mod:AddCallback("CARD_SHOT_FINAL", mod.CardShotFinal)
 

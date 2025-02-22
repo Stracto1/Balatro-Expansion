@@ -45,7 +45,7 @@ function mod:OnGameStart(Continued)
 
         --all of this only happens on new runs--
         ---------------------------------------------
-        
+
         --[[reset most of the saved values
         mod.Saved.TrinketValues.LastMisprintDMG = 0
         mod.Saved.TrinketValues.Fortune_Teller = 0
@@ -116,6 +116,7 @@ function mod:OnGameStart(Continued)
         mod.Saved.Jimbo.Inventory= {}
         mod.Saved.Jimbo.Inventory.Jokers = {0,0,0}
         mod.Saved.Jimbo.Inventory.Editions = {0,0,0}
+        mod.Saved.Jimbo.MichelDestroyed = false
 
         mod.Saved.Jimbo.HandSize = 5
         mod.Saved.Jimbo.InventorySize = 3
@@ -179,7 +180,7 @@ function mod:OnGameStart(Continued)
         mod.Saved.Jimbo.ClearedRooms = 0
         mod.Saved.Jimbo.SmallCleared = false
         mod.Saved.Jimbo.BigCleared = false
-        mod.Saved.Jimbo.BossCleard = false
+        mod.Saved.Jimbo.BossCleared = false
 
         mod.Saved.Jimbo.Progress = {} --values used for jokers
         mod.Saved.Jimbo.Progress.Inventory = {0,0,0} --never reset, changed in different ways basing on the joker

@@ -49,6 +49,21 @@ function mod:RerollVoucher(Partial)
     if Partial or not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
         return
     end
+
+    local DidSomething = false --needs to reroll a shop item to work
+
+    for i,Pickup in ipairs(Isaac.FindByType(EntityType.ENTITY_PICKUP,-1,-1, true)) do
+        if Pickup:ToPickup():IsShopItem() then
+            DidSomething = true
+            break
+        end
+    end
+
+    if not DidSomething then
+        return
+    end
+
+
     local GlutOwner = PlayerManager.FirstCollectibleOwner(mod.Vouchers.RerollGlut)
 
     if GlutOwner then
