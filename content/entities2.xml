@@ -1,5 +1,11 @@
    
 <entities anm2root="gfx/" version="5">
+    <!--EFFECTS-->
+    <entity anm2path="" id="1000" variant="3596" name="Pack Particle Helper" />
+    <entity anm2path="Particle.anm2" friction="1" id="1000" variant="3597" name="Pack Particle" />
+
+
+
     <!--TEAR VARIANTS-->
     <entity anm2path="SpadeCardAnimation.anm2" id="2" variant="6013" name="Tear Spade Card" 
             collisionRadius="11"

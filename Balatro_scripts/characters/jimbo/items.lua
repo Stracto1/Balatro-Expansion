@@ -41,7 +41,7 @@ function mod:VoucherPool(Type,_,_,_,_,Player)
         table.remove(mod.Saved.Pools.Vouchers, mod:GetValueIndex(mod.Saved.Pools.Vouchers, Type, true))
         if Type % 2 == mod.VoucherOff then --if it's a base voucher
 
-            if mod.Saved.Pools.Vouchers == {} then
+            if not next(mod.Saved.Pools.Vouchers) then
                 table.insert(mod.Saved.Pools.Vouchers, mod.Vouchers.Blank) --the breakfasting of balatro
             else
                 table.insert(mod.Saved.Pools.Vouchers, Type + 1) --add it's upgraded counterpart to the pool

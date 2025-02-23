@@ -1,24 +1,29 @@
+---@diagnostic disable: need-check-nil
 local mod = Balatro_Expansion
+local Game = Game()
 
 --local FirtsEffect = true --to prevent errors (was used for EntityEffects)
 
 local FIRST_EFFECT_POS = Vector(5,225)
 local EFFECT_SLOT_DISTANCE = Vector(19, 0)
-local EffectsInterval = 20 --frames between 2 different effect on a same entity
+local EffectsInterval = 23 --frames between 2 different effect on a same entity
+
+local PartVariant = Isaac.GetEntityVariantByName("Pack Particle")
+local PartHelpVariant = Isaac.GetEntityVariantByName("Pack Particle Helper")
+local PartSub = Isaac.GetEntitySubTypeByName("Pack Particle")
+local PartHelpSub = Isaac.GetEntitySubTypeByName("Pack Particle Helper")
 
 local EffectParams = {}
 EffectParams[1] = {}
 EffectParams[1].Frames = 17
-EffectParams[1].Type = 0
+EffectParams[1].Color = 0
 EffectParams[1].Text = 0
 EffectParams[1].Position = Vector.Zero
 --local TEXT_TYPES = {"+","X","ACTIVATE!","EXTINCT!","VALUE UP!","UPGRADE!","SAFE!","INTERESTS!","$"," REMAINING"}
 
-local EffectAnimations = {Sprite("gfx/MultAnimation.Anm2"),
-                          Sprite("gfx/ChipsAnimation.Anm2"),
-                          Sprite("gfx/ActivateAnimation.Anm2")}
+local EffectAnimations = Sprite("gfx/ActivateAnimation.Anm2")
 
-local AnimLength = EffectAnimations[1]:GetAnimationData("idle"):GetLength()
+local AnimLength = EffectAnimations:GetAnimationData("idle"):GetLength()
 
 local sfx = SFXManager()
 
@@ -30,13 +35,13 @@ local sfx = SFXManager()
 
 
 --here Position colud be an entity, in that case 
-function mod:CreateBalatroEffect(Slot, Type, Sound, Text, Offset)
+function mod:CreateBalatroEffect(Slot, Colour, Sound, Text, Offset)
 
     if EffectParams[Slot] then --if an effect is already playing on the same target
 
         Isaac.CreateTimer(function()
-                        mod:CreateBalatroEffect(Slot, Type, Sound, Text, Offset)
-                        end, 20 - EffectParams[Slot].Frames, 1, false)
+                        mod:CreateBalatroEffect(Slot, Colour, Sound, Text, Offset)
+                        end, EffectsInterval - EffectParams[Slot].Frames, 1, false)
         return
     else
 
@@ -44,7 +49,7 @@ function mod:CreateBalatroEffect(Slot, Type, Sound, Text, Offset)
     end
 
     EffectParams[Slot].Frames = 0
-    EffectParams[Slot].Type = Type
+    EffectParams[Slot].Color = Colour
     EffectParams[Slot].Text = Text
     EffectParams[Slot].Rotation = math.random(90)
 
@@ -64,15 +69,17 @@ end
 function mod:RenderEffect()
 
     for _, Params in pairs(EffectParams) do
-        --local Sprite = EffectAnimations[Params.Type]
+        --local Sprite = EffectAnimations[Params.Color]
         
         if Params.Frames < 17 then
             --print(" Render frame: "..tostring(Params.Frames))
-            local Sprite = EffectAnimations[Params.Type]
+            local Sprite = EffectAnimations
+
+            Sprite.Color = Params.Color
             Sprite:SetFrame("idle", Params.Frames)
 
             local RenderPos
-            if Params.Position.Type then --sees if it's an entity (otherwise it's a vector)
+            if Params.Position.Color then --sees if it's an entity (otherwise it's a vector)
                 RenderPos = Isaac.WorldToScreen(Params.Position.Position) + Params.Offset
             else
                 RenderPos = Params.Position + Params.Offset
@@ -104,3 +111,58 @@ function mod:Increaseframes()
     end
 end
 mod:AddCallback(ModCallbacks.MC_HUD_UPDATE, mod.Increaseframes)
+
+
+
+function mod:PackParticleHelper(Player, _)
+
+    sfx:Play(mod.Sounds.EXPLOSION)
+    for i=1, 3 do
+        local Helper = Game:Spawn(EntityType.ENTITY_EFFECT, PartHelpVariant, Player.Position, Vector.Zero, nil, PartHelpSub, 1):ToEffect()
+        
+        Helper:GetData().Time = 0 --used as a substitute for .FrameCount since opening a pack disables entity updates with pause
+
+        Helper:FollowParent(Player)
+    end
+end
+mod:AddCallback("PACK_OPENED", mod.PackParticleHelper)
+
+
+
+---@param Effect EntityEffect
+function mod:PackParticle(Effect)
+    local Data = Effect:GetData()
+
+    Data.Time = (Data.Time) or 0
+
+    Data.Time = Data.Time + 1 
+
+    if Data.Time % 3 == 0 then
+        
+        local Particle = Game:Spawn(EntityType.ENTITY_EFFECT, PartVariant, Effect.Position, Vector.Zero, nil, PartSub, 1):ToEffect()
+
+        
+        Particle:GetData().Velocity = RandomVector() * (math.random()*3.5 + 2)
+        
+        --Particle:GetSprite():Play("Float 1")
+
+    elseif Effect.FrameCount >= 30 then
+        Effect:Remove()
+    end
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_EFFECT_RENDER, mod.PackParticle, PartHelpVariant)
+
+
+---@param Effect EntityEffect
+function mod:PackParticleRemove(Effect)
+
+    if Effect.FrameCount == 1 then
+        Effect.Velocity = Effect:GetData().Velocity
+    end
+
+    if Effect.FrameCount >= Effect:GetSprite():GetAnimationData("Float 1"):GetLength() then
+        Effect:Remove()
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_EFFECT_RENDER, mod.PackParticleRemove, PartVariant)

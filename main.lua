@@ -63,13 +63,20 @@ Balatro_Expansion.Sounds.ADDMULT = Isaac.GetSoundIdByName("ADDMULTSFX")
 Balatro_Expansion.Sounds.TIMESMULT = Isaac.GetSoundIdByName("TIMESMULTSFX")
 Balatro_Expansion.Sounds.ACTIVATE = Isaac.GetSoundIdByName("ACTIVATESFX")
 Balatro_Expansion.Sounds.CHIPS = Isaac.GetSoundIdByName("CHIPSSFX")
-Balatro_Expansion.Sounds.MONEY = Isaac.GetSoundIdByName("ACTIVATESFX")
+Balatro_Expansion.Sounds.MONEY = Isaac.GetSoundIdByName("MONEYSFX")
 Balatro_Expansion.Sounds.SLICE = Isaac.GetSoundIdByName("SLICESFX")
+Balatro_Expansion.Sounds.FOIL = Isaac.GetSoundIdByName("FOILSFX")
+Balatro_Expansion.Sounds.HOLO = Isaac.GetSoundIdByName("HOLOSFX")
+Balatro_Expansion.Sounds.POLY = Isaac.GetSoundIdByName("POLYCHROMESFX")
+Balatro_Expansion.Sounds.NEGATIVE = Isaac.GetSoundIdByName("NEGATIVESFX")
+Balatro_Expansion.Sounds.SEAL = Isaac.GetSoundIdByName("SEALSFX")
+Balatro_Expansion.Sounds.EXPLOSION = Isaac.GetSoundIdByName("EXPLOSIONSFX")
+
 
 Balatro_Expansion.EffectColors = {}
-Balatro_Expansion.EffectColors.RED = 1
-Balatro_Expansion.EffectColors.BLUE = 2
-Balatro_Expansion.EffectColors.YELLOW = 3
+Balatro_Expansion.EffectColors.RED = Color(238/255, 49/255, 66/255)
+Balatro_Expansion.EffectColors.BLUE = Color(49/255, 140/255, 238/255)
+Balatro_Expansion.EffectColors.YELLOW = Color(238/255, 186/255, 49/255)
 
 
 Balatro_Expansion.Packs = {}

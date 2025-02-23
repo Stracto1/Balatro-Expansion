@@ -1,6 +1,7 @@
 local mod = Balatro_Expansion
 local ItemsConfig = Isaac.GetItemConfig()
 local Game = Game()
+local sfx = SFXManager()
 
 --rounds down to numDecimal of spaces
 function mod:round(num, numDecimalPlaces)
@@ -609,31 +610,31 @@ end
 
 
 local JeditionChance = {0.02, 0.034, 0.037, 0.03}
-function mod:RandomJoker(Rng, Exeptions, ForcedRarity)
+function mod:RandomJoker(Rng, Exeptions, PlaySound, ForcedRarity)
     Exeptions = Exeptions or {}
     local Trinket = {}
     local Possibilities = {}
 
     if ForcedRarity then
-
-        Possibilities = mod.Trinkets[ForcedRarity]
+        table.move(mod.Trinkets[ForcedRarity], 1, #mod.Trinkets[ForcedRarity], 1, Possibilities)
     else
  
         local RarityRoll = Rng:RandomFloat()
         if RarityRoll < 0.75 then
 
-            Possibilities = mod.Trinkets.common
+            table.move(mod.Trinkets.common, 1, #mod.Trinkets.common, 1, Possibilities)
         elseif RarityRoll < 0.95 then
 
-            Possibilities = mod.Trinkets.uncommon
+            table.move(mod.Trinkets.uncommon, 1, #mod.Trinkets.uncommon, 1, Possibilities)
         else
 
-            Possibilities = mod.Trinkets.rare
+            table.move(mod.Trinkets.rare, 1, #mod.Trinkets.rare, 1, Possibilities)
         end
     end
 
     repeat
-        if Possibilities == {} then
+
+        if not next(Possibilities) then
             Trinket.Joker = TrinketType.TRINKET_JOKER --default trinket
             break
         end
@@ -643,7 +644,8 @@ function mod:RandomJoker(Rng, Exeptions, ForcedRarity)
         ---@diagnostic disable-next-line: param-type-mismatch
         table.remove(Possibilities, mod:GetValueIndex(Possibilities, Trinket.Joker, true))
 
-    until not mod:JimboHasTrinket(Trinket.Joker) and not mod:Contained(Exeptions, Trinket.Joker) --basic criteria
+    until not mod:JimboHasTrinket(PlayerManager.FirstPlayerByType(mod.Characters.JimboType),Trinket.Joker) 
+          and not mod:Contained(Exeptions, Trinket.Joker) --basic criteria
           and (Trinket.Joker ~= TrinketType.TRINKET_GROS_MICHAEL or not mod.Saved.Jimbo.MichelDestroyed) --if it's michel, check if it was destroyed
           and (Trinket.Joker ~= TrinketType.TRINKET_CAVENDISH or mod.Saved.Jimbo.MichelDestroyed) --if it's cavendish do the same but opposite
     
@@ -659,15 +661,27 @@ function mod:RandomJoker(Rng, Exeptions, ForcedRarity)
     local EdRoll = Rng:RandomFloat()
     if EdRoll <= JeditionChance[mod.Edition.FOIL] * EdMult then --foil chance
         Trinket.Edition = mod.Edition.FOIL
+        if PlaySound then
+            sfx:Play(mod.Sounds.FOIL)
+        end
 
     elseif EdRoll <= JeditionChance[mod.Edition.HOLOGRAPHIC] * EdMult then --holo chance
         Trinket.Edition = mod.Edition.HOLOGRAPHIC
+        if PlaySound then
+            sfx:Play(mod.Sounds.HOLO)
+        end
 
     elseif EdRoll <= JeditionChance[mod.Edition.POLYCROME] * EdMult then --poly chance
         Trinket.Edition = mod.Edition.POLYCROME
+        if PlaySound then
+            sfx:Play(mod.Sounds.POLY)
+        end
 
     elseif EdRoll <= JeditionChance[mod.Edition.POLYCROME] * EdMult + JeditionChance[mod.Edition.NEGATIVE] then --negative chance
         Trinket.Edition = mod.Edition.NEGATIVE
+        if PlaySound then
+            sfx:Play(mod.Sounds.NEGATIVE)
+        end
 
     else
         Trinket.Edition = mod.Edition.BASE

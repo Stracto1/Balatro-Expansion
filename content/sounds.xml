@@ -15,4 +15,29 @@
     <sound name="SLICESFX">
         <sample weight="1" path="slice1sfx.wav" />
     </sound>
+    <sound name="FOILSFX">
+        <sample weight="1" path="foil1.wav" />
+        <sample weight="1" path="foil2.wav" />
+    </sound>
+    <sound name="HOLOSFX">
+        <sample weight="1" path="holo1.wav" />
+    </sound>
+    <sound name="POLYCHROMESFX">
+        <sample weight="1" path="polychrome1.wav" />
+    </sound>
+    <sound name="NEGATIVESFX">
+        <sample weight="1" path="negative.wav" />
+    </sound>
+    <sound name="MONEYSFX">
+        <sample weight="1" path="coin1.wav" />
+        <sample weight="1" path="coin2.wav" />
+        <sample weight="1" path="coin7.wav" />
+    </sound>
+    <sound name="SEALSFX">
+        <sample weight="1" path="seal_put.wav" />
+    </sound>
+    <sound name="EXPLOSIONSFX">
+        <sample weight="1" path="explosion_release1.wav" />
+    </sound>
+
 </sounds>

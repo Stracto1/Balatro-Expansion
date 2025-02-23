@@ -718,7 +718,7 @@ function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rN
                 table.insert(ExistingJokers, Trinket.SubType)
             end
 
-            local RandomJoker = mod:RandomJoker(RollRNG, ExistingJokers)
+            local RandomJoker = mod:RandomJoker(RollRNG, ExistingJokers, true)
 
             ReturnTable = {PickupVariant.PICKUP_TRINKET, RandomJoker.Joker ,false}
 
@@ -1071,7 +1071,7 @@ function mod:GiveRewards(BlindType)
             Jimbo:AddHearts(Jimbo:GetHeartLimit()) --fully heals 
 
             Isaac.CreateTimer(function ()
-                if BlindType == mod.BLINDS.SMALL then --PLACEHOLDER SOUND
+                if BlindType == mod.BLINDS.SMALL then
                     
                     Player:AddCoins(3)
                     mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+3 $", Vector(0,20))
@@ -1107,16 +1107,8 @@ function mod:GiveRewards(BlindType)
             Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Jimbo.Position, RandomVector() * 4, Jimbo, CoinSubType.COIN_PENNY, Seed)
             --Balatro_Expansion:EffectConverter(8,0,Jimbo,4)
         end 
+        mod:CreateBalatroEffect(Jimbo,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+"..tostring(Interests).." $", Vector(0,20))
     end, 15, 1, true)
-
-    for i,v in ipairs(mod.Saved.Jimbo.CurrentHand) do
-        if mod.Saved.Jimbo.FullDeck[v].Seal == mod.Seals.BLUE then
-            
-        end
-    end
-
-
-
 end
 mod:AddPriorityCallback("BLIND_CLEARED",CallbackPriority.LATE, mod.GiveRewards)
 

@@ -345,10 +345,12 @@ function mod:OnBlindClear(BlindType)
                                     mod.Sounds.ACTIVATE, "+"..tostring(MoneyAmmount).." $")
 
         elseif Joker == TrinketType.TRINKET_RIFF_RAFF then
-            local RandomJoker = mod:RandomJoker(Player:GetTrinketRNG(TrinketType.TRINKET_RIFF_RAFF),{}, "common")
+            local RandomJoker = mod:RandomJoker(Player:GetTrinketRNG(TrinketType.TRINKET_RIFF_RAFF), {}, true,"common")
             
             Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET, Player.Position,
-                       RandomVector()*3, nil, RandomJoker, RandomSeed)
+                       RandomVector()*3, nil, RandomJoker.Joker, RandomSeed)
+
+            mod.Saved.Jimbo.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][RandomJoker.Joker] = RandomJoker.Edition
 
             mod.Counters.Activated[Index] = 0
             mod:CreateBalatroEffect(Index,mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Activate!")

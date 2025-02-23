@@ -220,6 +220,20 @@ function mod:PlanetCards(card, Player,_)
 
             mod.Saved.Jimbo.CardLevels[Value] = mod.Saved.Jimbo.CardLevels[Value] + 1
 
+            local ValueString = tostring(Value)
+            if Value == 11 then
+                ValueString = "J"
+            elseif Value == 12 then
+                ValueString = "Q"
+            elseif Value == 13 then
+                ValueString = "K"
+            elseif Value == 1 then
+                ValueString = "Ace"
+            end
+
+            --PLACEHOLDER
+            mod:CreateBalatroEffect(Player, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, ValueString.." Up!")
+
         elseif false then --TAINTED JIMBO
             local Hand = card - mod.Planets.PLUTO + 1 --gets the equivalent handtype
 
@@ -666,13 +680,14 @@ function mod:SpectralCards(card, Player)
             
         elseif card == mod.Spectrals.SOUL then
 
-            local Legendary = mod:RandomJoker(CardRNG, {}, "legendary")
+            local Legendary = mod:RandomJoker(CardRNG, {}, true, "legendary")
             local RandomSeed = Random()
 
             if RandomSeed == 0 then RandomSeed = 1 end
-            Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
-                           RandomVector()*2, nil, Legendary, RandomSeed)
-            Isaac.RunCallback("INVENTORY_CHANGE", Player)
+            Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET, Player.Position,
+                           RandomVector()*2, nil, Legendary.Joker, RandomSeed)
+
+            mod.Saved.Jimbo.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][Legendary.Joker] = Legendary.Edition
 
         elseif card == mod.Spectrals.BLACK_HOLE then
             for i = 1, 13 do
