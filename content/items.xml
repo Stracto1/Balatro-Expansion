@@ -1,27 +1,11 @@
 <!--CUSTOM TAGS LIST (in case i missed any, i think the majority is self explenatory)-->
 
-<!--MULT/MULTM/CHIPS/ACTIVATE || used only to determine which give stats and which don't-->
-<!--VALUE || used for EID, to determine if a value needs to be shown-->
-<!--NEWFLOOR/NEWROOM || when changing floors/rooms-->
-<!--ROOMCLEAR || when a room is cleared-->
-<!--BOUGHT || when shop/devil deals are bought-->
-<!--ITEMS || when a collectible is added/removed-->
-<!--REMOVAL || when a trinket is removed (usually the trinket with the tag)-->
-<!--HEARTS/COINS/bombs/keys || when said pickup is touched-->
-<!--REVIVE/CHANCHEREVIVE || REPENTOGON built-in tags to give the revive HUD-->
-<!--CARDUSE/ACTIVEUSE || when a card/item is used-->
-<!--TAKEN || when player takes damage-->
-<!--PICKUPNUM || when player's pickups values change (OnUpdate callback)-->
-<!--CARDS || when a card is obtained/removed (includes cards,runes and pills)-->
-<!--ROCKS || when a rock is destroyed-->
-<!--RESTOCK || when a shop item is restocked-->
-
 <!--GIVESCOINS || increases its cost when appearing in the mod's challenge-->
 <!--GREEDCHANGE || tells if in its OnRoomClear callback it checks for greed wave num before activating-->
+<!-- COPY: the trinket can be copied by blueprint and brainstorm as jimbo -->
 
 <!--the custom tags are as follows: -->
 <!-- !BASEPRICE - INITIALPROGRESS - ?rarity - OTHERS -->
-<!-- COPY: the trinket can be copied by blueprint and brainstorm as jimbo -->
 
 <!--the extra "!" and "?" are to force a certain order when using GetCustomTags() since apparently it sorts them alfabetically-->
 

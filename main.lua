@@ -211,6 +211,12 @@ Balatro_Expansion.Edition.HOLOGRAPHIC = 2
 Balatro_Expansion.Edition.POLYCROME = 3
 Balatro_Expansion.Edition.NEGATIVE = 4
 
+Balatro_Expansion.Rarities = {}
+Balatro_Expansion.Rarities.common = 1
+Balatro_Expansion.Rarities.uncommon = 2
+Balatro_Expansion.Rarities.rare = 3
+Balatro_Expansion.Rarities.legendary = 4
+
 Balatro_Expansion.HandTypes = {}
 Balatro_Expansion.HandTypes.NONE = 0
 Balatro_Expansion.HandTypes.HIGH_CARD = 1

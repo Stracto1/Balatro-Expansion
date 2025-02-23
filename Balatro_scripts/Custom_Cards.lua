@@ -666,17 +666,23 @@ function mod:SpectralCards(card, Player)
             
         elseif card == mod.Spectrals.SOUL then
 
-            local Legendary = mod:GetRandom(mod.Trinkets.legendary, CardRNG)
+            local Legendary = mod:RandomJoker(CardRNG, {}, "legendary")
             local RandomSeed = Random()
+
             if RandomSeed == 0 then RandomSeed = 1 end
             Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
                            RandomVector()*2, nil, Legendary, RandomSeed)
             Isaac.RunCallback("INVENTORY_CHANGE", Player)
+
         elseif card == mod.Spectrals.BLACK_HOLE then
+            for i = 1, 13 do
+                mod.Saved.Jimbo.CardLevels[i] = mod.Saved.Jimbo.CardLevels[i] + 1
+            end
+
             
         end
-    else
-        --unlockable cards
+    elseif false then  --PLACEHODER FOR TJIMBO
+
     end
 end
 mod:AddCallback(ModCallbacks.MC_USE_CARD, mod.SpectralCards)

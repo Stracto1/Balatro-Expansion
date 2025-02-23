@@ -46,6 +46,7 @@ function mod:CreateBalatroEffect(Slot, Type, Sound, Text, Offset)
     EffectParams[Slot].Frames = 0
     EffectParams[Slot].Type = Type
     EffectParams[Slot].Text = Text
+    EffectParams[Slot].Rotation = math.random(90)
 
     if type(Slot) == "userdata" then --basically checks if it's an entity
         EffectParams[Slot].Position = Slot
@@ -76,6 +77,9 @@ function mod:RenderEffect()
             else
                 RenderPos = Params.Position + Params.Offset
             end
+
+            Sprite.Rotation = Params.Rotation
+
             Sprite:Render(RenderPos)
             local TextWidthOff = mod.Fonts.Balatro:GetStringWidth(Params.Text) /2
             local LineHeightOff = mod.Fonts.Balatro:GetBaselineHeight() / 2

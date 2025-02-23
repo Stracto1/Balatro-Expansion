@@ -496,21 +496,29 @@ function mod:GetJokerCost(Joker, SellSlot)
     --removes ! from the customtag (see items.xml) 
     local numstring = string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[1],"%!","")
 
-    if SellSlot then --also tells of you want the sell value as the return
+    local Cost = tonumber(numstring)
+    if SellSlot then --also tells if you want the buy/sell value as the return
     
-        local BaseValue = math.floor(tonumber(numstring + mod.Saved.Jimbo.Inventory.Editions[SellSlot]) / 2)
+        Cost = math.floor(Cost + mod.Saved.Jimbo.Inventory.Editions[SellSlot] / 2)
         if Joker == TrinketType.TRINKET_EGG then
-            BaseValue = BaseValue + mod.Saved.Jimbo.Progress.Inventory[SellSlot]
-        else
-            return BaseValue
+            Cost = Cost + mod.Saved.Jimbo.Progress.Inventory[SellSlot]
         end
     else
         --print(tonumber(string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[1],"%!",""),2))
-        BaseValue = tonumber(numstring)
         local EdValue = mod.Saved.Jimbo.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Joker).Name] or 0
         
-        return BaseValue + EdValue
+        Cost = Cost + EdValue
     end
+
+    if PlayerManager.AnyoneHasCollectible(mod.Vouchers.Liquidation) then --50% off
+        Cost = Cost * 0.5
+    elseif PlayerManager.AnyoneHasCollectible(mod.Vouchers.Clearance) then --25% off
+        Cost = Cost * 0.75
+    end
+    Cost = math.floor(Cost) --rounds it down 
+    Cost = math.max(Cost, 1)
+
+    return Cost
 end
 
 function mod:AddJimboInventorySlots(Player, Amount)
@@ -601,23 +609,43 @@ end
 
 
 local JeditionChance = {0.02, 0.034, 0.037, 0.03}
-function mod:RandomJoker(Rng, Exeptions)
+function mod:RandomJoker(Rng, Exeptions, ForcedRarity)
     Exeptions = Exeptions or {}
     local Trinket = {}
-    repeat
+    local Possibilities = {}
+
+    if ForcedRarity then
+
+        Possibilities = mod.Trinkets[ForcedRarity]
+    else
+ 
         local RarityRoll = Rng:RandomFloat()
         if RarityRoll < 0.75 then
-            Trinket.Joker = mod:GetRandom(mod.Trinkets.common, Rng)
+
+            Possibilities = mod.Trinkets.common
         elseif RarityRoll < 0.95 then
-            Trinket.Joker = mod:GetRandom(mod.Trinkets.uncommon, Rng)
+
+            Possibilities = mod.Trinkets.uncommon
         else
-            Trinket.Joker = mod:GetRandom(mod.Trinkets.rare, Rng)
+
+            Possibilities = mod.Trinkets.rare
         end
+    end
+
+    repeat
+        if Possibilities == {} then
+            Trinket.Joker = TrinketType.TRINKET_JOKER --default trinket
+            break
+        end
+
+        Trinket.Joker = mod:GetRandom(Possibilities, Rng)
+
+        ---@diagnostic disable-next-line: param-type-mismatch
+        table.remove(Possibilities, mod:GetValueIndex(Possibilities, Trinket.Joker, true))
+
     until not mod:JimboHasTrinket(Trinket.Joker) and not mod:Contained(Exeptions, Trinket.Joker) --basic criteria
           and (Trinket.Joker ~= TrinketType.TRINKET_GROS_MICHAEL or not mod.Saved.Jimbo.MichelDestroyed) --if it's michel, check if it was destroyed
           and (Trinket.Joker ~= TrinketType.TRINKET_CAVENDISH or mod.Saved.Jimbo.MichelDestroyed) --if it's cavendish do the same but opposite
-
-    local EdRoll = Rng:RandomFloat()
     
     local EdMult = 1
 
@@ -628,7 +656,7 @@ function mod:RandomJoker(Rng, Exeptions)
         EdMult = EdMult * 2
     end
 
-
+    local EdRoll = Rng:RandomFloat()
     if EdRoll <= JeditionChance[mod.Edition.FOIL] * EdMult then --foil chance
         Trinket.Edition = mod.Edition.FOIL
 

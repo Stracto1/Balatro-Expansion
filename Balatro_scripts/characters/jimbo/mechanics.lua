@@ -266,21 +266,14 @@ function mod:JimboHandRender(Player, Offset)
         return
     end
 
-    local TargAlpha = 1
-    if mod.Saved.Jimbo.Progress.Room.Shots >= mod.Saved.Jimbo.MaxCards then
-        TargAlpha = 0.5
-    end
-
-    local TargetScale = 0.5 
+    local TargetScale = 0.5
     if mod.SelectionParams.Mode == mod.SelectionParams.Modes.HAND then
         TargetScale = 1 --while selecting the the cards gets bigger
-        TargAlpha = 1
     end
     if ScaleMult ~= TargetScale then
         --ScaleMult = mod:Lerp(ScaleMult,TargetScale, mod.SelectionParams.Frames/100)
         ScaleMult = mod:Lerp(1.5 - TargetScale,TargetScale, mod.SelectionParams.Frames/5)
     end
-    JimboCards.PlayingCards.Color.A = TargAlpha
 
     local PlayerScreenPos = Isaac.WorldToRenderPosition(Player.Position)
     local BaseRenderOff = Vector( (-7*mod.Saved.Jimbo.HandSize + 3.5) * ScaleMult + 1.5*(5-mod.Saved.Jimbo.HandSize),26 * ScaleMult)
@@ -355,8 +348,10 @@ function mod:JimboHandRender(Player, Offset)
         end
 
     else
-        local Frame = (mod.Saved.Jimbo.Progress.Room.Shots/mod.Saved.Jimbo.MaxCards) * -26 + 26
-        Frame = math.floor(Frame)
+        local Frame = 0
+        if mod.Saved.Jimbo.FirstDeck and not Game:GetRoom():IsClear() then
+            Frame = math.ceil((mod.Saved.Jimbo.Progress.Room.Shots/mod.Saved.Jimbo.MaxCards) * -26 + 26)
+        end
 
         HandsBar:SetFrame("Charge", Frame)
 
@@ -364,6 +359,8 @@ function mod:JimboHandRender(Player, Offset)
         HandsBar:SetOverlayFrame(0)
 
         HandsBar:Render(PlayerScreenPos + RenderOff + Offset)
+
+
 
         RenderOff = BaseRenderOff + Vector(14 * (mod.Saved.Jimbo.HandSize - 1) * ScaleMult, 0)
 
@@ -715,10 +712,8 @@ function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rN
 
         --if a trinket is selected, then roll for joker and edition
         if ReturnTable[1] == PickupVariant.PICKUP_TRINKET then
+
             local ExistingJokers = {}
-            for i,v in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
-                table.insert(ExistingJokers, v)
-            end
             for i, Trinket in ipairs(Isaac.FindByType(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET)) do
                 table.insert(ExistingJokers, Trinket.SubType)
             end
@@ -778,7 +773,7 @@ function mod:SetItemPrices(Variant,SubType,ShopID,Price)
     elseif PlayerManager.AnyoneHasCollectible(mod.Vouchers.Clearance) then --25% off
         Cost = Cost * 0.75
     end
-    Cost = math.ceil(Cost) --rounds it down 
+    Cost = math.floor(Cost) --rounds it down 
     Cost = math.max(Cost, 1)
 
     return Cost
@@ -969,9 +964,13 @@ function mod:JimboShootCardTear(Player,Direction)
     mod:AddValueToTable(mod.Saved.Jimbo.CurrentHand, mod.Saved.Jimbo.DeckPointer,false,true)
     mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer + 1
     mod.Saved.Jimbo.Progress.Room.Shots = mod.Saved.Jimbo.Progress.Room.Shots + 1
+    if mod.Saved.Jimbo.Progress.Room.Shots == mod.Saved.Jimbo.MaxCards then
+        Player:AnimateSad()
+    end
 
     Isaac.RunCallback("DECK_SHIFT",Player)
-    Isaac.RunCallback("CARD_SHOT", Player, CardShot , not Game:GetRoom():IsClear())
+    Isaac.RunCallback("CARD_SHOT", Player, CardShot, 
+    not Game:GetRoom():IsClear() and mod.Saved.Jimbo.FirstDeck and mod.Saved.Jimbo.Progress.Room.Shots < mod.Saved.Jimbo.MaxCards)
 
     --[[mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize -mod.Saved.Jimbo.Progress.Hand] = 0 --removes the used card
     mod.Saved.Jimbo.Progress.Hand = mod.Saved.Jimbo.Progress.Hand + 1
@@ -1238,18 +1237,21 @@ function mod:JimboTakeDamage(Player,Amount,_,Source,_)
         --||DISCARD MECHANIC||
         if not Game:GetRoom():IsClear() then
 
+            --local BaseRenderOff = Vector( (-7*mod.Saved.Jimbo.HandSize + 3.5) * ScaleMult + 1.5*(5-mod.Saved.Jimbo.HandSize),26 * ScaleMult)
+            
             Isaac.RunCallback("HAND_DISCARD", Player) --various joker/card effects
             for i=1, mod.Saved.Jimbo.HandSize do
                 
                 --discards all the cards in hand
                 mod:AddValueToTable(mod.Saved.Jimbo.CurrentHand, mod.Saved.Jimbo.DeckPointer,false,true)
                 mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer + 1
+
+                --adding these two lines make the game freak out for no reason
+                --LastCardFullPoss[i] = BaseRenderOff + Vector.Zero --does a cool swoosh effect
+                --mod.Counters.SinceShift = 0
             end
             Isaac.RunCallback("DECK_SHIFT", Player)
         end
-
-
-
 
         return false
     end
@@ -1348,75 +1350,7 @@ mod:AddCallback("HAND_DISCARD", mod.DiscardEffects)
 -----------------------JIMBO STATS-----------------------
 ----------------------------------------------------------
 
----@param Player EntityPlayer
-function mod:CardShotFinal(Player,ShotCard,Triggers,Evaluate)
-
-    if not Evaluate then --basically if its the first time the deck is cycled in
-        return
-    end
-
-    local RandomSeed=Random()
-    if RandomSeed == 0 then RandomSeed = 1 end
-
-    ----SEAL EFFECTS-----
-    ---------------------
-    if ShotCard.Seal == mod.Seals.RED then
-        Retriggers = Retriggers + 1
-    elseif ShotCard.Seal == mod.Seals.GOLDEN then
-        for i=0, Triggers do
-            local Coin = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
-                                    RandomVector()*4, nil, CoinSubType.COIN_PENNY, RandomSeed)  
-            Coin:ToPickup().Timeout = 45 --disappers short after spawning (would be too OP otherwise)
-        end
-    end 
-    --------EDITIONS EFFECTS----------
-    ----------------------------------
-    if ShotCard.Edition == mod.Edition.FOIL then
-        mod:IncreaseJimboStats(Player,1.25*Triggers, 0, 1,false,true)
-    elseif ShotCard.Edition == mod.Edition.HOLOGRAPHIC then
-        mod:IncreaseJimboStats(Player,0, 0.25 * Triggers, 1,false,true)
-    elseif ShotCard.Edition == mod.Edition.POLYCROME then
-        mod:IncreaseJimboStats(Player,0, 0, 1.2 ^ Triggers,false,true)
-    end 
-    --increases the chips basing on the card value
-    local TearsToGet = (mod:GetActualCardValue(ShotCard.Value)/50 + mod.Saved.Jimbo.CardLevels[ShotCard.Value]*0.02) * Triggers
-    local PlayerRNG = Player:GetDropRNG()   
-    ---------ENHANCEMENT EFFECTS----------
-    --------------------------------------
-    if ShotCard.Enhancement == mod.Enhancement.STONE then
-        TearsToGet = 0.5 * Triggers 
-    elseif ShotCard.Enhancement == mod.Enhancement.MULT then
-        mod:IncreaseJimboStats(Player, 0, 0.2 * Triggers,1, false,true) 
-    elseif ShotCard.Enhancement == mod.Enhancement.BONUS then
-        mod:IncreaseJimboStats(Player,0.75 * Triggers, 0 , 1,false,true)    
-    elseif ShotCard.Enhancement == mod.Enhancement.GLASS then
-        mod:IncreaseJimboStats(Player,0, 0, 1.3 ^ Triggers, false,true)
-        if mod:TryGamble(Player, PlayerRNG, 0.1) then
-            table.remove(mod.Saved.Jimbo.FullDeck, ShotCard.Index) --PLACEHOLDER SOUND
-            mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "BROKEN!", Vector(0, 20))
-        end 
-    elseif ShotCard.Enhancement == mod.Enhancement.LUCKY then
-        for i = 1, Triggers do
-            --if mod:TryGamble(Player, PlayerRNG, 0.2) then
-            if mod:TryGamble(Player, PlayerRNG, 1) then
-                mod:IncreaseJimboStats(Player, 0, 1, 1, false,true)
-                mod:CreateBalatroEffect(Player, mod.EffectColors.RED, mod.Sounds.ADDMULT, "+0.2", Vector(0, 20))
-            end 
-            --if mod:TryGamble(Player, PlayerRNG, 0.07) then
-            if mod:TryGamble(Player, PlayerRNG, 1) then
-                Player:AddCoins(10)
-                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+10 $", Vector(0, 20))
-            end
-        end
-    end
-
-    mod:IncreaseJimboStats(Player, TearsToGet, 0, 1,false, true)
-
-end
-mod:AddCallback("CARD_SHOT_FINAL", mod.CardShotFinal)
-
-
---these calculations are used for normal items, NOT stats given by jokers or mod related stuff, as they are flat sta ups
+--these calculations are used for normal items, NOT stats given by jokers or mod related stuff, as they are flat stat ups
 ---@param Player EntityPlayer
 ---@param Cache CacheFlag
 function mod:JimboStatCalculator(Player, Cache)

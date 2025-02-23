@@ -10,24 +10,49 @@ local ItemsConfig = Isaac.GetItemConfig()
 
 ---@param Player EntityPlayer
 function mod:VoucherPool(Type,_,_,_,_,Player)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+    if Player:GetPlayerType() ~= mod.Characters.JimboType or not ItemsConfig:GetCollectible(Type):HasCustomTag("balatro") then
         return
     end
 
-    --if its a voucher remove it from the custom pool and add the other if needed
-    if ItemsConfig:GetCollectible(Type):HasCustomCacheTag("balatro") then
+    if Player:HasCollectible(Type) then --there shouldn't be duplicate vouchers
+
+        if Type % 2 == mod.VoucherOff then --if it's a base voucher
+
+            Type = Type + 1 --gives its upgraded version instead
+
+            if Player:HasCollectible(Type) then --but again no duplicates
+                Type = 0
+
+            else--if it's new then remove it form the pool
+
+                table.remove(mod.Saved.Pools.Vouchers, mod:GetValueIndex(mod.Saved.Pools.Vouchers, Type, true))
+
+                if mod.Saved.Pools.Vouchers == {} then
+                    table.insert(mod.Saved.Pools.Vouchers, mod.Vouchers.Blank) --the breakfasting of balatro
+                end
+            end
+
+        else
+            Type = CollectibleType.COLLECTIBLE_NULL
+        end
+
+    else
+
         table.remove(mod.Saved.Pools.Vouchers, mod:GetValueIndex(mod.Saved.Pools.Vouchers, Type, true))
         if Type % 2 == mod.VoucherOff then --if it's a base voucher
+
             if mod.Saved.Pools.Vouchers == {} then
                 table.insert(mod.Saved.Pools.Vouchers, mod.Vouchers.Blank) --the breakfasting of balatro
             else
                 table.insert(mod.Saved.Pools.Vouchers, Type + 1) --add it's upgraded counterpart to the pool
             end
-            
+
         end
     end
+
+    return Type
 end
-mod:AddCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE, mod.VoucherPool)
+mod:AddCallback(ModCallbacks.MC_PRE_ADD_COLLECTIBLE, mod.VoucherPool)
 
 
 ---@param Player EntityPlayer

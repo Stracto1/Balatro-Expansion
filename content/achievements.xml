@@ -1,0 +1,8 @@
+<achievements gfxroot="gfx/ui/achievement/">
+
+    <achievement name="PermaLocked" hidden="true"/>
+
+
+
+
+</achievements>
