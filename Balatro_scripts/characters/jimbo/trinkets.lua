@@ -631,6 +631,19 @@ mod:AddCallback(ModCallbacks.MC_USE_CARD, mod.OnCardUsed)
 
 --usually used as a kind of hand played (ex. Vagabond)
 function mod:OnRoomClear(IsBoss, Hostile)
+
+    for i,v in pairs(mod.Saved.Jimbo.Progress.Room) do
+        if type(v) == "table" then
+
+            for j,_ in ipairs(mod.Saved.Jimbo.Progress.Room[i]) do
+                mod.Saved.Jimbo.Progress.Room[i][j] = 0
+            end
+        else
+
+            mod.Saved.Jimbo.Progress.Room[i] = 0 --resets the blind progress
+        end
+    end
+
     for _, Player in ipairs(PlayerManager.GetPlayers()) do
 
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
@@ -721,19 +734,6 @@ mod:AddCallback("TRUE_ROOM_CLEAR", mod.OnRoomClear)
 
 
 function mod:OnNewRoomJokers()
-
-    for i,v in pairs(mod.Saved.Jimbo.Progress.Room) do
-        if type(v) == "table" then
-
-            for j,_ in ipairs(mod.Saved.Jimbo.Progress.Room[i]) do
-                mod.Saved.Jimbo.Progress.Room[i][j] = 0
-            end
-        else
-
-            mod.Saved.Jimbo.Progress.Room[i] = 0 --resets the blind progress
-        end
-    end
-
     for _, Player in ipairs(PlayerManager.GetPlayers()) do
 
         if Player:GetPlayerType() ~= mod.Characters.JimboType then
@@ -1135,6 +1135,7 @@ function mod:DamageJokers(Player,_)
             
             elseif Joker == TrinketType.TRINKET_RED_CARD then
                 mod:IncreaseJimboStats(Player, 0,0.15*mod.Saved.Jimbo.Progress.Inventory[ProgressIndex],1, false, false)
+            
             elseif Joker == TrinketType.TRINKET_CARTOMANCER then
                 mod:IncreaseJimboStats(Player, 0,0.05*mod.Saved.Jimbo.Progress.Inventory[ProgressIndex],1, false, false)
             

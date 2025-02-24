@@ -396,9 +396,14 @@ function mod:CardPacks(card, Player,_)
 
         local RandomPack = {}
         local Jokers = {}
+        for i,v in ipairs(Isaac.FindByType(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET)) do
+            table.insert ( Jokers, v.SubType)
+        end
+
         local PackRng = Player:GetCardRNG(mod.Packs.BUFFON)
+
         for i=1, 2, 1 do
-            RandomPack[i] = mod:RandomJoker(PackRng, Jokers)
+            RandomPack[i] = mod:RandomJoker(PackRng, Jokers, true)
             table.insert(Jokers, RandomPack[i].Joker)
         end
 
@@ -408,7 +413,6 @@ function mod:CardPacks(card, Player,_)
                                               mod.SelectionParams.Purposes.BuffonPack)
 
     end
-
 end
 mod:AddCallback(ModCallbacks.MC_USE_CARD, mod.CardPacks)
 
