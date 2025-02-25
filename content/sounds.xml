@@ -15,6 +15,10 @@
     <sound name="SLICESFX">
         <sample weight="1" path="slice1sfx.wav" />
     </sound>
+    <sound name="FOILAPPEARSFX">
+        <sample weight="1" path="foil1.wav" />
+        <sample weight="1" path="foil2.wav" />
+    </sound>
     <sound name="FOILSFX">
         <sample weight="1" path="foil1.wav" />
         <sample weight="1" path="foil2.wav" />

@@ -185,7 +185,7 @@ function mod:OnHandDiscard(Player)
         if Joker == 0 then
         elseif Joker == TrinketType.TRINKET_RAMEN and not Copied then
 
-            mod.Saved.Jimbo.Progress.Inventory[Index] = mod.Saved.Jimbo.Progress.Inventory[Index] - mod.Saved.Jimbo.HandSize
+            mod.Saved.Jimbo.Progress.Inventory[Index] = mod.Saved.Jimbo.Progress.Inventory[Index] - 2
         
             if mod.Saved.Jimbo.Progress.Inventory[Index] == 0 then --at 0 it self destructs
 
@@ -194,10 +194,8 @@ function mod:OnHandDiscard(Player)
 
                 Isaac.RunCallback("INVENTORY_CHANGE", Player)
             else
-                local Loss = mod.Saved.Jimbo.HandSize / 100
-
                 mod.Counters.Activated[Index] = 0
-                mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "-"..tostring(Loss).."X")
+                mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "-0.02X")
             end
         
         elseif Joker == TrinketType.TRINKET_GREEN_JOKER and not Copied then

@@ -192,13 +192,30 @@ function mod:FloorHasShopOrTreasure()
     return Available
 end
 
-function mod:Lerp(a, b, t) --ty sheriff (ye i'm lazy)
+function mod:Lerp(a, b, t)
     t = mod:Clamp(math.abs(t), 1,0)
     return a + (b - a) * t
 end
 
-function mod:VectorLerp(vec1, vec2, percent) --ty sheriff (ye i'm lazy)
-    percent = mod:Clamp(percent, 1,0)
+function mod:CoolLerp(a, b, t)
+    t = mod:Clamp(math.abs(t), 1,0)
+
+    t = t/(t^2 - 0.4*t + 0.4)
+
+    return a + (b - a) * t
+end
+
+function mod:VectorLerp(vec1, vec2, percent)
+    percent = mod:Clamp(math.abs(percent), 1,0)
+    return vec1 * (1 - percent) + vec2 * percent
+end
+
+function mod:CoolVectorLerp(vec1, vec2, percent)
+    percent = mod:Clamp(math.abs(percent), 1,0)
+
+    --percent = percent + math.sin(math.rad(percent*180)) * 0.6
+    percent = percent/(percent^2 - 0.4*percent + 0.4)
+
     return vec1 * (1 - percent) + vec2 * percent
 end
 
@@ -609,7 +626,7 @@ function mod:SellJoker(Player, Trinket, Slot)
 end
 
 
-local JeditionChance = {0.02, 0.034, 0.037, 0.03}
+local JeditionChance = {0.02, 0.034, 0.037, 0.003}
 function mod:RandomJoker(Rng, Exeptions, PlaySound, ForcedRarity)
     Exeptions = Exeptions or {}
     local Trinket = {}

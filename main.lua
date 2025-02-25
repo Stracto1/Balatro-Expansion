@@ -66,6 +66,7 @@ Balatro_Expansion.Sounds.CHIPS = Isaac.GetSoundIdByName("CHIPSSFX")
 Balatro_Expansion.Sounds.MONEY = Isaac.GetSoundIdByName("MONEYSFX")
 Balatro_Expansion.Sounds.SLICE = Isaac.GetSoundIdByName("SLICESFX")
 Balatro_Expansion.Sounds.FOIL = Isaac.GetSoundIdByName("FOILSFX")
+Balatro_Expansion.Sounds.FOILEFFECT = Isaac.GetSoundIdByName("FOILEFFECTSFX")
 Balatro_Expansion.Sounds.HOLO = Isaac.GetSoundIdByName("HOLOSFX")
 Balatro_Expansion.Sounds.POLY = Isaac.GetSoundIdByName("POLYCHROMESFX")
 Balatro_Expansion.Sounds.NEGATIVE = Isaac.GetSoundIdByName("NEGATIVESFX")
@@ -470,6 +471,7 @@ Balatro_Expansion.ShopAddedThisFloor = false
 
 Balatro_Expansion.Counters = {}--table used for variuos counters increased every update (mainly used for animated HUD stuff)
 Balatro_Expansion.Counters.SinceShift = 0
+Balatro_Expansion.Counters.SinceSelect = 0
 Balatro_Expansion.Counters.Activated = {}
 
 Balatro_Expansion.Saved.Other = {}

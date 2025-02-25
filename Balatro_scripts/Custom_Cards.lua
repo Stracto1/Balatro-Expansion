@@ -271,6 +271,7 @@ function mod:CardPacks(card, Player,_)
 
             if PackRng:RandomFloat() < 0.2 then
                 RandomCard.Seal = PackRng:RandomInt(1,4)
+                sfx:Play(mod.Sounds.SEAL)
             else
                 RandomCard.Seal = mod.Seals.NONE --no :(
             end
@@ -278,10 +279,13 @@ function mod:CardPacks(card, Player,_)
             local EdRoll = PackRng:RandomFloat()
             if EdRoll < CardEditionChance.Foil then
                 RandomCard.Edition = mod.Edition.FOIL
+                sfx:Play(mod.Sounds.FOIL)
             elseif EdRoll < CardEditionChance.Holo then
                 RandomCard.Edition = mod.Edition.HOLOGRAPHIC
+                sfx:Play(mod.Sounds.HOLO)
             elseif EdRoll < CardEditionChance.Poly then
                 RandomCard.Edition = mod.Edition.POLYCROME
+                sfx:Play(mod.Sounds.POLY)
             else
                 RandomCard.Edition = mod.Edition.BASE --no :(
             end
@@ -375,7 +379,7 @@ function mod:CardPacks(card, Player,_)
         
         local PackRng = Player:GetCardRNG(Card.CARD_PACK_SPECTRAL)
         local RandomSpectral
-        for i=1, 3, 1 do
+        for i=1, 2, 1 do
             repeat
                 local SuperRoll = PackRng:RandomFloat()
                 if SuperRoll <= SoulChance then
@@ -390,7 +394,7 @@ function mod:CardPacks(card, Player,_)
         end
 
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
-                                              mod.SelectionParams.Purposes.TarotPack)
+                                              mod.SelectionParams.Purposes.SpectralPack)
 
     elseif card == mod.Packs.BUFFON then
 

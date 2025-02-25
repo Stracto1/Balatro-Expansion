@@ -46,13 +46,14 @@ void main(void)
 	Color.g = 1 - Color.g;
 	Color.b = 1 - Color.b;
 	}
+
 	vec3 ColorHSV = rgb2hsv(Color.rgb);
-	Color.rgb = hsv2rgb(vec3(ColorHSV.r + 0.12,ColorHSV.g * 0.9,ColorHSV.b * 0.9)); //tunes down a bit the colors and moves the hue
+	Color.rgb = hsv2rgb(vec3(ColorHSV.r + 0.12,clamp(ColorHSV.g * 0.9, 0.07, 1),ColorHSV.b * 0.9)); //tunes down a bit the colors and moves the hue
 
 	float XshinePoint = 0.66 * -TexCoord0.y + 0.12; //where the shine effect should be
 	float Distance = XshinePoint - TexCoord0.x; //the distance from the shine point
 
-	Color.rgb = mix(Color.rgb, vec3(1), clamp(0.36*cos(Distance * 20),0.05, 0.7)); //make it shine!
+	Color.rgb = mix(Color.rgb, vec3(1), clamp(0.36*cos(Distance * 20),0.05, 0.6)); //make it shine!
 
 
 	gl_FragColor = Color;
