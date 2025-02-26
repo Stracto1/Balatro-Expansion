@@ -31,7 +31,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
             if mod.Saved.Jimbo.LastUsed[PIndex] then
 
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
-                           RandomVector()*3, nil, mod.Saved.Jimbo.LastUsed[PIndex], RandomSeed)
+                           RandomVector()*3, Player, mod.Saved.Jimbo.LastUsed[PIndex], RandomSeed)
             else
                 Player:AnimateSad()
             end
@@ -53,7 +53,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
                 end
 
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
-                               RandomVector()*2, nil, Rplanet, RandomSeed)
+                               RandomVector()*2, Player, Rplanet, RandomSeed)
             end
             
             return false
@@ -74,7 +74,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
             end
             for _,Tarot in ipairs(RandomTarots) do
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
-                           RandomVector()*3, nil, Tarot, RandomSeed)
+                           RandomVector()*3, Player, Tarot, RandomSeed)
             end
             return false
         elseif card == Card.CARD_HIEROPHANT then
@@ -119,13 +119,16 @@ function mod:NewTarotEffects(card, Player, UseFlags)
                 
                 local RandIndex = mod:GetRandom(BaseJokers,CardRNG)
 
-                local EdRoll = Player:GetCardRNG(mod.Spectrals.AURA):RandomFloat()
+                local EdRoll = Player:GetCardRNG(Card.CARD_WHEEL_OF_FORTUNE):RandomFloat()
                 if EdRoll <= 0.5 then
+                    sfx:Play(mod.Sounds.FOIL)
                     mod.Saved.Jimbo.Inventory.Editions[RandIndex] = mod.Edition.FOIL
                     --PLACEHOLDER place editions sounds
                 elseif EdRoll <= 0.85 then
+                    sfx:Play(mod.Sounds.HOLO)
                     mod.Saved.Jimbo.Inventory.Editions[RandIndex] = mod.Edition.HOLOGRAPHIC
                 else
+                    sfx:Play(mod.Sounds.POLY)
                     mod.Saved.Jimbo.Inventory.Editions[RandIndex] = mod.Edition.POLYCROME
                 end
 
@@ -378,25 +381,31 @@ function mod:CardPacks(card, Player,_)
         Isaac.RunCallback("PACK_OPENED",Player,card)
         
         local PackRng = Player:GetCardRNG(Card.CARD_PACK_SPECTRAL)
-        local RandomSpectral
+        local RandomPack = {}
         for i=1, 2, 1 do
+            local RSpectral
             repeat
                 local SuperRoll = PackRng:RandomFloat()
                 if SuperRoll <= SoulChance then
-                    RandomSpectral = mod.Spectrals.SOUL
+                    RSpectral = mod.Spectrals.SOUL
                 elseif SuperRoll <= SoulChance + HoleChance then
-                    RandomSpectral = mod.Spectrals.BLACK_HOLE
+                    RSpectral = mod.Spectrals.BLACK_HOLE
                 else
-                    RandomSpectral = PackRng:RandomInt(mod.Spectrals.FAMILIAR,mod.Spectrals.CRYPTID) --chooses a random spectral card
+                    RSpectral = PackRng:RandomInt(mod.Spectrals.FAMILIAR,mod.Spectrals.CRYPTID) --chooses a random spectral card
                 end
-                mod.SelectionParams.PackOptions[i] = mod:SpecialCardToFrame(RandomSpectral)
-            until not mod:Contained(mod.SelectionParams.PackOptions, RandomSpectral)
+                RSpectral = mod:SpecialCardToFrame(RSpectral)
+
+            until not mod:Contained(RandomPack, RSpectral)
+
+            table.insert(RandomPack, RSpectral)
         end
+        mod.SelectionParams.PackOptions = RandomPack
 
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
                                               mod.SelectionParams.Purposes.SpectralPack)
 
     elseif card == mod.Packs.BUFFON then
+        Isaac.RunCallback("PACK_OPENED",Player,card)
 
         local RandomPack = {}
         local Jokers = {}
@@ -693,7 +702,7 @@ function mod:SpectralCards(card, Player)
 
             if RandomSeed == 0 then RandomSeed = 1 end
             Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET, Player.Position,
-                           RandomVector()*2, nil, Legendary.Joker, RandomSeed)
+                           RandomVector()*2, Player, Legendary.Joker, RandomSeed)
 
             mod.Saved.Jimbo.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][Legendary.Joker] = Legendary.Edition
 

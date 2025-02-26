@@ -33,18 +33,19 @@ local sfx = SFXManager()
 --(both sound and graphics can be turend off in MOD CONFIG MENU)
 --initially this system was based on EntityEffects but i had many problems regarding lighting and the screen=>world coordinate conversion
 
-
+local StackedEffects = 0
 --here Position colud be an entity, in that case 
-function mod:CreateBalatroEffect(Slot, Colour, Sound, Text, Offset)
+function mod:CreateBalatroEffect(Slot, Colour, Sound, Text, Offset, Volume)
 
     if EffectParams[Slot] then --if an effect is already playing on the same target
 
+        StackedEffects = StackedEffects + 1
         Isaac.CreateTimer(function()
                         mod:CreateBalatroEffect(Slot, Colour, Sound, Text, Offset)
                         end, EffectsInterval - EffectParams[Slot].Frames, 1, false)
         return
     else
-
+        StackedEffects = 0
         EffectParams[Slot] = {}
     end
 
@@ -61,7 +62,9 @@ function mod:CreateBalatroEffect(Slot, Colour, Sound, Text, Offset)
         EffectParams[Slot].Offset = Offset or Vector.Zero
     end
 
-    sfx:Play(Sound, 1, 0, false, 1, 0)
+    if Sound then
+        sfx:Play(Sound, Volume or 1, 2, false, 0.95 + math.random()*0.1 + 0.05*StackedEffects)
+    end
     --print("created")
 end
 

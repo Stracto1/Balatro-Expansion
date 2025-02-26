@@ -65,19 +65,23 @@ Balatro_Expansion.Sounds.ACTIVATE = Isaac.GetSoundIdByName("ACTIVATESFX")
 Balatro_Expansion.Sounds.CHIPS = Isaac.GetSoundIdByName("CHIPSSFX")
 Balatro_Expansion.Sounds.MONEY = Isaac.GetSoundIdByName("MONEYSFX")
 Balatro_Expansion.Sounds.SLICE = Isaac.GetSoundIdByName("SLICESFX")
-Balatro_Expansion.Sounds.FOIL = Isaac.GetSoundIdByName("FOILSFX")
-Balatro_Expansion.Sounds.FOILEFFECT = Isaac.GetSoundIdByName("FOILEFFECTSFX")
+Balatro_Expansion.Sounds.FOIL = Isaac.GetSoundIdByName("FOILAPPEARSFX")
+Balatro_Expansion.Sounds.EDITIONEFFECT = Isaac.GetSoundIdByName("EDITIONEFFECTSFX")
 Balatro_Expansion.Sounds.HOLO = Isaac.GetSoundIdByName("HOLOSFX")
 Balatro_Expansion.Sounds.POLY = Isaac.GetSoundIdByName("POLYCHROMESFX")
 Balatro_Expansion.Sounds.NEGATIVE = Isaac.GetSoundIdByName("NEGATIVESFX")
 Balatro_Expansion.Sounds.SEAL = Isaac.GetSoundIdByName("SEALSFX")
 Balatro_Expansion.Sounds.EXPLOSION = Isaac.GetSoundIdByName("EXPLOSIONSFX")
+Balatro_Expansion.Sounds.PLAY = Isaac.GetSoundIdByName("CARDPLAYSFX")
+Balatro_Expansion.Sounds.SELECT = Isaac.GetSoundIdByName("CARDSELECTSFX")
+Balatro_Expansion.Sounds.DESELECT = Isaac.GetSoundIdByName("CARDDESELECTSFX")
 
 
 Balatro_Expansion.EffectColors = {}
 Balatro_Expansion.EffectColors.RED = Color(238/255, 49/255, 66/255)
 Balatro_Expansion.EffectColors.BLUE = Color(49/255, 140/255, 238/255)
 Balatro_Expansion.EffectColors.YELLOW = Color(238/255, 186/255, 49/255)
+Balatro_Expansion.EffectColors.PURPLE = Color(238/255, 186/255, 49/255)
 
 
 Balatro_Expansion.Packs = {}

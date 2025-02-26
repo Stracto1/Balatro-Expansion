@@ -17,10 +17,8 @@
     </sound>
     <sound name="FOILAPPEARSFX">
         <sample weight="1" path="foil1.wav" />
-        <sample weight="1" path="foil2.wav" />
     </sound>
-    <sound name="FOILSFX">
-        <sample weight="1" path="foil1.wav" />
+    <sound name="EDITIONEFFECTSFX">
         <sample weight="1" path="foil2.wav" />
     </sound>
     <sound name="HOLOSFX">
@@ -42,6 +40,15 @@
     </sound>
     <sound name="EXPLOSIONSFX">
         <sample weight="1" path="explosion_release1.wav" />
+    </sound>
+    <sound name="CARDPLAYSFX">
+        <sample weight="1" path="cardPlay.wav" />
+    </sound>
+    <sound name="CARDSELECTSFX">
+        <sample weight="1" path="cardSelect.wav" />
+    </sound>
+    <sound name="CARDDESELECTSFX">
+        <sample weight="1" path="cardDeselect.wav" />
     </sound>
 
 </sounds>

@@ -8,8 +8,9 @@ function mod:CardCollisionSynergy(Tear,Collider,_)
     if not mod:Contained(mod.CARD_TEAR_VARIANTS, Tear.Variant) then
         return
     end
+    local TearData = Tear:GetData()
 
-    if Collider:IsActiveEnemy() and  mod:Contained(Collider:GetData().CollidedWith, Tear.TearIndex) then
+    if Collider:IsActiveEnemy() and  mod:Contained(TearData.CollidedWith, GetPtrHash(Collider)) then
         local TearRNG = Tear:GetDropRNG()
         local Player = Tear.Parent:ToPlayer()
 
