@@ -517,9 +517,9 @@ function mod:GetJokerCost(Joker, SellSlot)
     local Cost = tonumber(numstring)
     if SellSlot then --also tells if you want the buy/sell value as the return
     
-        Cost = math.floor(Cost + mod.Saved.Jimbo.Inventory.Editions[SellSlot] / 2)
+        Cost = math.floor((Cost + mod.Saved.Jimbo.Inventory.Editions[SellSlot]) / 2)
         if Joker == TrinketType.TRINKET_EGG then
-            Cost = Cost + mod.Saved.Jimbo.Progress.Inventory[SellSlot]
+            Cost = mod.Saved.Jimbo.Progress.Inventory[SellSlot]
         end
     else
         --print(tonumber(string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[1],"%!",""),2))
@@ -537,6 +537,10 @@ function mod:GetJokerCost(Joker, SellSlot)
     Cost = math.max(Cost, 1)
 
     return Cost
+end
+
+function mod:GetJokerRarity(Joker)
+    return string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[3],"%?","")
 end
 
 function mod:AddJimboInventorySlots(Player, Amount)
@@ -620,6 +624,8 @@ function mod:SellJoker(Player, Trinket, Slot)
     for i=1, SellValue do
         Game:Spawn(EntityType.ENTITY_PICKUP,PickupVariant.PICKUP_COIN,Player.Position,RandomVector()*2,Player,CoinSubType.COIN_PENNY,RNG():GetSeed())
     end
+
+    mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..SellValue.."$")
 
     Isaac.RunCallback("INEVNTORY_CHANGE", Player)
     Isaac.RunCallback("JOKER_SOLD", Player, Trinket, Slot)

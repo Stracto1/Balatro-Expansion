@@ -988,10 +988,6 @@ function mod:HandleNoHarmRoomsClear()
             Game:Spawn(EntityType.ENTITY_SLOT, SlotVariant.SHOP_RESTOCK_MACHINE,
                        Game:GetRoom():GetGridPosition(25),Vector.Zero, nil, 0, Seed)
         end
-    else
-        ---@diagnostic disable-next-line: param-type-mismatch
-        mod:FullDeckShuffle(PlayerManager.FirstPlayerByType(mod.Characters.JimboType))
-
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.HandleNoHarmRoomsClear)
@@ -1005,6 +1001,7 @@ function mod:AddRoomsCleared(IsBoss, _)
     for i,Player in ipairs(PlayerManager.GetPlayers()) do
         if Player:GetPlayerType() == mod.Characters.JimboType then
             Player:AddHearts(2)
+            mod:FullDeckShuffle(Player)
         end
     end
 
@@ -1725,8 +1722,8 @@ function mod:FullDeckShuffle(Player)
 end
 
 
-local InventoryHelperVariant = Isaac.GetEntityVariantByName("Inventory Helper")
-local InventoryHelperSubType = Isaac.GetEntitySubTypeByName("Inventory Helper")
+local DescriptionHelperVariant = Isaac.GetEntityVariantByName("Description Helper")
+local DescriptionHelperSubType = Isaac.GetEntitySubTypeByName("Description Helper")
 
 --allows to activate/disable selection states easly
 function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
@@ -1734,6 +1731,13 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
     mod.SelectionParams.Frames = 0
     if NewMode == mod.SelectionParams.Modes.NONE then
 
+        for i,v in ipairs(Isaac.FindByType(1000, DescriptionHelperVariant, DescriptionHelperSubType)) do
+            v:Remove()
+        end
+
+        for i,v in ipairs(mod.SelectionParams.SelectedCards) do
+            mod.SelectionParams.SelectedCards[i] = false 
+        end
         mod.SelectionParams.Index = 1
         mod.SelectionParams.SelectionNum = 0
         Game:GetRoom():SetPauseTimer(0)
@@ -1746,6 +1750,9 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
         end
         Game:GetRoom():SetPauseTimer(225)
 
+        Game:Spawn(EntityType.ENTITY_EFFECT, DescriptionHelperVariant, Player.Position
+                       ,Vector.Zero, nil, DescriptionHelperSubType, 1)
+        
         if NewMode == mod.SelectionParams.Modes.HAND then
             mod.SelectionParams.OptionsNum = mod.Saved.Jimbo.HandSize
 
@@ -1799,8 +1806,6 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
 
         elseif NewMode == mod.SelectionParams.Modes.INVENTORY then
 
-            Game:Spawn(EntityType.ENTITY_EFFECT, InventoryHelperVariant, Player.Position
-                       ,Vector.Zero, nil, InventoryHelperSubType, 1)
             mod.SelectionParams.MaxSelectionNum = 2
             mod.SelectionParams.OptionsNum = #mod.Saved.Jimbo.Inventory.Jokers
         end
@@ -1865,8 +1870,9 @@ function mod:Select(Player)
     elseif mod.SelectionParams.Mode == mod.SelectionParams.Modes.PACK then
 
         if mod.SelectionParams.Index > mod.SelectionParams.OptionsNum then--skip button
+            
+            Isaac.RunCallback("PACK_SKIPPED", Player, mod.SelectionParams.Purpose)
             mod:SwitchCardSelectionStates(Player,mod.SelectionParams.Modes.NONE, 0)
-            Isaac.RunCallback("PACK_SKIPPED", Player)
             return
         end
 
@@ -1901,18 +1907,19 @@ function mod:Select(Player)
         
     elseif mod.SelectionParams.Mode == mod.SelectionParams.Modes.INVENTORY then
 
-        if  mod.SelectionParams.Index <= #mod.Saved.Jimbo.Inventory.Jokers then
-            --a joker is selected
+        if  mod.SelectionParams.Index <= #mod.Saved.Jimbo.Inventory.Jokers then --a joker is selected
+            
             local Choice = mod.SelectionParams.SelectedCards[mod.SelectionParams.Index]
 
             if Choice then
-                sfx:Play(mod.Sounds.SELECT)
+                sfx:Play(mod.Sounds.DESELECT)
 
                 mod.SelectionParams.SelectedCards[mod.SelectionParams.Index] = false
                 mod.SelectionParams.Purpose = mod.SelectionParams.Purposes.NONE
 
-            --if it's not currently selected
-            else
+            
+            else --if it's not currently selected
+            
                 if mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.SELLING then
                     local FirstI
                     local SecondI = mod.SelectionParams.Index
@@ -1924,8 +1931,7 @@ function mod:Select(Player)
                         end
                     end
 
-                    sfx:Play(mod.Sounds.SELECT, 1,0)
-
+                    sfx:Play(mod.Sounds.SELECT)
                     Isaac.CreateTimer(function ()
                         sfx:Play(mod.Sounds.SELECT,1,2,false, 1.2)
                     end, 3, 1, false)
@@ -1939,15 +1945,17 @@ function mod:Select(Player)
                     Isaac.RunCallback("INVENTORY_CHANGE", Player)
                     
                     mod.SelectionParams.Purpose = mod.SelectionParams.Purposes.NONE
-                else
+
+                elseif mod.Saved.Jimbo.Inventory.Jokers[mod.SelectionParams.Index] ~= 0 then
+
                     sfx:Play(mod.Sounds.DESELECT)
 
-                    if mod.Saved.Jimbo.Inventory.Jokers[mod.SelectionParams.Index] ~= 0 then
-                        mod.SelectionParams.SelectedCards[mod.SelectionParams.Index] = true
-                        mod.SelectionParams.Purpose = mod.SelectionParams.Purposes.SELLING
-                    end
+                    mod.SelectionParams.SelectedCards[mod.SelectionParams.Index] = true
+                    mod.SelectionParams.Purpose = mod.SelectionParams.Purposes.SELLING
+                    
                 end
             end
+
         else--the confirm button is pressed
             
             if mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.SELLING then

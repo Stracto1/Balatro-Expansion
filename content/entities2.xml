@@ -3,7 +3,7 @@
     <!--EFFECTS-->
     <entity anm2path="" id="1000" variant="3596" name="Pack Particle Helper" />
     <entity anm2path="Particle.anm2" friction="1" id="1000" variant="3597" name="Pack Particle" />
-    <entity anm2path="" id="1000"  friction="0" variant="3598" name="Inventory Helper" />
+    <entity anm2path="" id="1000"  friction="0" variant="3598" name="Description Helper" />
 
 
     <!--TEAR VARIANTS-->

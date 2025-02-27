@@ -25,6 +25,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
     if Player:GetPlayerType() == mod.Characters.JimboType then
         local PIndex = Player:GetPlayerIndex()
         local RandomSeed = Random()
+
         if RandomSeed==0 then RandomSeed=1 end
 
         if card == Card.CARD_FOOL then
@@ -36,7 +37,9 @@ function mod:NewTarotEffects(card, Player, UseFlags)
                 Player:AnimateSad()
             end
             return false
-        elseif card == Card.CARD_MAGICIAN then
+        else
+            mod.Saved.Jimbo.LastUsed[PIndex] = Card
+        if card == Card.CARD_MAGICIAN then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.MAGICIAN)
             
@@ -210,7 +213,8 @@ function mod:NewTarotEffects(card, Player, UseFlags)
             
             return false
         end
-        mod.Saved.Jimbo.LastUsed[PIndex] = Card
+        end
+        
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.NewTarotEffects)
