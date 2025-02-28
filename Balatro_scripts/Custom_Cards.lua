@@ -28,6 +28,8 @@ function mod:NewTarotEffects(card, Player, UseFlags)
 
         if RandomSeed==0 then RandomSeed=1 end
 
+        local IsTarot = false
+
         if card == Card.CARD_FOOL then
             if mod.Saved.Jimbo.LastUsed[PIndex] then
 
@@ -36,14 +38,17 @@ function mod:NewTarotEffects(card, Player, UseFlags)
             else
                 Player:AnimateSad()
             end
-            return false
+
+            IsTarot = true
         else
-            mod.Saved.Jimbo.LastUsed[PIndex] = Card
+        
+        mod.Saved.Jimbo.LastUsed[PIndex] = card
+
         if card == Card.CARD_MAGICIAN then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.MAGICIAN)
             
-            return false
+            IsTarot = true
         elseif card == Card.CARD_HIGH_PRIESTESS then
 
             local CardRNG = Player:GetCardRNG(card)
@@ -59,13 +64,13 @@ function mod:NewTarotEffects(card, Player, UseFlags)
                                RandomVector()*2, Player, Rplanet, RandomSeed)
             end
             
-            return false
+            IsTarot = true
         
         elseif card == Card.CARD_EMPRESS then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.EMPRESS)
             
-            return false
+            IsTarot = true
         
         elseif card == Card.CARD_EMPEROR then
             local RandomTarots = {}
@@ -79,35 +84,37 @@ function mod:NewTarotEffects(card, Player, UseFlags)
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
                            RandomVector()*3, Player, Tarot, RandomSeed)
             end
-            return false
+            IsTarot = true
         elseif card == Card.CARD_HIEROPHANT then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.HIEROPHANT)
             
-            return false
+            IsTarot = true
         elseif card == Card.CARD_LOVERS then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.LOVERS)
             
-            return false
+            IsTarot = true
         
         elseif card == Card.CARD_CHARIOT then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.CHARIOT)
             
-            return false
+            IsTarot = true
         elseif card == Card.CARD_JUSTICE then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.JUSTICE)
             
-            return false
+            IsTarot = true
         elseif card == Card.CARD_HERMIT then
             local CoinsToAdd = Player:GetNumCoins()
             if CoinsToAdd > 20 then CoinsToAdd = 20 end --no more then 20 coins
 
             Player:AddCoins(CoinsToAdd)
 
-            return false
+            mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(CoinsToAdd).."$")
+
+            IsTarot = true
         elseif card == Card.CARD_WHEEL_OF_FORTUNE then
             local CardRNG = Player:GetCardRNG(card)
 
@@ -140,60 +147,63 @@ function mod:NewTarotEffects(card, Player, UseFlags)
                 mod:CreateBalatroEffect(Player, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, "No!")--PLACEHOLDER
             end
 
-            return false
+            IsTarot = true
 
         elseif card == Card.CARD_STRENGTH then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.STRENGTH)
             
-            return false
+            IsTarot = true
         elseif card == Card.CARD_HANGED_MAN then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.HANGED)
             
-            return false
+            IsTarot = true
         elseif card == Card.CARD_DEATH then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.DEATH1)
             
-            return false
+            IsTarot = true
         elseif card == Card.CARD_TEMPERANCE then
-            local CoinsToGain
-            for _ ,Joker in ipairs(mod.Saved.Jimbo.Inventory) do
-                if Joker == 0 then
-                    goto skip
+
+            local CoinsToGain = 0
+
+            for i ,Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
+                if Joker ~= 0 then
+                    CoinsToGain = CoinsToGain + mod:GetJokerCost(Joker, i) --placeholder
                 end
-                local SellValue = math.floor(mod:GetJokerCost(Joker)/2) --placeholder
-                CoinsToGain = CoinsToGain + SellValue
-                ::skip::
             end
             Player:AddCoins(CoinsToGain)
-            return false
+
+            mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(CoinsToGain).."$")
+
+
+            IsTarot = true
         elseif card == Card.CARD_DEVIL then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.DEVIL)
             
-            return false
+            IsTarot = true
         elseif card == Card.CARD_TOWER then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.TOWER)
             
-            return false
+            IsTarot = true
         elseif card == Card.CARD_STARS then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.STARS)
             
-            return false
+            IsTarot = true
         elseif card == Card.CARD_MOON then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.MOON)
             
-            return false
+            IsTarot = true
         elseif card == Card.CARD_SUN then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.SUN)
             
-            return false
+            IsTarot = true
         elseif card == Card.CARD_JUDGEMENT then
             for i, Joker in ipairs(mod.Saved.Jimbo.Inventory) do
                 if Joker == 0 then --needs an empty slot
@@ -202,19 +212,26 @@ function mod:NewTarotEffects(card, Player, UseFlags)
                     mod.Saved.Jimbo.Inventory[i] = RandomJoker
                     mod.Saved.Jimbo.Progress = ItemsConfig:GetTrinket(RandomJoker):GetCustomTags()[2] --sets the base progress
                     Isaac.RunCallback("INVENTORY_CHANGE", Player)
-                    return false
+                    IsTarot = true
                 end
             end
             Player:AnimateSad()
-            return false
+            IsTarot = true
         elseif card == Card.CARD_WORLD then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.WORLD)
             
-            return false
+            IsTarot = true
         end
         end
         
+        if IsTarot then
+
+            Player:AnimateCard(card)
+
+            return false
+        end
+
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.NewTarotEffects)
@@ -260,12 +277,17 @@ mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.PlanetCards)
 ---@param Player EntityPlayer
 ---@param card Card
 function mod:CardPacks(card, Player,_)
+
+
     if card == Card.CARD_PACK_STANDARD then
         Isaac.RunCallback("PACK_OPENED",Player,card)
 
         local PackRng = Player:GetCardRNG(Card.CARD_PACK_STANDARD)
         local RandomPack = {}
-        for i=1, 3, 1 do
+
+        local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 4) or 3
+
+        for i=1, Size, 1 do
             local RandomCard = {}
             RandomCard.Suit = PackRng:RandomInt(1, 4)
             RandomCard.Value = PackRng:RandomInt(1,13)
@@ -284,13 +306,13 @@ function mod:CardPacks(card, Player,_)
             end
 
             local EdRoll = PackRng:RandomFloat()
-            if EdRoll < CardEditionChance.Foil then
+            if EdRoll <= CardEditionChance.Foil then
                 RandomCard.Edition = mod.Edition.FOIL
                 sfx:Play(mod.Sounds.FOIL)
-            elseif EdRoll < CardEditionChance.Holo then
+            elseif EdRoll <= CardEditionChance.Holo then
                 RandomCard.Edition = mod.Edition.HOLOGRAPHIC
                 sfx:Play(mod.Sounds.HOLO)
-            elseif EdRoll < CardEditionChance.Poly then
+            elseif EdRoll <= CardEditionChance.Poly then
                 RandomCard.Edition = mod.Edition.POLYCROME
                 sfx:Play(mod.Sounds.POLY)
             else
@@ -307,19 +329,25 @@ function mod:CardPacks(card, Player,_)
         Isaac.RunCallback("PACK_OPENED",Player,card)
 
         local PackRng = Player:GetCardRNG(Card.CARD_PACK_TAROT)
-        local RandomCard
-        mod.SelectionParams.PackOptions ={}
-        for i=1, 3, 1 do
+        local RandomPack = {}
+
+        local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 4) or 3 --very cool lua thingy
+        for i=1, Size, 1 do
+            local RandomCard
             repeat
                 if PackRng:RandomFloat() < SoulChance then
                     RandomCard = mod.Spectrals.SOUL
                 else
-                    RandomCard = PackRng:RandomInt(1,22) --chooses a random not reversed tarot
+                    RandomCard = PackRng:RandomInt(1,22) --chooses a random not reversed tarot (i'll prob regret using this)
                 end
+                RandomCard = mod:SpecialCardToFrame(RandomCard)
                 
-            until not mod:Contained(mod.SelectionParams.PackOptions, RandomCard)
-            mod.SelectionParams.PackOptions[i] = mod:SpecialCardToFrame(RandomCard)
+            until not mod:Contained(RandomPack, RandomCard)
+            
+            table.insert(RandomPack, RandomCard)
         end
+        
+        mod.SelectionParams.PackOptions = RandomPack
 
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
                                               mod.SelectionParams.Purposes.TarotPack)
@@ -331,7 +359,9 @@ function mod:CardPacks(card, Player,_)
         local RandomPack = {}
         if Player:GetPlayerType() == mod.Characters.JimboType then
             
-            for i=1, 3 do
+            local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 4) or 3
+
+            for i=1, Size do
                 local Rplanet
                 repeat  
                     if PackRng:RandomFloat() < HoleChance then
@@ -386,7 +416,10 @@ function mod:CardPacks(card, Player,_)
         
         local PackRng = Player:GetCardRNG(Card.CARD_PACK_SPECTRAL)
         local RandomPack = {}
-        for i=1, 2, 1 do
+
+        local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 3) or 2
+
+        for i=1, Size do
             local RSpectral
             repeat
                 local SuperRoll = PackRng:RandomFloat()
@@ -419,7 +452,9 @@ function mod:CardPacks(card, Player,_)
 
         local PackRng = Player:GetCardRNG(mod.Packs.BUFFON)
 
-        for i=1, 2, 1 do
+        local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 3) or 2
+
+        for i=1, Size, 1 do
             RandomPack[i] = mod:RandomJoker(PackRng, Jokers, true)
             table.insert(Jokers, RandomPack[i].Joker)
         end

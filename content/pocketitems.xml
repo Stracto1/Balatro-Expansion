@@ -1,6 +1,6 @@
 <pocketitems>
     <!-- -PACKS- -->
-    <card type="object" name="Tarot pack" description="Tarots inside" hud="Tarot_Pack" pickup="2476" achievement="PermaLocked"/>
+    <card type="object" name="Arcana pack" description="Tarots inside" hud="Tarot_Pack" pickup="2476" achievement="PermaLocked"/>
     <card type="object" name="Celestial pack" description="Planets inside" hud="Planet_Pack" pickup="2477" achievement="PermaLocked"/>
     <card type="object" name="Standard pack" description="Cards inside" hud="Standard_Pack" pickup="2478" achievement="PermaLocked"/>
     <card type="object" name="Buffon pack" description="Jokers inside" hud="Buffon_Pack" pickup="2479" achievement="PermaLocked"/>

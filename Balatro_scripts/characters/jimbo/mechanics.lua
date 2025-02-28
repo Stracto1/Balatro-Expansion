@@ -161,99 +161,69 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
     DeckSprite:Render(DECK_RENDERING_POSITION)
 
 
-    if Minimap:GetState()== MinimapState.NORMAL then
-        if not mod.Saved.Jimbo.SmallCleared then
-            mod.Fonts.Balatro:DrawStringScaled(tostring(mod.Saved.Jimbo.ClearedRooms).."/"..tostring(mod.Saved.Jimbo.SmallBlind),380 + Minimap:GetShakeOffset().X,51 +Minimap:GetShakeOffset().Y,0.5,0.5,KColor(0.7,0.7,0.7,1))
-            mod.Fonts.Balatro:DrawStringScaled(tostring(mod.Saved.Jimbo.ClearedRooms).."/"..tostring(mod.Saved.Jimbo.SmallBlind),380 + Minimap:GetShakeOffset().X,50 +Minimap:GetShakeOffset().Y,0.5,0.5,KColor(1,1,1,1))
-            --mod.Fonts.Balatro:DrawString(tostring(ClearedRooms).."/"..tostring(BigBlind),Isaac.WorldToScreen(PlayerScreenPos).X+20,Isaac.WorldToScreen(PlayerScreenPos).Y+30,KColor(1,1,1,1))        
-
-        elseif not mod.Saved.Jimbo.BigCleared then
-            mod.Fonts.Balatro:DrawStringScaled(tostring(mod.Saved.Jimbo.ClearedRooms).."/"..tostring(mod.Saved.Jimbo.BigBlind),100 + Minimap:GetShakeOffset().X,Minimap:GetShakeOffset().Y,0.5,0.5,KColor(1,1,1,1))        
-        end
+    if Minimap:GetState() ~= MinimapState.NORMAL or Game:GetLevel():GetStage() == LevelStage.STAGE8 then
+        return
     end
+
+    local SmallProgress 
+    local BigProgress
+    local BossProgress
+
+
+    ---SMALL BLIND
+    local Color = KColor.White
+    local DarkColor = KColor(0.7,0.7,0.7,1)
+
+    if not mod.Saved.Jimbo.SmallCleared then
+        Color = KColor(238/255, 186/255, 49/255, 1)
+        DarkColor = KColor(166/255,130/255,34/255,1)
+
+        SmallProgress = mod.Saved.Jimbo.ClearedRooms
+    else
+        SmallProgress = mod.Saved.Jimbo.SmallBlind
+    end
+    mod.Fonts.Balatro:DrawStringScaled(tostring(SmallProgress).."/"..tostring(mod.Saved.Jimbo.SmallBlind),375 + Minimap:GetShakeOffset().X,24 +Minimap:GetShakeOffset().Y,0.5,0.5,DarkColor)
+    mod.Fonts.Balatro:DrawStringScaled(tostring(SmallProgress).."/"..tostring(mod.Saved.Jimbo.SmallBlind),375 + Minimap:GetShakeOffset().X,23 +Minimap:GetShakeOffset().Y,0.5,0.5,Color)
+
+
+    --BIG BLIND
+    Color = KColor.White
+    DarkColor = KColor(0.7,0.7,0.7,1)
+
+    if mod.Saved.Jimbo.SmallCleared then
     
-    --local String = "+"..tostring(CardsLeft)
+        if mod.Saved.Jimbo.BigCleared then
+            BigProgress = mod.Saved.Jimbo.BigBlind
+        else
+            Color = KColor(238/255, 186/255, 49/255, 1)
+            DarkColor = KColor(166/255,130/255,34/255,1)
 
-    --mod.Fonts.Balatro:DrawStringScaled(String, 
-    --DECK_RENDERING_POSITION.X - mod.Fonts.Balatro:GetStringWidth(String)/2 + Minimap:GetShakeOffset().X,
-    --DECK_RENDERING_POSITION.Y + 15 + Minimap:GetShakeOffset().Y,0.33,0.33,KColor(1,1,1,1))
-
-
-    --[[
-    ---DECK RENERING----
-    for i, Pointer in ipairs(mod.Saved.Jimbo.CurrentHand) do
-        local Card = mod.Saved.Jimbo.FullDeck[Pointer]
-        if Card then
-            local RenderPos = DECK_RENDERING_POSITION + Vector(14 * i, 0)
-            --JimboCards.R_PlayingCards.Scale=Vector(0.8,0.8)
-            --JimboCards.PlayingCards.Scale=Vector(0.8,0.8)
-
-            if mod.SelectionParams.SelectedCards[i] and mod.SelectionParams.Mode == mod.SelectionParams.Modes.HAND then
-                RenderPos.Y = RenderPos.Y - 9 --moves up selected cards
-            end
-
-            JimboCards.PlayingCards:SetFrame(ENHANCEMENTS_ANIMATIONS[Card.Enhancement], 4 * (Card.Value - 1) + Card.Suit-1) --sets the frame corresponding to the value and suit
-            --JimboCards.PlayingCards:PlayOverlay("Seals")
-            JimboCards.PlayingCards:SetOverlayFrame("Seals", Card.Seal)
-            Edition_Overlay:SetFrame("Editions", Card.Edition)
-
-            -------------------------------------------------------------
-            JimboCards.PlayingCards:Render(RenderPos)
-            Edition_Overlay:Render(RenderPos)
-            --150 // 10.4
-            --360//122
-
+            BigProgress = mod.Saved.Jimbo.ClearedRooms
         end
+    else
+        BigProgress = 0
     end
+    mod.Fonts.Balatro:DrawStringScaled(tostring(BigProgress).."/"..tostring(mod.Saved.Jimbo.BigBlind),375 + Minimap:GetShakeOffset().X,36 + Minimap:GetShakeOffset().Y,0.5,0.5,DarkColor)  
+    mod.Fonts.Balatro:DrawStringScaled(tostring(BigProgress).."/"..tostring(mod.Saved.Jimbo.BigBlind),375 + Minimap:GetShakeOffset().X,35 + Minimap:GetShakeOffset().Y,0.5,0.5,Color)        
+    
+    if not Game:GetLevel():IsAscent() then --ascents don't have any boss blind
+        --BOSS BLIND
+        Color = KColor.White
+        DarkColor = KColor(0.7,0.7,0.7,1)
 
-    if mod.SelectionParams.Mode == mod.SelectionParams.Modes.HAND then
-        local RenderPos = DECK_RENDERING_POSITION + Vector(14 * mod.SelectionParams.Index, 0)
-        
-        if mod.SelectionParams.SelectedCards[mod.SelectionParams.Index] then
-
-            RenderPos.Y = RenderPos.Y - 9
-        end    
-
-        CardFrame:SetFrame(HUD_FRAME.Frame)
-        CardFrame:Render(RenderPos)
-
-        --last confirm option
-        RenderPos = DECK_RENDERING_POSITION + Vector(14 * (mod.Saved.Jimbo.HandSize + 1), 0)
-        CardFrame:SetFrame(HUD_FRAME.Hand)
-        CardFrame:Render(RenderPos)
-
-
-        --HAND TYPE TEXT RENDER--
-        mod.Fonts.Balatro:DrawString(HAND_TYPE_NAMES[mod.SelectionParams.HandType],DECK_RENDERING_POSITION.X + 50,DECK_RENDERING_POSITION.Y -100,KColor(1,1,1,1))
-
-        --allows mouse controls to be used as a way to select cards--
-        local MousePosition = Isaac.WorldToScreen(Input.GetMousePosition(true))
-        if MousePosition.X >= DECK_RENDERING_POSITION.X and MousePosition.Y >= DECK_RENDERING_POSITION.Y  then
-            local HandMousePosition = math.ceil((MousePosition.X - (DECK_RENDERING_POSITION.X))/CardHUDWidth)
-            if HandMousePosition <= mod.Saved.Jimbo.HandSize + 1 then
-                mod.SelectionParams.Index = HandMousePosition
-            end
+        if mod.Saved.Jimbo.SmallCleared and mod.Saved.Jimbo.BigCleared and mod.Saved.Jimbo.BossCleared ~= 2 then
+            Color = KColor(238/255, 186/255, 49/255, 1)
+            DarkColor = KColor(166/255,130/255,34/255,1)
         end
 
-    else--not selecting
-        local CardsLeft = (#mod.Saved.Jimbo.FullDeck - mod.Saved.Jimbo.DeckPointer) + 1
-        --shows how many cards are left in the deck
-        if CardsLeft > 0 then
-            local RenderPos = DECK_RENDERING_POSITION + Vector(14 * (mod.Saved.Jimbo.HandSize + 1),-3)
-            mod.Fonts.Balatro:DrawStringScaled("+"..tostring(CardsLeft),RenderPos.X + Minimap:GetShakeOffset().X,RenderPos.Y + Minimap:GetShakeOffset().Y,0.8,1,KColor(1,1,1,1))
+        BossProgress = "Not Cleared"
+        if mod.Saved.Jimbo.BossCleared == 2 then
+            BossProgress = "Cleared"
         end
+
+        mod.Fonts.Balatro:DrawStringScaled(BossProgress,380 - mod.Fonts.Balatro:GetStringWidth(BossProgress)/4 + Minimap:GetShakeOffset().X,50 + Minimap:GetShakeOffset().Y,0.5,0.5,DarkColor)  
+        mod.Fonts.Balatro:DrawStringScaled(BossProgress,380 - mod.Fonts.Balatro:GetStringWidth(BossProgress)/4  + Minimap:GetShakeOffset().X,49 + Minimap:GetShakeOffset().Y,0.5,0.5,Color)        
     end
-
-    --BLIND COUNTER--
-    if Minimap:GetState()== MinimapState.NORMAL then
-        if not mod.Saved.Jimbo.SmallCleared then
-            mod.Fonts.Balatro:DrawString(tostring(mod.Saved.Jimbo.ClearedRooms).."/"..tostring(mod.Saved.Jimbo.SmallBlind),100 + Minimap:GetShakeOffset().X,Minimap:GetShakeOffset().Y,KColor(1,1,1,1))
-            --mod.Fonts.Balatro:DrawString(tostring(ClearedRooms).."/"..tostring(BigBlind),Isaac.WorldToScreen(PlayerScreenPos).X+20,Isaac.WorldToScreen(PlayerScreenPos).Y+30,KColor(1,1,1,1))        
-
-        elseif not mod.Saved.Jimbo.BigCleared then
-            mod.Fonts.Balatro:DrawString(tostring(mod.Saved.Jimbo.ClearedRooms).."/"..tostring(mod.Saved.Jimbo.BigBlind),100 + Minimap:GetShakeOffset().X,Minimap:GetShakeOffset().Y,KColor(1,1,1,1))        
-        end
-    end]]
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.JimboDeckHUD)
 
@@ -408,7 +378,7 @@ function mod:JimboPackRender(_,_,_,_,Player)
             Edition_Overlay:SetFrame("Editions", Card.Edition)
             Edition_Overlay.Scale = Vector.One
 
-            WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams.Frames*4+i*60))*2)
+            WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams.Frames*4+i*60))*1.75)
 
             JimboCards.Pack_PlayingCards:Render(mod:CoolVectorLerp(PlayerPos, RenderPos + WobblyEffect[i], mod.SelectionParams.Frames/10))
             Edition_Overlay:Render(mod:CoolVectorLerp(PlayerPos, RenderPos + WobblyEffect[i], mod.SelectionParams.Frames/10))
@@ -425,7 +395,7 @@ function mod:JimboPackRender(_,_,_,_,Player)
             TrinketSprite:ReplaceSpritesheet(0, ItemsConfig:GetTrinket(card.Joker).GfxFileName, true)
             TrinketSprite:SetFrame("Idle", 0)
 
-            WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams.Frames*4+i*60))*2)
+            WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams.Frames*4+i*60))*1.75)
 
             TrinketSprite:SetCustomShader(EditionShaders[card.Edition])
             TrinketSprite:Render(mod:CoolVectorLerp(PlayerPos, RenderPos + WobblyEffect[i], mod.SelectionParams.Frames/10))
@@ -444,7 +414,7 @@ function mod:JimboPackRender(_,_,_,_,Player)
             else
                 JimboCards.SpecialCards:SetFrame("idle",  Option)
             end
-            WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams.Frames*4+i*60))*2)
+            WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams.Frames*4+i*60))*1.75)
 
             JimboCards.SpecialCards:Render(mod:CoolVectorLerp(PlayerPos, RenderPos+WobblyEffect[i], mod.SelectionParams.Frames/10))
 
@@ -459,7 +429,7 @@ function mod:JimboPackRender(_,_,_,_,Player)
     CardFrame:Render(RenderPos)
 
     RenderPos.X = BaseRenderPos.X + (mod.SelectionParams.Index - 1)*(PACK_CARD_DISTANCE + CardHUDWidth)
-    RenderPos = RenderPos + WobblyEffect[mod.SelectionParams.Index]
+    RenderPos = RenderPos + (WobblyEffect[mod.SelectionParams.Index] or Vector.Zero)
 
     CardFrame:SetFrame(HUD_FRAME.Frame)
     CardFrame:Render(RenderPos)
@@ -547,7 +517,7 @@ function mod:JimboInit(player)
         Data.NotAlrPressed.right = true
         Data.NotAlrPressed.confirm = true
         Data.NotAlrPressed.ctrl = true
-        Data.CTRLhold = 0 --used to activate the inventory selection
+        Data.ALThold = 0 --used to activate the inventory selection
 
         Data.JustPickedEdition = 0 --used for inventory jokers' edition
 
@@ -582,62 +552,63 @@ function mod:JimboInputHandle(Player)
         -------------INPUT HANDLING-------------------(big ass if statements ik lol)
         
         --confirming/canceling 
-        if  Input.IsActionPressed(ButtonAction.ACTION_MENUCONFIRM, Player.ControllerIndex)
+        if  Input.IsActionTriggered(ButtonAction.ACTION_MENUCONFIRM, Player.ControllerIndex)
             and not Input.IsActionPressed(ButtonAction.ACTION_ITEM, Player.ControllerIndex)--usually they share buttons
             or Input.IsMouseBtnPressed(MouseButton.LEFT) then
 
-            if  Data.NotAlrPressed.confirm then
+           
                 mod:Select(Player)
-                Data.NotAlrPressed.confirm = false
-            end
-        else --not pressed
-            Data.NotAlrPressed.confirm = true
+
         end
 
 
         --pressing left moving the selection
-        if Input.IsActionPressed(ButtonAction.ACTION_SHOOTLEFT, Player.ControllerIndex) then
+        if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTLEFT, Player.ControllerIndex) then
 
-            if  Data.NotAlrPressed.left and mod.SelectionParams.Index > 1 then
+            --if  Data.NotAlrPressed.left and mod.SelectionParams.Index > 1 then
                 mod.SelectionParams.Index = mod.SelectionParams.Index - 1
-                Data.NotAlrPressed.left = false
-            end
-        else--not pressed
-            Data.NotAlrPressed.left = true
+
+            --end
+
         end
 
         --pressing right moving the selection
-        if Input.IsActionPressed(ButtonAction.ACTION_SHOOTRIGHT, Player.ControllerIndex) then
-            if Data.NotAlrPressed.right and mod.SelectionParams.Index <= mod.SelectionParams.OptionsNum then
+        if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTRIGHT, Player.ControllerIndex) then
+            if mod.SelectionParams.Index <= mod.SelectionParams.OptionsNum then
 
             mod.SelectionParams.Index = mod.SelectionParams.Index + 1
-            Data.NotAlrPressed.right = false
+
             end
-        else --not pressed
-            Data.NotAlrPressed.right = true
         end
     
         Player.Velocity = Vector.Zero
     else --not selecting anything
     
-        if Input.IsActionPressed(ButtonAction.ACTION_DROP, Player.ControllerIndex) then
-            
-            if Data.CTRLhold == 0 then
+        
+        if Input.IsActionTriggered(ButtonAction.ACTION_DROP, Player.ControllerIndex) then
+
                 local LastCard = mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize]
 
                 table.remove(mod.Saved.Jimbo.CurrentHand, mod.Saved.Jimbo.HandSize)
                 table.insert(mod.Saved.Jimbo.CurrentHand,1 ,LastCard)
 
                 mod.Counters.SinceShift = 0
-            elseif Data.CTRLhold == 40 then --if held long enough starts the inventory selection
+
+
+            
+
+        end
+    
+        if Input.IsButtonPressed(Keyboard.KEY_LEFT_ALT, Player.ControllerIndex)
+           or Input.IsButtonPressed(Keyboard.KEY_RIGHT_ALT, Player.ControllerIndex) then
+
+            Data.ALThold = Data.ALThold + 1
+            if Data.ALThold == 40 then --if held long enough starts the inventory selection
                 mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.INVENTORY, mod.SelectionParams.Purposes.NONE)
-                Data.CTRLhold = 0
+                Data.ALThold = 0
             end
-
-            Data.CTRLhold = Data.CTRLhold + 1
-
         else
-            Data.CTRLhold = 0
+            Data.ALThold = 0
         end
 
         -----------SHOOTING HANDLING---------------
@@ -688,8 +659,7 @@ function mod:LessCoins(Pickup)
     end
 
     --try to remove if spawned by a player or if it's bigger than a penny 
-    if (Pickup.SpawnerEntity or Pickup.SubType == CoinSubType.COIN_PENNY)
-       and Pickup.SpawnerType ~= EntityType.ENTITY_PLAYER
+    if Pickup.SpawnerEntity and Pickup.SpawnerType == EntityType.ENTITY_PLAYER
         then
         return
     end
@@ -814,7 +784,8 @@ mod:AddCallback(ModCallbacks.MC_POST_PICKUP_SELECTION, mod.ShopItemChanger)
 ---@param Pickup EntityPickup
 function mod:SetItemAsShop(Pickup)
 
-    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) or Pickup:IsShopItem() then
+    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) or Pickup:IsShopItem()
+       or ItemsConfig:GetCollectible(Pickup.SubType):HasTags(ItemConfig.TAG_QUEST) then
         return
     end
 
@@ -947,7 +918,7 @@ function mod:CalculateBlinds()
 
     mod.Saved.Jimbo.SmallCleared = false
     mod.Saved.Jimbo.BigCleared = false
-    mod.Saved.Jimbo.BossCleared = false
+    mod.Saved.Jimbo.BossCleared = 0
     mod.Saved.Jimbo.ClearedRooms = 0
 
     --the more rooms, the less you need to complete
@@ -998,6 +969,10 @@ function mod:AddRoomsCleared(IsBoss, _)
     ---@diagnostic disable-next-line: param-type-mismatch
     mod:StatReset(PlayerManager.FirstPlayerByType(mod.Characters.JimboType), true, true, true, false, true)
 
+    if Game:GetLevel():GetDimension() ~= Dimension.NORMAL then
+        return
+    end
+
     for i,Player in ipairs(PlayerManager.GetPlayers()) do
         if Player:GetPlayerType() == mod.Characters.JimboType then
             Player:AddHearts(2)
@@ -1005,9 +980,18 @@ function mod:AddRoomsCleared(IsBoss, _)
         end
     end
 
-    if IsBoss and not mod.Saved.Jimbo.BossCleared then
+    if IsBoss and not mod.Saved.Jimbo.BossCleared 
+       and (Game:GetLevel():GetStage() ~= LevelStage.STAGE7 or Game:GetRoom():GetDeliriumDistance() == 0) then
+
         Isaac.RunCallback("BLIND_CLEARED", mod.BLINDS.BOSS)
-        mod.Saved.Jimbo.BossCleared = true
+
+        if Game:GetLevel():GetCurses() & LevelCurse.CURSE_OF_LABYRINTH == LevelCurse.CURSE_OF_LABYRINTH
+           and mod.Saved.Jimbo.BossCleared == 0 then
+
+            mod.Saved.Jimbo.BossCleared = 1 --basically serves as a "third state" symbolising that 1 of 2 bossrooms were completed
+        else
+            mod.Saved.Jimbo.BossCleared = 2 -- all bosses colpeted
+        end
     else
         mod.Saved.Jimbo.ClearedRooms = mod.Saved.Jimbo.ClearedRooms + 1
         if mod.Saved.Jimbo.ClearedRooms == mod.Saved.Jimbo.SmallBlind and not mod.Saved.Jimbo.SmallCleared then
@@ -1185,13 +1169,14 @@ mod:AddCallback(ModCallbacks.MC_GET_TRINKET, mod.JimboTrinketPool)
 ---@param Trinket EntityPickup
 function mod:TrinketEditionsRender(Trinket, Offset)
     local Index = Level:GetCurrentRoomDesc().ListIndex
+    local Tname = ItemsConfig:GetTrinket(Trinket.SubType).Name
 
-    if mod.Saved.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name] then --just a precaution
+    --some precautions
+    mod.Saved.Jimbo.FloorEditions[Index] = mod.Saved.Jimbo.FloorEditions[Index] or {}
+    mod.Saved.Jimbo.FloorEditions[Index][Tname] = mod.Saved.Jimbo.FloorEditions[Index][Tname] or 0
 
-        Trinket:GetSprite():SetCustomShader(EditionShaders[mod.Saved.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name]])
-    else
-        mod.Saved.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name] = 0
-    end
+
+    Trinket:GetSprite():SetCustomShader(EditionShaders[mod.Saved.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name]])
 end
 mod:AddCallback(ModCallbacks.MC_POST_PICKUP_RENDER, mod.TrinketEditionsRender, PickupVariant.PICKUP_TRINKET)
 
@@ -1348,7 +1333,7 @@ function mod:DiscardEffects(Player)
                 local RandomSeed = Random()
                 if RandomSeed == 0 then RandomSeed = 1 end
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
-                           RandomVector()*2.5, nil, PlayerRNG:RandomInt(1,22), RandomSeed)
+                           RandomVector()*2.5, Player, PlayerRNG:RandomInt(1,22), RandomSeed)
                 SealTriggers = SealTriggers + 1 --decreases the chance the more trigger at the same time
             end
         end
@@ -1524,6 +1509,14 @@ function mod:IncreaseJimboStats(Player,TearsUp,DamageUp,Mult, Evaluate, Basic)
     end
 
 end
+
+
+function mod:AlwaysMaxCoins(Player, CustomCache, _)
+    if PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) and CustomCache == "maxcoins" then
+        return 999
+    end
+end
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE,mod.AlwaysMaxCoins)
 
 -------------CARD TEARS-----------------------
 ----------------------------------------------
@@ -1783,26 +1776,8 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
                 
         elseif NewMode == mod.SelectionParams.Modes.PACK then
 
-            if NewPurpose == mod.SelectionParams.Purposes.StandardPack then
-                mod.SelectionParams.MaxSelectionNum = 1
-                mod.SelectionParams.OptionsNum = 3
-    
-            elseif NewPurpose == mod.SelectionParams.Purposes.TarotPack then
-                mod.SelectionParams.MaxSelectionNum = 1
-                mod.SelectionParams.OptionsNum = 3
-
-            elseif NewPurpose == mod.SelectionParams.Purposes.CelestialPack then
-                mod.SelectionParams.MaxSelectionNum = 1
-                mod.SelectionParams.OptionsNum = 3
-
-            elseif NewPurpose == mod.SelectionParams.Purposes.BuffonPack then
-                mod.SelectionParams.MaxSelectionNum = 1
-                mod.SelectionParams.OptionsNum = 2
-
-            elseif NewPurpose == mod.SelectionParams.Purposes.SpectralPack then
-                mod.SelectionParams.MaxSelectionNum = 1
-                mod.SelectionParams.OptionsNum = 2
-            end
+            mod.SelectionParams.MaxSelectionNum = 1
+            mod.SelectionParams.OptionsNum = #mod.SelectionParams.PackOptions
 
         elseif NewMode == mod.SelectionParams.Modes.INVENTORY then
 
@@ -1892,6 +1867,9 @@ function mod:Select(Player)
             local Index = Level:GetCurrentRoomDesc().ListIndex
 
             Game:Spawn(EntityType.ENTITY_PICKUP,PickupVariant.PICKUP_TRINKET, Player.Position, RandomVector()*3,nil,Joker,Game:GetSeeds():GetStartSeed())
+            
+            mod.Saved.Jimbo.FloorEditions[Index] = mod.Saved.Jimbo.FloorEditions[Index] or {}
+            
             mod.Saved.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Joker).Name] = Edition
             
             

@@ -28,7 +28,7 @@ if ShotCard.Seal == mod.Seals.RED then
 elseif ShotCard.Seal == mod.Seals.GOLDEN then
     for i=1, Triggers do
         local Coin = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
-                                RandomVector()*4, nil, CoinSubType.COIN_PENNY, RandomSeed)  
+                                RandomVector()*4, Player, CoinSubType.COIN_PENNY, RandomSeed)  
         Coin:ToPickup().Timeout = 45 --disappers short after spawning (would be too OP otherwise)
     end
 end
@@ -67,7 +67,7 @@ for Index,Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
             
                 if mod:TryGamble(Player, Player:GetTrinketRNG(TrinketType.TRINKET_ROUGH_GEM), 0.5) then
                     local Coin = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
-                                            RandomVector()*3, nil, CoinSubType.COIN_PENNY, RandomSeed)
+                                            RandomVector()*3, Player, CoinSubType.COIN_PENNY, RandomSeed)
                     Coin:ToPickup().Timeout = 50
 
                     mod.Counters.Activated[Index] = 0
@@ -321,7 +321,7 @@ function mod:OnBlindClear(BlindType)
             local MoneyAmount = mod.Saved.Jimbo.Progress.Inventory[Index]
             for i=1, MoneyAmount do
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN,
-                           Player.Position, RandomVector()*3, nil,
+                           Player.Position, RandomVector()*3, Player,
                            CoinSubType.COIN_PENNY, RandomSeed)
             end
             mod.Counters.Activated[Index] = 0
@@ -339,7 +339,7 @@ function mod:OnBlindClear(BlindType)
             local MoneyAmmount = 3
             for i=1, MoneyAmmount do
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN,
-                           Player.Position, RandomVector()*3, nil,
+                           Player.Position, RandomVector()*3, Player,
                            CoinSubType.COIN_PENNY, RandomSeed)
             end
             mod.Counters.Activated[Index] = 0
@@ -379,7 +379,7 @@ function mod:OnBlindClear(BlindType)
 
                 for i = 1, NumCoins do
                     Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
-                               RandomVector()*3, nil, CoinSubType.COIN_PENNY, RandomSeed)
+                               RandomVector()*3, Player, CoinSubType.COIN_PENNY, RandomSeed)
                 end
 
                 mod.Counters.Activated[Index] = 0
@@ -395,7 +395,7 @@ function mod:OnBlindClear(BlindType)
             end
             for i=1, Nines do
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
-                           RandomVector()*3, nil, CoinSubType.COIN_PENNY, RandomSeed)
+                           RandomVector()*3, Player, CoinSubType.COIN_PENNY, RandomSeed)
             end
 
             mod.Counters.Activated[Index] = 0
@@ -875,7 +875,7 @@ function mod:OnDeath(Player)
 
         if Joker == TrinketType.TRINKET_MR_BONES then
             local Revive = false
-            if mod.Saved.Jimbo.BossCleard then --on boss cleared revive anyways
+            if mod.Saved.Jimbo.BossCleared == 2 then --on boss cleared revive anyways
                 Revive = true
 
             elseif mod.Saved.Jimbo.BigCleared then --if big is cleared then you need to be fighting boss to revive

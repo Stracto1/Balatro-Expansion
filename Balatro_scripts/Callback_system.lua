@@ -180,7 +180,7 @@ function mod:OnGameStart(Continued)
         mod.Saved.Jimbo.ClearedRooms = 0
         mod.Saved.Jimbo.SmallCleared = false
         mod.Saved.Jimbo.BigCleared = false
-        mod.Saved.Jimbo.BossCleared = false
+        mod.Saved.Jimbo.BossCleared = 0
 
         mod.Saved.Jimbo.Progress = {} --values used for jokers
         mod.Saved.Jimbo.Progress.Inventory = {0,0,0} --never reset, changed in different ways basing on the joker

@@ -4,8 +4,11 @@ local Game = Game()
 local ItemsConfig = Isaac.GetItemConfig()
 
 
---SOME VOUCHERS STILL HAVE THEIR EFFECT IN mechanics.lua 
+--SOME VOUCHERS HAVE THEIR EFFECT IN mechanics.lua 
 --(Wasteful/recyclomancy - clearance/liquidation - Overstock/plus - Hone/Glow Up)
+
+--OTHERS HAVE IT IN Custom_Cards.lua
+--(magic trick/Illusion - Crystal Ball/Omen Globe)
 
 
 ---@param Player EntityPlayer
@@ -54,20 +57,75 @@ function mod:VoucherPool(Type,_,_,_,_,Player)
 end
 mod:AddCallback(ModCallbacks.MC_PRE_ADD_COLLECTIBLE, mod.VoucherPool)
 
+---@param Player EntityPlayer
+function mod:VoucherPool2(Player, Type)
+    if Player:GetPlayerType() ~= mod.Characters.JimboType or not ItemsConfig:GetCollectible(Type):HasCustomTag("balatro") then
+        return
+    end
+
+    if Type % 2 == mod.VoucherOff then --if it's a base voucher
+
+        if Player:HasCollectible(Type + 1) then --if he has its upgraded version
+        
+            --remove the upgreded one for the base one
+            Player:AddCollectible(Type)
+            Player:RemoveCollectible(Type + 1)
+
+            --brings the upgraded one back into the pool
+            table.insert(mod.Saved.Pools.Vouchers, Type + 1)
+
+            return
+        end
+    end
+    table.insert(mod.Saved.Pools.Vouchers, Type)
+
+    
+end
+mod:AddCallback(ModCallbacks.MC_POST_TRIGGER_COLLECTIBLE_REMOVED, mod.VoucherPool2)
+
+
+
 
 ---@param Player EntityPlayer
-function mod:DiscardVoucher(Item,_,_,_,_,Player)
+function mod:VouchersAdded(Item,_,_,_,_,Player)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
+
     if Item == mod.Vouchers.Wasteful or Item == mod.Vouchers.Recyclomancy then
         mod.HpEnable = true
         Player:AddMaxHearts(2)
         Player:AddHearts(2)
         mod.HpEnable = false
+
+    elseif Item == mod.Vouchers.Brush or Item == mod.Vouchers.Palette then
+
+        mod:ChangeJimboHandSize(Player, 1)
+    
     end
 end
-mod:AddCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE, mod.DiscardVoucher)
+mod:AddCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE, mod.VouchersAdded)
+
+
+function mod:VouchersRemoved(Player, Item)
+    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+        return
+    end
+
+    if Item == mod.Vouchers.Wasteful or Item == mod.Vouchers.Recyclomancy then
+        mod.HpEnable = true
+        Player:AddMaxHearts(-2)
+        mod.HpEnable = false
+
+    elseif Item == mod.Vouchers.Brush or Item == mod.Vouchers.Palette then
+
+        mod:ChangeJimboHandSize(Player, -1)
+    
+    end
+
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_TRIGGER_COLLECTIBLE_REMOVED, mod.VouchersRemoved)
 
 
 function mod:RerollVoucher(Partial)
@@ -109,6 +167,7 @@ function mod:RerollVoucher(Partial)
     
 end
 mod:AddCallback(ModCallbacks.MC_POST_RESTOCK_SHOP, mod.RerollVoucher)
+
 
 
 ---@param Player EntityPlayer

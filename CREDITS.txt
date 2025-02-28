@@ -1,0 +1,8 @@
+
+-All Sprites, Major Coding and Player design (Stracto)
+	-Modded character template (Catinsurance)
+	-small snippets of code were taken from other mods/online (all credited in the code itself)
+
+-tutorials used while in the making (Catinsurance, Lytebringr)
+
+-the base concept of this mod (LocalThunk and the hit game Balatro obv)

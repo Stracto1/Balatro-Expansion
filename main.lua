@@ -366,7 +366,7 @@ Balatro_Expansion.Saved.Jimbo.BigBlind = 0
 Balatro_Expansion.Saved.Jimbo.ClearedRooms = 0
 Balatro_Expansion.Saved.Jimbo.SmallCleared = false
 Balatro_Expansion.Saved.Jimbo.BigCleared = false
-Balatro_Expansion.Saved.Jimbo.BossCleard = false
+Balatro_Expansion.Saved.Jimbo.BossCleared = 0
 
 Balatro_Expansion.StatEnable = false --needed cause i hate my life
 Balatro_Expansion.Saved.Jimbo.StatsToAdd = {}
