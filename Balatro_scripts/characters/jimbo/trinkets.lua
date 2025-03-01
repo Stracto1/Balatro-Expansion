@@ -75,14 +75,6 @@ for Index,Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
                 end
             end
         end
-    elseif Joker == TrinketType.TRINKET_DNA then
-
-        if mod.Saved.Jimbo.Progress.Blind.Shots == 1 then --if it's the first fired card in a blind
-            table.insert(mod.Saved.Jimbo.FullDeck, mod.Saved.Jimbo.FullDeck[ShotCard.Index])
-
-            mod.Counters.Activated[Index] = 0
-            mod:CreateBalatroEffect(Index,mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Activate!")
-        end --ADDED TO DECK
 
     elseif Joker == TrinketType.TRINKET_BLOODSTONE then
         if mod:IsSuit(Player, ShotCard.Suit,ShotCard.Enhancement, mod.Suits.Heart, false) then
@@ -162,6 +154,48 @@ end
 
 end
 mod:AddCallback("CARD_SHOT", mod.OnCardShot)
+
+
+function mod:OnCardHit(Tear, Collider)
+
+    local TearData = Tear:GetData()
+
+    for Index,Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
+
+        local ProgressIndex = Index
+        local Copied = false
+        if Joker == TrinketType.TRINKET_BLUEPRINT or Joker == TrinketType.TRINKET_BRAINSTORM then
+
+            Joker = mod.Saved.Jimbo.Inventory.Jokers[mod.Saved.Jimbo.Progress.Inventory[Index]] or 0
+
+            --print("should be copiyng: "..tostring(mod.Saved.Jimbo.Inventory.Jokers[mod.Saved.Jimbo.Progress.Inventory[Index]]))
+            --print("copy "..tostring(Joker).." at "..tostring(mod.Saved.Jimbo.Progress.Inventory[Index]))
+
+            ProgressIndex = mod.Saved.Jimbo.Progress.Inventory[Index]
+
+            Copied = true
+        end
+
+        if Joker == 0 then
+        elseif Joker == TrinketType.TRINKET_DNA then
+
+            if TearData.Num == 1 then --if it's the first fired card in a blind
+                TearData.Num = 2 --prevents double activation
+                
+                table.insert(mod.Saved.Jimbo.FullDeck, mod.Saved.Jimbo.FullDeck[TearData.Params.Index])
+    
+                mod.Counters.Activated[Index] = 0
+                mod:CreateBalatroEffect(Index,mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Activate!")
+            end --ADDED TO DECK
+
+        end
+
+
+
+
+    end
+end
+mod:AddCallback("CARD_HIT", mod.OnCardHit)
 
 
 function mod:OnHandDiscard(Player)

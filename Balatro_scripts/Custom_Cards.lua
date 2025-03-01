@@ -330,6 +330,15 @@ function mod:CardPacks(card, Player,_)
 
         local PackRng = Player:GetCardRNG(Card.CARD_PACK_TAROT)
         local RandomPack = {}
+        local Options = {}
+        for i=1,22 do
+            Options[#Options + 1] = i
+        end
+        if Player:HasCollectible(mod.Vouchers.Omen) then --adds the spectral cards to the possible outcomes
+            for i= mod.Spectrals.FAMILIAR, mod.Spectrals.CRYPTID do
+                Options[#Options + 1] = i
+            end
+        end
 
         local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 4) or 3 --very cool lua thingy
         for i=1, Size, 1 do
@@ -338,7 +347,7 @@ function mod:CardPacks(card, Player,_)
                 if PackRng:RandomFloat() < SoulChance then
                     RandomCard = mod.Spectrals.SOUL
                 else
-                    RandomCard = PackRng:RandomInt(1,22) --chooses a random not reversed tarot (i'll prob regret using this)
+                    RandomCard = mod:GetRandom(Options, PackRng) --chooses a random not reversed tarot (i'll prob regret using this)
                 end
                 RandomCard = mod:SpecialCardToFrame(RandomCard)
                 
@@ -615,22 +624,29 @@ function mod:SpectralCards(card, Player)
                 Player:AnimateSad()
                 return --if hand size can't be decreased, don't to anything
             end 
+
+            mod.Saved.Jimbo.EctoUses = mod.Saved.Jimbo.EctoUses + 1 
+
             local BaseJokers = {}--jokers with an edition cannot be chosen 
             for i,v in ipairs(mod.Saved.Jimbo.Inventory.Editions) do
-                if v == mod.Edition.BASE then
+                if mod.Saved.Jimbo.Inventory.Jokers[i] ~= 0 and v == mod.Edition.BASE then
                     table.insert(BaseJokers, i)
                 end
             end
-            if BaseJokers == {} then
+            if not next(BaseJokers) then
                 Player:AnimateSad()
                 return --if no joker can be chosen then don't do anything
             end 
-            mod.Saved.Jimbo.EctoUses = mod.Saved.Jimbo.EctoUses + 1 
+            
             local RandomSlot = mod:GetRandom(BaseJokers, CardRNG)
             mod.Saved.Jimbo.Inventory.Editions[RandomSlot] = mod.Edition.NEGATIVE
             --adds a slot since he got a negative joker
             mod:AddJimboInventorySlots(Player, 1)
-            mod:ChangeJimboHandSize(Player, -mod.Saved.Jimbo.EctoUses)    
+            mod:ChangeJimboHandSize(Player, -mod.Saved.Jimbo.EctoUses)
+            sfx:Play(mod.Sounds.NEGATIVE)
+            
+            Isaac.RunCallback("INVENTORY_CHANGE", Player)
+
         elseif card == mod.Spectrals.IMMOLATE then  
             local ValidCards = {} --counts how many cards in the hand exist in the deck
             for i,v in ipairs(mod.Saved.Jimbo.CurrentHand) do 

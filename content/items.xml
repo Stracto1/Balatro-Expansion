@@ -10,7 +10,7 @@
 <!--the extra "!" and "?" are to force a certain order when using GetCustomTags() since apparently it sorts them alfabetically-->
 
 <items gfxroot="gfx/items/" version="1">
-    <trinket gfx="invisiblejoker_trinket.png" name="Invisible joker" description="Now you see me, now you don't" customtags="!7 0 ?uncommon balatro activate value"/>
+    <trinket gfx="invisiblejoker_trinket.png" name="Invisible joker" description="Now you see me, now you don't" customtags="!7 0 ?rare balatro activate value"/>
     <trinket gfx="rocket_trinket.png" name="Rocket" description="Blast off!" customtags="!6 2 ?uncommon balatro activate value money"/>
     <trinket gfx="goldenjoker_trinket.png" name="Golden joker" description="Ooh, so shiny!" customtags="!6 0 ?common balatro activate money copy"/>
     <trinket gfx="hallucination_trinket.png" name="Hallucination" description="Is it real?" customtags="!4 0 ?common balatro activate copy"/>
@@ -23,7 +23,7 @@
     <trinket gfx="roughgem_trinket.png" name="Rough gem" description="Who doesn't want one?" customtags="!7 0 ?uncommon balatro activate money greedchange copy"/>
     <trinket gfx="cartomancer_trinket.png" name="Cartomancer" description="Pick a card" customtags="!6 0 ?uncommon balatro activate copy"/>
     <trinket gfx="dna_trinket.png" name="Dna" description="It duplicates" customtags="!8 0 ?rare balatro activate copy"/>
-    <trinket gfx="egg_trinket.png" name="Egg" description="Don't drop it!" customtags="!5 2 ?common balatro money value "/>
+    <trinket gfx="egg_trinket.png" name="Egg" description="Don't drop it!" customtags="!5 2 ?common balatro money value"/>
     <trinket gfx="delayedgretification_trinket.png" name="Delayed gratification" description="play good, get rewards" customtags="!4 0 ?common balatro activate money greedchange "/>
 
     <trinket cache="flying" gfx="cloudnine_trinket.png" name="Cloud 9" description="Feels floaty... Sometimes" customtags="!7 0 ?common balatro activate value "/>

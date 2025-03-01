@@ -980,17 +980,19 @@ function mod:AddRoomsCleared(IsBoss, _)
         end
     end
 
-    if IsBoss and not mod.Saved.Jimbo.BossCleared 
+
+    if IsBoss and mod.Saved.Jimbo.BossCleared ~= 2
        and (Game:GetLevel():GetStage() ~= LevelStage.STAGE7 or Game:GetRoom():GetDeliriumDistance() == 0) then
 
-        Isaac.RunCallback("BLIND_CLEARED", mod.BLINDS.BOSS)
-
+        print("Pass")
+        
         if Game:GetLevel():GetCurses() & LevelCurse.CURSE_OF_LABYRINTH == LevelCurse.CURSE_OF_LABYRINTH
            and mod.Saved.Jimbo.BossCleared == 0 then
 
             mod.Saved.Jimbo.BossCleared = 1 --basically serves as a "third state" symbolising that 1 of 2 bossrooms were completed
         else
-            mod.Saved.Jimbo.BossCleared = 2 -- all bosses colpeted
+            Isaac.RunCallback("BLIND_CLEARED", mod.BLINDS.BOSS)
+            mod.Saved.Jimbo.BossCleared = 2 -- all bosses completed
         end
     else
         mod.Saved.Jimbo.ClearedRooms = mod.Saved.Jimbo.ClearedRooms + 1
@@ -1553,8 +1555,8 @@ function mod:JimboShootCardTear(Player,Direction)
 
                 local Tear = Player:FireTear(Player.Position, ShootDirection, false, false, true, Player)
                 local TearData = Tear:GetData()
-                TearData.Enhancement = CardShot.Enhancement
-                TearData.Suit = CardShot.Suit
+                TearData.Params = CardShot
+                TearData.Num = mod.Saved.Jimbo.Progress.Blind.Shots + 1
 
                 mod:AddCardTearFalgs(Tear, CardShot)
             end
@@ -1566,8 +1568,8 @@ function mod:JimboShootCardTear(Player,Direction)
 
             local Tear = Player:FireTear(Player.Position, ShootDirection, false, false, true, Player)
             local TearData = Tear:GetData()
-            TearData.Enhancement = CardShot.Enhancement
-            TearData.Suit = CardShot.Suit
+            TearData.Params = CardShot
+            TearData.Num = mod.Saved.Jimbo.Progress.Blind.Shots + 1
 
             mod:AddCardTearFalgs(Tear, CardShot)
         end
@@ -1616,7 +1618,7 @@ function mod:OnTearCardCollision(Tear,Collider,_)
         
         local TearRNG = Tear:GetDropRNG()
 
-        if mod:IsSuit(nil, TearData.Suit, TearData.Enhancement, mod.Suits.Heart) then --Hearts
+        if mod:IsSuit(nil, TearData.Params.Suit, TearData.Params.Enhancement, mod.Suits.Heart) then --Hearts
         
             local Creep = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.PLAYER_CREEP_RED, Tear.Position, Vector.Zero, Tear, 0, TearRNG:GetSeed()):ToEffect()
             Creep.SpriteScale = Vector(1.2,1.2)
@@ -1624,12 +1626,14 @@ function mod:OnTearCardCollision(Tear,Collider,_)
             ---@diagnostic disable-next-line: need-check-nil
             Creep:Update()
         end
-        if mod:IsSuit(nil, TearData.Suit, TearData.Enhancement, mod.Suits.Club) then --Clubs
+        if mod:IsSuit(nil, TearData.Params.Suit, TearData.Params.Enhancement, mod.Suits.Club) then --Clubs
             if TearRNG:RandomFloat() < 0.2 then
                 Game:BombExplosionEffects(Tear.Position, Tear.CollisionDamage / 2, TearFlags.TEAR_NORMAL, Color.Default, Tear.Parent, 0.5)
                 --Isaac.Explode(Tear.Position, Tear, Tear.CollisionDamage / 2)
             end
         end
+
+        Isaac.RunCallback("CARD_HIT", Tear, Collider)
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_TEAR_COLLISION, mod.OnTearCardCollision)
