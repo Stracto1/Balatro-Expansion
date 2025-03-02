@@ -19,7 +19,7 @@
     <card type="special" name="Planet X" description="Five of a kind up" hud="Planet_X" pickup="2490" achievement="PermaLocked"/>
     <card type="special" name="Ceres" description="Flush house up" hud="Planet_Ceres" pickup="2491" achievement="PermaLocked"/>
     <card type="special" name="Eris" description="Flush five up" hud="Planet_Eris" pickup="2492" achievement="PermaLocked"/>
-    <card type="special" name="Sun" description="Flush five up" hud="Planet_Sun" pickup="2493" achievement="PermaLocked"/>
+    <card type="special" name="Sun" description="up" hud="Planet_Sun" pickup="2493" achievement="PermaLocked"/>
 
 
     <!-- -SPECTARLS- -->
@@ -30,7 +30,7 @@
     <card type="rune" name="Talisman" description="Yours forever" hud="Spectral_Talisman" pickup="2497" achievement="PermaLocked"/>
     <card type="rune" name="Aura" description="You can feel it" hud="Spectral_Aura" pickup="2498" achievement="PermaLocked"/>
     <card type="rune" name="Wraith" description="Build it" hud="Spectral_Wraith" pickup="2499" achievement="PermaLocked"/>
-    <card type="rune" name="Sigil" description="PLACEHOLDER" hud="Spectral_Sigil" pickup="2500" achievement="PermaLocked"/>
+    <card type="rune" name="Sigil" description="Stop it" hud="Spectral_Sigil" pickup="2500" achievement="PermaLocked"/>
     <card type="rune" name="Ouija" description="Let them speak" hud="Spectral_Ouija" pickup="2501" achievement="PermaLocked"/>
     <card type="rune" name="Ectoplasm" description="it's calling you" hud="Spectral_Ectoplasm" pickup="2502" achievement="PermaLocked"/>
     <card type="rune" name="Immolate" description="No more running" hud="Spectral_Immolate" pickup="2503" achievement="PermaLocked"/>
@@ -39,7 +39,7 @@
     <card type="rune" name="Hex" description="On you" hud="Spectral_Hex" pickup="2506" achievement="PermaLocked"/>
     <card type="rune" name="Trance" description="Fall for it" hud="Spectral_Trance" pickup="2507" achievement="PermaLocked"/>
     <card type="rune" name="Medium" description="Be clear" hud="Spectral_Medium" pickup="2508" achievement="PermaLocked"/>
-    <card type="rune" name="Cryptid" description="You.." hud="Spectral_Cryptid" pickup="2509" achievement="PermaLocked"/>
+    <card type="rune" name="Cryptid" description="You..." hud="Spectral_Cryptid" pickup="2509" achievement="PermaLocked"/>
     <card type="rune" name="Black hole" description="All in one place" hud="Spectral_Black_hole" pickup="2510" achievement="PermaLocked"/>
     <card type="rune" name="The Soul" description="..." hud="Spectral_Soul" pickup="2511" achievement="PermaLocked"/>
 

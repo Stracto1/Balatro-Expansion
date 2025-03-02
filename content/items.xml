@@ -72,11 +72,11 @@
     <passive name="Telescope"  quality="2" craftquality="2" gfx="telescope_voucher.png" description="see the stars!" customtags="balatro" achievement="PermaLocked" tags="quest"/>
     <passive name="Observatory"  quality="3" craftquality="2" gfx="observatory_voucher.png" description="see the galaxies!" customtags="balatro" achievement="PermaLocked" tags="quest"/>
     <passive name="Blank"  quality="2" craftquality="2" gfx="blank_voucher.png" description="!" customtags="balatro" achievement="PermaLocked" tags="quest"/>
-    <passive name="Antimatter"  quality="3" craftquality="2" gfx="anitmatter_voucher.png" description="All and nothing!" customtags="balatro" achievement="PermaLocked" tags="quest"/>
+    <passive name="Antimatter"  quality="3" craftquality="2" gfx="antimatter_voucher.png" description="All and nothing!" customtags="balatro" achievement="PermaLocked" tags="quest"/>
     <passive name="Brush"  quality="2" craftquality="2" gfx="brush_voucher.png" description="Be colorful!" customtags="balatro" achievement="PermaLocked" tags="quest"/>
     <passive name="Palette"  quality="3" craftquality="2" gfx="palette_voucher.png" description="Be creative!" customtags="balatro" achievement="PermaLocked" tags="quest"/>
-    <passive name="Diresctor's Cut"  quality="2" craftquality="2" gfx="directors_cut_voucher.png" description="Don't like it!" customtags="balatro" achievement="PermaLocked" tags="quest"/>
-    <passive name="Retcon"  quality="3" craftquality="2" gfx="retcon_voucher.png" description="High standards!" customtags="balatro" achievement="PermaLocked" tags="quest"/>
+    <active name="Director's Cut"  quality="2" craftquality="2" gfx="directors_cut_voucher.png" description="Don't like this!" chargetype="special" maxcharges="0" customtags="balatro" achievement="PermaLocked" tags="quest"/>
+    <active name="Retcon"  quality="3" craftquality="2" gfx="retocon_voucher.png" description="High standards!" chargetype="special" maxcharges="0" customtags="balatro" achievement="PermaLocked" tags="quest"/>
     <passive name="Hieroglyph"  quality="2" craftquality="2" gfx="hieroglyph_voucher.png" description="Good old days!" customtags="balatro" achievement="PermaLocked" tags="quest"/>
     <passive name="Petroglyph"  quality="3" craftquality="2" gfx="petroglyph_voucher.png" description="Old days good!" customtags="balatro" achievement="PermaLocked" tags="quest"/>
     <passive name="Magic Trick"  quality="2" craftquality="2" gfx="magic_trick_voucher.png" description="Tada!" customtags="balatro" achievement="PermaLocked" tags="quest"/>
@@ -88,7 +88,7 @@
     <passive name="Tarot Merchant"  quality="2" craftquality="2" gfx="tarot_merchant_voucher.png" description="More tarots!" customtags="balatro" achievement="PermaLocked" tags="quest"/>
     <passive name="Tarot Tycoon"  quality="3" craftquality="2" gfx="tarot_tycoon_voucher.png" description="Even more tarots!" customtags="balatro" achievement="PermaLocked" tags="quest"/>
     <passive name="Wasteful"  quality="2" craftquality="2" gfx="wasteful_voucher.png" description="Shame!" customtags="balatro" achievement="PermaLocked" tags="quest"/>
-    <passive name="Recyclomancy"  quality="3" craftquality="2" gfx="recyclomancy_voucher.png" description="Useless!" customtags="balatro" achievement="PermaLocked" tags="quest"/>
+    <passive name="Recyclomancy"  quality="3" craftquality="2" gfx="recyclomancy_voucher.png" description="Useless junk!" customtags="balatro" achievement="PermaLocked" tags="quest"/>
     
 
 

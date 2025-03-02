@@ -1,6 +1,7 @@
 local mod = Balatro_Expansion
 local ItemsConfig = Isaac.GetItemConfig()
 local sfx = SFXManager()
+local music = MusicManager()
 
 
 local DiscardChargeSprite = Sprite("gfx/chargebar.anm2")
@@ -153,7 +154,7 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
         return
     end
 
-    local CardsLeft = mod:Clamp((#mod.Saved.Jimbo.FullDeck - mod.Saved.Jimbo.DeckPointer)+1,1000,0)
+    local CardsLeft = math.max((#mod.Saved.Jimbo.FullDeck - mod.Saved.Jimbo.DeckPointer)+1, 0)
 
     --shows how many cards are left in the deck
     DeckSprite:SetFrame("idle", math.ceil(CardsLeft/7))
@@ -165,9 +166,14 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
         return
     end
 
+    local ScreenWidth = Isaac.GetScreenWidth()
+    local RenderPos = Vector(ScreenWidth - 100 + Minimap:GetShakeOffset().X,
+                             24 + Minimap:GetShakeOffset().Y)
+
     local SmallProgress 
     local BigProgress
     local BossProgress
+    local ProgressString
 
 
     ---SMALL BLIND
@@ -182,11 +188,18 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
     else
         SmallProgress = mod.Saved.Jimbo.SmallBlind
     end
-    mod.Fonts.Balatro:DrawStringScaled(tostring(SmallProgress).."/"..tostring(mod.Saved.Jimbo.SmallBlind),375 + Minimap:GetShakeOffset().X,24 +Minimap:GetShakeOffset().Y,0.5,0.5,DarkColor)
-    mod.Fonts.Balatro:DrawStringScaled(tostring(SmallProgress).."/"..tostring(mod.Saved.Jimbo.SmallBlind),375 + Minimap:GetShakeOffset().X,23 +Minimap:GetShakeOffset().Y,0.5,0.5,Color)
+    ProgressString = tostring(SmallProgress).."/"..tostring(mod.Saved.Jimbo.SmallBlind)
+
+    mod.Fonts.Balatro:DrawStringScaled(ProgressString,
+    RenderPos.X ,RenderPos.Y, 0.5, 0.5, DarkColor)
+
+    mod.Fonts.Balatro:DrawStringScaled(ProgressString,
+    RenderPos.X ,RenderPos.Y - 1, 0.5, 0.5, Color)
+
 
 
     --BIG BLIND
+    RenderPos.Y = RenderPos.Y + 12
     Color = KColor.White
     DarkColor = KColor(0.7,0.7,0.7,1)
 
@@ -203,11 +216,19 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
     else
         BigProgress = 0
     end
-    mod.Fonts.Balatro:DrawStringScaled(tostring(BigProgress).."/"..tostring(mod.Saved.Jimbo.BigBlind),375 + Minimap:GetShakeOffset().X,36 + Minimap:GetShakeOffset().Y,0.5,0.5,DarkColor)  
-    mod.Fonts.Balatro:DrawStringScaled(tostring(BigProgress).."/"..tostring(mod.Saved.Jimbo.BigBlind),375 + Minimap:GetShakeOffset().X,35 + Minimap:GetShakeOffset().Y,0.5,0.5,Color)        
+    ProgressString = tostring(BigProgress).."/"..tostring(mod.Saved.Jimbo.BigBlind)
+
+    mod.Fonts.Balatro:DrawStringScaled(ProgressString,
+    RenderPos.X, RenderPos.Y, 0.5, 0.5, DarkColor)
+
+    mod.Fonts.Balatro:DrawStringScaled(ProgressString,
+    RenderPos.X, RenderPos.Y - 1, 0.5, 0.5, Color)        
     
+
+
     if not Game:GetLevel():IsAscent() then --ascents don't have any boss blind
         --BOSS BLIND
+        RenderPos = RenderPos + Vector(-19,14)
         Color = KColor.White
         DarkColor = KColor(0.7,0.7,0.7,1)
 
@@ -218,11 +239,15 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
 
         BossProgress = "Not Cleared"
         if mod.Saved.Jimbo.BossCleared == 2 then
+            RenderPos.X = RenderPos.X + 13
             BossProgress = "Cleared"
         end
 
-        mod.Fonts.Balatro:DrawStringScaled(BossProgress,380 - mod.Fonts.Balatro:GetStringWidth(BossProgress)/4 + Minimap:GetShakeOffset().X,50 + Minimap:GetShakeOffset().Y,0.5,0.5,DarkColor)  
-        mod.Fonts.Balatro:DrawStringScaled(BossProgress,380 - mod.Fonts.Balatro:GetStringWidth(BossProgress)/4  + Minimap:GetShakeOffset().X,49 + Minimap:GetShakeOffset().Y,0.5,0.5,Color)        
+        mod.Fonts.Balatro:DrawStringScaled(BossProgress,
+        RenderPos.X ,RenderPos.Y , 0.5, 0.5, DarkColor)  
+
+        mod.Fonts.Balatro:DrawStringScaled(BossProgress,
+        RenderPos.X ,RenderPos.Y -1, 0.5, 0.5, Color)        
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.JimboDeckHUD)
@@ -780,12 +805,16 @@ mod:AddCallback(ModCallbacks.MC_POST_PICKUP_SELECTION, mod.ShopItemChanger)
 
 
 --makes every item a paid shop item (also see SetItemPrices)
---removes coins that are not spwned by jimbo
 ---@param Pickup EntityPickup
 function mod:SetItemAsShop(Pickup)
 
+    --print(Pickup.SpawnerType)
+
+    --sadly not every spawning items via other items doesn't always put the correct SpawnerEntity,
+    --so this won't always work (ex. magic skin/alabasterbox)
     if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) or Pickup:IsShopItem()
-       or ItemsConfig:GetCollectible(Pickup.SubType):HasTags(ItemConfig.TAG_QUEST) then
+       or ItemsConfig:GetCollectible(Pickup.SubType):HasTags(ItemConfig.TAG_QUEST) 
+       or Pickup.SpawnerEntity then
         return
     end
 
@@ -941,6 +970,11 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.CalculateBlinds)
 
 --handles the rooms which are cleared by default and shuffels if they are not
 function mod:HandleNoHarmRoomsClear()
+
+    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
+        return
+    end
+
     local Desc = Level:GetCurrentRoomDesc()
     
     if Desc.VisitedCount ~= 1 or Desc.GridIndex == Level:GetStartingRoomIndex()
@@ -984,7 +1018,6 @@ function mod:AddRoomsCleared(IsBoss, _)
     if IsBoss and mod.Saved.Jimbo.BossCleared ~= 2
        and (Game:GetLevel():GetStage() ~= LevelStage.STAGE7 or Game:GetRoom():GetDeliriumDistance() == 0) then
 
-        print("Pass")
         
         if Game:GetLevel():GetCurses() & LevelCurse.CURSE_OF_LABYRINTH == LevelCurse.CURSE_OF_LABYRINTH
            and mod.Saved.Jimbo.BossCleared == 0 then
@@ -1309,6 +1342,10 @@ mod:AddCallback(ModCallbacks.MC_FAMILIAR_INIT, mod.JimboBlueFliesSpiders, Famili
 --shuffles the deck
 ---@param Player EntityPlayer
 function mod:JimboRoomClear(Player)
+
+        if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
+            return
+        end
 
     local Room = Game:GetRoom():GetType()
     if Room == RoomType.ROOM_DEFAULT then
@@ -1656,7 +1693,10 @@ function mod:AddCardTearFalgs(Tear, CardShot)
     if Player and Player:GetPlayerType() == mod.Characters.JimboType then
         --damage dealt = Damage * TearRate of the player
         Tear.CollisionDamage = Player.Damage * mod:CalculateTearsValue(Player)
+
         Tear.Scale = (Player.SpriteScale.Y + Player.SpriteScale.X) / 2
+        Tear.Scale = mod:Clamp(Tear.Scale, 3, 0.75)
+
         --local TearSuit = mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize]].Suit
         Tear:ChangeVariant(mod.CARD_TEAR_VARIANTS[CardShot.Suit])
 
@@ -1732,6 +1772,13 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
             v:Remove()
         end
 
+        if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_STOP_WATCH) then
+            music:PitchSlide(0.9)
+        else
+            music:PitchSlide(1)
+        end
+        music:VolumeSlide(1, 0.04)
+
         for i,v in ipairs(mod.SelectionParams.SelectedCards) do
             mod.SelectionParams.SelectedCards[i] = false 
         end
@@ -1779,6 +1826,9 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
             end
                 
         elseif NewMode == mod.SelectionParams.Modes.PACK then
+
+            music:PitchSlide(1.1)
+            music:VolumeSlide(0.45, 0.02)
 
             mod.SelectionParams.MaxSelectionNum = 1
             mod.SelectionParams.OptionsNum = #mod.SelectionParams.PackOptions

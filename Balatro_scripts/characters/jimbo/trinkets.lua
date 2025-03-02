@@ -464,7 +464,7 @@ function mod:OnBlindClear(BlindType)
                         table.insert(Removable, i)
                     end
                 end
-                if Removable ~= {} then --if at leat one is present
+                if next(Removable) then --if at leat one is present
                     local Rindex = mod:GetRandom(Removable, Player:GetTrinketRNG(TrinketType.TRINKET_MADNESS))
                     mod.Saved.Jimbo.Inventory.Jokers[Rindex] = 0
                     mod.Saved.Jimbo.Inventory.Editions[Rindex] = 0

@@ -183,11 +183,6 @@ Balatro_Expansion.Vouchers.MoneySeed = Isaac.GetItemIdByName("Money Seed")
 Balatro_Expansion.Vouchers.MoneyTree = Isaac.GetItemIdByName("Money Tree")
 
 
---used to keep track of the pool (normal pools weren't good due to the "upgrade mechanich")
-Balatro_Expansion.AvailableVouchers = {Balatro_Expansion.Vouchers.Grabber,
-                                       Balatro_Expansion.Vouchers.Overstock
-}
-
 Balatro_Expansion.VoucherOff = Balatro_Expansion.Vouchers.Grabber % 2 --used for interal pools and stuff
 
 

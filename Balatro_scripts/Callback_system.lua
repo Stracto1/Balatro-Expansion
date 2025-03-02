@@ -73,8 +73,8 @@ function mod:OnGameStart(Continued)
         mod.Saved.TrinketValues.Supernova = {}
         mod.Saved.TrinketValues.Dna = true]]
 
-        mod.Pools = {}
-        mod.Pools.Vouchers = {
+        mod.Saved.Pools = {}
+        mod.Saved.Pools.Vouchers = {
         mod.Vouchers.Grabber,
         mod.Vouchers.Overstock,
         mod.Vouchers.Wasteful,
@@ -90,8 +90,7 @@ function mod:OnGameStart(Continued)
         mod.Vouchers.Director,
         mod.Vouchers.Hieroglyph,
         mod.Vouchers.MagicTrick,
-        mod.Vouchers.MoneySeed
-        }
+        mod.Vouchers.MoneySeed}
     
         mod.Saved.Jimbo.FullDeck = {}
         local index = 1

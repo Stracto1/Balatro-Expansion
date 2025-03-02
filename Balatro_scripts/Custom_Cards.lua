@@ -120,9 +120,15 @@ function mod:NewTarotEffects(card, Player, UseFlags)
 
             local BaseJokers = {}
             for i,Edition in ipairs(mod.Saved.Jimbo.Inventory.Editions) do
-                if Edition == mod.Edition.BASE then
+                if Edition == mod.Edition.BASE and mod.Saved.Jimbo.Inventory.Jokers[i] ~= 0 then
                     table.insert(BaseJokers, i)
                 end
+            end
+
+            if not next(BaseJokers) then
+                
+                Player:AnimateSad()
+                return false
             end
 
             if CardRNG:RandomFloat() < 0.25 and BaseJokers ~= {} then 
@@ -144,7 +150,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
 
                 Isaac.RunCallback("INVENTORY_CHANGE", Player)
             else
-                mod:CreateBalatroEffect(Player, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, "No!")--PLACEHOLDER
+                mod:CreateBalatroEffect(Player, mod.EffectColors.PURPLE, mod.Sounds.ACTIVATE, "Nope!")--PLACEHOLDER
             end
 
             IsTarot = true
@@ -372,16 +378,18 @@ function mod:CardPacks(card, Player,_)
 
             for i=1, Size do
                 local Rplanet
-                repeat  
+                repeat
                     if PackRng:RandomFloat() < HoleChance then
                         Rplanet = mod.Spectrals.BLACK_HOLE
                     else
                         Rplanet = PackRng:RandomInt(mod.Planets.PLUTO,mod.Planets.SUN) --chooses a random planet
                     end
+                    Rplanet = mod:SpecialCardToFrame(Rplanet)
 
                 until not mod:Contained(RandomPack, Rplanet)
-                RandomPack[i] = mod:SpecialCardToFrame(Rplanet)
+                table.insert(RandomPack, Rplanet)
             end
+            mod.SelectionParams.PackOptions = RandomPack
 
         elseif false then --TAINTED JIMBO
             for i=1, 3, 1 do
@@ -407,14 +415,12 @@ function mod:CardPacks(card, Player,_)
                             end
                         end
                     end
+                    Rplanet = mod:SpecialCardToFrame(Rplanet)
+
                 until IsPlanetUnlocked and not mod:Contained(RandomPack, Rplanet)
+
                 RandomPack[i] = Rplanet
-            end
-            --after the generation caonverts them to be useful
-            for i,_ in ipairs(RandomPack) do
-                RandomPack[i] = mod.SpecialCardToFrame(RandomPack[i])
-            end
-            
+            end            
         end
         mod.SelectionParams.PackOptions = RandomPack
 
