@@ -6,10 +6,10 @@ local sfx = SFXManager()
 
 
 --SOME VOUCHERS HAVE THEIR EFFECT IN mechanics.lua 
---(Wasteful/recyclomancy - clearance/liquidation - Overstock/plus - Hone/Glow Up)
+--(Wasteful/recyclomancy - clearance/liquidation - Overstock/plus - Hone/Glow Up - magic trick -money seed/tree)
 
 --OTHERS HAVE IT IN Custom_Cards.lua
---(magic trick/Illusion - Crystal Ball/Omen Globe)
+--(Illusion - Crystal Ball/Omen Globe)
 
 
 
@@ -133,7 +133,9 @@ function mod:VouchersAdded(Item,_,_,_,_,Player)
 
     elseif Item == mod.Vouchers.Antimatter then
         mod:AddJimboInventorySlots(Player, 1)
-    
+
+    elseif Item == mod.Vouchers.Hieroglyph or Item == mod.Vouchers.Petroglyph then
+        Player:UseActiveItem(CollectibleType.COLLECTIBLE_FORGET_ME_NOW, UseFlag.USE_NOANIM)
     end
 end
 mod:AddPriorityCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE,CallbackPriority.LATE, mod.VouchersAdded)

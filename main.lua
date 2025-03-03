@@ -397,9 +397,13 @@ Balatro_Expansion.Saved.Jimbo.Progress.Floor.Vouchers = {} --says which vouchers
 Balatro_Expansion.Saved.Jimbo.LastUsed = {} --the last card a player used
 Balatro_Expansion.Saved.Jimbo.EctoUses = 0 --how many times the Ectoplasm card got used in a run
 
-Balatro_Expansion.Saved.Jimbo.MinimumTears = 0.8
-Balatro_Expansion.Saved.Jimbo.MinimumDamage = 0.5
-Balatro_Expansion.Saved.Jimbo.Inventory= {}
+--Balatro_Expansion.Saved.Jimbo.MinimumTears = 0.8
+--Balatro_Expansion.Saved.Jimbo.MinimumDamage = 0.5
+Balatro_Expansion.JimboMinStats = 0.2
+Balatro_Expansion.JimboMaxTears = 2
+
+Balatro_Expansion.Saved.Jimbo.TrueDamageValue = 1 --used to surpass the usual 0.5 minimum damage cap (got this idea from isaacguru's Utility Commands)
+Balatro_Expansion.Saved.Jimbo.Inventory = {}
 Balatro_Expansion.Saved.Jimbo.Inventory.Jokers = {0,0,0}
 Balatro_Expansion.Saved.Jimbo.Inventory.Editions = {0,0,0}
 
@@ -540,6 +544,7 @@ Balatro_Expansion.SelectionParams.Purposes.CelestialPack = 25
 Balatro_Expansion.SelectionParams.Purposes.SpectralPack = 26
 Balatro_Expansion.SelectionParams.Purposes.BuffonPack = 27
 Balatro_Expansion.SelectionParams.Purposes.SELLING = 28
+Balatro_Expansion.SelectionParams.Purposes.MegaFlag = 128 --applied on top of the packs purposes to say it's a double choice
 ----------------------------- gaw damn those were a lot of variables
 
 

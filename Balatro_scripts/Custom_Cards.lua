@@ -3,17 +3,16 @@ local mod = Balatro_Expansion
 local ItemsConfig = Isaac.GetItemConfig()
 local Game = Game()
 local sfx = SFXManager()
+
+
 local CardEditionChance = {}
 CardEditionChance.Foil = 0.04
 CardEditionChance.Holo = 0.068 --is actually 0.028
 CardEditionChance.Poly = 0.080 --is actually 0.012
 CardEditionChance.Negative = 0.003 --is actually 0.012
 
-local JokerEdChance = {}
-JokerEdChance.Negative = 0.003 
-JokerEdChance.Foil = 0.02  --is actually 0.012
-JokerEdChance.Holo = 0.034 --is actually 0.028
-JokerEdChance.Poly = 0.037 --is actually 0.012
+local MegaChance = 0.15 --0.10 originally
+local JumboChance = 0.55 --0.4 originally
 
 local SoulChance = 0.003
 local HoleChance = 0.003
@@ -293,7 +292,12 @@ function mod:CardPacks(card, Player,_)
 
         local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 4) or 3
 
-        for i=1, Size, 1 do
+        local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
+        if EditionRoll <= JumboChance then
+            Size = Size + 2
+        end
+
+        for i=1, Size do
             local RandomCard = {}
             RandomCard.Suit = PackRng:RandomInt(1, 4)
             RandomCard.Value = PackRng:RandomInt(1,13)
@@ -331,10 +335,22 @@ function mod:CardPacks(card, Player,_)
 
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
                                               mod.SelectionParams.Purposes.StandardPack)
+
+        if EditionRoll <= JumboChance then
+
+            if EditionRoll <= MegaChance then
+                mod.SelectionParams.Purpose = mod.SelectionParams.Purpose + mod.SelectionParams.Purposes.MegaFlag
+                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!")
+            else
+                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!")
+            end
+        end
+
     elseif card == Card.CARD_PACK_TAROT then
         Isaac.RunCallback("PACK_OPENED",Player,card)
 
         local PackRng = Player:GetCardRNG(Card.CARD_PACK_TAROT)
+
         local RandomPack = {}
         local Options = {}
         for i=1,22 do
@@ -346,7 +362,13 @@ function mod:CardPacks(card, Player,_)
             end
         end
 
-        local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 4) or 3 --very cool lua thingy
+        local Size = Player:HasCollectible(mod.Vouchers.Crystal) and 4 or 3 --very cool lua thingy
+
+        local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
+        if EditionRoll <= JumboChance then
+            Size = Size + 2
+        end
+
         for i=1, Size, 1 do
             local RandomCard
             repeat
@@ -365,7 +387,18 @@ function mod:CardPacks(card, Player,_)
         mod.SelectionParams.PackOptions = RandomPack
 
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
-                                              mod.SelectionParams.Purposes.TarotPack)
+        mod.SelectionParams.Purposes.TarotPack)
+
+        if EditionRoll <= JumboChance then
+        
+            if EditionRoll <= MegaChance then
+                mod.SelectionParams.Purpose = mod.SelectionParams.Purpose + mod.SelectionParams.Purposes.MegaFlag
+                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!")
+            else
+                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!")
+            end 
+        end
+
 
     elseif card == Card.CARD_PACK_CELESTIAL then
         Isaac.RunCallback("PACK_OPENED",Player,card)
@@ -375,6 +408,11 @@ function mod:CardPacks(card, Player,_)
         if Player:GetPlayerType() == mod.Characters.JimboType then
             
             local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 4) or 3
+
+            local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
+            if EditionRoll <= JumboChance then
+                Size = Size + 2
+            end
 
             for i=1, Size do
                 local Rplanet
@@ -390,6 +428,19 @@ function mod:CardPacks(card, Player,_)
                 table.insert(RandomPack, Rplanet)
             end
             mod.SelectionParams.PackOptions = RandomPack
+
+            mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
+            mod.SelectionParams.Purposes.CelestialPack)
+
+            if EditionRoll <= JumboChance then
+        
+                if EditionRoll <= MegaChance then
+                    mod.SelectionParams.Purpose = mod.SelectionParams.Purpose + mod.SelectionParams.Purposes.MegaFlag
+                    mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!")
+                else
+                    mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!")
+                end 
+            end
 
         elseif false then --TAINTED JIMBO
             for i=1, 3, 1 do
@@ -423,9 +474,7 @@ function mod:CardPacks(card, Player,_)
             end            
         end
         mod.SelectionParams.PackOptions = RandomPack
-
-        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
-                                              mod.SelectionParams.Purposes.CelestialPack)
+        
     elseif card == Card.CARD_PACK_SPECTRAL then
         Isaac.RunCallback("PACK_OPENED",Player,card)
         
@@ -433,6 +482,11 @@ function mod:CardPacks(card, Player,_)
         local RandomPack = {}
 
         local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 3) or 2
+
+        local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
+        if EditionRoll <= JumboChance then
+            Size = Size + 2
+        end
 
         for i=1, Size do
             local RSpectral
@@ -456,6 +510,16 @@ function mod:CardPacks(card, Player,_)
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
                                               mod.SelectionParams.Purposes.SpectralPack)
 
+        if EditionRoll <= JumboChance then
+        
+            if EditionRoll <= MegaChance then
+                mod.SelectionParams.Purpose = mod.SelectionParams.Purpose + mod.SelectionParams.Purposes.MegaFlag
+                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!")
+            else
+                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!")
+            end
+        end
+
     elseif card == mod.Packs.BUFFON then
         Isaac.RunCallback("PACK_OPENED",Player,card)
 
@@ -469,6 +533,11 @@ function mod:CardPacks(card, Player,_)
 
         local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 3) or 2
 
+        local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
+        if EditionRoll <= JumboChance then
+            Size = Size + 2
+        end
+
         for i=1, Size, 1 do
             RandomPack[i] = mod:RandomJoker(PackRng, Jokers, true)
             table.insert(Jokers, RandomPack[i].Joker)
@@ -478,6 +547,16 @@ function mod:CardPacks(card, Player,_)
 
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
                                               mod.SelectionParams.Purposes.BuffonPack)
+
+        if EditionRoll <= JumboChance then
+    
+            if EditionRoll <= MegaChance then
+                mod.SelectionParams.Purpose = mod.SelectionParams.Purpose + mod.SelectionParams.Purposes.MegaFlag
+                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!")
+            else
+                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!")
+            end
+        end
 
     end
 end

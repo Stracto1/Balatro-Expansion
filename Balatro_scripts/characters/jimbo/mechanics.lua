@@ -380,6 +380,7 @@ function mod:JimboPackRender(_,_,_,_,Player)
        or mod.SelectionParams.Mode ~= mod.SelectionParams.Modes.PACK then
         return
     end
+    local TruePurpose = mod.SelectionParams.Purpose & (~mod.SelectionParams.Purposes.MegaFlag) --removes it for pack checks
     
     local PlayerPos = Isaac.WorldToScreen(Player.Position)
 
@@ -391,13 +392,11 @@ function mod:JimboPackRender(_,_,_,_,Player)
     local RenderPos = BaseRenderPos + Vector.Zero
     local WobblyEffect = {}
 
-    if mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.StandardPack then
+    if TruePurpose == mod.SelectionParams.Purposes.StandardPack then
         --SHOWS THE CHOICES AVAILABLE
 
         for i,Card in ipairs(mod.SelectionParams.PackOptions) do --for every option
 
-
-        
             JimboCards.Pack_PlayingCards:SetFrame(ENHANCEMENTS_ANIMATIONS[Card.Enhancement], 4 * (Card.Value - 1) + Card.Suit-1) --sets the frame corresponding to the value and suit
             JimboCards.Pack_PlayingCards:SetOverlayFrame("Seals", Card.Seal)
             Edition_Overlay:SetFrame("Editions", Card.Edition)
@@ -413,7 +412,7 @@ function mod:JimboPackRender(_,_,_,_,Player)
 
         end--end FOR
 
-    elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.BuffonPack then
+    elseif TruePurpose == mod.SelectionParams.Purposes.BuffonPack then
         
         for i,card in ipairs(mod.SelectionParams.PackOptions) do
     
@@ -471,7 +470,7 @@ function mod:JimboBarRender(Player)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
-    
+
 
     local Data = Player:GetData()
     if Data.PlayCD < HandCooldown then --charging frames needed
@@ -590,19 +589,17 @@ function mod:JimboInputHandle(Player)
         --pressing left moving the selection
         if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTLEFT, Player.ControllerIndex) then
 
-            --if  Data.NotAlrPressed.left and mod.SelectionParams.Index > 1 then
+            if mod.SelectionParams.Index > 1 then
                 mod.SelectionParams.Index = mod.SelectionParams.Index - 1
 
-            --end
-
+            end
         end
 
         --pressing right moving the selection
         if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTRIGHT, Player.ControllerIndex) then
             if mod.SelectionParams.Index <= mod.SelectionParams.OptionsNum then
 
-            mod.SelectionParams.Index = mod.SelectionParams.Index + 1
-
+                mod.SelectionParams.Index = mod.SelectionParams.Index + 1
             end
         end
     
@@ -1093,8 +1090,12 @@ function mod:GiveRewards(BlindType)
     local Jimbo
 
     --calculates the ammount of interests BEFORE giving the clear reward
+    local MaxInterests = 5
+    MaxInterests = PlayerManager.AnyoneHasCollectible(mod.Vouchers.MoneySeed) and 10 or MaxInterests
+    MaxInterests = PlayerManager.AnyoneHasCollectible(mod.Vouchers.MoneyTree) and 20 or MaxInterests
+
     local Interests = math.floor(Game:GetPlayer(0):GetNumCoins()/5)
-    if Interests > 5 then Interests = 5 end
+    Interests = math.min(MaxInterests, Interests)
 
     --gives coins basing on the blind cleared and finds jimbo
     for _,Player in ipairs(PlayerManager:GetPlayers()) do
@@ -1131,18 +1132,21 @@ function mod:GiveRewards(BlindType)
         end
     end
 
-    if mod.Saved.Jimbo.FirstDeck then
-        Jimbo:AddCoins(2)
-    end
+    --if mod.Saved.Jimbo.FirstDeck then
+        --Jimbo:AddCoins(2)
+    --end
 
     --gives interest
     Isaac.CreateTimer(function ()
         for i = 1, Interests, 1 do
-            Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Jimbo.Position, RandomVector() * 4, nil, CoinSubType.COIN_PENNY, Seed)
-            --Balatro_Expansion:EffectConverter(8,0,Jimbo,4)
+            Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Jimbo.Position,
+            RandomVector() * 4, PlayerManager.FirstPlayerByType(mod.Characters.JimboType),
+            CoinSubType.COIN_PENNY, Seed)
+
+            --Balatro_Expansion:EffectConverter(8,0,Jimbo,4) a relic from old times
         end 
         mod:CreateBalatroEffect(Jimbo,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+"..tostring(Interests).." $", Vector(0,20))
-    end, 15, 1, true)
+    end, 30, 1, true)
 end
 mod:AddPriorityCallback("BLIND_CLEARED",CallbackPriority.LATE, mod.GiveRewards)
 
@@ -1396,20 +1400,23 @@ function mod:JimboStatCalculator(Player, Cache)
     local PositiveDamageMult = 0.15
     local NegativeDamageMult = 0.55
 
-    local TearsMult = 1 --works a little funky, even i don't exactly know how it performs
-    local DamageMult = 0.15
+    local MaxTearsMult = 1
 
     if Player:HasCollectible(CollectibleType.COLLECTIBLE_POLYPHEMUS) then
-        mod.Saved.Jimbo.MinimumTears = 0.6
-        PositiveDamageMult = 0.3
-        TearsMult = 0.7
+        PositiveDamageMult = PositiveDamageMult * 2
+        
     elseif Player:HasCollectible(CollectibleType.COLLECTIBLE_MUTANT_SPIDER) then
-        mod.Saved.Jimbo.MinimumTears = 0.55
-        TearsMult = 0.55
+        MaxTearsMult = MaxTearsMult * 0.55
+
+    elseif Player:HasCollectible(CollectibleType.COLLECTIBLE_SOY_MILK) then
+        MaxTearsMult = MaxTearsMult * 5
+        NegativeDamageMult = NegativeDamageMult * 2
+        PositiveDamageMult = PositiveDamageMult / 2
     end
 
     if Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
         local AddedDamage = Player.Damage - 1
+        
 
         if AddedDamage >= 0 then
             Player.Damage = 1 + AddedDamage* PositiveDamageMult
@@ -1418,12 +1425,11 @@ function mod:JimboStatCalculator(Player, Cache)
         end
     end
     if Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then
-        local JimboBaseTears = 1
-        local JimboBaseDelay = mod:CalculateMaxFireDelay(JimboBaseTears)
-        local AddedTears = (mod:CalculateTearsValue(Player) - JimboBaseTears)
-        
-        AddedTears = AddedTears * TearsMult
 
+        --sets the tears cap to 2
+        Player.MaxFireDelay = math.max(Player.MaxFireDelay, mod:CalculateMaxFireDelay(mod.JimboMaxTears * MaxTearsMult))
+
+        --[[
         if AddedTears < 0 then
             if AddedTears < -0.4 then
                 Player.MaxFireDelay = JimboBaseDelay + mod:CalculateTearsUp(JimboBaseDelay, AddedTears + (1/(0.15*AddedTears + 0.2))*(-AddedTears))
@@ -1436,7 +1442,8 @@ function mod:JimboStatCalculator(Player, Cache)
             AddedTears = AddedTears - 4
             JimboBaseDelay = JimboBaseDelay - mod:CalculateTearsUp(JimboBaseDelay, 1)
             Player.MaxFireDelay = JimboBaseDelay - mod:CalculateTearsUp(JimboBaseDelay, (1/(0.5*AddedTears+1))*AddedTears)
-        end
+        end]]
+
     end
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.JimboStatCalculator)
@@ -1451,26 +1458,22 @@ function mod:JimboMinimumStats(Player, Cache)
 
     --print(mod:CalculateMaxFireDelay(Tears))
     if Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
-        if Player.Damage < mod.Saved.Jimbo.MinimumDamage then
-            Player.Damage = mod.Saved.Jimbo.MinimumDamage
-        end
-        --[[if Player.Damage * Tears < 4.5 then
-            Player.Damage = 4.5 / Tears
-        end]]--
+
+        --print(Player.Damage)
+        Player.Damage = math.max(mod.JimboMinStats, Player.Damage)
+        --print(Player.Damage)
+
     end
     if Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then
         local Tears = mod:CalculateTearsValue(Player)
-        if Tears < mod.Saved.Jimbo.MinimumTears then
-            Player.MaxFireDelay = mod:CalculateMaxFireDelay(mod.Saved.Jimbo.MinimumTears)
-
-        end
+        Player.MaxFireDelay = math.min(mod:CalculateMaxFireDelay(mod.JimboMinStats), Player.MaxFireDelay)
         --[[if Player.Damage * Tears < 4.5 then
             Player.MaxFireDelay =  mod:CalculateMaxFireDelay(4.5 / Player.Damage)
         end]]--
     end
 end
 --mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.IMPORTANT, mod.JimboMinimumStats)
-mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE + 1, mod.JimboMinimumStats)
+mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE, mod.JimboMinimumStats)
 
 ---@param Player EntityPlayer
 function mod:StatReset(Player, Damage, Tears, Evaluate, Jokers, Basic)
@@ -1515,11 +1518,15 @@ function mod:StatGiver(Player, Cache)
         local stats = mod.Saved.Jimbo.StatsToAdd
 
         if Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
-            --print(stats.Damage + stats.JokerDamage)
-            --print(Player.Damage * stats.JokerMult * stats.Mult)
 
-            Player.Damage = (Player.Damage + (stats.Damage + stats.JokerDamage) * Player.Damage) * stats.JokerMult * stats.Mult
+            --Player.Damage = (Player.Damage + (stats.Damage + stats.JokerDamage) * Player.Damage) * stats.JokerMult * stats.Mult
+            mod.Saved.Jimbo.TrueDamageValue = (Player.Damage + (stats.Damage + stats.JokerDamage) * Player.Damage) * stats.JokerMult * stats.Mult
 
+            --since the damage usually can't go below 0.5 on cache evaluations change it right after
+            Isaac.CreateTimer(function ()
+                Player.Damage = mod.Saved.Jimbo.TrueDamageValue
+            end, 0, 1, true)
+            
         end
         if Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then
             --print(mod.CalculateTearsValue(Player))
@@ -1527,7 +1534,7 @@ function mod:StatGiver(Player, Cache)
         end
     end
 end
-mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE, mod.StatGiver)
+mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE + 1, mod.StatGiver)
 
 
 function mod:IncreaseJimboStats(Player,TearsUp,DamageUp,Mult, Evaluate, Basic)
@@ -1905,16 +1912,17 @@ function mod:Select(Player)
             return
         end
 
+        local TruePurpose = mod.SelectionParams.Purpose & (~mod.SelectionParams.Purposes.MegaFlag) --removes it for pack checks
+
         sfx:Play(mod.Sounds.SELECT)
 
-        if mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.StandardPack then
+        if TruePurpose == mod.SelectionParams.Purposes.StandardPack then
             local SelectedCard = mod.SelectionParams.PackOptions[mod.SelectionParams.Index]
             table.insert(mod.Saved.Jimbo.FullDeck, SelectedCard)
 
             mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, nil, "Added!")
-            mod:SwitchCardSelectionStates(Player,mod.SelectionParams.Modes.NONE, 0)
 
-        elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.BuffonPack then
+        elseif TruePurpose == mod.SelectionParams.Purposes.BuffonPack then
 
             local Joker = mod.SelectionParams.PackOptions[mod.SelectionParams.Index].Joker
             local Edition = mod.SelectionParams.PackOptions[mod.SelectionParams.Index].Edition
@@ -1925,17 +1933,32 @@ function mod:Select(Player)
             mod.Saved.Jimbo.FloorEditions[Index] = mod.Saved.Jimbo.FloorEditions[Index] or {}
             
             mod.Saved.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Joker).Name] = Edition
-            
-            
-            mod:SwitchCardSelectionStates(Player,mod.SelectionParams.Modes.NONE, 0)
+
 
         else --tarot/planet/Spectral pack
             local card = mod:FrameToSpecialCard(mod.SelectionParams.PackOptions[mod.SelectionParams.Index])
             local RndSeed = Random()
             if RndSeed == 0 then RndSeed = 1 end
             Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position, RandomVector()* 2, nil, card, RndSeed)
-            mod:SwitchCardSelectionStates(Player,mod.SelectionParams.Modes.NONE, 0)
+            
         end
+        if Player:HasCollectible(mod.Vouchers.MagicTrick) and Player:GetCollectibleRNG(mod.Vouchers.MagicTrick):RandomFloat() <= 0.25
+           and mod.SelectionParams.OptionsNum > 1 then
+            table.remove(mod.SelectionParams.PackOptions, mod.SelectionParams.Index)
+            mod.SelectionParams.OptionsNum = mod.SelectionParams.OptionsNum - 1
+            mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "1 more!")
+            return
+        end
+        if mod.SelectionParams.Purpose & mod.SelectionParams.Purposes.MegaFlag == mod.SelectionParams.Purposes.MegaFlag 
+           and mod.SelectionParams.OptionsNum then
+            
+            mod.SelectionParams.OptionsNum = mod.SelectionParams.OptionsNum - 1
+            mod.SelectionParams.Purpose = mod.SelectionParams.Purpose - mod.SelectionParams.Purposes.MegaFlag
+            table.remove(mod.SelectionParams.PackOptions, mod.SelectionParams.Index)
+            return
+        end
+
+        mod:SwitchCardSelectionStates(Player,mod.SelectionParams.Modes.NONE, 0)
         
     elseif mod.SelectionParams.Mode == mod.SelectionParams.Modes.INVENTORY then
 
@@ -2012,7 +2035,7 @@ function mod:Select(Player)
 end
 
 
-local PurposeEnh = {nil,2,4,9,5,3,6,nil,7,8}
+local PurposeEnh = {nil,2,4,9,5,3,6,nil,7,nil,8}
 --activates the current selection when finished
 ---@param Player EntityPlayer
 function mod:UseSelection(Player)
@@ -2033,7 +2056,7 @@ function mod:UseSelection(Player)
                 end
             end
         elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.HANGED then
-            local selection
+            local selection = {}
             for i,v in ipairs(mod.SelectionParams.SelectedCards) do
                 if v then
                     table.insert(selection, mod.Saved.Jimbo.CurrentHand[i]) --gets the card that will be modified
@@ -2117,6 +2140,7 @@ function mod:UseSelection(Player)
             for i,v in ipairs(mod.SelectionParams.SelectedCards) do
                 if v then
                     mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[i]].Enhancement = NewEnh
+
                 end
             end
             Isaac.RunCallback("DECK_SHIFT", Player)

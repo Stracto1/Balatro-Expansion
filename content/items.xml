@@ -80,7 +80,7 @@
     <passive name="Hieroglyph"  quality="2" craftquality="2" gfx="hieroglyph_voucher.png" description="Good old days!" customtags="balatro" achievement="PermaLocked" tags="quest"/>
     <passive name="Petroglyph"  quality="3" craftquality="2" gfx="petroglyph_voucher.png" description="Old days good!" customtags="balatro" achievement="PermaLocked" tags="quest"/>
     <passive name="Magic Trick"  quality="2" craftquality="2" gfx="magic_trick_voucher.png" description="Tada!" customtags="balatro" achievement="PermaLocked" tags="quest"/>
-    <passive name="Illusion"  quality="3" craftquality="2" gfx="illusion_tong_voucher.png" description="Woow!" customtags="balatro" achievement="PermaLocked" tags="quest"/>
+    <passive name="Illusion"  quality="3" craftquality="2" gfx="illusion_voucher.png" description="Woow!" customtags="balatro" achievement="PermaLocked" tags="quest"/>
     <passive name="Money Seed"  quality="2" craftquality="2" gfx="seed_money_voucher.png" description="no they can't!" customtags="balatro" achievement="PermaLocked" tags="quest"/>
     <passive name="Money Tree"  quality="3" craftquality="2" gfx="money_tree_voucher.png" description="Yea they can!" customtags="balatro" achievement="PermaLocked" tags="quest"/>
     <passive name="Planet Merchant"  quality="2" craftquality="2" gfx="planet_merchant_voucher.png" description="More planets!" customtags="balatro" achievement="PermaLocked" tags="quest"/>

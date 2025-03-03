@@ -69,7 +69,7 @@ function mod:CreateBalatroEffect(Slot, Colour, Sound, Text, Offset, Volume)
 end
 
 
-function mod:RenderEffect()
+function mod:RenderEffect(_,_,_,_,_)
 
     for _, Params in pairs(EffectParams) do
         --local Sprite = EffectAnimations[Params.Color]
@@ -101,7 +101,7 @@ function mod:RenderEffect()
         end
     end
 end
-mod:AddCallback(ModCallbacks.MC_HUD_RENDER, mod.RenderEffect)
+mod:AddCallback(ModCallbacks.MC_POST_PLAYERHUD_RENDER_HEARTS, mod.RenderEffect)
 
 
 function mod:Increaseframes()
@@ -134,6 +134,8 @@ mod:AddCallback("PACK_OPENED", mod.PackParticleHelper)
 
 ---@param Effect EntityEffect
 function mod:PackParticle(Effect)
+
+    Effect.DepthOffset = -1
     local Data = Effect:GetData()
 
     Data.Time = (Data.Time) or 0
