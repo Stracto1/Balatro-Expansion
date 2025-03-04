@@ -303,12 +303,9 @@ Balatro_Expansion.Saved.TrinketValues.GoldenMichelGone = false
 Balatro_Expansion.Saved.TrinketValues.FirstBrain = true
 Balatro_Expansion.Saved.TrinketValues.Dna = true
 ]]
-do
-    local RandomSeed = Random()
-    if RandomSeed == 0 then RandomSeed = 1 end
 
-    Balatro_Expansion.Saved.GeneralRNG = RNG(RandomSeed) --RNG object used in various ways 
-end
+Balatro_Expansion.Saved.GeneralRNG = RNG(1) --RNG object used in various ways (Set on game start)
+
 
 Balatro_Expansion.Saved.Pools = {}
 Balatro_Expansion.Saved.Pools.Vouchers = {
@@ -400,9 +397,9 @@ Balatro_Expansion.Saved.Jimbo.EctoUses = 0 --how many times the Ectoplasm card g
 --Balatro_Expansion.Saved.Jimbo.MinimumTears = 0.8
 --Balatro_Expansion.Saved.Jimbo.MinimumDamage = 0.5
 Balatro_Expansion.JimboMinStats = 0.2
-Balatro_Expansion.JimboMaxTears = 2
-
 Balatro_Expansion.Saved.Jimbo.TrueDamageValue = 1 --used to surpass the usual 0.5 minimum damage cap (got this idea from isaacguru's Utility Commands)
+Balatro_Expansion.Saved.Jimbo.TrueTearsValue = 1
+
 Balatro_Expansion.Saved.Jimbo.Inventory = {}
 Balatro_Expansion.Saved.Jimbo.Inventory.Jokers = {0,0,0}
 Balatro_Expansion.Saved.Jimbo.Inventory.Editions = {0,0,0}

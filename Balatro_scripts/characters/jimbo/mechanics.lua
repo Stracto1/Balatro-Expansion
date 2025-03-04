@@ -438,7 +438,7 @@ function mod:JimboPackRender(_,_,_,_,Player)
             else
                 JimboCards.SpecialCards:SetFrame("idle",  Option)
             end
-            WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams.Frames*4+i*60))*1.75)
+            WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams.Frames*8+i*0)))
 
             JimboCards.SpecialCards:Render(mod:CoolVectorLerp(PlayerPos, RenderPos+WobblyEffect[i], mod.SelectionParams.Frames/10))
 
@@ -770,6 +770,22 @@ function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rN
             else
                 ReturnTable = {PickupVariant.PICKUP_TRINKET, 1 ,false}
             end
+
+        elseif ReturnTable[1] ~= PickupVariant.PICKUP_COLLECTIBLE then
+
+            local PlanetChance = (PlayerManager.GetNumCollectibles(mod.Vouchers.PlanetMerch) + PlayerManager.GetNumCollectibles(mod.Vouchers.PlanetTycoon)) * 0.07
+            local TarotChance = (PlayerManager.GetNumCollectibles(mod.Vouchers.TarotMerch) + PlayerManager.GetNumCollectibles(mod.Vouchers.TarotTycoon)) * 0.07 + PlanetChance
+
+            local CardRoll = mod.Saved.GeneralRNG:RandomFloat()
+
+            if CardRoll <= PlanetChance then
+                ReturnTable = {PickupVariant.PICKUP_TAROTCARD, mod.Saved.GeneralRNG:RandomInt(mod.Planets.PLUTO, mod.Planets.SUN), false}
+
+            elseif CardRoll <= TarotChance then
+                ReturnTable = {PickupVariant.PICKUP_TAROTCARD, mod.Saved.GeneralRNG:RandomInt(1, 22), false}
+
+            end
+
         end
 
         --if a trinket is selected, then roll for joker and edition
@@ -795,7 +811,6 @@ function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rN
         end
     end
 
-    --print(tostring(Pickup.ShopItemId).." "..tostring(ReturnTable[1]).." "..tostring(ReturnTable[2]))
     return ReturnTable
 end
 mod:AddCallback(ModCallbacks.MC_POST_PICKUP_SELECTION, mod.ShopItemChanger)
@@ -1395,39 +1410,64 @@ function mod:JimboStatCalculator(Player, Cache)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
-    --i swear to god making tear stat calculations is one of the hardest things to understand 
-    --so PLEASE if you're looking at this and have some suggestions tell me
-    local PositiveDamageMult = 0.15
-    local NegativeDamageMult = 0.55
+    --literally spent hours making calculations for stats just to realize that 1 single ratio is the best thing to do
 
-    local MaxTearsMult = 1
+    --local PositiveDamageMult = 0.15
+    --local NegativeDamageMult = 0.55 
 
+    --local DamageMult = 1
+    
+
+    --local MaxTearsMult = 1
+
+    --[[
     if Player:HasCollectible(CollectibleType.COLLECTIBLE_POLYPHEMUS) then
-        PositiveDamageMult = PositiveDamageMult * 2
+        PositiveDamageMult = PositiveDamageMult * 2.25
         
     elseif Player:HasCollectible(CollectibleType.COLLECTIBLE_MUTANT_SPIDER) then
-        MaxTearsMult = MaxTearsMult * 0.55
+        MaxTearsMult = MaxTearsMult * 0.42
+    elseif Player:HasCollectible(CollectibleType.COLLECTIBLE_INNER_EYE) then
+        MaxTearsMult = MaxTearsMult * 0.5
 
     elseif Player:HasCollectible(CollectibleType.COLLECTIBLE_SOY_MILK) then
         MaxTearsMult = MaxTearsMult * 5
         NegativeDamageMult = NegativeDamageMult * 2
         PositiveDamageMult = PositiveDamageMult / 2
-    end
+
+        DamageMult = DamageMult*2
+
+    elseif Player:HasCollectible(CollectibleType.COLLECTIBLE_ODD_MUSHROOM_THIN) then
+        NegativeDamageMult = NegativeDamageMult * 1.1
+        PositiveDamageMult = PositiveDamageMult * 0.9
+    end]]--
 
     if Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
-        local AddedDamage = Player.Damage - 1
+
+        Player.Damage = Player.Damage / 3.50
+
+
+        --local AddedDamage = Player.Damage - 1
         
 
+        --local DamageMult = (math.abs(math.atan(-AddedDamage)/(math.pi/2))^0.5   *0.4 + 0.35) * DamageMult
+        
+
+        --Player.Damage = 1 + AddedDamage * DamageMult
+
+        --[[
         if AddedDamage >= 0 then
-            Player.Damage = 1 + AddedDamage* PositiveDamageMult
+            Player.Damage = 1 + AddedDamage* PositiveDamageMult 
         else
             Player.Damage = 1 + AddedDamage* NegativeDamageMult
-        end
+        end]]
     end
     if Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then
 
         --sets the tears cap to 2
-        Player.MaxFireDelay = math.max(Player.MaxFireDelay, mod:CalculateMaxFireDelay(mod.JimboMaxTears * MaxTearsMult))
+        Player.MaxFireDelay = mod:CalculateMaxFireDelay(mod:CalculateTears(Player.MaxFireDelay) / 2.73)
+
+
+        --Player.MaxFireDelay = math.max(Player.MaxFireDelay, mod:CalculateMaxFireDelay(mod.JimboMaxTears * MaxTearsMult))
 
         --[[
         if AddedTears < 0 then
@@ -1473,7 +1513,7 @@ function mod:JimboMinimumStats(Player, Cache)
     end
 end
 --mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.IMPORTANT, mod.JimboMinimumStats)
-mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE, mod.JimboMinimumStats)
+--mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE, mod.JimboMinimumStats)
 
 ---@param Player EntityPlayer
 function mod:StatReset(Player, Damage, Tears, Evaluate, Jokers, Basic)
@@ -1514,25 +1554,45 @@ mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.IMPORTAN
 
 --finally gives the actual stat changes to jimbo, also used for always active buffs
 function mod:StatGiver(Player, Cache)
-    if Player:GetPlayerType() == mod.Characters.JimboType then
-        local stats = mod.Saved.Jimbo.StatsToAdd
-
-        if Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
-
-            --Player.Damage = (Player.Damage + (stats.Damage + stats.JokerDamage) * Player.Damage) * stats.JokerMult * stats.Mult
-            mod.Saved.Jimbo.TrueDamageValue = (Player.Damage + (stats.Damage + stats.JokerDamage) * Player.Damage) * stats.JokerMult * stats.Mult
-
-            --since the damage usually can't go below 0.5 on cache evaluations change it right after
-            Isaac.CreateTimer(function ()
-                Player.Damage = mod.Saved.Jimbo.TrueDamageValue
-            end, 0, 1, true)
-            
-        end
-        if Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then
-            --print(mod.CalculateTearsValue(Player))
-            Player.MaxFireDelay = Player.MaxFireDelay - mod:CalculateTearsUp(Player.MaxFireDelay, (stats.Tears +  stats.JokerTears)* mod:CalculateTearsValue(Player))
-        end
+    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+        return
     end
+    local stats = mod.Saved.Jimbo.StatsToAdd
+
+    if Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
+
+        --Player.Damage = (Player.Damage + (stats.Damage + stats.JokerDamage) * Player.Damage) * stats.JokerMult * stats.Mult
+        mod.Saved.Jimbo.TrueDamageValue = (Player.Damage + (stats.Damage + stats.JokerDamage) * Player.Damage) * stats.JokerMult * stats.Mult
+    end
+    if Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then
+
+        mod.Saved.Jimbo.TrueTearsValue = mod:CalculateTearsValue(Player) + (stats.Tears +  stats.JokerTears)* mod:CalculateTearsValue(Player)
+    end
+
+    --changing stats the next frame sadly causes some "jiggling" fpr the stats values, but it's needed due to
+    --how libra and the minimum damage cap (0.5) work, but these ifs at leat limit the ammount of situations they can appear in
+    if Player:HasCollectible(CollectibleType.COLLECTIBLE_LIBRA) then
+
+        Isaac.CreateTimer(function ()
+            local HalfStat = (mod.Saved.Jimbo.TrueDamageValue + mod.Saved.Jimbo.TrueTearsValue)/2
+            --local HalfStat = ((mod.Saved.Jimbo.TrueDamageValue + mod.Saved.Jimbo.TrueTearsValue)/4)^0.5 --halfes the total card damage
+
+            Player.Damage = HalfStat
+            Player.MaxFireDelay = mod:CalculateMaxFireDelay(HalfStat)
+
+        end, 0, 1, true)
+    elseif mod.Saved.Jimbo.TrueDamageValue <= 0.5 then
+
+        Isaac.CreateTimer(function ()
+            Player.Damage = mod.Saved.Jimbo.TrueDamageValue
+        end, 0, 1, true)
+
+        Player.MaxFireDelay = mod:CalculateMaxFireDelay(mod.Saved.Jimbo.TrueTearsValue)
+    else
+        Player.Damage = mod.Saved.Jimbo.TrueDamageValue
+        Player.MaxFireDelay = mod:CalculateMaxFireDelay(mod.Saved.Jimbo.TrueTearsValue)
+    end
+
 end
 mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE + 1, mod.StatGiver)
 
@@ -2039,6 +2099,7 @@ local PurposeEnh = {nil,2,4,9,5,3,6,nil,7,nil,8}
 --activates the current selection when finished
 ---@param Player EntityPlayer
 function mod:UseSelection(Player)
+
     if mod.SelectionParams.Mode == mod.SelectionParams.Modes.HAND then
         --could've done something nicer then these elseifs but works anyways
         if mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.HAND then
@@ -2150,6 +2211,7 @@ function mod:UseSelection(Player)
         mod.SelectionParams.SelectedCards[i] = false
     end
 end
+
 
 
 ------------ TRASH BIN -------------

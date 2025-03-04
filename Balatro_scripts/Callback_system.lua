@@ -137,7 +137,7 @@ function mod:OnGameStart(Continued)
         --mod.Saved.Jimbo.MinimumTears = 0.2
         --mod.Saved.Jimbo.MinimumDamage = 0.2
         mod.Saved.Jimbo.TrueDamageValue = 1 --used to surpass the usual 0.5 minimum damage cap
-
+        mod.Saved.Jimbo.TrueTearsValue = 1
 
         mod.Saved.Jimbo.CardLevels = {}
         for i=1, 13 do
@@ -212,11 +212,8 @@ function mod:OnGameStart(Continued)
         mod.Saved.Jimbo.LastUsed = {}
         mod.Saved.Jimbo.EctoUses = 0
     
-        do
-            local RandomSeed = Random()
-            if RandomSeed == 0 then RandomSeed = 1 end
-            mod.Saved.GeneralRNG = RNG(RandomSeed) --RNG object used in various ways 
-        end
+        mod.Saved.GeneralRNG = RNG(Game:GetSeeds():GetStartSeed()) --RNG object used in various ways 
+        
         mod.HpEnable = false
         mod.ShopAddedThisFloor = false
         if mod:Contained(Challenges, Game.Challenge) then
@@ -240,10 +237,8 @@ function mod:OnGameStart(Continued)
     
     for _, player in ipairs(PlayerManager.GetPlayers()) do  --evaluates again for the mod's trinkets since closing the game
         --resets stuff
-        mod.StatEnable = true
         mod:StatReset(player,true,true,false,true,true)
         player:AddCacheFlags(CacheFlag.CACHE_ALL, true)
-        mod.StatEnable = false
     end
 
 

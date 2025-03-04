@@ -6,7 +6,7 @@ local sfx = SFXManager()
 
 
 --SOME VOUCHERS HAVE THEIR EFFECT IN mechanics.lua 
---(Wasteful/recyclomancy - clearance/liquidation - Overstock/plus - Hone/Glow Up - magic trick -money seed/tree)
+--(Wasteful/recyclomancy - clearance/liquidation - Overstock/plus - Hone/Glow Up - magic trick - money seed/tree - tarot/planet merchant/tycoon)
 
 --OTHERS HAVE IT IN Custom_Cards.lua
 --(Illusion - Crystal Ball/Omen Globe)
