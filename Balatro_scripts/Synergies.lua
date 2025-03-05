@@ -1,3 +1,4 @@
+---@diagnostic disable: need-check-nil
 local mod = Balatro_Expansion
 local Game = Game()
 --code here apllies all the needed synergies to the characters
@@ -9,27 +10,58 @@ function mod:CardCollisionSynergy(Tear,Collider,_)
         return
     end
     local TearData = Tear:GetData()
+    TearData.CollidedWith = TearData.CollidedWith or {}
 
-    if Collider:IsActiveEnemy() and  mod:Contained(TearData.CollidedWith, GetPtrHash(Collider)) then
-        local TearRNG = Tear:GetDropRNG()
-        local Player = Tear.Parent:ToPlayer()
+    if not Collider:IsActiveEnemy() or mod:Contained(TearData.CollidedWith, GetPtrHash(Collider)) then
+        return
+    end
 
-        ---@diagnostic disable-next-line: need-check-nil
-        if Player:HasCollectible(CollectibleType.COLLECTIBLE_BRIMSTONE) then
-            for i = 1, 2, 1 do
-                ---@diagnostic disable-next-line: need-check-nil
-                local Laser = Player:FireBrimstone(RandomVector(), Player)
-                Laser.CollisionDamage = Tear.CollisionDamage
-                Laser.DisableFollowParent = true
-                Laser.Position = Tear.Position
-            end
+    local TearRNG = Tear:GetDropRNG()
+    local Player = Tear.Parent:ToPlayer()
+
+
+    if Player:HasCollectible(CollectibleType.COLLECTIBLE_BRIMSTONE) then
+        local Amount = mod:IsSuit(Player, TearData.Params.Suit, TearData.Params.Enhancement, mod.Suits.Heart, false) and 2 or 1
+
+        for i = 1, Amount, 1 do
+
+            local Laser = Player:FireBrimstone(RandomVector(), Player)
+
+            Laser:SetKnockbackDirection(Vector.Zero)
+            Laser.CollisionDamage = Tear.CollisionDamage
+            Laser.DisableFollowParent = true
+            Laser.Position = Collider.Position
+
+            Laser.TearFlags = Laser.TearFlags & ~TearFlags.TEAR_EXPLOSIVE --would be suicide otehrwise
+
         end
-        if Player:HasCollectible(CollectibleType.COLLECTIBLE_DR_FETUS) then
-            local Bomb = Player:FireBomb(Tear.Position, Vector.Zero, Tear)
-            Bomb:AddTearFlags(Player:GetBombFlags())
-            Bomb.SpawnerEntity = Tear
-            Bomb.ExplosionDamage = Tear.CollisionDamage * 3
+    end
+    if Player:HasCollectible(CollectibleType.COLLECTIBLE_DR_FETUS) then
+
+        local Bomb = Player:FireBomb(Tear.Position, Vector.Zero, Tear)
+
+        Bomb:AddTearFlags(Player:GetBombFlags())
+
+        Bomb.SpawnerEntity = Tear
+
+        if mod:IsSuit(Player, TearData.Params.Suit, TearData.Params.Enhancement, mod.Suits.Club, false) then
+            
+            Bomb.ExplosionDamage = Tear.CollisionDamage * 4
+            Bomb.RadiusMultiplier = 1.25
+        else
+            Bomb.ExplosionDamage = Tear.CollisionDamage * 2.5
         end
+
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_TEAR_COLLISION, mod.CardCollisionSynergy)
+
+---@param Player EntityPlayer
+function mod:EvaluatePlayCD(_,_,_,_,_,Player)
+
+    if Player:GetPlayerType() == mod.Characters.JimboType then
+        Player:AddCustomCacheTag("playcd", true)
+    end
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE, mod.EvaluatePlayCD)

@@ -394,9 +394,7 @@ Balatro_Expansion.Saved.Jimbo.Progress.Floor.Vouchers = {} --says which vouchers
 Balatro_Expansion.Saved.Jimbo.LastUsed = {} --the last card a player used
 Balatro_Expansion.Saved.Jimbo.EctoUses = 0 --how many times the Ectoplasm card got used in a run
 
---Balatro_Expansion.Saved.Jimbo.MinimumTears = 0.8
---Balatro_Expansion.Saved.Jimbo.MinimumDamage = 0.5
-Balatro_Expansion.JimboMinStats = 0.2
+
 Balatro_Expansion.Saved.Jimbo.TrueDamageValue = 1 --used to surpass the usual 0.5 minimum damage cap (got this idea from isaacguru's Utility Commands)
 Balatro_Expansion.Saved.Jimbo.TrueTearsValue = 1
 

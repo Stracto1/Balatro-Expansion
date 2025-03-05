@@ -132,10 +132,7 @@ function mod:OnGameStart(Continued)
 
         mod.Saved.Jimbo.FirstDeck = true
 
-        --mod.Saved.Jimbo.MinimumTears = 0.8
-        --mod.Saved.Jimbo.MinimumDamage = 0.5
-        --mod.Saved.Jimbo.MinimumTears = 0.2
-        --mod.Saved.Jimbo.MinimumDamage = 0.2
+
         mod.Saved.Jimbo.TrueDamageValue = 1 --used to surpass the usual 0.5 minimum damage cap
         mod.Saved.Jimbo.TrueTearsValue = 1
 
@@ -239,6 +236,7 @@ function mod:OnGameStart(Continued)
         --resets stuff
         mod:StatReset(player,true,true,false,true,true)
         player:AddCacheFlags(CacheFlag.CACHE_ALL, true)
+        player:AddCustomCacheTag("playcd", true)
     end
 
 

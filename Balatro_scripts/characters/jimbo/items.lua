@@ -23,7 +23,6 @@ function mod:VoucherPool(Type,_,_,_,_,Player)
 
     if Player:HasCollectible(Type) then --there shouldn't be duplicate vouchers
 
-        print("has")
         if Type % 2 == mod.VoucherOff then --if it's a base voucher
 
             Type = Type + 1 --gives its upgraded version instead
@@ -338,41 +337,24 @@ mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.DirectorVoucher)
 
 
 
-
-
-
-
-
-
-
-
 ---@param Player EntityPlayer
 function mod:HandsCache(Player, Cache, Value)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
+
+    Value = 25 --starting point
+
     if Player:HasCollectible(mod.Vouchers.Grabber) then
-        Value = Value + 1
+        Value = Value + 5
     end
     if Player:HasCollectible(mod.Vouchers.NachoTong) then
-        Value = Value + 1
+        Value = Value + 5
     end
+
+    Value = math.max(Value ,1)
 
     return Value
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.HandsCache, "hands")
-
-
----@param Player EntityPlayer
-function mod:FinalHandsCache(Player, Cache, Value)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType then
-        return
-    end
-    Value = Value + 5
-
-    Value = math.max(Value ,1)
-    mod.Saved.Jimbo.MaxCards = math.ceil(5 * Value)
-
-end
-mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE,CallbackPriority.LATE, mod.FinalHandsCache, "hands")
 
