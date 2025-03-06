@@ -13,7 +13,6 @@
         modcostume="5"
         portrait="playerportrait_jimbo.png"
         skinColor="0"
-        canShoot = "False"
     />
 
     <player name="Jimbo"

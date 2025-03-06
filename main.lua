@@ -470,6 +470,7 @@ Balatro_Expansion.ShopAddedThisFloor = false
 Balatro_Expansion.Counters = {}--table used for variuos counters increased every update (mainly used for animated HUD stuff)
 Balatro_Expansion.Counters.SinceShift = 0
 Balatro_Expansion.Counters.SinceSelect = 0
+Balatro_Expansion.Counters.SinceShoot = 0
 Balatro_Expansion.Counters.Activated = {}
 
 Balatro_Expansion.Saved.Other = {}

@@ -241,6 +241,11 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
         mod.Fonts.Balatro:DrawStringScaled(BossProgress,
         RenderPos.X ,RenderPos.Y -1, 0.5, 0.5, Color)        
     end
+
+
+    mod.Fonts.Balatro:DrawStringScaled(tostring(mod.Saved.Jimbo.TrueDamageValue), 200,110,0.5,0.5,KColor.White)
+    mod.Fonts.Balatro:DrawStringScaled(tostring(mod.Saved.Jimbo.TrueTearsValue), 200,100,0.5,0.5,KColor.White)
+
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.JimboDeckHUD)
 
@@ -463,25 +468,28 @@ function mod:JimboBarRender(Player)
         return
     end
 
-    local Cooldown = Player:GetCustomCacheValue("playcd")
+    if Player:GetWeapon(1):GetWeaponType() == WeaponType.WEAPON_TEARS and Player:GetWeaponModifiers() == 0 then
+        local Cooldown = Player:GetCustomCacheValue("playcd")
 
-    local Data = Player:GetData()
-    if Data.PlayCD < Cooldown then --charging frames needed
+        local Data = Player:GetData()
+        if Data.PlayCD < Cooldown then --charging frames needed
 
-        HandChargeSprite:SetFrame("Charging", math.floor(Data.PlayCD * 100/Cooldown))
+            HandChargeSprite:SetFrame("Charging", math.floor(Data.PlayCD * 100/Cooldown))
 
-    elseif Data.PlayCD < Cooldown + CHARGED_ANIMATION then --Charging frames + StartCharged frames
-        HandChargeSprite:SetFrame("StartCharged", math.floor((Data.PlayCD - Cooldown)/2))
+        elseif Data.PlayCD < Cooldown + CHARGED_ANIMATION then --Charging frames + StartCharged frames
+            HandChargeSprite:SetFrame("StartCharged", math.floor((Data.PlayCD - Cooldown)/2))
 
-    else
-        HandChargeSprite:SetFrame("Charged", math.floor((Data.PlayCD - Cooldown - CHARGED_ANIMATION)/2))
+        else
+            HandChargeSprite:SetFrame("Charged", math.floor((Data.PlayCD - Cooldown - CHARGED_ANIMATION)/2))
+        end
+
+        --renders a timer as a charge bar next to the player
+        HandChargeSprite.Offset = CHARGE_BAR_OFFSET * Player.SpriteScale
+        HandChargeSprite:Render(Isaac.WorldToScreen(Player.Position))
+   
     end
 
-    --renders a timer as a charge bar next to the player
-    HandChargeSprite.Offset = CHARGE_BAR_OFFSET * Player.SpriteScale
-    HandChargeSprite:Render(Isaac.WorldToScreen(Player.Position))
-
-
+    
     --------------HAND SELECTION COOLDOWN------------------
     if mod.SelectionParams.Mode == mod.SelectionParams.Modes.NONE then
         return
@@ -546,6 +554,12 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, mod.JimboInit)
 
 
+
+local GoodWeaponTypes = {
+    WeaponType.WEAPON_TEARS,
+    WeaponType.WEAPON_MONSTROS_LUNGS,
+    WeaponType.WEAPON_NOTCHED_AXE
+}
 --makes basically every input possible when using jimbo (+ other stuff)
 ---@param Player EntityPlayer
 function mod:JimboInputHandle(Player)
@@ -553,6 +567,30 @@ function mod:JimboInputHandle(Player)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
+
+    -- got this from "sybil pseudoregalia" on the modding of isaac discord (savior tbh) and modified it a bit
+    ---------------------------------------
+    local Weapon = Player:GetWeapon(1)
+    
+    if Weapon then
+        if not mod:Contained(GoodWeaponTypes, Weapon:GetWeaponType()) then
+
+
+            local newWeapon
+
+            if Player:HasCollectible(CollectibleType.COLLECTIBLE_MONSTROS_LUNG) then
+                newWeapon = Isaac.CreateWeapon(WeaponType.WEAPON_MONSTROS_LUNGS, Player)
+
+            else
+                newWeapon = Isaac.CreateWeapon(WeaponType.WEAPON_TEARS, Player)
+            end
+
+            Isaac.DestroyWeapon(Weapon)
+            Player:EnableWeaponType(newWeapon:GetWeaponType(), true)
+            Player:SetWeapon(newWeapon, 1)
+        end
+    end
+    ----------------------------------------
 
     local Data = Player:GetData()
 
@@ -662,8 +700,8 @@ mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.CountersUpdate)
 
 
 local CoinQuality = {[CoinSubType.COIN_PENNY] = 1, 
-                    [CoinSubType.COIN_DOUBLEPACK] = 1.5, 
-                    [CoinSubType.COIN_STICKYNICKEL] = 3.5, 
+                    [CoinSubType.COIN_DOUBLEPACK] = 2, 
+                    [CoinSubType.COIN_STICKYNICKEL] = 4, 
                     [CoinSubType.COIN_NICKEL] = 4, 
                     [CoinSubType.COIN_LUCKYPENNY] = 5, 
                     [CoinSubType.COIN_GOLDEN] = 5, 
@@ -1550,6 +1588,8 @@ function mod:JokerStatReset(Player, Cache)
 end
 mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.IMPORTANT, mod.JokerStatReset)
 
+
+local LibraEnable = true
 --finally gives the actual stat changes to jimbo, also used for always active buffs
 ---@param Player EntityPlayer
 function mod:StatGiver(Player, Cache)
@@ -1563,36 +1603,43 @@ function mod:StatGiver(Player, Cache)
 
         --Player.Damage = (Player.Damage + (stats.Damage + stats.JokerDamage) * Player.Damage) * stats.JokerMult * stats.Mult
         mod.Saved.Jimbo.TrueDamageValue = (Player.Damage + (stats.Damage + stats.JokerDamage) * Player.Damage) * stats.JokerMult * stats.Mult
-    end
-    if Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then
+    
+        Player.Damage = 1
+    
+    elseif Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then
 
         mod.Saved.Jimbo.TrueTearsValue = mod:CalculateTearsValue(Player) + (stats.Tears +  stats.JokerTears)* mod:CalculateTearsValue(Player)
+    
+        Player.MaxFireDelay = mod:CalculateMaxFireDelay(1)
     end
+
+    
 
     --changing stats the next frame sadly causes some "jiggling" fpr the stats values, but it's needed due to
     --how libra and the minimum damage cap (0.5) work, but these ifs at leat limit the ammount of situations they can appear in
     if Player:HasCollectible(CollectibleType.COLLECTIBLE_LIBRA) then
 
+        local HalfStat = (mod.Saved.Jimbo.TrueDamageValue + mod.Saved.Jimbo.TrueTearsValue)/2
+        --local HalfStat = ((mod.Saved.Jimbo.TrueDamageValue + mod.Saved.Jimbo.TrueTearsValue)/4)^0.5 --halfes the total card damage
+
+        if Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE 
+           or Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY
+           and LibraEnable then
+            
+            Isaac.CreateTimer(function ()
+                mod.Saved.Jimbo.TrueDamageValue = HalfStat
+                mod.Saved.Jimbo.TrueTearsValue = HalfStat
+                LibraEnable = true
+            end,0,1,true)
+            LibraEnable = false
+        end
+
         Isaac.CreateTimer(function ()
-            local HalfStat = (mod.Saved.Jimbo.TrueDamageValue + mod.Saved.Jimbo.TrueTearsValue)/2
-            --local HalfStat = ((mod.Saved.Jimbo.TrueDamageValue + mod.Saved.Jimbo.TrueTearsValue)/4)^0.5 --halfes the total card damage
+            Player.Damage = 1
+            Player.MaxFireDelay = mod:CalculateMaxFireDelay(1)
+        end,0,1,true)
 
-            Player.Damage = HalfStat
-            Player.MaxFireDelay = mod:CalculateMaxFireDelay(HalfStat)
-
-        end, 0, 1, true)
-    elseif mod.Saved.Jimbo.TrueDamageValue <= 0.5 then
-
-        Isaac.CreateTimer(function ()
-            Player.Damage = mod.Saved.Jimbo.TrueDamageValue
-        end, 0, 1, true)
-
-        Player.MaxFireDelay = mod:CalculateMaxFireDelay(mod.Saved.Jimbo.TrueTearsValue)
-    else
-        Player.Damage = mod.Saved.Jimbo.TrueDamageValue
-        Player.MaxFireDelay = mod:CalculateMaxFireDelay(mod.Saved.Jimbo.TrueTearsValue)
     end
-
 end
 mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE + 1, mod.StatGiver)
 
@@ -1656,6 +1703,11 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.PlayCDCache, "playcd"
 ---@param Player EntityPlayer
 ---@param Direction Vector
 function mod:JimboShootCardTear(Player,Direction)
+
+    if true then
+        return
+    end
+
     local CardShot = mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize]]
     CardShot.Index = mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize] --could be useful
 
@@ -1696,7 +1748,7 @@ function mod:JimboShootCardTear(Player,Direction)
             if Player:GetWeaponModifiers() & WeaponModifier.MONSTROS_LUNG == WeaponModifier.MONSTROS_LUNG then
                 
                 for i = 0, Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_MONSTROS_LUNG)*13 do
-                    local TrueDirection = ShootDirection:Rotated(math.random(-10,10))
+                    local TrueDirection = ShootDirection:Rotated(math.random(-12,12))
 
                     Player:FireTear(Player.Position, TrueDirection, true, false, true, Player)
                 end
@@ -1710,6 +1762,8 @@ function mod:JimboShootCardTear(Player,Direction)
             --mod:AddCardTearFalgs(Tear, CardShot)
         end
     end
+
+    mod.Counters.SinceShoot = 0
 
     mod:AddValueToTable(mod.Saved.Jimbo.CurrentHand, mod.Saved.Jimbo.DeckPointer,false,true)
     mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer + 1
@@ -1783,54 +1837,49 @@ function mod:AddCardTearFalgs(Tear)
 
     local Player = Tear.Parent:ToPlayer()
 
-    if Player and Player:GetPlayerType() == mod.Characters.JimboType then
-
-        local CardShot = mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize]]
-        CardShot.Index = mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize] --could be useful
-
-        local TearData = Tear:GetData()
-        TearData.Params = CardShot
-        TearData.Num = mod.Saved.Jimbo.Progress.Blind.Shots + 1
-
-        --damage dealt = Damage * TearRate of the player
-        Tear.CollisionDamage = Player.Damage * mod:CalculateTearsValue(Player)
-
-        Tear.Scale = (Player.SpriteScale.Y + Player.SpriteScale.X) / 2
-        Tear.Scale = mod:Clamp(Tear.Scale, 3, 0.75)
-
-        --(kinda) emulates the monstro's lung attack pattern
-        if Player:GetWeaponModifiers() & WeaponModifier.MONSTROS_LUNG == WeaponModifier.MONSTROS_LUNG then
-            Tear.FallingSpeed = math.random()*-10 - 4 + Tear.FallingSpeed
-            Tear.FallingAcceleration = math.random() * 2.5 + 0.75 + Tear.FallingAcceleration
-            Tear.Velocity = Tear.Velocity * (math.random()*0.4 + 0.8)
-        end
-
-        --local TearSuit = mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize]].Suit
-        Tear:ChangeVariant(mod.CARD_TEAR_VARIANTS[TearData.Params.Suit])
-
-        if mod:IsSuit(Player, TearData.Params.Suit, TearData.Params.Enhancement, mod.Suits.Spade, false) then --SPADES
-            Tear:AddTearFlags(TearFlags.TEAR_PIERCING)
-            Tear:AddTearFlags(TearFlags.TEAR_SPECTRAL)
-
-        elseif mod:IsSuit(Player, TearData.Params.Suit, TearData.Params.Enhancement, mod.Suits.Diamond, false) then
-            Tear:AddTearFlags(TearFlags.TEAR_BACKSTAB)
-            Tear:AddTearFlags(TearFlags.TEAR_BOUNCE)
-        end
-
-        local TearSprite = Tear:GetSprite()
-        TearSprite:Play(ENHANCEMENTS_ANIMATIONS[TearData.Params.Enhancement], true)
+    if not Player or Player:GetPlayerType() ~= mod.Characters.JimboType then
+        return
     end
+    
+    local CardShot = mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize]]
+    CardShot.Index = mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize] --could be useful
+
+    local TearData = Tear:GetData()
+    TearData.Params = CardShot
+    TearData.Num = mod.Saved.Jimbo.Progress.Blind.Shots + 1
+
+    --damage dealt = Damage * TearRate of the player
+    Tear.CollisionDamage = Player.Damage * mod:CalculateTearsValue(Player)
+
+    Tear.Scale = (Player.SpriteScale.Y + Player.SpriteScale.X) / 2
+    Tear.Scale = mod:Clamp(Tear.Scale, 3, 0.75)
+
+    --(kinda) emulates the monstro's lung attack pattern
+    if Player:GetWeaponModifiers() & WeaponModifier.MONSTROS_LUNG == WeaponModifier.MONSTROS_LUNG then
+        Tear.FallingSpeed = math.random()*-10 - 4 + Tear.FallingSpeed
+        Tear.FallingAcceleration = math.random() * 2.25 + 0.5 + Tear.FallingAcceleration
+        Tear.Velocity = Tear.Velocity * (math.random()*0.4 + 0.8)
+        Tear.Scale = Tear.Scale * (math.random()*0.5 + 0.75)
+
+    end
+
+    --local TearSuit = mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize]].Suit
+    Tear:ChangeVariant(mod.CARD_TEAR_VARIANTS[TearData.Params.Suit])
+
+    if mod:IsSuit(Player, TearData.Params.Suit, TearData.Params.Enhancement, mod.Suits.Spade, false) then --SPADES
+        Tear:AddTearFlags(TearFlags.TEAR_PIERCING)
+        Tear:AddTearFlags(TearFlags.TEAR_SPECTRAL)
+
+    elseif mod:IsSuit(Player, TearData.Params.Suit, TearData.Params.Enhancement, mod.Suits.Diamond, false) then
+        Tear:AddTearFlags(TearFlags.TEAR_BACKSTAB)
+        Tear:AddTearFlags(TearFlags.TEAR_BOUNCE)
+    end
+
+    local TearSprite = Tear:GetSprite()
+    TearSprite:Play(ENHANCEMENTS_ANIMATIONS[TearData.Params.Enhancement], true)
+    
 end
 mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, mod.AddCardTearFalgs)
-
-
----@param Tear EntityTear
-function mod:test(Tear)
-
-    local Player = Tear.Parent:ToPlayer()
-
-end
---mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, mod.test)
 
 
 --adjusts the card rotation basing on its movement every few frames

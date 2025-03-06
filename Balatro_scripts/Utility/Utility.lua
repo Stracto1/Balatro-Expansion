@@ -223,6 +223,23 @@ function mod:Clamp(Num,Max,Min)
     return math.max(Min,math.min(Num, Max))
 end
 
+function mod:HeadDirectionToString(Vector) --ty sheriff
+
+    local Angle = ((Vector:GetAngleDegrees() + 45) // 90) * 90
+
+    if Angle == 0 then
+        return "Right"
+    elseif Angle == 90 then
+        return "Down"
+    elseif Angle == 180 then
+        return "Left"
+    elseif Angle == -90 then
+        return "Up"
+    end
+
+    return ""
+end
+
 -------------JIMBO FUNCTIONS------------
 ---------------------------------------
 
