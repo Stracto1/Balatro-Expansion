@@ -240,10 +240,21 @@ Balatro_Expansion.HandTypes.FIVE = 10
 Balatro_Expansion.HandTypes.FLUSH_HOUSE = 11
 Balatro_Expansion.HandTypes.FIVE_FLUSH = 12
 
+
+
 Balatro_Expansion.CARD_TEAR_VARIANTS = {Isaac.GetEntityVariantByName("Tear Spade Card"),
                                         Isaac.GetEntityVariantByName("Tear Heart Card"),
                                         Isaac.GetEntityVariantByName("Tear Club Card"),
                                         Isaac.GetEntityVariantByName("Tear Diamond Card")}
+                                        
+Balatro_Expansion.SUIT_TEAR_VARIANTS = {Isaac.GetEntityVariantByName("Tear Spade Suit"),
+                                        Isaac.GetEntityVariantByName("Tear Heart Suit"),
+                                        Isaac.GetEntityVariantByName("Tear Club Suit"),
+                                        Isaac.GetEntityVariantByName("Tear Diamond Suit")}
+
+
+
+
 ---
 Balatro_Expansion.Challenges = {}
 Balatro_Expansion.Challenges.Balatro = Isaac.GetChallengeIdByName("Balatro")
@@ -576,6 +587,8 @@ include("Balatro_scripts.Effects")
 
 include("Balatro_scripts.Utility.Utility")
 include("Balatro_scripts.Utility.save_manager")
+include("Balatro_scripts.Utility.cool_title")
+
 
 ---------------CURSES/CHALLENGES-----------------
 -------------------------------------------------

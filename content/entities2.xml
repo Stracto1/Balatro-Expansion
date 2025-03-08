@@ -7,29 +7,58 @@
 
 
     <!--TEAR VARIANTS-->
-    <entity anm2path="SpadeCardAnimation.anm2" id="2" variant="6013" name="Tear Spade Card" 
+    <entity anm2path="SpadeCardAnimation.anm2" id="2" variant="2698" subtype="0" name="Tear Spade Card" 
             collisionRadius="11"
             numGridCollisionPoints="8" friction="1" shadowSize="13" stageHP="0" gibAmount="1">
             <gibs amount="1" rock="1" dust="1" sound_bone="1"/>
     </entity>
 
-    <entity anm2path="HeartCardAnimation.anm2" id="2" variant="6014" name="Tear Heart Card" 
+    <entity anm2path="HeartCardAnimation.anm2" id="2" variant="2699" subtype="0" name="Tear Heart Card" 
             collisionRadius="11"
             numGridCollisionPoints="8" friction="1" shadowSize="13" stageHP="0" gibAmount="1">
             <gibs amount="1" rock="1" dust="1" sound_bone="1"/>
     </entity>
 
-    <entity anm2path="ClubCardAnimation.anm2" id="2" variant="6015" name="Tear Club Card" 
+    <entity anm2path="ClubCardAnimation.anm2" id="2" variant="2700" subtype="0" name="Tear Club Card" 
             collisionRadius="11"
             numGridCollisionPoints="8" friction="1" shadowSize="13" stageHP="0" gibAmount="1">
             <gibs amount="1" rock="1" dust="1" sound_bone="1"/>
     </entity>
 
-    <entity anm2path="DiamondCardAnimation.anm2" id="2" variant="6016" name="Tear Diamond Card" 
+    <entity anm2path="DiamondCardAnimation.anm2" id="2" variant="2701" subtype="0" name="Tear Diamond Card" 
             collisionRadius="11"
             numGridCollisionPoints="8" friction="1" shadowSize="13" stageHP="0" gibAmount="1">
             <gibs amount="1" rock="1" dust="1" sound_bone="1"/>
     </entity>
+
+    <!--SUIT TEARS-->
+
+    <entity anm2path="spade suit tear.anm2" id="2" variant="2702" subtype="0" name="Tear Spade Suit" 
+            collisionRadius="11"
+            numGridCollisionPoints="8" friction="1" shadowSize="13" stageHP="0" gibAmount="1">
+            <gibs amount="1" rock="1" dust="1" sound_bone="1"/>
+    </entity>
+
+    <entity anm2path="heart suit tear.anm2" id="2" variant="3706" subtype="0" name="Tear Heart Suit" 
+            collisionRadius="11"
+            numGridCollisionPoints="8" friction="1" shadowSize="13" stageHP="0" gibAmount="1">
+            <gibs amount="1" rock="1" dust="1" sound_bone="1"/>
+    </entity>
+
+    <entity anm2path="club suit tear.anm2" id="2" variant="2704" subtype="0" name="Tear Club Suit" 
+            collisionRadius="11"
+            numGridCollisionPoints="8" friction="1" shadowSize="13" stageHP="0" gibAmount="1">
+            <gibs amount="1" rock="1" dust="1" sound_bone="1"/>
+    </entity>
+
+    <entity anm2path="diamond suit tear.anm2" id="2" variant="2705" subtype="0" name="Tear Diamond Suit" 
+            collisionRadius="11"
+            numGridCollisionPoints="8" friction="1" shadowSize="13" stageHP="0" gibAmount="1">
+            <gibs amount="1" rock="1" dust="1" sound_bone="1"/>
+    </entity>
+
+
+
 
     <!--CARD ENTITIES-->
         <!--PLANETS-->

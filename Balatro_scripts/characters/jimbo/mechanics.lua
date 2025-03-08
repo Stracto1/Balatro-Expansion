@@ -1765,17 +1765,7 @@ function mod:JimboShootCardTear(Player,Direction)
 
     mod.Counters.SinceShoot = 0
 
-    mod:AddValueToTable(mod.Saved.Jimbo.CurrentHand, mod.Saved.Jimbo.DeckPointer,false,true)
-    mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer + 1
-    mod.Saved.Jimbo.Progress.Room.Shots = mod.Saved.Jimbo.Progress.Room.Shots + 1
-    if mod.Saved.Jimbo.Progress.Room.Shots == Player:GetCustomCacheValue("hands") and mod.Saved.Jimbo.FirstDeck then
-        Player:AnimateSad()
-    end
-
-    Isaac.RunCallback("DECK_SHIFT",Player)
-    Isaac.RunCallback("CARD_SHOT", Player, CardShot, 
-    not Game:GetRoom():IsClear() and mod.Saved.Jimbo.FirstDeck and mod.Saved.Jimbo.Progress.Room.Shots < Player:GetCustomCacheValue("hands"))
-
+    
     --[[mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize -mod.Saved.Jimbo.Progress.Hand] = 0 --removes the used card
     mod.Saved.Jimbo.Progress.Hand = mod.Saved.Jimbo.Progress.Hand + 1
 
@@ -1832,6 +1822,7 @@ mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mo
 mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.CARD_TEAR_VARIANTS[mod.Suits.Diamond])
 
 
+local TearCardEnable = true
 ---@param Tear EntityTear
 function mod:AddCardTearFalgs(Tear)
 
@@ -1840,7 +1831,8 @@ function mod:AddCardTearFalgs(Tear)
     if not Player or Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
-    
+
+
     local CardShot = mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize]]
     CardShot.Index = mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize] --could be useful
 
@@ -1848,35 +1840,64 @@ function mod:AddCardTearFalgs(Tear)
     TearData.Params = CardShot
     TearData.Num = mod.Saved.Jimbo.Progress.Blind.Shots + 1
 
+
     --damage dealt = Damage * TearRate of the player
     Tear.CollisionDamage = Player.Damage * mod:CalculateTearsValue(Player)
 
     Tear.Scale = (Player.SpriteScale.Y + Player.SpriteScale.X) / 2
     Tear.Scale = mod:Clamp(Tear.Scale, 3, 0.75)
 
-    --(kinda) emulates the monstro's lung attack pattern
-    if Player:GetWeaponModifiers() & WeaponModifier.MONSTROS_LUNG == WeaponModifier.MONSTROS_LUNG then
-        Tear.FallingSpeed = math.random()*-10 - 4 + Tear.FallingSpeed
-        Tear.FallingAcceleration = math.random() * 2.25 + 0.5 + Tear.FallingAcceleration
-        Tear.Velocity = Tear.Velocity * (math.random()*0.4 + 0.8)
-        Tear.Scale = Tear.Scale * (math.random()*0.5 + 0.75)
-
-    end
-
     --local TearSuit = mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize]].Suit
-    Tear:ChangeVariant(mod.CARD_TEAR_VARIANTS[TearData.Params.Suit])
+
 
     if mod:IsSuit(Player, TearData.Params.Suit, TearData.Params.Enhancement, mod.Suits.Spade, false) then --SPADES
         Tear:AddTearFlags(TearFlags.TEAR_PIERCING)
         Tear:AddTearFlags(TearFlags.TEAR_SPECTRAL)
 
     elseif mod:IsSuit(Player, TearData.Params.Suit, TearData.Params.Enhancement, mod.Suits.Diamond, false) then
-        Tear:AddTearFlags(TearFlags.TEAR_BACKSTAB)
+        --Tear:AddTearFlags(TearFlags.TEAR_BACKSTAB)
         Tear:AddTearFlags(TearFlags.TEAR_BOUNCE)
     end
 
-    local TearSprite = Tear:GetSprite()
-    TearSprite:Play(ENHANCEMENTS_ANIMATIONS[TearData.Params.Enhancement], true)
+
+    Tear:ChangeVariant(mod.CARD_TEAR_VARIANTS[TearData.Params.Suit])
+
+
+    if mod.Counters.SinceShoot >= 4 then
+        TearCardEnable = true
+    end
+
+
+    if TearCardEnable then
+
+        local TearSprite = Tear:GetSprite()
+        TearSprite:Play(ENHANCEMENTS_ANIMATIONS[TearData.Params.Enhancement], true)
+
+        TearCardEnable = false
+        mod.Counters.SinceShoot = 0 
+        Isaac.CreateTimer(function ()
+            
+        end,0,1,true)
+
+
+        mod.Saved.Jimbo.Progress.Room.Shots = mod.Saved.Jimbo.Progress.Room.Shots + 1
+        if mod.Saved.Jimbo.Progress.Room.Shots == Player:GetCustomCacheValue("hands") and mod.Saved.Jimbo.FirstDeck then
+            Player:AnimateSad()
+        end
+
+        mod:AddValueToTable(mod.Saved.Jimbo.CurrentHand, mod.Saved.Jimbo.DeckPointer,false,true)
+        mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer + 1
+
+
+        Isaac.RunCallback("DECK_SHIFT",Player)
+        Isaac.RunCallback("CARD_SHOT", Player, CardShot, 
+        not Game:GetRoom():IsClear() and mod.Saved.Jimbo.FirstDeck and mod.Saved.Jimbo.Progress.Room.Shots < Player:GetCustomCacheValue("hands"))
+
+    else
+        local TearSprite = Tear:GetSprite()
+        TearSprite:Play("Rotate3", true)
+
+    end
     
 end
 mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, mod.AddCardTearFalgs)

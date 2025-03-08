@@ -11,6 +11,8 @@
         rangemodifier="2"
         luckmodifier="1"
         modcostume="5"
+
+        
         portrait="playerportrait_jimbo.png"
         skinColor="0"
     />
@@ -25,6 +27,9 @@
         skinColor="-1"
         bSkinParent="Jimbo"
         costumeSuffix="jimbob"
-        costume="104"
+        modcostume="6"
+        skinColor="0"
+        
     />
+    <!-- costume="104" -->
 </players>
