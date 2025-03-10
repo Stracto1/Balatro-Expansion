@@ -352,7 +352,7 @@ function mod:HandsCache(Player, Cache, Value)
         Value = Value + 5
     end
 
-    Value = math.max(Value ,1)
+    Value = math.max(Value ,5)
 
     return Value
 end

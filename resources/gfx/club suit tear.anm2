@@ -1,8 +1,8 @@
 <AnimatedActor>
-	<Info CreatedBy="Unknown" CreatedOn="06/03/2025 22:56:52" Version="10" Fps="30"/>
+	<Info CreatedBy="Unknown" CreatedOn="09/03/2025 10:46:02" Version="11" Fps="30"/>
 	<Content>
 		<Spritesheets>
-			<Spritesheet Path="sprites\Spade_Suit_Tear.png" Id="0"/>
+			<Spritesheet Path="sprites\club_Suit_Tear.png" Id="0"/>
 		</Spritesheets>
 		<Layers>
 			<Layer Name="body" Id="0" SpritesheetId="0"/>

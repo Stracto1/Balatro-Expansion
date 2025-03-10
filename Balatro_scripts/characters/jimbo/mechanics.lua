@@ -122,9 +122,9 @@ function mod:JimboInventoryHUD(offset,_,Position,_,Player)
     if mod.SelectionParams.Mode == mod.SelectionParams.Modes.INVENTORY then
         local RenderPos
         if mod.SelectionParams.SelectedCards[mod.SelectionParams.Index] then
-            RenderPos = INVENTORY_RENDERING_POSITION + Vector(16 * mod.SelectionParams.Index, -9)
+            RenderPos = INVENTORY_RENDERING_POSITION + Vector(19 * mod.SelectionParams.Index, -9)
         else
-            RenderPos = INVENTORY_RENDERING_POSITION + Vector(16 * mod.SelectionParams.Index, 0)
+            RenderPos = INVENTORY_RENDERING_POSITION + Vector(19 * mod.SelectionParams.Index, 0)
         end
 
         CardFrame:SetFrame(HUD_FRAME.Frame)
@@ -132,7 +132,7 @@ function mod:JimboInventoryHUD(offset,_,Position,_,Player)
         CardFrame:Render(RenderPos)
 
         --last confirm option
-        RenderPos = INVENTORY_RENDERING_POSITION + Vector(16 * (mod.Saved.Jimbo.InventorySize + 1) + 4, 0)
+        RenderPos = INVENTORY_RENDERING_POSITION + Vector(19 * (mod.Saved.Jimbo.InventorySize + 1), 0)
         CardFrame:SetFrame(HUD_FRAME.Confirm)
         CardFrame:Render(RenderPos)
     end
@@ -249,6 +249,7 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.JimboDeckHUD)
 
+
 local ScaleMult = 0.5
 local LastCardFullPoss = {}
 ---@param Player EntityPlayer
@@ -267,7 +268,8 @@ function mod:JimboHandRender(Player, Offset)
     end
 
     local PlayerScreenPos = Isaac.WorldToRenderPosition(Player.Position)
-    local BaseRenderOff = Vector( (-7*mod.Saved.Jimbo.HandSize + 3.5) * ScaleMult + 1.5*(5-mod.Saved.Jimbo.HandSize),26 * ScaleMult)
+    local BaseRenderOff = Vector(-7 *(mod.Saved.Jimbo.HandSize-1), 26 ) * ScaleMult
+    --local BaseRenderOff = Vector( (-7*mod.Saved.Jimbo.HandSize + 3.5) * ScaleMult + 1.5*(5-mod.Saved.Jimbo.HandSize),26 * ScaleMult)
 
     local RenderOff = BaseRenderOff + Vector.Zero
     local TrueOffset = {}
@@ -670,7 +672,7 @@ function mod:JimboInputHandle(Player)
         -----------SHOOTING HANDLING---------------
         local AimDirection = Player:GetAimDirection()
         if Data.PlayCD >= Cooldown and (AimDirection.X ~= 0 or AimDirection.Y ~= 0) then
-            mod:JimboShootCardTear(Player, AimDirection)
+            --mod:JimboShootCardTear(Player, AimDirection)
             Data.PlayCD = 0
         end
 
@@ -809,6 +811,18 @@ function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rN
 
             local PlanetChance = (PlayerManager.GetNumCollectibles(mod.Vouchers.PlanetMerch) + PlayerManager.GetNumCollectibles(mod.Vouchers.PlanetTycoon)) * 0.07
             local TarotChance = (PlayerManager.GetNumCollectibles(mod.Vouchers.TarotMerch) + PlayerManager.GetNumCollectibles(mod.Vouchers.TarotTycoon)) * 0.07 + PlanetChance
+
+            --MULTIPLAYER - PLACEHOLDER
+            --[[
+            for i,Player in ipairs(PlayerManager.GetPlayers()) do
+                if Player:GetPlayerType() == mod.Characters.JimboType then
+                    for i=1, mod:GetValueRepetitions(mod.Saved.Jimbo.Inventory.Jokers, TrinketType.OOPS) do
+                        PlanetChance = PlanetChance * 2
+                        TarotChance = TarotChance * 2
+                    end
+                end
+            end]]--
+
 
             local CardRoll = mod.Saved.GeneralRNG:RandomFloat()
 
@@ -988,6 +1002,7 @@ function mod:FloorModifier(LevelGen,RoomConfig,Seed)
 end
 mod:AddCallback(ModCallbacks.MC_PRE_LEVEL_PLACE_ROOM, mod.FloorModifier)
 
+
 --calculates how big the blinds are 
 function mod:CalculateBlinds()
 
@@ -1013,6 +1028,7 @@ function mod:CalculateBlinds()
 end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.CalculateBlinds)
 --mod:AddPriorityCallback(ModCallbacks.MC_POST_GAME_STARTED, CallbackPriority.LATE,mod.CalculateBlinds)
+
 
 --handles the rooms which are cleared by default and shuffels if they are not
 function mod:HandleNoHarmRoomsClear()
@@ -1112,26 +1128,6 @@ end
 mod:AddCallback("DECK_SHIFT", mod.OnDeckShift)
 
 
-function mod:SteelStatBoosts(Player, Cache)
-    for _,index in ipairs(mod.Saved.Jimbo.CurrentHand) do
-        local Triggers = 0
-        if mod.Saved.Jimbo.FullDeck[index]
-           and mod.Saved.Jimbo.FullDeck[index].Enhancement == mod.Enhancement.STEEL then
-
-            Triggers = Triggers + 1
-
-            if mod.Saved.Jimbo.FullDeck[index].Seal == mod.Seals.RED then
-                Triggers = Triggers + 1
-            end
-            --if mod:JimboHasTrinket(Player, TrinkrtType.MIME) then Triggers = Triggers + 1
-
-            --steel cards use the joker stats cause they are variable and need to be reset each time
-            mod:IncreaseJimboStats(Player,0, 0, 1.1^Triggers, false,false)
-        end
-    end
-end
-mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.SteelStatBoosts, CacheFlag.CACHE_DAMAGE)
-
 
 function mod:GiveRewards(BlindType)
 
@@ -1176,9 +1172,16 @@ function mod:GiveRewards(BlindType)
             
         end
     end
+
     for _,index in ipairs(mod.Saved.Jimbo.CurrentHand) do
-        if mod.Saved.Jimbo.FullDeck[index].Enhancement == mod.Enhancement.GOLDEN then
-            Jimbo:AddCoins(3)
+        if mod.Saved.Jimbo.FullDeck[index].Enhancement == mod.Enhancement.GOLDEN --PLACEHOLDER
+           and mod.Saved.Jimbo.FirstDeck and mod.Saved.Jimbo.Progress.Room.Shots < Game:GetPlayer(0):GetCustomCacheValue("hands") then
+            for i=1, 3 do
+                Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Jimbo.Position,
+                RandomVector() * 4, PlayerManager.FirstPlayerByType(mod.Characters.JimboType),
+                CoinSubType.COIN_PENNY, Seed)
+            end
+            --Jimbo:AddCoins(3)
         end
     end
 
@@ -1203,25 +1206,36 @@ mod:AddPriorityCallback("BLIND_CLEARED",CallbackPriority.LATE, mod.GiveRewards)
 
 ---@param Player EntityPlayer
 function mod:JimboAddTrinket(Player, Trinket, _)
-    if Player:GetPlayerType() == mod.Characters.JimboType then
-        
-        Player:TryRemoveTrinket(Trinket) -- a custom array is used instead since he needs to hold many of them
-
-        local Slot = mod:AddValueToTable(mod.Saved.Jimbo.Inventory.Jokers, Trinket, true, false)
-        local JokerEdition = mod.Saved.Jimbo.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Trinket).Name] or mod.Edition.BASE 
-
-        mod.Saved.Jimbo.Inventory.Editions[Slot] = JokerEdition --gives the correct edition to the inventory slot
-
-        if JokerEdition == mod.Edition.NEGATIVE then
-            mod:AddJimboInventorySlots(Player, 1)
-        end
-
-        local InitialProg = ItemsConfig:GetTrinket(Trinket):GetCustomTags()[2]
-        mod.Saved.Jimbo.Progress.Inventory[Slot] = tonumber(InitialProg)
-
-        Isaac.RunCallback("INVENTORY_CHANGE", Player)
-
+    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+        return
     end
+        
+    Player:TryRemoveTrinket(Trinket) -- a custom table is used instead since he needs to hold many of them
+
+    --needs at least an empty slot
+    if not mod:Contained(mod.Saved.Jimbo.Inventory.Jokers, 0) then
+        Isaac.CreateTimer(function ()
+            Player:AnimateSad()
+        end,0,1,false)
+        
+        return
+    end
+
+
+    local Slot = mod:AddValueToTable(mod.Saved.Jimbo.Inventory.Jokers, Trinket, true, false)
+    local JokerEdition = mod.Saved.Jimbo.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Trinket).Name] or mod.Edition.BASE 
+
+    mod.Saved.Jimbo.Inventory.Editions[Slot] = JokerEdition --gives the correct edition to the inventory slot
+
+    if JokerEdition == mod.Edition.NEGATIVE then
+        mod:AddJimboInventorySlots(Player, 1)
+    end
+
+    local InitialProg = ItemsConfig:GetTrinket(Trinket):GetCustomTags()[2]
+    mod.Saved.Jimbo.Progress.Inventory[Slot] = tonumber(InitialProg)
+
+    Isaac.RunCallback("INVENTORY_CHANGE", Player)
+
 end
 mod:AddCallback(ModCallbacks.MC_POST_TRIGGER_TRINKET_ADDED, mod.JimboAddTrinket)
 
@@ -1398,15 +1412,22 @@ mod:AddCallback(ModCallbacks.MC_FAMILIAR_INIT, mod.JimboBlueFliesSpiders, Famili
 ---@param Player EntityPlayer
 function mod:JimboRoomClear(Player)
 
-        if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
-            return
-        end
+    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
+        return
+    end
 
     local Room = Game:GetRoom():GetType()
     if Room == RoomType.ROOM_DEFAULT then
         Isaac.RunCallback("TRUE_ROOM_CLEAR",false, true)
     elseif Room == RoomType.ROOM_BOSS then
         Isaac.RunCallback("TRUE_ROOM_CLEAR",true, true)
+    else
+        for i,Player in ipairs(PlayerManager.GetPlayers()) do
+            if Player:GetPlayerType() == mod.Characters.JimboType then
+                Player:AddHearts(2)
+                mod:FullDeckShuffle(Player)
+            end
+        end
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, mod.JimboRoomClear)
@@ -1820,11 +1841,15 @@ mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mo
 mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.CARD_TEAR_VARIANTS[mod.Suits.Heart])
 mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.CARD_TEAR_VARIANTS[mod.Suits.Club])
 mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.CARD_TEAR_VARIANTS[mod.Suits.Diamond])
+mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.SUIT_TEAR_VARIANTS[mod.Suits.Spade])
+mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.SUIT_TEAR_VARIANTS[mod.Suits.Heart])
+mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.SUIT_TEAR_VARIANTS[mod.Suits.Club])
+mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.SUIT_TEAR_VARIANTS[mod.Suits.Diamond])
 
 
 local TearCardEnable = true
 ---@param Tear EntityTear
-function mod:AddCardTearFalgs(Tear)
+function mod:AddCardTearFalgs(Tear, Split)
 
     local Player = Tear.Parent:ToPlayer()
 
@@ -1832,9 +1857,17 @@ function mod:AddCardTearFalgs(Tear)
         return
     end
 
+    
+    local CardShot
+    if Split then
+        CardShot = mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.LastShotIndex]
+        CardShot.Index = mod.Saved.Jimbo.LastShotIndex --could be useful
+    else
+        CardShot = mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize]]
+        CardShot.Index = mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize] --could be useful
+    end
 
-    local CardShot = mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize]]
-    CardShot.Index = mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize] --could be useful
+    
 
     local TearData = Tear:GetData()
     TearData.Params = CardShot
@@ -1842,13 +1875,7 @@ function mod:AddCardTearFalgs(Tear)
 
 
     --damage dealt = Damage * TearRate of the player
-    Tear.CollisionDamage = Player.Damage * mod:CalculateTearsValue(Player)
-
-    Tear.Scale = (Player.SpriteScale.Y + Player.SpriteScale.X) / 2
-    Tear.Scale = mod:Clamp(Tear.Scale, 3, 0.75)
-
-    --local TearSuit = mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize]].Suit
-
+    Tear.CollisionDamage = mod.Saved.Jimbo.TrueDamageValue * mod.Saved.Jimbo.TrueTearsValue
 
     if mod:IsSuit(Player, TearData.Params.Suit, TearData.Params.Enhancement, mod.Suits.Spade, false) then --SPADES
         Tear:AddTearFlags(TearFlags.TEAR_PIERCING)
@@ -1860,24 +1887,34 @@ function mod:AddCardTearFalgs(Tear)
     end
 
 
-    Tear:ChangeVariant(mod.CARD_TEAR_VARIANTS[TearData.Params.Suit])
-
 
     if mod.Counters.SinceShoot >= 4 then
         TearCardEnable = true
     end
 
 
-    if TearCardEnable then
+    --if (TearCardEnable and not Init) or (not TearCardEnable and Init and mod.Counters.SinceShoot > 2) then
+    if TearCardEnable and not Split then
+        
+        Tear:ChangeVariant(mod.CARD_TEAR_VARIANTS[TearData.Params.Suit])
 
         local TearSprite = Tear:GetSprite()
         TearSprite:Play(ENHANCEMENTS_ANIMATIONS[TearData.Params.Enhancement], true)
 
-        TearCardEnable = false
-        mod.Counters.SinceShoot = 0 
+        Tear.Scale = (Player.SpriteScale.Y + Player.SpriteScale.X) / 2
+        Tear.Scale = mod:Clamp(Tear.Scale, 3, 0.75)
+
         Isaac.CreateTimer(function ()
-            
+            mod:AddValueToTable(mod.Saved.Jimbo.CurrentHand, mod.Saved.Jimbo.DeckPointer,false,true)
+            mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer + 1
+
+            Isaac.RunCallback("DECK_SHIFT",Player)
         end,0,1,true)
+
+
+        TearCardEnable = false
+        mod.Counters.SinceShoot = 0
+        mod.Saved.Jimbo.LastShotIndex = CardShot.Index
 
 
         mod.Saved.Jimbo.Progress.Room.Shots = mod.Saved.Jimbo.Progress.Room.Shots + 1
@@ -1885,15 +1922,13 @@ function mod:AddCardTearFalgs(Tear)
             Player:AnimateSad()
         end
 
-        mod:AddValueToTable(mod.Saved.Jimbo.CurrentHand, mod.Saved.Jimbo.DeckPointer,false,true)
-        mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer + 1
 
-
-        Isaac.RunCallback("DECK_SHIFT",Player)
         Isaac.RunCallback("CARD_SHOT", Player, CardShot, 
         not Game:GetRoom():IsClear() and mod.Saved.Jimbo.FirstDeck and mod.Saved.Jimbo.Progress.Room.Shots < Player:GetCustomCacheValue("hands"))
 
     else
+        Tear:ChangeVariant(mod.SUIT_TEAR_VARIANTS[TearData.Params.Suit])
+
         local TearSprite = Tear:GetSprite()
         TearSprite:Play("Rotate3", true)
 
@@ -1901,6 +1936,40 @@ function mod:AddCardTearFalgs(Tear)
     
 end
 mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, mod.AddCardTearFalgs)
+
+
+function mod:SplitTears(Tear)
+    Isaac.CreateTimer(function ()
+        if not Tear:GetData().Num then
+            mod:AddCardTearFalgs(Tear, true)
+        end
+    end,0,1,true)
+end
+mod:AddCallback(ModCallbacks.MC_POST_TEAR_INIT, mod.SplitTears)
+
+
+---@param Tear EntityTear
+function mod:CardSpoof(Tear)
+
+    Tear = Tear:ToTear() or Tear
+
+    if mod:Contained(mod.CARD_TEAR_VARIANTS, Tear.Variant)  then
+
+        local Impact = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.IMPACT, Tear.Position + Vector(0, Tear.Height), Vector.Zero, Tear, 0, 1):ToEffect()
+        Impact.SpriteScale = Vector(Tear.Scale, Tear.Scale)
+
+        sfx:Play(SoundEffect.SOUND_POT_BREAK, 0.3, 2, false, math.random()*0.5 + 2)
+
+    elseif mod:Contained(mod.SUIT_TEAR_VARIANTS, Tear.Variant) then
+
+        local Impact = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.IMPACT, Tear.Position + Vector(0, Tear.Height), Vector.Zero, Tear, 0, 1):ToEffect()
+        Impact.SpriteScale = Vector(Tear.Scale, Tear.Scale)
+
+        sfx:Play(SoundEffect.SOUND_POT_BREAK, 0.3, 2, false, math.random()*0.5 + 2)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_ENTITY_REMOVE, mod.CardSpoof, EntityType.ENTITY_TEAR)
+
 
 
 --adjusts the card rotation basing on its movement every few frames
@@ -1914,7 +1983,7 @@ function mod:AdjustCardRotation(Tear)
 
     if Data.Counter == 2 then
         
-        TearSprite.Rotation = (Tear.Velocity + Vector(0,math.min(Tear.FallingSpeed, -0.2))):GetAngleDegrees()
+        TearSprite.Rotation = (Tear.Velocity + Vector(0,math.min(Tear.FallingSpeed, 0))):GetAngleDegrees()
 
         Data.LastRotation = TearSprite.Rotation
         Data.Counter = 0
@@ -2124,8 +2193,9 @@ function mod:Select(Player)
             Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position, RandomVector()* 2, nil, card, RndSeed)
             
         end
-        if Player:HasCollectible(mod.Vouchers.MagicTrick) and Player:GetCollectibleRNG(mod.Vouchers.MagicTrick):RandomFloat() <= 0.25
+        if Player:HasCollectible(mod.Vouchers.MagicTrick) and mod:TryGamble(Player, Player:GetCollectibleRNG(mod.Vouchers.MagicTrick), 0.25)
            and mod.SelectionParams.OptionsNum > 1 then
+
             table.remove(mod.SelectionParams.PackOptions, mod.SelectionParams.Index)
             mod.SelectionParams.OptionsNum = mod.SelectionParams.OptionsNum - 1
             mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "1 more!")

@@ -152,7 +152,7 @@ Balatro_Expansion.Vouchers = {}
 Balatro_Expansion.Vouchers.Grabber = Isaac.GetItemIdByName("Grabber")
 Balatro_Expansion.Vouchers.NachoTong = Isaac.GetItemIdByName("Nacho Tong")
 Balatro_Expansion.Vouchers.Overstock = Isaac.GetItemIdByName("Overstock")
-Balatro_Expansion.Vouchers.OverstockPlus = Isaac.GetItemIdByName("Ocerstock Plus")
+Balatro_Expansion.Vouchers.OverstockPlus = Isaac.GetItemIdByName("Overstock Plus")
 Balatro_Expansion.Vouchers.Wasteful = Isaac.GetItemIdByName("Wasteful")
 Balatro_Expansion.Vouchers.Recyclomancy = Isaac.GetItemIdByName("Recyclomancy")
 Balatro_Expansion.Vouchers.RerollSurplus = Isaac.GetItemIdByName("Reroll Surplus")
@@ -357,7 +357,7 @@ end
 end
 Balatro_Expansion.Saved.Jimbo.DeckPointer = 6 --the card that is going to be picked next
 Balatro_Expansion.Saved.Jimbo.CurrentHand = {5,4,3,2,1} --the pointers of the cards in FullDeck that are stored in "the hand" active item
-Balatro_Expansion.Saved.Jimbo.MaxCards = 25 --the total amount of cards you can shoot before gettign debuffed
+Balatro_Expansion.Saved.Jimbo.LastShotIndex = 0
 
 --these two don't do anything directly and are only used to not call #table every time
 Balatro_Expansion.Saved.Jimbo.HandSize = 5
@@ -402,7 +402,7 @@ Balatro_Expansion.Saved.Jimbo.Progress.Floor = {}
 Balatro_Expansion.Saved.Jimbo.Progress.Floor.Vouchers = {} --says which vouchers have already been spawned in a floor
 
 
-Balatro_Expansion.Saved.Jimbo.LastUsed = {} --the last card a player used
+Balatro_Expansion.Saved.LasCardUsed = nil --the last card a player used
 Balatro_Expansion.Saved.Jimbo.EctoUses = 0 --how many times the Ectoplasm card got used in a run
 
 

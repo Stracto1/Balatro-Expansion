@@ -112,6 +112,7 @@ function mod:OnGameStart(Continued)
 
         mod.Saved.Jimbo.DeckPointer = 6
         mod.Saved.Jimbo.CurrentHand = {5,4,3,2,1} --basically 5 different cards
+        mod.Saved.Jimbo.LastShotIndex = 0
         mod.Saved.Jimbo.Inventory= {}
         mod.Saved.Jimbo.Inventory.Jokers = {0,0,0}
         mod.Saved.Jimbo.Inventory.Editions = {0,0,0}
@@ -119,8 +120,6 @@ function mod:OnGameStart(Continued)
 
         mod.Saved.Jimbo.HandSize = 5
         mod.Saved.Jimbo.InventorySize = 3
-        mod.Saved.Jimbo.MaxCards = 25
-
 
         mod.Saved.Jimbo.StatsToAdd = {}
         mod.Saved.Jimbo.StatsToAdd.Damage = 0
@@ -206,7 +205,7 @@ function mod:OnGameStart(Continued)
 
 
 
-        mod.Saved.Jimbo.LastUsed = {}
+        mod.Saved.LastUsed = nil
         mod.Saved.Jimbo.EctoUses = 0
     
         mod.Saved.GeneralRNG = RNG(Game:GetSeeds():GetStartSeed()) --RNG object used in various ways 

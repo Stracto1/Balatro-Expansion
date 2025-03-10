@@ -30,10 +30,10 @@ function mod:NewTarotEffects(card, Player, UseFlags)
         local IsTarot = false
 
         if card == Card.CARD_FOOL then
-            if mod.Saved.Jimbo.LastUsed[PIndex] then
+            if mod.Saved.LastCardUsed then
 
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
-                           RandomVector()*3, Player, mod.Saved.Jimbo.LastUsed[PIndex], RandomSeed)
+                           RandomVector()*3, Player, mod.Saved.LastCardUsed, RandomSeed)
             else
                 Player:AnimateSad()
             end
@@ -41,7 +41,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
             IsTarot = true
         else
         
-        mod.Saved.Jimbo.LastUsed[PIndex] = card
+        mod.Saved.LastCardUsed = card
 
         if card == Card.CARD_MAGICIAN then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
@@ -210,18 +210,28 @@ function mod:NewTarotEffects(card, Player, UseFlags)
             
             IsTarot = true
         elseif card == Card.CARD_JUDGEMENT then
+
+            local EmptySlot
             for i, Joker in ipairs(mod.Saved.Jimbo.Inventory) do
                 if Joker == 0 then --needs an empty slot
-                    local CardRNG = Player:GetCardRNG(Card.CARD_JUDGEMENT)
-                    local RandomJoker = mod.GetRandom(mod.Trinkets, CardRNG, true)
-                    mod.Saved.Jimbo.Inventory[i] = RandomJoker
-                    mod.Saved.Jimbo.Progress = ItemsConfig:GetTrinket(RandomJoker):GetCustomTags()[2] --sets the base progress
-                    Isaac.RunCallback("INVENTORY_CHANGE", Player)
-                    IsTarot = true
+                    EmptySlot = i
+                    break
                 end
             end
-            Player:AnimateSad()
+
+            if EmptySlot then
+                
+                local CardRNG = Player:GetCardRNG(Card.CARD_JUDGEMENT)
+                local RandomJoker = mod.GetRandom(mod.Trinkets, CardRNG, true)
+                mod.Saved.Jimbo.Inventory[EmptySlot] = RandomJoker
+                mod.Saved.Jimbo.Progress = ItemsConfig:GetTrinket(RandomJoker):GetCustomTags()[2] --sets the base progress
+                Isaac.RunCallback("INVENTORY_CHANGE", Player)
+            else
+                Player:AnimateSad()
+            end
+            
             IsTarot = true
+
         elseif card == Card.CARD_WORLD then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.WORLD)

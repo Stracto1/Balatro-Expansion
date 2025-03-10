@@ -1,3 +1,4 @@
+---@diagnostic disable: need-check-nil
 if not EID then
     return
 end
@@ -6,9 +7,6 @@ local Game = Game()
 local ItemsConfig = Isaac.GetItemConfig()
 local TrinketSprite = Sprite("gfx/005.350_custom.anm2")
 
-local ValueDescription
-------------LIST OF ALL THE GOLDEN TRINKET EXTRA TEXT----------
---(don't know how to put extra languages)
 
 ----------------------------------------------------------------
 do
@@ -21,6 +19,7 @@ EID:addColor("ColorMint", KColor(0.36, 0.87, 0.51, 1)) --taken from the Balatro 
 EID:addColor("ColorYellorange", KColor(238/255, 186/255, 49/255, 1))
 EID:addColor("ColorChips", KColor(49/255, 140/255, 238/255, 1))
 EID:addColor("ColorMult", KColor(238/255, 49/255, 66/255, 1))
+EID:addColor("ColorGlass", KColor(0.85, 0.85, 1, 0.6))
 
 
 --[[
@@ -102,6 +101,11 @@ local function BalatroValueCallback(descObj)
 end
 --EID:addDescriptionModifier("Balatro Current Values", BalatroValueCondition, BalatroValueCallback)]]
 
+
+
+
+
+
 --------------LIST OF ALL THE BASIC DESCRIPTIONS--------------------
 ---
 local DescriptionHelperVariant = Isaac.GetEntityVariantByName("Description Helper")
@@ -123,6 +127,7 @@ local function BalatroInventoryCallback(descObj)
     descObj.Name = "Selection Helper"
 
     local SelectedCard
+    local SelectedSlots
 
     local Icon = ""
     local Name = ""
@@ -137,11 +142,10 @@ local function BalatroInventoryCallback(descObj)
 
             if Balatro_Expansion.SelectionParams.Purpose == Balatro_Expansion.SelectionParams.Purposes.SELLING then
 
-                local SelectSlot
                 for i,selected in ipairs(mod.SelectionParams.SelectedCards) do
                     if selected then
                         SelectedCard = mod.Saved.Jimbo.Inventory.Jokers[i]
-                        SelectSlot = i
+                        SelectSlots = i
                         break
                     end
                 end
@@ -152,7 +156,7 @@ local function BalatroInventoryCallback(descObj)
 
                 Icon = "{{Shop}}"
                 Name = "Sell the selected joker"
-                Description = "#{{CurrentCard}} Currently gives {{ColorYellorange}}"..Balatro_Expansion:GetJokerCost(SelectedCard, SelectSlot).."${{CR}}"
+                Description = "#{{CurrentCard}} Currently gives {{ColorYellorange}}"..Balatro_Expansion:GetJokerCost(SelectedCard, SelectedSlots).."${{CR}}"
 
             else --not selling anything and confirm button
 
@@ -264,9 +268,35 @@ local function BalatroInventoryCallback(descObj)
                 Description = Description.." #{{Shop}} Sells for {{ColorYellorange}}"..tostring(mod:GetJokerCost(SelectedCard, mod.SelectionParams.Index)).."/3{{CR}}"
 
             end
+        end
+
+    elseif Balatro_Expansion.SelectionParams.Mode == Balatro_Expansion.SelectionParams.Modes.PACK then
+
+        SelectedCard = Balatro_Expansion.SelectionParams.PackOptions[mod.SelectionParams.Index]
+        SelectedSlots = mod.SelectionParams.Index
 
 
+        if Balatro_Expansion.SelectionParams.Purpose == Balatro_Expansion.SelectionParams.Purposes.BuffonPack then
+            
 
+        elseif Balatro_Expansion.SelectionParams.Purpose == Balatro_Expansion.SelectionParams.Purposes.StandardPack then 
+        
+        
+        else
+            local TrueCard = Balatro_Expansion:FrameToSpecialCard(SelectedCard)
+            local CardString = "5.300."..tostring(TrueCard)
+
+
+            descObj.ObjType = 5
+            descObj.ObjVariant = 300
+            descObj.ObjSubType = TrueCard
+
+
+            Icon = ""
+            Name = EID:getObjectName(5, 300, TrueCard).."#{{Blank}}"
+            Description ="" --description is given the other callback
+
+        
         end
     end
 
@@ -305,19 +335,19 @@ EID:addTrinket(TrinketType.TRINKET_ODDTODD, "{{PlayerJimbo}} {{Tears}} {{ColorCh
 EID:addTrinket(TrinketType.TRINKET_ODDTODD, "{{PlayerJimbo}} {{Tears}} {{ColorChips}}+0.35 {{CR}} Lacrime per ogni {{Collectible}} collezionabile avuto se è un quantitativo dispari#{{Warning}} Active items are considered", "Numeri dispari", "it")
 EID:addTrinket(TrinketType.TRINKET_EVENSTEVEN, "{{PlayerJimbo}} {{Damage}} {{ColorMult}}+0.04 {{CR}} Damage for every Even numbered card triggered this room", "Even Steven", "en_us")
 EID:addTrinket(TrinketType.TRINKET_EVENSTEVEN, "{{PlayerJimbo}} {{Damage}} {{ColorMult}}+0.04 {{CR}} Danno per ogni {{Collectible}} collezionabile avuto se è un quantitativo pari#{{Warning}} Active items are considered", "Numeri pari", "it")
-EID:addTrinket(TrinketType.TRINKET_HALLUCINATION, "{{PlayerJimbo}} {{ColorMint}} 1/2 chance {{CR}} to spawn a random {{Card}} Tarot Card when opening a Booster Pack", "Hallucination", "en_us")
+EID:addTrinket(TrinketType.TRINKET_HALLUCINATION, "{{PlayerJimbo}} {{ColorMint}} 1/2 chance {{CR}} to spawn a random {{Card}}{{ColorPink}} Tarot Card {{CR}}when opening a Booster Pack", "Hallucination", "en_us")
 EID:addTrinket(TrinketType.TRINKET_HALLUCINATION, "{{PlayerJimbo}} {{Shop}} Possibilità di spawnare una {{Card}} carta ogni acquisto in un negozio#La probabilità aumenta in base al costo dell'oggeto comprato #{{DevilRoom}} I patti del diavolo creano sempre 2 {{Card}}carte", "Allucinazione", "it")
 EID:addTrinket(TrinketType.TRINKET_GREEN_JOKER, "{{PlayerJimbo}} {{Damage}}{{ColorMult}}+0.04 {{CR}} Damage for every for every room completed while held#{{Damage}}{{ColorMult}}-0.16 {{CR}}Damage on every hand discard" , "Green Joker", "en_us")
 EID:addTrinket(TrinketType.TRINKET_GREEN_JOKER, "{{PlayerJimbo}} {{Damage}}{{ColorMult}}+0.04 {{CR}} Danno per ogni stanza completata mentre lo si tiene#\2 {{Damage}}{{ColorMult}}-0.5 {{CR}}Danno ogni danno preso mentre lo si tiene", "Jolly verde", "it")
 EID:addTrinket(TrinketType.TRINKET_RED_CARD, "{{PlayerJimbo}} {{Damage}}{{ColorMult}}+0.15 {{CR}} Damage when skipping a Booster Pack" , "Red Card", "en_us")
 EID:addTrinket(TrinketType.TRINKET_RED_CARD, "{{PlayerJimbo}} {{Damage}}{{ColorMult}}+0.15 {{CR}} Danno se il {{Shop}} Negozio o tutte le {{TreasureRoom}}Stanze del tesoro vengono saltate", "Cartellino rosso", "it")
-EID:addTrinket(TrinketType.TRINKET_VAGABOND, "{{PlayerJimbo}} Spawns a random {{Card}} Tarot card when compleating a room with 2 {{Coin}} Coins or less#", "Vagabond", "en_us")
+EID:addTrinket(TrinketType.TRINKET_VAGABOND, "{{PlayerJimbo}} Spawns a random {{Card}}{{ColorPink}} Tarot Card {{CR}}when compleating a room with 2 {{Coin}} Coins or less#", "Vagabond", "en_us")
 EID:addTrinket(TrinketType.TRINKET_VAGABOND, "{{PlayerJimbo}} Crea una {{Card}}Carta dei tarocchi completando una stanza avendo 0 {{Coin}} monete", "Vagabondo", "it")
 EID:addTrinket(TrinketType.TRINKET_RIFF_RAFF, "{{PlayerJimbo}} Spawns a random {{ColorChips}} common {{CR}} Joker on every Blind Clear", "Riff-Raff", "en_us")
 EID:addTrinket(TrinketType.TRINKET_RIFF_RAFF, "{{PlayerJimbo}} Crea un {{Collectible}} oggetto {{Quality0}} Q0 o {{Quality1}} Q1 all'inizio di un nuovo piano", "Marmaglia", "it")
 EID:addTrinket(TrinketType.TRINKET_GOLDEN_JOKER, "{{PlayerJimbo}} Gives 4 {{Coin}} Coins on every Blind clear", "Golden Joker", "en_us")
 EID:addTrinket(TrinketType.TRINKET_GOLDEN_JOKER, "{{PlayerJimbo}} Crea 5 {{Coin}} monete entrando in un nuovo piano", "Jolly dorato", "it")
-EID:addTrinket(TrinketType.TRINKET_FORTUNETELLER, "{{PlayerJimbo}} {{Damage}}{{ColorMult}}+0.04 {{CR}} Damage for every {{Card}} Tarot card used throughout the run" , "Fortuneteller", "en_us")
+EID:addTrinket(TrinketType.TRINKET_FORTUNETELLER, "{{PlayerJimbo}} {{Damage}}{{ColorMult}}+0.04 {{CR}} Damage for every {{Card}}{{ColorPink}} Tarot Card {{CR}}used throughout the run" , "Fortuneteller", "en_us")
 EID:addTrinket(TrinketType.TRINKET_FORTUNETELLER, "{{PlayerJimbo}} {{Damage}}{{ColorMult}}+0.04 {{CR}} Danno per ogni {{Card}} Carta dei tarocchi usata nella partita#\2 {{Damage}}{{ColorMult}}-0.05 {{CR}} Danno per ogni {{Card}} Carta dei tarocchi invertita usata nella partita", "Chiromante", "it")
 EID:addTrinket(TrinketType.TRINKET_BLUEPRINT, "{{PlayerJimbo}} Copies the effect of the Joker to its right", "Blueprint", "en_us")
 EID:addTrinket(TrinketType.TRINKET_BLUEPRINT, "{{PlayerJimbo}}Conferisce una copia dell'ultimo {{Collectible}} Oggetto passivo preso", "Cianografia", "it")
@@ -348,7 +378,7 @@ EID:addTrinket(TrinketType.TRINKET_CLOUD_NINE, "{{PlayerJimbo}} Gain 1 {{Coin}} 
 EID:addTrinket(TrinketType.TRINKET_CLOUD_NINE, "{{PlayerJimbo}} Ottieni volo per una stanza ogni 9 {{Heart}} cuori, {{Bomb}} bombe, {{Key}} chiavi o {{Coin}} monete raccolte", "Nove nuvoloso", "it")
 EID:addTrinket(TrinketType.TRINKET_SWASHBUCKLER, "{{PlayerJimbo}} {{Shop}} Gives {{Damage}}{{ColorMult}} +0.05 x the total sell value of other held Jokers{{CR}} Damage", "Swashbucler", "en_us")
 EID:addTrinket(TrinketType.TRINKET_SWASHBUCKLER, "{{PlayerJimbo}} {{Shop}} Questo conferisce {{Damage}} Danno ogni Oggetto comprato# il {{Damage}} Danno conferisto aumenta con colsto dell'oggetto comprato #{{DavilRoom}} Devil deals conferiscono {{Damage}} Danno specifico in base al costo", "Moschettiere", "it")
-EID:addTrinket(TrinketType.TRINKET_CARTOMANCER, "{{PlayerJimbo}} Spawns 1 random {{Card}} Tarot card on every Blind clear", "Cartomancer", "en_us")
+EID:addTrinket(TrinketType.TRINKET_CARTOMANCER, "{{PlayerJimbo}} Spawns 1 random {{Card}} {{ColorPink}} Tarot Card {{CR}}on every Blind clear", "Cartomancer", "en_us")
 EID:addTrinket(TrinketType.TRINKET_CARTOMANCER, "{{PlayerJimbo}} Crea 2 {{Card}} carte entrando in un nuovo piano", "cartomante", "it")
 EID:addTrinket(TrinketType.TRINKET_LOYALTY_CARD, "{{PlayerJimbo}} {{Damage}} {{ColorMult}}X2 {{CR}} Damage multiplier once every 6 rooms cleares", "Loyalty Card", "en_us")
 EID:addTrinket(TrinketType.TRINKET_LOYALTY_CARD, "{{PlayerJimbo}} {{Damage}} {{ColorMult}}X2 {{CR}} Moltiplicatore di danno ogni 6 stanze completate", "Carta fedeltà", "it")
@@ -360,9 +390,6 @@ EID:addTrinket(TrinketType.TRINKET_EGG, "{{PlayerJimbo}} The sell value of this 
 EID:addTrinket(TrinketType.TRINKET_EGG, "{{PlayerJimbo}} Crea 1 {{Coin}} Moneta se una stanza viene completata senza subire danni", "Gratificazione ritardata", "it")
 EID:addTrinket(TrinketType.TRINKET_DNA, "{{PlayerJimbo}} If the {{ColorYellorange}} First {{CR}}card triggered in a {{ColorYellorange}}Blind{{CR}} hits an enemy, a copy of that card is added to the deck", "Delayed Gratification", "en_us")
 EID:addTrinket(TrinketType.TRINKET_DNA, "{{PlayerJimbo}} Crea 1 {{Coin}} Moneta se una stanza viene completata senza subire danni", "Gratificazione ritardata", "it")
-
-
-
 
 
 
@@ -403,14 +430,118 @@ EID:addCollectible(mod.Vouchers.Palette, "{{PlayerJimbo}} Gives {{ColorChips}}+1
 EID:addCollectible(mod.Vouchers.Director, "{{Coin}} Using this Item costs {{ColorYellorange}}10 Cents{{CR}} #{{Blank}} #{{PlayerJimbo}} Triggers the {{Collectible105}} D6 effect", "Director's Cut", "en_us")
 EID:addCollectible(mod.Vouchers.Retcon, "{{Coin}} Using this Item costs {{ColorYellorange}}10 Cents{{CR}} #{{Blank}} #{{PlayerJimbo}} Triggers the {{Collectible283}} D100 effect", "Retcon", "en_us")
 
---EID:addCollectible(mod.Vouchers.Hieroglyph, "#{{PlayerJimbo}} Triggers the {{Collectible105}} D6 effect", "Director's Cut", "en_us")
---EID:addCollectible(mod.Vouchers.Petroglyph, "{{Coin}} Using this Item costs {{ColorYellorange}}10 Cents{{CR}} #{{Blank}} #{{PlayerJimbo}} Triggers the {{Collectible283}} D100 effect", "Retcon", "en_us")
+EID:addCollectible(mod.Vouchers.Hieroglyph, "{{PlayerJimbo}} Activates the {{Collectible127}} Forget Me Now! effect upon pickup", "Hieroglyph", "en_us")
+EID:addCollectible(mod.Vouchers.Petroglyph, "{{PlayerJimbo}} Activates the {{Collectible127}} Forget Me Now! effect upon pickup", "Petroglyph", "en_us")
+
+EID:addCollectible(mod.Vouchers.MagicTrick, "{{PlayerJimbo}} {{ColorMint}} 25% chance{{CR}} to be able to choose one more option from a pack #Can trigger Multiple times", "Magic Trick", "en_us")
+EID:addCollectible(mod.Vouchers.Illusion, "{{PlayerJimbo}} Every pack opened has a{{ColorMint}} 55% chance{{CR}} to contain {{ColorYellorange}}2{{CR}} more options and a {{ColorMint}} 15% chance{{CR}} to let the player choose {{ColorYellorange}}1{{CR}} more option", "Observatory", "en_us")
+
+EID:addCollectible(mod.Vouchers.MoneySeed, "{{PlayerJimbo}} Maximum interest increased to {{ColorYellow}}10${{CR}}", "Money Seed", "en_us")
+EID:addCollectible(mod.Vouchers.MoneyTree, "{{PlayerJimbo}} Maximum interest increased to {{ColorYellow}}20${{CR}}", "Money Tree", "en_us")
+
+EID:addCollectible(mod.Vouchers.PlanetMerch, "{{PlayerJimbo}} Every pickup has a {{ColorMint}}7% chance{{CR}} to be replaced with a random {{ColorCyan}}Planet Card{{CR}}", "Planet Merchant", "en_us")
+EID:addCollectible(mod.Vouchers.PlanetTycoon, "{{PlayerJimbo}} Every pickup has an additional {{ColorMint}}7% chance{{CR}} to be replaced with a random {{ColorCyan}}Planet Card{{CR}}", "Planet Tycoon", "en_us")
+
+EID:addCollectible(mod.Vouchers.TarotMerch, "{{PlayerJimbo}} Every pickup has a {{ColorMint}}7% chance{{CR}} to be replaced with a random {{ColorPink}}Tarot Card{{CR}}", "Tarot Merchant", "en_us")
+EID:addCollectible(mod.Vouchers.TarotTycoon, "{{PlayerJimbo}} Every pickup has an additional {{ColorMint}}7% chance{{CR}} to be replaced with a random {{ColorPink}}Tarot Card{{CR}}", "Tarot Tycoon", "en_us")
 
 
---EID:addCollectible(mod.Vouchers.MagicTrick, "{{PlayerJimbo}} Skipping a {{ColorChips}}Celestial Pack{{CR}} creates 2 additional random {{ColorChips}}Planet Cards{{CR}}", "Telescope", "en_us")
---EID:addCollectible(mod.Vouchers.Illusion, "{{PlayerJimbo}} Triggering a card while holding it's respective {{ColorChips}}Planet Card{{CR}} gives {{Damage}}{{ColorMult}} X1.5{{CR}} Damage Multiplier", "Observatory", "en_us")
+----------------------------------------
+-------------####TAROTS####------------
+-----------------------------------------
+
+local EnhancementDesc = {}
+EnhancementDesc["en_us"] = {}
+EnhancementDesc["en_us"][mod.Enhancement.BONUS] = "# {{ColorChips}}Bonus Card{{CR}}: When triggered gives {{ColorChips}}+0.75 Tears{{CR}}"
+EnhancementDesc["en_us"][mod.Enhancement.MULT] = "# {{ColorMult}}Mult Card{{CR}}: When triggered gives {{ColorChips}}+0.05 Damage{{CR}}"
+EnhancementDesc["en_us"][mod.Enhancement.GOLDEN] = "# {{ColorYellorange}}Gold Card{{CR}}: Holding it when a {{ColorYellorange}}blind{{CR}} is cleared gives {{ColorYellow}}2${{CR}} #!!! Cards played need to be {{ColorCyan}}Triggerable{{CR}} for the effect to occur"
+EnhancementDesc["en_us"][mod.Enhancement.GLASS] = "# {{ColorGlass}}Glass Card{{CR}}: When triggered gives {{ColorMult}}x1.3 Damage Multiplier{{CR}} #!!! When played {{ColorMint}}10% chance{{CR}} to get destroyed"
+EnhancementDesc["en_us"][mod.Enhancement.LUCKY] = "# {{ColorMint}}Lucky Card{{CR}}: When triggered {{ColorMint}}20% chance{{CR}} to give {{ColorMult}}+0.2 Mult{{CR}} and {{ColorMint}}5% chance{{CR}} to spawn {{ColorYellow}}10 {{Coin}}Coins{{CR}}"
+EnhancementDesc["en_us"][mod.Enhancement.STEEL] = "# {{ColorSilver}}Steel Card{{CR}}: When held in hand gives {{ColorMult}}x1.2 Damage Multiplier{{CR}}"
+EnhancementDesc["en_us"][mod.Enhancement.WILD] = "# {{ColorRainbow}}Wild Card{{CR}}: This card counts as every Suit"
+EnhancementDesc["en_us"][mod.Enhancement.STONE] = "# {{ColorGray}}Stone Card{{CR}}: When triggered gives {{ColorChips}}+1.25 Tears{{CR}} #!!! Has no Value or Suit"
+
+
+local TarotDescriptions = {}
+TarotDescriptions["en_us"] = {}
+TarotDescriptions["en_us"][Card.CARD_FOOL] = "#{{PlayerJimbo}} Spawns copy of your last used card #!!! Cannot spawn itself #Currently: "
+TarotDescriptions["en_us"][Card.CARD_MAGICIAN] = "#{{PlayerJimbo}} Turn {{ColorYellorange}}up to 2{{CR}} cards from your hand into {{ColorMint}}Lucky Cards{{CR}}"
+TarotDescriptions["en_us"][Card.CARD_HIGH_PRIESTESS] = "#{{PlayerJimbo}} Spawns {{ColorYellorange}}2{{CR}} random {{ColorCyan}}Planet Cards{{CR}}"
+TarotDescriptions["en_us"][Card.CARD_EMPRESS] = "#{{PlayerJimbo}} Turn {{ColorYellorange}}up to 2{{CR}} cards from your hand into {{ColorMult}}Mult Cards{{CR}}"
+TarotDescriptions["en_us"][Card.CARD_EMPEROR] = "#{{PlayerJimbo}} Spawns {{ColorYellorange}}2{{CR}} random {{ColorPink}}Tarot Cards{{CR}} #!!! Cannot spawn itself"
+TarotDescriptions["en_us"][Card.CARD_HIEROPHANT] = "#{{PlayerJimbo}} Turn {{ColorYellorange}}up to 2{{CR}} cards from your hand into {{ColorChips}}Bonus Cards{{CR}}"
+TarotDescriptions["en_us"][Card.CARD_LOVERS] = "#{{PlayerJimbo}} Turn {{ColorYellorange}}up to 1{{CR}} card from your hand into a {{ColorRainbow}}Wild Card{{CR}}"
+TarotDescriptions["en_us"][Card.CARD_CHARIOT] = "#{{PlayerJimbo}} Turn {{ColorYellorange}}up to 1{{CR}} card from your hand into a {{ColorSilver}}Steel Card{{CR}}"
+TarotDescriptions["en_us"][Card.CARD_JUSTICE] = "#{{PlayerJimbo}} Turn {{ColorYellorange}}up to 1{{CR}} card from your hand into a {{ColorGlass}}Glass Card{{CR}}"
+TarotDescriptions["en_us"][Card.CARD_HERMIT] = "#{{PlayerJimbo}} Doubles you current money #!!! Can give up to {{ColorYellow}}20${{CR}}"
+TarotDescriptions["en_us"][Card.CARD_WHEEL_OF_FORTUNE] = "#{{PlayerJimbo}} {{ColorMint}}25% chance{{CR}} to give a random {{ColorRainbow}}Edition{{CR}} to a joker in your inventory #!!! Cannot replace an Edition a Joker already has"
+TarotDescriptions["en_us"][Card.CARD_STRENGTH] = "#{{PlayerJimbo}} Raise the value of {{ColorYellorange}}up to 2{{CR}} cards by 1 #!!! Kings chosen become Aces"
+TarotDescriptions["en_us"][Card.CARD_HANGED_MAN] = "#{{PlayerJimbo}} Removes from the deck {{ColorYellorange}}up to 2{{CR}} cards"
+TarotDescriptions["en_us"][Card.CARD_DEATH] = "#{{PlayerJimbo}} Choose {{ColorYellorange}}2{{CR}} cards, the {{ColorYellorange}}Second{{CR}} card chosen becomes the {{ColorYellorange}}First{{CR}}"
+TarotDescriptions["en_us"][Card.CARD_TEMPERANCE] = "#{{PlayerJimbo}} Gives the total {{ColorYellow}}Sell value{{CR}} of you Jokers in {{Coni}}Pennies"
+TarotDescriptions["en_us"][Card.CARD_DEVIL] = "#{{PlayerJimbo}} Turn {{ColorYellorange}}up to 1{{CR}} card from your hand into a {{ColorYellorange}}Gold Card{{CR}}"
+TarotDescriptions["en_us"][Card.CARD_TOWER] = "#{{PlayerJimbo}} Turn {{ColorYellorange}}up to 1{{CR}} card from your hand into a {{ColorGray}}Stone Card{{CR}}"
+TarotDescriptions["en_us"][Card.CARD_STARS] = "#{{PlayerJimbo}} Set the Suit of {{ColorYellorange}}up to 3{{CR}} cards from your hand into {{ColorYellorange}}Diamonds{{CR}}"
+TarotDescriptions["en_us"][Card.CARD_MOON] = "#{{PlayerJimbo}} Sets the Suit of {{ColorYellorange}}up to 3{{CR}} cards from your hand into {{ColorChips}}Clubs{{CR}}"
+TarotDescriptions["en_us"][Card.CARD_SUN] = "#{{PlayerJimbo}} Sets the Suit of {{ColorYellorange}}up to 3{{CR}} cards from your hand into {{ColorMult}}Hearts{{CR}}"
+TarotDescriptions["en_us"][Card.CARD_JUDGEMENT] = "#{{PlayerJimbo}} Gives random Joker #!!! REquires an empty Inventory slot"
+TarotDescriptions["en_us"][Card.CARD_WORLD] = "#{{PlayerJimbo}} Set the Suit of {{ColorYellorange}}up to 3{{CR}} cards from your hand into {{ColorGray}}Spades{{CR}}"
+
+--TarotDescriptions["en_us"][Card.CARD_FOOL] = "#{{PlayerJimbo}}"
 
 
 
 
+local function BalatroExtraDescCondition(descObj)
+    print(descObj.ObjVariant)
+    if descObj.ObjType == EntityType.ENTITY_PICKUP and descObj.ObjVariant == PickupVariant.PICKUP_TAROTCARD and descObj.ObjSubType <= Card.CARD_WORLD then
+        return true
+    end
+end
 
+local function BalatroExtraDescCallback(descObj)
+    
+
+    local BaseDesc = TarotDescriptions[EID:getLanguage()][descObj.ObjSubType] or TarotDescriptions["en_us"][descObj.ObjSubType]
+
+
+
+    if descObj.ObjSubType == Card.CARD_FOOL then
+
+
+        local CardName = mod.Saved.LastCardUsed and "{{ColorLime}}"..EID:getObjectName(5,300,mod.Saved.LastCardUsed).."{{CR}}" or "{{ColorRed}}None{{CR}}"
+        
+        BaseDesc = BaseDesc..CardName
+
+    elseif descObj.ObjSubType == Card.CARD_MAGICIAN then
+        BaseDesc = BaseDesc..(EnhancementDesc[EID:getLanguage()][mod.Enhancement.LUCKY] or EnhancementDesc["en_us"][mod.Enhancement.LUCKY])
+    
+    elseif descObj.ObjSubType == Card.CARD_LOVERS then
+        BaseDesc = BaseDesc..(EnhancementDesc[EID:getLanguage()][mod.Enhancement.WILD] or EnhancementDesc["en_us"][mod.Enhancement.WILD])
+    
+    elseif descObj.ObjSubType == Card.CARD_DEVIL then
+        BaseDesc = BaseDesc..(EnhancementDesc[EID:getLanguage()][mod.Enhancement.GOLDEN] or EnhancementDesc["en_us"][mod.Enhancement.GOLDEN])
+    
+    elseif descObj.ObjSubType == Card.CARD_TOWER then
+        BaseDesc = BaseDesc..(EnhancementDesc[EID:getLanguage()][mod.Enhancement.STONE] or EnhancementDesc["en_us"][mod.Enhancement.STONE])
+    
+    elseif descObj.ObjSubType == Card.CARD_EMPRESS then
+        BaseDesc = BaseDesc..(EnhancementDesc[EID:getLanguage()][mod.Enhancement.MULT] or EnhancementDesc["en_us"][mod.Enhancement.MULT])
+    
+    elseif descObj.ObjSubType == Card.CARD_HIEROPHANT then
+
+        BaseDesc = BaseDesc..(EnhancementDesc[EID:getLanguage()][mod.Enhancement.BONUS] or EnhancementDesc["en_us"][mod.Enhancement.BONUS])
+    elseif descObj.ObjSubType == Card.CARD_CHARIOT then
+
+        BaseDesc = BaseDesc..(EnhancementDesc[EID:getLanguage()][mod.Enhancement.STEEL] or EnhancementDesc["en_us"][mod.Enhancement.STEEL])
+    elseif descObj.ObjSubType == Card.CARD_JUSTICE then
+
+        BaseDesc = BaseDesc..(EnhancementDesc[EID:getLanguage()][mod.Enhancement.GLASS] or EnhancementDesc["en_us"][mod.Enhancement.GLASS])
+    end
+
+
+    EID:appendToDescription(descObj, BaseDesc)
+    return descObj
+end
+
+EID:addDescriptionModifier("Balatro New Tarot Effects", BalatroExtraDescCondition, BalatroExtraDescCallback)

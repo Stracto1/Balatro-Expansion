@@ -9,6 +9,7 @@ local sfx = SFXManager()
 
 
 --effects when a card is shot
+---@param Player EntityPlayer
 function mod:OnCardShot(Player,ShotCard,Evaluate)
 
 if not Evaluate then --basically if the room is hostile
@@ -28,7 +29,7 @@ if ShotCard.Seal == mod.Seals.RED then
 elseif ShotCard.Seal == mod.Seals.GOLDEN then
     for i=1, Triggers do
         local Coin = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
-                                RandomVector()*4, Player, CoinSubType.COIN_PENNY, RandomSeed)  
+                                RandomVector()*4 *Player.MoveSpeed^0.5, Player, CoinSubType.COIN_PENNY, RandomSeed)  
         Coin:ToPickup().Timeout = 45 --disappers short after spawning (would be too OP otherwise)
     end
 end
@@ -121,9 +122,9 @@ end
     ---------ENHANCEMENT EFFECTS----------
     --------------------------------------
     if ShotCard.Enhancement == mod.Enhancement.STONE then
-        TearsToGet = 1 * Triggers 
+        TearsToGet = 1.25 * Triggers 
     elseif ShotCard.Enhancement == mod.Enhancement.MULT then
-        mod:IncreaseJimboStats(Player, 0, 0.1 * Triggers,1, false,true) 
+        mod:IncreaseJimboStats(Player, 0, 0.05 * Triggers,1, false,true) 
 
     elseif ShotCard.Enhancement == mod.Enhancement.BONUS then
         mod:IncreaseJimboStats(Player,0.75 * Triggers, 0 , 1,false,true)    
@@ -137,13 +138,11 @@ end
         end 
     elseif ShotCard.Enhancement == mod.Enhancement.LUCKY then
         for i = 1, Triggers do
-            --if mod:TryGamble(Player, PlayerRNG, 0.2) then
-            if mod:TryGamble(Player, PlayerRNG, 1) then
+            if mod:TryGamble(Player, PlayerRNG, 0.2) then
                 mod:IncreaseJimboStats(Player, 0, 1, 1, false,true)
                 mod:CreateBalatroEffect(Player, mod.EffectColors.RED, mod.Sounds.ADDMULT, "+0.2", Vector(0, 20))
             end 
-            --if mod:TryGamble(Player, PlayerRNG, 0.07) then
-            if mod:TryGamble(Player, PlayerRNG, 1) then
+            if mod:TryGamble(Player, PlayerRNG, 0.05) then
                 Player:AddCoins(10)
                 mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+10 $", Vector(0, 20))
             end
@@ -196,6 +195,27 @@ function mod:OnCardHit(Tear, Collider)
     end
 end
 mod:AddCallback("CARD_HIT", mod.OnCardHit)
+
+
+function mod:SteelStatBoosts(Player, _)
+    for _,index in ipairs(mod.Saved.Jimbo.CurrentHand) do
+        local Triggers = 0
+        if mod.Saved.Jimbo.FullDeck[index]
+           and mod.Saved.Jimbo.FullDeck[index].Enhancement == mod.Enhancement.STEEL then
+
+            Triggers = Triggers + 1
+
+            if mod.Saved.Jimbo.FullDeck[index].Seal == mod.Seals.RED then
+                Triggers = Triggers + 1
+            end
+            --if mod:JimboHasTrinket(Player, TrinkrtType.MIME) then Triggers = Triggers + 1
+
+            --steel cards use the joker stats cause they are variable and need to be reset each time
+            mod:IncreaseJimboStats(Player,0, 0, 1.2^Triggers, false,false)
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.SteelStatBoosts, CacheFlag.CACHE_DAMAGE)
 
 
 function mod:OnHandDiscard(Player)

@@ -99,7 +99,7 @@ function mod:Shuffle(table, RNG)
     return table
 end
 
---adds a value in many ways and return the position it got put in
+--adds a value in many ways and returns the position it got put in
 ---@param Table table
 ---@param CanBeEmpty boolean?
 ---@param Shift boolean?
@@ -476,7 +476,9 @@ end
 function mod:IsSuit(Player, Suit, Enhancement, WantedSuit, MakeTable)
     if MakeTable then --in this case makes a table telling the equivalent suits
 
-        if Enhancement == mod.Enhancement.WILD then
+        if Enhancement == mod.Enhancement.STONE then
+            return {} --no suit
+        elseif Enhancement == mod.Enhancement.WILD then
             return {1,2,3,4} --every suit is good
         end
         local GoodSuits = {} 
@@ -485,7 +487,9 @@ function mod:IsSuit(Player, Suit, Enhancement, WantedSuit, MakeTable)
         
         if (mod:JimboHasTrinket(Player, TrinketType.TRINKET_SMEARED_JOKER)) then
             --in this case spades/clubs and Hearts/diamonds are considered the same
+
             local Jump = 2 --distance SPADE/HEART => CLUB/DIAMOND
+
             if WantedSuit > 2 then  --the suits are in order: (SPADE,HEART,CLUB,DIAMOND)
                 Jump = -2 --distance CLUB/DIAMOND => SPADE/HEART
             end
@@ -493,8 +497,12 @@ function mod:IsSuit(Player, Suit, Enhancement, WantedSuit, MakeTable)
             
         end
         return GoodSuits
+
     else --in this case only says true or false if equal
-        if Suit == WantedSuit or Enhancement == mod.Enhancement.WILD then
+        if Enhancement == mod.Enhancement.STONE then
+            return false
+        
+        elseif Suit == WantedSuit or Enhancement == mod.Enhancement.WILD then
             return true
         end
         
