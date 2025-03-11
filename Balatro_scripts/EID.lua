@@ -7,6 +7,8 @@ local Game = Game()
 local ItemsConfig = Isaac.GetItemConfig()
 local TrinketSprite = Sprite("gfx/005.350_custom.anm2")
 
+local SupportedLanguages = {"en_us"}
+
 
 ----------------------------------------------------------------
 do
@@ -107,13 +109,53 @@ end
 
 
 --------------LIST OF ALL THE BASIC DESCRIPTIONS--------------------
----
+
+local EnhancementDesc = {}
+EnhancementDesc["en_us"] = {}
+EnhancementDesc["en_us"][mod.Enhancement.NONE] = ""
+EnhancementDesc["en_us"][mod.Enhancement.BONUS] = "# {{ColorChips}}Bonus Card{{CR}}: When triggered gives {{ColorChips}}+0.75 Tears{{CR}}"
+EnhancementDesc["en_us"][mod.Enhancement.MULT] = "# {{ColorMult}}Mult Card{{CR}}: When triggered gives {{ColorMult}}+0.05 Damage{{CR}}"
+EnhancementDesc["en_us"][mod.Enhancement.GOLDEN] = "# {{ColorYellorange}}Gold Card{{CR}}: Holding it when a {{ColorYellorange}}blind{{CR}} is cleared gives {{ColorYellow}}2${{CR}} #!!! Cards played need to be {{ColorCyan}}Triggerable{{CR}} for the effect to occur"
+EnhancementDesc["en_us"][mod.Enhancement.GLASS] = "# {{ColorGlass}}Glass Card{{CR}}: When triggered gives {{ColorMult}}x1.3 Damage Multiplier{{CR}} #!!! When played {{ColorMint}}10% chance{{CR}} to get destroyed"
+EnhancementDesc["en_us"][mod.Enhancement.LUCKY] = "# {{ColorMint}}Lucky Card{{CR}}: When triggered {{ColorMint}}20% chance{{CR}} to give {{ColorMult}}+0.2 Mult{{CR}} and {{ColorMint}}5% chance{{CR}} to spawn {{ColorYellow}}10 {{Coin}}Coins{{CR}}"
+EnhancementDesc["en_us"][mod.Enhancement.STEEL] = "# {{ColorSilver}}Steel Card{{CR}}: When held in hand gives {{ColorMult}}x1.2 Damage Multiplier{{CR}}"
+EnhancementDesc["en_us"][mod.Enhancement.WILD] = "# {{ColorRainbow}}Wild Card{{CR}}: This card counts as every Suit"
+EnhancementDesc["en_us"][mod.Enhancement.STONE] = "# {{ColorGray}}Stone Card{{CR}}: When triggered gives {{ColorChips}}+1.25 Tears{{CR}} #!!! Has no Value or Suit"
+
+
+local SealDesc = {}
+SealDesc["en_us"] = {}
+SealDesc["en_us"][mod.Seals.NONE] = ""
+SealDesc["en_us"][mod.Seals.RED] = "# {{ColorRed}}Red Seal{{CR}}: This card's abilities are {{ColorYellorange}}Triggered one more time{{CR}}"
+SealDesc["en_us"][mod.Seals.BLUE] = "# {{ColorCyan}}Blue Seal{{CR}}: Holding this when a Blind is{{ColorYellorange}} Cleared{{CR}} spawns the card's respective {{ColorCyan}}Planet Card{{CR}}"
+SealDesc["en_us"][mod.Seals.GOLDEN] = "# {{ColorYellorange}}Golden Seal{{CR}}: {{ColorYellorange}}Triggering{{CR}} this card spawn a {{Coin}} Penny which disappears soon after if not taken"
+SealDesc["en_us"][mod.Seals.PURPLE] = "# {{ColorPink}}Purple Seal{{CR}}: {{ColorRed}}Discarding{{CR}} spawns a random {{ColorPink}}Tarot Card{{CR}} #!!! Lower chance for the effect to occur if multiple are discarded {{ColorYellorange}}at the same time{{CR}}"
+
+local CardEditionDesc = {}
+CardEditionDesc["en_us"] = {}
+CardEditionDesc["en_us"][mod.Edition.BASE] = ""
+CardEditionDesc["en_us"][mod.Edition.FOIL] = "# {{ColorChips}}Foil{{CR}}: Gives {{ColorChips}}+1.25 Tears{{CR}} when triggered"
+CardEditionDesc["en_us"][mod.Edition.HOLOGRAPHIC] = "# {{ColorMult}}Holographic{{CR}}: Gives {{ColorMult}}+0.25 Damage{{CR}} when triggered"
+CardEditionDesc["en_us"][mod.Edition.POLYCROME] = "# {{ColorRainbow}}Polychrome{{CR}}: Gives {{ColorMult}}x1.2 Damage Multiplier{{CR}} when triggered"
+CardEditionDesc["en_us"][mod.Edition.NEGATIVE] = "# {{ColorFading}}{{ColorGray}}Negative{{CR}}: wtf how did you even get this"
+
+
+local JokerEditionDesc = {}
+JokerEditionDesc["en_us"] = {}
+JokerEditionDesc["en_us"][mod.Edition.BASE] = ""
+JokerEditionDesc["en_us"][mod.Edition.FOIL] = "# {{ColorChips}}Foil{{CR}}: Gives {{ColorChips}}+2.5 Tears{{CR}} while held"
+JokerEditionDesc["en_us"][mod.Edition.HOLOGRAPHIC] = "# {{ColorMult}}Holographic{{CR}}: Gives {{ColorMult}}+0.5 Damage{{CR}} while held"
+JokerEditionDesc["en_us"][mod.Edition.POLYCROME] = "# {{ColorRainbow}}Polychrome{{CR}}: Gives {{ColorMult}}x1.25 Damage Multiplier{{CR}} while held"
+JokerEditionDesc["en_us"][mod.Edition.NEGATIVE] = "# {{ColorFading}}{{ColorGray}}Negative{{CR}}: {{ColorYellorange}}+1 Joker Slot{{CR}} while held"
+
+
+
 local DescriptionHelperVariant = Isaac.GetEntityVariantByName("Description Helper")
 local DescriptionHelperSubType = Isaac.GetEntitySubTypeByName("Description Helper")
 EID:addEntity(1000, DescriptionHelperVariant, DescriptionHelperSubType,"Description Overview", "")
 
 
---uses a hacky entity to simulate the jokers being descripted, no idea if this is an optimal way or not
+--uses a hacky entity to simulate the options being descripted, no idea if this is an optimal way or not
 local function BalatroInventoryCondition(descObj)
     if descObj.ObjType == EntityType.ENTITY_EFFECT and descObj.ObjVariant == DescriptionHelperVariant and descObj.ObjSubType == DescriptionHelperSubType then
         if Balatro_Expansion.SelectionParams.Mode ~= Balatro_Expansion.SelectionParams.Modes.NONE then
@@ -124,7 +166,12 @@ end
 local function BalatroInventoryCallback(descObj)
     -- alter the description object as you like
 
-    descObj.Name = "Selection Helper"
+    descObj.Name = "Selection Helper" --PLACEHOLDER
+
+    local Language = EID:getLanguage()
+    if not mod:Contained(SupportedLanguages, Language) then
+        Language = "en_us"
+    end
 
     local SelectedCard
     local SelectedSlots
@@ -164,7 +211,11 @@ local function BalatroInventoryCallback(descObj)
                 Name = "Exit overview"
                 Description = ""
             end
-        elseif SelectedCard == 0 then --emtoy slot
+            goto FINISH
+        end
+
+
+        if SelectedCard == 0 then --emtoy slot
 
             Icon = ""
             Name = "{{Blank}} Nothing"
@@ -197,9 +248,14 @@ local function BalatroInventoryCallback(descObj)
 
             Icon = "{{CurrentCard}}"
             Name = RarityColor..EID:getObjectName(5, 350, SelectedCard).."{{CR}}#{{Blank}}"
-            Description =""..EID:getDescriptionEntry("custom", Tstring)[3]
+            Description =EID:getDescriptionEntry("custom", Tstring)[3]
 
+            local Edition = mod.Saved.Jimbo.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][SelectedCard]
+            local EditionDesc = JokerEditionDesc[Language][Edition] or JokerEditionDesc["en_us"][Edition]
 
+            Description = Description..EditionDesc
+
+            --PROGRESS--
 
             local JokerConfig = ItemsConfig:GetTrinket(SelectedCard)
             if JokerConfig:HasCustomTag("Value") then
@@ -261,11 +317,13 @@ local function BalatroInventoryCallback(descObj)
                 
             end
 
+            --SELL VALUE--
+
             if SelectedCard == TrinketType.TRINKET_EGG then
                 Description = Description.." #{{Shop}} Sells for {{ColorYellorange}}"..tostring(mod.Saved.Jimbo.Progress.Inventory[mod.SelectionParams.Index]).."${{CR}}"
 
             else
-                Description = Description.." #{{Shop}} Sells for {{ColorYellorange}}"..tostring(mod:GetJokerCost(SelectedCard, mod.SelectionParams.Index)).."/3{{CR}}"
+                Description = Description.." #{{Shop}} Sells for {{ColorYellorange}}"..tostring(mod:GetJokerCost(SelectedCard, mod.SelectionParams.Index)).."${{CR}}"
 
             end
         end
@@ -275,17 +333,74 @@ local function BalatroInventoryCallback(descObj)
         SelectedCard = Balatro_Expansion.SelectionParams.PackOptions[mod.SelectionParams.Index]
         SelectedSlots = mod.SelectionParams.Index
 
+        if not SelectedCard then -- the skip option
+            
+            Icon = ""
+            Name = "{{ColorSilver}}Skip{{CR}}#{{Blank}}"
+            Description = "Skip the remaining pack options" --wasn't able to find an api function for this
+
+            goto FINISH
+        end
+
 
         if Balatro_Expansion.SelectionParams.Purpose == Balatro_Expansion.SelectionParams.Purposes.BuffonPack then
             
+            descObj.ObjType = 5
+            descObj.ObjVariant = 350
+            descObj.ObjSubType = SelectedCard.Joker
+
+
+            local Tstring = "5.350."..tostring(SelectedCard.Joker)
+            
+            local CardIcon = EID:createItemIconObject("Trinket"..tostring(SelectedCard.Joker))
+
+            EID:addIcon("CurrentCard", CardIcon[1], CardIcon[2], CardIcon[3], CardIcon[4], CardIcon[5], CardIcon[6], CardIcon[7])
+
+            local Rarity = mod:GetJokerRarity(SelectedCard.Joker)
+            local RarityColor
+            if Rarity == "common" then
+                RarityColor = "{{ColorCyan}}"
+            elseif Rarity == "uncommon" then
+                RarityColor = "{{ColorLime}}"
+            elseif Rarity == "rare" then
+                RarityColor = "{{ColorRed}}"
+            else
+                RarityColor = "{{ColorRainbow}}"
+            end
+
+            Icon = "{{CurrentCard}}"
+            Name = RarityColor..EID:getObjectName(5, 350, SelectedCard.Joker).."{{CR}}#{{Blank}}"
+            Description =""..EID:getDescriptionEntry("custom", Tstring)[3]
+
+
+            local EditionDesc = JokerEditionDesc[Language][SelectedCard.Edition] or JokerEditionDesc["en_us"][SelectedCard.Edition]
+
+            Description = Description..EditionDesc
 
         elseif Balatro_Expansion.SelectionParams.Purpose == Balatro_Expansion.SelectionParams.Purposes.StandardPack then 
-        
+            
+            Icon = "{{RedCard}}"
+
+            local CardName 
+            if SelectedCard.Enhancement == mod.Enhancement.STONE then
+                CardName = "{{ColorGray}}Stone Card{{CR}}"
+
+            else
+                CardName = mod:CardValueToName(SelectedCard.Value, true).." of "..mod:CardSuitToName(SelectedCard.Suit, true)
+
+                CardName = CardName.."{{ColorCyan}} LV."..tostring(mod.Saved.Jimbo.CardLevels[SelectedCard.Value] + 1).."{{CR}}"
+            end
+            
+            Name = CardName
+
+            local CardAttributes = EnhancementDesc[Language][SelectedCard.Enhancement]..SealDesc[Language][SelectedCard.Seal]..CardEditionDesc[Language][SelectedCard.Edition]
+            
+            Description = CardAttributes
+
         
         else
             local TrueCard = Balatro_Expansion:FrameToSpecialCard(SelectedCard)
-            local CardString = "5.300."..tostring(TrueCard)
-
+            
 
             descObj.ObjType = 5
             descObj.ObjVariant = 300
@@ -294,12 +409,43 @@ local function BalatroInventoryCallback(descObj)
 
             Icon = ""
             Name = EID:getObjectName(5, 300, TrueCard).."#{{Blank}}"
-            Description ="" --description is given the other callback
+            if TrueCard <= Card.CARD_WORLD then
+                Description = EID.descriptions[Language].cards[TrueCard][3] --wasn't able to find an api function for this
+            else
+                local CardString = "5.300."..tostring(TrueCard)
 
-        
+                Description = EID:getDescriptionEntry("custom", CardString)[3]
+            end
+
         end
+
+    elseif Balatro_Expansion.SelectionParams.Mode == Balatro_Expansion.SelectionParams.Modes.HAND then
+
+        SelectedCard = mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[mod.SelectionParams.Index]]
+        SelectedSlots = mod.SelectionParams.Index
+
+        Icon = "{{RedCard}}"
+
+        local CardName 
+        if SelectedCard.Enhancement == mod.Enhancement.STONE then
+            CardName = "{{ColorGray}}Stone Card{{CR}}"
+
+        else
+            CardName = mod:CardValueToName(SelectedCard.Value, true).." of "..mod:CardSuitToName(SelectedCard.Suit, true)
+
+            CardName = CardName.."{{ColorCyan}} LV."..tostring(mod.Saved.Jimbo.CardLevels[SelectedCard.Value] + 1).."{{CR}}"
+        end
+        
+        Name = CardName
+
+        local CardAttributes = EnhancementDesc[Language][SelectedCard.Enhancement]..SealDesc[Language][SelectedCard.Seal]..CardEditionDesc[Language][SelectedCard.Edition]
+        
+        Description = CardAttributes
+
     end
 
+
+    ::FINISH::
 
     EID:appendToDescription(descObj, "#"..Icon.." "..Name.."# "..Description)
     return descObj -- return the modified description object
@@ -450,18 +596,6 @@ EID:addCollectible(mod.Vouchers.TarotTycoon, "{{PlayerJimbo}} Every pickup has a
 -------------####TAROTS####------------
 -----------------------------------------
 
-local EnhancementDesc = {}
-EnhancementDesc["en_us"] = {}
-EnhancementDesc["en_us"][mod.Enhancement.BONUS] = "# {{ColorChips}}Bonus Card{{CR}}: When triggered gives {{ColorChips}}+0.75 Tears{{CR}}"
-EnhancementDesc["en_us"][mod.Enhancement.MULT] = "# {{ColorMult}}Mult Card{{CR}}: When triggered gives {{ColorChips}}+0.05 Damage{{CR}}"
-EnhancementDesc["en_us"][mod.Enhancement.GOLDEN] = "# {{ColorYellorange}}Gold Card{{CR}}: Holding it when a {{ColorYellorange}}blind{{CR}} is cleared gives {{ColorYellow}}2${{CR}} #!!! Cards played need to be {{ColorCyan}}Triggerable{{CR}} for the effect to occur"
-EnhancementDesc["en_us"][mod.Enhancement.GLASS] = "# {{ColorGlass}}Glass Card{{CR}}: When triggered gives {{ColorMult}}x1.3 Damage Multiplier{{CR}} #!!! When played {{ColorMint}}10% chance{{CR}} to get destroyed"
-EnhancementDesc["en_us"][mod.Enhancement.LUCKY] = "# {{ColorMint}}Lucky Card{{CR}}: When triggered {{ColorMint}}20% chance{{CR}} to give {{ColorMult}}+0.2 Mult{{CR}} and {{ColorMint}}5% chance{{CR}} to spawn {{ColorYellow}}10 {{Coin}}Coins{{CR}}"
-EnhancementDesc["en_us"][mod.Enhancement.STEEL] = "# {{ColorSilver}}Steel Card{{CR}}: When held in hand gives {{ColorMult}}x1.2 Damage Multiplier{{CR}}"
-EnhancementDesc["en_us"][mod.Enhancement.WILD] = "# {{ColorRainbow}}Wild Card{{CR}}: This card counts as every Suit"
-EnhancementDesc["en_us"][mod.Enhancement.STONE] = "# {{ColorGray}}Stone Card{{CR}}: When triggered gives {{ColorChips}}+1.25 Tears{{CR}} #!!! Has no Value or Suit"
-
-
 local TarotDescriptions = {}
 TarotDescriptions["en_us"] = {}
 TarotDescriptions["en_us"][Card.CARD_FOOL] = "#{{PlayerJimbo}} Spawns copy of your last used card #!!! Cannot spawn itself #Currently: "
@@ -484,7 +618,7 @@ TarotDescriptions["en_us"][Card.CARD_TOWER] = "#{{PlayerJimbo}} Turn {{ColorYell
 TarotDescriptions["en_us"][Card.CARD_STARS] = "#{{PlayerJimbo}} Set the Suit of {{ColorYellorange}}up to 3{{CR}} cards from your hand into {{ColorYellorange}}Diamonds{{CR}}"
 TarotDescriptions["en_us"][Card.CARD_MOON] = "#{{PlayerJimbo}} Sets the Suit of {{ColorYellorange}}up to 3{{CR}} cards from your hand into {{ColorChips}}Clubs{{CR}}"
 TarotDescriptions["en_us"][Card.CARD_SUN] = "#{{PlayerJimbo}} Sets the Suit of {{ColorYellorange}}up to 3{{CR}} cards from your hand into {{ColorMult}}Hearts{{CR}}"
-TarotDescriptions["en_us"][Card.CARD_JUDGEMENT] = "#{{PlayerJimbo}} Gives random Joker #!!! REquires an empty Inventory slot"
+TarotDescriptions["en_us"][Card.CARD_JUDGEMENT] = "#{{PlayerJimbo}} Gives random Joker #!!! Requires an empty Inventory slot"
 TarotDescriptions["en_us"][Card.CARD_WORLD] = "#{{PlayerJimbo}} Set the Suit of {{ColorYellorange}}up to 3{{CR}} cards from your hand into {{ColorGray}}Spades{{CR}}"
 
 --TarotDescriptions["en_us"][Card.CARD_FOOL] = "#{{PlayerJimbo}}"
@@ -493,16 +627,21 @@ TarotDescriptions["en_us"][Card.CARD_WORLD] = "#{{PlayerJimbo}} Set the Suit of 
 
 
 local function BalatroExtraDescCondition(descObj)
-    print(descObj.ObjVariant)
     if descObj.ObjType == EntityType.ENTITY_PICKUP and descObj.ObjVariant == PickupVariant.PICKUP_TAROTCARD and descObj.ObjSubType <= Card.CARD_WORLD then
-        return true
+        if PlayerManager.AnyoneIsPlayerType(Balatro_Expansion.Characters.JimboType) then
+            return true
+        end
     end
 end
 
 local function BalatroExtraDescCallback(descObj)
     
+    local Language = EID:getLanguage()
+    if not mod:Contained(SupportedLanguages, Language) then
+        Language = "en_us"
+    end
 
-    local BaseDesc = TarotDescriptions[EID:getLanguage()][descObj.ObjSubType] or TarotDescriptions["en_us"][descObj.ObjSubType]
+    local BaseDesc = TarotDescriptions[Language][descObj.ObjSubType] or TarotDescriptions["en_us"][descObj.ObjSubType]
 
 
 
@@ -514,29 +653,29 @@ local function BalatroExtraDescCallback(descObj)
         BaseDesc = BaseDesc..CardName
 
     elseif descObj.ObjSubType == Card.CARD_MAGICIAN then
-        BaseDesc = BaseDesc..(EnhancementDesc[EID:getLanguage()][mod.Enhancement.LUCKY] or EnhancementDesc["en_us"][mod.Enhancement.LUCKY])
+        BaseDesc = BaseDesc..(EnhancementDesc[Language][mod.Enhancement.LUCKY] or EnhancementDesc["en_us"][mod.Enhancement.LUCKY])
     
     elseif descObj.ObjSubType == Card.CARD_LOVERS then
-        BaseDesc = BaseDesc..(EnhancementDesc[EID:getLanguage()][mod.Enhancement.WILD] or EnhancementDesc["en_us"][mod.Enhancement.WILD])
+        BaseDesc = BaseDesc..(EnhancementDesc[Language][mod.Enhancement.WILD] or EnhancementDesc["en_us"][mod.Enhancement.WILD])
     
     elseif descObj.ObjSubType == Card.CARD_DEVIL then
-        BaseDesc = BaseDesc..(EnhancementDesc[EID:getLanguage()][mod.Enhancement.GOLDEN] or EnhancementDesc["en_us"][mod.Enhancement.GOLDEN])
+        BaseDesc = BaseDesc..(EnhancementDesc[Language][mod.Enhancement.GOLDEN] or EnhancementDesc["en_us"][mod.Enhancement.GOLDEN])
     
     elseif descObj.ObjSubType == Card.CARD_TOWER then
-        BaseDesc = BaseDesc..(EnhancementDesc[EID:getLanguage()][mod.Enhancement.STONE] or EnhancementDesc["en_us"][mod.Enhancement.STONE])
+        BaseDesc = BaseDesc..(EnhancementDesc[Language][mod.Enhancement.STONE] or EnhancementDesc["en_us"][mod.Enhancement.STONE])
     
     elseif descObj.ObjSubType == Card.CARD_EMPRESS then
-        BaseDesc = BaseDesc..(EnhancementDesc[EID:getLanguage()][mod.Enhancement.MULT] or EnhancementDesc["en_us"][mod.Enhancement.MULT])
+        BaseDesc = BaseDesc..(EnhancementDesc[Language][mod.Enhancement.MULT] or EnhancementDesc["en_us"][mod.Enhancement.MULT])
     
     elseif descObj.ObjSubType == Card.CARD_HIEROPHANT then
 
-        BaseDesc = BaseDesc..(EnhancementDesc[EID:getLanguage()][mod.Enhancement.BONUS] or EnhancementDesc["en_us"][mod.Enhancement.BONUS])
+        BaseDesc = BaseDesc..(EnhancementDesc[Language][mod.Enhancement.BONUS] or EnhancementDesc["en_us"][mod.Enhancement.BONUS])
     elseif descObj.ObjSubType == Card.CARD_CHARIOT then
 
-        BaseDesc = BaseDesc..(EnhancementDesc[EID:getLanguage()][mod.Enhancement.STEEL] or EnhancementDesc["en_us"][mod.Enhancement.STEEL])
+        BaseDesc = BaseDesc..(EnhancementDesc[Language][mod.Enhancement.STEEL] or EnhancementDesc["en_us"][mod.Enhancement.STEEL])
     elseif descObj.ObjSubType == Card.CARD_JUSTICE then
 
-        BaseDesc = BaseDesc..(EnhancementDesc[EID:getLanguage()][mod.Enhancement.GLASS] or EnhancementDesc["en_us"][mod.Enhancement.GLASS])
+        BaseDesc = BaseDesc..(EnhancementDesc[Language][mod.Enhancement.GLASS] or EnhancementDesc["en_us"][mod.Enhancement.GLASS])
     end
 
 

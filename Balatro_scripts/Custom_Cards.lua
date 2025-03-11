@@ -212,7 +212,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
         elseif card == Card.CARD_JUDGEMENT then
 
             local EmptySlot
-            for i, Joker in ipairs(mod.Saved.Jimbo.Inventory) do
+            for i, Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
                 if Joker == 0 then --needs an empty slot
                     EmptySlot = i
                     break

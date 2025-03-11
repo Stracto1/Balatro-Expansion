@@ -401,7 +401,7 @@ function mod:JimboPackRender(_,_,_,_,Player)
             Edition_Overlay:SetFrame("Editions", Card.Edition)
             Edition_Overlay.Scale = Vector.One
 
-            WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams.Frames*4+i*60))*1.75)
+            WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams.Frames*5+i*95))*1.5)
 
             JimboCards.Pack_PlayingCards:Render(mod:CoolVectorLerp(PlayerPos, RenderPos + WobblyEffect[i], mod.SelectionParams.Frames/10))
             Edition_Overlay:Render(mod:CoolVectorLerp(PlayerPos, RenderPos + WobblyEffect[i], mod.SelectionParams.Frames/10))
@@ -418,7 +418,7 @@ function mod:JimboPackRender(_,_,_,_,Player)
             TrinketSprite:ReplaceSpritesheet(0, ItemsConfig:GetTrinket(card.Joker).GfxFileName, true)
             TrinketSprite:SetFrame("Idle", 0)
 
-            WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams.Frames*4+i*60))*1.75)
+            WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams.Frames*5+i*95))*1.5)
 
             TrinketSprite:SetCustomShader(EditionShaders[card.Edition])
             TrinketSprite:Render(mod:CoolVectorLerp(PlayerPos, RenderPos + WobblyEffect[i], mod.SelectionParams.Frames/10))
@@ -437,7 +437,7 @@ function mod:JimboPackRender(_,_,_,_,Player)
             else
                 JimboCards.SpecialCards:SetFrame("idle",  Option)
             end
-            WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams.Frames*4+i*60))*1.75)
+            WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams.Frames*5+i*95))*1.5)
 
             JimboCards.SpecialCards:Render(mod:CoolVectorLerp(PlayerPos, RenderPos+WobblyEffect[i], mod.SelectionParams.Frames/10))
 
@@ -1212,6 +1212,14 @@ function mod:JimboAddTrinket(Player, Trinket, _)
         
     Player:TryRemoveTrinket(Trinket) -- a custom table is used instead since he needs to hold many of them
 
+
+    local JokerEdition = mod.Saved.Jimbo.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Trinket).Name] or mod.Edition.BASE 
+
+    if JokerEdition == mod.Edition.NEGATIVE then
+        mod:AddJimboInventorySlots(Player, 1)
+    end
+
+
     --needs at least an empty slot
     if not mod:Contained(mod.Saved.Jimbo.Inventory.Jokers, 0) then
         Isaac.CreateTimer(function ()
@@ -1223,13 +1231,9 @@ function mod:JimboAddTrinket(Player, Trinket, _)
 
 
     local Slot = mod:AddValueToTable(mod.Saved.Jimbo.Inventory.Jokers, Trinket, true, false)
-    local JokerEdition = mod.Saved.Jimbo.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Trinket).Name] or mod.Edition.BASE 
 
     mod.Saved.Jimbo.Inventory.Editions[Slot] = JokerEdition --gives the correct edition to the inventory slot
 
-    if JokerEdition == mod.Edition.NEGATIVE then
-        mod:AddJimboInventorySlots(Player, 1)
-    end
 
     local InitialProg = ItemsConfig:GetTrinket(Trinket):GetCustomTags()[2]
     mod.Saved.Jimbo.Progress.Inventory[Slot] = tonumber(InitialProg)

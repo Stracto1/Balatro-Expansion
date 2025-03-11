@@ -1087,6 +1087,9 @@ function mod:TearsJokers(Player, _)
             if Joker == 0 then --could save some time
             elseif Joker == TrinketType.TRINKET_BULL then --this works with mod:OnUpdate() in TrinketCallbacks.lua
                 local Tears = Player:GetNumCoins() * 0.15
+
+                print(Tears)
+
                 mod:IncreaseJimboStats(Player, Tears, 0, 1, false, false)
             
             elseif Joker == TrinketType.TRINKET_STONE_JOKER then
@@ -1297,6 +1300,7 @@ function mod:DamageMultJokers(Player,_)
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.DamageMultJokers, CacheFlag.CACHE_DAMAGE)
 
+
 function mod:EditionsStats(Player, Flags)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
@@ -1306,7 +1310,7 @@ function mod:EditionsStats(Player, Flags)
             if Edition == mod.Edition.HOLOGRAPHIC then
                 mod:IncreaseJimboStats(Player,0, 0.5, 1, false, false)
             elseif Edition == mod.Edition.POLYCROME then
-                mod:IncreaseJimboStats(Player,0, 0, 1.2, false, false)
+                mod:IncreaseJimboStats(Player,0, 0, 1.25, false, false)
             end
         end
         if Flags & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then

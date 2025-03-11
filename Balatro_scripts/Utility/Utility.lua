@@ -737,3 +737,55 @@ function mod:RandomJoker(Rng, Exeptions, PlaySound, ForcedRarity)
 
     return Trinket
 end
+
+
+function mod:CardValueToName(Value, IsEID)
+
+    local String
+
+    if Value == 1 then
+        String = "Ace"
+    elseif Value == 11 then
+        String = "Jack"
+    elseif Value == 12 then
+        String = "Queen"
+    elseif Value == 13 then
+        String = "King"
+    else
+        String = tostring(Value)
+    end
+
+    if IsEID then
+        String = "{{ColorYellorange}}"..String.."{{CR}}"
+    end
+
+    return String
+
+end
+
+
+function mod:CardSuitToName(Suit, IsEID)
+
+    if Suit == mod.Suits.Spade then
+        if IsEID then
+            return "{{ColorGray}}Spades{{CR}}"
+        end
+        return "Spades"
+    elseif Suit == mod.Suits.Heart then
+        if IsEID then
+            return "{{ColorRed}}Hearts{{CR}}"
+        end
+        return "Hearts"
+    elseif Suit == mod.Suits.Club then
+        if IsEID then
+            return "{{ColorChips}}Clubs{{CR}}"
+        end
+        return "Clubs"
+    elseif Suit == mod.Suits.Diamond then
+        if IsEID then
+            return "{{ColorYellorange}}Diamonds{{CR}}"
+        end
+        return "Spades"
+    end
+
+end
