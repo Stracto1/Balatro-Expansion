@@ -681,8 +681,9 @@ function mod:SpectralCards(card, Player)
                                                   mod.SelectionParams.Purposes.AURA)
             
         elseif card == mod.Spectrals.WRAITH then    
-            Player:AddCoins(-Player:GetNumCoins()) --mekes him poor 
-            local RandomJoker = mod:GetRandom(mod.Trinkets.rare, CardRNG)
+            Player:AddCoins(-Player:GetNumCoins()) --makes him poor 
+            local RandomJoker = mod:RandomJoker(CardRNG, {}, true, "rare")
+
             for i, Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
                 if Joker == 0 then --the first empty slot
                     mod.Saved.Jimbo.Inventory.Jokers[i] = RandomJoker
@@ -700,11 +701,14 @@ function mod:SpectralCards(card, Player)
                 end
             end
             Isaac.RunCallback("DECK_SHIFT", Player)
-        elseif card == mod.Spectrals.OUIJA then 
+        elseif card == mod.Spectrals.OUIJA then
+            --[[
             if mod.Saved.Jimbo.HandSize == 1 then
                 Player:AnimateSad()
                 return
-            end 
+            end
+            mod:ChangeJimboHandSize(Player, -1)]]--
+
             --every card is set to a random value
             local RandomValue = CardRNG:RandomInt(1,13)
             for i,v in ipairs(mod.Saved.Jimbo.CurrentHand) do
@@ -712,13 +716,13 @@ function mod:SpectralCards(card, Player)
                     mod.Saved.Jimbo.FullDeck[v].Value = RandomValue
                 end
             end
-            mod:ChangeJimboHandSize(Player, -1)
+            
             Isaac.RunCallback("DECK_SHIFT", Player)
         elseif card == mod.Spectrals.ECTOPLASM then 
             if mod.Saved.Jimbo.HandSize == 1 then
                 Player:AnimateSad()
                 return --if hand size can't be decreased, don't to anything
-            end 
+            end
 
             mod.Saved.Jimbo.EctoUses = mod.Saved.Jimbo.EctoUses + 1 
 
@@ -737,7 +741,10 @@ function mod:SpectralCards(card, Player)
             mod.Saved.Jimbo.Inventory.Editions[RandomSlot] = mod.Edition.NEGATIVE
             --adds a slot since he got a negative joker
             mod:AddJimboInventorySlots(Player, 1)
-            mod:ChangeJimboHandSize(Player, -mod.Saved.Jimbo.EctoUses)
+
+            --mod:ChangeJimboHandSize(Player, -mod.Saved.Jimbo.EctoUses)
+            mod:ChangeJimboHandSize(Player, -1)
+
             sfx:Play(mod.Sounds.NEGATIVE)
             
             Isaac.RunCallback("INVENTORY_CHANGE", Player)
@@ -750,11 +757,11 @@ function mod:SpectralCards(card, Player)
                 end
             end 
             local RandomCards = {}
-            if #ValidCards <= 5 then
+            if #ValidCards <= 3 then
                 RandomCards = ValidCards
             else
                 for i = 1, #ValidCards do
-                    if i > 5 then --maximum of 5 times
+                    if i > 3 then --maximum of 3 times
                         break
                     end
                     local Rcard = mod:GetRandom(mod.Saved.Jimbo.CurrentHand, CardRNG)
@@ -847,13 +854,24 @@ function mod:SpectralCards(card, Player)
             
         elseif card == mod.Spectrals.SOUL then
 
+            local EmptySlot
+            for i, Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
+                if Joker == 0 then --needs an empty slot
+                    EmptySlot = i
+                    break
+                end
+            end
+
+            if not EmptySlot then
+                Player:AnimateSad()
+                return
+            end
+
             local Legendary = mod:RandomJoker(CardRNG, {}, true, "legendary")
-            local RandomSeed = Random()
-
-            if RandomSeed == 0 then RandomSeed = 1 end
-            Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET, Player.Position,
-                           RandomVector()*2, Player, Legendary.Joker, RandomSeed)
-
+            
+            mod.Saved.Jimbo.Inventory[EmptySlot] = Legendary
+            mod.Saved.Jimbo.Progress = ItemsConfig:GetTrinket(Legendary):GetCustomTags()[2] --sets the base progress
+            Isaac.RunCallback("INVENTORY_CHANGE", Player)
             mod.Saved.Jimbo.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][Legendary.Joker] = Legendary.Edition
 
         elseif card == mod.Spectrals.BLACK_HOLE then

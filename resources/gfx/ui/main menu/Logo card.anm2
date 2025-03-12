@@ -1,5 +1,5 @@
 <AnimatedActor>
-	<Info CreatedBy="Unknown" CreatedOn="09/03/2025 17:02:03" Version="3" Fps="30"/>
+	<Info CreatedBy="Unknown" CreatedOn="12/03/2025 19:41:38" Version="4" Fps="30"/>
 	<Content>
 		<Spritesheets>
 			<Spritesheet Path="logo card.png" Id="0"/>
@@ -17,7 +17,7 @@
 			</RootAnimation>
 			<LayerAnimations>
 				<LayerAnimation LayerId="0" Visible="true">
-					<Frame XPosition="0" YPosition="0" XPivot="237" YPivot="70" XCrop="0" YCrop="0" Width="480" Height="160" XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+					<Frame XPosition="0" YPosition="0" XPivot="48" YPivot="48" XCrop="0" YCrop="0" Width="96" Height="96" XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
 				</LayerAnimation>
 			</LayerAnimations>
 			<NullAnimations/>

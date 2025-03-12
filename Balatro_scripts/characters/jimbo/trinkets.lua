@@ -543,15 +543,13 @@ function mod:OnBlindClear(BlindType)
     for i, Pointer in ipairs(mod.Saved.Jimbo.CurrentHand) do
         local card = mod.Saved.Jimbo.FullDeck[Pointer]
         if card.Seal == mod.Seals.BLUE then
-            local LastValue = mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize]].Value
 
-            local Planet = mod.Planets.PLUTO + LastValue - 1
+            local Planet = mod.Planets.PLUTO + card.Value - 1
 
             Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
                        RandomVector()*2.5, Player, Planet, RandomSeed)
 
-            mod:CreateBalatroEffect(Player, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, 
-            "Planet!")
+            mod:CreateBalatroEffect(Player, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, "Planet!")
         end
     end
 

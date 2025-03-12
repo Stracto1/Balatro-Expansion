@@ -223,18 +223,19 @@ function mod:Clamp(Num,Max,Min)
     return math.max(Min,math.min(Num, Max))
 end
 
-function mod:HeadDirectionToString(Vector) --ty sheriff
+function mod:HeadDirectionToString(Vector) --ty for the base sheriff
 
+    --local Angle = ((Vector:GetAngleDegrees() + 22.5) // 45) * 45 --9 directions angle
     local Angle = ((Vector:GetAngleDegrees() + 45) // 90) * 90
 
     if Angle == 0 then
-        return "Right"
+        return "_right"
     elseif Angle == 90 then
-        return "Down"
-    elseif Angle == 180 then
-        return "Left"
+        return "_down"
+    elseif Angle == 180 or Angle == -180 then
+        return "_left"
     elseif Angle == -90 then
-        return "Up"
+        return "_up"
     end
 
     return ""

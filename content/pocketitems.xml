@@ -29,8 +29,8 @@
     <card type="rune" name="Incantation" description="Let go" hud="Spectral_Incantation" pickup="2496" achievement="PermaLocked"/>
     <card type="rune" name="Talisman" description="Yours forever" hud="Spectral_Talisman" pickup="2497" achievement="PermaLocked"/>
     <card type="rune" name="Aura" description="You can feel it" hud="Spectral_Aura" pickup="2498" achievement="PermaLocked"/>
-    <card type="rune" name="Wraith" description="Build it" hud="Spectral_Wraith" pickup="2499" achievement="PermaLocked"/>
-    <card type="rune" name="Sigil" description="Stop it" hud="Spectral_Sigil" pickup="2500" achievement="PermaLocked"/>
+    <card type="rune" name="Wraith" description="Stop it" hud="Spectral_Wraith" pickup="2499" achievement="PermaLocked"/>
+    <card type="rune" name="Sigil" description="Build it" hud="Spectral_Sigil" pickup="2500" achievement="PermaLocked"/>
     <card type="rune" name="Ouija" description="Let them speak" hud="Spectral_Ouija" pickup="2501" achievement="PermaLocked"/>
     <card type="rune" name="Ectoplasm" description="it's calling you" hud="Spectral_Ectoplasm" pickup="2502" achievement="PermaLocked"/>
     <card type="rune" name="Immolate" description="No more running" hud="Spectral_Immolate" pickup="2503" achievement="PermaLocked"/>

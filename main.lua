@@ -96,7 +96,7 @@ Balatro_Expansion.Planets.PLUTO =  Isaac.GetCardIdByName("Not_So_Planet_Pluto")
 Balatro_Expansion.Planets.MERCURY = Isaac.GetCardIdByName("Planet_Mercury")
 Balatro_Expansion.Planets.URANUS = Isaac.GetCardIdByName("Planet_Uranus")
 Balatro_Expansion.Planets.VENUS =  Isaac.GetCardIdByName("Planet_Venus")
-Balatro_Expansion.Planets.Saturn = Isaac.GetCardIdByName("Planet_Saturn")
+Balatro_Expansion.Planets.SATURN = Isaac.GetCardIdByName("Planet_Saturn")
 Balatro_Expansion.Planets.JUPITER = Isaac.GetCardIdByName("Planet_Jupiter")
 Balatro_Expansion.Planets.EARTH =  Isaac.GetCardIdByName("Planet_Earth")
 Balatro_Expansion.Planets.MARS = Isaac.GetCardIdByName("Planet_Mars")
@@ -105,6 +105,7 @@ Balatro_Expansion.Planets.PLANET_X =Isaac.GetCardIdByName("Planet_X")
 Balatro_Expansion.Planets.CERES =  Isaac.GetCardIdByName("Planet_Ceres")
 Balatro_Expansion.Planets.ERIS = Isaac.GetCardIdByName("Planet_Eris")
 Balatro_Expansion.Planets.SUN = Isaac.GetCardIdByName("Planet_Sun")
+
 
 Balatro_Expansion.Spectrals = {}
 Balatro_Expansion.Spectrals.FAMILIAR =  Isaac.GetCardIdByName("Spectral_Familiar")

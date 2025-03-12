@@ -2025,6 +2025,7 @@ local DescriptionHelperVariant = Isaac.GetEntityVariantByName("Description Helpe
 local DescriptionHelperSubType = Isaac.GetEntitySubTypeByName("Description Helper")
 
 --allows to activate/disable selection states easly
+---@param Player EntityPlayer
 function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
 
     mod.SelectionParams.Frames = 0
@@ -2033,6 +2034,8 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
         for i,v in ipairs(Isaac.FindByType(1000, DescriptionHelperVariant, DescriptionHelperSubType)) do
             v:Remove()
         end
+
+        Player:SetCanShoot(true)
 
         if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_STOP_WATCH) then
             music:PitchSlide(0.9)
@@ -2054,7 +2057,9 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
             --if changing from an "active" state to another
             mod:UseSelection(Player)
         end
+
         Game:GetRoom():SetPauseTimer(225)
+        Player:SetCanShoot(false)
 
         Game:Spawn(EntityType.ENTITY_EFFECT, DescriptionHelperVariant, Player.Position
                        ,Vector.Zero, nil, DescriptionHelperSubType, 1)
