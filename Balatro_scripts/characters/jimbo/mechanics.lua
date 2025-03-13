@@ -751,14 +751,12 @@ function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rN
 
     local ReturnTable = {Variant, SubType, true} --basic return equal to not returning anything
 
-    local RollRNG = Game:GetPlayer(0):GetDropRNG() --tried using the rng from the callback but it gave the same results each time
-
+    local RollRNG = mod.Saved.GeneralRNG --tried using the rng from the callback but it gave the same results each time
 
     if PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType)
        and (ReqSubType == 0 or ReqVariant == 0) then
         
         if Game:GetRoom():GetType() == RoomType.ROOM_SHOP and Pickup:IsShopItem() then
-
 
             if Pickup.ShopItemId <= 1 then --card pack
                 ReturnTable = {PickupVariant.PICKUP_TAROTCARD,mod:GetRandom(mod.Packs, mod.Saved.GeneralRNG),false}
@@ -802,7 +800,7 @@ function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rN
             elseif Pickup.ShopItemId == 3 then --basic shop item
                 ReturnTable = {PickupVariant.PICKUP_COLLECTIBLE,
                         ItemPool:GetCollectible(ItemPoolType.POOL_SHOP, true, RollRNG:GetSeed()), false}
-
+            
             else
                 ReturnTable = {PickupVariant.PICKUP_TRINKET, 1 ,false}
             end
@@ -839,12 +837,8 @@ function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rN
         --if a trinket is selected, then roll for joker and edition
         if ReturnTable[1] == PickupVariant.PICKUP_TRINKET then
 
-            local ExistingJokers = {}
-            for i, Trinket in ipairs(Isaac.FindByType(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET)) do
-                table.insert(ExistingJokers, Trinket.SubType)
-            end
 
-            local RandomJoker = mod:RandomJoker(RollRNG, ExistingJokers, true)
+            local RandomJoker = mod:RandomJoker(RollRNG, {}, true)
 
             ReturnTable = {PickupVariant.PICKUP_TRINKET, RandomJoker.Joker ,false}
 
@@ -1011,20 +1005,34 @@ function mod:CalculateBlinds()
     mod.Saved.Jimbo.BossCleared = 0
     mod.Saved.Jimbo.ClearedRooms = 0
 
-    --the more rooms, the less you need to complete
-    if BasicRoomNum < 40 then
-        BasicRoomNum = math.floor(BasicRoomNum * (0.9 - BasicRoomNum/100))
+    if Game:IsGreedMode() then
+
+        if Game:GetLevel():GetName() == "shop" then
+            mod.Saved.Jimbo.SmallBlind = 0
+            mod.Saved.Jimbo.BigBlind = 0
+        else
+            mod.Saved.Jimbo.SmallBlind = 8
+            mod.Saved.Jimbo.BigBlind = 2
+            if Game:IsHardMode() then
+                mod.Saved.Jimbo.SmallBlind = mod.Saved.Jimbo.SmallBlind + 1
+            end
+        end
+
     else
-        BasicRoomNum =  math.floor(BasicRoomNum * 0.55) --the minimum is 55% of rooms
-    end
+        --the more rooms, the less you need to complete
+        if BasicRoomNum < 40 then
+            BasicRoomNum = math.floor(BasicRoomNum * (0.9 - BasicRoomNum/100))
+        else
+            BasicRoomNum =  math.floor(BasicRoomNum * 0.55) --the minimum is 55% of rooms
+        end
  
-    mod.Saved.Jimbo.SmallBlind = math.floor(BasicRoomNum/2) -- about half of the rooms
-    mod.Saved.Jimbo.BigBlind = BasicRoomNum - mod.Saved.Jimbo.SmallBlind --about half of the rooms
-    
+        mod.Saved.Jimbo.SmallBlind = math.floor(BasicRoomNum/2) -- about half of the rooms
+        mod.Saved.Jimbo.BigBlind = BasicRoomNum - mod.Saved.Jimbo.SmallBlind --about half of the rooms
+    end
     BasicRoomNum = 0 --resets the counter
     ShopAddedThisFloor = false
 
-    Isaac.RunCallback("BLIND_STARTED", mod.BLINDS.SMALL)
+    --Isaac.RunCallback("BLIND_STARTED", mod.BLINDS.SMALL)
 end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.CalculateBlinds)
 --mod:AddPriorityCallback(ModCallbacks.MC_POST_GAME_STARTED, CallbackPriority.LATE,mod.CalculateBlinds)
@@ -1039,8 +1047,7 @@ function mod:HandleNoHarmRoomsClear()
 
     local Desc = Level:GetCurrentRoomDesc()
     
-    if Desc.VisitedCount ~= 1 or Desc.GridIndex == Level:GetStartingRoomIndex()
-       or not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
+    if Desc.VisitedCount ~= 1 or Desc.GridIndex == Level:GetStartingRoomIndex() then
         return
     end
 
@@ -1052,27 +1059,82 @@ function mod:HandleNoHarmRoomsClear()
 
         elseif Desc.Data.Type == RoomType.ROOM_SHOP then
             local Seed = Game:GetRoom():GetSpawnSeed()
-            Game:Spawn(EntityType.ENTITY_SLOT, SlotVariant.SHOP_RESTOCK_MACHINE,
+            
+            if Game:IsGreedMode() then
+                
+                for _,Slot in ipairs(Isaac.FindByType(EntityType.ENTITY_SLOT, SlotVariant.SHOP_RESTOCK_MACHINE)) do
+                    Slot:Remove()
+                end
+
+
+                Game:Spawn(EntityType.ENTITY_SLOT, SlotVariant.SHOP_RESTOCK_MACHINE,
+                       Vector(580,400),Vector.Zero, nil, 0, Seed)
+
+
+                if PlayerManager.AnyoneHasCollectible(mod.Vouchers.Overstock) then
+
+                    local ExtraTrinket = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET,
+                                                    Vector(820,320),Vector.Zero, PlayerManager.FirstPlayerByType(mod.Characters.JimboType), mod:RandomJoker(mod.Saved.GeneralRNG).Joker, Seed):ToPickup()
+
+                    ExtraTrinket:MakeShopItem(6) -- for whatever reason i can't make this turn into an joker with the usual callback, so i made mod:GreedJokerFix()
+
+                    local JokerData = ExtraTrinket:GetData()
+                    JokerData.OverstockGreed = true
+                end
+                if PlayerManager.AnyoneHasCollectible(mod.Vouchers.OverstockPlus) then
+
+                    local ExtraTrinket = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET,
+                                                    Vector(940,320),Vector.Zero, PlayerManager.FirstPlayerByType(mod.Characters.JimboType), mod:RandomJoker(mod.Saved.GeneralRNG).Joker, Seed):ToPickup()
+
+                    ExtraTrinket:MakeShopItem(6) -- for whatever reason i can't make this turn into an joker with the usual callback, so i made mod:GreedJokerFix()
+
+                    local JokerData = ExtraTrinket:GetData()
+                    JokerData.OverstockGreed = true
+                end
+
+
+            else
+                Game:Spawn(EntityType.ENTITY_SLOT, SlotVariant.SHOP_RESTOCK_MACHINE,
                        Game:GetRoom():GetGridPosition(25),Vector.Zero, nil, 0, Seed)
+            end
+            
         end
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.HandleNoHarmRoomsClear)
 
 
+
+
+
+
+
+
 function mod:AddRoomsCleared(IsBoss, _)
 
-    ---@diagnostic disable-next-line: param-type-mismatch
-    mod:StatReset(PlayerManager.FirstPlayerByType(mod.Characters.JimboType), true, true, true, false, true)
+
+    if not Game:IsGreedMode() then
+        for i,Player in ipairs(PlayerManager.GetPlayers()) do
+            if Player:GetPlayerType() == mod.Characters.JimboType then
+                ---@diagnostic disable-next-line: param-type-mismatch
+                mod:StatReset(Player, true, true, true, false, true)
+                mod:FullDeckShuffle(Player)
+            end
+        end
+    end
+
 
     if Game:GetLevel():GetDimension() ~= Dimension.NORMAL then
         return
     end
 
-    for i,Player in ipairs(PlayerManager.GetPlayers()) do
-        if Player:GetPlayerType() == mod.Characters.JimboType then
-            Player:AddHearts(2)
-            mod:FullDeckShuffle(Player)
+    if not Game:IsGreedMode() then
+
+        for i,Player in ipairs(PlayerManager.GetPlayers()) do
+            if Player:GetPlayerType() == mod.Characters.JimboType then
+                Player:AddHearts(2)
+                mod:FullDeckShuffle(Player)
+            end
         end
     end
 
@@ -1091,10 +1153,13 @@ function mod:AddRoomsCleared(IsBoss, _)
         end
     else
         mod.Saved.Jimbo.ClearedRooms = mod.Saved.Jimbo.ClearedRooms + 1
-        if mod.Saved.Jimbo.ClearedRooms == mod.Saved.Jimbo.SmallBlind and not mod.Saved.Jimbo.SmallCleared then
-            Isaac.RunCallback("BLIND_CLEARED", mod.BLINDS.SMALL)
-            mod.Saved.Jimbo.SmallCleared = true
-            mod.Saved.Jimbo.ClearedRooms = 0
+        if not mod.Saved.Jimbo.SmallCleared then
+            if mod.Saved.Jimbo.ClearedRooms == mod.Saved.Jimbo.SmallBlind then
+                Isaac.RunCallback("BLIND_CLEARED", mod.BLINDS.SMALL)
+                mod.Saved.Jimbo.SmallCleared = true
+                mod.Saved.Jimbo.ClearedRooms = 0
+            end
+        
         elseif mod.Saved.Jimbo.ClearedRooms == mod.Saved.Jimbo.BigBlind and not mod.Saved.Jimbo.BigCleared then
             Isaac.RunCallback("BLIND_CLEARED", mod.BLINDS.BIG)
             mod.Saved.Jimbo.BigCleared = true
@@ -1154,18 +1219,18 @@ function mod:GiveRewards(BlindType)
             Isaac.CreateTimer(function ()
                 if BlindType == mod.BLINDS.SMALL then
                     
-                    Player:AddCoins(3)
-                    mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+3 $", Vector(0,20))
+                    Player:AddCoins(4)
+                    mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+4 $", Vector(0,20))
                     --Isaac.RunCallback("BLIND_STARTED", mod.BLINDS.BIG)
 
                 elseif BlindType == mod.BLINDS.BIG then
-                    Player:AddCoins(4)
-                    mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+4 $", Vector(0,20))
+                    Player:AddCoins(5)
+                    mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+5 $", Vector(0,20))
                     --Isaac.RunCallback("BLIND_STARTED", mod.BLINDS.BOSS)
                     
                 elseif BlindType == mod.BLINDS.BOSS then
-                    Player:AddCoins(5)
-                    mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+5 $", Vector(0,20))
+                    Player:AddCoins(6)
+                    mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+6 $", Vector(0,20))
     
                 end
             end, 15,1, true)
@@ -1200,6 +1265,19 @@ function mod:GiveRewards(BlindType)
         end 
         mod:CreateBalatroEffect(Jimbo,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+"..tostring(Interests).." $", Vector(0,20))
     end, 30, 1, true)
+
+
+    --[[
+    if Game:IsGreedMode() then
+        for i,Player in ipairs(PlayerManager.GetPlayers()) do
+            if Player:GetPlayerType() == mod.Characters.JimboType then
+                ---@diagnostic disable-next-line: param-type-mismatch
+                mod:StatReset(Player, true, true, true, false, true)
+                mod:FullDeckShuffle(Player)
+            end
+        end
+    end]]
+
 end
 mod:AddPriorityCallback("BLIND_CLEARED",CallbackPriority.LATE, mod.GiveRewards)
 
@@ -1420,19 +1498,50 @@ function mod:JimboRoomClear(Player)
         return
     end
 
-    local Room = Game:GetRoom():GetType()
-    if Room == RoomType.ROOM_DEFAULT then
-        Isaac.RunCallback("TRUE_ROOM_CLEAR",false, true)
-    elseif Room == RoomType.ROOM_BOSS then
-        Isaac.RunCallback("TRUE_ROOM_CLEAR",true, true)
-    else
-        for i,Player in ipairs(PlayerManager.GetPlayers()) do
-            if Player:GetPlayerType() == mod.Characters.JimboType then
-                Player:AddHearts(2)
-                mod:FullDeckShuffle(Player)
+    if Game:IsGreedMode() then
+
+        local CurrentWave = Level.GreedModeWave
+        local WantedWaves
+        if Game:IsHardMode() then
+            WantedWaves = {9,11,12} --greedier last waves
+        else
+            WantedWaves = {8,10,11} --greed last waves
+        end
+
+        local IsFirstWave = CurrentWave == 1 or CurrentWave == WantedWaves[2]-1 or CurrentWave == WantedWaves[3]
+
+        Isaac.RunCallback("TRUE_ROOM_CLEAR", CurrentWave == WantedWaves[3], IsFirstWave)
+
+        
+        --as the button is first pressed, reset stats and deck
+        if IsFirstWave then
+            for i,Player in ipairs(PlayerManager.GetPlayers()) do
+                if Player:GetPlayerType() == mod.Characters.JimboType then
+                    ---@diagnostic disable-next-line: param-type-mismatch
+                    mod:StatReset(Player, true, true, true, false, true)
+                    mod:FullDeckShuffle(Player)
+                end
             end
         end
+    else
+        local Room = Game:GetRoom():GetType()
+
+        if Room == RoomType.ROOM_DEFAULT then
+            Isaac.RunCallback("TRUE_ROOM_CLEAR",false, true)
+        elseif Room == RoomType.ROOM_BOSS then
+            Isaac.RunCallback("TRUE_ROOM_CLEAR",true, true)
+        else
+            for i,Player in ipairs(PlayerManager.GetPlayers()) do
+                if Player:GetPlayerType() == mod.Characters.JimboType then
+                    Player:AddHearts(2)
+                    mod:FullDeckShuffle(Player)
+                end
+            end
+        end
+
+
     end
+    
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, mod.JimboRoomClear)
 
@@ -2465,6 +2574,62 @@ function mod:PackShader(Name)
     end
 end
 --mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.PackShader)
+
+
+
+local ShopRestock = false
+function mod:OverstockGreedHelper(Partial)
+
+    if PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) and not Partial then
+        ShopRestock = true
+
+        Isaac.CreateTimer(function()
+            ShopRestock = false
+        end,1,1, true)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_RESTOCK_SHOP, mod.OverstockGreedHelper)
+
+
+
+
+function mod:OverstockGreedJokerFix(Pickup)
+
+    print("remove")
+
+    --exiting the room shouldn't spawn a new trinket
+    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
+        return
+    end
+
+    Pickup = Pickup:ToPickup()
+
+    local PickupData = Pickup:GetData()
+
+    if not PickupData.OverstockGreed then
+        return
+    end
+
+    --Isaac.CreateTimer(function ()
+        print("try")
+        if ShopRestock then
+            local ExtraTrinket = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET,
+                                                    Pickup.Position,Vector.Zero, PlayerManager.FirstPlayerByType(mod.Characters.JimboType), mod:RandomJoker(mod.Saved.GeneralRNG).Joker, Pickup.InitSeed):ToPickup()
+    
+            ExtraTrinket:MakeShopItem(6) -- for whatever reason i can't make this turn into an joker with the usual callback, so i made mod:GreedJokerFix()
+        
+            local JokerData = ExtraTrinket:GetData()
+            JokerData.OverstockGreed = true
+        end
+    --end, 1,1, true)
+    
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_ENTITY_REMOVE, mod.OverstockGreedJokerFix, EntityType.ENTITY_PICKUP)
+
+
+
+
 ]]--
 
 

@@ -697,15 +697,17 @@ mod:AddPriorityCallback(ModCallbacks.MC_PRE_USE_CARD,CallbackPriority.EARLY, mod
 --usually used as a kind of hand played (ex. Vagabond)
 function mod:OnRoomClear(IsBoss, Hostile)
 
-    for i,v in pairs(mod.Saved.Jimbo.Progress.Room) do
-        if type(v) == "table" then
+    if not Game:IsGreedMode() or Hostile then
+        for i,v in pairs(mod.Saved.Jimbo.Progress.Room) do
+            if type(v) == "table" then
 
-            for j,_ in ipairs(mod.Saved.Jimbo.Progress.Room[i]) do
-                mod.Saved.Jimbo.Progress.Room[i][j] = 0
+                for j,_ in ipairs(mod.Saved.Jimbo.Progress.Room[i]) do
+                    mod.Saved.Jimbo.Progress.Room[i][j] = 0
+                end
+            else
+
+                mod.Saved.Jimbo.Progress.Room[i] = 0 --resets the blind progress
             end
-        else
-
-            mod.Saved.Jimbo.Progress.Room[i] = 0 --resets the blind progress
         end
     end
 

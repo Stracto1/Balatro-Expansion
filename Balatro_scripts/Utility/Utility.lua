@@ -664,6 +664,22 @@ function mod:RandomJoker(Rng, Exeptions, PlaySound, ForcedRarity)
     local Trinket = {}
     local Possibilities = {}
 
+    for i, Player in ipairs(PlayerManager.GetPlayers()) do
+        if Player:GetPlayerType() == mod.Characters.JimboType then
+            for i, Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
+                if Joker ~= 0 then
+                    Exeptions[#Exeptions+1] = Joker
+                end
+            end
+        end
+    end
+
+    for i, Trinket in ipairs(Isaac.FindByType(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET)) do
+        
+        Exeptions[#Exeptions+1] = Trinket
+    end
+
+
     if ForcedRarity then
         table.move(mod.Trinkets[ForcedRarity], 1, #mod.Trinkets[ForcedRarity], 1, Possibilities)
     else
@@ -693,8 +709,7 @@ function mod:RandomJoker(Rng, Exeptions, PlaySound, ForcedRarity)
         ---@diagnostic disable-next-line: param-type-mismatch
         table.remove(Possibilities, mod:GetValueIndex(Possibilities, Trinket.Joker, true))
 
-    until not mod:JimboHasTrinket(PlayerManager.FirstPlayerByType(mod.Characters.JimboType),Trinket.Joker) 
-          and not mod:Contained(Exeptions, Trinket.Joker) --basic criteria
+    until not mod:Contained(Exeptions, Trinket.Joker) --basic criteria
           and (Trinket.Joker ~= TrinketType.TRINKET_GROS_MICHAEL or not mod.Saved.Jimbo.MichelDestroyed) --if it's michel, check if it was destroyed
           and (Trinket.Joker ~= TrinketType.TRINKET_CAVENDISH or mod.Saved.Jimbo.MichelDestroyed) --if it's cavendish do the same but opposite
     
