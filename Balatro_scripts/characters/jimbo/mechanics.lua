@@ -798,8 +798,16 @@ function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rN
                 end
 
             elseif Pickup.ShopItemId == 3 then --basic shop item
-                ReturnTable = {PickupVariant.PICKUP_COLLECTIBLE,
+            
+                if Game:IsGreedMode() then
+                    ReturnTable = {PickupVariant.PICKUP_COLLECTIBLE,
+                        ItemPool:GetCollectible(ItemPoolType.POOL_GREED_SHOP, true, RollRNG:GetSeed()), false}
+                else
+                    ReturnTable = {PickupVariant.PICKUP_COLLECTIBLE,
                         ItemPool:GetCollectible(ItemPoolType.POOL_SHOP, true, RollRNG:GetSeed()), false}
+
+                end
+                
             
             else
                 ReturnTable = {PickupVariant.PICKUP_TRINKET, 1 ,false}
@@ -1074,7 +1082,7 @@ function mod:HandleNoHarmRoomsClear()
                 if PlayerManager.AnyoneHasCollectible(mod.Vouchers.Overstock) then
 
                     local ExtraTrinket = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET,
-                                                    Vector(820,320),Vector.Zero, PlayerManager.FirstPlayerByType(mod.Characters.JimboType), mod:RandomJoker(mod.Saved.GeneralRNG).Joker, Seed):ToPickup()
+                                                    Vector(840,320),Vector.Zero, PlayerManager.FirstPlayerByType(mod.Characters.JimboType), mod:RandomJoker(mod.Saved.GeneralRNG).Joker, Seed):ToPickup()
 
                     ExtraTrinket:MakeShopItem(6) -- for whatever reason i can't make this turn into an joker with the usual callback, so i made mod:GreedJokerFix()
 
@@ -1086,7 +1094,7 @@ function mod:HandleNoHarmRoomsClear()
                     local ExtraTrinket = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET,
                                                     Vector(940,320),Vector.Zero, PlayerManager.FirstPlayerByType(mod.Characters.JimboType), mod:RandomJoker(mod.Saved.GeneralRNG).Joker, Seed):ToPickup()
 
-                    ExtraTrinket:MakeShopItem(6) -- for whatever reason i can't make this turn into an joker with the usual callback, so i made mod:GreedJokerFix()
+                    ExtraTrinket:MakeShopItem(-2) -- for whatever reason i can't make this turn into an joker with the usual callback, so i made mod:GreedJokerFix()
 
                     local JokerData = ExtraTrinket:GetData()
                     JokerData.OverstockGreed = true
@@ -1104,8 +1112,87 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.HandleNoHarmRoomsClear)
 
 
+local ShopRestock = false
+function mod:OverstockGreedHelper(Partial)
+
+    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) or not Game:IsGreedMode() or Partial then
+        return
+    end
+
+    ShopRestock = true
+
+    Isaac.CreateTimer(function()
+        ShopRestock = false
+    end,2,1, true)
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_RESTOCK_SHOP, mod.OverstockGreedHelper)
 
 
+
+function mod:OverstockGreedJokerFix2(Pickup, Player, _)
+
+    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) or not Game:IsGreedMode() then
+        return
+    end
+    local PickupData = Pickup:GetData()
+
+    if not PickupData.OverstockGreed then
+        return
+    end
+    
+    local Position = Pickup.Position
+
+    Isaac.CreateTimer(function ()
+
+        local NewPickup = Isaac.FindInRadius(Position, 2)[1]
+
+        local NewPickupData = NewPickup:GetData()
+
+        NewPickupData.OverstockGreed = true
+    end, 31,1,false)
+
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_PICKUP_SHOP_PURCHASE, mod.OverstockGreedJokerFix2, PickupVariant.PICKUP_TRINKET)
+
+
+--using restock machines makes the extra jokers disappear so just put a new one
+function mod:OverstockGreedJokerFix(Pickup)
+
+    --exiting the room shouldn't spawn a new trinket
+    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) or not Game:IsGreedMode() then
+        return
+    end
+
+    Pickup = Pickup:ToPickup()
+
+    local PickupData = Pickup:GetData()
+
+    Isaac.CreateTimer(function ()
+        
+        print(PickupData.OverstockGreed)
+        print(ShopRestock)
+
+        if not PickupData.OverstockGreed or not ShopRestock then
+            return
+        end
+
+        local ExtraTrinket = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET,
+                                                Pickup.Position,Vector.Zero, PlayerManager.FirstPlayerByType(mod.Characters.JimboType), mod:RandomJoker(mod.Saved.GeneralRNG).Joker, Pickup.InitSeed):ToPickup()
+
+        ExtraTrinket:MakeShopItem(6) -- for whatever reason i can't make this turn into an joker with the usual callback, so i made mod:GreedJokerFix()
+
+        local JokerData = ExtraTrinket:GetData()
+        JokerData.OverstockGreed = true
+
+    end,0,1,false)
+
+    
+    
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_ENTITY_REMOVE, mod.OverstockGreedJokerFix, EntityType.ENTITY_PICKUP)
 
 
 

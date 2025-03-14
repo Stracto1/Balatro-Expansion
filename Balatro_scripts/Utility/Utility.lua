@@ -450,6 +450,9 @@ function mod:GetActualCardValue(Value)
 end
 
 function mod:JimboHasTrinket(Player,Trinket)
+    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+        return false
+    end
     for _,v in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
         if v == Trinket then
             return true
@@ -631,6 +634,7 @@ end
 
 function mod:SellJoker(Player, Trinket, Slot)
     mod.Saved.Jimbo.Inventory.Jokers[Slot] = 0
+    mod.Saved.Jimbo.Inventory.Editions[Slot] = mod.Edition.BASE
     local SellValue
     if Trinket == TrinketType.TRINKET_EGG then --egg holds its sell value in its progress
         
@@ -653,7 +657,7 @@ function mod:SellJoker(Player, Trinket, Slot)
 
     mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..SellValue.."$")
 
-    Isaac.RunCallback("INEVNTORY_CHANGE", Player)
+    Isaac.RunCallback("INVENTORY_CHANGE", Player)
     Isaac.RunCallback("JOKER_SOLD", Player, Trinket, Slot)
 end
 

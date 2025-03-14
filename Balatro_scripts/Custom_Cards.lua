@@ -838,6 +838,9 @@ function mod:SpectralCards(card, Player)
                     mod.Saved.Jimbo.Inventory.Editions[i] = mod.Edition.POLYCROME
                 end
             end 
+
+            sfx:Play(mod.Sounds.POLY)
+
             Isaac.RunCallback("INVENTORY_CHANGE", Player)
         elseif card == mod.Spectrals.TRANCE then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, 

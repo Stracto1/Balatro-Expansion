@@ -35,9 +35,9 @@ local sfx = SFXManager()
 
 local StackedEffects = 0
 --here Position colud be an entity, in that case 
-function mod:CreateBalatroEffect(Slot, Colour, Sound, Text, Offset, Volume)
+function mod:CreateBalatroEffect(Slot, Colour, Sound, Text, Offset, Volume, Force)
 
-    if EffectParams[Slot] then --if an effect is already playing on the same target
+    if EffectParams[Slot] and not Force then --if an effect is already playing on the same target
 
         StackedEffects = StackedEffects + 1
         Isaac.CreateTimer(function()

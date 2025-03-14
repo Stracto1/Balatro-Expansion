@@ -142,6 +142,7 @@ CardEditionDesc["en_us"][mod.Edition.NEGATIVE] = "# {{ColorGray}}{{ColorFade}}Ne
 
 local JokerEditionDesc = {}
 JokerEditionDesc["en_us"] = {}
+JokerEditionDesc["en_us"][mod.Edition.NOT_CHOSEN] = ""
 JokerEditionDesc["en_us"][mod.Edition.BASE] = ""
 JokerEditionDesc["en_us"][mod.Edition.FOIL] = "# {{ColorChips}}Foil{{CR}}: Gives {{ColorChips}}+2.5 Tears{{CR}} while held"
 JokerEditionDesc["en_us"][mod.Edition.HOLOGRAPHIC] = "# {{ColorMult}}Holographic{{CR}}: Gives {{ColorMult}}+0.5 Damage{{CR}} while held"
@@ -408,7 +409,7 @@ local function BalatroInventoryCallback(descObj)
                 for i,selected in ipairs(mod.SelectionParams.SelectedCards) do
                     if selected then
                         SelectedCard = mod.Saved.Jimbo.Inventory.Jokers[i]
-                        SelectSlots = i
+                        SelectedSlots = i
                         break
                     end
                 end
@@ -464,10 +465,11 @@ local function BalatroInventoryCallback(descObj)
 
             Icon = "{{CurrentCard}}"
             Name = RarityColor..EID:getObjectName(5, 350, SelectedCard).."{{CR}}#{{Blank}}"
-            Description =EID:getDescriptionEntry("custom", Tstring)[3]
+            Description = EID:getDescriptionEntry("custom", Tstring)[3]
 
-            local Edition = mod.Saved.Jimbo.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][SelectedCard]
-            local EditionDesc = JokerEditionDesc[Language][Edition] or JokerEditionDesc["en_us"][Edition]
+            local Edition = mod.Saved.Jimbo.Inventory.Editions[mod.SelectionParams.Index]
+
+            local EditionDesc = JokerEditionDesc[Language][Edition]
 
             Description = Description..EditionDesc
 

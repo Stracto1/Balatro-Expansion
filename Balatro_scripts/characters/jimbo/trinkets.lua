@@ -830,13 +830,18 @@ function mod:OnNewRoomJokers()
 
             if Joker == TrinketType.TRINKET_MISPRINT then
                 local MisDMG = mod.Saved.Jimbo.Progress.Inventory[ProgressIndex]
-                if Copied then
-                    MisDMG = Player:GetTrinketRNG(TrinketType.TRINKET_MISPRINT):RandomFloat()
+
+                if not Copied then
+                    local RoomRNG = RNG(Game:GetRoom():GetSpawnSeed())
+
+                    MisDMG = mod:round(RoomRNG:RandomFloat(), 2)
                     mod.Saved.Jimbo.Progress.Inventory[ProgressIndex] = MisDMG
+
+                    mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ADDMULT, "+"..tostring(MisDMG))
                 end
 
                 mod.Counters.Activated[Index] = 0
-                mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ADDMULT, "+"..tostring(MisDMG))
+                
             end
         end
 
@@ -847,6 +852,7 @@ function mod:OnNewRoomJokers()
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.OnNewRoomJokers)
+
 
 function mod:OnNewLevelJokers()
 
@@ -1036,11 +1042,12 @@ function mod:CopyAdjustments(Player)
         
             local TotalSell = 0
             for Slot,Jok in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
-                if Slot ~= ProgressIndex and Jok ~= 0 then
+                if Jok ~= 0 then
                     TotalSell = TotalSell + mod:GetJokerCost(Jok, Slot)
                 end
             end
-            local Difference = TotalSell*0.04 - mod.Saved.Jimbo.Progress.Inventory[ProgressIndex]
+
+            local Difference = TotalSell*0.05 - mod.Saved.Jimbo.Progress.Inventory[ProgressIndex]
             if Difference ~= 0 then
                 local Sign = ""
                 if Difference >= 0 then Sign = "+" end
@@ -1058,6 +1065,45 @@ function mod:CopyAdjustments(Player)
     Player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
 end
 mod:AddCallback("INVENTORY_CHANGE", mod.CopyAdjustments)
+
+
+
+local PastCoins
+local PastBombs
+local PastKeys
+
+--keeps track of the player's pickup to see when to evaluate
+function mod:PickupBasedEval(Player)
+    local NowCoins = Player:GetNumCoins()
+    local NowBombs = Player:GetNumBombs()
+    local NowKeys = Player:GetNumKeys()
+    --local NowHearts = player:GetHearts()
+
+    if NowCoins ~= PastCoins then
+
+        for Index, Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
+            if Joker == TrinketType.TRINKET_BULL then
+
+                Player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
+    
+                local Difference = NowCoins - PastCoins
+                local Sign = "+"
+                if Difference < 0 then
+                    Sign = ""
+                end
+
+                mod:CreateBalatroEffect(Index, mod.EffectColors.BLUE, mod.Sounds.CHIPS,
+                    Sign..tostring(0.1*Difference),nil,nil, true)
+            end
+
+        end
+        
+        
+        PastCoins = NowCoins
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, mod.PickupBasedEval)
+
 
 
 
