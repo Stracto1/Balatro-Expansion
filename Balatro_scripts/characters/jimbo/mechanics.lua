@@ -19,6 +19,12 @@ local JimboCards = {PlayingCards = Sprite("gfx/ui/PlayingCards.anm2"),
                     SpecialCards = Sprite("gfx/ui/PackSpecialCards.anm2")}
 local DeckSprite = Sprite("gfx/ui/Deck Stages.anm2")
 
+local MultCounter,chips = Sprite("gfx/ui/Mult Counter.anm2")
+local ChipsCounter, mult = Sprite("gfx/ui/Chips Counter.anm2")
+MultCounter:SetFrame("Idle",0)
+ChipsCounter:SetFrame("Idle",0)
+
+
 local Edition_Overlay = Sprite("gfx/ui/Edition Overlay.anm2", true) --used on the cards sprites instead of the shaders
 
 local EditionShaders ={ --sadly these don't work for the bigger card spritesheet, if you know how to fix this please let me know!!
@@ -38,7 +44,7 @@ HAND_TYPE_NAMES[0] = "none"
 local CHARGED_ANIMATION = 22 --the length of an animation for chargebars
 local CHARGED_LOOP_ANIMATION = 10
 
-local DECK_RENDERING_POSITION = Vector(155,25) --in screen coordinates
+local DECK_RENDERING_POSITION = Vector(85,11) --in screen coordinates
 local INVENTORY_RENDERING_POSITION = Vector(5,250)
 --local DECK_RENDERING_POSITION = Isaac.WorldToRenderPosition(Isaac.ScreenToWorld(Vector(760,745)))
 
@@ -48,9 +54,10 @@ local JactivateLength = TrinketSprite:GetAnimationData("Effect"):GetLength()
 
 local HUD_FRAME = {}
 HUD_FRAME.Frame = 0
-HUD_FRAME.Arrow = 1
+HUD_FRAME.Dollar = 1
 HUD_FRAME.Hand = 2
 HUD_FRAME.Confirm = 3
+HUD_FRAME.Skip = 4
 
 local CardHUDWidth = 13
 local PACK_CARD_DISTANCE = 10
@@ -90,6 +97,7 @@ local ItemPool = Game:GetItemPool()
 --------------HUD RENDER-----------------
 -----------------------------------------
 
+--rendered the currently hald jokers
 function mod:JimboInventoryHUD(offset,_,Position,_,Player)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
@@ -97,8 +105,12 @@ function mod:JimboInventoryHUD(offset,_,Position,_,Player)
 
     for i,trinket in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
 
-        if trinket ~= 0 then
-            local RenderPos = INVENTORY_RENDERING_POSITION + Vector(19*i , 0)
+        local RenderPos = INVENTORY_RENDERING_POSITION + Vector(19*i , 0)
+
+        if trinket == 0 then
+
+            TrinketSprite:SetFrame("Empty", 0)
+        else
 
             if mod.SelectionParams.Mode == mod.SelectionParams.Modes.INVENTORY and 
                mod.SelectionParams.SelectedCards[i] then
@@ -115,8 +127,10 @@ function mod:JimboInventoryHUD(offset,_,Position,_,Player)
                 TrinketSprite:SetFrame("Idle", 0)
             end
             TrinketSprite:SetCustomShader(EditionShaders[mod.Saved.Jimbo.Inventory.Editions[i]])
-            TrinketSprite:Render(RenderPos)
+            
         end
+
+        TrinketSprite:Render(RenderPos)
     end
 
     if mod.SelectionParams.Mode == mod.SelectionParams.Modes.INVENTORY then
@@ -133,36 +147,105 @@ function mod:JimboInventoryHUD(offset,_,Position,_,Player)
 
         --last confirm option
         RenderPos = INVENTORY_RENDERING_POSITION + Vector(19 * (mod.Saved.Jimbo.InventorySize + 1), 0)
-        CardFrame:SetFrame(HUD_FRAME.Confirm)
+        
+        
+        if mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.SELLING then
+            CardFrame:SetFrame(HUD_FRAME.Dollar)
+        else
+            CardFrame:SetFrame(HUD_FRAME.Confirm)
+        end
+        
         CardFrame:Render(RenderPos)
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.JimboInventoryHUD)
 
 
---renders the entirety of the extra HUD for Jimbo
+--renders the deck on top of the screen and the blind progress
+---@param Player EntityPlayer
 function mod:JimboDeckHUD(offset,_,Position,_,Player)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
+
+    ------DECK RENDERING----------
 
     local CardsLeft = math.max((#mod.Saved.Jimbo.FullDeck - mod.Saved.Jimbo.DeckPointer)+1, 0)
 
     --shows how many cards are left in the deck
     DeckSprite:SetFrame("idle", math.ceil(CardsLeft/7))
 
-    DeckSprite:Render(DECK_RENDERING_POSITION)
+    local HeartsOffset = Vector(3.5 * math.min(Player:GetMaxHearts(),12),0)
+
+    DeckSprite:Render(DECK_RENDERING_POSITION + Vector(20, 14)*Options.HUDOffset + HeartsOffset)
+
+    -------STATS COUNTER RENDERING---------
+    
+    local ChipsPos = Vector(24,108) + Vector(20, 14)*Options.HUDOffset
+    local MultPos = ChipsPos + Vector(0,12)
 
 
+    --local ChipsPos = Vector(44,122)
+    --local MultPos = Vector(44,134)
+
+    ChipsCounter:Render(ChipsPos)
+    MultCounter:Render(MultPos)
+
+    local MultString
+    local ChipsString
+
+    do
+        local Log = math.floor(math.log(mod.Saved.Jimbo.TrueTearsValue, 10))
+
+        if Log <= 0 then --ex. 5.00
+            ChipsString = tostring(mod:round(mod.Saved.Jimbo.TrueTearsValue, 2))
+
+        elseif Log == 1 then --ex. 50.0
+            ChipsString = tostring(mod:round(mod.Saved.Jimbo.TrueTearsValue, 1))
+
+        elseif Log == 2 then
+
+            ChipsString = tostring(mod:round(mod.Saved.Jimbo.TrueTearsValue, 0))
+
+        else
+            ChipsString = tostring(mod:round(mod.Saved.Jimbo.TrueTearsValue /10^Log, 1)).." e"..tostring(Log)
+        end
+
+        Log = math.floor(math.log(mod.Saved.Jimbo.TrueDamageValue, 10))
+
+        if Log <= 0 then --ex. 5.05
+            MultString = tostring(mod:round(mod.Saved.Jimbo.TrueDamageValue, 2))
+
+        elseif Log == 1 then --ex. 50.0
+            MultString = tostring(mod:round(mod.Saved.Jimbo.TrueDamageValue, 1))
+
+        elseif Log == 2 then --ex. 500
+
+            MultString = tostring(mod:round(mod.Saved.Jimbo.TrueDamageValue, 0))
+
+        else
+            MultString = tostring(mod:round(mod.Saved.Jimbo.TrueDamageValue /10^Log, 1)).." e"..tostring(Log)
+        end
+    end
+   
+
+    mod.Fonts.Balatro:DrawStringScaled(ChipsString, ChipsPos.X-6,ChipsPos.Y-3,0.5,0.5,KColor.White)
+    mod.Fonts.Balatro:DrawStringScaled(MultString, MultPos.X-6,MultPos.Y-3,0.5,0.5,KColor.White)
+
+
+
+
+
+    --------BLIND PROGRESS-----------
+    
     if Minimap:GetState() ~= MinimapState.NORMAL or Game:GetLevel():GetStage() == LevelStage.STAGE8 then
         return
     end
 
     local ScreenWidth = Isaac.GetScreenWidth()
-    local RenderPos = Vector(ScreenWidth - 100 + Minimap:GetShakeOffset().X,
-                             24 + Minimap:GetShakeOffset().Y)
+    local RenderPos = Vector(ScreenWidth - 80 ,10) + Vector(-20, 14)*Options.HUDOffset + Minimap:GetShakeOffset()
 
-    local SmallProgress 
+    local SmallProgress
     local BigProgress
     local BossProgress
     local ProgressString
@@ -241,15 +324,11 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
         mod.Fonts.Balatro:DrawStringScaled(BossProgress,
         RenderPos.X ,RenderPos.Y -1, 0.5, 0.5, Color)        
     end
-
-
-    mod.Fonts.Balatro:DrawStringScaled(tostring(mod.Saved.Jimbo.TrueDamageValue), 200,110,0.5,0.5,KColor.White)
-    mod.Fonts.Balatro:DrawStringScaled(tostring(mod.Saved.Jimbo.TrueTearsValue), 200,100,0.5,0.5,KColor.White)
-
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.JimboDeckHUD)
 
 
+--rendere the player's current hand below them
 local ScaleMult = 0.5
 local LastCardFullPoss = {}
 ---@param Player EntityPlayer
@@ -448,7 +527,7 @@ function mod:JimboPackRender(_,_,_,_,Player)
     end--end PURPOSES
 
     CardFrame.Scale = Vector.One
-    CardFrame:SetFrame(HUD_FRAME.Confirm)
+    CardFrame:SetFrame(HUD_FRAME.Skip)
     CardFrame:Render(RenderPos)
 
     RenderPos.X = BaseRenderPos.X + (mod.SelectionParams.Index - 1)*(PACK_CARD_DISTANCE + CardHUDWidth)
@@ -1084,7 +1163,7 @@ function mod:HandleNoHarmRoomsClear()
                     local ExtraTrinket = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET,
                                                     Vector(840,320),Vector.Zero, PlayerManager.FirstPlayerByType(mod.Characters.JimboType), mod:RandomJoker(mod.Saved.GeneralRNG).Joker, Seed):ToPickup()
 
-                    ExtraTrinket:MakeShopItem(6) -- for whatever reason i can't make this turn into an joker with the usual callback, so i made mod:GreedJokerFix()
+                    ExtraTrinket:MakeShopItem(-2) -- for whatever reason i can't make this turn into an joker with the usual callback, so i made mod:GreedJokerFix()
 
                     local JokerData = ExtraTrinket:GetData()
                     JokerData.OverstockGreed = true
@@ -1403,7 +1482,8 @@ function mod:JimboAddTrinket(Player, Trinket, _)
     local InitialProg = ItemsConfig:GetTrinket(Trinket):GetCustomTags()[2]
     mod.Saved.Jimbo.Progress.Inventory[Slot] = tonumber(InitialProg)
 
-    Isaac.RunCallback("INVENTORY_CHANGE", Player)
+    Isaac.RunCallback("JOKER_ADDED", Player, Slot, true)
+
 
 end
 mod:AddCallback(ModCallbacks.MC_POST_TRIGGER_TRINKET_ADDED, mod.JimboAddTrinket)
@@ -1414,8 +1494,11 @@ function mod:JimboTrinketPool(_, RNG)
     if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
         return
     end
-    print("pool")
 
+
+    return mod:RandomJoker(RNG, {}, true)
+
+    --[[
     local RarityRoll = RNG:RandomFloat()
     if RarityRoll < 0.70 then --common
         local Joker
@@ -1435,7 +1518,7 @@ function mod:JimboTrinketPool(_, RNG)
             Joker = mod:GetRandom(mod.Trinkets.rare, RNG)
         until not mod:JimboHasTrinket(nil, Joker)
         return Joker
-    end
+    end]]
 end
 mod:AddCallback(ModCallbacks.MC_GET_TRINKET, mod.JimboTrinketPool)
 
@@ -1541,21 +1624,44 @@ function mod:JimboOnlyRedHearts(Player, Amount, HpType, _)
         Player:AddBlueFlies(Amount * 2, Player.Position, Player)
         return 0 -- no hearts given
 
-    elseif HpType | AddHealthType.MAX == AddHealthType.MAX and not mod.HpEnable and mod.GameStarted then --can't get hp us normally
-        for i = 1, Amount do
-            local RPack = mod:GetRandom(mod.Packs, Player:GetDropRNG())
-            Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
-                       RandomVector()*2.5, nil, RPack, Player:GetDropRNG():GetSeed())
+    elseif HpType & AddHealthType.MAX == AddHealthType.MAX and not mod.HpEnable and mod.GameStarted then --can't get hp us normally
+       
+        if Amount > 0 then
+    
+            for i = 1, Amount do
+                local RPack = mod:GetRandom(mod.Packs, Player:GetDropRNG())
+                Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
+                           RandomVector()*2.5, nil, RPack, Player:GetDropRNG():GetSeed())
+            end
+            Isaac.CreateTimer(function ()
+                Player:StopExtraAnimation() --PLACEHOLDER
+            Player:AnimateSad()
+            end,0,1,false)
+            
         end
-        Player:StopExtraAnimation() --PLACEHOLDER
-        Player:AnimateSad()
         return 0
 
-    elseif HpType | AddHealthType.RED == AddHealthType.RED and Amount % 2 == 1 then
+    elseif HpType & AddHealthType.RED == AddHealthType.RED and Amount % 2 == 1 then
         return Amount + 1
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_ADD_HEARTS, mod.JimboOnlyRedHearts)
+
+
+---@param Player EntityPlayer
+function mod:JimboDeadCatFix(Player, Amount, HpType,_)
+    if Amount == 0 or Player:GetPlayerType() ~= mod.Characters.JimboType then
+        return
+    end
+    
+    if HpType & AddHealthType.MAX == AddHealthType.MAX and mod.GameStarted then --can't get hp ups normally
+        if Player:GetMaxHearts() == 0 and Player:GetBrokenHearts() < Player:GetHeartLimit() then
+            Player:AddMaxHearts(2)
+        end
+    end
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_ADD_HEARTS, mod.JimboOnlyRedHearts)
 
 
 
@@ -1920,84 +2026,6 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.PlayCDCache, "playcd"
 -------------CARD TEARS-----------------------
 ----------------------------------------------
 
---handles the shooting 
----@param Player EntityPlayer
----@param Direction Vector
-function mod:JimboShootCardTear(Player,Direction)
-
-    if true then
-        return
-    end
-
-    local CardShot = mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize]]
-    CardShot.Index = mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize] --could be useful
-
-    LastCardFullPoss[CardShot.Index] = nil --needed to make the Hand HUD work properly
-
-    --considers the possible ammounts of tears fired
-    local ShotParams = Player:GetMultiShotParams()
-
-    local MaxSpread = ShotParams:GetSpreadAngle(WeaponType.WEAPON_TEARS) --half the total angle the tears spread 
-    local EyeAngle = ShotParams:GetMultiEyeAngle() --angle used to determine if player has Wiz or not
-    local NumTears = ShotParams:GetNumTears() --tears the player fires simultaneusly
-    local NumLanes = ShotParams:GetNumLanesPerEye() --similar to numtears, but dicates how the tears get shot
-
-    local Spread = 0
-    if NumLanes > 1 then
-        Spread = (MaxSpread / (NumLanes - 1)) * 2
-    end
-    if EyeAngle == 45 then --if player has the wiz
-        for i=1,-1,-2 do 
-            local BaseAngle = EyeAngle * i --sets +45° and -45° as the base angle
-
-            for j=0, NumTears/2 -1 do --for each eye
-                --modifies additionally the angle if you also have stuff like QuadShot
-                local FireAngle = (BaseAngle+(MaxSpread - Spread*j)) + Direction:GetAngleDegrees()
-                local ShootDirection = (Vector.FromAngle(FireAngle) *10 + Player.Velocity)*Player.ShotSpeed
-
-                local Tear = Player:FireTear(Player.Position, ShootDirection, false, false, true, Player)
-
-
-            end
-        end
-    else --player does not have the wiz
-        for i=0, NumTears-1 do
-            local FireAngle = (MaxSpread - Spread*i) + Direction:GetAngleDegrees()
-            local ShootDirection = (Vector.FromAngle(FireAngle) + Player.Velocity/10)*10*Player.ShotSpeed
-
-
-            if Player:GetWeaponModifiers() & WeaponModifier.MONSTROS_LUNG == WeaponModifier.MONSTROS_LUNG then
-                
-                for i = 0, Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_MONSTROS_LUNG)*13 do
-                    local TrueDirection = ShootDirection:Rotated(math.random(-12,12))
-
-                    Player:FireTear(Player.Position, TrueDirection, true, false, true, Player)
-                end
-                
-            else
-                Player:FireTear(Player.Position, ShootDirection, true, false, true, Player)
-            end
-
-            
-            
-            --mod:AddCardTearFalgs(Tear, CardShot)
-        end
-    end
-
-    mod.Counters.SinceShoot = 0
-
-    
-    --[[mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize -mod.Saved.Jimbo.Progress.Hand] = 0 --removes the used card
-    mod.Saved.Jimbo.Progress.Hand = mod.Saved.Jimbo.Progress.Hand + 1
-
-    if mod.Saved.Jimbo.Progress.Hand > mod.Saved.Jimbo.HandSize then--if all the hand is empty replace it with a new one
-        for i=1, mod.Saved.Jimbo.HandSize do
-            mod.Saved.Jimbo.CurrentHand[i] = mod.Saved.Jimbo.DeckPointer
-            mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer +1
-        end
-        mod.Saved.Jimbo.Progress.Hand = 1
-    end]]
-end
 
 
 
@@ -2005,37 +2033,37 @@ end
 ---@param Tear EntityTear
 ---@param Collider Entity
 function mod:OnTearCardCollision(Tear,Collider,_)
-    if not mod:Contained(mod.CARD_TEAR_VARIANTS, Tear.Variant) then
-        return
-    end
 
+    local Player = Tear.Parent:ToPlayer() or Tear.Parent
     local TearData = Tear:GetData()
     TearData.CollidedWith = TearData.CollidedWith or {}
 
-    
-    if Collider:IsActiveEnemy() and not mod:Contained(TearData.CollidedWith, GetPtrHash(Collider)) then
 
-        table.insert(TearData.CollidedWith, GetPtrHash(Collider))
-        
-        local TearRNG = Tear:GetDropRNG()
-
-        if mod:IsSuit(nil, TearData.Params.Suit, TearData.Params.Enhancement, mod.Suits.Heart) then --Hearts
-        
-            local Creep = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.PLAYER_CREEP_RED, Tear.Position, Vector.Zero, Tear, 0, TearRNG:GetSeed()):ToEffect()
-            Creep.SpriteScale = Vector(1.2,1.2)
-            Creep.CollisionDamage = Tear.CollisionDamage / 8
-            ---@diagnostic disable-next-line: need-check-nil
-            Creep:Update()
-        end
-        if mod:IsSuit(nil, TearData.Params.Suit, TearData.Params.Enhancement, mod.Suits.Club) then --Clubs
-            if TearRNG:RandomFloat() < 0.2 then
-                Game:BombExplosionEffects(Tear.Position, Tear.CollisionDamage / 2, TearFlags.TEAR_NORMAL, Color.Default, Tear.Parent, 0.5)
-                --Isaac.Explode(Tear.Position, Tear, Tear.CollisionDamage / 2)
-            end
-        end
-
-        Isaac.RunCallback("CARD_HIT", Tear, Collider)
+    if not Collider:IsActiveEnemy() or mod:Contained(TearData.CollidedWith, GetPtrHash(Collider)) then
+        return
     end
+
+
+    table.insert(TearData.CollidedWith, GetPtrHash(Collider))
+
+    local TearRNG = Tear:GetDropRNG()
+
+    if mod:IsSuit(Player, TearData.Params.Suit, TearData.Params.Enhancement, mod.Suits.Heart) then --Hearts
+
+        local Creep = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.PLAYER_CREEP_RED, Tear.Position, Vector.Zero, Tear, 0, TearRNG:GetSeed()):ToEffect()
+        Creep.SpriteScale = Vector(1.2,1.2)
+        Creep.CollisionDamage = Tear.CollisionDamage / 8
+        ---@diagnostic disable-next-line: need-check-nil
+        Creep:Update()
+    end
+    if mod:IsSuit(Player, TearData.Params.Suit, TearData.Params.Enhancement, mod.Suits.Club) then --Clubs
+        if TearRNG:RandomFloat() < 0.2 then
+            Game:BombExplosionEffects(Tear.Position, Tear.CollisionDamage / 2, TearFlags.TEAR_NORMAL, Color.Default, Tear.Parent, 0.5)
+            --Isaac.Explode(Tear.Position, Tear, Tear.CollisionDamage / 2)
+        end
+    end
+
+    Isaac.RunCallback("CARD_HIT", Tear, Collider)
 end
 mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.CARD_TEAR_VARIANTS[mod.Suits.Spade])
 mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.CARD_TEAR_VARIANTS[mod.Suits.Heart])
@@ -2136,6 +2164,26 @@ function mod:AddCardTearFalgs(Tear, Split)
     
 end
 mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, mod.AddCardTearFalgs)
+
+
+
+---@param Bomb EntityBomb
+function mod:BombFix(Bomb)
+
+    Isaac.CreateTimer(function ()
+        if Bomb.SpawnerEntity:ToTear() then
+            return
+        end
+    
+        local Player = Bomb.Parent:ToPlayer() or Bomb.Parent
+    
+        local Tear = Player:FireTear(Player.Position, Bomb.Velocity)
+        Tear.FallingSpeed = Bomb:GetFallingSpeed()
+        
+        Bomb:Remove()
+    end,0,1,false)
+end
+mod:AddCallback(ModCallbacks.MC_POST_FIRE_BOMB, mod.BombFix)
 
 
 function mod:SplitTears(Tear)
@@ -2714,6 +2762,82 @@ function mod:OverstockGreedJokerFix(Pickup)
 end
 mod:AddCallback(ModCallbacks.MC_POST_ENTITY_REMOVE, mod.OverstockGreedJokerFix, EntityType.ENTITY_PICKUP)
 
+--handles the shooting 
+function mod:JimboShootCardTear(Player,Direction)
+
+    if true then
+        return
+    end
+
+    local CardShot = mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize] ]
+    CardShot.Index = mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize] --could be useful
+
+    LastCardFullPoss[CardShot.Index] = nil --needed to make the Hand HUD work properly
+
+    --considers the possible ammounts of tears fired
+    local ShotParams = Player:GetMultiShotParams()
+
+    local MaxSpread = ShotParams:GetSpreadAngle(WeaponType.WEAPON_TEARS) --half the total angle the tears spread 
+    local EyeAngle = ShotParams:GetMultiEyeAngle() --angle used to determine if player has Wiz or not
+    local NumTears = ShotParams:GetNumTears() --tears the player fires simultaneusly
+    local NumLanes = ShotParams:GetNumLanesPerEye() --similar to numtears, but dicates how the tears get shot
+
+    local Spread = 0
+    if NumLanes > 1 then
+        Spread = (MaxSpread / (NumLanes - 1)) * 2
+    end
+    if EyeAngle == 45 then --if player has the wiz
+        for i=1,-1,-2 do 
+            local BaseAngle = EyeAngle * i --sets +45° and -45° as the base angle
+
+            for j=0, NumTears/2 -1 do --for each eye
+                --modifies additionally the angle if you also have stuff like QuadShot
+                local FireAngle = (BaseAngle+(MaxSpread - Spread*j)) + Direction:GetAngleDegrees()
+                local ShootDirection = (Vector.FromAngle(FireAngle) *10 + Player.Velocity)*Player.ShotSpeed
+
+                local Tear = Player:FireTear(Player.Position, ShootDirection, false, false, true, Player)
+
+
+            end
+        end
+    else --player does not have the wiz
+        for i=0, NumTears-1 do
+            local FireAngle = (MaxSpread - Spread*i) + Direction:GetAngleDegrees()
+            local ShootDirection = (Vector.FromAngle(FireAngle) + Player.Velocity/10)*10*Player.ShotSpeed
+
+
+            if Player:GetWeaponModifiers() & WeaponModifier.MONSTROS_LUNG == WeaponModifier.MONSTROS_LUNG then
+                
+                for i = 0, Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_MONSTROS_LUNG)*13 do
+                    local TrueDirection = ShootDirection:Rotated(math.random(-12,12))
+
+                    Player:FireTear(Player.Position, TrueDirection, true, false, true, Player)
+                end
+                
+            else
+                Player:FireTear(Player.Position, ShootDirection, true, false, true, Player)
+            end
+
+            
+            
+            --mod:AddCardTearFalgs(Tear, CardShot)
+        end
+    end
+
+    mod.Counters.SinceShoot = 0
+
+    
+    mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize -mod.Saved.Jimbo.Progress.Hand] = 0 --removes the used card
+    mod.Saved.Jimbo.Progress.Hand = mod.Saved.Jimbo.Progress.Hand + 1
+
+    if mod.Saved.Jimbo.Progress.Hand > mod.Saved.Jimbo.HandSize then--if all the hand is empty replace it with a new one
+        for i=1, mod.Saved.Jimbo.HandSize do
+            mod.Saved.Jimbo.CurrentHand[i] = mod.Saved.Jimbo.DeckPointer
+            mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer +1
+        end
+        mod.Saved.Jimbo.Progress.Hand = 1
+    end
+end
 
 
 

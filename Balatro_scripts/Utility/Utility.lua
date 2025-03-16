@@ -657,7 +657,7 @@ function mod:SellJoker(Player, Trinket, Slot)
 
     mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..SellValue.."$")
 
-    Isaac.RunCallback("INVENTORY_CHANGE", Player)
+    --Isaac.RunCallback("INVENTORY_CHANGE", Player)
     Isaac.RunCallback("JOKER_SOLD", Player, Trinket, Slot)
 end
 

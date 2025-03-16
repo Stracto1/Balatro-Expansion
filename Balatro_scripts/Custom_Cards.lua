@@ -225,7 +225,8 @@ function mod:NewTarotEffects(card, Player, UseFlags)
                 local RandomJoker = mod.GetRandom(mod.Trinkets, CardRNG, true)
                 mod.Saved.Jimbo.Inventory[EmptySlot] = RandomJoker
                 mod.Saved.Jimbo.Progress = ItemsConfig:GetTrinket(RandomJoker):GetCustomTags()[2] --sets the base progress
-                Isaac.RunCallback("INVENTORY_CHANGE", Player)
+                
+                Isaac.RunCallback("JOKER_ADDED", Player, RandomJoker, true)
             else
                 Player:AnimateSad()
             end
@@ -809,6 +810,7 @@ function mod:SpectralCards(card, Player)
                             mod.Saved.Jimbo.Inventory.Editions[i] = mod.Saved.Jimbo.Inventory.Editions[Rslot]
                         end
                         Added = true
+                        Isaac.RunCallback("JOKER_ADDED", Player, mod.Saved.Jimbo.Inventory.Jokers[Rslot], false)
                     end
                 end
             end

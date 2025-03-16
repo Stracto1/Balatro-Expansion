@@ -6,9 +6,7 @@ local Game = Game()
 ---@param Tear EntityTear
 ---@param Collider Entity
 function mod:CardCollisionSynergy(Tear,Collider,_)
-    if not mod:Contained(mod.CARD_TEAR_VARIANTS, Tear.Variant) then
-        return
-    end
+
     local TearData = Tear:GetData()
     TearData.CollidedWith = TearData.CollidedWith or {}
 
@@ -40,7 +38,7 @@ function mod:CardCollisionSynergy(Tear,Collider,_)
 
         local Bomb = Player:FireBomb(Tear.Position, Vector.Zero, Tear)
 
-        Bomb:AddTearFlags(Player:GetBombFlags())
+        Bomb:AddTearFlags(Player:GetBombFlags() & ~TearFlags.TEAR_SAD_BOMB)
 
         Bomb.SpawnerEntity = Tear
 
@@ -49,12 +47,26 @@ function mod:CardCollisionSynergy(Tear,Collider,_)
             Bomb.ExplosionDamage = Tear.CollisionDamage * 4
             Bomb.RadiusMultiplier = 1.25
         else
+
             Bomb.ExplosionDamage = Tear.CollisionDamage * 2.5
         end
 
     end
 end
-mod:AddCallback(ModCallbacks.MC_PRE_TEAR_COLLISION, mod.CardCollisionSynergy)
+mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.CARD_TEAR_VARIANTS[mod.Suits.Spade])
+mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.CARD_TEAR_VARIANTS[mod.Suits.Heart])
+mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.CARD_TEAR_VARIANTS[mod.Suits.Club])
+mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.CARD_TEAR_VARIANTS[mod.Suits.Diamond])
+mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.SUIT_TEAR_VARIANTS[mod.Suits.Spade])
+mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.SUIT_TEAR_VARIANTS[mod.Suits.Heart])
+mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.SUIT_TEAR_VARIANTS[mod.Suits.Club])
+mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.SUIT_TEAR_VARIANTS[mod.Suits.Diamond])
+
+
+
+
+
+
 
 ---@param Player EntityPlayer
 function mod:EvaluatePlayCD(_,_,_,_,_,Player)

@@ -235,10 +235,12 @@ EID:addTrinket(TrinketType.TRINKET_SUPERNOVA, "{{PlayerJimbo}} When a card is pl
 EID:addTrinket(TrinketType.TRINKET_SUPERNOVA, "{{PlayerJimbo}} Guadagna {{Damage}} {{ColorMult}}+0.04 {{CR}} Danno ogni stanza completata con un {{Collectible}} oggetto attivo #Ogni {{Collectible}} Oggetto attivo salva il proprio {{Damage}} Danno", "Supernova", "it")
 EID:addTrinket(TrinketType.TRINKET_DELAYED_GRATIFICATION, "{{PlayerJimbo}} Gives 1 coin per {{Heart}} Heart when clearing a room at full health", "Delayed Gratification", "en_us")
 EID:addTrinket(TrinketType.TRINKET_DELAYED_GRATIFICATION, "{{PlayerJimbo}} Crea 1 {{Coin}} Moneta se una stanza viene completata senza subire danni", "Gratificazione ritardata", "it")
-EID:addTrinket(TrinketType.TRINKET_EGG, "{{PlayerJimbo}} The sell value of this Joker increases by{{ColorYellorange}} +2$ {{CR}} every {{ColorYellorange}}Blind cleared{{CR}}", "Delayed Gratification", "en_us")
+EID:addTrinket(TrinketType.TRINKET_EGG, "{{PlayerJimbo}} The sell value of this Joker increases by{{ColorYellorange}} +2$ {{CR}} every {{ColorYellorange}}Blind cleared{{CR}}", "Egg", "en_us")
 EID:addTrinket(TrinketType.TRINKET_EGG, "{{PlayerJimbo}} Crea 1 {{Coin}} Moneta se una stanza viene completata senza subire danni", "Gratificazione ritardata", "it")
-EID:addTrinket(TrinketType.TRINKET_DNA, "{{PlayerJimbo}} If the {{ColorYellorange}} First {{CR}}card triggered in a {{ColorYellorange}}Blind{{CR}} hits an enemy, a copy of that card is added to the deck", "Delayed Gratification", "en_us")
+EID:addTrinket(TrinketType.TRINKET_DNA, "{{PlayerJimbo}} If the {{ColorYellorange}} First {{CR}}card triggered in a {{ColorYellorange}}Blind{{CR}} hits an enemy, a copy of that card is added to the deck", "DNA", "en_us")
 EID:addTrinket(TrinketType.TRINKET_DNA, "{{PlayerJimbo}} Crea 1 {{Coin}} Moneta se una stanza viene completata senza subire danni", "Gratificazione ritardata", "it")
+EID:addTrinket(TrinketType.TRINKET_SMEARED_JOKER, "{{PlayerJimbo}} {{ColorMult}}Hearts{{CR}} and {{ColorYellorange}}Diamonds{{CR}} count as the same suit #{{ColorGray}}Spades{{CR}} and {{ColorBlue}}Clubs{{CR}} count as the same suit", "Smeared Joker", "en_us")
+EID:addTrinket(TrinketType.TRINKET_SMEARED_JOKER, "{{PlayerJimbo}} Crea 1 {{Coin}} Moneta se una stanza viene completata senza subire danni", "Gratificazione ritardata", "it")
 
 
 
@@ -330,23 +332,23 @@ TarotDescriptions["en_us"][Card.CARD_WORLD] = "#{{PlayerJimbo}} Set the Suit of 
 -------------####PLANETS####------------
 -----------------------------------------
 
-EID:addCard(mod.Planets.PLUTO, "{{PlayerJimbo}} {{ColorYellorange}}Aces{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}}", "Pluto", "en_us")
-EID:addCard(mod.Planets.MERCURY, "{{PlayerJimbo}} {{ColorYellorange}}2s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}}", "Mercury", "en_us")
-EID:addCard(mod.Planets.URANUS, "{{PlayerJimbo}} {{ColorYellorange}}3s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}}", "Uranus", "en_us")
-EID:addCard(mod.Planets.VENUS, "{{PlayerJimbo}} {{ColorYellorange}}4s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}}", "Venus", "en_us")
-EID:addCard(mod.Planets.SATURN, "{{PlayerJimbo}} {{ColorYellorange}}5s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}}", "Saturn", "en_us")
-EID:addCard(mod.Planets.JUPITER, "{{PlayerJimbo}} {{ColorYellorange}}6s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}}", "Jupiter", "en_us")
-EID:addCard(mod.Planets.EARTH, "{{PlayerJimbo}} {{ColorYellorange}}7s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}}", "Earth", "en_us")
-EID:addCard(mod.Planets.MARS, "{{PlayerJimbo}} {{ColorYellorange}}8s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}}", "Mars", "en_us")
-EID:addCard(mod.Planets.NEPTUNE, "{{PlayerJimbo}} {{ColorYellorange}}9s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}}", "Neptune", "en_us")
-EID:addCard(mod.Planets.PLANET_X, "{{PlayerJimbo}} {{ColorYellorange}}10s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}}", "Planet X", "en_us")
-EID:addCard(mod.Planets.CERES, "{{PlayerJimbo}} {{ColorYellorange}}Jacks{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}}", "Ceres", "en_us")
-EID:addCard(mod.Planets.ERIS, "{{PlayerJimbo}} {{ColorYellorange}}Queens{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}}", "Eris", "en_us")
-EID:addCard(mod.Planets.SUN, "{{PlayerJimbo}} {{ColorYellorange}}Kings{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}}", "Sun", "en_us")
+EID:addCard(mod.Planets.PLUTO, "{{PlayerJimbo}} {{ColorYellorange}}Aces{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}}", "Pluto", "en_us")
+EID:addCard(mod.Planets.MERCURY, "{{PlayerJimbo}} {{ColorYellorange}}2s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}}", "Mercury", "en_us")
+EID:addCard(mod.Planets.URANUS, "{{PlayerJimbo}} {{ColorYellorange}}3s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}}", "Uranus", "en_us")
+EID:addCard(mod.Planets.VENUS, "{{PlayerJimbo}} {{ColorYellorange}}4s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}}", "Venus", "en_us")
+EID:addCard(mod.Planets.SATURN, "{{PlayerJimbo}} {{ColorYellorange}}5s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}}", "Saturn", "en_us")
+EID:addCard(mod.Planets.JUPITER, "{{PlayerJimbo}} {{ColorYellorange}}6s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}}", "Jupiter", "en_us")
+EID:addCard(mod.Planets.EARTH, "{{PlayerJimbo}} {{ColorYellorange}}7s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}}", "Earth", "en_us")
+EID:addCard(mod.Planets.MARS, "{{PlayerJimbo}} {{ColorYellorange}}8s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}}", "Mars", "en_us")
+EID:addCard(mod.Planets.NEPTUNE, "{{PlayerJimbo}} {{ColorYellorange}}9s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}}", "Neptune", "en_us")
+EID:addCard(mod.Planets.PLANET_X, "{{PlayerJimbo}} {{ColorYellorange}}10s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}}", "Planet X", "en_us")
+EID:addCard(mod.Planets.CERES, "{{PlayerJimbo}} {{ColorYellorange}}Jacks{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}}", "Ceres", "en_us")
+EID:addCard(mod.Planets.ERIS, "{{PlayerJimbo}} {{ColorYellorange}}Queens{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}}", "Eris", "en_us")
+EID:addCard(mod.Planets.SUN, "{{PlayerJimbo}} {{ColorYellorange}}Kings{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}}", "Sun", "en_us")
 
 
 ----------------------------------------
--------------####PLANETS####------------
+-------------####SPECTRALS####------------
 -----------------------------------------
 
 EID:addCard(mod.Spectrals.FAMILIAR, "{{PlayerJimbo}} {{ColorYellorange}}Destroys{{CR}} one random card from your hand and adds {{ColorYellorange}}3{{CR}} random {{ColorYellorange}}Enhanced Face cards{{CR}} to your deck", "Familiar", "en_us")
@@ -365,7 +367,7 @@ EID:addCard(mod.Spectrals.HEX, "{{PlayerJimbo}} Gives the {{ColorRainbow}}Polych
 EID:addCard(mod.Spectrals.TRANCE, "{{PlayerJimbo}} Put a {{ColorCyan}}Blue Seal{{CR}} on one selected card", "Trance", "en_us")
 EID:addCard(mod.Spectrals.MEDIUM, "{{PlayerJimbo}} Put a {{ColorPink}}Purple Seal{{CR}} on one selected card", "Medium", "en_us")
 EID:addCard(mod.Spectrals.CRYPTID, "{{PlayerJimbo}} Add {{ColorYellorange}}2{{CR}} copies of a selected card to your deck", "Cryptid", "en_us")
-EID:addCard(mod.Spectrals.BLACK_HOLE, "{{PlayerJimbo}} {{ColorYellorange}}All Cards{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}}", "Black Hole", "en_us")
+EID:addCard(mod.Spectrals.BLACK_HOLE, "{{PlayerJimbo}} {{ColorYellorange}}All Cards{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}}", "Black Hole", "en_us")
 EID:addCard(mod.Spectrals.SOUL, "{{PlayerJimbo}} Gives a random {{ColorRainbow}}Legendary{{CR}} Joker#!!! Requires an empty Inventory slot", "The Soul", "en_us")
 
 

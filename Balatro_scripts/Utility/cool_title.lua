@@ -22,7 +22,8 @@ function mod:Tast()
     local Title = TitleMenu:GetSprite()
     local Screen = Vector(Isaac.GetScreenWidth(), Isaac.GetScreenHeight())
     
-    CardIdlePos = Vector((Screen.X-6)/2, Title:GetAnimationData("Idle"):GetLayer(2):GetFrame(Title:GetFrame()):GetPos().Y - 11)
+    CardIdlePos = Vector((Screen.X-6)/2, 
+                          Screen.Y/2 + Title:GetAnimationData("Idle"):GetLayer(2):GetFrame(Title:GetFrame()):GetPos().Y - 146)
 
     local MousePos = Isaac.WorldToScreen(Input.GetMousePosition(true))
     --print(MousePos)
@@ -45,8 +46,8 @@ function mod:Tast()
 
     elseif Input.IsMouseBtnPressed(MouseButton.LEFT) then
         if CardState ~= CARD_STATES.PICKED_UP
-           and MousePos.X >= (Screen.X - 30)/2 and MousePos.X <= (Screen.X + 30)/2
-           and MousePos.Y >= 38 and MousePos.Y <= 98 then --sadly there isn't a way to really get where the logo is rendered vertically, so put a large window instead
+           and MousePos.X >= CardIdlePos.X - 20 and MousePos.X <= CardIdlePos.X + 20
+           and MousePos.Y >= CardIdlePos.Y - 30 and MousePos.Y <= CardIdlePos.Y + 30 then --sadly there isn't a way to really get where the logo is rendered vertically, so put a large window instead
 
             CardState = CARD_STATES.PICKED_UP
             SFXManager():Play(mod.Sounds.PLAY)
@@ -74,6 +75,8 @@ function mod:Tast()
 
     elseif CardState == CARD_STATES.IDLE then
         Title:PlayOverlay("Card", false)
+
+        LastCardPos = CardIdlePos
 
         local Difference = MousePos - CardIdlePos
         local Distance = MousePos:Distance(CardIdlePos)

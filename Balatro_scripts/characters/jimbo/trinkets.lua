@@ -1,5 +1,5 @@
 local mod = Balatro_Expansion
--- \_(T_T)_/
+-- |_(T_T)_/
 
 local Game = Game()
 local ItemsConfig = Isaac.GetItemConfig()
@@ -117,6 +117,8 @@ end
 
     --increases the chips basing on the card value
     local TearsToGet = (mod:GetActualCardValue(ShotCard.Value)/50 + mod.Saved.Jimbo.CardLevels[ShotCard.Value]*0.02) * Triggers
+    mod:IncreaseJimboStats(Player,0, 0.02 * mod.Saved.Jimbo.CardLevels[ShotCard.Value] * Triggers, 1,false,true)
+    
     local PlayerRNG = Player:GetDropRNG()
 
     ---------ENHANCEMENT EFFECTS----------
@@ -307,8 +309,11 @@ function mod:OnJokerSold(Player,Joker,SlotSold)
 
     end
 
-    Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, false)
-    Player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
+    local Flags = ItemsConfig:GetTrinket(Joker).CacheFlags & ~CacheFlag.CACHE_DAMAGE & ~CacheFlag.CACHE_FIREDELAY
+
+    Player:AddCacheFlags(Flags, true)
+
+    Isaac.RunCallback("INVENTORY_CHANGE", Player)
 end
 mod:AddCallback("JOKER_SOLD", mod.OnJokerSold)
 
@@ -791,6 +796,13 @@ function mod:OnRoomClear(IsBoss, Hostile)
 
             mod.Counters.Activated[Index] = 0
             mod:CreateBalatroEffect(Index, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Reset")
+
+        elseif Joker == TrinketType.TRINKET_MR_BONES then
+            if mod:TryGamble(Player, Player:GetTrinketRNG(TrinketType.TRINKET_MR_BONES), 0.15) then
+                
+                Player:UseActiveItem(CollectibleType.COLLECTIBLE_BOOK_OF_THE_DEAD, UseFlag.USE_NOANIM)
+
+            end
         end
     end
 
@@ -841,7 +853,22 @@ function mod:OnNewRoomJokers()
                 end
 
                 mod.Counters.Activated[Index] = 0
+
+            elseif Joker == TrinketType.TRINKET_HALLUCINATION then
+
+                local RoomRNG = RNG(Game:GetRoom():GetSpawnSeed())
+
+                --def not 100% fault proof but works for now
+                local FamiliarNum = Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_MULTIDIMENSIONAL_BABY)
                 
+                if mod:TryGamble(Player, RoomRNG, 0.25) then
+                    FamiliarNum = FamiliarNum + 1
+                    Player:AddCollectibleEffect(CollectibleType.COLLECTIBLE_MULTIDIMENSIONAL_BABY, true, -1, false)
+                else
+                    Player:GetEffects():RemoveCollectibleEffect(CollectibleType.COLLECTIBLE_MULTIDIMENSIONAL_BABY, 1)
+                end
+                
+                --Player:CheckFamiliar(FamiliarVariant.MULTIDIMENSIONAL_BABY, FamiliarNum, RoomRNG)
             end
         end
 
@@ -1067,6 +1094,17 @@ end
 mod:AddCallback("INVENTORY_CHANGE", mod.CopyAdjustments)
 
 
+function mod:JokerAdded(Player, Joker, ExtraEval)
+
+    local Flags = ItemsConfig:GetTrinket(Joker).CacheFlags & ~CacheFlag.CACHE_DAMAGE & ~CacheFlag.CACHE_FIREDELAY
+
+    Player:AddCacheFlags(Flags, true)
+
+    if ExtraEval then
+        Isaac.RunCallback("INVENTORY_CHANGED", Player)
+    end
+end
+
 
 local PastCoins
 local PastBombs
@@ -1079,7 +1117,7 @@ function mod:PickupBasedEval(Player)
     local NowKeys = Player:GetNumKeys()
     --local NowHearts = player:GetHearts()
 
-    if NowCoins ~= PastCoins then
+    if NowCoins ~= PastCoins then 
 
         for Index, Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
             if Joker == TrinketType.TRINKET_BULL then
@@ -1156,7 +1194,7 @@ function mod:TearsJokers(Player, _)
                 for Num = 1,10,2 do
                     NumOdd = NumOdd + mod.Saved.Jimbo.Progress.Room.ValueUsed[Num]
                 end
-                if NumOdd > mod.Saved.Jimbo.Progress.Inventory[ProgressIndex] or NumOdd == 1 then
+                if NumOdd > mod.Saved.Jimbo.Progress.Inventory[ProgressIndex] or NumOdd == 1 and mod.Saved.Jimbo.Progress.Inventory[ProgressIndex] ~= NumOdd then
 
                     mod.Counters.Activated[Index] = 0
                     mod:CreateBalatroEffect(Index, mod.EffectColors.BLUE,mod.Sounds.CHIPS,
@@ -1179,7 +1217,7 @@ function mod:TearsJokers(Player, _)
                     mod.Saved.Jimbo.Progress.Inventory[Index] = NumSpades --only used to tell when to spawn an effect
                 end
 
-                mod:IncreaseJimboStats(Player, 0.75 * NumSpades,0,1, false, false)
+                mod:IncreaseJimboStats(Player, 0.50 * NumSpades,0,1, false, false)
             end
         end
 
@@ -1237,7 +1275,7 @@ function mod:DamageJokers(Player,_)
                     NumEven = NumEven + mod.Saved.Jimbo.Progress.Room.ValueUsed[Num]
                 end
 
-                if NumEven > mod.Saved.Jimbo.Progress.Inventory[ProgressIndex] or NumEven == 1 then
+                if NumEven > mod.Saved.Jimbo.Progress.Inventory[ProgressIndex] or NumEven == 1 and mod.Saved.Jimbo.Progress.Inventory[ProgressIndex] ~= NumEven then
 
                     mod.Counters.Activated[Index] = 0
                     mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ADDMULT,
@@ -1259,7 +1297,7 @@ function mod:DamageJokers(Player,_)
             
             elseif Joker == TrinketType.TRINKET_ONIX_AGATE then
                 local NumClubs = mod.Saved.Jimbo.Progress.Room.SuitUsed[mod.Suits.Club]
-                if NumClubs > mod.Saved.Jimbo.Progress.Inventory[ProgressIndex] then
+                if NumClubs > mod.Saved.Jimbo.Progress.Inventory[ProgressIndex] or NumClubs == 1 and mod.Saved.Jimbo.Progress.Inventory[ProgressIndex] ~= NumClubs then
 
                     mod.Counters.Activated[Index] = 0
                     mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ADDMULT,
@@ -1367,3 +1405,81 @@ function mod:EditionsStats(Player, Flags)
     end
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.EditionsStats)
+
+
+
+-----JOKERS SECONDARY EFFECTS---------
+-------------------------------------
+
+---@param Player EntityPlayer
+function mod:FlightEval(Player,_)
+    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+        return
+    end
+    if mod:JimboHasTrinket(Player, TrinketType.TRINKET_CLOUD_NINE) then
+        Player:AddCostume(ItemsConfig:GetCollectible(CollectibleType.COLLECTIBLE_FATE))
+        Player.CanFly = true
+
+    elseif not Player:HasCollectible(CollectibleType.COLLECTIBLE_FATE) then
+        Player:RemoveCostume(ItemsConfig:GetCollectible(CollectibleType.COLLECTIBLE_FATE))
+
+    end
+
+end
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.FlightEval, CacheFlag.CACHE_FLYING)
+
+
+---@param Player EntityPlayer
+---@param Collider Entity
+function mod:GoldenTouch(Player, Collider)
+    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+        return
+    end
+    
+
+    if mod:JimboHasTrinket(Player, TrinketType.TRINKET_GOLDEN_JOKER) 
+       and Collider:IsEnemy() and Collider:IsActiveEnemy() then
+        
+        Collider = Collider:ToNPC() or Collider
+
+        Collider:AddMidasFreeze(EntityRef(Player), 100)
+
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_COLLISION, mod.GoldenTouch, PlayerVariant.PLAYER)
+
+
+---@param Entity Entity
+function mod.DelayedGrat(Entity)
+
+    local AllGood = false
+    for _, Player in ipairs(PlayerManager.GetPlayers()) do
+
+        if Player:GetPlayerType() ~= mod.Characters.JimboType or AllGood then
+            goto skip_player
+        end
+
+        for Index, Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
+            if Joker == TrinketType.TRINKET_DELAYED_GRATIFICATION then
+                AllGood = true
+                break
+            end
+        end
+
+        ::skip_player::
+    end
+
+    if not AllGood then
+        return
+    end
+
+    if Entity.Type == EntityType.ENTITY_MOM and Entity.Variant ~= 10 then
+        Game:GetRoom():TrySpawnBossRushDoor(true)
+
+    elseif Entity.Type == EntityType.ENTITY_MOMS_HEART then
+        Game:GetRoom():TrySpawnBlueWombDoor(true,true)
+    end
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_ENTITY_KILL, mod.DelayedGrat, EntityType.ENTITY_MOM)
+mod:AddCallback(ModCallbacks.MC_POST_ENTITY_KILL, mod.DelayedGrat, EntityType.ENTITY_MOMS_HEART)
