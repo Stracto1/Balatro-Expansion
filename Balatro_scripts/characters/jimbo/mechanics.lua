@@ -109,6 +109,7 @@ function mod:JimboInventoryHUD(offset,_,Position,_,Player)
 
         if trinket == 0 then
 
+            TrinketSprite:ClearCustomShader()
             TrinketSprite:SetFrame("Empty", 0)
         else
 
@@ -1298,6 +1299,8 @@ function mod:AddRoomsCleared(IsBoss, _)
 
         for i,Player in ipairs(PlayerManager.GetPlayers()) do
             if Player:GetPlayerType() == mod.Characters.JimboType then
+
+                Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.HEART, Player.Position + Vector(0,7),Vector.Zero,nil,0,1)
                 Player:AddHearts(2)
                 mod:FullDeckShuffle(Player)
             end
@@ -2127,7 +2130,8 @@ function mod:AddCardTearFalgs(Tear, Split)
         Tear:ChangeVariant(mod.CARD_TEAR_VARIANTS[TearData.Params.Suit])
 
         local TearSprite = Tear:GetSprite()
-        TearSprite:Play(ENHANCEMENTS_ANIMATIONS[TearData.Params.Enhancement], true)
+        --TearSprite:Play(ENHANCEMENTS_ANIMATIONS[TearData.Params.Enhancement], true)
+        TearSprite:Play("Base", true)
 
         Tear.Scale = (Player.SpriteScale.Y + Player.SpriteScale.X) / 2
         Tear.Scale = mod:Clamp(Tear.Scale, 3, 0.75)

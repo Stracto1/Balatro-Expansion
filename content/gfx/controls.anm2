@@ -1,5 +1,5 @@
 <AnimatedActor>
-	<Info CreatedBy="catinsurance" CreatedOn="28/02/2025 08:20:00" Version="79" Fps="30"/>
+	<Info CreatedBy="catinsurance" CreatedOn="16/03/2025 12:48:56" Version="80" Fps="30"/>
 	<Content>
 		<Spritesheets>
 			<Spritesheet Path="controls.png" Id="0"/>
@@ -50,7 +50,7 @@
 				</NullAnimation>
 				<NullAnimation NullId="6" Visible="true"/>
 				<NullAnimation NullId="7" Visible="true">
-					<Frame XPosition="-67" YPosition="68" XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+					<Frame XPosition="-53" YPosition="68" XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
 				</NullAnimation>
 			</NullAnimations>
 			<Triggers/>
