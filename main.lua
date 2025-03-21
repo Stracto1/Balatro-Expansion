@@ -281,7 +281,7 @@ Balatro_Expansion.Fonts.Balatro = Font()
 --4th time's a charm i guess
 do
 local Loaded = Balatro_Expansion.Fonts.Balatro:Load("mods/balatro_expansion/resources/font/Balatro_Font4.fnt")
-if not Loaded then
+if Loaded then
     Balatro_Expansion.Fonts.Balatro:Load("mods/balatro_expansion_3308293502/resources/font/Balatro_Font4.fnt")
 end
 
