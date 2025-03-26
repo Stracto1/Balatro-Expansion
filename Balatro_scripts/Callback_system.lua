@@ -201,7 +201,7 @@ function mod:OnGameStart(Continued)
         mod.Saved.Jimbo.Progress.Room.Shots = 0
 
         mod.Saved.Jimbo.Progress.Floor = {}
-        mod.Saved.Jimbo.Progress.Floor.Vouchers = {}
+        mod.Saved.Jimbo.FloorVouchers = {}
 
 
 

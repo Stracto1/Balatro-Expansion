@@ -77,7 +77,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
             for i=1, 2 do
                 repeat 
                     RandomTarots[i] = CardRNG:RandomInt(1,22)
-                until RandomTarots[i] ~= Card.CARD_EMPEROR --or mod:JimboHasTrinket(Player, TrinketType.TRINKET_SHOWMAN)
+                until RandomTarots[i] ~= Card.CARD_EMPEROR --or mod:JimboHasTrinket(Player, mod.Jokers.SHOWMAN)
             end
             for _,Tarot in ipairs(RandomTarots) do
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
@@ -221,12 +221,13 @@ function mod:NewTarotEffects(card, Player, UseFlags)
 
             if EmptySlot then
                 
-                local CardRNG = Player:GetCardRNG(Card.CARD_JUDGEMENT)
-                local RandomJoker = mod.GetRandom(mod.Trinkets, CardRNG, true)
-                mod.Saved.Jimbo.Inventory[EmptySlot] = RandomJoker
-                mod.Saved.Jimbo.Progress = ItemsConfig:GetTrinket(RandomJoker):GetCustomTags()[2] --sets the base progress
+                local RandomJoker = mod:RandomJoker(Player:GetCardRNG(Card.CARD_JUDGEMENT), {}, true)
+                mod.Saved.Jimbo.Inventory.Jokers[EmptySlot] = RandomJoker.Joker
+                mod.Saved.Jimbo.Inventory.Editions[EmptySlot] = RandomJoker.Edition
+
+                mod.Saved.Jimbo.Progress.Inventory[EmptySlot] = tonumber(ItemsConfig:GetTrinket(RandomJoker.Joker):GetCustomTags()[2]) --sets the base progress
                 
-                Isaac.RunCallback("JOKER_ADDED", Player, RandomJoker, true)
+                Isaac.RunCallback("INVENTORY_CHANGE", Player)
             else
                 Player:AnimateSad()
             end
@@ -243,7 +244,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
         
         if IsTarot then
 
-            Player:AnimateCard(card)
+            Player:AnimateCard(card, "UseItem")
 
             return false
         end
@@ -727,6 +728,7 @@ function mod:SpectralCards(card, Player)
 
             mod.Saved.Jimbo.EctoUses = mod.Saved.Jimbo.EctoUses + 1 
 
+
             local BaseJokers = {}--jokers with an edition cannot be chosen 
             for i,v in ipairs(mod.Saved.Jimbo.Inventory.Editions) do
                 if mod.Saved.Jimbo.Inventory.Jokers[i] ~= 0 and v == mod.Edition.BASE then
@@ -741,10 +743,10 @@ function mod:SpectralCards(card, Player)
             local RandomSlot = mod:GetRandom(BaseJokers, CardRNG)
             mod.Saved.Jimbo.Inventory.Editions[RandomSlot] = mod.Edition.NEGATIVE
             --adds a slot since he got a negative joker
-            mod:AddJimboInventorySlots(Player, 1)
+            --mod:AddJimboInventorySlots(Player, 1)
 
             --mod:ChangeJimboHandSize(Player, -mod.Saved.Jimbo.EctoUses)
-            mod:ChangeJimboHandSize(Player, -1)
+            --mod:ChangeJimboHandSize(Player, -1)
 
             sfx:Play(mod.Sounds.NEGATIVE)
             
@@ -810,7 +812,7 @@ function mod:SpectralCards(card, Player)
                             mod.Saved.Jimbo.Inventory.Editions[i] = mod.Saved.Jimbo.Inventory.Editions[Rslot]
                         end
                         Added = true
-                        Isaac.RunCallback("JOKER_ADDED", Player, mod.Saved.Jimbo.Inventory.Jokers[Rslot], false)
+                        Isaac.RunCallback("INVENTORY_CHANGE", Player)
                     end
                 end
             end

@@ -1,50 +1,76 @@
 
 Balatro_Expansion = RegisterMod("Balatro Expansion", 1)
 
--------------------------------
+
+Balatro_Expansion.Jokers = {}
+------------------------------
 ---@diagnostic disable: inject-field
-TrinketType.TRINKET_JOKER = Isaac.GetTrinketIdByName("Joker")
---print(TrinketType.TRINKET_JOKER)
-TrinketType.TRINKET_BULL = Isaac.GetTrinketIdByName("Bull")
-TrinketType.TRINKET_INVISIBLE_JOKER = Isaac.GetTrinketIdByName("Invisible joker")
-TrinketType.TRINKET_ABSTRACT_JOKER = Isaac.GetTrinketIdByName("Abstract joker")
-TrinketType.TRINKET_MISPRINT = Isaac.GetTrinketIdByName("Misprint")
-TrinketType.TRINKET_JOKER_STENCIL = Isaac.GetTrinketIdByName("Joker stencil")
-TrinketType.TRINKET_STONE_JOKER = Isaac.GetTrinketIdByName("Stone joker")
-TrinketType.TRINKET_ICECREAM = Isaac.GetTrinketIdByName("Ice cream")
-TrinketType.TRINKET_POPCORN = Isaac.GetTrinketIdByName("Popcorn")
-TrinketType.TRINKET_RAMEN = Isaac.GetTrinketIdByName("Ramen")
-TrinketType.TRINKET_ROCKET = Isaac.GetTrinketIdByName("Rocket")
-TrinketType.TRINKET_ODDTODD = Isaac.GetTrinketIdByName("Odd todd")
-TrinketType.TRINKET_EVENSTEVEN = Isaac.GetTrinketIdByName("Even steven")
-TrinketType.TRINKET_HALLUCINATION = Isaac.GetTrinketIdByName("Hallucination")
-TrinketType.TRINKET_GREEN_JOKER = Isaac.GetTrinketIdByName("Green joker")
-TrinketType.TRINKET_RED_CARD = Isaac.GetTrinketIdByName("Red card")
-TrinketType.TRINKET_VAGABOND = Isaac.GetTrinketIdByName("Vagabond")
-TrinketType.TRINKET_RIFF_RAFF = Isaac.GetTrinketIdByName("Riff-raff")
-TrinketType.TRINKET_GOLDEN_JOKER = Isaac.GetTrinketIdByName("Golden joker")
-TrinketType.TRINKET_FORTUNETELLER = Isaac.GetTrinketIdByName("Fortune Teller")
-TrinketType.TRINKET_BLUEPRINT = Isaac.GetTrinketIdByName("Blueprint")
-TrinketType.TRINKET_BRAINSTORM = Isaac.GetTrinketIdByName("Brainstorm")
-TrinketType.TRINKET_SMEARED_JOKER = Isaac.GetTrinketIdByName("Smeared joker")
-TrinketType.TRINKET_MADNESS = Isaac.GetTrinketIdByName("Madness")
-TrinketType.TRINKET_MR_BONES = Isaac.GetTrinketIdByName("Mr. Bones")
-TrinketType.TRINKET_ONIX_AGATE = Isaac.GetTrinketIdByName("Onyx agate")
-TrinketType.TRINKET_ARROWHEAD = Isaac.GetTrinketIdByName("Arrowhead")
-TrinketType.TRINKET_BLOODSTONE = Isaac.GetTrinketIdByName("Bloodstone")
-TrinketType.TRINKET_ROUGH_GEM = Isaac.GetTrinketIdByName("Rough gem")
-TrinketType.TRINKET_GROS_MICHAEL = Isaac.GetTrinketIdByName("Gros Michel")
-TrinketType.TRINKET_CAVENDISH = Isaac.GetTrinketIdByName("Cavendish")
-TrinketType.TRINKET_FLASH_CARD = Isaac.GetTrinketIdByName("Flash card")
-TrinketType.TRINKET_SACRIFICIAL_DAGGER = Isaac.GetTrinketIdByName("Cerimonial dagger")
-TrinketType.TRINKET_LOYALTY_CARD = Isaac.GetTrinketIdByName("Loyalty card")
-TrinketType.TRINKET_SWASHBUCKLER = Isaac.GetTrinketIdByName("Swashbuckler")
-TrinketType.TRINKET_CLOUD_NINE = Isaac.GetTrinketIdByName("Cloud 9")
-TrinketType.TRINKET_CARTOMANCER = Isaac.GetTrinketIdByName("Cartomancer")
-TrinketType.TRINKET_SUPERNOVA = Isaac.GetTrinketIdByName("Supernova")
-TrinketType.TRINKET_DELAYED_GRATIFICATION = Isaac.GetTrinketIdByName("Delayed gratification")
-TrinketType.TRINKET_EGG = Isaac.GetTrinketIdByName("Egg")
-TrinketType.TRINKET_DNA = Isaac.GetTrinketIdByName("Dna")
+Balatro_Expansion.Jokers.JOKER = Isaac.GetTrinketIdByName("Joker")
+--print(Balatro_Expansion.Jokers.JOKER)
+
+Balatro_Expansion.Jokers.BULL = Isaac.GetTrinketIdByName("Bull")
+Balatro_Expansion.Jokers.INVISIBLE_JOKER = Isaac.GetTrinketIdByName("Invisible joker")
+Balatro_Expansion.Jokers.ABSTRACT_JOKER = Isaac.GetTrinketIdByName("Abstract joker")
+Balatro_Expansion.Jokers.MISPRINT = Isaac.GetTrinketIdByName("Misprint")
+Balatro_Expansion.Jokers.JOKER_STENCIL = Isaac.GetTrinketIdByName("Joker stencil")
+Balatro_Expansion.Jokers.STONE_JOKER = Isaac.GetTrinketIdByName("Stone joker")
+Balatro_Expansion.Jokers.ICECREAM = Isaac.GetTrinketIdByName("Ice cream")
+Balatro_Expansion.Jokers.POPCORN = Isaac.GetTrinketIdByName("Popcorn")
+Balatro_Expansion.Jokers.RAMEN = Isaac.GetTrinketIdByName("Ramen")
+Balatro_Expansion.Jokers.ROCKET = Isaac.GetTrinketIdByName("Rocket")
+Balatro_Expansion.Jokers.ODDTODD = Isaac.GetTrinketIdByName("Odd todd")
+Balatro_Expansion.Jokers.EVENSTEVEN = Isaac.GetTrinketIdByName("Even steven")
+Balatro_Expansion.Jokers.HALLUCINATION = Isaac.GetTrinketIdByName("Hallucination")
+Balatro_Expansion.Jokers.GREEN_JOKER = Isaac.GetTrinketIdByName("Green joker")
+Balatro_Expansion.Jokers.RED_CARD = Isaac.GetTrinketIdByName("Red card")
+Balatro_Expansion.Jokers.VAGABOND = Isaac.GetTrinketIdByName("Vagabond")
+Balatro_Expansion.Jokers.RIFF_RAFF = Isaac.GetTrinketIdByName("Riff-raff")
+Balatro_Expansion.Jokers.GOLDEN_JOKER = Isaac.GetTrinketIdByName("Golden joker")
+Balatro_Expansion.Jokers.FORTUNETELLER = Isaac.GetTrinketIdByName("Fortune Teller")
+Balatro_Expansion.Jokers.BLUEPRINT = Isaac.GetTrinketIdByName("Blueprint")
+Balatro_Expansion.Jokers.BRAINSTORM = Isaac.GetTrinketIdByName("Brainstorm")
+Balatro_Expansion.Jokers.SMEARED_JOKER = Isaac.GetTrinketIdByName("Smeared joker")
+Balatro_Expansion.Jokers.MADNESS = Isaac.GetTrinketIdByName("Madness")
+Balatro_Expansion.Jokers.MR_BONES = Isaac.GetTrinketIdByName("Mr. Bones")
+Balatro_Expansion.Jokers.ONIX_AGATE = Isaac.GetTrinketIdByName("Onyx agate")
+Balatro_Expansion.Jokers.ARROWHEAD = Isaac.GetTrinketIdByName("Arrowhead")
+Balatro_Expansion.Jokers.BLOODSTONE = Isaac.GetTrinketIdByName("Bloodstone")
+Balatro_Expansion.Jokers.ROUGH_GEM = Isaac.GetTrinketIdByName("Rough gem")
+Balatro_Expansion.Jokers.GROS_MICHAEL = Isaac.GetTrinketIdByName("Gros Michel")
+Balatro_Expansion.Jokers.CAVENDISH = Isaac.GetTrinketIdByName("Cavendish")
+Balatro_Expansion.Jokers.FLASH_CARD = Isaac.GetTrinketIdByName("Flash card")
+Balatro_Expansion.Jokers.SACRIFICIAL_DAGGER = Isaac.GetTrinketIdByName("Cerimonial dagger")
+Balatro_Expansion.Jokers.LOYALTY_CARD = Isaac.GetTrinketIdByName("Loyalty card")
+Balatro_Expansion.Jokers.SWASHBUCKLER = Isaac.GetTrinketIdByName("Swashbuckler")
+Balatro_Expansion.Jokers.CLOUD_NINE = Isaac.GetTrinketIdByName("Cloud 9")
+Balatro_Expansion.Jokers.CARTOMANCER = Isaac.GetTrinketIdByName("Cartomancer")
+Balatro_Expansion.Jokers.SUPERNOVA = Isaac.GetTrinketIdByName("Supernova")
+Balatro_Expansion.Jokers.DELAYED_GRATIFICATION = Isaac.GetTrinketIdByName("Delayed gratification")
+Balatro_Expansion.Jokers.EGG = Isaac.GetTrinketIdByName("Egg")
+Balatro_Expansion.Jokers.DNA = Isaac.GetTrinketIdByName("Dna")
+
+Balatro_Expansion.Jokers.CLEVER_JOKER = Isaac.GetTrinketIdByName("Clever Joker")
+Balatro_Expansion.Jokers.CRAFTY_JOKER = Isaac.GetTrinketIdByName("Crafty Joker")
+Balatro_Expansion.Jokers.CRAZY_JOKER = Isaac.GetTrinketIdByName("Crazy Joker")
+Balatro_Expansion.Jokers.DEVIOUS_JOKER = Isaac.GetTrinketIdByName("Devious Joker")
+Balatro_Expansion.Jokers.DROLL_JOKER = Isaac.GetTrinketIdByName("Droll Joker")
+Balatro_Expansion.Jokers.JOLLY_JOKER = Isaac.GetTrinketIdByName("Jolly Joker")
+Balatro_Expansion.Jokers.MAD_JOKER = Isaac.GetTrinketIdByName("Mad Joker")
+Balatro_Expansion.Jokers.WILY_JOKER = Isaac.GetTrinketIdByName("Wily Joker")
+Balatro_Expansion.Jokers.ZANY_JOKER = Isaac.GetTrinketIdByName("Zany Joker")
+Balatro_Expansion.Jokers.SLY_JOKER = Isaac.GetTrinketIdByName("Sly Joker")
+Balatro_Expansion.Jokers.LUSTY_JOKER = Isaac.GetTrinketIdByName("Lusty Joker")
+Balatro_Expansion.Jokers.WRATHFUL_JOKER = Isaac.GetTrinketIdByName("Wrathful Joker")
+Balatro_Expansion.Jokers.GREEDY_JOKER = Isaac.GetTrinketIdByName("Greedy Joker")
+Balatro_Expansion.Jokers.GLUTTONOUS_JOKER = Isaac.GetTrinketIdByName("Gluttonous Joker")
+Balatro_Expansion.Jokers.MIME = Isaac.GetTrinketIdByName("Mime Joker")
+Balatro_Expansion.Jokers.FOUR_FINGER = Isaac.GetTrinketIdByName("Four Fingers")
+Balatro_Expansion.Jokers.MERRY_ANDY = Isaac.GetTrinketIdByName("Merry Andy")
+Balatro_Expansion.Jokers.HALF_JOKER = Isaac.GetTrinketIdByName("Half Joker")
+
+
+
+
 --------------------------------
 CollectibleType.COLLECTIBLE_THE_HAND = Isaac.GetItemIdByName("The hand")
 ----------------------------------
@@ -129,23 +155,23 @@ Balatro_Expansion.Spectrals.SOUL = Isaac.GetCardIdByName("Spectral_Soul")
 
 
 Balatro_Expansion.Trinkets = {} --rarities used for spawn weight and stuff
-Balatro_Expansion.Trinkets.common = {TrinketType.TRINKET_JOKER,
-TrinketType.TRINKET_GOLDEN_JOKER, TrinketType.TRINKET_HALLUCINATION, TrinketType.TRINKET_RIFF_RAFF,
-TrinketType.TRINKET_EGG, TrinketType.TRINKET_DELAYED_GRATIFICATION,
-TrinketType.TRINKET_CLOUD_NINE, TrinketType.TRINKET_ABSTRACT_JOKER, TrinketType.TRINKET_MISPRINT,
-TrinketType.TRINKET_GREEN_JOKER, TrinketType.TRINKET_GROS_MICHAEL, TrinketType.TRINKET_CAVENDISH,
-TrinketType.TRINKET_ICECREAM, TrinketType.TRINKET_POPCORN, TrinketType.TRINKET_ODDTODD, TrinketType.TRINKET_EVENSTEVEN,
-TrinketType.TRINKET_RED_CARD, TrinketType.TRINKET_FORTUNETELLER, TrinketType.TRINKET_SWASHBUCKLER,
-TrinketType.TRINKET_SUPERNOVA} 
-Balatro_Expansion.Trinkets.uncommon = {TrinketType.TRINKET_INVISIBLE_JOKER,
-TrinketType.TRINKET_FLASH_CARD, TrinketType.TRINKET_SMEARED_JOKER,TrinketType.TRINKET_MR_BONES,
-TrinketType.TRINKET_ROCKET,TrinketType.TRINKET_ROUGH_GEM, TrinketType.TRINKET_CARTOMANCER,
-TrinketType.TRINKET_BULL, TrinketType.TRINKET_JOKER_STENCIL, TrinketType.TRINKET_STONE_JOKER,
-TrinketType.TRINKET_RAMEN, TrinketType.TRINKET_ONIX_AGATE, TrinketType.TRINKET_MADNESS,
-TrinketType.TRINKET_BLOODSTONE, TrinketType.TRINKET_ARROWHEAD,TrinketType.TRINKET_SACRIFICIAL_DAGGER,
-TrinketType.TRINKET_LOYALTY_CARD}
-Balatro_Expansion.Trinkets.rare = {TrinketType.TRINKET_BLUEPRINT,
-TrinketType.TRINKET_BRAINSTORM,TrinketType.TRINKET_VAGABOND, TrinketType.TRINKET_DNA}
+Balatro_Expansion.Trinkets.common = {Balatro_Expansion.Jokers.JOKER,
+Balatro_Expansion.Jokers.GOLDEN_JOKER, Balatro_Expansion.Jokers.HALLUCINATION, Balatro_Expansion.Jokers.RIFF_RAFF,
+Balatro_Expansion.Jokers.EGG, Balatro_Expansion.Jokers.DELAYED_GRATIFICATION,
+Balatro_Expansion.Jokers.CLOUD_NINE, Balatro_Expansion.Jokers.ABSTRACT_JOKER, Balatro_Expansion.Jokers.MISPRINT,
+Balatro_Expansion.Jokers.GREEN_JOKER, Balatro_Expansion.Jokers.GROS_MICHAEL, Balatro_Expansion.Jokers.CAVENDISH,
+Balatro_Expansion.Jokers.ICECREAM, Balatro_Expansion.Jokers.POPCORN, Balatro_Expansion.Jokers.ODDTODD, Balatro_Expansion.Jokers.EVENSTEVEN,
+Balatro_Expansion.Jokers.RED_CARD, Balatro_Expansion.Jokers.FORTUNETELLER, Balatro_Expansion.Jokers.SWASHBUCKLER,
+Balatro_Expansion.Jokers.SUPERNOVA} 
+Balatro_Expansion.Trinkets.uncommon = {Balatro_Expansion.Jokers.INVISIBLE_JOKER,
+Balatro_Expansion.Jokers.FLASH_CARD, Balatro_Expansion.Jokers.SMEARED_JOKER,Balatro_Expansion.Jokers.MR_BONES,
+Balatro_Expansion.Jokers.ROCKET,Balatro_Expansion.Jokers.ROUGH_GEM, Balatro_Expansion.Jokers.CARTOMANCER,
+Balatro_Expansion.Jokers.BULL, Balatro_Expansion.Jokers.JOKER_STENCIL, Balatro_Expansion.Jokers.STONE_JOKER,
+Balatro_Expansion.Jokers.RAMEN, Balatro_Expansion.Jokers.ONIX_AGATE, Balatro_Expansion.Jokers.MADNESS,
+Balatro_Expansion.Jokers.BLOODSTONE, Balatro_Expansion.Jokers.ARROWHEAD,Balatro_Expansion.Jokers.SACRIFICIAL_DAGGER,
+Balatro_Expansion.Jokers.LOYALTY_CARD}
+Balatro_Expansion.Trinkets.rare = {Balatro_Expansion.Jokers.BLUEPRINT,
+Balatro_Expansion.Jokers.BRAINSTORM,Balatro_Expansion.Jokers.VAGABOND, Balatro_Expansion.Jokers.DNA}
 Balatro_Expansion.Trinkets.legendary = {}
 
 
@@ -226,20 +252,20 @@ Balatro_Expansion.Rarities.rare = 3
 Balatro_Expansion.Rarities.legendary = 4
 
 Balatro_Expansion.HandTypes = {}
-Balatro_Expansion.HandTypes.NONE = 0
-Balatro_Expansion.HandTypes.HIGH_CARD = 1
-Balatro_Expansion.HandTypes.PAIR = 2
-Balatro_Expansion.HandTypes.TWO_PAIR = 3
-Balatro_Expansion.HandTypes.THREE = 4
-Balatro_Expansion.HandTypes.STRAIGHT = 5
-Balatro_Expansion.HandTypes.FLUSH = 6
-Balatro_Expansion.HandTypes.FULL_HOUSE = 7
-Balatro_Expansion.HandTypes.FOUR = 8
-Balatro_Expansion.HandTypes.STRAIGHT_FLUSH = 9
-Balatro_Expansion.HandTypes.ROYAL_FLUSH = 9.5
-Balatro_Expansion.HandTypes.FIVE = 10
-Balatro_Expansion.HandTypes.FLUSH_HOUSE = 11
-Balatro_Expansion.HandTypes.FIVE_FLUSH = 12
+Balatro_Expansion.HandTypes.NONE = 1 << 0
+Balatro_Expansion.HandTypes.HIGH_CARD = 1 << 1
+Balatro_Expansion.HandTypes.PAIR = 1 << 2
+Balatro_Expansion.HandTypes.TWO_PAIR = 1 << 3
+Balatro_Expansion.HandTypes.THREE = 1 << 4
+Balatro_Expansion.HandTypes.STRAIGHT = 1 << 5
+Balatro_Expansion.HandTypes.FLUSH = 1 << 6
+Balatro_Expansion.HandTypes.FULL_HOUSE = 1 << 7
+Balatro_Expansion.HandTypes.FOUR = 1 << 8
+Balatro_Expansion.HandTypes.STRAIGHT_FLUSH = 1 << 9
+Balatro_Expansion.HandTypes.ROYAL_FLUSH = 1 << 10
+Balatro_Expansion.HandTypes.FIVE = 1 << 11
+Balatro_Expansion.HandTypes.FLUSH_HOUSE = 1 << 11
+Balatro_Expansion.HandTypes.FIVE_FLUSH = 1 << 13
 
 
 
@@ -406,7 +432,7 @@ end
 Balatro_Expansion.Saved.Jimbo.Progress.Room.Shots = 0 --used to tell how many cards are already used
 
 Balatro_Expansion.Saved.Jimbo.Progress.Floor = {}
-Balatro_Expansion.Saved.Jimbo.Progress.Floor.Vouchers = {} --says which vouchers have already been spawned in a floor
+Balatro_Expansion.Saved.Jimbo.FloorVouchers = {} --says which vouchers have already been spawned in a floor
 
 
 Balatro_Expansion.Saved.LasCardUsed = nil --the last card a player used
@@ -675,10 +701,10 @@ include("Balatro_scripts.Synergies")
 --[[
 function Balatro_Expansion:Joker(player, _)
 
-    if player.HasTrinket(player, TrinketType.TRINKET_JOKER) then --controls if it has the trinket
+    if player.HasTrinket(player, Balatro_Expansion.Jokers.JOKER) then --controls if it has the trinket
         local JokerDMG = 0.5 --base dmg
-        local DMGToAdd = JokerDMG * player.GetTrinketMultiplier(player ,TrinketType.TRINKET_JOKER) --scalable DMG up
-        if Balatro_Expansion.WantedEffect == TrinketType.TRINKET_JOKER then
+        local DMGToAdd = JokerDMG * player.GetTrinketMultiplier(player ,Balatro_Expansion.Jokers.JOKER) --scalable DMG up
+        if Balatro_Expansion.WantedEffect == Balatro_Expansion.Jokers.JOKER then
             Balatro_Expansion:EffectConverter(1, DMGToAdd, player, 1)
         end
         player.Damage = player.Damage + DMGToAdd --flat DMG up

@@ -165,20 +165,20 @@ function mod:FloorHasShopOrTreasure()
     local LevelName = Level:GetName()
 
     if Stage == LevelStage.STAGE4_1 and not Greed  then
-        if not PlayerManager.AnyoneHasTrinket(TrinketType.TRINKET_BLOODY_CROWN) then
+        if not PlayerManager.AnyoneHasTrinket(mod.Jokers.BLOODY_CROWN) then
             Available.Treasure = false
         end
-        if not PlayerManager.AnyoneHasTrinket(TrinketType.TRINKET_SILVER_DOLLAR) then
+        if not PlayerManager.AnyoneHasTrinket(mod.Jokers.SILVER_DOLLAR) then
             Available.Shop = false
         end
     elseif LevelName == "Sheol" and not Greed then
-        if not PlayerManager.AnyoneHasTrinket(TrinketType.TRINKET_WICKED_CROWN) then
+        if not PlayerManager.AnyoneHasTrinket(mod.Jokers.WICKED_CROWN) then
             Available.Treasure = false
             Available.Shop = false
         end
 
     elseif LevelName == "Cathedral" then
-        if not PlayerManager.AnyoneHasTrinket(TrinketType.TRINKET_HOLY_CROWN) then
+        if not PlayerManager.AnyoneHasTrinket(mod.Jokers.HOLY_CROWN) then
             Available.Treasure = false
             Available.Shop = false
         end
@@ -258,21 +258,20 @@ function mod:SubstituteCards(ChosenTable)
 end
 
 --determines the corresponding poker hand basing on the hand given
-function mod:DeterminePokerHand()
-    local ElegibleHandTypes = {mod.HandTypes.NONE}
+function mod:DeterminePokerHand(Player)
+    local ElegibleHandTypes = mod.HandTypes.NONE
 
     
     local RealHand = {}
-    for i,_ in ipairs(mod.Saved.Jimbo.CurrentHand) do
-        if mod.CardSelectionParams.SelectedCards[i] then
-            table.insert(RealHand, mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[i]])
-        end
+    for _,index in ipairs(mod.Saved.Jimbo.CurrentHand) do
+        table.insert(RealHand, mod.Saved.Jimbo.FullDeck[index])
+        
     end
 
-    if #RealHand > 0 then
-        table.insert(ElegibleHandTypes, mod.HandTypes.HIGH_CARD)
+    if #RealHand > 0 then --shoud never happen but you never know...
+        ElegibleHandTypes = ElegibleHandTypes + mod.HandTypes.HIGH_CARD
     else
-        return ElegibleHandTypes --why bother if there nothing selected
+        return ElegibleHandTypes --why bother if there's nothing
     end
 
     local ValueTable = {} --the value of every card used
@@ -291,25 +290,25 @@ function mod:DeterminePokerHand()
     local IsRoyal = false
 
     if ValidCardsNumber >= 4 then --no need to check if there aren't enough cards
-        IsFlush = mod:IsFlush(SuitTable)
-        IsStraight,IsRoyal = mod:IsStraight(ValueTable)
+        IsFlush = mod:IsFlush(Player, SuitTable)
+        IsStraight,IsRoyal = mod:IsStraight(Player, ValueTable)
     
     end
 
-    local EqualCards = mod:GetCardValueRepetitions(ValueTable)
+    local EqualCards = mod:GetCardValueRepetitions(Player, ValueTable)
 
     --general flush check
     if IsFlush then
-        table.insert(ElegibleHandTypes,mod.HandTypes.FLUSH)
+        ElegibleHandTypes = ElegibleHandTypes + mod.HandTypes.FLUSH
     end
     --straight check
     if IsStraight then
-        table.insert(ElegibleHandTypes,mod.HandTypes.STRAIGHT)
+        ElegibleHandTypes = ElegibleHandTypes + mod.HandTypes.STRAIGHT
         if IsRoyal then
-            table.insert(ElegibleHandTypes,mod.HandTypes.STRAIGHT_FLUSH)
-            table.insert(ElegibleHandTypes,mod.HandTypes.ROYAL_FLUSH)
+            ElegibleHandTypes = ElegibleHandTypes + mod.HandTypes.STRAIGHT_FLUSH
+            ElegibleHandTypes = ElegibleHandTypes + mod.HandTypes.ROYAL_FLUSH
         elseif IsFlush then
-            table.insert(ElegibleHandTypes,mod.HandTypes.STRAIGHT_FLUSH)
+            ElegibleHandTypes = ElegibleHandTypes + mod.HandTypes.ROYAL_FLUSH
         end
     end
 
@@ -318,46 +317,46 @@ function mod:DeterminePokerHand()
        return ElegibleHandTypes
     end
     --at least a pair
-    table.insert(ElegibleHandTypes,mod.HandTypes.PAIR)
+    ElegibleHandTypes = ElegibleHandTypes + mod.HandTypes.PAIR
 
     if EqualCards < 3 then --not a three of a kind
         if EqualCards == 2.5 then --in that case makes sure if it's a two pair
-            table.insert(ElegibleHandTypes,mod.HandTypes.TWO_PAIR)
+            ElegibleHandTypes = ElegibleHandTypes + mod.HandTypes.TWO_PAIR
         end
         return ElegibleHandTypes
     end
     --at least a three of a kind
-    table.insert(ElegibleHandTypes,mod.HandTypes.THREE)
+    ElegibleHandTypes = ElegibleHandTypes + mod.HandTypes.THREE
 
     if EqualCards < 4 then
         if EqualCards == 3.5 then
             if IsFlush then
-                table.insert(ElegibleHandTypes,mod.HandTypes.FLUSH_HOUSE)
+                ElegibleHandTypes = ElegibleHandTypes + mod.HandTypes.FLUSH_HOUSE
             end
-            table.insert(ElegibleHandTypes,mod.HandTypes.FULL_HOUSE)
+            ElegibleHandTypes = ElegibleHandTypes + mod.HandTypes.FULL_HOUSE
         end
         return ElegibleHandTypes
     end
      --at least a four of a kind
-    table.insert(ElegibleHandTypes,mod.HandTypes.FOUR)
+     ElegibleHandTypes = ElegibleHandTypes + mod.HandTypes.FOUR
 
     if EqualCards < 5 then 
         return ElegibleHandTypes
     end
     --a five of a kind
     if IsFlush then
-        table.insert(ElegibleHandTypes,mod.HandTypes.FIVE_FLUSH)
+        ElegibleHandTypes = ElegibleHandTypes + mod.HandTypes.FIVE_FLUSH
     end
-    table.insert(ElegibleHandTypes,mod.HandTypes.FIVE)
+    ElegibleHandTypes = ElegibleHandTypes + mod.HandTypes.FIVE
 
-    --IN THE END THERE WILL BE A TABLE CONTAINING ALL THE POSSIBLE HAND TYPES
+    --IN THE END THERE WILL BE A BITMASK CONTAINING ALL THE POSSIBLE HAND TYPES
     --THAT THE USED ONE CONTAINS, MAKING IT EASIER FOR JOKERS TO ACTIVATE CORRECTLY
     --BUT ONLY THE "HIGHEST" ONE WILL BE CONSIDERED AS SCORED
 
     return ElegibleHandTypes
 end
 
-function mod:IsFlush(SuitTable)
+function mod:IsFlush(Player, SuitTable)
     local CardSuits = {0,0,0,0} --spades, hearts, clubs, diamonds
 
     for _, Suit in ipairs(SuitTable) do --cycles between all the cards in the used hand
@@ -365,31 +364,43 @@ function mod:IsFlush(SuitTable)
     end
 
     for _, SuitNumber in ipairs(CardSuits) do
-        if SuitNumber >= 5 then --if 5 cards have the same suit
+        if SuitNumber >= 5 or (mod:JimboHasTrinket(Player, mod.Jokers.FOUR_FINGERS) and SuitNumber >= 4) then --if 5 cards have the same suit
             return true
         end
     end
     return false
 end
 
-function mod:IsStraight(ValueTable)
-    table.sort(ValueTable)
+function mod:IsStraight(Player, ValueTable)
 
-    local LowestValue = ValueTable[1]
-    local ValueToKeepStreak = LowestValue + 1
-    local StraightStreak = 1
-    for _, CardValue in ipairs(ValueTable) do --cycles between all the cards in the used hand
-
-        if CardValue == ValueToKeepStreak  then
-            StraightStreak = StraightStreak + 1
-            if ValueToKeepStreak == 13 then
-                ValueToKeepStreak = 1 --ace
-            elseif ValueToKeepStreak ~= 1 then
-                ValueToKeepStreak = ValueToKeepStreak + 1
-            end
+    --table setup
+    table.sort(ValueTable) --makes things easier
+    for _, CardValue in ipairs(ValueTable) do --adds a copy of all the aces as 14 (after the kings)
+        if CardValue == 1 then
+            table.insert(ValueTable, 14)
+        else
+            break
         end
     end
-    if StraightStreak == 5 then
+
+    local LowestValue = ValueTable[1]
+    local ValueToKeepStreak = LowestValue
+    local StraightStreak = 0
+    for _, CardValue in ipairs(ValueTable) do --cycles between all the cards in the used hand
+
+        if CardValue == ValueToKeepStreak or CardValue + 13 == ValueToKeepStreak then
+            StraightStreak = StraightStreak + 1
+
+            if ValueToKeepStreak == 14 then --14 is the ace after a king 
+                break
+            end
+        else
+            StraightStreak = 0 --reset the streak
+        end
+
+        ValueToKeepStreak = ValueToKeepStreak + 1
+    end
+    if StraightStreak >= 5 or (mod:JimboHasTrinket(Player, mod.Jokers.FOUR_FINGERS) and StraightStreak >= 4) then
         if LowestValue == 10 then --determines if it's a royal flush
             return true,true
         else
@@ -399,17 +410,17 @@ function mod:IsStraight(ValueTable)
     return false,false
 end
 
-function mod:GetCardValueRepetitions(ValueTable)
+function mod:GetCardValueRepetitions(Player, ValueTable)
 
     local CardValues = {0,0,0,0,0,0,0,0,0,0,0,0,0} -- all the card's possible values
 
     --PAIRS CHECK
-    for _, card in ipairs(ValueTable) do --cycles between all the cards in the used hand
+    for _, CardRank in ipairs(ValueTable) do --cycles between all the cards in the used hand
     
-        CardValues[mod.Saved.Jimbo.FullDeck[card].Value] = CardValues[mod.Saved.Jimbo.FullDeck[card].Value] + 1
+        CardValues[CardRank] = CardValues[mod.Saved.Jimbo.FullDeck[CardRank].Value] + 1
     end
 
-    local PairPresent = false --tells if there is a pair for a full house/two pairs
+    local PairPresent = false --tells if there is a pair for a possible full house/two pairs
     local ToaKPresent = false --tells if there is a ToaK for a possible full house
 
     for _, ValueNum in ipairs(CardValues) do
@@ -467,7 +478,7 @@ function mod:GetJimboJokerIndex(Player, Joker)
     for i,v in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
         if v == Joker then
             table.insert(Indexes, i)
-        elseif v == TrinketType.TRINKET_BLUEPRINT or v == TrinketType.TRINKET_BRAINSTORM   then
+        elseif v == mod.Jokers.BLUEPRINT or v == mod.Jokers.BRAINSTORM   then
 
             if mod.Saved.Jimbo.Inventory.Jokers[mod.Saved.Jimbo.Progress.Inventory[i]] == Joker then
                 table.insert(Indexes, i)
@@ -489,7 +500,7 @@ function mod:IsSuit(Player, Suit, Enhancement, WantedSuit, MakeTable)
 
         table.insert(GoodSuits, Suit)
         
-        if (mod:JimboHasTrinket(Player, TrinketType.TRINKET_SMEARED_JOKER)) then
+        if (mod:JimboHasTrinket(Player, mod.Jokers.SMEARED_JOKER)) then
             --in this case spades/clubs and Hearts/diamonds are considered the same
 
             local Jump = 2 --distance SPADE/HEART => CLUB/DIAMOND
@@ -510,7 +521,7 @@ function mod:IsSuit(Player, Suit, Enhancement, WantedSuit, MakeTable)
             return true
         end
         
-        if (mod:JimboHasTrinket(Player, TrinketType.TRINKET_SMEARED_JOKER)) then
+        if (mod:JimboHasTrinket(Player, mod.Jokers.SMEARED_JOKER)) then
             --in this case spades/clubs and Hearts/diamonds are considered the same
             local Jump = 2 --distance SPADE/HEART => CLUB/DIAMOND
             if WantedSuit > 2 then  --the suits are in order: (SPADE,HEART,CLUB,DIAMOND)
@@ -525,7 +536,7 @@ function mod:IsSuit(Player, Suit, Enhancement, WantedSuit, MakeTable)
 end
 
 function mod:TryGamble(Player, RNG, Chance)
-    --Chance = Chance * (2 ^ mod:GetValueRepetitions(mod.Saved.Jimbo.Inventory, TrinketType.TRINKET_OOPS_6) 
+    --Chance = Chance * (2 ^ mod:GetValueRepetitions(mod.Saved.Jimbo.Inventory, mod.Jokers.OOPS_6) 
     if RNG then
         if RNG:RandomFloat() < Chance then
             return true
@@ -547,7 +558,7 @@ function mod:GetJokerCost(Joker, SellSlot)
     if SellSlot then --also tells if you want the buy/sell value as the return
     
         Cost = math.floor((Cost + mod.Saved.Jimbo.Inventory.Editions[SellSlot]) / 2)
-        if Joker == TrinketType.TRINKET_EGG then
+        if Joker == mod.Jokers.EGG then
             Cost = mod.Saved.Jimbo.Progress.Inventory[SellSlot]
         end
     else
@@ -580,17 +591,19 @@ function mod:AddJimboInventorySlots(Player, Amount)
             table.insert(mod.Saved.Jimbo.Inventory.Editions, 0)
         end
     else
-        for i,Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
-            if Joker == 0 then --searches for an empty slot to remove
-                table.remove(mod.Saved.Jimbo.Inventory.Jokers, i)
-                table.remove(mod.Saved.Jimbo.Inventory.Editions, i)
-                return
+        for i=1, -Amount do
+            for i,Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
+                if Joker == 0 then --searches for an empty slot to remove
+                    table.remove(mod.Saved.Jimbo.Inventory.Jokers, i)
+                    table.remove(mod.Saved.Jimbo.Inventory.Editions, i)
+                    return
+                end
             end
-        end
 
-        Isaac.RunCallback("JOKER_SOLD", Player, mod.Saved.Jimbo.Inventory.Jokers[1], 1)
-        table.remove(mod.Saved.Jimbo.Inventory.Jokers, 1) --if none are present then sell the first joker
-        table.remove(mod.Saved.Jimbo.Inventory.Editions, 1)
+            Isaac.RunCallback("JOKER_SOLD", Player, mod.Saved.Jimbo.Inventory.Jokers[1], 1)
+            table.remove(mod.Saved.Jimbo.Inventory.Jokers, 1) --if none are present then sell the first joker
+            table.remove(mod.Saved.Jimbo.Inventory.Editions, 1)
+        end
     end
 end
 
@@ -636,7 +649,7 @@ function mod:SellJoker(Player, Trinket, Slot)
     mod.Saved.Jimbo.Inventory.Jokers[Slot] = 0
     mod.Saved.Jimbo.Inventory.Editions[Slot] = mod.Edition.BASE
     local SellValue
-    if Trinket == TrinketType.TRINKET_EGG then --egg holds its sell value in its progress
+    if Trinket == mod.Jokers.EGG then --egg holds its sell value in its progress
         
         SellValue = mod.Saved.Jimbo.Progress.Inventory[Slot]
     else
@@ -704,7 +717,7 @@ function mod:RandomJoker(Rng, Exeptions, PlaySound, ForcedRarity)
     repeat
 
         if not next(Possibilities) then
-            Trinket.Joker = TrinketType.TRINKET_JOKER --default trinket
+            Trinket.Joker = mod.Jokers.JOKER --default trinket
             break
         end
 
@@ -714,8 +727,8 @@ function mod:RandomJoker(Rng, Exeptions, PlaySound, ForcedRarity)
         table.remove(Possibilities, mod:GetValueIndex(Possibilities, Trinket.Joker, true))
 
     until not mod:Contained(Exeptions, Trinket.Joker) --basic criteria
-          and (Trinket.Joker ~= TrinketType.TRINKET_GROS_MICHAEL or not mod.Saved.Jimbo.MichelDestroyed) --if it's michel, check if it was destroyed
-          and (Trinket.Joker ~= TrinketType.TRINKET_CAVENDISH or mod.Saved.Jimbo.MichelDestroyed) --if it's cavendish do the same but opposite
+          and (Trinket.Joker ~= mod.Jokers.GROS_MICHAEL or not mod.Saved.Jimbo.MichelDestroyed) --if it's michel, check if it was destroyed
+          and (Trinket.Joker ~= mod.Jokers.CAVENDISH or mod.Saved.Jimbo.MichelDestroyed) --if it's cavendish do the same but opposite
     
     local EdMult = 1
 

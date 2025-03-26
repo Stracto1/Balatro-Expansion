@@ -127,12 +127,6 @@ function mod:VouchersAdded(Item,_,_,_,_,Player)
         Player:AddHearts(2)
         mod.HpEnable = false
 
-    elseif Item == mod.Vouchers.Brush or Item == mod.Vouchers.Palette then
-        mod:ChangeJimboHandSize(Player, 1)
-
-    elseif Item == mod.Vouchers.Antimatter then
-        mod:AddJimboInventorySlots(Player, 1)
-
     elseif Item == mod.Vouchers.Hieroglyph or Item == mod.Vouchers.Petroglyph then
         Player:UseActiveItem(CollectibleType.COLLECTIBLE_FORGET_ME_NOW, UseFlag.USE_NOANIM)
     end

@@ -865,10 +865,10 @@ function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rN
                         Rvoucher = mod:GetRandom(mod.Saved.Pools.Vouchers, rNG) --using this rng basically makes it un rerollable with mechines
                         --PLEASE tell me if the RNG not advancing gets patched cause it'll break the voucher generation 
 
-                    until not mod:Contained(mod.Saved.Jimbo.Progress.Floor.Vouchers, Rvoucher) --no dupes per floor
+                    until not mod:Contained(mod.Saved.Jimbo.FloorVouchers, Rvoucher) --no dupes per floor
                           or Rvoucher == VoucherPresent --if it's getting rerolled (kinda)
 
-                    table.insert(mod.Saved.Jimbo.Progress.Floor.Vouchers, Rvoucher)
+                    table.insert(mod.Saved.Jimbo.FloorVouchers, Rvoucher)
 
                     ReturnTable = {PickupVariant.PICKUP_COLLECTIBLE,Rvoucher, false}
 
@@ -1164,8 +1164,10 @@ function mod:HandleNoHarmRoomsClear()
                     local ExtraTrinket = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET,
                                                     Vector(840,320),Vector.Zero, PlayerManager.FirstPlayerByType(mod.Characters.JimboType), mod:RandomJoker(mod.Saved.GeneralRNG).Joker, Seed):ToPickup()
 
+                    ---@diagnostic disable-next-line: need-check-nil
                     ExtraTrinket:MakeShopItem(-2) -- for whatever reason i can't make this turn into an joker with the usual callback, so i made mod:GreedJokerFix()
 
+                    ---@diagnostic disable-next-line: need-check-nil
                     local JokerData = ExtraTrinket:GetData()
                     JokerData.OverstockGreed = true
                 end
@@ -1173,9 +1175,11 @@ function mod:HandleNoHarmRoomsClear()
 
                     local ExtraTrinket = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET,
                                                     Vector(940,320),Vector.Zero, PlayerManager.FirstPlayerByType(mod.Characters.JimboType), mod:RandomJoker(mod.Saved.GeneralRNG).Joker, Seed):ToPickup()
-
+                    
+                    ---@diagnostic disable-next-line: need-check-nil
                     ExtraTrinket:MakeShopItem(-2) -- for whatever reason i can't make this turn into an joker with the usual callback, so i made mod:GreedJokerFix()
 
+                    ---@diagnostic disable-next-line: need-check-nil
                     local JokerData = ExtraTrinket:GetData()
                     JokerData.OverstockGreed = true
                 end
@@ -1251,15 +1255,15 @@ function mod:OverstockGreedJokerFix(Pickup)
 
     Isaac.CreateTimer(function ()
         
-        print(PickupData.OverstockGreed)
-        print(ShopRestock)
+        --print(PickupData.OverstockGreed)
+        --print(ShopRestock)
 
         if not PickupData.OverstockGreed or not ShopRestock then
             return
         end
 
         local ExtraTrinket = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET,
-                                                Pickup.Position,Vector.Zero, PlayerManager.FirstPlayerByType(mod.Characters.JimboType), mod:RandomJoker(mod.Saved.GeneralRNG).Joker, Pickup.InitSeed):ToPickup()
+                                                Pickup.Position,Vector.Zero, PlayerManager.FirstPlayerByType(mod.Characters.JimboType), mod:RandomJoker(mod.Saved.GeneralRNG).Joker, Pickup.InitSeed):ToPickup() or Pickup
 
         ExtraTrinket:MakeShopItem(6) -- for whatever reason i can't make this turn into an joker with the usual callback, so i made mod:GreedJokerFix()
 
@@ -1463,7 +1467,7 @@ function mod:JimboAddTrinket(Player, Trinket, _)
     local JokerEdition = mod.Saved.Jimbo.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Trinket).Name] or mod.Edition.BASE 
 
     if JokerEdition == mod.Edition.NEGATIVE then
-        mod:AddJimboInventorySlots(Player, 1)
+        --mod:AddJimboInventorySlots(Player, 1)
     end
 
 
@@ -1485,7 +1489,7 @@ function mod:JimboAddTrinket(Player, Trinket, _)
     local InitialProg = ItemsConfig:GetTrinket(Trinket):GetCustomTags()[2]
     mod.Saved.Jimbo.Progress.Inventory[Slot] = tonumber(InitialProg)
 
-    Isaac.RunCallback("JOKER_ADDED", Player, Slot, true)
+    Isaac.RunCallback("INVENTORY_CHANGE", Player)
 
 
 end
@@ -1499,7 +1503,7 @@ function mod:JimboTrinketPool(_, RNG)
     end
 
 
-    return mod:RandomJoker(RNG, {}, true)
+    return mod:RandomJoker(RNG, {}, true).Joker
 
     --[[
     local RarityRoll = RNG:RandomFloat()
@@ -1554,14 +1558,28 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.EnableTrinketEditions)
 
 
+local DamagedThisFrame = {}
+DamagedThisFrame[0] = false
+DamagedThisFrame[1] = false
+DamagedThisFrame[2] = false
+DamagedThisFrame[3] = false
+
 --jimbo can only take one heart container worth of damage per time
 --makes jimbo discard whenever he takes damage in a not cleared room
 ---@param Player Entity
 function mod:JimboTakeDamage(Player,Amount,_,Source,_)
     ---@diagnostic disable-next-line: cast-local-type
     Player = Player:ToPlayer()
-    if Player and Player:GetPlayerType() == mod.Characters.JimboType and Amount ~= 0 then
 
+    if not Player or Player:GetPlayerType() ~= mod.Characters.JimboType then
+        return
+    end
+
+    if DamagedThisFrame[Player:GetPlayerIndex()] then
+        return false
+    end
+    
+    if Amount ~= 0 then
         --only remove one eternal/rotten heart if he has any
         if Player:GetEternalHearts() ~= 0  then
 
@@ -1587,6 +1605,7 @@ function mod:JimboTakeDamage(Player,Amount,_,Source,_)
         Player:TakeDamage(0, DamageFlag.DAMAGE_FAKE, Source, 0) --take fake damage
         Player:SetMinDamageCooldown(80)
 
+
         --||DISCARD MECHANIC||
         --if not Game:GetRoom():IsClear() then
 
@@ -1605,6 +1624,11 @@ function mod:JimboTakeDamage(Player,Amount,_,Source,_)
             end
             Isaac.RunCallback("DECK_SHIFT", Player)
         --end
+
+        DamagedThisFrame[Player:GetPlayerIndex()] = true
+        Isaac.CreateTimer(function ()
+            DamagedThisFrame[Player:GetPlayerIndex()] = false
+        end,0,1,true)
 
         return false
     end
@@ -2024,6 +2048,57 @@ function mod:PlayCDCache(Player, Cache, Value)
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.PlayCDCache, "playcd")
 
+
+
+---@param Player EntityPlayer
+function mod:InventorySizeCache(Player, Cache, Value)
+    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+        return
+    end
+
+    Value = 3 --base starting point
+
+    if Player:HasCollectible(mod.Vouchers.Antimatter) then
+        Value = Value + 1
+    end
+
+    for i,v in ipairs(mod.Saved.Jimbo.Inventory.Editions) do
+        if v == mod.Edition.NEGATIVE then
+            Value = Value + 1
+        end
+    end
+
+    mod:AddJimboInventorySlots(Player, Value-Player:GetCustomCacheValue("inventory"))
+
+    return Value
+end
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.InventorySizeCache, "inventory")
+
+
+---@param Player EntityPlayer
+function mod:HandSizeCache(Player, Cache, Value)
+    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+        return
+    end
+
+    Value = 5 --base starting point
+
+    if Player:HasCollectible(mod.Vouchers.Brush) then
+        Value = Value + 1
+    end
+    if Player:HasCollectible(mod.Vouchers.Palette) then
+        Value = Value + 1
+    end
+
+    Value = Value - mod.Saved.Jimbo.EctoUses
+
+    Value = math.max(1, Value) --minimum 1 card in hand
+
+    mod:ChangeJimboHandSize(Player, Value-Player:GetCustomCacheValue("handsize"))
+
+    return Value
+end
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.HandSizeCache, "handsize")
 
 
 -------------CARD TEARS-----------------------

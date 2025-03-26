@@ -142,7 +142,7 @@ function mod:PackParticle(Effect)
 
     Data.Time = Data.Time + 1 
 
-    if Data.Time % 3 == 0 then
+    if Data.Time % 3 == 0 and not Game:IsPaused() then
         
         local Particle = Game:Spawn(EntityType.ENTITY_EFFECT, PartVariant, Effect.Position, Vector.Zero, nil, PartSub, 1):ToEffect()
 
