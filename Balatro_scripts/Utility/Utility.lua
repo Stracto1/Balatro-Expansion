@@ -241,6 +241,15 @@ function mod:HeadDirectionToString(Vector) --ty for the base sheriff
     return ""
 end
 
+function mod:GetSignString(Num)
+
+    if Num >= 0 then
+        return "+"
+    else
+        return ""
+    end
+end
+
 -------------JIMBO FUNCTIONS------------
 ---------------------------------------
 

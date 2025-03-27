@@ -121,13 +121,7 @@ function mod:VouchersAdded(Item,_,_,_,_,Player)
         return
     end
 
-    if Item == mod.Vouchers.Wasteful or Item == mod.Vouchers.Recyclomancy then
-        mod.HpEnable = true
-        Player:AddMaxHearts(2)
-        Player:AddHearts(2)
-        mod.HpEnable = false
-
-    elseif Item == mod.Vouchers.Hieroglyph or Item == mod.Vouchers.Petroglyph then
+    if Item == mod.Vouchers.Hieroglyph or Item == mod.Vouchers.Petroglyph then
         Player:UseActiveItem(CollectibleType.COLLECTIBLE_FORGET_ME_NOW, UseFlag.USE_NOANIM)
     end
 end

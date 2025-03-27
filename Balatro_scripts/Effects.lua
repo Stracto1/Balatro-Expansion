@@ -41,7 +41,7 @@ function mod:CreateBalatroEffect(Slot, Colour, Sound, Text, Offset, Volume, Forc
 
         StackedEffects = StackedEffects + 1
         Isaac.CreateTimer(function()
-                        mod:CreateBalatroEffect(Slot, Colour, Sound, Text, Offset)
+                        mod:CreateBalatroEffect(Slot, Colour, Sound, Text, Offset, Volume, Force)
                         end, EffectsInterval - EffectParams[Slot].Frames, 1, false)
         return
     else

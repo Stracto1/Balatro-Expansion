@@ -1411,18 +1411,6 @@ function mod:GiveRewards(BlindType)
         end
     end
 
-    for _,index in ipairs(mod.Saved.Jimbo.CurrentHand) do
-        if mod.Saved.Jimbo.FullDeck[index].Enhancement == mod.Enhancement.GOLDEN --PLACEHOLDER
-           and mod.Saved.Jimbo.FirstDeck and mod.Saved.Jimbo.Progress.Room.Shots < Game:GetPlayer(0):GetCustomCacheValue("hands") then
-            for i=1, 3 do
-                Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Jimbo.Position,
-                RandomVector() * 4, PlayerManager.FirstPlayerByType(mod.Characters.JimboType),
-                CoinSubType.COIN_PENNY, Seed)
-            end
-            --Jimbo:AddCoins(3)
-        end
-    end
-
     --if mod.Saved.Jimbo.FirstDeck then
         --Jimbo:AddCoins(2)
     --end
@@ -2089,6 +2077,9 @@ function mod:HandSizeCache(Player, Cache, Value)
     if Player:HasCollectible(mod.Vouchers.Palette) then
         Value = Value + 1
     end
+    if mod:JimboHasTrinket(Player, mod.Jokers.MERRY_ANDY) then
+        Value = Value - 1
+    end
 
     Value = Value - mod.Saved.Jimbo.EctoUses
 
@@ -2099,6 +2090,38 @@ function mod:HandSizeCache(Player, Cache, Value)
     return Value
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.HandSizeCache, "handsize")
+
+
+---@param Player EntityPlayer
+function mod:DiscardNumCache(Player, Cache, Value)
+    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+        return
+    end
+
+    Value = 3 --base starting point
+
+    if Player:HasCollectible(mod.Vouchers.Wasteful) then
+        Value = Value + 1
+    end
+    if Player:HasCollectible(mod.Vouchers.Recyclomancy) then
+        Value = Value + 1
+    end
+    if Player:HasCollectible(mod.Vouchers.Petroglyph) then
+        Value = Value - 1
+    end
+    if mod:JimboHasTrinket(Player, mod.Jokers.MERRY_ANDY) then
+        Value = Value + 2
+    end
+
+    --Value = math.max(1, Value) --minimum 1 discard
+
+    mod.HpEnable = true
+    Player:AddMaxHearts(Value*2 - Player:GetMaxHearts())
+    mod.HpEnable = false
+
+    return Value
+end
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.DiscardNumCache, "discards")
 
 
 -------------CARD TEARS-----------------------
