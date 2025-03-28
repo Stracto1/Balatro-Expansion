@@ -2263,7 +2263,6 @@ function mod:AddCardTearFalgs(Tear, Split)
         TearSprite:Play("Rotate3", true)
 
     end
-    
 end
 mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, mod.AddCardTearFalgs)
 

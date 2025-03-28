@@ -1,6 +1,7 @@
 
 Balatro_Expansion = RegisterMod("Balatro Expansion", 1)
 
+Balatro_Expansion.GroupName = "Regambled"
 
 Balatro_Expansion.Jokers = {}
 ------------------------------
@@ -621,7 +622,9 @@ include("Balatro_scripts.Effects")
 include("Balatro_scripts.Utility.Utility")
 include("Balatro_scripts.Utility.save_manager")
 include("Balatro_scripts.Utility.cool_title")
-
+Balatro_Expansion.ItemManager = include("Balatro_scripts.Utility.hidden_item_manager")
+Balatro_Expansion.ItemManager = Balatro_Expansion.ItemManager:Init(Balatro_Expansion)
+Balatro_Expansion.Saved.HiddenItemsData = {}
 
 ---------------CURSES/CHALLENGES-----------------
 -------------------------------------------------

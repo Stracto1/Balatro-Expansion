@@ -36,10 +36,13 @@ function mod:OnGameStart(Continued)
 
     --sadly due to the unholy amount of values the mod needs to store i'll need to reset the all at once
 
-    if Continued then 
+    if Continued then
 
         if mod:HasData() then
             mod.Saved = json.decode(mod:LoadData()) --restores every saved progress from the run
+
+            mod.ItemManager:LoadData(mod.Saved.HiddenItemsData)
+
         end
     else
 
@@ -413,9 +416,12 @@ end
 
 function mod:SaveStorage(IsExit)
     if mod.GameStarted then --needed since POST_NEW_LEVEL goes before GAME_STARTED 
+
+        mod.Saved.HiddenItemsData = mod.ItemManager:GetSaveData()
+
         mod:SaveData(json.encode(mod.Saved))
     end
-    if IsExit ~= nil then --this variable exists only when the GAME_EXIT callback is called
+    if IsExit then --this variable exists only when the GAME_EXIT callback is called
         mod.GameStarted = false
     end
 end
