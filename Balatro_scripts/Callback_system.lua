@@ -215,6 +215,8 @@ function mod:OnGameStart(Continued)
         
         mod.HpEnable = false
         mod.ShopAddedThisFloor = false
+        mod.Saved.Other.HasDebt = false
+
         if mod:Contained(Challenges, Game.Challenge) then
             mod.Saved.Other.ShopEntered = true
         else

@@ -68,6 +68,7 @@ Balatro_Expansion.Jokers.MIME = Isaac.GetTrinketIdByName("Mime")
 Balatro_Expansion.Jokers.FOUR_FINGER = Isaac.GetTrinketIdByName("Four Fingers")
 Balatro_Expansion.Jokers.MERRY_ANDY = Isaac.GetTrinketIdByName("Merry Andy")
 Balatro_Expansion.Jokers.HALF_JOKER = Isaac.GetTrinketIdByName("Half Joker")
+Balatro_Expansion.Jokers.CREDIT_CARD = Isaac.GetTrinketIdByName("Credit Card")
 
 
 
@@ -246,6 +247,15 @@ Balatro_Expansion.Edition.HOLOGRAPHIC = 2
 Balatro_Expansion.Edition.POLYCROME = 3
 Balatro_Expansion.Edition.NEGATIVE = 4
 
+Balatro_Expansion.EditionShaders ={ --sadly these don't work for the bigger card spritesheet, if you know how to fix this please let me know!!
+    "shaders/Foil_effect",
+    "shaders/Holographic_effect",
+    "shaders/Polychrome_effect",
+    "shaders/Negative_effect"
+}
+Balatro_Expansion.EditionShaders[0] = "shaders/Nothing" --prevents extra if statements on render
+
+
 Balatro_Expansion.Rarities = {}
 Balatro_Expansion.Rarities.common = 1
 Balatro_Expansion.Rarities.uncommon = 2
@@ -304,15 +314,19 @@ Balatro_Expansion.WantedEffect = 0 --needed to prevent effects from overlapping
 
 
 Balatro_Expansion.Fonts = {}
-Balatro_Expansion.Fonts.Balatro = Font()
---4th time's a charm i guess
 do
-local Loaded = Balatro_Expansion.Fonts.Balatro:Load("mods/balatro_expansion/resources/font/Balatro_Font4.fnt")
-if Loaded then
+
+---@diagnostic disable-next-line: redundant-parameter
+local font, loaded = Font("mods/balatro_expansion/resources/font/Balatro_Font4.fnt")
+Balatro_Expansion.Fonts.Balatro = font
+
+if not loaded then
     Balatro_Expansion.Fonts.Balatro:Load("mods/balatro_expansion_3308293502/resources/font/Balatro_Font4.fnt")
 end
 
 end
+---@diagnostic disable-next-line: redundant-parameter
+Balatro_Expansion.Fonts.pftempest = Font("font/pftempestasevencondensed.fnt")
 
 ---------------------
 local Game = Game()
@@ -519,6 +533,7 @@ Balatro_Expansion.Counters.SinceShoot = 0
 Balatro_Expansion.Counters.Activated = {}
 
 Balatro_Expansion.Saved.Other = {}
+Balatro_Expansion.Saved.Other.HasDebt = false
 Balatro_Expansion.Saved.Other.DamageTakenRoom = 0
 Balatro_Expansion.Saved.Other.DamageTakenFloor = 0
 Balatro_Expansion.Saved.Other.ShopEntered = false
@@ -688,6 +703,8 @@ end
 include("Balatro_scripts.characters.jimbo.mechanics")
 include("Balatro_scripts.characters.jimbo.trinkets") --jimbo trinkets/items effects
 include("Balatro_scripts.characters.jimbo.items")
+include("Balatro_scripts.characters.jimbo.hud")
+include("Balatro_scripts.characters.jimbo.DebtManager")
 include("Balatro_scripts.Custom_Cards") --jimbo cards effects
 include("Balatro_scripts.Synergies")
 
