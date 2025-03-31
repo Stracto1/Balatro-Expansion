@@ -35,14 +35,15 @@ local sfx = SFXManager()
 
 local StackedEffects = 0
 --here Position colud be an entity, in that case 
-function mod:CreateBalatroEffect(Slot, Colour, Sound, Text, Offset, Volume, Force)
+function mod:CreateBalatroEffect(Slot, Colour, Sound, Text, Source, Offset, Volume)
 
-    if EffectParams[Slot] and not Force then --if an effect is already playing on the same target
+    if EffectParams[Slot] and Source ~= EffectParams[Slot].Source then --if an effect is already playing on the same target
 
         StackedEffects = StackedEffects + 1
         Isaac.CreateTimer(function()
-                        mod:CreateBalatroEffect(Slot, Colour, Sound, Text, Offset, Volume, Force)
-                        end, EffectsInterval - EffectParams[Slot].Frames, 1, false)
+                        mod:CreateBalatroEffect(Slot, Colour, Sound, Text, Source, Offset, Volume)
+                        end,  EffectsInterval - EffectParams[Slot].Frames, 1, false)
+
         return
     else
         StackedEffects = 0
@@ -53,6 +54,7 @@ function mod:CreateBalatroEffect(Slot, Colour, Sound, Text, Offset, Volume, Forc
     EffectParams[Slot].Color = Colour
     EffectParams[Slot].Text = Text
     EffectParams[Slot].Rotation = math.random(90)
+    EffectParams[Slot].Source = Source
 
     if type(Slot) == "userdata" then --basically checks if it's an entity
         EffectParams[Slot].Position = Slot

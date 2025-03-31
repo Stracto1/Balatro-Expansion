@@ -70,6 +70,30 @@ Balatro_Expansion.Jokers.MERRY_ANDY = Isaac.GetTrinketIdByName("Merry Andy")
 Balatro_Expansion.Jokers.HALF_JOKER = Isaac.GetTrinketIdByName("Half Joker")
 Balatro_Expansion.Jokers.CREDIT_CARD = Isaac.GetTrinketIdByName("Credit Card")
 
+Balatro_Expansion.Jokers.BANNER = Isaac.GetTrinketIdByName("Banner")
+Balatro_Expansion.Jokers.MYSTIC_SUMMIT = Isaac.GetTrinketIdByName("Mystic Summit")
+Balatro_Expansion.Jokers.MARBLE_JOKER = Isaac.GetTrinketIdByName("Marble Joker")
+Balatro_Expansion.Jokers._8_BALL = Isaac.GetTrinketIdByName("8 Ball")
+Balatro_Expansion.Jokers.DUSK = Isaac.GetTrinketIdByName("Dusk")
+Balatro_Expansion.Jokers.RAISED_FIST = Isaac.GetTrinketIdByName("Raised First")
+Balatro_Expansion.Jokers.CHAOS_CLOWN = Isaac.GetTrinketIdByName("Chaos the clown")
+Balatro_Expansion.Jokers.FIBONACCI = Isaac.GetTrinketIdByName("Fibonacci")
+Balatro_Expansion.Jokers.STEEL_JOKER = Isaac.GetTrinketIdByName("Steel Joker")
+Balatro_Expansion.Jokers.SCARY_FACE = Isaac.GetTrinketIdByName("Scary Face")
+Balatro_Expansion.Jokers.HACK = Isaac.GetTrinketIdByName("Hack")
+Balatro_Expansion.Jokers.PAREIDOLIA = Isaac.GetTrinketIdByName("Pareidolia")
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -220,6 +244,12 @@ Balatro_Expansion.Suits.Spade = 1
 Balatro_Expansion.Suits.Heart = 2
 Balatro_Expansion.Suits.Club = 3
 Balatro_Expansion.Suits.Diamond = 4
+
+Balatro_Expansion.Values = {}
+Balatro_Expansion.Values.JACK = 11
+Balatro_Expansion.Values.QUEEN = 12
+Balatro_Expansion.Values.KING = 13
+Balatro_Expansion.Values.FACE = 14
 
 Balatro_Expansion.Enhancement = {}
 Balatro_Expansion.Enhancement.NONE = 1
@@ -441,7 +471,7 @@ Balatro_Expansion.Saved.Jimbo.Progress.Room.SuitUsed[Balatro_Expansion.Suits.Hea
 Balatro_Expansion.Saved.Jimbo.Progress.Room.SuitUsed[Balatro_Expansion.Suits.Club] = 0
 Balatro_Expansion.Saved.Jimbo.Progress.Room.SuitUsed[Balatro_Expansion.Suits.Diamond] = 0
 Balatro_Expansion.Saved.Jimbo.Progress.Room.ValueUsed = {}
-for Value =1, 13 do
+for Value =1, 14 do
     Balatro_Expansion.Saved.Jimbo.Progress.Room.ValueUsed[Value] = 0
 end
 Balatro_Expansion.Saved.Jimbo.Progress.Room.Shots = 0 --used to tell how many cards are already used

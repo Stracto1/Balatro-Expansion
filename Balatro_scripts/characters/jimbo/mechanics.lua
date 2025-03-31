@@ -783,7 +783,6 @@ mod:AddCallback("DECK_SHIFT", mod.OnDeckShift)
 
 function mod:GiveRewards(BlindType)
 
-
     local Seed = Game:GetSeeds():GetStartSeed()
     local Jimbo
 
@@ -807,17 +806,17 @@ function mod:GiveRewards(BlindType)
                 if BlindType == mod.BLINDS.SMALL then
                     
                     Player:AddCoins(4)
-                    mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+4 $", Vector(0,20))
+                    mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+4 $",0)
                     --Isaac.RunCallback("BLIND_STARTED", mod.BLINDS.BIG)
 
                 elseif BlindType == mod.BLINDS.BIG then
                     Player:AddCoins(5)
-                    mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+5 $", Vector(0,20))
+                    mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+5 $",0)
                     --Isaac.RunCallback("BLIND_STARTED", mod.BLINDS.BOSS)
                     
                 elseif BlindType == mod.BLINDS.BOSS then
                     Player:AddCoins(6)
-                    mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+6 $", Vector(0,20))
+                    mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+6 $",0)
     
                 end
             end, 15,1, true)
@@ -838,7 +837,7 @@ function mod:GiveRewards(BlindType)
 
             --Balatro_Expansion:EffectConverter(8,0,Jimbo,4) a relic from old times
         end 
-        mod:CreateBalatroEffect(Jimbo,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+"..tostring(Interests).." $", Vector(0,20))
+        mod:CreateBalatroEffect(Jimbo,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+"..tostring(Interests).." $",0)
     end, 30, 1, true)
 
 
@@ -1595,7 +1594,8 @@ function mod:AddCardTearFalgs(Tear, Split)
 
     local Player = Tear.Parent:ToPlayer()
 
-    if not Player or Player:GetPlayerType() ~= mod.Characters.JimboType then
+    if not Player or Player:GetPlayerType() ~= mod.Characters.JimboType
+       and Tear.Variant ~= TearVariant.ERASER and Tear.Variant ~= TearVariant.BOBS_HEAD then
         return
     end
 
@@ -1938,7 +1938,7 @@ function mod:Select(Player)
             local SelectedCard = mod.SelectionParams.PackOptions[mod.SelectionParams.Index]
             table.insert(mod.Saved.Jimbo.FullDeck, SelectedCard)
 
-            mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, nil, "Added!")
+            mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, nil, "Added!",mod.Packs.STANDARD)
 
         elseif TruePurpose == mod.SelectionParams.Purposes.BuffonPack then
 
@@ -1965,7 +1965,7 @@ function mod:Select(Player)
 
             table.remove(mod.SelectionParams.PackOptions, mod.SelectionParams.Index)
             mod.SelectionParams.OptionsNum = mod.SelectionParams.OptionsNum - 1
-            mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "1 more!")
+            mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "1 more!",mod.Vouchers.MagicTrick)
             return
         end
         if mod.SelectionParams.Purpose & mod.SelectionParams.Purposes.MegaFlag == mod.SelectionParams.Purposes.MegaFlag 

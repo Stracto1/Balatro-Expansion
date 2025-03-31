@@ -198,7 +198,7 @@ function mod:OnGameStart(Continued)
         mod.Saved.Jimbo.Progress.Room.SuitUsed[mod.Suits.Club] = 0
         mod.Saved.Jimbo.Progress.Room.SuitUsed[mod.Suits.Diamond] = 0
         mod.Saved.Jimbo.Progress.Room.ValueUsed = {}
-        for Value =1, 13 do
+        for Value =1, 14 do
             mod.Saved.Jimbo.Progress.Room.ValueUsed[Value] = 0
         end
         mod.Saved.Jimbo.Progress.Room.Shots = 0
