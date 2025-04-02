@@ -4,7 +4,6 @@
     </sound>
     <sound name="CHIPSSFX">
         <sample weight="1" path="chips1sfx.wav" />
-        <sample weight="1" path="chips2sfx.wav" />
     </sound>
     <sound name="ACTIVATESFX">
         <sample weight="1" path="generic1sfx.wav" />

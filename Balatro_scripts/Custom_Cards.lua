@@ -211,6 +211,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
             IsTarot = true
         elseif card == Card.CARD_JUDGEMENT then
 
+            --[[
             local EmptySlot
             for i, Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
                 if Joker == 0 then --needs an empty slot
@@ -230,8 +231,16 @@ function mod:NewTarotEffects(card, Player, UseFlags)
                 Isaac.RunCallback("INVENTORY_CHANGE", Player)
             else
                 Player:AnimateSad()
+            end]]
+
+            local RandomJoker = mod:RandomJoker(Player:GetCardRNG(Card.CARD_JUDGEMENT), {}, true)
+
+            local Success = mod:AddJoker(Player, RandomJoker.Joker, RandomJoker.Edition)
+
+            if not Success then
+                Player:AnimateSad()
             end
-            
+
             IsTarot = true
 
         elseif card == Card.CARD_WORLD then
@@ -682,8 +691,12 @@ function mod:SpectralCards(card, Player)
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, 
                                                   mod.SelectionParams.Purposes.AURA)
             
-        elseif card == mod.Spectrals.WRAITH then    
+        elseif card == mod.Spectrals.WRAITH then
+
+            mod.Saved.Other.HasDebt = false
             Player:AddCoins(-Player:GetNumCoins()) --makes him poor 
+            
+            --[[
             local RandomJoker = mod:RandomJoker(CardRNG, {}, true, "rare")
 
             for i, Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
@@ -694,7 +707,15 @@ function mod:SpectralCards(card, Player)
                     return
                 end
             end
-            Player:AnimateSad() --no joker for you if no slot is empty :(   
+            Player:AnimateSad() --no joker for you if no slot is empty :(   ]]
+
+            local RandomJoker = mod:RandomJoker(CardRNG, {}, true, "rare")
+            local Success = mod:AddJoker(Player, RandomJoker.Joker,RandomJoker.Edition) 
+
+            if not Success then
+                Player:AnimateSad()
+            end
+        
         elseif card == mod.Spectrals.SIGIL then
             local RandomSuit = CardRNG:RandomInt(1,4)
             for i,v in ipairs(mod.Saved.Jimbo.CurrentHand) do
@@ -783,40 +804,35 @@ function mod:SpectralCards(card, Player)
                 Player:AddCoins(4)
             end
             Isaac.RunCallback("DECK_SHIFT", Player)
-        elseif card == mod.Spectrals.ANKH then  
-            local FilledSlots = {} --gets the slot filled with a joker
+        elseif card == mod.Spectrals.ANKH then
+            
+            local FilledSlots = {} --gets the slots filled with a joker
             for i,v in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
                 if v ~= 0 then
                     table.insert(FilledSlots, i)
                 end
-            end 
-            if FilledSlots == {} then
+            end
+            if not next(FilledSlots) then
                 Player:AnimateSad()
                 return
             end
-            local Rslot = mod:GetRandom(FilledSlots, CardRNG)
-            local Added = false
-            for i, v in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
-                if i ~= Rslot then
-                    if Added then
-                        mod.Saved.Jimbo.Inventory.Jokers[i] = 0
-                        mod.Saved.Jimbo.Inventory.Editions[i] = 0
-                    else
-                        --new joker not added yet
-                        mod.Saved.Jimbo.Inventory.Jokers[i] = mod.Saved.Jimbo.Inventory.Jokers[Rslot]
 
-                        if mod.Saved.Jimbo.Inventory.Editions[Rslot] == mod.Edition.NEGATIVE then
-                            --cannot copy negative 
-                            mod.Saved.Jimbo.Inventory.Editions[i] = mod.Edition.BASE
-                        else
-                            mod.Saved.Jimbo.Inventory.Editions[i] = mod.Saved.Jimbo.Inventory.Editions[Rslot]
-                        end
-                        Added = true
-                        Isaac.RunCallback("INVENTORY_CHANGE", Player)
-                    end
-                end
+            local Rslot = mod:GetRandom(FilledSlots, CardRNG)
+            local CopyJoker = mod.Saved.Jimbo.Inventory[Rslot]
+            local CopyProgress = mod.Saved.Jimbo.Progress.Inventory[Rslot]
+            
+            for i, v in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
+                mod.Saved.Jimbo.Inventory[i].Joker = 0
+                mod.Saved.Jimbo.Inventory[i].Edition = 0
             end
+                    
+            for i=1,2 do
+                mod:AddJoker(Player, CopyJoker.Joker, CopyJoker.Edition, true)
+                mod.Saved.Jimbo.Progress.Inventory[i] = CopyProgress
+            end
+                        
             Isaac.RunCallback("INVENTORY_CHANGE", Player)
+                
         elseif card == mod.Spectrals.DEJA_VU then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, 
                                                   mod.SelectionParams.Purposes.DEJA_VU)
@@ -861,25 +877,12 @@ function mod:SpectralCards(card, Player)
             
         elseif card == mod.Spectrals.SOUL then
 
-            local EmptySlot
-            for i, Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
-                if Joker == 0 then --needs an empty slot
-                    EmptySlot = i
-                    break
-                end
-            end
-
-            if not EmptySlot then
-                Player:AnimateSad()
-                return
-            end
-
             local Legendary = mod:RandomJoker(CardRNG, {}, true, "legendary")
             
-            mod.Saved.Jimbo.Inventory[EmptySlot] = Legendary
-            mod.Saved.Jimbo.Progress = ItemsConfig:GetTrinket(Legendary):GetCustomTags()[2] --sets the base progress
-            Isaac.RunCallback("INVENTORY_CHANGE", Player)
-            mod.Saved.Jimbo.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][Legendary.Joker] = Legendary.Edition
+            local Success = mod:AddJoker(Player, Legendary.Joker, Legendary.Edition)
+            if not Success then
+                Player:AnimateSad()
+            end
 
         elseif card == mod.Spectrals.BLACK_HOLE then
             for i = 1, 13 do

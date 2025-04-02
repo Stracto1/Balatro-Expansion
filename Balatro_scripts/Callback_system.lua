@@ -41,7 +41,16 @@ function mod:OnGameStart(Continued)
         if mod:HasData() then
             mod.Saved = json.decode(mod:LoadData()) --restores every saved progress from the run
 
-            mod.ItemManager:LoadData(mod.Saved.HiddenItemsData)
+            --mod.ItemManager:LoadData(mod.Saved.HiddenItemsData)
+
+            --also restores the invisible collectibles added previously
+            for _,Player in ipairs(PlayerManager.GetPlayers()) do
+                for _,Group in pairs(mod.Saved.Jimbo.InnateItems or {}) do
+                    for _,Item in ipairs(Group) do
+                        Player:AddInnateCollectible(Item)
+                    end
+                end
+            end
 
         end
     else
@@ -116,9 +125,13 @@ function mod:OnGameStart(Continued)
         mod.Saved.Jimbo.DeckPointer = 6
         mod.Saved.Jimbo.CurrentHand = {5,4,3,2,1} --basically 5 different cards
         mod.Saved.Jimbo.LastShotIndex = 0
-        mod.Saved.Jimbo.Inventory= {}
-        mod.Saved.Jimbo.Inventory.Jokers = {0,0,0}
-        mod.Saved.Jimbo.Inventory.Editions = {0,0,0}
+
+        mod.Saved.Jimbo.Inventory = {}
+        for i=1,3 do
+            mod.Saved.Jimbo.Inventory[i] = {}
+            mod.Saved.Jimbo.Inventory[i].Joker = 0
+            mod.Saved.Jimbo.Inventory[i].Edition = mod.Edition.BASE
+        end
         mod.Saved.Jimbo.MichelDestroyed = false
 
         mod.Saved.Jimbo.HandSize = 5
@@ -131,6 +144,8 @@ function mod:OnGameStart(Continued)
         mod.Saved.Jimbo.StatsToAdd.JokerDamage = 0
         mod.Saved.Jimbo.StatsToAdd.JokerTears = 0
         mod.Saved.Jimbo.StatsToAdd.JokerMult = 1
+
+        Balatro_Expansion.Saved.Jimbo.InnateItems = {}
 
         mod.Saved.Jimbo.FirstDeck = true
 

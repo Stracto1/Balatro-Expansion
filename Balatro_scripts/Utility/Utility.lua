@@ -473,8 +473,8 @@ function mod:JimboHasTrinket(Player,Trinket)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return false
     end
-    for _,v in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
-        if v == Trinket then
+    for _,Slot in ipairs(mod.Saved.Jimbo.Inventory) do
+        if Slot.Joker == Trinket then
             return true
         end
     end
@@ -484,12 +484,12 @@ end
 function mod:GetJimboJokerIndex(Player, Joker)
     local Indexes = {}
 
-    for i,v in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
-        if v == Joker then
+    for i,Slot in ipairs(mod.Saved.Jimbo.Inventory) do
+        if Slot.Joker == Joker then
             table.insert(Indexes, i)
-        elseif v == mod.Jokers.BLUEPRINT or v == mod.Jokers.BRAINSTORM   then
+        elseif Slot.Joker == mod.Jokers.BLUEPRINT or Slot.Joker == mod.Jokers.BRAINSTORM   then
 
-            if mod.Saved.Jimbo.Inventory.Jokers[mod.Saved.Jimbo.Progress.Inventory[i]] == Joker then
+            if mod.Saved.Jimbo.Inventory[mod.Saved.Jimbo.Progress.Inventory[i]].Joker == Joker then
                 table.insert(Indexes, i)
             end
         end
@@ -566,7 +566,7 @@ function mod:GetJokerCost(Joker, SellSlot)
     local Cost = tonumber(numstring)
     if SellSlot then --also tells if you want the buy/sell value as the return
     
-        Cost = math.floor((Cost + mod.Saved.Jimbo.Inventory.Editions[SellSlot]) / 2)
+        Cost = math.floor((Cost + mod.Saved.Jimbo.Inventory[SellSlot].Edition) / 2)
         if Joker == mod.Jokers.EGG then
             Cost = mod.Saved.Jimbo.Progress.Inventory[SellSlot]
         end
@@ -596,22 +596,22 @@ function mod:AddJimboInventorySlots(Player, Amount)
     mod.Saved.Jimbo.InventorySize = mod.Saved.Jimbo.InventorySize + Amount
     if Amount >= 0 then
         for i=1,Amount do --just adds empty spaces to fill
-            table.insert(mod.Saved.Jimbo.Inventory.Jokers, 0)
-            table.insert(mod.Saved.Jimbo.Inventory.Editions, 0)
+            table.insert(mod.Saved.Jimbo.Inventory, {["Joker"] = 0,["Edition"]=mod.Edition.BASE})
+
         end
     else
         for i=1, -Amount do
-            for i,Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
-                if Joker == 0 then --searches for an empty slot to remove
-                    table.remove(mod.Saved.Jimbo.Inventory.Jokers, i)
-                    table.remove(mod.Saved.Jimbo.Inventory.Editions, i)
+            for i,Slot in ipairs(mod.Saved.Jimbo.Inventory) do
+                if Slot.Joker == 0 then --searches for an empty slot to remove
+                    table.remove(mod.Saved.Jimbo.Inventory, i)
                     return
                 end
             end
 
             Isaac.RunCallback("JOKER_SOLD", Player, mod.Saved.Jimbo.Inventory.Jokers[1], 1)
-            table.remove(mod.Saved.Jimbo.Inventory.Jokers, 1) --if none are present then sell the first joker
-            table.remove(mod.Saved.Jimbo.Inventory.Editions, 1)
+
+            
+            table.remove(mod.Saved.Jimbo.Inventory, 1) --if none are present then sell the first joker
         end
     end
 end
@@ -655,8 +655,8 @@ function mod:FrameToSpecialCard(Frame)
 end
 
 function mod:SellJoker(Player, Trinket, Slot)
-    mod.Saved.Jimbo.Inventory.Jokers[Slot] = 0
-    mod.Saved.Jimbo.Inventory.Editions[Slot] = mod.Edition.BASE
+    mod.Saved.Jimbo.Inventory[Slot].Joker = 0
+    mod.Saved.Jimbo.Inventory[Slot].Edition = mod.Edition.BASE
     local SellValue
     if Trinket == mod.Jokers.EGG then --egg holds its sell value in its progress
         
@@ -666,7 +666,7 @@ function mod:SellJoker(Player, Trinket, Slot)
     end
     
 
-    if mod.Saved.Jimbo.Inventory.Editions[Slot] == mod.Edition.NEGATIVE then
+    if mod.Saved.Jimbo.Inventory[Slot].Edition == mod.Edition.NEGATIVE then
         --selling a negative joker reduces your inventory size
         mod:AddJimboInventorySlots(Player, -1)
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.INVENTORY, mod.SelectionParams.Purposes.NONE)
@@ -692,9 +692,9 @@ function mod:RandomJoker(Rng, Exeptions, PlaySound, ForcedRarity)
 
     for i, Player in ipairs(PlayerManager.GetPlayers()) do
         if Player:GetPlayerType() == mod.Characters.JimboType then
-            for i, Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
-                if Joker ~= 0 then
-                    Exeptions[#Exeptions+1] = Joker
+            for i, Slot in ipairs(mod.Saved.Jimbo.Inventory) do
+                if Slot.Joker ~= 0 then
+                    Exeptions[#Exeptions+1] = Slot.Joker
                 end
             end
         end
@@ -830,4 +830,26 @@ function mod:CardSuitToName(Suit, IsEID)
         return "Spades"
     end
 
+end
+
+function mod:AddJoker(Player, Joker, Edition, StopEval)
+
+    --[[
+    local AnyEmptySlot = false
+    for i, Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
+        if Joker == 0 then --needs an empty slot
+            AnyEmptySlot = true
+            break
+        end
+    end
+
+    if not AnyEmptySlot then
+        return false --couldn't add a joker
+    end]]
+
+    Edition = Edition or mod.Edition.BASE
+
+    mod.Saved.Jimbo.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][Joker] = Edition
+
+    return mod:JimboAddTrinket(Player, Joker, false, StopEval)
 end

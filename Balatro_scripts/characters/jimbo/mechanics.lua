@@ -772,10 +772,6 @@ function mod:OnDeckShift(Player)
     end
 
     mod.Counters.SinceShift = 0
-
-    Player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, false)
-    Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, true)
-
 end
 mod:AddCallback("DECK_SHIFT", mod.OnDeckShift)
 
@@ -841,23 +837,13 @@ function mod:GiveRewards(BlindType)
     end, 30, 1, true)
 
 
-    --[[
-    if Game:IsGreedMode() then
-        for i,Player in ipairs(PlayerManager.GetPlayers()) do
-            if Player:GetPlayerType() == mod.Characters.JimboType then
-                ---@diagnostic disable-next-line: param-type-mismatch
-                mod:StatReset(Player, true, true, true, false, true)
-                mod:FullDeckShuffle(Player)
-            end
-        end
-    end]]
-
 end
 mod:AddPriorityCallback("BLIND_CLEARED",CallbackPriority.LATE, mod.GiveRewards)
 
 
 ---@param Player EntityPlayer
-function mod:JimboAddTrinket(Player, Trinket, _)
+---@param StopEvaluation boolean this is only set when called in mod:AddJoker (Utility.lua)
+function mod:JimboAddTrinket(Player, Trinket, _, StopEvaluation)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
@@ -867,18 +853,13 @@ function mod:JimboAddTrinket(Player, Trinket, _)
 
     local JokerEdition = mod.Saved.Jimbo.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Trinket).Name] or mod.Edition.BASE 
 
-    if JokerEdition == mod.Edition.NEGATIVE then
-        --mod:AddJimboInventorySlots(Player, 1)
-    end
-
-
     --needs at least an empty slot
     if not mod:Contained(mod.Saved.Jimbo.Inventory.Jokers, 0) then
         Isaac.CreateTimer(function ()
             Player:AnimateSad()
         end,0,1,false)
         
-        return
+        return false
     end
 
 
@@ -890,11 +871,13 @@ function mod:JimboAddTrinket(Player, Trinket, _)
     local InitialProg = ItemsConfig:GetTrinket(Trinket):GetCustomTags()[2]
     mod.Saved.Jimbo.Progress.Inventory[Slot] = tonumber(InitialProg)
 
-    Isaac.RunCallback("INVENTORY_CHANGE", Player)
+    if not StopEvaluation then
+        Isaac.RunCallback("INVENTORY_CHANGE", Player)
+    end
 
-
+    return true
 end
-mod:AddCallback(ModCallbacks.MC_POST_TRIGGER_TRINKET_ADDED, mod.JimboAddTrinket)
+mod:AddPriorityCallback(ModCallbacks.MC_POST_TRIGGER_TRINKET_ADDED,CallbackPriority.IMPORTANT, mod.JimboAddTrinket)
 
 
 ---@param RNG RNG 
@@ -1939,6 +1922,8 @@ function mod:Select(Player)
             table.insert(mod.Saved.Jimbo.FullDeck, SelectedCard)
 
             mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, nil, "Added!",mod.Packs.STANDARD)
+
+            Isaac.RunCallback("DECK_SHIFT", Player)
 
         elseif TruePurpose == mod.SelectionParams.Purposes.BuffonPack then
 

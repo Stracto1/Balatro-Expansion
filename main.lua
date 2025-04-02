@@ -1,8 +1,6 @@
 
 Balatro_Expansion = RegisterMod("Balatro Expansion", 1)
 
-Balatro_Expansion.GroupName = "Regambled"
-
 Balatro_Expansion.Jokers = {}
 ------------------------------
 ---@diagnostic disable: inject-field
@@ -82,17 +80,6 @@ Balatro_Expansion.Jokers.STEEL_JOKER = Isaac.GetTrinketIdByName("Steel Joker")
 Balatro_Expansion.Jokers.SCARY_FACE = Isaac.GetTrinketIdByName("Scary Face")
 Balatro_Expansion.Jokers.HACK = Isaac.GetTrinketIdByName("Hack")
 Balatro_Expansion.Jokers.PAREIDOLIA = Isaac.GetTrinketIdByName("Pareidolia")
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -447,7 +434,7 @@ Balatro_Expansion.Saved.Jimbo.BigBlind = 0
 Balatro_Expansion.Saved.Jimbo.ClearedRooms = 0
 Balatro_Expansion.Saved.Jimbo.SmallCleared = false
 Balatro_Expansion.Saved.Jimbo.BigCleared = false
-Balatro_Expansion.Saved.Jimbo.BossCleared = 0
+Balatro_Expansion.Saved.Jimbo.BossCleared = 0  --0 = no | 1 = partially | 2 = yes
 
 Balatro_Expansion.StatEnable = false --needed cause i hate my life
 Balatro_Expansion.Saved.Jimbo.StatsToAdd = {}
@@ -457,6 +444,10 @@ Balatro_Expansion.Saved.Jimbo.StatsToAdd.Mult = 1
 Balatro_Expansion.Saved.Jimbo.StatsToAdd.JokerDamage = 0
 Balatro_Expansion.Saved.Jimbo.StatsToAdd.JokerTears = 0
 Balatro_Expansion.Saved.Jimbo.StatsToAdd.JokerMult = 1
+
+Balatro_Expansion.Saved.Jimbo.InnateItems = {}
+Balatro_Expansion.Saved.Jimbo.InnateItems.General = {}
+Balatro_Expansion.Saved.Jimbo.InnateItems.Hack = {}
 
 Balatro_Expansion.Saved.Jimbo.Progress = {} --values used for jokers
 Balatro_Expansion.Saved.Jimbo.Progress.Inventory = {0,0,0} --never reset, changed in different ways basing on the joker
@@ -488,8 +479,12 @@ Balatro_Expansion.Saved.Jimbo.TrueDamageValue = 1 --used to surpass the usual 0.
 Balatro_Expansion.Saved.Jimbo.TrueTearsValue = 1
 
 Balatro_Expansion.Saved.Jimbo.Inventory = {}
-Balatro_Expansion.Saved.Jimbo.Inventory.Jokers = {0,0,0}
-Balatro_Expansion.Saved.Jimbo.Inventory.Editions = {0,0,0}
+for i=1,3 do
+    Balatro_Expansion.Saved.Jimbo.Inventory[i] = {}
+    Balatro_Expansion.Saved.Jimbo.Inventory[i].Joker = 0
+    Balatro_Expansion.Saved.Jimbo.Inventory[i].Edition = Balatro_Expansion.Edition.BASE
+end
+
 
 Balatro_Expansion.Saved.Jimbo.FirstDeck = true
 
