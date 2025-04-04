@@ -81,21 +81,21 @@ function mod:JimboInventoryHUD(offset,_,Position,_,Player)
         return
     end
 
-    for i,trinket in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
+    for i,Slot in ipairs(mod.Saved.Jimbo.Inventory) do
 
         local RenderPos = INVENTORY_RENDERING_POSITION + Vector(19*i , 0)
 
-        if trinket == 0 then
+        if Slot.Joker == 0 then
 
             TrinketSprite:ClearCustomShader()
             TrinketSprite:SetFrame("Empty", 0)
         else
 
-            if mod.SelectionParams.Mode == mod.SelectionParams.Modes.INVENTORY and 
+            if mod.SelectionParams.Mode == mod.SelectionParams.Modes.INVENTORY and
                mod.SelectionParams.SelectedCards[i] then
                 RenderPos.Y = RenderPos.Y - 9
             end
-            TrinketSprite:ReplaceSpritesheet(0, ItemsConfig:GetTrinket(trinket).GfxFileName, true)
+            TrinketSprite:ReplaceSpritesheet(0, ItemsConfig:GetTrinket(Slot.Joker).GfxFileName, true)
             if mod.Counters.Activated[i] then
                 TrinketSprite:SetFrame("Effect", mod.Counters.Activated[i])
 
@@ -105,7 +105,7 @@ function mod:JimboInventoryHUD(offset,_,Position,_,Player)
             else
                 TrinketSprite:SetFrame("Idle", 0)
             end
-            TrinketSprite:SetCustomShader(mod.EditionShaders[mod.Saved.Jimbo.Inventory.Editions[i]])
+            TrinketSprite:SetCustomShader(mod.EditionShaders[mod.Saved.Jimbo.Inventory[i].Edition])
             
         end
 
@@ -309,7 +309,6 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.JimboDeckHUD)
 
 --rendere the player's current hand below them
 local ScaleMult = 0.5
-local LastCardFullPoss = {}
 ---@param Player EntityPlayer
 function mod:JimboHandRender(Player, Offset)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
@@ -326,8 +325,7 @@ function mod:JimboHandRender(Player, Offset)
     end
 
     local PlayerScreenPos = Isaac.WorldToRenderPosition(Player.Position)
-    local BaseRenderOff = Vector(-7 *(mod.Saved.Jimbo.HandSize-1), 26 ) * ScaleMult
-    --local BaseRenderOff = Vector( (-7*mod.Saved.Jimbo.HandSize + 3.5) * ScaleMult + 1.5*(5-mod.Saved.Jimbo.HandSize),26 * ScaleMult)
+    local BaseRenderOff = Vector(-7 *(#mod.Saved.Jimbo.CurrentHand-1), 26 ) * ScaleMult
 
     local RenderOff = BaseRenderOff + Vector.Zero
     local TrueOffset = {}
@@ -343,14 +341,14 @@ function mod:JimboHandRender(Player, Offset)
              --moves up selected cards
 
 
-            LastCardFullPoss[Pointer] = LastCardFullPoss[Pointer] or RenderOff --check nil
+            mod.LastCardFullPoss[Pointer] = mod.LastCardFullPoss[Pointer] or RenderOff --check nil
 
-            TrueOffset[Pointer] = Vector(mod:Lerp(LastCardFullPoss[Pointer].X, RenderOff.X, mod.Counters.SinceShift/5)
-                               ,mod:Lerp(LastCardFullPoss[Pointer].Y, RenderOff.Y, mod.Counters.SinceSelect/1.25))
+            TrueOffset[Pointer] = Vector(mod:Lerp(mod.LastCardFullPoss[Pointer].X, RenderOff.X, mod.Counters.SinceShift/5)
+                               ,mod:Lerp(mod.LastCardFullPoss[Pointer].Y, RenderOff.Y, mod.Counters.SinceSelect/1.25))
             
 
             if TrueOffset[Pointer].X == RenderOff.X and TrueOffset[Pointer].Y == RenderOff.Y then
-                LastCardFullPoss[Pointer] = RenderOff + Vector.Zero
+                mod.LastCardFullPoss[Pointer] = RenderOff + Vector.Zero
             end
 
 
@@ -376,7 +374,7 @@ function mod:JimboHandRender(Player, Offset)
     if mod.SelectionParams.Mode == mod.SelectionParams.Modes.HAND then
 
         --last confirm option
-        RenderOff = BaseRenderOff + Vector(14 * (mod.Saved.Jimbo.HandSize), 0)
+        RenderOff = BaseRenderOff + Vector(14 * (#mod.Saved.Jimbo.CurrentHand), 0)
         CardFrame:SetFrame(HUD_FRAME.Hand)
         CardFrame:Render(PlayerScreenPos + RenderOff + Offset)
 
@@ -407,6 +405,7 @@ function mod:JimboHandRender(Player, Offset)
 
     else
         local Frame = math.ceil((mod.Saved.Jimbo.Progress.Room.Shots/Player:GetCustomCacheValue("hands")) * -26 + 26)
+        
         if mod.Saved.Jimbo.FirstDeck and not Game:GetRoom():IsClear() then
             HandsBar:SetFrame("Charge On", Frame) 
         else
@@ -419,7 +418,7 @@ function mod:JimboHandRender(Player, Offset)
 
 
 
-        RenderOff = BaseRenderOff + Vector(14 * (mod.Saved.Jimbo.HandSize - 1) * ScaleMult, 0)
+        RenderOff = BaseRenderOff + Vector(14 * (#mod.Saved.Jimbo.CurrentHand - 1) * ScaleMult, 0)
 
         CardFrame.Scale = Vector(ScaleMult, ScaleMult)
         CardFrame:SetFrame(HUD_FRAME.Frame)
@@ -594,7 +593,7 @@ function mod:DiscardSwoosh(Player)
 
     for i,v in ipairs(mod.Saved.Jimbo.CurrentHand) do
 
-        LastCardFullPoss[v] = BaseRenderOff --does a cool swoosh effect
+        mod.LastCardFullPoss[v] = BaseRenderOff --does a cool swoosh effect
         
     end
 end
@@ -625,3 +624,9 @@ function mod:DebtIndicator(_,_,_,_,Player)
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.DebtIndicator)
 
+
+function CryptidUse(ID)
+
+
+end
+mod:AddCallback(ModCallbacks.MC_USE_CARD, CryptidUse)

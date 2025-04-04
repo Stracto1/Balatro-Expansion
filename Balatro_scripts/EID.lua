@@ -402,7 +402,7 @@ local function BalatroInventoryCallback(descObj)
 
     if Balatro_Expansion.SelectionParams.Mode == Balatro_Expansion.SelectionParams.Modes.INVENTORY then
 
-        SelectedCard = Balatro_Expansion.Saved.Jimbo.Inventory.Jokers[mod.SelectionParams.Index]
+        SelectedCard = Balatro_Expansion.Saved.Jimbo.Inventory[mod.SelectionParams.Index].Joker
 
         if not SelectedCard then --the extra confirm button
 
@@ -410,7 +410,7 @@ local function BalatroInventoryCallback(descObj)
 
                 for i,selected in ipairs(mod.SelectionParams.SelectedCards) do
                     if selected then
-                        SelectedCard = mod.Saved.Jimbo.Inventory.Jokers[i]
+                        SelectedCard = mod.Saved.Jimbo.Inventory[i].Joker
                         SelectedSlots = i
                         break
                     end
@@ -469,7 +469,7 @@ local function BalatroInventoryCallback(descObj)
             Name = RarityColor..EID:getObjectName(5, 350, SelectedCard).."{{CR}}#{{Blank}}"
             Description = EID:getDescriptionEntry("custom", Tstring)[3]
 
-            local Edition = mod.Saved.Jimbo.Inventory.Editions[mod.SelectionParams.Index]
+            local Edition = mod.Saved.Jimbo.Inventory[mod.SelectionParams.Index].Edition
 
             local EditionDesc = JokerEditionDesc[Language][Edition]
 
@@ -510,7 +510,7 @@ local function BalatroInventoryCallback(descObj)
 
                     if SelectedCard == mod.Jokers.BLUEPRINT or SelectedCard == mod.Jokers.BRAINSTORM then
 
-                        local CopiedJoker = Balatro_Expansion.Saved.Jimbo.Inventory.Jokers[Value] or 0
+                        local CopiedJoker = Balatro_Expansion.Saved.Jimbo.Inventory[Value].Joker or 0
                         if CopiedJoker ~= 0 and ItemsConfig:GetTrinket(CopiedJoker):HasCustomTag("copy")  then
                             Description = Description.." #!!! Currently:{{ColorLime}} Compatible{{CR}}"
                         else

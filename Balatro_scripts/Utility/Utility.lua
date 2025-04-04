@@ -107,7 +107,7 @@ function mod:AddValueToTable(Table, Value, CanBeEmpty, Shift, Pos)
 
     if CanBeEmpty then
         for i,v in ipairs(Table) do
-            if v == 0 then
+            if v == 0 then --works for what the mod uses, not really optimal otherwise i guess
                 Table[i] = Value
                 return i
             end
@@ -481,13 +481,14 @@ function mod:JimboHasTrinket(Player,Trinket)
     return false
 end
 
-function mod:GetJimboJokerIndex(Player, Joker)
+function mod:GetJimboJokerIndex(Player, Joker, SkipCopy)
     local Indexes = {}
 
     for i,Slot in ipairs(mod.Saved.Jimbo.Inventory) do
         if Slot.Joker == Joker then
             table.insert(Indexes, i)
-        elseif Slot.Joker == mod.Jokers.BLUEPRINT or Slot.Joker == mod.Jokers.BRAINSTORM   then
+        elseif not SkipCopy
+               and (Slot.Joker == mod.Jokers.BLUEPRINT or Slot.Joker == mod.Jokers.BRAINSTORM) then
 
             if mod.Saved.Jimbo.Inventory[mod.Saved.Jimbo.Progress.Inventory[i]].Joker == Joker then
                 table.insert(Indexes, i)
@@ -496,6 +497,7 @@ function mod:GetJimboJokerIndex(Player, Joker)
     end
     return Indexes
 end
+
 
 function mod:IsSuit(Player, Suit, Enhancement, WantedSuit, MakeTable)
     if MakeTable then --in this case makes a table telling the equivalent suits

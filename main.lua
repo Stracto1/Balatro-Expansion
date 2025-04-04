@@ -73,7 +73,7 @@ Balatro_Expansion.Jokers.MYSTIC_SUMMIT = Isaac.GetTrinketIdByName("Mystic Summit
 Balatro_Expansion.Jokers.MARBLE_JOKER = Isaac.GetTrinketIdByName("Marble Joker")
 Balatro_Expansion.Jokers._8_BALL = Isaac.GetTrinketIdByName("8 Ball")
 Balatro_Expansion.Jokers.DUSK = Isaac.GetTrinketIdByName("Dusk")
-Balatro_Expansion.Jokers.RAISED_FIST = Isaac.GetTrinketIdByName("Raised First")
+Balatro_Expansion.Jokers.RAISED_FIST = Isaac.GetTrinketIdByName("Raised Fist")
 Balatro_Expansion.Jokers.CHAOS_CLOWN = Isaac.GetTrinketIdByName("Chaos the clown")
 Balatro_Expansion.Jokers.FIBONACCI = Isaac.GetTrinketIdByName("Fibonacci")
 Balatro_Expansion.Jokers.STEEL_JOKER = Isaac.GetTrinketIdByName("Steel Joker")
@@ -327,7 +327,7 @@ Balatro_Expansion.BLINDS.SMALL = 0
 Balatro_Expansion.BLINDS.BIG = 1
 Balatro_Expansion.BLINDS.BOSS = 2
 ---------------------------------
-Balatro_Expansion.WantedEffect = 0 --needed to prevent effects from overlapping
+Balatro_Expansion.LastCardFullPoss = {}
 
 
 Balatro_Expansion.Fonts = {}
@@ -466,6 +466,7 @@ for Value =1, 14 do
     Balatro_Expansion.Saved.Jimbo.Progress.Room.ValueUsed[Value] = 0
 end
 Balatro_Expansion.Saved.Jimbo.Progress.Room.Shots = 0 --used to tell how many cards are already used
+Balatro_Expansion.Saved.Jimbo.Progress.Room.ChampKills = 0
 
 Balatro_Expansion.Saved.Jimbo.Progress.Floor = {}
 Balatro_Expansion.Saved.Jimbo.FloorVouchers = {} --says which vouchers have already been spawned in a floor

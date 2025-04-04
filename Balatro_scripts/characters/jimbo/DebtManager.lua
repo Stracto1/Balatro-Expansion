@@ -60,8 +60,8 @@ function mod:LimitShopping(Item,Player,_)
     local NumCredit = 0
 
     for _,player in ipairs(PlayerManager.GetPlayers()) do
-        for Index, Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
-            if Joker == mod.Jokers.CREDIT_CARD then
+        for Index, Slot in ipairs(mod.Saved.Jimbo.Inventory) do
+            if Slot.Joker == mod.Jokers.CREDIT_CARD then
 
                 NumCredit = NumCredit + 1
 
@@ -110,8 +110,8 @@ function mod:NoGambleWithoutCredit(Slot,Player,_)
     local HasCredit = false
 
     for _,Player in ipairs(PlayerManager.GetPlayers()) do
-        for Index, Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
-            if Joker == mod.Jokers.CREDIT_CARD then
+        for Index, Slot in ipairs(mod.Saved.Jimbo.Inventory) do
+            if Slot.Joker == mod.Jokers.CREDIT_CARD then
 
                 HasCredit = true
                 break

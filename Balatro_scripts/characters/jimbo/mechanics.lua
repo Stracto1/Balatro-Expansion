@@ -139,16 +139,12 @@ function mod:JimboInputHandle(Player)
         
         if Input.IsActionTriggered(ButtonAction.ACTION_DROP, Player.ControllerIndex) then
 
-                local LastCard = mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize]
+            local LastCard = mod.Saved.Jimbo.CurrentHand[#mod.Saved.Jimbo.CurrentHand]
 
-                table.remove(mod.Saved.Jimbo.CurrentHand, mod.Saved.Jimbo.HandSize)
-                table.insert(mod.Saved.Jimbo.CurrentHand,1 ,LastCard)
+            table.remove(mod.Saved.Jimbo.CurrentHand)
+            table.insert(mod.Saved.Jimbo.CurrentHand,1 ,LastCard)
 
-                mod.Counters.SinceShift = 0
-
-
-            
-
+            mod.Counters.SinceShift = 0
         end
     
         if Input.IsButtonPressed(Keyboard.KEY_LEFT_ALT, Player.ControllerIndex)
@@ -850,11 +846,12 @@ function mod:JimboAddTrinket(Player, Trinket, _, StopEvaluation)
         
     Player:TryRemoveTrinket(Trinket) -- a custom table is used instead since he needs to hold many of them
 
-
     local JokerEdition = mod.Saved.Jimbo.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Trinket).Name] or mod.Edition.BASE 
 
-    --needs at least an empty slot
-    if not mod:Contained(mod.Saved.Jimbo.Inventory.Jokers, 0) then
+
+    local EmptySlot = mod:GetJimboJokerIndex(Player, 0,true)[1]
+    
+    if not EmptySlot then
         Isaac.CreateTimer(function ()
             Player:AnimateSad()
         end,0,1,false)
@@ -862,16 +859,14 @@ function mod:JimboAddTrinket(Player, Trinket, _, StopEvaluation)
         return false
     end
 
-
-    local Slot = mod:AddValueToTable(mod.Saved.Jimbo.Inventory.Jokers, Trinket, true, false)
-
-    mod.Saved.Jimbo.Inventory.Editions[Slot] = JokerEdition --gives the correct edition to the inventory slot
-
+    mod.Saved.Jimbo.Inventory[EmptySlot].Joker = Trinket
+    mod.Saved.Jimbo.Inventory[EmptySlot].Edition = JokerEdition
 
     local InitialProg = ItemsConfig:GetTrinket(Trinket):GetCustomTags()[2]
-    mod.Saved.Jimbo.Progress.Inventory[Slot] = tonumber(InitialProg)
+    mod.Saved.Jimbo.Progress.Inventory[EmptySlot] = tonumber(InitialProg)
 
     if not StopEvaluation then
+        Isaac.RunCallback("JOKER_ADDED", Player, Trinket, JokerEdition)
         Isaac.RunCallback("INVENTORY_CHANGE", Player)
     end
 
@@ -1445,8 +1440,8 @@ function mod:InventorySizeCache(Player, Cache, Value)
         Value = Value + 1
     end
 
-    for i,v in ipairs(mod.Saved.Jimbo.Inventory.Editions) do
-        if v == mod.Edition.NEGATIVE then
+    for _,Slot in ipairs(mod.Saved.Jimbo.Inventory) do
+        if Slot.Edition == mod.Edition.NEGATIVE then
             Value = Value + 1
         end
     end
@@ -1480,7 +1475,11 @@ function mod:HandSizeCache(Player, Cache, Value)
 
     Value = math.max(1, Value) --minimum 1 card in hand
 
-    mod:ChangeJimboHandSize(Player, Value-Player:GetCustomCacheValue("handsize"))
+    local SizeDifference = Value-Player:GetCustomCacheValue("handsize")
+
+    if SizeDifference > 0 then
+        mod:ChangeJimboHandSize(Player, SizeDifference)
+    end
 
     return Value
 end
@@ -1631,9 +1630,15 @@ function mod:AddCardTearFalgs(Tear, Split)
         Tear.Scale = mod:Clamp(Tear.Scale, 3, 0.75)
 
         Isaac.CreateTimer(function ()
-            mod:AddValueToTable(mod.Saved.Jimbo.CurrentHand, mod.Saved.Jimbo.DeckPointer,false,true)
-            mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer + 1
+            if #mod.Saved.Jimbo.CurrentHand > Player:GetCustomCacheValue("handsize") then
+                --having more cards than you should removes the last card
 
+                table.remove(mod.Saved.Jimbo.CurrentHand)
+            else
+                mod:AddValueToTable(mod.Saved.Jimbo.CurrentHand, mod.Saved.Jimbo.DeckPointer,false,true)
+                mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer + 1
+            end
+            
             Isaac.RunCallback("DECK_SHIFT",Player)
         end,0,1,true)
 
@@ -1844,7 +1849,7 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
         elseif NewMode == mod.SelectionParams.Modes.INVENTORY then
 
             mod.SelectionParams.MaxSelectionNum = 2
-            mod.SelectionParams.OptionsNum = #mod.Saved.Jimbo.Inventory.Jokers
+            mod.SelectionParams.OptionsNum = #mod.Saved.Jimbo.Inventory
         end
     end
     mod.SelectionParams.Mode = NewMode
@@ -1919,9 +1924,19 @@ function mod:Select(Player)
 
         if TruePurpose == mod.SelectionParams.Purposes.StandardPack then
             local SelectedCard = mod.SelectionParams.PackOptions[mod.SelectionParams.Index]
-            table.insert(mod.Saved.Jimbo.FullDeck, SelectedCard)
+
+            table.insert(mod.Saved.Jimbo.FullDeck,1, SelectedCard) --adds it tp pos 1 so it can't be seen again
+
+            for i,_ in ipairs(mod.Saved.Jimbo.CurrentHand) do
+                mod.Saved.Jimbo.CurrentHand[i] = mod.Saved.Jimbo.CurrentHand[i] + 1 --fixes the jump made by table.insert
+            end
+            mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer + 1 --fixes the jump made by table.insert
+
+            table.insert(mod.Saved.Jimbo.CurrentHand, 1) --adds it tp pos 1 so it can't be seen again
 
             mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, nil, "Added!",mod.Packs.STANDARD)
+
+            mod.LastCardFullPoss = {} --does wierd stuff otherwise
 
             Isaac.RunCallback("DECK_SHIFT", Player)
 
@@ -1966,7 +1981,7 @@ function mod:Select(Player)
         
     elseif mod.SelectionParams.Mode == mod.SelectionParams.Modes.INVENTORY then
 
-        if  mod.SelectionParams.Index <= #mod.Saved.Jimbo.Inventory.Jokers then --a joker is selected
+        if  mod.SelectionParams.Index <= #mod.Saved.Jimbo.Inventory then --a joker is selected
             
             local Choice = mod.SelectionParams.SelectedCards[mod.SelectionParams.Index]
 
@@ -1995,8 +2010,8 @@ function mod:Select(Player)
                         sfx:Play(mod.Sounds.SELECT,1,2,false, 1.2)
                     end, 3, 1, false)
 
-                    mod.Saved.Jimbo.Inventory.Jokers[FirstI],mod.Saved.Jimbo.Inventory.Jokers[SecondI] =
-                    mod.Saved.Jimbo.Inventory.Jokers[SecondI],mod.Saved.Jimbo.Inventory.Jokers[FirstI]
+                    mod.Saved.Jimbo.Inventory[FirstI].Joker,mod.Saved.Jimbo.Inventory[SecondI].Joker =
+                    mod.Saved.Jimbo.Inventory[SecondI].Joker,mod.Saved.Jimbo.Inventory[FirstI].Joker
 
                     mod.Saved.Jimbo.Progress.Inventory[FirstI],mod.Saved.Jimbo.Progress.Inventory[SecondI] =
                     mod.Saved.Jimbo.Progress.Inventory[SecondI],mod.Saved.Jimbo.Progress.Inventory[FirstI]
@@ -2005,7 +2020,7 @@ function mod:Select(Player)
                     
                     mod.SelectionParams.Purpose = mod.SelectionParams.Purposes.NONE
 
-                elseif mod.Saved.Jimbo.Inventory.Jokers[mod.SelectionParams.Index] ~= 0 then
+                elseif mod.Saved.Jimbo.Inventory[mod.SelectionParams.Index].Joker ~= 0 then
 
                     sfx:Play(mod.Sounds.DESELECT)
 
@@ -2027,7 +2042,7 @@ function mod:Select(Player)
                     end
                 end
                 --print(FirstI)
-                local Trinket = mod.Saved.Jimbo.Inventory.Jokers[SoldSlot]
+                local Trinket = mod.Saved.Jimbo.Inventory[SoldSlot].Joker
 
                 mod:SellJoker(Player, Trinket, SoldSlot)
                 mod.SelectionParams.Purpose = mod.SelectionParams.Purposes.NONE
@@ -2093,14 +2108,28 @@ function mod:UseSelection(Player)
             local Chosen
             for i,v in ipairs(mod.SelectionParams.SelectedCards) do
                 if v then
-                    Chosen =mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[i]]
+                    Chosen = mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[i]]
                     break
                 end
             end
+
             for i=1, 2 do
-                table.insert(mod.Saved.Jimbo.FullDeck, Chosen)
+                table.insert(mod.Saved.Jimbo.FullDeck,1, Chosen) --adds it to pos 1 so it can't be seen again
             end
+
+            for i,_ in ipairs(mod.Saved.Jimbo.CurrentHand) do
+                mod.Saved.Jimbo.CurrentHand[i] = mod.Saved.Jimbo.CurrentHand[i] + 2 --fixes the jump made by table.insert
+            end
+            mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer + 2 --fixes the jump made by table.insert
+
+            for i=1, 2 do
+                table.insert(mod.Saved.Jimbo.CurrentHand, i) --adds it tp pos 1 so it can't be seen again
+            end
+
+            mod.LastCardFullPoss = {} --does wierd stuff otherwise
+
             Isaac.RunCallback("DECK_SHIFT", Player)
+
         elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.AURA then
             for i,v in ipairs(mod.SelectionParams.SelectedCards) do
                 if v then

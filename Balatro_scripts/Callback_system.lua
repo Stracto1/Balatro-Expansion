@@ -5,7 +5,7 @@ local Game = Game()
 
 local Challenges = {}
 Challenges.Balatro = Isaac.GetChallengeIdByName("Balatro")
-local ItemsConfig = Isaac.GetItemConfig()
+--local ItemsConfig = Isaac.GetItemConfig()
 
 --VVVVV-- big ass code wall incoming -VVVVV-
 function mod:OnGameStart(Continued)
@@ -51,7 +51,6 @@ function mod:OnGameStart(Continued)
                     end
                 end
             end
-
         end
     else
 
@@ -145,7 +144,9 @@ function mod:OnGameStart(Continued)
         mod.Saved.Jimbo.StatsToAdd.JokerTears = 0
         mod.Saved.Jimbo.StatsToAdd.JokerMult = 1
 
-        Balatro_Expansion.Saved.Jimbo.InnateItems = {}
+        mod.Saved.Jimbo.InnateItems = {}
+        mod.Saved.Jimbo.InnateItems.General = {}
+        mod.Saved.Jimbo.InnateItems.Hack = {}
 
         mod.Saved.Jimbo.FirstDeck = true
 
@@ -217,6 +218,8 @@ function mod:OnGameStart(Continued)
             mod.Saved.Jimbo.Progress.Room.ValueUsed[Value] = 0
         end
         mod.Saved.Jimbo.Progress.Room.Shots = 0
+        mod.Saved.Jimbo.Progress.Room.ChampKills = 0
+
 
         mod.Saved.Jimbo.Progress.Floor = {}
         mod.Saved.Jimbo.FloorVouchers = {}
@@ -253,9 +256,17 @@ function mod:OnGameStart(Continued)
     
     for _, player in ipairs(PlayerManager.GetPlayers()) do  --evaluates again for the mod's trinkets since closing the game
         --resets stuff
-        mod:StatReset(player,true,true,false,true,true)
-        player:AddCacheFlags(CacheFlag.CACHE_ALL, true)
-        player:AddCustomCacheTag("playcd", true)
+        if player:GetPlayerType() == mod.Characters.JimboType then
+            mod:StatReset(player,true,true,false,true,true)
+            player:AddCacheFlags(CacheFlag.CACHE_ALL, true)
+
+            Isaac.RunCallback("INVENTORY_CHANGE", player)
+
+            player:AddCustomCacheTag("playcd", false)
+            player:AddCustomCacheTag("handsize", false)
+            player:AddCustomCacheTag("discards", false)
+            player:AddCustomCacheTag("inventory", true)
+        end
     end
 
 
