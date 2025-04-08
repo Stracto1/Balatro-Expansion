@@ -1,3 +1,4 @@
+---@diagnostic disable: need-check-nil
 local mod = Balatro_Expansion
 local ItemsConfig = Isaac.GetItemConfig()
 local Game = Game()
@@ -855,3 +856,201 @@ function mod:AddJoker(Player, Joker, Edition, StopEval)
 
     return mod:JimboAddTrinket(Player, Joker, false, StopEval)
 end
+
+
+local CardGotDestroyed = false
+function mod:DestroyCard(Player, DeckIndex)
+
+    CardGotDestroyed = true
+
+    Isaac.CreateTimer(function ()
+        CardGotDestroyed = false
+    end,35,1,true)
+
+
+    local CardParams = mod.Saved.Jimbo.FullDeck[DeckIndex]
+
+    table.remove(mod.Saved.Jimbo.FullDeck, DeckIndex)
+
+
+    if CardParams.Enhancement == mod.Enhancement.STONE then
+        
+        for i=1, 5 do
+            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.ROCK_PARTICLE, Player.Position,
+                                     RandomVector()*3, Player, 0, 1):ToEffect()
+    
+            Splat:GetSprite().Color:SetColorize(3,3.25,3.5,0.85)
+
+            --Splat:GetSprite().Color = Color(0.6,0.65,0.7,1)
+        end
+    
+        sfx:Play(SoundEffect.SOUND_ROCK_CRUMBLE, 1, 2, false, 1.5 + math.random()*0.05)
+
+        return
+
+    elseif CardParams.Enhancement == mod.Enhancement.WILD then
+
+        for i=1, 2 do
+            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
+                                     RandomVector()*3, Player, 0, 1):ToEffect()
+    
+            Splat:GetSprite().Color:SetColorize(8,8,8,1)
+        end
+
+
+        local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
+                                     RandomVector()*3, Player, 0, 1):ToEffect()
+
+        Splat:GetSprite().Color:SetColorize(8,8,8,1)
+
+
+        Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
+        RandomVector()*3, Player, 0, 1):ToEffect()
+
+        Splat:GetSprite().Color:SetColorize(1.5,3,15,0.8)
+
+
+        Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
+                                     RandomVector()*3, Player, 0, 1):ToEffect()
+
+        Splat:GetSprite().Color:SetColorize(1.5,3,15,0.8)
+
+        Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
+        RandomVector()*3, Player, 0, 1):ToEffect()
+
+        Splat:GetSprite().Color:SetColorize(6,1.2,0.9,3)
+
+        return
+    
+    elseif CardParams.Enhancement == mod.Enhancement.GLASS then
+
+        for i=1, 5 do
+            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.WOOD_PARTICLE, Player.Position,
+                                         RandomVector()*3, Player, 0, 1):ToEffect()
+            
+            Splat:GetSprite().Color:SetColorize(8,8,8.5,1)
+            Splat:GetSprite().Color:SetTint(1,1,1,0.25)
+        end
+
+        sfx:Play(SoundEffect.SOUND_POT_BREAK_2, 1, 2, false, 1.5 + math.random()*0.05) --PLACEHOLDER SOUND
+
+    elseif CardParams.Enhancement == mod.Enhancement.LUCKY then
+
+        for i=1, 5 do
+            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
+                                     RandomVector()*3, Player, 0, 1):ToEffect()
+    
+            Splat:GetSprite().Color:SetColorize(5.1,5.1,3.9,1)
+        end
+    
+        sfx:Play(SoundEffect.SOUND_ROCKET_LAUNCH_SHORT, 1, 2, false, 2 + math.random()*0.05)
+    
+    elseif CardParams.Enhancement == mod.Enhancement.STEEL then
+
+        for i=1, 4 do
+            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.WOOD_PARTICLE, Player.Position,
+                                     RandomVector()*3, Player, 0, 1):ToEffect()
+    
+            Splat:GetSprite().Color:SetColorize(4,4,4.25,1)
+        end
+    
+        sfx:Play(SoundEffect.SOUND_SCYTHE_BREAK, 1, 2, false, 1 + math.random()*0.05)
+    
+    elseif CardParams.Enhancement == mod.Enhancement.MULT then
+
+        for i=1, 2 do
+            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
+                                     RandomVector()*3, Player, 0, 1):ToEffect()
+    
+            Splat:GetSprite().Color:SetColorize(8,8,8,1) --white
+        end
+
+        local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
+                                     RandomVector()*3, Player, 0, 1):ToEffect()
+
+        Splat:GetSprite().Color:SetColorize(0.9,0.9,1.1,1) -- slightly blueish black
+
+        Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
+                                     RandomVector()*3, Player, 0, 1):ToEffect()
+
+        Splat:GetSprite().Color:SetColorize(6,0,0,2) --red
+
+    
+        sfx:Play(SoundEffect.SOUND_ROCKET_LAUNCH_SHORT, 1, 2, false, 2 + math.random()*0.05)
+
+    elseif CardParams.Enhancement == mod.Enhancement.BONUS then
+
+        for i=1, 2 do
+            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
+                                     RandomVector()*3, Player, 0, 1):ToEffect()
+    
+            Splat:GetSprite().Color:SetColorize(8,8,8,1) --white
+        end
+
+        for i=1, 2 do
+            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
+                                     RandomVector()*3, Player, 0, 1):ToEffect()
+    
+            Splat:GetSprite().Color:SetColorize(1.5,3,15,0.8) --blue
+        end
+
+        sfx:Play(SoundEffect.SOUND_ROCKET_LAUNCH_SHORT, 1, 2, false, 2 + math.random()*0.05)
+
+    elseif CardParams.Enhancement == mod.Enhancement.GOLDEN then
+
+        for i=1, 10 do
+            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.COIN_PARTICLE, Player.Position,
+                                     RandomVector()*3, Player, 0, 1):ToEffect()
+    
+            --Splat:GetSprite().Color:SetColorize(8,8,8,1)
+        end
+    
+        sfx:Play(SoundEffect.SOUND_POT_BREAK, 1, 2, false, 1.5 + math.random()*0.05)
+
+    else
+        for i=1, 5 do
+            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
+                                     RandomVector()*3, Player, 0, 1):ToEffect()
+    
+            Splat:GetSprite().Color:SetColorize(8,8,8,1)
+        end
+    
+        sfx:Play(SoundEffect.SOUND_ROCKET_LAUNCH_SHORT, 1, 2, false, 2 + math.random()*0.05)
+
+    end
+
+    local SuitSplat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
+                             RandomVector()*3, Player, 0, 1):ToEffect()
+
+    if CardParams.Suit == mod.Suits.Spade then
+        
+        SuitSplat:GetSprite().Color:SetColorize(0.9,0.9,0.9,1) --black
+
+    elseif CardParams.Suit == mod.Suits.Club then
+
+        SuitSplat:GetSprite().Color:SetColorize(1.5,3,15,0.8) --blue
+
+    elseif CardParams.Suit == mod.Suits.Heart then
+
+        SuitSplat:GetSprite().Color:SetColorize(6,0,0,2) --red
+
+    else --diamonds
+
+        SuitSplat:GetSprite().Color:SetColorize(6,1.2,0.9,3) --orange
+    
+    end
+
+    if CardParams.Enhancement == mod.Enhancement.GLASS then
+        SuitSplat:GetSprite().Color:SetTint(1,1,1,0.5)
+    end
+
+end
+
+---@param Effect EntityEffect
+local function NoBloodSplats(Effect)
+
+    if CardGotDestroyed then --tried for like an hour to get some way of recognising theese specific blood splats but no luck
+        Effect:Remove()
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT, NoBloodSplats, EffectVariant.BLOOD_SPLAT)

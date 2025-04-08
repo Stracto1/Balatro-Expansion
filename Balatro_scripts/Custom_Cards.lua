@@ -270,7 +270,7 @@ function mod:PlanetCards(card, Player,_)
 
             mod.Saved.Jimbo.CardLevels[Value] = mod.Saved.Jimbo.CardLevels[Value] + 1
 
-            local ValueString = tostring(Value)
+            local ValueString 
             if Value == 11 then
                 ValueString = "J"
             elseif Value == 12 then
@@ -279,6 +279,8 @@ function mod:PlanetCards(card, Player,_)
                 ValueString = "K"
             elseif Value == 1 then
                 ValueString = "Ace"
+            else
+                ValueString = tostring(Value)
             end
 
             --PLACEHOLDER

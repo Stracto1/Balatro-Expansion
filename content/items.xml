@@ -82,10 +82,27 @@
     <trinket gfx="raised_fist_trinket.png" name="Raised Fist" description="Follow him!" customtags="!2 0 ?uncommon balatro mult copy"/>
     <trinket gfx="caos_the_clown_trinket.png" name="Chaos the Clown" description="Hacky discounts" customtags="!2 0 ?uncommon balatro activate"/>
     <trinket gfx="fibonacci_trinket.png" name="Fibonacci" description="Fibonacci's currrrve!" customtags="!2 0 ?uncommon balatro mult copy"/>
-    <trinket gfx="steel_joker_trinket.png" name="Steel Joker" description="Sharp hedged" customtags="!2 0 ?uncommon balatro multm copy"/>
+    <trinket gfx="steel_joker_trinket.png" name="Steel Joker" description="Sharp hedged" customtags="!2 1 ?uncommon balatro multm copy"/>
     <trinket gfx="scary_face_trinket.png" name="Scary Face" description="BOO!" customtags="!2 0 ?common balatro chips copy"/>
     <trinket gfx="hack_trinket.png" name="Hack" description="Why did the chicken cross the road?" customtags="!2 0 ?uncommon balatro activate copy"/>
     <trinket gfx="pareidolia_trinket.png" name="Pareidolia" description="Faces averywhere!" customtags="!2 0 ?uncommon balatro activate"/>
+
+    <trinket gfx="scholar_trinket.png" name="Scholar" description="Alr now put the fries in the bag" customtags="!2 0 ?common balatro chips mult copy"/>
+    <trinket gfx="business_card_trinket.png" name="Business Card" description="Call me!" customtags="!2 0 ?common balatro money copy"/>
+    <trinket gfx="ride_the_bus_trinket.png" name="Ride the Bus" description="Always late..." customtags="!2 0 ?common balatro mult copy"/>
+    <trinket gfx="space_joker_trinket.png" name="Space Joker" description="Wait, it's all earth?" customtags="!2 0 ?uncommon balatro chips copy"/>
+    <trinket gfx="burglar_trinket.png" customcache="hands" name="Burglar" description="All mine!" customtags="!2 0 ?uncommon balatro activate"/>
+    <trinket gfx="blackboard_joker_trinket.png" name="Blackboard" description="PLACEHOLDER" customtags="!2 1 ?uncommon balatro mmult copy"/>
+    <trinket gfx="runner_trinket.png" name="Runner" description="Gotta stay fit" customtags="!2 0 ?common balatro chips copy"/>
+    <trinket gfx="splash_trinket.png" name="Splash" description="I choose you!" customtags="!2 0 ?common balatro activate copy"/>
+    <trinket gfx="blue_joker_trinket.png" name="Blue Joker" description="Not so classic, and blue" customtags="!2 0 ?common balatro chips copy"/>
+    <trinket gfx="sixth_sense_joker_trinket.png" name="Sixth Sense" description="I feel it in my gut" customtags="!2 0 ?uncommon balatro activate"/>
+    <trinket gfx="constellation_trinket.png" name="Constellation" description="A celstial drawing" customtags="!2 0 ?uncommon balatro mmult copy"/>
+    <trinket gfx="hiker_trinket.png" name="Hiker" description="just a hobby" customtags="!2 0 ?uncommon balatro chips copy"/>
+    <trinket gfx="faceless_joker_trinket.png" name="Faceless Joker" description="Never faces any problem" customtags="!2 0 ?common balatro money copy"/>
+    <trinket gfx="superposition_trinket.png" name="Superposition" description="Make up your mind" customtags="!2 0 ?common balatro activate copy"/>
+    <trinket gfx="to_do_list_trinket.png" name="To Do List" description="Never-ending list" customtags="!2 0 ?common balatro money copy"/>
+
 
 
 

@@ -1507,6 +1507,11 @@ function mod:DiscardNumCache(Player, Cache, Value)
         Value = Value + 2
     end
 
+
+    if mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR) then
+        Value = 1
+    end
+
     --Value = math.max(1, Value) --minimum 1 discard
 
     mod.HpEnable = true
@@ -1517,6 +1522,32 @@ function mod:DiscardNumCache(Player, Cache, Value)
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.DiscardNumCache, "discards")
 
+
+---@param Player EntityPlayer
+function mod:HandsCache(Player, Cache, Value)
+    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+        return
+    end
+
+    Value = 25 --starting point
+
+    if Player:HasCollectible(mod.Vouchers.Grabber) then
+        Value = Value + 5
+    end
+    if Player:HasCollectible(mod.Vouchers.NachoTong) then
+        Value = Value + 5
+    end
+
+    
+    if mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR) then
+        Value = 5
+    end
+
+    Value = math.max(Value ,5)
+
+    return Value
+end
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.HandsCache, "hands")
 
 -------------CARD TEARS-----------------------
 ----------------------------------------------
@@ -1649,13 +1680,18 @@ function mod:AddCardTearFalgs(Tear, Split)
 
 
         mod.Saved.Jimbo.Progress.Room.Shots = mod.Saved.Jimbo.Progress.Room.Shots + 1
-        if mod.Saved.Jimbo.Progress.Room.Shots == Player:GetCustomCacheValue("hands") and mod.Saved.Jimbo.FirstDeck then
+        if (mod.Saved.Jimbo.Progress.Room.Shots == Player:GetCustomCacheValue("hands")
+            and not mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR)) --with burglar you can play all your deck
+            or not mod.Saved.Jimbo.FirstDeck then
+
             Player:AnimateSad()
         end
 
 
         Isaac.RunCallback("CARD_SHOT", Player, CardShot, 
-        not Game:GetRoom():IsClear() and mod.Saved.Jimbo.FirstDeck and mod.Saved.Jimbo.Progress.Room.Shots < Player:GetCustomCacheValue("hands"))
+        not Game:GetRoom():IsClear() and mod.Saved.Jimbo.FirstDeck 
+        and mod.Saved.Jimbo.Progress.Room.Shots < Player:GetCustomCacheValue("hands")
+        or mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR))
 
     else
         Tear:ChangeVariant(mod.SUIT_TEAR_VARIANTS[TearData.Params.Suit])
@@ -2089,7 +2125,8 @@ function mod:UseSelection(Player)
                 return false
             end)
             for _,v in ipairs(selection) do
-                table.remove(mod.Saved.Jimbo.FullDeck, v)
+                mod:DestroyCard(Player, v)
+                
             end
             Isaac.RunCallback("DECK_SHIFT", Player)
         elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.STRENGTH then

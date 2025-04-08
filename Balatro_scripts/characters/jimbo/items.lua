@@ -322,27 +322,3 @@ function mod:DirectorVoucher(Item,Rng, Player, Flags,_,_)
 end
 mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.DirectorVoucher)
 
-
-
-
----@param Player EntityPlayer
-function mod:HandsCache(Player, Cache, Value)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType then
-        return
-    end
-
-    Value = 25 --starting point
-
-    if Player:HasCollectible(mod.Vouchers.Grabber) then
-        Value = Value + 5
-    end
-    if Player:HasCollectible(mod.Vouchers.NachoTong) then
-        Value = Value + 5
-    end
-
-    Value = math.max(Value ,5)
-
-    return Value
-end
-mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.HandsCache, "hands")
-

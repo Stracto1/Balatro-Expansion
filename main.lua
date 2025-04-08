@@ -1,6 +1,8 @@
 
 Balatro_Expansion = RegisterMod("Balatro Expansion", 1)
 
+local ItemsConfig = Isaac.GetItemConfig()
+
 Balatro_Expansion.Jokers = {}
 ------------------------------
 ---@diagnostic disable: inject-field
@@ -74,14 +76,28 @@ Balatro_Expansion.Jokers.MARBLE_JOKER = Isaac.GetTrinketIdByName("Marble Joker")
 Balatro_Expansion.Jokers._8_BALL = Isaac.GetTrinketIdByName("8 Ball")
 Balatro_Expansion.Jokers.DUSK = Isaac.GetTrinketIdByName("Dusk")
 Balatro_Expansion.Jokers.RAISED_FIST = Isaac.GetTrinketIdByName("Raised Fist")
-Balatro_Expansion.Jokers.CHAOS_CLOWN = Isaac.GetTrinketIdByName("Chaos the clown")
+Balatro_Expansion.Jokers.CHAOS_CLOWN = Isaac.GetTrinketIdByName("Chaos the Clown")
 Balatro_Expansion.Jokers.FIBONACCI = Isaac.GetTrinketIdByName("Fibonacci")
 Balatro_Expansion.Jokers.STEEL_JOKER = Isaac.GetTrinketIdByName("Steel Joker")
 Balatro_Expansion.Jokers.SCARY_FACE = Isaac.GetTrinketIdByName("Scary Face")
 Balatro_Expansion.Jokers.HACK = Isaac.GetTrinketIdByName("Hack")
 Balatro_Expansion.Jokers.PAREIDOLIA = Isaac.GetTrinketIdByName("Pareidolia")
 
-
+Balatro_Expansion.Jokers.SCHOLAR = Isaac.GetTrinketIdByName("Scholar")
+Balatro_Expansion.Jokers.BUSINESS_CARD = Isaac.GetTrinketIdByName("Business Card")
+Balatro_Expansion.Jokers.RIDE_BUS = Isaac.GetTrinketIdByName("Ride the Bus")
+Balatro_Expansion.Jokers.SPACE_JOKER = Isaac.GetTrinketIdByName("Space Joker")
+Balatro_Expansion.Jokers.BURGLAR = Isaac.GetTrinketIdByName("Burglar")
+Balatro_Expansion.Jokers.BLACKBOARD = Isaac.GetTrinketIdByName("Blackboard")
+Balatro_Expansion.Jokers.RUNNER = Isaac.GetTrinketIdByName("Runner")
+Balatro_Expansion.Jokers.SPLASH = Isaac.GetTrinketIdByName("Splash")
+Balatro_Expansion.Jokers.BLUE_JOKER = Isaac.GetTrinketIdByName("Blue Joker")
+Balatro_Expansion.Jokers.SIXTH_SENSE = Isaac.GetTrinketIdByName("Sixth Sense")
+Balatro_Expansion.Jokers.CONSTELLATION = Isaac.GetTrinketIdByName("Constellation")
+Balatro_Expansion.Jokers.HIKER = Isaac.GetTrinketIdByName("Hiker")
+Balatro_Expansion.Jokers.FACELESS = Isaac.GetTrinketIdByName("Faceless Joker")
+Balatro_Expansion.Jokers.SUPERPOSISION = Isaac.GetTrinketIdByName("Superposition")
+Balatro_Expansion.Jokers.TO_DO_LIST = Isaac.GetTrinketIdByName("To Do List")
 
 
 --------------------------------
@@ -166,26 +182,18 @@ Balatro_Expansion.Spectrals.CRYPTID =  Isaac.GetCardIdByName("Spectral_Cryptid")
 Balatro_Expansion.Spectrals.BLACK_HOLE = Isaac.GetCardIdByName("Spectral_Black_hole")
 Balatro_Expansion.Spectrals.SOUL = Isaac.GetCardIdByName("Spectral_Soul")
 
-
 Balatro_Expansion.Trinkets = {} --rarities used for spawn weight and stuff
-Balatro_Expansion.Trinkets.common = {Balatro_Expansion.Jokers.JOKER,
-Balatro_Expansion.Jokers.GOLDEN_JOKER, Balatro_Expansion.Jokers.HALLUCINATION, Balatro_Expansion.Jokers.RIFF_RAFF,
-Balatro_Expansion.Jokers.EGG, Balatro_Expansion.Jokers.DELAYED_GRATIFICATION,
-Balatro_Expansion.Jokers.CLOUD_NINE, Balatro_Expansion.Jokers.ABSTRACT_JOKER, Balatro_Expansion.Jokers.MISPRINT,
-Balatro_Expansion.Jokers.GREEN_JOKER, Balatro_Expansion.Jokers.GROS_MICHAEL, Balatro_Expansion.Jokers.CAVENDISH,
-Balatro_Expansion.Jokers.ICECREAM, Balatro_Expansion.Jokers.POPCORN, Balatro_Expansion.Jokers.ODDTODD, Balatro_Expansion.Jokers.EVENSTEVEN,
-Balatro_Expansion.Jokers.RED_CARD, Balatro_Expansion.Jokers.FORTUNETELLER, Balatro_Expansion.Jokers.SWASHBUCKLER,
-Balatro_Expansion.Jokers.SUPERNOVA} 
-Balatro_Expansion.Trinkets.uncommon = {Balatro_Expansion.Jokers.INVISIBLE_JOKER,
-Balatro_Expansion.Jokers.FLASH_CARD, Balatro_Expansion.Jokers.SMEARED_JOKER,Balatro_Expansion.Jokers.MR_BONES,
-Balatro_Expansion.Jokers.ROCKET,Balatro_Expansion.Jokers.ROUGH_GEM, Balatro_Expansion.Jokers.CARTOMANCER,
-Balatro_Expansion.Jokers.BULL, Balatro_Expansion.Jokers.JOKER_STENCIL, Balatro_Expansion.Jokers.STONE_JOKER,
-Balatro_Expansion.Jokers.RAMEN, Balatro_Expansion.Jokers.ONIX_AGATE, Balatro_Expansion.Jokers.MADNESS,
-Balatro_Expansion.Jokers.BLOODSTONE, Balatro_Expansion.Jokers.ARROWHEAD,Balatro_Expansion.Jokers.SACRIFICIAL_DAGGER,
-Balatro_Expansion.Jokers.LOYALTY_CARD}
-Balatro_Expansion.Trinkets.rare = {Balatro_Expansion.Jokers.BLUEPRINT,
-Balatro_Expansion.Jokers.BRAINSTORM,Balatro_Expansion.Jokers.VAGABOND, Balatro_Expansion.Jokers.DNA}
+Balatro_Expansion.Trinkets.common = {} 
+Balatro_Expansion.Trinkets.uncommon = {}
+Balatro_Expansion.Trinkets.rare = {}
 Balatro_Expansion.Trinkets.legendary = {}
+
+for _, Joker in pairs(Balatro_Expansion.Jokers) do
+
+    local Rarity = string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[3],"%?","")
+
+    Balatro_Expansion.Trinkets[Rarity][#Balatro_Expansion.Trinkets[Rarity] + 1] = Joker
+end
 
 
 Balatro_Expansion.Vouchers = {}
@@ -221,7 +229,6 @@ Balatro_Expansion.Vouchers.MagicTrick = Isaac.GetItemIdByName("Magic Trick")
 Balatro_Expansion.Vouchers.Illusion = Isaac.GetItemIdByName("Illusion")
 Balatro_Expansion.Vouchers.MoneySeed = Isaac.GetItemIdByName("Money Seed")
 Balatro_Expansion.Vouchers.MoneyTree = Isaac.GetItemIdByName("Money Tree")
-
 
 Balatro_Expansion.VoucherOff = Balatro_Expansion.Vouchers.Grabber % 2 --used for interal pools and stuff
 

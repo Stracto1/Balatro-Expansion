@@ -167,6 +167,61 @@ for Index, Slot in ipairs(mod.Saved.Jimbo.Inventory) do
                 end
             end
         end
+    elseif Joker == mod.Jokers.BUSINESS_CARD then
+        if ShotCard.Value >= mod.Values.JACK then --only face cards
+            
+            for i = 1, Triggers do
+
+                if mod:TryGamble(Player, Player:GetTrinketRNG(mod.Jokers.BUSINESS_CARD), 0.25) then
+            
+                    for i=1, 2 do --spawns 2 coins 25% of the time
+                        local Coin = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
+                                                RandomVector()*3, Player, CoinSubType.COIN_PENNY, RandomSeed)
+                        Coin:ToPickup().Timeout = 50
+                    end
+
+                    mod.Counters.Activated[Index] = 0
+                    mod:CreateBalatroEffect(Index,mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Activate!",mod.Jokers.BUSINESS_CARD)
+                end
+            end
+        end
+    elseif Joker == mod.Jokers.RIDE_BUS then
+
+        if ShotCard.Value >= mod.Values.JACK then --only face cards
+   
+            mod.Saved.Jimbo.Progress.Inventory[ProgressIndex] = 0
+
+            mod.Counters.Activated[Index] = 0
+            mod:CreateBalatroEffect(Index,mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Reset!",mod.Jokers.RIDE_BUS)
+
+        else
+            mod.Saved.Jimbo.Progress.Inventory[ProgressIndex] = mod.Saved.Jimbo.Progress.Inventory[ProgressIndex] + 1
+
+            mod.Counters.Activated[Index] = 0
+            mod:CreateBalatroEffect(Index,mod.EffectColors.RED, mod.Sounds.ADDMULT, "+0.01",mod.Jokers.RIDE_BUS)
+        end
+
+    elseif Joker == mod.Jokers.SPACE_JOKER then
+
+        if mod:TryGamble(Player, Player:GetTrinketRNG(mod.Jokers.SPACE_JOKER), 0.05 + 0.05 * mod.Saved.Jimbo.Progress.Inventory[ProgressIndex]) then
+
+            mod.Saved.Jimbo.CardLevels[ShotCard.Value] = mod.Saved.Jimbo.CardLevels[ShotCard.Value] + 1
+
+            mod.Counters.Activated[Index] = 0
+
+            local ValueString = tostring(ShotCard.Value)
+            if ShotCard.Value == 11 then
+                ValueString = "J"
+            elseif ShotCard.Value == 12 then
+                ValueString = "Q"
+            elseif ShotCard.Value == 13 then
+                ValueString = "K"
+            elseif ShotCard.Value == 1 then
+                ValueString = "Ace"
+            end
+
+            mod:CreateBalatroEffect(Index,mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, ValueString.."Up!",mod.Jokers.SPACE_JOKER)
+        end
     end
 end
 ---------------BASE CARD STATS--------------
@@ -1200,56 +1255,20 @@ function mod:OnNewRoomJokers()
                 Player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, false)
 
             end
-        end
 
 
-
-
-        Player:EvaluateItems()
-
-        ::skip_player::
-    end
-
-
-    --ONCE VISITED ROOMS
-
-    if Game:GetLevel():GetCurrentRoomDesc().VisitedCount > 1 then
-        return
-    end
-
-    for _, Player in ipairs(PlayerManager.GetPlayers()) do
-
-        if Player:GetPlayerType() ~= mod.Characters.JimboType then
-            goto skip_player
-        end
-    
-        local RandomSeed = Random()
-        if RandomSeed == 0 then RandomSeed = 1 end --would crash the game otherwise
-
-        for Index, Slot in ipairs(mod.Saved.Jimbo.Inventory) do
-
-            local Joker = Slot.Joker    
-
-            local ProgressIndex = Index
-            local Copied = false
-            if Joker == mod.Jokers.BLUEPRINT or Joker == mod.Jokers.BRAINSTORM then
-
-                Joker = mod.Saved.Jimbo.Inventory[mod.Saved.Jimbo.Progress.Inventory[Index]].Joker or 0
-
-                --print("should be copiyng: "..tostring(mod.Saved.Jimbo.Inventory[mod.Saved.Jimbo.Progress.Inventory[Index]].Joker))
-                --print("copy "..tostring(Joker).." at "..tostring(mod.Saved.Jimbo.Progress.Inventory[Index]))
-
-                ProgressIndex = mod.Saved.Jimbo.Progress.Inventory[Index]
-
-                Copied = true
+            if Game:GetLevel():GetCurrentRoomDesc().VisitedCount > 1 then
+                goto skip_player
             end
-
+    
             if Joker == mod.Jokers.CHAOS_CLOWN then
-
+    
                 Game:Spawn(EntityType.ENTITY_SLOT, SlotVariant.SHOP_RESTOCK_MACHINE,
                        Game:GetRoom():GetGridPosition(27),Vector.Zero, nil, 0, Game:GetRoom():GetSpawnSeed())
             end
         end
+
+        Player:EvaluateItems()
 
         ::skip_player::
     end
@@ -1537,6 +1556,40 @@ function mod:CopyAdjustments(Player)
         LastHackNum = HackNum
     end
 
+    if mod:JimboHasTrinket(Player, mod.Jokers.ROCKET) and not Player:HasCollectible(CollectibleType.COLLECTIBLE_ROCKET_IN_A_JAR, false, true) then
+        
+        Player:AddInnateCollectible(CollectibleType.COLLECTIBLE_ROCKET_IN_A_JAR)
+        table.insert(mod.Saved.Jimbo.InnateItems.General, CollectibleType.COLLECTIBLE_ROCKET_IN_A_JAR)
+
+    --checks if the player has an innate collectible to remove
+    elseif Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_ROCKET_IN_A_JAR, false, false) - Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_ROCKET_IN_A_JAR, true, true) > 0 then
+        
+
+        Player:AddInnateCollectible(CollectibleType.COLLECTIBLE_ROCKET_IN_A_JAR, -1)
+        table.remove(mod.Saved.Jimbo.InnateItems.General, mod:GetValueIndex(mod.Saved.Jimbo.InnateItems,CollectibleType.COLLECTIBLE_ROCKET_IN_A_JAR,true))
+
+    end
+
+
+    if mod:JimboHasTrinket(Player, mod.Jokers.BUSINESS_CARD) and not Player:HasCollectible(CollectibleType.COLLECTIBLE_MEMBER_CARD, false, true) then
+        
+        Player:AddInnateCollectible(CollectibleType.COLLECTIBLE_MEMBER_CARD)
+        table.insert(mod.Saved.Jimbo.InnateItems.General, CollectibleType.COLLECTIBLE_MEMBER_CARD)
+
+    --checks if the player has an innate collectible to remove
+    elseif Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_MEMBER_CARD, false, false) - Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_MEMBER_CARD, true, true) > 0 then
+        
+
+        Player:AddInnateCollectible(CollectibleType.COLLECTIBLE_MEMBER_CARD, -1)
+        table.remove(mod.Saved.Jimbo.InnateItems.General, mod:GetValueIndex(mod.Saved.Jimbo.InnateItems,CollectibleType.COLLECTIBLE_MEMBER_CARD,true))
+
+    end
+
+
+    Player:AddCacheFlags(CacheFlag.CACHE_SHOTSPEED)
+    Player:AddCacheFlags(CacheFlag.CACHE_SPEED)
+    Player:AddCacheFlags(CacheFlag.CACHE_LUCK)
+
     Player:EvaluateItems()
 
 end
@@ -1549,28 +1602,22 @@ function mod:JokerAdded(Player, Joker,Edition)
         return
     end
 
-    if mod:JimboHasTrinket(Player, mod.Jokers.ROCKET) then
+    if Joker == mod.Jokers.SPACE_JOKER then
 
-        Player:AddInnateCollectible(CollectibleType.COLLECTIBLE_ROCKET_IN_A_JAR)
-        table.insert(mod.Saved.Jimbo.InnateItems.General, CollectibleType.COLLECTIBLE_ROCKET_IN_A_JAR)
-    else
-        Player:AddInnateCollectible(CollectibleType.COLLECTIBLE_ROCKET_IN_A_JAR, -1)
-        table.remove(mod.Saved.Jimbo.InnateItems.General, mod:GetValueIndex(mod.Saved.Jimbo.InnateItems,CollectibleType.COLLECTIBLE_ROCKET_IN_A_JAR,true))
-    end
+        local StarItems = 0
 
-    if Joker == mod.Jokers.HACK then
+        for Item, AmountHeld in ipairs(Player:GetCollectiblesList()) do
 
-        
-        
-    elseif not mod:JimboHasTrinket(Player, mod.Jokers.HACK) then
-        
-    
-        for i,Item in ipairs(mod.Saved.Jimbo.InnateItems.Hack) do
-            Player:AddInnateCollectible(Item, -1)
+            local Config = ItemsConfig:GetCollectible(Item)
+            if Config and Config:HasTags(ItemConfig.TAG_STARS) then
+
+                StarItems = StarItems + AmountHeld
+            end
         end
 
-        mod.Saved.Jimbo.InnateItems.Hack = {}
-        
+        for _,Index in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.SPACE_JOKER, true)) do
+            mod.Saved.Jimbo.Progress.Inventory[Index] = StarItems
+        end
     end
 
 end
@@ -1738,6 +1785,13 @@ function mod:ItemAddedEval(Type,_,_,_,_,Player)
 
             Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)
 
+        elseif Joker == mod.Jokers.SPACE_JOKER  then
+
+            if ItemsConfig:GetCollectible(Type):HasTags(ItemConfig.TAG_STARS) then
+
+                mod.Saved.Jimbo.Progress.Inventory[Index] = mod.Saved.Jimbo.Progress.Inventory[Index] + 1
+            end
+
         end
     end
 
@@ -1779,6 +1833,13 @@ function mod:ItemRemovedEval(Player,Type)
 
             Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)
 
+        elseif Joker == mod.Jokers.SPACE_JOKER  then
+
+            if ItemsConfig:GetCollectible(Type):HasTags(ItemConfig.TAG_STARS) then
+
+                mod.Saved.Jimbo.Progress.Inventory[Index] = mod.Saved.Jimbo.Progress.Inventory[Index] - 1
+            end
+
         end
     end
 
@@ -1795,6 +1856,9 @@ function mod:ShiftEval(Player)
             Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, false)
 
         elseif Slot.Joker == mod.Jokers.STEEL_JOKER then
+            Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, false)
+
+        elseif Slot.Joker == mod.Jokers.BLACKBOARD then
             Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, false)
 
         elseif Slot.Joker == mod.Jokers.STONE_JOKER then
@@ -1904,7 +1968,7 @@ function mod:TearsJokers(Player, _)
 
                     mod.Counters.Activated[Index] = 0
                     mod:CreateBalatroEffect(Index, mod.EffectColors.BLUE,mod.Sounds.CHIPS,
-                    "+"..tostring(0.31*(Tears - mod.Saved.Jimbo.Progress.Inventory[ProgressIndex]))
+                    "+"..tostring(Tears - mod.Saved.Jimbo.Progress.Inventory[ProgressIndex])
                     ,mod.Jokers.ODDTODD)
                 end
 
@@ -1964,7 +2028,26 @@ function mod:TearsJokers(Player, _)
                 mod.Saved.Jimbo.Progress.Inventory[ProgressIndex] = Tears --only used to tell when to spawn an effect
 
                 mod:IncreaseJimboStats(Player, Tears,0,1, false, false)
+            
 
+            elseif Joker == mod.Jokers.SCHOLAR then
+                local NumAces = 0
+ 
+                NumAces = mod.Saved.Jimbo.Progress.Room.ValueUsed[1]
+
+                local Tears = NumAces*0.2
+
+                if NumAces > mod.Saved.Jimbo.Progress.Inventory[ProgressIndex] and NumAces ~= 0 then
+
+                    mod.Counters.Activated[Index] = 0
+                    mod:CreateBalatroEffect(Index, mod.EffectColors.BLUE,mod.Sounds.CHIPS,
+                    "+"..tostring(0.2*(NumAces - mod.Saved.Jimbo.Progress.Inventory[ProgressIndex]))
+                    ,mod.Jokers.SCHOLAR)
+                end
+
+                mod.Saved.Jimbo.Progress.Inventory[ProgressIndex] = NumAces --only used to tell when to spawn an effect
+
+                mod:IncreaseJimboStats(Player, Tears,0,1, false, false)
 
             end
         end
@@ -2266,6 +2349,26 @@ function mod:DamageJokers(Player,_)
                 
                 mod:IncreaseJimboStats(Player, 0,Damage ,1 , false, false)
 
+
+            elseif Joker == mod.Jokers.SCHOLAR then
+                local NumAces = 0
+ 
+                NumAces = mod.Saved.Jimbo.Progress.Room.ValueUsed[1]
+
+                local Damage = NumAces*0.04
+
+                if NumAces > mod.Saved.Jimbo.Progress.Inventory[ProgressIndex] and NumAces ~= 0 then
+
+                    mod.Counters.Activated[Index] = 0
+                    mod:CreateBalatroEffect(Index, mod.EffectColors.BLUE,mod.Sounds.CHIPS,
+                    "+"..tostring(0.04*(NumAces - mod.Saved.Jimbo.Progress.Inventory[ProgressIndex]))
+                    ,mod.Jokers.SCHOLAR)
+                end
+
+                mod.Saved.Jimbo.Progress.Inventory[ProgressIndex] = NumAces --only used to tell when to spawn an effect
+
+                mod:IncreaseJimboStats(Player, 0,Damage,1, false, false)
+
             end
         end
 
@@ -2372,6 +2475,46 @@ function mod:DamageMultJokers(Player,_)
 
                 mod:IncreaseJimboStats(Player, 0, 0, Mult, false, false)
             
+            elseif Joker == mod.Jokers.BLACKBOARD then
+
+                local Mult = 2
+
+                for _,Pointer in ipairs(mod.Saved.Jimbo.CurrentHand) do
+                    local card = mod.Saved.Jimbo.FullDeck[Pointer]
+
+                    if not(mod:IsSuit(Player, card.Suit, card.Enhancement, mod.Suits.Spade)
+                           or mod:IsSuit(Player, card.Suit, card.Enhancement, mod.Suits.Club)) then
+                        
+                        Mult = 1
+                        break
+                    end
+                end
+
+
+                if Mult == 2 then
+                    mod.Saved.Jimbo.Progress.Inventory[ProgressIndex] = Mult
+
+                    mod:IncreaseJimboStats(Player,0,0,Mult,false,false)
+                else
+                    mod.Saved.Jimbo.Progress.Inventory[ProgressIndex] = 1
+                end
+
+                if Mult ~= mod.Saved.Jimbo.Progress.Inventory[ProgressIndex] then
+                    local Difference = Mult - mod.Saved.Jimbo.Progress.Inventory[ProgressIndex]
+                    
+                    mod.Counters.Activated[Index] = 0
+                    mod:CreateBalatroEffect(Index, mod.EffectColors.RED,mod.Sounds.TIMESMULT,
+                    mod:GetSignString(Difference)..tostring(Difference).."X",mod.Jokers.BLACKBOARD)
+                end
+
+            elseif Joker == mod.Jokers.RIDE_BUS then
+
+                local Damage = mod.Saved.Jimbo.Progress.Inventory[ProgressIndex] * 0.01
+
+                --the effects are handled in CARD_SHOT
+
+                mod:IncreaseJimboStats(Player,0,Damage,1,false,false)
+
             end
         end
 
@@ -2828,3 +2971,38 @@ function mod:HackReevaluationRemove(Player,Item)
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_TRIGGER_COLLECTIBLE_REMOVED, mod.HackReevaluationRemove)
+
+
+---@param Player EntityPlayer
+function mod:JimboLuckStat(Player,Cache)
+    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+        return
+    end
+
+    Player.Luck = Player.Luck + 5 * #mod:GetJimboJokerIndex(Player, mod.Jokers.SCHOLAR)
+
+end
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.JimboLuckStat, CacheFlag.CACHE_LUCK)
+
+
+
+
+
+------------EXAMPLE JOKER FUNCTION----------
+--[[
+for _, Player in ipairs(PlayerManager.GetPlayers()) do
+
+    if Player:GetPlayerType() ~= mod.Characters.JimboType or AllGood then
+        goto skip_player
+    end
+
+    for Index, Slot in ipairs(mod.Saved.Jimbo.Inventory) do
+        if Slot.Joker == mod.Jokers.DELAYED_GRATIFICATION then
+            AllGood = true
+            break
+        end
+    end
+
+    ::skip_player::
+end
+--]]

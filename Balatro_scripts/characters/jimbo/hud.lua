@@ -394,22 +394,26 @@ function mod:JimboHandRender(Player, Offset)
         --HAND TYPE TEXT RENDER--
         --mod.Fonts.Balatro:DrawString(HAND_TYPE_NAMES[mod.SelectionParams.HandType],DECK_RENDERING_POSITION.X + 50,DECK_RENDERING_POSITION.Y -100,KColor(1,1,1,1))
 
-        --allows mouse controls to be used as a way to select cards--
+        --[[allows mouse controls to be used as a way to select cards--
         local MousePosition = Isaac.WorldToScreen(Input.GetMousePosition(true))
         if MousePosition.X >= DECK_RENDERING_POSITION.X and MousePosition.Y >= DECK_RENDERING_POSITION.Y  then
             local HandMousePosition = math.ceil((MousePosition.X - (DECK_RENDERING_POSITION.X))/CardHUDWidth)
             if HandMousePosition <= mod.Saved.Jimbo.HandSize + 1 then
                 mod.SelectionParams.Index = HandMousePosition
             end
-        end
+        end]]
 
     else
-        local Frame = math.ceil((mod.Saved.Jimbo.Progress.Room.Shots/Player:GetCustomCacheValue("hands")) * -26 + 26)
+        local Frame = 25 --full bar
+        
+        if not mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR) then
+            Frame = math.ceil((mod.Saved.Jimbo.Progress.Room.Shots/Player:GetCustomCacheValue("hands")) * -26 + 26)
+        end
         
         if mod.Saved.Jimbo.FirstDeck and not Game:GetRoom():IsClear() then
-            HandsBar:SetFrame("Charge On", Frame) 
+            HandsBar:SetFrame("Charge On", Frame)
         else
-            HandsBar:SetFrame("Charge Off", Frame) 
+            HandsBar:SetFrame("Charge Off", Frame)
         end
         HandsBar:PlayOverlay("overlay_"..tostring(Player:GetCustomCacheValue("hands")))
         --HandsBar:SetOverlayFrame(0)
