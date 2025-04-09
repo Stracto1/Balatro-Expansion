@@ -1031,7 +1031,9 @@ function mod:OnRoomClear(IsBoss, Hostile)
 
             end
         elseif Joker == mod.Jokers.DNA then
-            Player:AddMinisaac(Player.Position, true)
+            if Hostile then
+                Player:AddMinisaac(Player.Position, true)
+            end
         end
 
     end
@@ -1881,6 +1883,8 @@ function mod:TearsJokers(Player, _)
             goto skip_player
         end
 
+        local MimeNum = #mod:GetJimboJokerIndex(Player, mod.Jokers.MIME)
+
         for Index, Slot in ipairs(mod.Saved.Jimbo.Inventory) do
 
             local Joker = Slot.Joker
@@ -2015,7 +2019,7 @@ function mod:TearsJokers(Player, _)
 
             elseif Joker == mod.Jokers.SCARY_FACE then
 
-                local Tears = mod.Saved.Jimbo.Progress.Room.ValueUsed[mod.Values.FACE]*0.3 + mod.Saved.Jimbo.Progress.Room.ChampKills*1
+                local Tears = mod.Saved.Jimbo.Progress.Room.ValueUsed[mod.Values.FACE]*0.3 + mod.Saved.Jimbo.Progress.Room.ChampKills
 
                 if Tears > mod.Saved.Jimbo.Progress.Inventory[ProgressIndex] and mod.Saved.Jimbo.Progress.Room.ValueUsed[mod.Values.FACE] ~= 0 then
 
@@ -2064,6 +2068,8 @@ function mod:DamageJokers(Player,_)
         if Player:GetPlayerType() ~= mod.Characters.JimboType then
             goto skip_player
         end
+
+        local MimeNum = #mod:GetJimboJokerIndex(Player, mod.Jokers.MIME)
 
         for Index, Slot in ipairs(mod.Saved.Jimbo.Inventory) do
 
@@ -2126,7 +2132,7 @@ function mod:DamageJokers(Player,_)
 
                 local ItemNum = Player:GetCollectibleCount()
 
-                local Damage = NumEven*0.04 + ((ItemNum%2==0) and ItemNum*0.04 or 0)
+                local Damage = NumEven*0.04 + ((ItemNum%2==0) and ItemNum*0.02 or 0)
 
                 if Damage ~= mod.Saved.Jimbo.Progress.Inventory[ProgressIndex] and NumEven ~= 0 then
 
@@ -2189,9 +2195,12 @@ function mod:DamageJokers(Player,_)
             
             elseif Joker == mod.Jokers.HALF_JOKER then
 
-                if mod.Saved.Jimbo.Progress.Room.Shots <= 4 or mod.Saved.Jimbo.HandSize <= 3 then
+                if mod.Saved.Jimbo.Progress.Room.Shots <= 4 then
                     mod:IncreaseJimboStats(Player, 0, 1.5, 1, false, false)
+                end
 
+                if #mod.Saved.Jimbo.CurrentHand <= 3 then
+                    mod:IncreaseJimboStats(Player, 0, 1, 1, false, false)
                 end
 
             elseif Joker == mod.Jokers.LUSTY_JOKER then
@@ -2301,7 +2310,7 @@ function mod:DamageJokers(Player,_)
 
                 end
 
-                local Damage = 0.05 * MinValue
+                local Damage = 0.05 * MinValue * (MimeNum+1)
 
                 if Damage ~= mod.Saved.Jimbo.Progress.Inventory[ProgressIndex] then
 
@@ -2384,6 +2393,8 @@ function mod:DamageMultJokers(Player,_)
         if Player:GetPlayerType() ~= mod.Characters.JimboType then
             goto skip_player
         end
+
+        local MimeNum = #mod:GetJimboJokerIndex(Player, mod.Jokers.MIME)
 
         for Index, Slot in ipairs(mod.Saved.Jimbo.Inventory) do
 
@@ -2559,12 +2570,11 @@ function mod:SteelStatBoosts(Player, _)
             if mod.Saved.Jimbo.FullDeck[index].Seal == mod.Seals.RED then
                 Triggers = Triggers + 1
             end
-            if mod:JimboHasTrinket(Player, mod.Jokers.MIME) then 
-                Triggers = Triggers + 1
-            end
+
+            Triggers = Triggers + #mod:GetJimboJokerIndex(Player, mod.Jokers.MIME)
 
             --steel cards use the joker stats cause they are variable and need to be reset each time
-            mod:IncreaseJimboStats(Player,0, 0, 1.2^Triggers, false,false)
+            mod:IncreaseJimboStats(Player,0, 0, 1.25^Triggers, false,false)
         end
     end
 end
@@ -2784,6 +2794,7 @@ function mod:MimeCards(card, Player,Flags)
 end
 mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.MimeCards)
 
+
 function mod:RoughGemBackstab(Tear, Split)
 
     local Player = Tear.Parent:ToPlayer()
@@ -2837,7 +2848,7 @@ function mod:PareidoliaCahmpionChance(NPC)
 
             if Joker == mod.Jokers.PAREIDOLIA then
 
-                if mod:TryGamble(Player, Player:GetTrinketRNG(mod.Jokers.PAREIDOLIA), 1.15) then
+                if mod:TryGamble(Player, Player:GetTrinketRNG(mod.Jokers.PAREIDOLIA), 0.2) then
 
                     NPC:MakeChampion(Player:GetTrinketRNG(mod.Jokers.PAREIDOLIA):GetSeed())
                 end
@@ -2985,6 +2996,37 @@ end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.JimboLuckStat, CacheFlag.CACHE_LUCK)
 
 
+function mod:GlitchItems(_,Decrease,Seed)
+
+    if not Decrease then
+        return
+    end
+
+    for _, Player in ipairs(PlayerManager.GetPlayers()) do
+
+        if Player:GetPlayerType() ~= mod.Characters.JimboType then
+            goto skip_player
+        end
+    
+        for Index, Slot in ipairs(mod.Saved.Jimbo.Inventory) do
+            if Slot.Joker == mod.Jokers.MISPRINT then
+
+                if mod:TryGamble(Player, Player:GetTrinketRNG(mod.Jokers.MISPRINT), 0.1) then
+                    
+                    GlichItem = ProceduralItemManager.CreateProceduralItem(Player:GetTrinketRNG(mod.Jokers.MISPRINT):GetSeed(),
+                                                                            ProceduralItemManager.GetProceduralItemCount()+1) -- i guess this is what i'm supposed to do(?)
+
+                    return GlichItem
+                end
+            end
+        end
+    
+        ::skip_player::
+    end
+
+
+end
+mod:AddCallback(ModCallbacks.MC_PRE_GET_COLLECTIBLE, mod.GlitchItems)
 
 
 

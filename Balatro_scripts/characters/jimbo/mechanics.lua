@@ -386,10 +386,11 @@ function mod:SetItemPrices(Variant,SubType,ShopID,Price)
     local Cost = 1
     if Variant == PickupVariant.PICKUP_COLLECTIBLE then
         local Item = ItemsConfig:GetCollectible(SubType)
-        if Item:HasCustomTag("balatro") then --vouchers
+
+        if Item and Item:HasCustomTag("balatro") then --vouchers
             Cost = 10
         else --any item in the game
-            Cost = Item.Quality *2 + 2
+            Cost = Item.Quality *2 + 3
         end
 
     elseif Variant == PickupVariant.PICKUP_TRINKET then --jokers
@@ -1618,8 +1619,8 @@ function mod:AddCardTearFalgs(Tear, Split)
         CardShot = mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.LastShotIndex]
         CardShot.Index = mod.Saved.Jimbo.LastShotIndex --could be useful
     else
-        CardShot = mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize]]
-        CardShot.Index = mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize] --could be useful
+        CardShot = mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[#mod.Saved.Jimbo.CurrentHand]]
+        CardShot.Index = mod.Saved.Jimbo.CurrentHand[#mod.Saved.Jimbo.CurrentHand] --could be useful
     end
 
     
@@ -1690,8 +1691,8 @@ function mod:AddCardTearFalgs(Tear, Split)
 
         Isaac.RunCallback("CARD_SHOT", Player, CardShot, 
         not Game:GetRoom():IsClear() and mod.Saved.Jimbo.FirstDeck 
-        and mod.Saved.Jimbo.Progress.Room.Shots < Player:GetCustomCacheValue("hands")
-        or mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR))
+        and (mod.Saved.Jimbo.Progress.Room.Shots < Player:GetCustomCacheValue("hands")
+        or mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR)))
 
     else
         Tear:ChangeVariant(mod.SUIT_TEAR_VARIANTS[TearData.Params.Suit])

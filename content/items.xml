@@ -53,6 +53,7 @@
     <trinket cache="damage" gfx="loyaltycard_trinket.png" name="Loyalty card" description="Good prize once every while" customtags="!5 5 ?uncommon balatro multm value greedchange copy"/>
     <trinket cache="damage" gfx="supernova_trinket.png" name="Supernova" description="Let it grow..." customtags="!5 0 ?common balatro mult copy"/>
     
+    
     <trinket gfx="sly_joker_trinket.png" name="Sly Joker" description="He's sly" customtags="!2 0 ?common balatro chips copy"/>
     <trinket gfx="wily_joker_trinket.png" name="Wily Joker" description="He's wily" customtags="!2 0 ?common balatro chips copy"/>
     <trinket gfx="clever_joker_trinket.png" name="Clever Joker" description="He's clever" customtags="!2 0 ?common balatro chips copy"/>

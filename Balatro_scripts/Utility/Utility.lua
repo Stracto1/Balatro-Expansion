@@ -901,24 +901,27 @@ function mod:DestroyCard(Player, DeckIndex)
         local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
                                      RandomVector()*3, Player, 0, 1):ToEffect()
 
-        Splat:GetSprite().Color:SetColorize(8,8,8,1)
+        Splat:GetSprite().Color:SetColorize(0.9,0.9,0.9,1) --black
 
 
         Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
         RandomVector()*3, Player, 0, 1):ToEffect()
 
-        Splat:GetSprite().Color:SetColorize(1.5,3,15,0.8)
+        Splat:GetSprite().Color:SetColorize(1.5,3,15,0.8) -- blue
 
 
         Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
                                      RandomVector()*3, Player, 0, 1):ToEffect()
 
-        Splat:GetSprite().Color:SetColorize(1.5,3,15,0.8)
+        Splat:GetSprite().Color:SetColorize(6,0,0,2) --red
 
         Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
         RandomVector()*3, Player, 0, 1):ToEffect()
 
-        Splat:GetSprite().Color:SetColorize(6,1.2,0.9,3)
+        Splat:GetSprite().Color:SetColorize(6,1.2,0.9,3) --orange
+
+
+        sfx:Play(SoundEffect.SOUND_ROCKET_LAUNCH_SHORT, 1, 2, false, 2 + math.random()*0.05)
 
         return
     
@@ -954,7 +957,7 @@ function mod:DestroyCard(Player, DeckIndex)
             Splat:GetSprite().Color:SetColorize(4,4,4.25,1)
         end
     
-        sfx:Play(SoundEffect.SOUND_SCYTHE_BREAK, 1, 2, false, 1 + math.random()*0.05)
+        sfx:Play(SoundEffect.SOUND_POT_BREAK, 1, 2, false, 1.5 + math.random()*0.05)
     
     elseif CardParams.Enhancement == mod.Enhancement.MULT then
 
@@ -998,7 +1001,7 @@ function mod:DestroyCard(Player, DeckIndex)
 
     elseif CardParams.Enhancement == mod.Enhancement.GOLDEN then
 
-        for i=1, 10 do
+        for i=1, 14 do
             local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.COIN_PARTICLE, Player.Position,
                                      RandomVector()*3, Player, 0, 1):ToEffect()
     
@@ -1047,10 +1050,10 @@ function mod:DestroyCard(Player, DeckIndex)
 end
 
 ---@param Effect EntityEffect
-local function NoBloodSplats(Effect)
+function mod:NoBloodSplats(Effect)
 
     if CardGotDestroyed then --tried for like an hour to get some way of recognising theese specific blood splats but no luck
         Effect:Remove()
     end
 end
-mod:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT, NoBloodSplats, EffectVariant.BLOOD_SPLAT)
+mod:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT, mod.NoBloodSplats, EffectVariant.BLOOD_SPLAT)
