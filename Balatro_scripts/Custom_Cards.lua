@@ -324,6 +324,7 @@ function mod:CardPacks(card, Player,_)
             local RandomCard = {}
             RandomCard.Suit = PackRng:RandomInt(1, 4)
             RandomCard.Value = PackRng:RandomInt(1,13)
+            RandomCard.Upgrades = 0
 
             if PackRng:RandomFloat() < 0.4 then
                 RandomCard.Enhancement = PackRng:RandomInt(2,9) 

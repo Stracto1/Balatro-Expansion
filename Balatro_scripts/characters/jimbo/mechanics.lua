@@ -8,6 +8,11 @@ local ENHANCEMENTS_ANIMATIONS = {"Base","Mult","Bonus","Wild","Glass","Steel","S
 local HAND_TYPE_NAMES = {"high card","pair","Two pair","three of a kind","straight","flush","full house","four of a kind", "straight flush", "royal flush","five of a kind","fluah house","flush five"}
 HAND_TYPE_NAMES[0] = "none"
 
+local JokerOverlaySprite = Sprite("gfx/Specia_Joker_Overlay.anm2")
+JokerOverlaySprite:Play("Idle")
+
+local JOKER_OVERLAY_LENGTH = JokerOverlaySprite:GetAnimationData("Idle"):GetLength()
+
 local CHARGED_ANIMATION = 22 --the length of an animation for chargebars
 local CHARGED_LOOP_ANIMATION = 10
 
@@ -913,14 +918,23 @@ mod:AddCallback(ModCallbacks.MC_GET_TRINKET, mod.JimboTrinketPool)
 ---@param Trinket EntityPickup
 function mod:TrinketEditionsRender(Trinket, Offset)
     local Index = Level:GetCurrentRoomDesc().ListIndex
-    local Tname = ItemsConfig:GetTrinket(Trinket.SubType).Name
+    local JokerConfig = ItemsConfig:GetTrinket(Trinket.SubType)
 
     --some precautions
     mod.Saved.Jimbo.FloorEditions[Index] = mod.Saved.Jimbo.FloorEditions[Index] or {}
-    mod.Saved.Jimbo.FloorEditions[Index][Tname] = mod.Saved.Jimbo.FloorEditions[Index][Tname] or 0
-
+    mod.Saved.Jimbo.FloorEditions[Index][JokerConfig.Name] = mod.Saved.Jimbo.FloorEditions[Index][JokerConfig.Name] or 0
 
     Trinket:GetSprite():SetCustomShader(mod.EditionShaders[mod.Saved.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name]])
+
+    if Trinket.SubType == mod.Jokers.HOLOGRAM then
+        JokerOverlaySprite:ReplaceSpritesheet(0, JokerConfig.GfxFileName)
+        JokerOverlaySprite:SetFrame(Trinket.FrameCount % JOKER_OVERLAY_LENGTH)
+
+        local Frame = Trinket:GetSprite():GetCurrentAnimationData():GetLayer(0):GetFrame(Trinket:GetSprite():GetFrame())
+
+        ---@diagnostic disable-next-line: need-check-nil
+        JokerOverlaySprite:Render(Isaac.WorldToRenderPosition(Trinket.Position) + Offset + Frame:GetPos() - Frame:GetPivot() + Vector(16,16))
+    end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PICKUP_RENDER, mod.TrinketEditionsRender, PickupVariant.PICKUP_TRINKET)
 
@@ -1212,7 +1226,7 @@ function mod:JimboStatCalculator(Player, Cache)
 
     if Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
 
-        Player.Damage = Player.Damage / 3.50
+        Player.Damage = (Player.Damage / 3.50)^0.75
 
 
         --local AddedDamage = Player.Damage - 1
@@ -1233,7 +1247,7 @@ function mod:JimboStatCalculator(Player, Cache)
     if Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then
 
         --sets the tears cap to 2
-        Player.MaxFireDelay = mod:CalculateMaxFireDelay(mod:CalculateTears(Player.MaxFireDelay) / 2.73)
+        Player.MaxFireDelay = mod:CalculateMaxFireDelay((mod:CalculateTears(Player.MaxFireDelay)/ 2.73)^0.75)
 
 
         --Player.MaxFireDelay = math.max(Player.MaxFireDelay, mod:CalculateMaxFireDelay(mod.JimboMaxTears * MaxTearsMult))
@@ -1301,7 +1315,7 @@ function mod:StatReset(Player, Damage, Tears, Evaluate, Jokers, Basic)
     end
     if Tears then
         if Basic then
-            mod.Saved.Jimbo.StatsToAdd.Tears = 0
+            mod.Saved.Jimbo.StatsToAdd.Tears = 1
         end
         if Jokers then
             mod.Saved.Jimbo.StatsToAdd.JokerTears = 0
@@ -1688,11 +1702,12 @@ function mod:AddCardTearFalgs(Tear, Split)
             Player:AnimateSad()
         end
 
+        if not Game:GetRoom():IsClear() and mod.Saved.Jimbo.FirstDeck
+           and (mod.Saved.Jimbo.Progress.Room.Shots < Player:GetCustomCacheValue("hands")
+           or mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR)) then
 
-        Isaac.RunCallback("CARD_SHOT", Player, CardShot, 
-        not Game:GetRoom():IsClear() and mod.Saved.Jimbo.FirstDeck 
-        and (mod.Saved.Jimbo.Progress.Room.Shots < Player:GetCustomCacheValue("hands")
-        or mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR)))
+            Isaac.RunCallback("CARD_SHOT", Player, CardShot, true)
+        end
 
     else
         Tear:ChangeVariant(mod.SUIT_TEAR_VARIANTS[TearData.Params.Suit])
@@ -1962,20 +1977,9 @@ function mod:Select(Player)
         if TruePurpose == mod.SelectionParams.Purposes.StandardPack then
             local SelectedCard = mod.SelectionParams.PackOptions[mod.SelectionParams.Index]
 
-            table.insert(mod.Saved.Jimbo.FullDeck,1, SelectedCard) --adds it tp pos 1 so it can't be seen again
-
-            for i,_ in ipairs(mod.Saved.Jimbo.CurrentHand) do
-                mod.Saved.Jimbo.CurrentHand[i] = mod.Saved.Jimbo.CurrentHand[i] + 1 --fixes the jump made by table.insert
-            end
-            mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer + 1 --fixes the jump made by table.insert
-
-            table.insert(mod.Saved.Jimbo.CurrentHand, 1) --adds it tp pos 1 so it can't be seen again
+            mod:AddCardToDeck(Player, SelectedCard, 1, true)
 
             mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, nil, "Added!",mod.Packs.STANDARD)
-
-            mod.LastCardFullPoss = {} --does wierd stuff otherwise
-
-            Isaac.RunCallback("DECK_SHIFT", Player)
 
         elseif TruePurpose == mod.SelectionParams.Purposes.BuffonPack then
 
@@ -2119,16 +2123,9 @@ function mod:UseSelection(Player)
                     table.insert(selection, mod.Saved.Jimbo.CurrentHand[i]) --gets the card that will be modified
                 end
             end
-            table.sort(selection, function (a, b) --sorts it so table.remove doesn't move needed values
-                if a > b then
-                    return true
-                end
-                return false
-            end)
-            for _,v in ipairs(selection) do
-                mod:DestroyCard(Player, v)
-                
-            end
+
+            mod:DestroyCards(Player, selection, true)
+
             Isaac.RunCallback("DECK_SHIFT", Player)
         elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.STRENGTH then
             for i,v in ipairs(mod.SelectionParams.SelectedCards) do
@@ -2151,22 +2148,7 @@ function mod:UseSelection(Player)
                 end
             end
 
-            for i=1, 2 do
-                table.insert(mod.Saved.Jimbo.FullDeck,1, Chosen) --adds it to pos 1 so it can't be seen again
-            end
-
-            for i,_ in ipairs(mod.Saved.Jimbo.CurrentHand) do
-                mod.Saved.Jimbo.CurrentHand[i] = mod.Saved.Jimbo.CurrentHand[i] + 2 --fixes the jump made by table.insert
-            end
-            mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer + 2 --fixes the jump made by table.insert
-
-            for i=1, 2 do
-                table.insert(mod.Saved.Jimbo.CurrentHand, i) --adds it tp pos 1 so it can't be seen again
-            end
-
-            mod.LastCardFullPoss = {} --does wierd stuff otherwise
-
-            Isaac.RunCallback("DECK_SHIFT", Player)
+            mod:AddCardToDeck(Player, Chosen, 2, true)
 
         elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.AURA then
             for i,v in ipairs(mod.SelectionParams.SelectedCards) do

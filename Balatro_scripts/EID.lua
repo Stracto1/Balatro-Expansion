@@ -163,7 +163,7 @@ EID:addTrinket(mod.Jokers.BULL, "{{PlayerJimbo}} {{Tears}} {{ColorChips}}+0.15 {
 EID:addTrinket(mod.Jokers.INVISIBLE_JOKER, "{{PlayerJimbo}} Selling this joker after clearing 3 Blinds while holding it gives a copy of another held Joker", "Invisible Joker", "en_us")
 EID:addTrinket(mod.Jokers.ABSTRACT_JOKER, "{{PlayerJimbo}} {{Damage}} {{ColorMult}}+0.15 {{CR}} Damage per Joker held #{{PlayerJimbo}} {{Damage}} {{ColorMult}}+0.03 {{CR}} Damage per Collectible held", "Abstract Joker", "en_us")
 EID:addTrinket(mod.Jokers.MISPRINT, "{{PlayerJimbo}} {{Damage}} {{ColorMult}}+0-1 {{CR}} random Damage Up every new room #{{PlayerJimbo}} {{ColorMint}}10% Chance{{CR}} for any item to become a gliched one upon spawning", "Misprint", "en_us")
-EID:addTrinket(mod.Jokers.JOKER_STENCIL, "{{PlayerJimbo}} {{ColorMult}} +0.15X {{CR}}Damage Multiplier for every Joker slot being {{ColorYellorange}}empty{{CR}} or containing another {{ColorYellorange}}Joker Stencil{{CR}}#Not having any {{Collectible}}Active item counts as an additional empty slot", "Joker Stencil", "en_us")
+EID:addTrinket(mod.Jokers.JOKER_STENCIL, "{{PlayerJimbo}} {{ColorMult}}+0.75X{{CR}} Damage Multiplier for every Joker slot being {{ColorYellorange}}empty{{CR}} or containing another {{ColorYellorange}}Joker Stencil{{CR}}#Not having any {{Collectible}}Active item gives and additional {{ColorMult}}+0.25X{{CR}} Damage Multiplier", "Joker Stencil", "en_us")
 EID:addTrinket(mod.Jokers.STONE_JOKER, "{{PlayerJimbo}} {{Tears}} {{ColorChips}}+1.25 {{CR}}Tears for every for every stone card in the player's full deck", "Stone Joker", "en_us")
 EID:addTrinket(mod.Jokers.ICECREAM, "{{PlayerJimbo}} {{Tears}} {{ColorChips}}+4 {{CR}}Tears#Loses {{ColorChips}}-0.16{{CR}} Tears every room completed while held", "Icecream", "en_us")
 EID:addTrinket(mod.Jokers.POPCORN, "{{PlayerJimbo}} {{Damage}} {{ColorMult}}+1 {{CR}}Damage #Loses {{ColorMult}}-0.2{{CR}} Damage when clearing any blind", "Popcorn", "en_us")
@@ -205,7 +205,7 @@ EID:addTrinket(mod.Jokers.SLY_JOKER, "{{PlayerJimbo}} {{ColorChips}}+4 {{CR}}Tea
 EID:addTrinket(mod.Jokers.WILY_JOKER, "{{PlayerJimbo}} {{ColorChips}}+8 {{CR}}Tears if a {{ColorYellorange}}Three of a kind{{CR}} is held when entering a room", "Joker", "en_us")
 EID:addTrinket(mod.Jokers.CLEVER_JOKER, "{{PlayerJimbo}} {{ColorChips}}+7 {{CR}}Tears if a {{ColorYellorange}}Two-pair{{CR}} is held when entering a room", "Joker", "en_us")
 EID:addTrinket(mod.Jokers.DEVIOUS_JOKER, "{{PlayerJimbo}} {{ColorChips}}+12 {{CR}}Tears if a {{ColorYellorange}}Straight{{CR}} is held when entering a room", "Joker", "en_us")
-EID:addTrinket(mod.Jokers.CRAFY_JOKER, "{{PlayerJimbo}} {{ColorChips}}+9 {{CR}}Tears if a {{ColorYellorange}}Flush{{CR}} is held when entering a room", "Joker", "en_us")
+EID:addTrinket(mod.Jokers.CRAFTY_JOKER, "{{PlayerJimbo}} {{ColorChips}}+9 {{CR}}Tears if a {{ColorYellorange}}Flush{{CR}} is held when entering a room", "Joker", "en_us")
 EID:addTrinket(mod.Jokers.JOLLY_JOKER, "{{PlayerJimbo}} {{ColorMult}}+1 {{CR}}Damage if a {{ColorYellorange}}Pair{{CR}} is held when entering a room", "Joker", "en_us")
 EID:addTrinket(mod.Jokers.ZANY_JOKER, "{{PlayerJimbo}} {{ColorMult}}+2 {{CR}}Damage if a {{ColorYellorange}}Three of a kind{{CR}} is held when entering a room", "Joker", "en_us")
 EID:addTrinket(mod.Jokers.MAD_JOKER, "{{PlayerJimbo}} {{ColorMult}}+1.75 {{CR}}Damage if a {{ColorYellorange}}Two-pair{{CR}} is held when entering a room", "Joker", "en_us")
@@ -238,17 +238,18 @@ EID:addTrinket(mod.Jokers.PAREIDOLIA, "{{PlayerJimbo}} Every played card counts 
 EID:addTrinket(mod.Jokers.SCHOLAR, "{{PlayerJimbo}} {{ColorMult}}+0.04{{CR}} Damage and {{ColorChips}}+0.1{{CR}} Tears per {{ColorYellorange}}Ace{{CR}} triggered", "Scholar", "en_us")
 EID:addTrinket(mod.Jokers.BUSINESS_CARD, "{{PlayerJimbo}} {{ColorMint}}1/2 Chance{{CR}} to spawn 2 vanishing Pennies when a {{ColorYellorange}}Face card{{CR}} is triggered #Gain the {{Collectible602}} Member Card effect", "Business Card", "en_us")
 EID:addTrinket(mod.Jokers.RIDE_BUS, "{{PlayerJimbo}} {{ColorMult}}+0.01 {{CR}}Damage per consecutive {{ColorYellorange}}non-Face card{{CR}} triggered", "Ride the Bus", "en_us")
-EID:addTrinket(mod.Jokers.SPACE_JOKER, "{{PlayerJimbo}} {{ColorMint}}1/20 Chance{{CR}} to upgrade the played card value's level #Gains an additional {{ColorMint}}1/20 Chance{{CR}} per {{ColorYellorange}}Star-related{{CR}} Item held", "Spacw Joker", "en_us")
+EID:addTrinket(mod.Jokers.SPACE_JOKER, "{{PlayerJimbo}} {{ColorMint}}1/20 Chance{{CR}} to upgrade the played card value's level #Gains an additional {{ColorMint}}1/20 Chance{{CR}} per {{ColorYellorange}}Star-related{{CR}} Item held", "Space Joker", "en_us")
 EID:addTrinket(mod.Jokers.BURGLAR, "{{PlayerJimbo}} Sets your Hp to {{ColorRed}}1{{CR}}#Cards can be triggered until the deck gets {{ColorYellorange}}reshuffled{{CR}} every room", "Burglar", "en_us")
 EID:addTrinket(mod.Jokers.BLACKBOARD, "{{PlayerJimbo}} {{ColorMult}}x2 {{CR}}Damage Multiplier if all cards held in hand are {{ColorGray}}Spades{{CR}} or {{ColorChips}}Clubs{{CR}}", "Blackboard", "en_us")
-EID:addTrinket(mod.Jokers.RUNNER, "{{PlayerJimbo}} {{ColorMult}}+0.2 {{CR}}Damage PLACEHOLDER", "Runner", "en_us") --PLACEHOLDER
-EID:addTrinket(mod.Jokers.SPLASH, "{{PlayerJimbo}} Triggers all cards in hand upon entering a hostile STILL DOES NOTHING", "Splash", "en_us") --PLACEHOLDER
-EID:addTrinket(mod.Jokers.BLUE_JOKER, "{{PlayerJimbo}} {{ColorMult}}+0.2 {{CR}}Damage PLACEHOLDER", "Joker", "en_us") --PLACEHOLDER
-EID:addTrinket(mod.Jokers.SIXTH_SENSE, "{{PlayerJimbo}} {{ColorMult}}+0.2 {{CR}}Damage PLACEHOLDER", "Joker", "en_us") --PLACEHOLDER
-EID:addTrinket(mod.Jokers.CONSTELLATION, "{{PlayerJimbo}} {{ColorMult}}+0.2 {{CR}}Damage PLACEHOLDER", "Joker", "en_us") --PLACEHOLDER
-EID:addTrinket(mod.Jokers.HIKER, "{{PlayerJimbo}} {{ColorMult}}+0.2 {{CR}}Damage PLACEHOLDER", "Joker", "en_us") --PLACEHOLDER
-EID:addTrinket(mod.Jokers.FACELESS, "{{PlayerJimbo}} {{ColorMult}}+0.2 {{CR}}Damage PLACEHOLDER", "Joker", "en_us") --PLACEHOLDER
-EID:addTrinket(mod.Jokers.SUPERPOSISION, "{{PlayerJimbo}} {{ColorMult}}+0.2 {{CR}}Damage PLACEHOLDER", "Joker", "en_us") --PLACEHOLDER
+EID:addTrinket(mod.Jokers.RUNNER, "{{PlayerJimbo}} This joker gains {{ColorChips}}+2 {{CR}}Tears when entering an {{ColorYellorange}}unexplored{{CR}} room while holding a {{ColorYellorange}}Straight{{CR}} in hand #{{Speed}} +0.15 Speed", "Runner", "en_us")
+EID:addTrinket(mod.Jokers.SPLASH, "{{PlayerJimbo}} Triggers all cards in hand upon entering a hostile room", "Splash", "en_us")
+EID:addTrinket(mod.Jokers.BLUE_JOKER, "{{PlayerJimbo}} {{ColorChips}}+0.1 {{CR}}Tears per remaining card in your deck", "Blue Joker", "en_us")
+EID:addTrinket(mod.Jokers.SIXTH_SENSE, "{{PlayerJimbo}} If the {{ColorYellorange}}First{{CR}} card played in a {{ColorYellorange}}Blind{{CR}} is a {{ColorYellorange}}6{{CR}} and hits an enemy, it gets destroyed and spawns a {{ColorBlue}}Spectral Pack{{CR}}", "Sixth Sense", "en_us")
+EID:addTrinket(mod.Jokers.CONSTELLATION, "{{PlayerJimbo}} This Jokers gains {{ColorMult}}+0.04X{{CR}} Damage Multiplier every time a {{ColorCyan}}Planet Card{{CR}} is used while holding it", "Constellation", "en_us")
+EID:addTrinket(mod.Jokers.HIKER, "{{PlayerJimbo}} {{ColorYellorange}}Triggering{{CR}} a card gives it a {{ColorYellorange}}permanent{{CR}} {{ColorMult}}+0.02{{CR}} Tears upgrade", "Hiker", "en_us")
+EID:addTrinket(mod.Jokers.FACELESS, "{{PlayerJimbo}} Gain {{ColorMult}}+3${{CR}} when discarding {{ColorYellorange}}at least 2 Face cards{{CR}} at the same time #If only {{ColorYellorange}}Non-boss champion{{CR}} enemies are left in the room, they are {{ColorYellorange}}killed instantly{{CR}} spawning a vanishing penny", "Faceless Joker", "en_us")
+EID:addTrinket(mod.Jokers.SUPERPOSISION, "{{PlayerJimbo}} Entering an {{ColorYellorange}}unexplored{{CR}} room while holding a {{ColorYellorange}}Straight{{CR}} and an {{ColorYellorange}}Ace{{CR}} spawns an {{ColorPink}}Arcana Pack{{CR}} #Grants 2 {{Collectible128}} Forever Alone Flies", "Superposition", "en_us")
+EID:addTrinket(mod.Jokers.TO_DO_LIST, "{{PlayerJimbo}} A random {{ColorYellorange}}Card value{{CR}} is chosen upon entering an hostile room #{{ColorYellorange}}Playing{{CR}} a card with that value spawns a vanishing penny", "To Do List", "en_us")
 
 
 
@@ -509,8 +510,11 @@ local function BalatroInventoryCallback(descObj)
 
                 elseif JokerConfig:HasCustomTag("money") then
                     if SelectedCard == mod.Jokers.CLOUD_NINE then
-                        Description = Description.." #!!! Last payout:{{ColorYellorange}} "..tostring(Value).."${{CR}}"
+                        Description = Description.." #!!! Currently gives:{{ColorYellorange}} "..tostring(Value).."${{CR}}"
 
+                    elseif SelectedCard == mod.Jokers.TO_DO_LIST then
+
+                        Description = Description.." #!!! -Play {{ColorYellorange}} "..tostring(Value).."s{{CR}}"
                     else
                         Description = Description.." #!!! Currently:{{ColorYellorange}} "..tostring(Value).."${{CR}}"
                     end

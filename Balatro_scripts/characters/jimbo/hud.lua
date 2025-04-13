@@ -5,6 +5,8 @@ local ItemsConfig = Isaac.GetItemConfig()
 local sfx = SFXManager()
 
 local TrinketSprite = Sprite("gfx/005.350_custom.anm2")
+local JokerOverlaySprite = Sprite("gfx/Specia_Joker_Overlay.anm2")
+JokerOverlaySprite:Play("Idle")
 local JactivateLength = TrinketSprite:GetAnimationData("Effect"):GetLength()
 
 local JimboCards = {PlayingCards = Sprite("gfx/ui/PlayingCards.anm2"),
@@ -44,7 +46,7 @@ local CHARGE_BAR_OFFSET = Vector(17,-30)
 
 
 local HandsBar = Sprite("gfx/Cards_Bar.anm2")
-HandsBar.Scale=Vector(0.5,0.5)
+local HandsBarFilling = Sprite("gfx/Cards_Bar_Filling.anm2")
 
 local CardFrame = Sprite("gfx/ui/CardSelection.anm2")
 CardFrame:SetAnimation("Frame")
@@ -54,9 +56,11 @@ local Edition_Overlay = Sprite("gfx/ui/Edition Overlay.anm2", true) --used on th
 local CHARGED_ANIMATION = 22 --the length of an animation for chargebars
 local CHARGED_LOOP_ANIMATION = 10
 
-local DECK_RENDERING_POSITION = Vector(85,11) --in screen coordinates
+local DECK_RENDERING_POSITION = Vector(110,15) --in screen coordinates
+local HAND_RENDERING_POSITION = Vector(40,30) --in screen coordinates
 local INVENTORY_RENDERING_POSITION = Vector(5,250)
 --local DECK_RENDERING_POSITION = Isaac.WorldToRenderPosition(Isaac.ScreenToWorld(Vector(760,745)))
+
 local HUD_FRAME = {}
 HUD_FRAME.Frame = 0
 HUD_FRAME.Dollar = 1
@@ -81,9 +85,12 @@ function mod:JimboInventoryHUD(offset,_,Position,_,Player)
         return
     end
 
+    local BasePos = INVENTORY_RENDERING_POSITION + Vector(20, -14)*Options.HUDOffset
+
     for i,Slot in ipairs(mod.Saved.Jimbo.Inventory) do
 
-        local RenderPos = INVENTORY_RENDERING_POSITION + Vector(19*i , 0)
+        local RenderPos = BasePos + Vector(19*i , 0)
+        local JokerConfig = ItemsConfig:GetTrinket(Slot.Joker)
 
         if Slot.Joker == 0 then
 
@@ -95,7 +102,7 @@ function mod:JimboInventoryHUD(offset,_,Position,_,Player)
                mod.SelectionParams.SelectedCards[i] then
                 RenderPos.Y = RenderPos.Y - 9
             end
-            TrinketSprite:ReplaceSpritesheet(0, ItemsConfig:GetTrinket(Slot.Joker).GfxFileName, true)
+            TrinketSprite:ReplaceSpritesheet(0, JokerConfig.GfxFileName, true)
             if mod.Counters.Activated[i] then
                 TrinketSprite:SetFrame("Effect", mod.Counters.Activated[i])
 
@@ -110,6 +117,15 @@ function mod:JimboInventoryHUD(offset,_,Position,_,Player)
         end
 
         TrinketSprite:Render(RenderPos)
+
+        if Slot.Joker == mod.Jokers.HOLOGRAM then
+            JokerOverlaySprite:ReplaceSpritesheet(0, JokerConfig.GfxFileName, true)
+            JokerOverlaySprite:Render(RenderPos)
+        end
+    end
+
+    if Isaac.GetFrameCount()% 2 == 0 then
+        JokerOverlaySprite:Update()
     end
 
     if mod.SelectionParams.Mode == mod.SelectionParams.Modes.INVENTORY then
@@ -147,20 +163,9 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
         return
     end
 
-    ------DECK RENDERING----------
-
-    local CardsLeft = math.max((#mod.Saved.Jimbo.FullDeck - mod.Saved.Jimbo.DeckPointer)+1, 0)
-
-    --shows how many cards are left in the deck
-    DeckSprite:SetFrame("idle", math.ceil(CardsLeft/7))
-
-    local HeartsOffset = Vector(3.5 * math.min(Player:GetMaxHearts(),12),0)
-
-    DeckSprite:Render(DECK_RENDERING_POSITION + Vector(20, 14)*Options.HUDOffset + HeartsOffset)
-
     -------STATS COUNTER RENDERING---------
     
-    local ChipsPos = Vector(24,108) + Vector(20, 14)*Options.HUDOffset
+    local ChipsPos = Vector(24,108) + Vector(20, 13)*Options.HUDOffset
     local MultPos = ChipsPos + Vector(0,12)
 
 
@@ -307,6 +312,40 @@ end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.JimboDeckHUD)
 
 
+function mod:HandBarRender(offset,_,Position,_,Player)
+    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+        return
+    end
+
+    local Animation = HandsBarFilling:GetAnimationData("Charge On_"..tostring(Player:GetCustomCacheValue("hands")))
+
+    local Frame = Animation:GetLength() --full bar
+
+    if not mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR) then
+        Frame = Animation:GetLength() - math.ceil((mod.Saved.Jimbo.Progress.Room.Shots/Player:GetCustomCacheValue("hands"))*Animation:GetLength())
+    end
+
+    if mod.Saved.Jimbo.FirstDeck and not Game:GetRoom():IsClear() then
+        --HandsBar:SetFrame("Charge On", Frame)
+        HandsBarFilling.Color:SetColorize(0,0,1,1)
+    else
+        --HandsBar:SetFrame("Charge Off", Frame)
+        HandsBarFilling.Color:SetColorize(1,0,0,1)
+    end
+    --HandsBar:PlayOverlay("overlay_"..tostring(Player:GetCustomCacheValue("hands")))
+
+    --HandsBar:SetOverlayFrame(0)
+    HandsBar:SetFrame(Animation:GetName(), 0)
+    HandsBarFilling:SetFrame(Animation:GetName(), Frame)
+
+
+    HandsBar:Render(HAND_RENDERING_POSITION)
+    HandsBarFilling:Render(HAND_RENDERING_POSITION)
+end
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.HandBarRender)
+
+
+
 --rendere the player's current hand below them
 local ScaleMult = 0.5
 ---@param Player EntityPlayer
@@ -314,6 +353,9 @@ function mod:JimboHandRender(Player, Offset)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
+
+    local PlayerScreenPos = Isaac.WorldToRenderPosition(Player.Position)
+
 
     local TargetScale = 0.5
     if mod.SelectionParams.Mode == mod.SelectionParams.Modes.HAND then
@@ -324,7 +366,6 @@ function mod:JimboHandRender(Player, Offset)
         ScaleMult = mod:Lerp(1.5 - TargetScale,TargetScale, mod.SelectionParams.Frames/5)
     end
 
-    local PlayerScreenPos = Isaac.WorldToRenderPosition(Player.Position)
     local BaseRenderOff = Vector(-7 *(#mod.Saved.Jimbo.CurrentHand-1), 26 ) * ScaleMult
 
     local RenderOff = BaseRenderOff + Vector.Zero
@@ -404,21 +445,18 @@ function mod:JimboHandRender(Player, Offset)
         end]]
 
     else
-        local Frame = 25 --full bar
-        
-        if not mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR) then
-            Frame = math.ceil((mod.Saved.Jimbo.Progress.Room.Shots/Player:GetCustomCacheValue("hands")) * -26 + 26)
-        end
-        
-        if mod.Saved.Jimbo.FirstDeck and not Game:GetRoom():IsClear() then
-            HandsBar:SetFrame("Charge On", Frame)
-        else
-            HandsBar:SetFrame("Charge Off", Frame)
-        end
-        HandsBar:PlayOverlay("overlay_"..tostring(Player:GetCustomCacheValue("hands")))
-        --HandsBar:SetOverlayFrame(0)
+        ------DECK RENDERING----------
 
-        HandsBar:Render(PlayerScreenPos + RenderOff + Offset)
+        local CardsLeft = math.max((#mod.Saved.Jimbo.FullDeck - mod.Saved.Jimbo.DeckPointer)+1, 0)
+
+        --shows how many cards are left in the deck
+        DeckSprite:SetFrame("idle", math.ceil(CardsLeft/7))
+
+        DeckSprite.Scale = Vector.One/2
+        --local HeartsOffset = Vector(3.5 * math.min(Player:GetMaxHearts(),12),0)
+
+        --DeckSprite:Render(DECK_RENDERING_POSITION + Vector(20, 14)*Options.HUDOffset + HeartsOffset)
+        DeckSprite:Render(PlayerScreenPos + Offset + BaseRenderOff - Vector(9.5,0))
 
 
 
@@ -429,7 +467,7 @@ function mod:JimboHandRender(Player, Offset)
         CardFrame:Render(PlayerScreenPos + RenderOff + Offset)
     end
 end
-mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_RENDER, mod.JimboHandRender,PlayerVariant.PLAYER)
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_RENDER, mod.JimboHandRender,PlayerVariant.PLAYER)
 
 
 --handles the charge bar when the player is selecting cards
@@ -627,10 +665,3 @@ function mod:DebtIndicator(_,_,_,_,Player)
 
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.DebtIndicator)
-
-
-function CryptidUse(ID)
-
-
-end
-mod:AddCallback(ModCallbacks.MC_USE_CARD, CryptidUse)

@@ -100,6 +100,12 @@ Balatro_Expansion.Jokers.SUPERPOSISION = Isaac.GetTrinketIdByName("Superposition
 Balatro_Expansion.Jokers.TO_DO_LIST = Isaac.GetTrinketIdByName("To Do List")
 
 
+
+
+Balatro_Expansion.Jokers.HOLOGRAM = Isaac.GetTrinketIdByName("Hologram")
+
+
+
 --------------------------------
 CollectibleType.COLLECTIBLE_THE_HAND = Isaac.GetItemIdByName("The hand")
 ----------------------------------
@@ -423,12 +429,13 @@ for i = 1, 4, 1 do --cycles between the suits
         Balatro_Expansion.Saved.Jimbo.FullDeck[index].Enhancement = Balatro_Expansion.Enhancement.NONE
         Balatro_Expansion.Saved.Jimbo.FullDeck[index].Seal = Balatro_Expansion.Seals.NONE
         Balatro_Expansion.Saved.Jimbo.FullDeck[index].Edition = Balatro_Expansion.Edition.BASE
+        Balatro_Expansion.Saved.Jimbo.FullDeck[index].Upgrades = 0 --only used for the Hiker joker
         index = index +1
     end
 end
 end
 Balatro_Expansion.Saved.Jimbo.DeckPointer = 6 --the card that is going to be picked next
-Balatro_Expansion.Saved.Jimbo.CurrentHand = {5,4,3,2,1} --the pointers of the cards in FullDeck that are stored in "the hand" active item
+Balatro_Expansion.Saved.Jimbo.CurrentHand = {5,4,3,2,1} --the indexes leding to the cards in FullDeck
 Balatro_Expansion.Saved.Jimbo.LastShotIndex = 0
 
 --these two don't do anything directly and are only used to not call #table every time
@@ -445,13 +452,16 @@ Balatro_Expansion.Saved.Jimbo.BossCleared = 0  --0 = no | 1 = partially | 2 = ye
 
 Balatro_Expansion.StatEnable = false --needed cause i hate my life
 Balatro_Expansion.Saved.Jimbo.StatsToAdd = {}
+--basic stat ups that always apply 
 Balatro_Expansion.Saved.Jimbo.StatsToAdd.Damage = 0
-Balatro_Expansion.Saved.Jimbo.StatsToAdd.Tears = 0
+Balatro_Expansion.Saved.Jimbo.StatsToAdd.Tears = 1
 Balatro_Expansion.Saved.Jimbo.StatsToAdd.Mult = 1
+--joker stat ups which need to be re-evaluated each time
 Balatro_Expansion.Saved.Jimbo.StatsToAdd.JokerDamage = 0
 Balatro_Expansion.Saved.Jimbo.StatsToAdd.JokerTears = 0
 Balatro_Expansion.Saved.Jimbo.StatsToAdd.JokerMult = 1
 
+--list keeping in memory every "invisible" item given by jokers and such 
 Balatro_Expansion.Saved.Jimbo.InnateItems = {}
 Balatro_Expansion.Saved.Jimbo.InnateItems.General = {}
 Balatro_Expansion.Saved.Jimbo.InnateItems.Hack = {}
@@ -484,7 +494,7 @@ Balatro_Expansion.Saved.Jimbo.EctoUses = 0 --how many times the Ectoplasm card g
 
 
 Balatro_Expansion.Saved.Jimbo.TrueDamageValue = 1 --used to surpass the usual 0.5 minimum damage cap (got this idea from isaacguru's Utility Commands)
-Balatro_Expansion.Saved.Jimbo.TrueTearsValue = 1
+Balatro_Expansion.Saved.Jimbo.TrueTearsValue = 2
 
 Balatro_Expansion.Saved.Jimbo.Inventory = {}
 for i=1,3 do

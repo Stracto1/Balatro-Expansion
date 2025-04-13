@@ -113,6 +113,7 @@ function mod:OnGameStart(Continued)
                 mod.Saved.Jimbo.FullDeck[index].Enhancement = mod.Enhancement.NONE
                 mod.Saved.Jimbo.FullDeck[index].Seal = mod.Seals.NONE
                 mod.Saved.Jimbo.FullDeck[index].Edition = mod.Edition.BASE
+                mod.Saved.Jimbo.FullDeck[index].Upgrades = 0 --only used for the Hiker joker
                 index = index +1
             end
         end

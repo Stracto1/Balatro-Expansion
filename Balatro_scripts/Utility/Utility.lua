@@ -660,6 +660,7 @@ end
 function mod:SellJoker(Player, Trinket, Slot)
     mod.Saved.Jimbo.Inventory[Slot].Joker = 0
     mod.Saved.Jimbo.Inventory[Slot].Edition = mod.Edition.BASE
+
     local SellValue
     if Trinket == mod.Jokers.EGG then --egg holds its sell value in its progress
         
@@ -681,6 +682,7 @@ function mod:SellJoker(Player, Trinket, Slot)
     end
 
     mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..SellValue.."$")
+
 
     --Isaac.RunCallback("INVENTORY_CHANGE", Player)
     Isaac.RunCallback("JOKER_SOLD", Player, Trinket, Slot)
@@ -858,8 +860,35 @@ function mod:AddJoker(Player, Joker, Edition, StopEval)
 end
 
 
+function mod:AddCardToDeck(Player, CardTable,Amount, PutInHand)
+
+    if Amount <= 0 then
+        return
+    end
+
+    for i=1, Amount do
+        table.insert(mod.Saved.Jimbo.FullDeck,1, CardTable) --adds it to pos 1 so it can't be seen again
+    end
+
+    for i,_ in ipairs(mod.Saved.Jimbo.CurrentHand) do
+        mod.Saved.Jimbo.CurrentHand[i] = mod.Saved.Jimbo.CurrentHand[i] + Amount --fixes the jump made by table.insert
+    end
+    mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer + 2 --fixes the jump made by table.insert
+
+    if PutInHand then
+        for i=1, Amount do
+            table.insert(mod.Saved.Jimbo.CurrentHand, i) --adds it to the hand if necessary
+        end
+    end
+
+    mod.LastCardFullPoss = {} --hud does wierd stuff otherwise
+
+    Isaac.RunCallback("DECK_SHIFT", Player)
+end
+
+
 local CardGotDestroyed = false
-function mod:DestroyCard(Player, DeckIndex)
+function mod:DestroyCards(Player, DeckIndexes, DoEffects)
 
     CardGotDestroyed = true
 
@@ -867,17 +896,36 @@ function mod:DestroyCard(Player, DeckIndex)
         CardGotDestroyed = false
     end,35,1,true)
 
+    table.sort(DeckIndexes, function (a, b) --sorts it so table.remove doesn't shift indexes around
+        if a > b then
+            return true
+        end
+        return false
+    end)
 
-    local CardParams = mod.Saved.Jimbo.FullDeck[DeckIndex]
+    for _, Index in ipairs(DeckIndexes) do
+        local CardParams = mod.Saved.Jimbo.FullDeck[Index]
 
-    table.remove(mod.Saved.Jimbo.FullDeck, DeckIndex)
+        table.remove(mod.Saved.Jimbo.FullDeck, Index)
 
+        print(Player:HasCollectible(CollectibleType.COLLECTIBLE_1UP))
+
+        Isaac.RunCallback("DECK_SHIFT", Player)
+        
+        if DoEffects then
+            mod:CardRipEffect(CardParams, Player.Position)
+        end
+    end
+end
+
+
+function mod:CardRipEffect(CardParams, Position)
 
     if CardParams.Enhancement == mod.Enhancement.STONE then
         
         for i=1, 5 do
-            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.ROCK_PARTICLE, Player.Position,
-                                     RandomVector()*3, Player, 0, 1):ToEffect()
+            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.ROCK_PARTICLE, Position,
+                                     RandomVector()*3, nil, 0, 1):ToEffect()
     
             Splat:GetSprite().Color:SetColorize(3,3.25,3.5,0.85)
 
@@ -891,32 +939,32 @@ function mod:DestroyCard(Player, DeckIndex)
     elseif CardParams.Enhancement == mod.Enhancement.WILD then
 
         for i=1, 2 do
-            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
-                                     RandomVector()*3, Player, 0, 1):ToEffect()
+            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Position,
+                                     RandomVector()*3, nil, 0, 1):ToEffect()
     
             Splat:GetSprite().Color:SetColorize(8,8,8,1)
         end
 
 
-        local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
-                                     RandomVector()*3, Player, 0, 1):ToEffect()
+        local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Position,
+                                     RandomVector()*3, nil, 0, 1):ToEffect()
 
         Splat:GetSprite().Color:SetColorize(0.9,0.9,0.9,1) --black
 
 
-        Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
-        RandomVector()*3, Player, 0, 1):ToEffect()
+        Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Position,
+        RandomVector()*3, nil, 0, 1):ToEffect()
 
         Splat:GetSprite().Color:SetColorize(1.5,3,15,0.8) -- blue
 
 
-        Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
-                                     RandomVector()*3, Player, 0, 1):ToEffect()
+        Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Position,
+                                     RandomVector()*3, nil, 0, 1):ToEffect()
 
         Splat:GetSprite().Color:SetColorize(6,0,0,2) --red
 
-        Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
-        RandomVector()*3, Player, 0, 1):ToEffect()
+        Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Position,
+        RandomVector()*3, nil, 0, 1):ToEffect()
 
         Splat:GetSprite().Color:SetColorize(6,1.2,0.9,3) --orange
 
@@ -928,8 +976,8 @@ function mod:DestroyCard(Player, DeckIndex)
     elseif CardParams.Enhancement == mod.Enhancement.GLASS then
 
         for i=1, 5 do
-            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.WOOD_PARTICLE, Player.Position,
-                                         RandomVector()*3, Player, 0, 1):ToEffect()
+            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.WOOD_PARTICLE, Position,
+                                         RandomVector()*3, nil, 0, 1):ToEffect()
             
             Splat:GetSprite().Color:SetColorize(8,8,8.5,1)
             Splat:GetSprite().Color:SetTint(1,1,1,0.25)
@@ -937,11 +985,11 @@ function mod:DestroyCard(Player, DeckIndex)
 
         sfx:Play(SoundEffect.SOUND_POT_BREAK_2, 1, 2, false, 1.5 + math.random()*0.05) --PLACEHOLDER SOUND
 
-    elseif CardParams.Enhancement == mod.Enhancement.LUCKY then
+            elseif CardParams.Enhancement == mod.Enhancement.LUCKY then
 
         for i=1, 5 do
-            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
-                                     RandomVector()*3, Player, 0, 1):ToEffect()
+            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Position,
+                                     RandomVector()*3, nil, 0, 1):ToEffect()
     
             Splat:GetSprite().Color:SetColorize(5.1,5.1,3.9,1)
         end
@@ -951,30 +999,30 @@ function mod:DestroyCard(Player, DeckIndex)
     elseif CardParams.Enhancement == mod.Enhancement.STEEL then
 
         for i=1, 4 do
-            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.WOOD_PARTICLE, Player.Position,
-                                     RandomVector()*3, Player, 0, 1):ToEffect()
+            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.WOOD_PARTICLE, Position,
+                                     RandomVector()*3, nil, 0, 1):ToEffect()
     
             Splat:GetSprite().Color:SetColorize(4,4,4.25,1)
         end
     
         sfx:Play(SoundEffect.SOUND_POT_BREAK, 1, 2, false, 1.5 + math.random()*0.05)
     
-    elseif CardParams.Enhancement == mod.Enhancement.MULT then
+            elseif CardParams.Enhancement == mod.Enhancement.MULT then
 
         for i=1, 2 do
-            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
-                                     RandomVector()*3, Player, 0, 1):ToEffect()
+            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Position,
+                                     RandomVector()*3, nil, 0, 1):ToEffect()
     
             Splat:GetSprite().Color:SetColorize(8,8,8,1) --white
         end
 
-        local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
-                                     RandomVector()*3, Player, 0, 1):ToEffect()
+        local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Position,
+                                     RandomVector()*3, nil, 0, 1):ToEffect()
 
         Splat:GetSprite().Color:SetColorize(0.9,0.9,1.1,1) -- slightly blueish black
 
-        Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
-                                     RandomVector()*3, Player, 0, 1):ToEffect()
+        Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Position,
+                                     RandomVector()*3, nil, 0, 1):ToEffect()
 
         Splat:GetSprite().Color:SetColorize(6,0,0,2) --red
 
@@ -984,15 +1032,15 @@ function mod:DestroyCard(Player, DeckIndex)
     elseif CardParams.Enhancement == mod.Enhancement.BONUS then
 
         for i=1, 2 do
-            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
-                                     RandomVector()*3, Player, 0, 1):ToEffect()
+            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Position,
+                                     RandomVector()*3, nil, 0, 1):ToEffect()
     
             Splat:GetSprite().Color:SetColorize(8,8,8,1) --white
         end
 
         for i=1, 2 do
-            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
-                                     RandomVector()*3, Player, 0, 1):ToEffect()
+            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Position,
+                                     RandomVector()*3, nil, 0, 1):ToEffect()
     
             Splat:GetSprite().Color:SetColorize(1.5,3,15,0.8) --blue
         end
@@ -1002,8 +1050,8 @@ function mod:DestroyCard(Player, DeckIndex)
     elseif CardParams.Enhancement == mod.Enhancement.GOLDEN then
 
         for i=1, 14 do
-            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.COIN_PARTICLE, Player.Position,
-                                     RandomVector()*3, Player, 0, 1):ToEffect()
+            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.COIN_PARTICLE, Position,
+                                     RandomVector()*3, nil, 0, 1):ToEffect()
     
             --Splat:GetSprite().Color:SetColorize(8,8,8,1)
         end
@@ -1012,8 +1060,8 @@ function mod:DestroyCard(Player, DeckIndex)
 
     else
         for i=1, 5 do
-            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
-                                     RandomVector()*3, Player, 0, 1):ToEffect()
+            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Position,
+                                     RandomVector()*3, nil, 0, 1):ToEffect()
     
             Splat:GetSprite().Color:SetColorize(8,8,8,1)
         end
@@ -1022,11 +1070,11 @@ function mod:DestroyCard(Player, DeckIndex)
 
     end
 
-    local SuitSplat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Player.Position,
-                             RandomVector()*3, Player, 0, 1):ToEffect()
+    local SuitSplat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Position,
+                             RandomVector()*3, nil, 0, 1):ToEffect()
 
     if CardParams.Suit == mod.Suits.Spade then
-        
+
         SuitSplat:GetSprite().Color:SetColorize(0.9,0.9,0.9,1) --black
 
     elseif CardParams.Suit == mod.Suits.Club then
@@ -1046,7 +1094,6 @@ function mod:DestroyCard(Player, DeckIndex)
     if CardParams.Enhancement == mod.Enhancement.GLASS then
         SuitSplat:GetSprite().Color:SetTint(1,1,1,0.5)
     end
-
 end
 
 ---@param Effect EntityEffect
