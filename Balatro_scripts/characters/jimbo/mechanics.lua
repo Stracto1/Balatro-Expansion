@@ -399,22 +399,30 @@ function mod:SetItemPrices(Variant,SubType,ShopID,Price)
         end
 
     elseif Variant == PickupVariant.PICKUP_TRINKET then --jokers
+    
         Cost = mod:GetJokerCost(SubType)
 
     else --prob stuff like booster packs
         Cost = 5
     end
 
+    if Variant ~= PickupVariant.PICKUP_TRINKET then --these are already included in GetJokerCost()
+
+        if PlayerManager.AnyoneHasCollectible(mod.Vouchers.Liquidation) then --50% off
+        
+            Cost = Cost * 0.5
+
+        elseif PlayerManager.AnyoneHasCollectible(mod.Vouchers.Clearance) then --25% off
+            Cost = Cost * 0.75
+
+        end
+    end
+
     if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_STEAM_SALE) then
         Cost = Cost * 2 - 1 --nullifies the usual steam sale effect and subratcts 1 instead
     end
-    if PlayerManager.AnyoneHasCollectible(mod.Vouchers.Liquidation) then --50% off
-        Cost = Cost * 0.5
 
-    elseif PlayerManager.AnyoneHasCollectible(mod.Vouchers.Clearance) then --25% off
-        Cost = Cost * 0.75
 
-    end
     Cost = math.floor(Cost) --rounds it down 
     Cost = math.max(Cost, 1)
 
@@ -924,7 +932,10 @@ function mod:TrinketEditionsRender(Trinket, Offset)
     mod.Saved.Jimbo.FloorEditions[Index] = mod.Saved.Jimbo.FloorEditions[Index] or {}
     mod.Saved.Jimbo.FloorEditions[Index][JokerConfig.Name] = mod.Saved.Jimbo.FloorEditions[Index][JokerConfig.Name] or 0
 
-    Trinket:GetSprite():SetCustomShader(mod.EditionShaders[mod.Saved.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name]])
+    local Edition = mod.Saved.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name]
+    if Edition ~= mod.Edition.BASE then
+        Trinket:GetSprite():SetCustomShader(mod.EditionShaders[Edition])
+    end
 
     if Trinket.SubType == mod.Jokers.HOLOGRAM then
         JokerOverlaySprite:ReplaceSpritesheet(0, JokerConfig.GfxFileName)
@@ -1691,8 +1702,6 @@ function mod:AddCardTearFalgs(Tear, Split)
 
         TearCardEnable = false
         mod.Counters.SinceShoot = 0
-        mod.Saved.Jimbo.LastShotIndex = CardShot.Index
-
 
         mod.Saved.Jimbo.Progress.Room.Shots = mod.Saved.Jimbo.Progress.Room.Shots + 1
         if (mod.Saved.Jimbo.Progress.Room.Shots == Player:GetCustomCacheValue("hands")
@@ -1708,6 +1717,8 @@ function mod:AddCardTearFalgs(Tear, Split)
 
             Isaac.RunCallback("CARD_SHOT", Player, CardShot, true)
         end
+
+        mod.Saved.Jimbo.LastShotIndex = CardShot.Index
 
     else
         Tear:ChangeVariant(mod.SUIT_TEAR_VARIANTS[TearData.Params.Suit])

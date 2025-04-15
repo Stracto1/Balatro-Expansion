@@ -36,18 +36,18 @@ void main(void)
 	//I saw video where it used a spiral shader to get the hue value but didn't manage to pull it off...
 	//so I used an elipse-like shape instead 
 	vec4 Color = Color0 * texture2D(Texture0, TexCoord0);
-	int enable = 1;
-	if (Color.rgb == vec3(0))
-		enable = 0; //black doesn't change
+	vec3 ColorHSV = rgb2hsv(Color.rgb);
 
-	vec2 Center = vec2(0.7,0.65);//center of the elipse
+	float Strength = 0.6;
+	if (((ColorHSV.b <= 0.25)||(ColorHSV.b >= 0.8))&&(ColorHSV.g <= 0.25))
+		Strength = 0.15; //Greyscales aren't affected as much
 
-	float Distance = distance(vec2(TexCoord0.x, TexCoord0.y/2), Center); 
-	float ColorHue = sin(Distance * 4.5) * sin(Distance * 4.5); //gets the hue basing on the distance from the circles
+	vec2 Center = vec2(0.6,0.65);//center of the elipse
 
-	vec3 NewColor = hsv2rgb(vec3(ColorHue, 1, 1)); //tunes down a bit the colors and moves the hue
+	float Distance = distance(vec2(TexCoord0.x, TexCoord0.y/2.0), Center); 
+	ColorHSV.r = sin(Distance * 5.0) * sin(Distance * 5.0); //gets the hue basing on the distance from the circles
 
-	Color.rgb = mix(Color.rgb, NewColor, 0.25 * enable);
+	Color.rgb = mix(Color.rgb, hsv2rgb(ColorHSV), Strength);
 
 	gl_FragColor = Color;
 }

@@ -317,14 +317,6 @@ function mod:HandBarRender(offset,_,Position,_,Player)
         return
     end
 
-    local Animation = HandsBarFilling:GetAnimationData("Charge On_"..tostring(Player:GetCustomCacheValue("hands")))
-
-    local Frame = Animation:GetLength() --full bar
-
-    if not mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR) then
-        Frame = Animation:GetLength() - math.ceil((mod.Saved.Jimbo.Progress.Room.Shots/Player:GetCustomCacheValue("hands"))*Animation:GetLength())
-    end
-
     if mod.Saved.Jimbo.FirstDeck and not Game:GetRoom():IsClear() then
         --HandsBar:SetFrame("Charge On", Frame)
         HandsBarFilling.Color:SetColorize(0,0,1,1)
@@ -332,15 +324,40 @@ function mod:HandBarRender(offset,_,Position,_,Player)
         --HandsBar:SetFrame("Charge Off", Frame)
         HandsBarFilling.Color:SetColorize(1,0,0,1)
     end
-    --HandsBar:PlayOverlay("overlay_"..tostring(Player:GetCustomCacheValue("hands")))
 
-    --HandsBar:SetOverlayFrame(0)
-    HandsBar:SetFrame(Animation:GetName(), 0)
-    HandsBarFilling:SetFrame(Animation:GetName(), Frame)
+    local HandsRemaining = Player:GetCustomCacheValue("hands")
+    local PartialHands = nil
+    local Offset = Vector.Zero
+
+    while HandsRemaining > 0 do --up to 35 are displayed in 1 bar, then a sencond one appears and so on
+
+        PartialHands = math.min(HandsRemaining, 35.0)
+        local FullBarShots =  PartialHands - HandsRemaining + mod.Saved.Jimbo.Progress.Room.Shots
+
+        local Animation = HandsBarFilling:GetAnimationData("Charge On_"..tostring(PartialHands))
+
+    ---@diagnostic disable-next-line: need-check-nil
+        local Frame = Animation:GetLength() --full bar
+
+        if not mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR) then
+    ---@diagnostic disable-next-line: need-check-nil
+            Frame = Animation:GetLength() - math.ceil(math.min(FullBarShots/PartialHands, 1)*Animation:GetLength())
+        end
+
+        --HandsBar:PlayOverlay("overlay_"..tostring(Player:GetCustomCacheValue("hands")))
+
+    ---@diagnostic disable-next-line: need-check-nil
+        HandsBar:SetFrame(Animation:GetName(), 0)
+    ---@diagnostic disable-next-line: need-check-nil
+        HandsBarFilling:SetFrame(Animation:GetName(), Frame)
 
 
-    HandsBar:Render(HAND_RENDERING_POSITION)
-    HandsBarFilling:Render(HAND_RENDERING_POSITION)
+        HandsBar:Render(HAND_RENDERING_POSITION + Offset)
+        HandsBarFilling:Render(HAND_RENDERING_POSITION + Offset)
+
+        HandsRemaining = HandsRemaining - PartialHands
+        Offset = Offset + Vector(0,10)
+    end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.HandBarRender)
 

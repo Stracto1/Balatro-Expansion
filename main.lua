@@ -99,9 +99,11 @@ Balatro_Expansion.Jokers.FACELESS = Isaac.GetTrinketIdByName("Faceless Joker")
 Balatro_Expansion.Jokers.SUPERPOSISION = Isaac.GetTrinketIdByName("Superposition")
 Balatro_Expansion.Jokers.TO_DO_LIST = Isaac.GetTrinketIdByName("To Do List")
 
-
-
-
+Balatro_Expansion.Jokers.CARD_SHARP = Isaac.GetTrinketIdByName("Card Sharp")
+Balatro_Expansion.Jokers.SQUARE_JOKER = Isaac.GetTrinketIdByName("Square Joker")
+Balatro_Expansion.Jokers.SEANCE = Isaac.GetTrinketIdByName("Sèance")
+Balatro_Expansion.Jokers.VAMPIRE = Isaac.GetTrinketIdByName("Vampire")
+Balatro_Expansion.Jokers.SHORTCUT = Isaac.GetTrinketIdByName("Shortcut")
 Balatro_Expansion.Jokers.HOLOGRAM = Isaac.GetTrinketIdByName("Hologram")
 
 

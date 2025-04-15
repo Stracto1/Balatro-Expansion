@@ -40,21 +40,27 @@ void main(void)
 	//tried a method i found on reddit and it works quite well
 	vec4 Color = Color0 * texture2D(Texture0, TexCoord0);
 
-	if (Color.r == Color.g && Color.b == Color.g){
-	//any greyscale is the actual inverted color
-	Color.r = 1 - Color.r;
-	Color.g = 1 - Color.g;
-	Color.b = 1 - Color.b;
+	vec3 ColorHSV = rgb2hsv(Color.rgb);
+
+	if (((((ColorHSV.b <= 0.34)||(ColorHSV.b >= 0.84))&&(ColorHSV.g <= 0.48)))||((Color.r == Color.g)&&(Color.g == Color.b))){
+		//any color close to a greyscale is the actual inverted color
+		Color.r = 1 - Color.r;
+		Color.g = 1 - Color.g;
+		Color.b = 1 - Color.b;
+	}
+	else{
+	
+		ColorHSV.r = ColorHSV.r + 0.12; //moves the hue
+		Color.rgb = hsv2rgb(ColorHSV.rgb);
 	}
 
-	vec3 ColorHSV = rgb2hsv(Color.rgb);
-	Color.rgb = hsv2rgb(vec3(ColorHSV.r + 0.12,clamp(ColorHSV.g * 0.9, 0.07, 1),ColorHSV.b * 0.9)); //tunes down a bit the colors and moves the hue
 
 	float XshinePoint = 0.66 * -TexCoord0.y + 0.12; //where the shine effect should be
 	float Distance = XshinePoint - TexCoord0.x; //the distance from the shine point
 
 	Color.rgb = mix(Color.rgb, vec3(1), clamp(0.36*cos(Distance * 20),0.05, 0.6)); //make it shine!
-
+	
+	//Color.rgb = vec3(ColorHSV.b,ColorHSV.b,ColorHSV.b);
 
 	gl_FragColor = Color;
 }

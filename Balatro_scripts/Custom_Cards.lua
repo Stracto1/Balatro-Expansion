@@ -848,8 +848,8 @@ function mod:SpectralCards(card, Player)
         elseif card == mod.Spectrals.HEX then
 
             local FilledSlots = {} --gets the slot filled with a joker
-            for i,v in ipairs(mod.Saved.Jimbo.Inventory) do
-                if v ~= 0 then
+            for i,Slot in ipairs(mod.Saved.Jimbo.Inventory) do
+                if Slot.Joker ~= 0 then
                     table.insert(FilledSlots, i)
                 end
             end
@@ -866,11 +866,12 @@ function mod:SpectralCards(card, Player)
                 else
                     mod.Saved.Jimbo.Inventory[i].Edition = mod.Edition.POLYCROME
                 end
-            end 
+            end
 
             sfx:Play(mod.Sounds.POLY)
 
             Isaac.RunCallback("INVENTORY_CHANGE", Player)
+            
         elseif card == mod.Spectrals.TRANCE then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, 
                                                   mod.SelectionParams.Purposes.TRANCE)

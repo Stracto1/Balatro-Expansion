@@ -3,8 +3,13 @@
     <name>Tboi: Regambled</name>
     <directory>balatro_expansion</directory>
     <id>3308293502</id>
-    <description></description>
-    <version>1.8</version>
+    <description>Incredibly based mod inspired by the hit game Balatro
+(still a WIP)
+
+If you're some kind of content creator feel free to post about this mod in any way you like, as long as you don't make the link accessible
+
+You can also follow this mod's development by checking out my X account linked in my profile's description :)</description>
+    <version>1.9</version>
     <visibility>Private</visibility>
     <tag id="Lua"/>
     <tag id="Items"/>

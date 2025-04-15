@@ -2,6 +2,7 @@
 if not EID then
     return
 end
+
 local mod = Balatro_Expansion
 local Game = Game()
 local ItemsConfig = Isaac.GetItemConfig()
@@ -169,7 +170,7 @@ EID:addTrinket(mod.Jokers.ICECREAM, "{{PlayerJimbo}} {{Tears}} {{ColorChips}}+4 
 EID:addTrinket(mod.Jokers.POPCORN, "{{PlayerJimbo}} {{Damage}} {{ColorMult}}+1 {{CR}}Damage #Loses {{ColorMult}}-0.2{{CR}} Damage when clearing any blind", "Popcorn", "en_us")
 EID:addTrinket(mod.Jokers.RAMEN, "{{PlayerJimbo}} {{Damage}} {{ColorMult}}X1.5 {{CR}}Damage Multiplier#loses {{ColorMult}}-0.02X {{CR}} on every hand discard", "Ramen", "en_us")
 EID:addTrinket(mod.Jokers.ROCKET, "{{PlayerJimbo}} Gives 2 {{Coin}}Coins on Blind clear#{{Coin}}Coin payout increases by {{ColorYellorange}}1${{CR}} when a boss blind is defeated #{{PlayerJimbo}} Grants the {{Collectible583}}Rocket in Jar effect", "Rocket", "en_us")
-EID:addTrinket(mod.Jokers.ODDTODD, "{{PlayerJimbo}} {{Tears}} {{ColorChips}}+0.31 {{CR}} Tears for every Odd numbered card triggered this room #{{PlayerJimbo}} {{Tears}} {{ColorChips}}+0.03 {{CR}} Tears per Collectible held if the total amount is odd", "Odd Todd", "en_us")
+EID:addTrinket(mod.Jokers.ODDTODD, "{{PlayerJimbo}} {{Tears}} {{ColorChips}}+0.31 {{CR}} Tears for every Odd numbered card triggered this room #{{PlayerJimbo}} {{Tears}} {{ColorChips}}+0.07{{CR}} Tears per Collectible held if the total amount is odd", "Odd Todd", "en_us")
 EID:addTrinket(mod.Jokers.EVENSTEVEN, "{{PlayerJimbo}} {{Damage}} {{ColorMult}}+0.04 {{CR}} Damage per Even numbered card triggered this room #{{PlayerJimbo}} {{Damage}} {{ColorMult}}+0.02 {{CR}} Damage per Collectible held if the total amount is even", "Even Steven", "en_us")
 EID:addTrinket(mod.Jokers.HALLUCINATION, "{{PlayerJimbo}} {{ColorMint}} 1/2 chance {{CR}} to spawn a random {{Card}}{{ColorPink}} Tarot Card {{CR}}when opening a Booster Pack #{{PlayerJimbo}} {{ColorMint}}50% chance{{CR}} to give a {{Collectible431}} Multidimansional Baby every room entered", "Hallucination", "en_us")
 EID:addTrinket(mod.Jokers.GREEN_JOKER, "{{PlayerJimbo}} {{Damage}}{{ColorMult}}+0.04 {{CR}} Damage per room completed while held#{{Damage}}{{ColorMult}}-0.16 {{CR}}Damage on every hand discard" , "Green Joker", "en_us")
@@ -241,7 +242,7 @@ EID:addTrinket(mod.Jokers.RIDE_BUS, "{{PlayerJimbo}} {{ColorMult}}+0.01 {{CR}}Da
 EID:addTrinket(mod.Jokers.SPACE_JOKER, "{{PlayerJimbo}} {{ColorMint}}1/20 Chance{{CR}} to upgrade the played card value's level #Gains an additional {{ColorMint}}1/20 Chance{{CR}} per {{ColorYellorange}}Star-related{{CR}} Item held", "Space Joker", "en_us")
 EID:addTrinket(mod.Jokers.BURGLAR, "{{PlayerJimbo}} Sets your Hp to {{ColorRed}}1{{CR}}#Cards can be triggered until the deck gets {{ColorYellorange}}reshuffled{{CR}} every room", "Burglar", "en_us")
 EID:addTrinket(mod.Jokers.BLACKBOARD, "{{PlayerJimbo}} {{ColorMult}}x2 {{CR}}Damage Multiplier if all cards held in hand are {{ColorGray}}Spades{{CR}} or {{ColorChips}}Clubs{{CR}}", "Blackboard", "en_us")
-EID:addTrinket(mod.Jokers.RUNNER, "{{PlayerJimbo}} This joker gains {{ColorChips}}+2 {{CR}}Tears when entering an {{ColorYellorange}}unexplored{{CR}} room while holding a {{ColorYellorange}}Straight{{CR}} in hand #{{Speed}} +0.15 Speed", "Runner", "en_us")
+EID:addTrinket(mod.Jokers.RUNNER, "{{PlayerJimbo}} This joker gains {{ColorChips}}+2 {{CR}}Tears when entering an {{ColorYellorange}}unexplored{{CR}} room while holding a {{ColorYellorange}}Straight{{CR}} in hand #Gives {{ColorChips}}+Tears{{CR}} equal to your speed stat#{{Speed}} +0.1 Speed", "Runner", "en_us")
 EID:addTrinket(mod.Jokers.SPLASH, "{{PlayerJimbo}} Triggers all cards in hand upon entering a hostile room", "Splash", "en_us")
 EID:addTrinket(mod.Jokers.BLUE_JOKER, "{{PlayerJimbo}} {{ColorChips}}+0.1 {{CR}}Tears per remaining card in your deck", "Blue Joker", "en_us")
 EID:addTrinket(mod.Jokers.SIXTH_SENSE, "{{PlayerJimbo}} If the {{ColorYellorange}}First{{CR}} card played in a {{ColorYellorange}}Blind{{CR}} is a {{ColorYellorange}}6{{CR}} and hits an enemy, it gets destroyed and spawns a {{ColorBlue}}Spectral Pack{{CR}}", "Sixth Sense", "en_us")
@@ -332,7 +333,7 @@ TarotDescriptions["en_us"][Card.CARD_TOWER] = "#{{PlayerJimbo}} Turn {{ColorYell
 TarotDescriptions["en_us"][Card.CARD_STARS] = "#{{PlayerJimbo}} Set the Suit of {{ColorYellorange}}up to 3{{CR}} cards from your hand into {{ColorYellorange}}Diamonds{{CR}}"
 TarotDescriptions["en_us"][Card.CARD_MOON] = "#{{PlayerJimbo}} Sets the Suit of {{ColorYellorange}}up to 3{{CR}} cards from your hand into {{ColorChips}}Clubs{{CR}}"
 TarotDescriptions["en_us"][Card.CARD_SUN] = "#{{PlayerJimbo}} Sets the Suit of {{ColorYellorange}}up to 3{{CR}} cards from your hand into {{ColorMult}}Hearts{{CR}}"
-TarotDescriptions["en_us"][Card.CARD_JUDGEMENT] = "#{{PlayerJimbo}} Gives random Joker #!!! Requires an empty Inventory slot"
+TarotDescriptions["en_us"][Card.CARD_JUDGEMENT] = "#{{PlayerJimbo}} Gives random {{ColorYellorange}}Joker{{CR}} #!!! Requires an empty Inventory slot"
 TarotDescriptions["en_us"][Card.CARD_WORLD] = "#{{PlayerJimbo}} Set the Suit of {{ColorYellorange}}up to 3{{CR}} cards from your hand into {{ColorGray}}Spades{{CR}}"
 
 --TarotDescriptions["en_us"][Card.CARD_FOOL] = "#{{PlayerJimbo}}"
@@ -411,7 +412,7 @@ local function BalatroInventoryCallback(descObj)
 
     if Balatro_Expansion.SelectionParams.Mode == Balatro_Expansion.SelectionParams.Modes.INVENTORY then
 
-        SelectedCard = Balatro_Expansion.Saved.Jimbo.Inventory[mod.SelectionParams.Index].Joker
+        SelectedCard = Balatro_Expansion.Saved.Jimbo.Inventory[mod.SelectionParams.Index]
 
         if not SelectedCard then --the extra confirm button
 
@@ -442,6 +443,7 @@ local function BalatroInventoryCallback(descObj)
             goto FINISH
         end
 
+        SelectedCard = SelectedCard.Joker
 
         if SelectedCard == 0 then --emtoy slot
 
@@ -775,3 +777,21 @@ local function BalatroExtraDescCallback(descObj)
 end
 
 EID:addDescriptionModifier("Balatro Extra descriptions", BalatroExtraDescCondition, BalatroExtraDescCallback)
+
+
+
+local function BalatroOffsetCondition(descObj)
+    if Game:GetPlayer(0):GetPlayerType() == mod.Characters.JimboType then 
+       
+        EID:addTextPosModifier("Jimbo HUD", Vector(0,10))
+        return true
+    else
+        EID:removeTextPosModifier("Jimbo HUD")
+    end
+end
+
+local function BalatroOffsetCallback(descObj)
+    return descObj
+end
+
+EID:addDescriptionModifier("Balatro Descriptions Offset", BalatroOffsetCondition, BalatroOffsetCallback)

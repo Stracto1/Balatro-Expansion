@@ -103,8 +103,8 @@
     <trinket gfx="superposition_trinket.png" name="Superposition" description="Make up your mind" customtags="!4 0 ?common balatro activate copy"/>
     <trinket gfx="to_do_list_trinket.png" name="To Do List" description="Never-ending list" customtags="!4 0 ?common balatro money value copy"/>
 
-    <trinket cache="damage" gfx="card_sharp_trinket.png" name="Card Sharp" description="Knows your next move" customtags="!6 0 ?uncommon balatro mmult copy"/>
-    <trinket cache="firedelay" gfx="square_joker_trinket.png" name="Square Joker" description="So nostalgic" customtags="!4 0 ?common balatro chips copy"/>
+    <trinket cache="damage" gfx="card_sharp_trinket.png" name="Card Sharp" description="Knows your next move" customtags="!6 1 ?uncommon balatro mmult copy"/>
+    <trinket cache="firedelay" gfx="square_joker_trinket.png" name="Square Joker" description="Nostalgia squared!" customtags="!4 0 ?common balatro chips copy"/>
     <trinket gfx="seance_trinket.png" name="Sèance" description="Feel their words" customtags="!6 0 ?uncommon balatro activate copy"/>
     <trinket cache="damage" gfx="vampire_trinket.png" name="Vampire" description="I AM DRATULA!" customtags="!7 1 ?uncommon balatro mmult copy"/>
     <trinket  gfx="shortcut_trinket.png" name="Shortcut" description="Trust me, i know this place" customtags="!2 0 ?common balatro mult copy"/>
