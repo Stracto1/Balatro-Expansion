@@ -369,12 +369,25 @@ end
 function mod:IsFlush(Player, SuitTable)
     local CardSuits = {0,0,0,0} --spades, hearts, clubs, diamonds
 
+    local HasFourFingers = false
+
+    for _, Player in ipairs(PlayerManager.GetPlayers()) do
+        
+        for Index, Slot in ipairs(mod.Saved.Jimbo.Inventory) do
+            if Slot.Joker == mod.Jokers.FOUR_FINGER then
+                HasFourFingers = true
+                break
+            end
+        end
+
+    end
+
     for _, Suit in ipairs(SuitTable) do --cycles between all the cards in the used hand
         CardSuits[Suit] = CardSuits[Suit] + 1
     end
 
     for _, SuitNumber in ipairs(CardSuits) do
-        if SuitNumber >= 5 or (mod:JimboHasTrinket(Player, mod.Jokers.FOUR_FINGERS) and SuitNumber >= 4) then --if 5 cards have the same suit
+        if SuitNumber >= 5 or (HasFourFingers and SuitNumber >= 4) then --if 5 cards have the same suit
             return true
         end
     end
@@ -393,24 +406,51 @@ function mod:IsStraight(Player, ValueTable)
         end
     end
 
+    local HasFourFingers = false
+    local HasShortcut = false
+
+    for _, Player in ipairs(PlayerManager.GetPlayers()) do
+        
+        for Index, Slot in ipairs(mod.Saved.Jimbo.Inventory) do
+            if Slot.Joker == mod.Jokers.FOUR_FINGER then
+                HasFourFingers = true
+            elseif Slot.Joker == mod.Jokers.SHORTCUT then
+                HasShortcut = true
+            end
+        end
+
+    end
+
     local LowestValue = ValueTable[1]
     local ValueToKeepStreak = LowestValue
     local StraightStreak = 0
     for _, CardValue in ipairs(ValueTable) do --cycles between all the cards in the used hand
 
-        if CardValue == ValueToKeepStreak or CardValue + 13 == ValueToKeepStreak then
+        if CardValue == ValueToKeepStreak then
             StraightStreak = StraightStreak + 1
 
             if ValueToKeepStreak == 14 then --14 is the ace after a king 
                 break
             end
+
+            ValueToKeepStreak = ValueToKeepStreak + 1
+
+        elseif HasShortcut and CardValue == ValueToKeepStreak + 1 then --with shortcut a 1 value gap is good
+
+            StraightStreak = StraightStreak + 1
+
+            if ValueToKeepStreak == 13 then --14 is the ace after a king 
+                break
+            end
+
+            ValueToKeepStreak = ValueToKeepStreak + 2
         else
             StraightStreak = 0 --reset the streak
         end
 
-        ValueToKeepStreak = ValueToKeepStreak + 1
+        
     end
-    if StraightStreak >= 5 or (mod:JimboHasTrinket(Player, mod.Jokers.FOUR_FINGERS) and StraightStreak >= 4) then
+    if StraightStreak >= 5 or (HasFourFingers and StraightStreak >= 4) then
         if LowestValue == 10 then --determines if it's a royal flush
             return true,true
         else
@@ -562,17 +602,23 @@ function mod:TryGamble(Player, RNG, Chance)
 end
 
 ---@param SellSlot integer?
-function mod:GetJokerCost(Joker, SellSlot)
+function mod:GetJokerCost(Joker, SellSlot, Player)
     --removes ! from the customtag (see items.xml) 
     local numstring = string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[1],"%!","")
 
     local Cost = tonumber(numstring)
+
     if SellSlot then --also tells if you want the buy/sell value as the return
     
         Cost = math.floor((Cost + mod.Saved.Jimbo.Inventory[SellSlot].Edition) / 2)
         if Joker == mod.Jokers.EGG then
             Cost = mod.Saved.Jimbo.Progress.Inventory[SellSlot]
         end
+
+        mod.Saved.Jimbo.Progress.GiftCardExtra[SellSlot] = mod.Saved.Jimbo.Progress.GiftCardExtra[SellSlot] or 0
+
+        Cost = Cost + mod.Saved.Jimbo.Progress.GiftCardExtra[SellSlot]
+
     else
         --print(tonumber(string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[1],"%!",""),2))
         local EdValue = mod.Saved.Jimbo.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Joker).Name] or 0
@@ -601,20 +647,23 @@ function mod:AddJimboInventorySlots(Player, Amount)
         for i=1,Amount do --just adds empty spaces to fill
             table.insert(mod.Saved.Jimbo.Inventory, {["Joker"] = 0,["Edition"]=mod.Edition.BASE})
 
+            mod.Saved.Jimbo.Progress.GiftCardExtra[#mod.Saved.Jimbo.Inventory] = 0
+
         end
     else
         for i=1, -Amount do
-            for i,Slot in ipairs(mod.Saved.Jimbo.Inventory) do
+
+            for j,Slot in ipairs(mod.Saved.Jimbo.Inventory) do
                 if Slot.Joker == 0 then --searches for an empty slot to remove
-                    table.remove(mod.Saved.Jimbo.Inventory, i)
+                    table.remove(mod.Saved.Jimbo.Inventory, j)
+
+                    table.remove(mod.Saved.Jimbo.Progress.GiftCardExtra, j)
+
                     return
                 end
             end
 
-            Isaac.RunCallback("JOKER_SOLD", Player, mod.Saved.Jimbo.Inventory.Jokers[1], 1)
-
-            
-            table.remove(mod.Saved.Jimbo.Inventory, 1) --if none are present then sell the first joker
+            mod:SellJoker(Player, mod.Saved.Jimbo.Inventory.Jokers[1], 1)
         end
     end
 end
@@ -661,14 +710,9 @@ function mod:SellJoker(Player, Trinket, Slot)
     mod.Saved.Jimbo.Inventory[Slot].Joker = 0
     mod.Saved.Jimbo.Inventory[Slot].Edition = mod.Edition.BASE
 
-    local SellValue
-    if Trinket == mod.Jokers.EGG then --egg holds its sell value in its progress
-        
-        SellValue = mod.Saved.Jimbo.Progress.Inventory[Slot]
-    else
-        SellValue = mod:GetJokerCost(Trinket, Slot)
-    end
-    
+    local SellValue = mod:GetJokerCost(Trinket, Slot, Player)
+
+    mod.Saved.Jimbo.Progress.GiftCardExtra[Slot] = 0
 
     if mod.Saved.Jimbo.Inventory[Slot].Edition == mod.Edition.NEGATIVE then
         --selling a negative joker reduces your inventory size
@@ -854,7 +898,7 @@ function mod:AddJoker(Player, Joker, Edition, StopEval)
 
     Edition = Edition or mod.Edition.BASE
 
-    mod.Saved.Jimbo.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][Joker] = Edition
+    mod.Saved.Jimbo.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Joker).Name] = Edition
 
     return mod:JimboAddTrinket(Player, Joker, false, StopEval)
 end
@@ -883,7 +927,7 @@ function mod:AddCardToDeck(Player, CardTable,Amount, PutInHand)
 
     mod.LastCardFullPoss = {} --hud does wierd stuff otherwise
 
-    Isaac.RunCallback("DECK_SHIFT", Player)
+    Isaac.RunCallback("DECK_MODIFY", Player, Amount)
 end
 
 
@@ -907,15 +951,13 @@ function mod:DestroyCards(Player, DeckIndexes, DoEffects)
         local CardParams = mod.Saved.Jimbo.FullDeck[Index]
 
         table.remove(mod.Saved.Jimbo.FullDeck, Index)
-
-        print(Player:HasCollectible(CollectibleType.COLLECTIBLE_1UP))
-
-        Isaac.RunCallback("DECK_SHIFT", Player)
         
         if DoEffects then
             mod:CardRipEffect(CardParams, Player.Position)
         end
     end
+
+    Isaac.RunCallback("DECK_MODIFY", Player, #DeckIndexes)
 end
 
 

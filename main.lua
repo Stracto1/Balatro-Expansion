@@ -106,6 +106,17 @@ Balatro_Expansion.Jokers.VAMPIRE = Isaac.GetTrinketIdByName("Vampire")
 Balatro_Expansion.Jokers.SHORTCUT = Isaac.GetTrinketIdByName("Shortcut")
 Balatro_Expansion.Jokers.HOLOGRAM = Isaac.GetTrinketIdByName("Hologram")
 
+Balatro_Expansion.Jokers.BARON = Isaac.GetTrinketIdByName("Baron")
+Balatro_Expansion.Jokers.OBELISK = Isaac.GetTrinketIdByName("Obelisk")
+Balatro_Expansion.Jokers.MIDAS = Isaac.GetTrinketIdByName("Midas Mask")
+Balatro_Expansion.Jokers.LUCHADOR = Isaac.GetTrinketIdByName("Luchador")
+Balatro_Expansion.Jokers.PHOTOGRAPH = Isaac.GetTrinketIdByName("Photograph")
+Balatro_Expansion.Jokers.GIFT_CARD = Isaac.GetTrinketIdByName("Gift Card")
+Balatro_Expansion.Jokers.TURTLE_BEAN = Isaac.GetTrinketIdByName("Turtle Bean")
+Balatro_Expansion.Jokers.EROSION = Isaac.GetTrinketIdByName("Erosion")
+Balatro_Expansion.Jokers.RESERVED_PARK = Isaac.GetTrinketIdByName("Reserved Parking")
+
+
 
 
 --------------------------------
@@ -456,7 +467,7 @@ Balatro_Expansion.StatEnable = false --needed cause i hate my life
 Balatro_Expansion.Saved.Jimbo.StatsToAdd = {}
 --basic stat ups that always apply 
 Balatro_Expansion.Saved.Jimbo.StatsToAdd.Damage = 0
-Balatro_Expansion.Saved.Jimbo.StatsToAdd.Tears = 1
+Balatro_Expansion.Saved.Jimbo.StatsToAdd.Tears = 1.5
 Balatro_Expansion.Saved.Jimbo.StatsToAdd.Mult = 1
 --joker stat ups which need to be re-evaluated each time
 Balatro_Expansion.Saved.Jimbo.StatsToAdd.JokerDamage = 0
@@ -470,6 +481,7 @@ Balatro_Expansion.Saved.Jimbo.InnateItems.Hack = {}
 
 Balatro_Expansion.Saved.Jimbo.Progress = {} --values used for jokers
 Balatro_Expansion.Saved.Jimbo.Progress.Inventory = {0,0,0} --never reset, changed in different ways basing on the joker
+Balatro_Expansion.Saved.Jimbo.Progress.GiftCardExtra = {0,0,0}
 
 Balatro_Expansion.Saved.Jimbo.Progress.Blind = {} --reset every new blind
 Balatro_Expansion.Saved.Jimbo.Progress.Blind.Shots = 0

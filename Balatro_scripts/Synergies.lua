@@ -30,7 +30,7 @@ function mod:CardCollisionSynergy(Tear,Collider,_)
             Laser.DisableFollowParent = true
             Laser.Position = Collider.Position
 
-            Laser.TearFlags = Laser.TearFlags & ~TearFlags.TEAR_EXPLOSIVE --would be suicide otehrwise
+            Laser.TearFlags = Laser.TearFlags & ~TearFlags.TEAR_EXPLOSIVE --would be a suicide otherwise
 
         end
     end

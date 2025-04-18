@@ -21,6 +21,11 @@ EffectParams[1].Text = 0
 EffectParams[1].Position = Vector.Zero
 --local TEXT_TYPES = {"+","X","ACTIVATE!","EXTINCT!","VALUE UP!","UPGRADE!","SAFE!","INTERESTS!","$"," REMAINING"}
 
+local StringTypes = {}
+StringTypes.Xnum = 1
+StringTypes.Other = nil
+
+
 local EffectAnimations = Sprite("gfx/ActivateAnimation.Anm2")
 
 local AnimLength = EffectAnimations:GetAnimationData("idle"):GetLength()
@@ -48,6 +53,43 @@ function mod:CreateBalatroEffect(Slot, Colour, Sound, Text, Source, Offset, Volu
     else
         StackedEffects = 0
         EffectParams[Slot] = {}
+    end
+
+    do --rounds the number to 2 decimals so it doesn't get too long
+
+    local Xpos = string.find(Text,"X",1,true) --tells if it's "X num" or "+num X"
+
+    local Number,NumX = Text, 0
+
+    if Xpos then
+        Number,NumX = string.gsub(Text,"X","",1),10 --removes X to use tonumber()  
+    end
+
+---@diagnostic disable-next-line: cast-local-type
+    Number = tonumber(Number)
+
+    if Number then
+
+        Text = tostring(mod:round(Number, 2)) --rounded number
+
+        if NumX == 0 then
+            --something without X
+        
+            Text = mod:GetSignString(Number)..Text
+        
+        elseif Xpos ~= 1 then
+            --"+-num X"
+
+            Text = mod:GetSignString(Number)..Text.."X"
+
+        else --if Xpos == 1
+            --"Xnum"
+
+            Text = "X"..Text
+        end
+    end
+
+
     end
 
     EffectParams[Slot].Frames = 0

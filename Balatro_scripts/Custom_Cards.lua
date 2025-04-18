@@ -175,7 +175,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
 
             for i ,Slot in ipairs(mod.Saved.Jimbo.Inventory) do
                 if Slot.Joker ~= 0 then
-                    CoinsToGain = CoinsToGain + mod:GetJokerCost(Slot.Joker, i) --placeholder
+                    CoinsToGain = CoinsToGain + mod:GetJokerCost(Slot.Joker, i, Player)
                 end
             end
             Player:AddCoins(CoinsToGain)

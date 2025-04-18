@@ -7,6 +7,11 @@ local PastCoins = 0
 ---@param Player EntityPlayer
 function mod:MoneyCounterFix(Player)
 
+    if not mod.GameStarted then
+        PastCoins = 0
+        return
+    end
+
     if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.Saved.Other.HasDebt then
         return
     end
@@ -69,12 +74,16 @@ function mod:LimitShopping(Item,Player,_)
         end
     end
 
+    if NumCredit == 0 then
+        return
+    end
+
     local MaxShopDebt = 20*NumCredit
 
     if mod.Saved.Other.HasDebt then
 
-        if Player:GetNumCoins() > MaxShopDebt then
-            return false
+        if Player:GetNumCoins() >= MaxShopDebt then
+            return true
         end
         
         Player:AddCoins(Item.Price*2)

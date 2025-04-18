@@ -319,7 +319,7 @@ function mod:HandBarRender(offset,_,Position,_,Player)
 
     if mod.Saved.Jimbo.FirstDeck and not Game:GetRoom():IsClear() then
         --HandsBar:SetFrame("Charge On", Frame)
-        HandsBarFilling.Color:SetColorize(0,0,1,1)
+        HandsBarFilling.Color:SetColorize(0.25,0.51,1,1)
     else
         --HandsBar:SetFrame("Charge Off", Frame)
         HandsBarFilling.Color:SetColorize(1,0,0,1)

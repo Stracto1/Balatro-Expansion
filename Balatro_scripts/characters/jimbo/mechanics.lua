@@ -5,6 +5,7 @@ local music = MusicManager()
 
 
 local ENHANCEMENTS_ANIMATIONS = {"Base","Mult","Bonus","Wild","Glass","Steel","Stone","Golden","Lucky"}
+local SUIT_ANIMATIONS = {"Spade","Heart","Club","Diamond"}
 local HAND_TYPE_NAMES = {"high card","pair","Two pair","three of a kind","straight","flush","full house","four of a kind", "straight flush", "royal flush","five of a kind","fluah house","flush five"}
 HAND_TYPE_NAMES[0] = "none"
 
@@ -395,7 +396,7 @@ function mod:SetItemPrices(Variant,SubType,ShopID,Price)
         if Item and Item:HasCustomTag("balatro") then --vouchers
             Cost = 10
         else --any item in the game
-            Cost = Item.Quality *2 + 3
+            Cost = Item.Quality *2 + 1
         end
 
     elseif Variant == PickupVariant.PICKUP_TRINKET then --jokers
@@ -1326,7 +1327,7 @@ function mod:StatReset(Player, Damage, Tears, Evaluate, Jokers, Basic)
     end
     if Tears then
         if Basic then
-            mod.Saved.Jimbo.StatsToAdd.Tears = 1
+            mod.Saved.Jimbo.StatsToAdd.Tears = 1.5
         end
         if Jokers then
             mod.Saved.Jimbo.StatsToAdd.JokerTears = 0
@@ -1681,7 +1682,9 @@ function mod:AddCardTearFalgs(Tear, Split)
 
         local TearSprite = Tear:GetSprite()
         --TearSprite:Play(ENHANCEMENTS_ANIMATIONS[TearData.Params.Enhancement], true)
+        --TearSprite:Play("Base", true)
         TearSprite:Play("Base", true)
+        TearSprite:PlayOverlay("Spade", true)
 
         Tear.Scale = (Player.SpriteScale.Y + Player.SpriteScale.X) / 2
         Tear.Scale = mod:Clamp(Tear.Scale, 3, 0.75)
@@ -2068,6 +2071,14 @@ function mod:Select(Player)
                     mod.Saved.Jimbo.Progress.Inventory[FirstI],mod.Saved.Jimbo.Progress.Inventory[SecondI] =
                     mod.Saved.Jimbo.Progress.Inventory[SecondI],mod.Saved.Jimbo.Progress.Inventory[FirstI]
 
+                    for _,GiftSlot in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.GIFT_CARD, true)) do
+                        
+                        mod.Saved.Jimbo.Progress.Inventory[GiftSlot][FirstI],mod.Saved.Jimbo.Progress.Inventory[GiftSlot][SecondI] = 
+                        mod.Saved.Jimbo.Progress.Inventory[GiftSlot][SecondI],mod.Saved.Jimbo.Progress.Inventory[GiftSlot][FirstI]    
+        
+                    end
+
+
                     Isaac.RunCallback("INVENTORY_CHANGE", Player)
                     
                     mod.SelectionParams.Purpose = mod.SelectionParams.Purposes.NONE
@@ -2089,7 +2100,7 @@ function mod:Select(Player)
                 for i,v in ipairs(mod.SelectionParams.SelectedCards) do
                     if v then
                         SoldSlot = i
-                       v = false
+                        mod.SelectionParams.SelectedCards[i] = false
                        break
                     end
                 end
