@@ -1618,10 +1618,7 @@ function mod:OnTearCardCollision(Tear,Collider,_)
 
     Isaac.RunCallback("CARD_HIT", Tear, Collider)
 end
-mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.CARD_TEAR_VARIANTS[mod.Suits.Spade])
-mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.CARD_TEAR_VARIANTS[mod.Suits.Heart])
-mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.CARD_TEAR_VARIANTS[mod.Suits.Club])
-mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.CARD_TEAR_VARIANTS[mod.Suits.Diamond])
+mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.CARD_TEAR_VARIANT)
 mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.SUIT_TEAR_VARIANTS[mod.Suits.Spade])
 mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.SUIT_TEAR_VARIANTS[mod.Suits.Heart])
 mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.SUIT_TEAR_VARIANTS[mod.Suits.Club])
@@ -1678,13 +1675,13 @@ function mod:AddCardTearFalgs(Tear, Split)
     --if (TearCardEnable and not Init) or (not TearCardEnable and Init and mod.Counters.SinceShoot > 2) then
     if TearCardEnable and not Split then
         
-        Tear:ChangeVariant(mod.CARD_TEAR_VARIANTS[TearData.Params.Suit])
+        Tear:ChangeVariant(mod.CARD_TEAR_VARIANT)
 
         local TearSprite = Tear:GetSprite()
-        --TearSprite:Play(ENHANCEMENTS_ANIMATIONS[TearData.Params.Enhancement], true)
+        TearSprite:Play(ENHANCEMENTS_ANIMATIONS[TearData.Params.Enhancement], true)
         --TearSprite:Play("Base", true)
-        TearSprite:Play("Base", true)
-        TearSprite:PlayOverlay("Spade", true)
+        --TearSprite:Play("Base", true)
+        TearSprite:PlayOverlay(SUIT_ANIMATIONS[TearData.Params.Suit], true)
 
         Tear.Scale = (Player.SpriteScale.Y + Player.SpriteScale.X) / 2
         Tear.Scale = mod:Clamp(Tear.Scale, 3, 0.75)
@@ -1769,7 +1766,7 @@ function mod:CardSpoof(Tear)
 
     Tear = Tear:ToTear() or Tear
 
-    if mod:Contained(mod.CARD_TEAR_VARIANTS, Tear.Variant)  then
+    if mod.CARD_TEAR_VARIANT == Tear.Variant  then
 
         local Impact = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.IMPACT, Tear.Position + Vector(0, Tear.Height), Vector.Zero, Tear, 0, 1):ToEffect()
         Impact.SpriteScale = Vector(Tear.Scale, Tear.Scale)
@@ -1808,10 +1805,8 @@ function mod:AdjustCardRotation(Tear)
         Data.Counter = Data.Counter + 1
     end
 end
-mod:AddCallback(ModCallbacks.MC_PRE_TEAR_RENDER, mod.AdjustCardRotation, mod.CARD_TEAR_VARIANTS[mod.Suits.Spade])
-mod:AddCallback(ModCallbacks.MC_PRE_TEAR_RENDER, mod.AdjustCardRotation, mod.CARD_TEAR_VARIANTS[mod.Suits.Heart])
-mod:AddCallback(ModCallbacks.MC_PRE_TEAR_RENDER, mod.AdjustCardRotation, mod.CARD_TEAR_VARIANTS[mod.Suits.Club])
-mod:AddCallback(ModCallbacks.MC_PRE_TEAR_RENDER, mod.AdjustCardRotation, mod.CARD_TEAR_VARIANTS[mod.Suits.Diamond])
+mod:AddCallback(ModCallbacks.MC_PRE_TEAR_RENDER, mod.AdjustCardRotation, mod.CARD_TEAR_VARIANT)
+
 
 
 ------------------VARIOUS/UTILITY------------------

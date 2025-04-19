@@ -323,10 +323,8 @@ Balatro_Expansion.HandTypes.FIVE_FLUSH = 1 << 13
 
 
 
-Balatro_Expansion.CARD_TEAR_VARIANTS = {Isaac.GetEntityVariantByName("Tear Spade Card"),
-                                        Isaac.GetEntityVariantByName("Tear Heart Card"),
-                                        Isaac.GetEntityVariantByName("Tear Club Card"),
-                                        Isaac.GetEntityVariantByName("Tear Diamond Card")}
+Balatro_Expansion.CARD_TEAR_VARIANT = Isaac.GetEntityVariantByName("Tear Card")
+
                                         
 Balatro_Expansion.SUIT_TEAR_VARIANTS = {Isaac.GetEntityVariantByName("Tear Spade Suit"),
                                         Isaac.GetEntityVariantByName("Tear Heart Suit"),

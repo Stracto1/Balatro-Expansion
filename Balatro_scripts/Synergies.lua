@@ -53,10 +53,7 @@ function mod:CardCollisionSynergy(Tear,Collider,_)
 
     end
 end
-mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.CARD_TEAR_VARIANTS[mod.Suits.Spade])
-mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.CARD_TEAR_VARIANTS[mod.Suits.Heart])
-mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.CARD_TEAR_VARIANTS[mod.Suits.Club])
-mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.CARD_TEAR_VARIANTS[mod.Suits.Diamond])
+mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.CARD_TEAR_VARIANT)
 mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.SUIT_TEAR_VARIANTS[mod.Suits.Spade])
 mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.SUIT_TEAR_VARIANTS[mod.Suits.Heart])
 mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.SUIT_TEAR_VARIANTS[mod.Suits.Club])
