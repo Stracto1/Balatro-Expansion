@@ -7,12 +7,14 @@ local PastCoins = 0
 ---@param Player EntityPlayer
 function mod:MoneyCounterFix(Player)
 
+
     if not mod.GameStarted then
+        --print("stop money")
         PastCoins = 0
         return
     end
 
-    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.Saved.Other.HasDebt then
+    if not mod.Saved.Other.HasDebt then
         return
     end
 
@@ -42,12 +44,8 @@ function mod:MoneyCounterFix(Player)
 
     end
 
-
-
-
-
 end
-mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.MoneyCounterFix)
+mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, mod.MoneyCounterFix, mod.Characters.JimboType)
 
 
 ---@param Player Entity

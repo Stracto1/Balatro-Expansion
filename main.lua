@@ -116,7 +116,28 @@ Balatro_Expansion.Jokers.TURTLE_BEAN = Isaac.GetTrinketIdByName("Turtle Bean")
 Balatro_Expansion.Jokers.EROSION = Isaac.GetTrinketIdByName("Erosion")
 Balatro_Expansion.Jokers.RESERVED_PARK = Isaac.GetTrinketIdByName("Reserved Parking")
 
+Balatro_Expansion.Jokers.MAIL_REBATE = Isaac.GetTrinketIdByName("Mail-in Rebate")
+Balatro_Expansion.Jokers.TO_THE_MOON = Isaac.GetTrinketIdByName("To the Moon")
+Balatro_Expansion.Jokers.JUGGLER = Isaac.GetTrinketIdByName("Juggler")
+Balatro_Expansion.Jokers.DRUNKARD = Isaac.GetTrinketIdByName("Drunkard")
+Balatro_Expansion.Jokers.LUCKY_CAT = Isaac.GetTrinketIdByName("Lucky Cat")
+Balatro_Expansion.Jokers.BASEBALL = Isaac.GetTrinketIdByName("Baseball Card")
+Balatro_Expansion.Jokers.DIET_COLA = Isaac.GetTrinketIdByName("Diet Cola")
 
+
+
+Balatro_Expansion.Trinkets = {} --rarities used for spawn weight and stuff
+Balatro_Expansion.Trinkets.common = {} 
+Balatro_Expansion.Trinkets.uncommon = {}
+Balatro_Expansion.Trinkets.rare = {}
+Balatro_Expansion.Trinkets.legendary = {}
+
+for i, Joker in pairs(Balatro_Expansion.Jokers) do
+
+    local Rarity = string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[3],"%?","")
+
+    Balatro_Expansion.Trinkets[Rarity][#Balatro_Expansion.Trinkets[Rarity] + 1] = Joker
+end
 
 
 --------------------------------
@@ -200,19 +221,6 @@ Balatro_Expansion.Spectrals.MEDIUM = Isaac.GetCardIdByName("Spectral_Medium")
 Balatro_Expansion.Spectrals.CRYPTID =  Isaac.GetCardIdByName("Spectral_Cryptid")
 Balatro_Expansion.Spectrals.BLACK_HOLE = Isaac.GetCardIdByName("Spectral_Black_hole")
 Balatro_Expansion.Spectrals.SOUL = Isaac.GetCardIdByName("Spectral_Soul")
-
-Balatro_Expansion.Trinkets = {} --rarities used for spawn weight and stuff
-Balatro_Expansion.Trinkets.common = {} 
-Balatro_Expansion.Trinkets.uncommon = {}
-Balatro_Expansion.Trinkets.rare = {}
-Balatro_Expansion.Trinkets.legendary = {}
-
-for _, Joker in pairs(Balatro_Expansion.Jokers) do
-
-    local Rarity = string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[3],"%?","")
-
-    Balatro_Expansion.Trinkets[Rarity][#Balatro_Expansion.Trinkets[Rarity] + 1] = Joker
-end
 
 
 Balatro_Expansion.Vouchers = {}

@@ -6,7 +6,7 @@
     <entity anm2path="" id="1000"  friction="0" variant="3598" name="Description Helper" />
 
 
-    <entity anm2path="SpadeCardAnimation.anm2" id="2" variant="2698" subtype="0" name="Tear Card" 
+    <entity anm2path="TearCardAnimation.anm2" id="2" variant="2698" subtype="0" name="Tear Card" 
             collisionRadius="11"
             numGridCollisionPoints="8" friction="1" shadowSize="13" stageHP="0" gibAmount="1">
             <gibs amount="1" rock="1" dust="1" sound_bone="1"/>

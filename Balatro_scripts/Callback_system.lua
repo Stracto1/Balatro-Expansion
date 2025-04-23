@@ -272,7 +272,8 @@ function mod:OnGameStart(Continued)
 
     mod.GameStarted = true
 
-        --print(mod.Saved.ModConfig.ExtraReadability)
+
+    --print(mod.Saved.ModConfig.ExtraReadability)
 
     --[[
     --print(#mod.Saved.Other.Tags)
@@ -444,14 +445,16 @@ end
 
 
 function mod:SaveStorage(IsExit)
+
     if mod.GameStarted then --needed since POST_NEW_LEVEL goes before GAME_STARTED 
 
         mod.Saved.HiddenItemsData = mod.ItemManager:GetSaveData()
 
         mod:SaveData(json.encode(mod.Saved))
     end
-    if IsExit then --this variable exists only when the GAME_EXIT callback is called
+    if type(IsExit) ~= "nil" then --this variable exists only when the GAME_EXIT callback is called
         mod.GameStarted = false
+        --print("is now false")
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.SaveStorage)

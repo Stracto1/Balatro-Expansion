@@ -5,7 +5,7 @@ local Game = Game()
 --local FirtsEffect = true --to prevent errors (was used for EntityEffects)
 
 local FIRST_EFFECT_POS = Vector(5,225)
-local EFFECT_SLOT_DISTANCE = Vector(19, 0)
+local EFFECT_SLOT_DISTANCE = Vector(23, 0)
 local EffectsInterval = 23 --frames between 2 different effect on a same entity
 
 local PartVariant = Isaac.GetEntityVariantByName("Pack Particle")
@@ -14,16 +14,20 @@ local PartSub = Isaac.GetEntitySubTypeByName("Pack Particle")
 local PartHelpSub = Isaac.GetEntitySubTypeByName("Pack Particle Helper")
 
 local EffectParams = {}
+
+--[[
 EffectParams[1] = {}
 EffectParams[1].Frames = 17
-EffectParams[1].Color = 0
-EffectParams[1].Text = 0
+EffectParams[1].Color = Color(1,1,1,0)
+EffectParams[1].Text = ""
 EffectParams[1].Position = Vector.Zero
+EffectParams[1].Offset = Vector.Zero
+EffectParams[1].IsEntity = false
+EffectParams[1].Source = mod.Jokers.JOKER
+]]
+
 --local TEXT_TYPES = {"+","X","ACTIVATE!","EXTINCT!","VALUE UP!","UPGRADE!","SAFE!","INTERESTS!","$"," REMAINING"}
 
-local StringTypes = {}
-StringTypes.Xnum = 1
-StringTypes.Other = nil
 
 
 local EffectAnimations = Sprite("gfx/ActivateAnimation.Anm2")
@@ -42,17 +46,30 @@ local StackedEffects = 0
 --here Position colud be an entity, in that case 
 function mod:CreateBalatroEffect(Slot, Colour, Sound, Text, Source, Offset, Volume)
 
-    if EffectParams[Slot] and Source ~= EffectParams[Slot].Source then --if an effect is already playing on the same target
+    local IsEntity = false
+    local EffectSlot = Slot
+    if type(Slot) == "userdata" then --basically checks if it's an entity
 
-        StackedEffects = StackedEffects + 1
-        Isaac.CreateTimer(function()
-                        mod:CreateBalatroEffect(Slot, Colour, Sound, Text, Source, Offset, Volume)
-                        end,  EffectsInterval - EffectParams[Slot].Frames, 1, false)
+        EffectSlot = GetPtrHash(Slot)
+        IsEntity = true
+    end
 
-        return
-    else
-        StackedEffects = 0
-        EffectParams[Slot] = {}
+    for ActiveEffect,_ in pairs(EffectParams) do --basically chacks if the table contains anything
+
+        --if any effect is in progress, delay the one that should spawn
+
+        if not IsEntity or EffectParams[EffectSlot] then --entities effects are delayed only if the same entity has more than one effect
+
+            --print("Skipped")
+
+            StackedEffects = StackedEffects + 1
+
+            Isaac.CreateTimer(function()
+                            mod:CreateBalatroEffect(Slot, Colour, Sound, Text, Source, Offset, Volume)
+                            end,  EffectsInterval - EffectParams[ActiveEffect].Frames, 1, false)
+
+            return
+        end
     end
 
     do --rounds the number to 2 decimals so it doesn't get too long
@@ -92,19 +109,26 @@ function mod:CreateBalatroEffect(Slot, Colour, Sound, Text, Source, Offset, Volu
 
     end
 
-    EffectParams[Slot].Frames = 0
-    EffectParams[Slot].Color = Colour
-    EffectParams[Slot].Text = Text
-    EffectParams[Slot].Rotation = math.random(90)
-    EffectParams[Slot].Source = Source
-
-    if type(Slot) == "userdata" then --basically checks if it's an entity
-        EffectParams[Slot].Position = Slot
-        EffectParams[Slot].Offset = Offset or Vector(0,20)
+    EffectParams[EffectSlot] = {}
+    if IsEntity then
+        
+        EffectParams[EffectSlot].Position = EntityPtr(Slot)
+        EffectParams[EffectSlot].Offset = Offset or Vector(0,20)
     else
-        EffectParams[Slot].Position = FIRST_EFFECT_POS + EFFECT_SLOT_DISTANCE * Slot
-        EffectParams[Slot].Offset = Offset or Vector.Zero
+        EffectParams[EffectSlot].Position = FIRST_EFFECT_POS + EFFECT_SLOT_DISTANCE * Slot
+        EffectParams[EffectSlot].Offset = Offset or Vector.Zero
+
+        mod.Counters.Activated[Slot] = 0
     end
+
+
+    EffectParams[EffectSlot].Frames = 0
+    EffectParams[EffectSlot].Color = Colour
+    EffectParams[EffectSlot].Text = Text
+    EffectParams[EffectSlot].Rotation = math.random(90)
+    EffectParams[EffectSlot].Source = Source
+    EffectParams[EffectSlot].IsEntity = IsEntity
+
 
     if Sound then
         sfx:Play(Sound, Volume or 1, 2, false, 0.95 + math.random()*0.1 + 0.05*StackedEffects)
@@ -118,31 +142,34 @@ function mod:RenderEffect(_,_,_,_,_)
     for _, Params in pairs(EffectParams) do
         --local Sprite = EffectAnimations[Params.Color]
         
-        if Params.Frames < 17 then
-            --print(" Render frame: "..tostring(Params.Frames))
-            local Sprite = EffectAnimations
+        --print(" Render frame: "..tostring(Params.Frames))
+        local Sprite = EffectAnimations
 
-            Sprite.Color = Params.Color
-            Sprite:SetFrame("idle", Params.Frames)
+        Sprite.Color = Params.Color
+        Sprite:SetFrame("idle", Params.Frames)
 
-            local RenderPos
-            if Params.Position.Color then --sees if it's an entity (otherwise it's a vector)
-                RenderPos = Isaac.WorldToScreen(Params.Position.Position) + Params.Offset
+        local RenderPos
+        if Params.IsEntity then
+            if Params.Position then
+                --here Params.Position is an EntityPtr
+                RenderPos = Isaac.WorldToScreen(Params.Position.Ref.Position) + Params.Offset
             else
-                RenderPos = Params.Position + Params.Offset
-            end
-
-            Sprite.Rotation = Params.Rotation
-
-            Sprite:Render(RenderPos)
-            local TextWidthOff = mod.Fonts.Balatro:GetStringWidth(Params.Text) /2
-            local LineHeightOff = mod.Fonts.Balatro:GetBaselineHeight() / 2
-            if Params.Frames < 15 then
-                mod.Fonts.Balatro:DrawString(Params.Text, RenderPos.X - TextWidthOff + 0.5, RenderPos.Y -LineHeightOff + 0.5, KColor(0.6,0.6,0.6,0.7),0,true) -- emulates little text shadow
-                mod.Fonts.Balatro:DrawString(Params.Text, RenderPos.X - TextWidthOff, RenderPos.Y - LineHeightOff, KColor(1,1,1,1),0,true)
 
             end
+        else
+            RenderPos = Params.Position + Params.Offset
         end
+
+        Sprite.Rotation = Params.Rotation
+
+        Sprite:Render(RenderPos)
+        local TextWidthOff = mod.Fonts.Balatro:GetStringWidth(Params.Text) /2
+        local LineHeightOff = mod.Fonts.Balatro:GetBaselineHeight() / 2
+        if Params.Frames < AnimLength-2 then
+            mod.Fonts.Balatro:DrawString(Params.Text, RenderPos.X - TextWidthOff + 0.5, RenderPos.Y -LineHeightOff + 0.5, KColor(0.6,0.6,0.6,0.7),0,true) -- emulates little text shadow
+            mod.Fonts.Balatro:DrawString(Params.Text, RenderPos.X - TextWidthOff, RenderPos.Y - LineHeightOff, KColor(1,1,1,1),0,true)
+
+        end        
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYERHUD_RENDER_HEARTS, mod.RenderEffect)

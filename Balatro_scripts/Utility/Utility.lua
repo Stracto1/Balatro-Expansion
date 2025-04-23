@@ -528,10 +528,14 @@ function mod:GetJimboJokerIndex(Player, Joker, SkipCopy)
     for i,Slot in ipairs(mod.Saved.Jimbo.Inventory) do
         if Slot.Joker == Joker then
             table.insert(Indexes, i)
+
         elseif not SkipCopy
                and (Slot.Joker == mod.Jokers.BLUEPRINT or Slot.Joker == mod.Jokers.BRAINSTORM) then
 
-            if mod.Saved.Jimbo.Inventory[mod.Saved.Jimbo.Progress.Inventory[i]].Joker == Joker then
+            local CopiedJoker = mod.Saved.Jimbo.Inventory[mod.Saved.Jimbo.Progress.Inventory[i]]
+            CopiedJoker = CopiedJoker and CopiedJoker.Joker or 0
+
+            if CopiedJoker == Joker then
                 table.insert(Indexes, i)
             end
         end
@@ -957,7 +961,7 @@ function mod:DestroyCards(Player, DeckIndexes, DoEffects)
         end
     end
 
-    Isaac.RunCallback("DECK_MODIFY", Player, #DeckIndexes)
+    Isaac.RunCallback("DECK_MODIFY", Player, -#DeckIndexes)
 end
 
 

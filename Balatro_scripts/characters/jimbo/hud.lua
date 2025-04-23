@@ -89,7 +89,7 @@ function mod:JimboInventoryHUD(offset,_,Position,_,Player)
 
     for i,Slot in ipairs(mod.Saved.Jimbo.Inventory) do
 
-        local RenderPos = BasePos + Vector(19*i , 0)
+        local RenderPos = BasePos + Vector(23*i , 0)
         local JokerConfig = ItemsConfig:GetTrinket(Slot.Joker)
 
         if Slot.Joker == 0 then
@@ -131,9 +131,9 @@ function mod:JimboInventoryHUD(offset,_,Position,_,Player)
     if mod.SelectionParams.Mode == mod.SelectionParams.Modes.INVENTORY then
         local RenderPos
         if mod.SelectionParams.SelectedCards[mod.SelectionParams.Index] then
-            RenderPos = INVENTORY_RENDERING_POSITION + Vector(19 * mod.SelectionParams.Index, -9)
+            RenderPos = INVENTORY_RENDERING_POSITION + Vector(23 * mod.SelectionParams.Index, -9)
         else
-            RenderPos = INVENTORY_RENDERING_POSITION + Vector(19 * mod.SelectionParams.Index, 0)
+            RenderPos = INVENTORY_RENDERING_POSITION + Vector(23 * mod.SelectionParams.Index, 0)
         end
 
         CardFrame:SetFrame(HUD_FRAME.Frame)
@@ -141,7 +141,7 @@ function mod:JimboInventoryHUD(offset,_,Position,_,Player)
         CardFrame:Render(RenderPos)
 
         --last confirm option
-        RenderPos = INVENTORY_RENDERING_POSITION + Vector(19 * (mod.Saved.Jimbo.InventorySize + 1), 0)
+        RenderPos = INVENTORY_RENDERING_POSITION + Vector(24 * (mod.Saved.Jimbo.InventorySize + 1), 0)
         
         
         if mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.SELLING then
