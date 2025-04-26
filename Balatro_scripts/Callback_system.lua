@@ -258,14 +258,13 @@ function mod:OnGameStart(Continued)
         --resets stuff
         if player:GetPlayerType() == mod.Characters.JimboType then
             mod:StatReset(player,true,true,false,true,true)
-            player:AddCacheFlags(CacheFlag.CACHE_ALL, true)
 
-            Isaac.RunCallback("INVENTORY_CHANGE", player)
+            for _, Cache in pairs(mod.CustomCache) do
+                player:AddCustomCacheTag(Cache, true)
+            end
 
-            --player:AddCustomCacheTag("playcd", false)
-            --player:AddCustomCacheTag("handsize", false)
-            --player:AddCustomCacheTag("discards", false)
-            --player:AddCustomCacheTag("inventory", true)
+            Isaac.RunCallback("INVENTORY_CHANGE", player) --this evaluates everithing anyway
+            --player:AddCacheFlags(CacheFlag.CACHE_ALL, true)
         end
     end
 

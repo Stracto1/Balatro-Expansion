@@ -35,16 +35,31 @@ void main(void)
 {
 	//I saw video where it used a spiral shader to get the hue value but didn't manage to pull it off...
 	//so I used an elipse-like shape instead 
-	vec4 Color = Color0 * texture2D(Texture0, TexCoord0);
+
+		// Clip
+	if(dot(gl_FragCoord.xy, ClipPlaneOut.xy) < ClipPlaneOut.z)
+		discard;
+
+	vec2 Ratio = vec2(32.0)/TextureSizeOut;
+
+	vec2 TrueCoord = TexCoord0;
+
+	TrueCoord.xy = fract(TrueCoord/Ratio); //makes the pattern repeat over the whole sprite (bigger sprites are divided in a grid of 32x32)
+
+		// Pixelate
+	vec2 pa = vec2(1.0+PixelationAmountOut, 1.0+PixelationAmountOut) / TextureSizeOut;
+	vec4 Color = Color0 * texture2D(Texture0, PixelationAmountOut > 0.0 ? TexCoord0 - mod(TexCoord0, pa) + pa * 0.5 : TexCoord0);
+	
+	//vec4 Color = Color0 * texture2D(Texture0, TexCoord0);
 	vec3 ColorHSV = rgb2hsv(Color.rgb);
 
-	float Strength = 0.6;
+	float Strength = 0.75;
 	if (((ColorHSV.b <= 0.25)||(ColorHSV.b >= 0.8))&&(ColorHSV.g <= 0.25))
-		Strength = 0.15; //Greyscales aren't affected as much
+		Strength = 0.6; //Greyscales aren't affected as much
 
 	vec2 Center = vec2(0.6,0.65);//center of the elipse
 
-	float Distance = distance(vec2(TexCoord0.x, TexCoord0.y/2.0), Center); 
+	float Distance = distance(vec2(TrueCoord.x, TrueCoord.y/2.0), Center); 
 	ColorHSV.r = sin(Distance * 5.0) * sin(Distance * 5.0); //gets the hue basing on the distance from the circles
 
 	Color.rgb = mix(Color.rgb, hsv2rgb(ColorHSV), Strength);

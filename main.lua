@@ -124,6 +124,14 @@ Balatro_Expansion.Jokers.LUCKY_CAT = Isaac.GetTrinketIdByName("Lucky Cat")
 Balatro_Expansion.Jokers.BASEBALL = Isaac.GetTrinketIdByName("Baseball Card")
 Balatro_Expansion.Jokers.DIET_COLA = Isaac.GetTrinketIdByName("Diet Cola")
 
+Balatro_Expansion.Jokers.TRADING_CARD = Isaac.GetTrinketIdByName("Trading Card")
+Balatro_Expansion.Jokers.SPARE_TROUSERS = Isaac.GetTrinketIdByName("Spare Trousers")
+Balatro_Expansion.Jokers.ANCIENT_JOKER = Isaac.GetTrinketIdByName("Ancient Joker")
+Balatro_Expansion.Jokers.WALKIE_TALKIE = Isaac.GetTrinketIdByName("Walkie Talkie")
+Balatro_Expansion.Jokers.SELTZER = Isaac.GetTrinketIdByName("Seltz")
+Balatro_Expansion.Jokers.SMILEY_FACE = Isaac.GetTrinketIdByName("Smiley Face")
+Balatro_Expansion.Jokers.CAMPFIRE = Isaac.GetTrinketIdByName("Campfire")
+
 
 
 Balatro_Expansion.Trinkets = {} --rarities used for spawn weight and stuff
@@ -358,6 +366,14 @@ Balatro_Expansion.BLINDS = {}
 Balatro_Expansion.BLINDS.SMALL = 0
 Balatro_Expansion.BLINDS.BIG = 1
 Balatro_Expansion.BLINDS.BOSS = 2
+
+Balatro_Expansion.CustomCache = {}
+Balatro_Expansion.CustomCache.HAND_SIZE = "handsize"
+Balatro_Expansion.CustomCache.HAND_COOLDOWN = "playcd"
+Balatro_Expansion.CustomCache.DISCARD_NUM = "DiscardSwoosh"
+Balatro_Expansion.CustomCache.INVENTORY_SIZE = "inventory"
+Balatro_Expansion.CustomCache.HAND_NUM = "hands"
+
 ---------------------------------
 Balatro_Expansion.LastCardFullPoss = {}
 
@@ -595,6 +611,8 @@ Balatro_Expansion.Counters.SinceSelect = 0
 Balatro_Expansion.Counters.SinceShoot = 0
 Balatro_Expansion.Counters.Activated = {}
 
+Balatro_Expansion.TearCardEnable = true --used in AddCardTearFlags()
+
 Balatro_Expansion.Saved.Other = {}
 Balatro_Expansion.Saved.Other.HasDebt = false
 Balatro_Expansion.Saved.Other.DamageTakenRoom = 0
@@ -663,6 +681,7 @@ Balatro_Expansion.SelectionParams.Purposes.CelestialPack = 25
 Balatro_Expansion.SelectionParams.Purposes.SpectralPack = 26
 Balatro_Expansion.SelectionParams.Purposes.BuffonPack = 27
 Balatro_Expansion.SelectionParams.Purposes.SELLING = 28
+Balatro_Expansion.SelectionParams.Purposes.SMELTER = 29
 Balatro_Expansion.SelectionParams.Purposes.MegaFlag = 128 --applied on top of the packs purposes to say it's a double choice
 ----------------------------- gaw damn those were a lot of variables
 

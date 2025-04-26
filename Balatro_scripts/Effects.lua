@@ -56,9 +56,9 @@ function mod:CreateBalatroEffect(Slot, Colour, Sound, Text, Source, Offset, Volu
 
     for ActiveEffect,_ in pairs(EffectParams) do --basically chacks if the table contains anything
 
-        --if any effect is in progress, delay the one that should spawn
+        --effetcts are separated between entities and inventory, where only one of each can be on screen at a time
 
-        if not IsEntity or EffectParams[EffectSlot] then --entities effects are delayed only if the same entity has more than one effect
+        if not (IsEntity or EffectParams[ActiveEffect].IsEntity) then --entities effects are delayed only if the same entity has more than one effect
 
             --print("Skipped")
 

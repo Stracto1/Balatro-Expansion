@@ -16,7 +16,22 @@ uniform sampler2D Texture0;
 
 void main(void)
 {
-	vec4 Color = Color0 * texture2D(Texture0, TexCoord0);
+
+		// Clip
+	if(dot(gl_FragCoord.xy, ClipPlaneOut.xy) < ClipPlaneOut.z)
+		discard;
+
+	vec2 Ratio = vec2(32.0)/TextureSizeOut;
+
+	vec2 TrueCoord = TexCoord0;
+
+	TrueCoord.xy = fract(TrueCoord/Ratio); //makes the pattern repeat over the whole sprite (bigger sprites are divided in a grid of 32x32)
+
+	// Pixelate
+	vec2 pa = vec2(1.0+PixelationAmountOut, 1.0+PixelationAmountOut) / TextureSizeOut;
+	vec4 Color = Color0 * texture2D(Texture0, PixelationAmountOut > 0.0 ? TexCoord0 - mod(TexCoord0, pa) + pa * 0.5 : TexCoord0);
+	
+	//vec4 Color = Color0 * texture2D(Texture0, TexCoord0);
 	int mult = 1; 
 	if (Color.rgb == vec3(0))
 		mult = 0; //pure black doesn't get affected by the shader
@@ -24,7 +39,7 @@ void main(void)
 
 	vec2 Center = vec2(0.5,0.5); //center of the circles
 
-	float Distance = distance(TexCoord0,Center);
+	float Distance = distance(TrueCoord,Center);
 	vec3 Blue = vec3(0.3,0.5,1);
 
 	vec3 FinalColor = mix(Blue , vec3(1),0.7*cos(Distance * 75) *cos(Distance * 75) ); //makes pixels that touch the circles brighter

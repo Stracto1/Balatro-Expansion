@@ -166,7 +166,7 @@ EID:addTrinket(mod.Jokers.ABSTRACT_JOKER, "{{PlayerJimbo}} {{Damage}} {{ColorMul
 EID:addTrinket(mod.Jokers.MISPRINT, "{{PlayerJimbo}} {{Damage}} {{ColorMult}}+0-1 {{CR}} random Damage Up every new room #{{PlayerJimbo}} {{ColorMint}}10% Chance{{CR}} for any item to become a gliched one upon spawning", "Misprint", "en_us")
 EID:addTrinket(mod.Jokers.JOKER_STENCIL, "{{PlayerJimbo}} {{ColorMult}}+0.75X{{CR}} Damage Multiplier for every Joker slot being {{ColorYellorange}}empty{{CR}} or containing another {{ColorYellorange}}Joker Stencil{{CR}}#Not having any {{Collectible}}Active item gives and additional {{ColorMult}}+0.25X{{CR}} Damage Multiplier", "Joker Stencil", "en_us")
 EID:addTrinket(mod.Jokers.STONE_JOKER, "{{PlayerJimbo}} {{Tears}} {{ColorChips}}+1.25 {{CR}}Tears for every for every stone card in the player's full deck #Gives {{ColorChips}}+0.05 {{CR}}Tears per rock in the current room", "Stone Joker", "en_us")
-EID:addTrinket(mod.Jokers.ICECREAM, "{{PlayerJimbo}} {{Tears}} {{ColorChips}}+4 {{CR}}Tears#Loses {{ColorChips}}-0.16{{CR}} Tears every room completed while held", "Icecream", "en_us")
+EID:addTrinket(mod.Jokers.ICECREAM, "{{PlayerJimbo}} {{Tears}} {{ColorChips}}+4 {{CR}}Tears#Loses {{ColorChips}}-0.16{{CR}} Tears every room completed while held #A trail of slowing follows Jimbo #Killing an enemy on top of the creep turns it in a Frozen Statue", "Icecream", "en_us")
 EID:addTrinket(mod.Jokers.POPCORN, "{{PlayerJimbo}} {{Damage}} {{ColorMult}}+1 {{CR}}Damage #Loses {{ColorMult}}-0.2{{CR}} Damage when clearing any blind", "Popcorn", "en_us")
 EID:addTrinket(mod.Jokers.RAMEN, "{{PlayerJimbo}} {{Damage}} {{ColorMult}}X1.5 {{CR}}Damage Multiplier#loses {{ColorMult}}-0.01X{{CR}} per card discarded while holding this", "Ramen", "en_us")
 EID:addTrinket(mod.Jokers.ROCKET, "{{PlayerJimbo}} Gives 2 {{Coin}}Coins on Blind clear#{{Coin}}Coin payout increases by {{ColorYellorange}}1${{CR}} when a boss blind is defeated #{{PlayerJimbo}} Grants the {{Collectible583}}Rocket in Jar effect", "Rocket", "en_us")
@@ -194,7 +194,7 @@ EID:addTrinket(mod.Jokers.FLASH_CARD, "{{PlayerJimbo}} {{Damage}} {{ColorMult}}+
 EID:addTrinket(mod.Jokers.SACRIFICIAL_DAGGER, "{{PlayerJimbo}} Destroys the Joker to it's right and gains {{Damage}}{{ColorMult}} +0.08 x the destroyed Joker's sell value{{CR}} Damage on every Blind cleared", "Sacrificial Dagger", "en_us")
 EID:addTrinket(mod.Jokers.CLOUD_NINE, "{{PlayerJimbo}} Gain 1 {{Coin}} Coin for every {{ColorYellorange}}9{{CR}} in your FullvDeck on every Blind clear #{{Seraphim}} Gives Flight", "Cloud 9", "en_us")
 EID:addTrinket(mod.Jokers.SWASHBUCKLER, "{{PlayerJimbo}} {{Shop}} Gives {{Damage}}{{ColorMult}} +0.05 x the total sell value of other held Jokers{{CR}} Damage", "Swashbucler", "en_us")
-EID:addTrinket(mod.Jokers.CARTOMANCER, "{{PlayerJimbo}} Spawns 1 random {{Card}} {{ColorPink}} Tarot Card {{CR}}on every Blind clear", "Cartomancer", "en_us")
+EID:addTrinket(mod.Jokers.CARTOMANCER, "{{PlayerJimbo}} Spawns 1 random {{Card}} {{ColorPink}}Tarot Card{{CR}}on every Blind clear #{{ColorMint}}5% Chance{{CR}} for any pickup to be replaced with a random {{ColorPink}}Tarot Card{{CR}}", "Cartomancer", "en_us")
 EID:addTrinket(mod.Jokers.LOYALTY_CARD, "{{PlayerJimbo}} {{Damage}} {{ColorMult}}X2 {{CR}} Damage multiplier once every 6 rooms cleares", "Loyalty Card", "en_us")
 EID:addTrinket(mod.Jokers.SUPERNOVA, "{{PlayerJimbo}} When a card is played, gives {{Damage}}{{ColorMult}} +0.01 {{CR}} Damage for every time a card with the same value got played in the current room", "Supernova", "en_us")
 EID:addTrinket(mod.Jokers.DELAYED_GRATIFICATION, "{{PlayerJimbo}} Gives 1 coin per {{Heart}} Heart when clearing a room at full health #{{Timer}} Both the {{Boss}}Bossrush and {{Hush}} Hush door open regardless of the ingame timer", "Delayed Gratification", "en_us")
@@ -317,10 +317,10 @@ EID:addCollectible(mod.Vouchers.MoneySeed, "{{PlayerJimbo}} Maximum interest inc
 EID:addCollectible(mod.Vouchers.MoneyTree, "{{PlayerJimbo}} Maximum interest increased to {{ColorYellow}}20${{CR}}", "Money Tree", "en_us")
 
 EID:addCollectible(mod.Vouchers.PlanetMerch, "{{PlayerJimbo}} Every pickup has a {{ColorMint}}7% chance{{CR}} to be replaced with a random {{ColorCyan}}Planet Card{{CR}}", "Planet Merchant", "en_us")
-EID:addCollectible(mod.Vouchers.PlanetTycoon, "{{PlayerJimbo}} Every pickup has an additional {{ColorMint}}7% chance{{CR}} to be replaced with a random {{ColorCyan}}Planet Card{{CR}}", "Planet Tycoon", "en_us")
+EID:addCollectible(mod.Vouchers.PlanetTycoon, "{{PlayerJimbo}} Every pickup has an additional {{ColorMint}}10% chance{{CR}} to be replaced with a random {{ColorCyan}}Planet Card{{CR}}", "Planet Tycoon", "en_us")
 
 EID:addCollectible(mod.Vouchers.TarotMerch, "{{PlayerJimbo}} Every pickup has a {{ColorMint}}7% chance{{CR}} to be replaced with a random {{ColorPink}}Tarot Card{{CR}}", "Tarot Merchant", "en_us")
-EID:addCollectible(mod.Vouchers.TarotTycoon, "{{PlayerJimbo}} Every pickup has an additional {{ColorMint}}7% chance{{CR}} to be replaced with a random {{ColorPink}}Tarot Card{{CR}}", "Tarot Tycoon", "en_us")
+EID:addCollectible(mod.Vouchers.TarotTycoon, "{{PlayerJimbo}} Every pickup has an additional {{ColorMint}}10% chance{{CR}} to be replaced with a random {{ColorPink}}Tarot Card{{CR}}", "Tarot Tycoon", "en_us")
 
 
 ----------------------------------------

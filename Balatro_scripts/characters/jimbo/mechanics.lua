@@ -21,8 +21,6 @@ local CHARGED_LOOP_ANIMATION = 10
 local BasicRoomNum = 0
 local DeathCopyCard
 
-local TearCardEnable = true --used in AddCardTearFlags()
-
 --local jesterhatCostume = Isaac.GetCostumeIdByPath("gfx/characters/gabriel_hair.anm2") -- Exact path, with the "resources" folder as the root
 --local jesterstolesCostume = Isaac.GetCostumeIdByPath("gfx/characters/gabriel_stoles.anm2") -- Exact path, with the "resources" folder as the root
 local Game = Game()
@@ -40,7 +38,6 @@ local ItemPool = Game:GetItemPool()
 function mod:JimboInit(player)
     if player:GetPlayerType() == mod.Characters.JimboType then
         local Data = player:GetData()
-        Data.PlayCD = 0 --shoot cooldown
 
         Data.NotAlrPressed = {} --general controls stuff
         Data.NotAlrPressed.left = true
@@ -72,13 +69,12 @@ function mod:JimboInputHandle(Player)
         return
     end
 
-    -- got this from "sybil pseudoregalia" on the modding of isaac discord (savior tbh) and modified it a bit
+    -- got this from "sybil pseudoregalia" on the modding of isaac discord (my savior tbh) and modified it a bit
     ---------------------------------------
     local Weapon = Player:GetWeapon(1)
     
     if Weapon then
         if not mod:Contained(GoodWeaponTypes, Weapon:GetWeaponType()) then
-
 
             local newWeapon
 
@@ -97,29 +93,18 @@ function mod:JimboInputHandle(Player)
     ----------------------------------------
 
     local Data = Player:GetData()
-
-    local Cooldown = Player:GetCustomCacheValue("playcd")
     --print(Isaac.WorldToScreen(Player.Position))
-
-    -----------DISCARD COOLDOWN-------------
-    if Data.PlayCD <= Cooldown + CHARGED_ANIMATION + CHARGED_LOOP_ANIMATION then
-        Data.PlayCD = Data.PlayCD + 1
-    else
-        Data.PlayCD = Cooldown + CHARGED_ANIMATION
-    end
-
 
     ----------SELECTION INPUT / INPUT COOLDOWN------------
     if mod.SelectionParams.Mode ~= mod.SelectionParams.Modes.NONE then --while in the card selection menu cheks for inputs
         -------------INPUT HANDLING-------------------(big ass if statements ik lol)
-        
+
         --confirming/canceling 
         if  Input.IsActionTriggered(ButtonAction.ACTION_MENUCONFIRM, Player.ControllerIndex)
             and not Input.IsActionPressed(ButtonAction.ACTION_ITEM, Player.ControllerIndex)--usually they share buttons
             or Input.IsMouseBtnPressed(MouseButton.LEFT) then
 
-           
-                mod:Select(Player)
+            mod:Select(Player)
 
         end
 
@@ -166,14 +151,6 @@ function mod:JimboInputHandle(Player)
         else
             Data.ALThold = 0
         end
-
-        -----------SHOOTING HANDLING---------------
-        local AimDirection = Player:GetAimDirection()
-        if Data.PlayCD >= Cooldown and (AimDirection.X ~= 0 or AimDirection.Y ~= 0) then
-            --mod:JimboShootCardTear(Player, AimDirection)
-            Data.PlayCD = 0
-        end
-
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.JimboInputHandle)
@@ -251,114 +228,129 @@ function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rN
 
     local RollRNG = mod.Saved.GeneralRNG --tried using the rng from the callback but it gave the same results each time
 
-    if PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType)
-       and (ReqSubType == 0 or ReqVariant == 0) then
-        
-        if Game:GetRoom():GetType() == RoomType.ROOM_SHOP and Pickup:IsShopItem() then
 
-            if Pickup.ShopItemId <= 1 then --card pack
-                ReturnTable = {PickupVariant.PICKUP_TAROTCARD,mod:GetRandom(mod.Packs, mod.Saved.GeneralRNG),false}
+    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType)
+       or not (ReqSubType == 0 or ReqVariant == 0) then
 
-            elseif Pickup.ShopItemId == 2 then --voucher / joker if already bought
-                --ngl i'm really proud of the algorithm i wrote on this section
-
-                ---@type boolean | integer
-                local VoucherPresent = false
-                for i,v in ipairs(Isaac.FindByType(5, 100)) do
-                    if v:ToPickup().ShopItemId == Pickup.ShopItemId then --if yes, the item voucher wasn't bought
-                        VoucherPresent = v.SubType
-                        break
-                    end
-                end
-
-                if not Game:GetRoom():IsInitialized() then --if room is just being entered
-                    --predicts the current voucher so it can exit the /repeat until/ statement
-                    VoucherPresent = mod:GetRandom(mod.Saved.Pools.Vouchers, rNG, true)
-                end
-
-                if VoucherPresent then --voucher still here with us
-
-                    local Rvoucher
-                    repeat
-                        Rvoucher = mod:GetRandom(mod.Saved.Pools.Vouchers, rNG) --using this rng basically makes it un rerollable with mechines
-                        --PLEASE tell me if the RNG not advancing gets patched cause it'll break the voucher generation 
-
-                    until not mod:Contained(mod.Saved.Jimbo.FloorVouchers, Rvoucher) --no dupes per floor
-                          or Rvoucher == VoucherPresent --if it's getting rerolled (kinda)
-
-                    table.insert(mod.Saved.Jimbo.FloorVouchers, Rvoucher)
-
-                    ReturnTable = {PickupVariant.PICKUP_COLLECTIBLE,Rvoucher, false}
-
-                else --replace with a joker if already bought instead
-
-                    ReturnTable = {PickupVariant.PICKUP_TRINKET, 1, false}
-                end
-
-            elseif Pickup.ShopItemId == 3 then --basic shop item
-            
-                if Game:IsGreedMode() then
-                    ReturnTable = {PickupVariant.PICKUP_COLLECTIBLE,
-                        ItemPool:GetCollectible(ItemPoolType.POOL_GREED_SHOP, true, RollRNG:GetSeed()), false}
-                else
-                    ReturnTable = {PickupVariant.PICKUP_COLLECTIBLE,
-                        ItemPool:GetCollectible(ItemPoolType.POOL_SHOP, true, RollRNG:GetSeed()), false}
-
-                end
-                
-            
-            else
-                ReturnTable = {PickupVariant.PICKUP_TRINKET, 1 ,false}
-            end
-
-        elseif ReturnTable[1] ~= PickupVariant.PICKUP_COLLECTIBLE then
-
-            local PlanetChance = (PlayerManager.GetNumCollectibles(mod.Vouchers.PlanetMerch) + PlayerManager.GetNumCollectibles(mod.Vouchers.PlanetTycoon)) * 0.07
-            local TarotChance = (PlayerManager.GetNumCollectibles(mod.Vouchers.TarotMerch) + PlayerManager.GetNumCollectibles(mod.Vouchers.TarotTycoon)) * 0.07 + PlanetChance
-
-            --MULTIPLAYER - PLACEHOLDER
-            --[[
-            for i,Player in ipairs(PlayerManager.GetPlayers()) do
-                if Player:GetPlayerType() == mod.Characters.JimboType then
-                    for i=1, mod:GetValueRepetitions(mod.Saved.Jimbo.Inventory.Jokers, TrinketType.OOPS) do
-                        PlanetChance = PlanetChance * 2
-                        TarotChance = TarotChance * 2
-                    end
-                end
-            end]]--
-
-
-            local CardRoll = mod.Saved.GeneralRNG:RandomFloat()
-
-            if CardRoll <= PlanetChance then
-                ReturnTable = {PickupVariant.PICKUP_TAROTCARD, mod.Saved.GeneralRNG:RandomInt(mod.Planets.PLUTO, mod.Planets.SUN), false}
-
-            elseif CardRoll <= TarotChance then
-                ReturnTable = {PickupVariant.PICKUP_TAROTCARD, mod.Saved.GeneralRNG:RandomInt(1, 22), false}
-
-            end
-
-        end
-
-        --if a trinket is selected, then roll for joker and edition
-        if ReturnTable[1] == PickupVariant.PICKUP_TRINKET then
-
-
-            local RandomJoker = mod:RandomJoker(RollRNG, {}, true)
-
-            ReturnTable = {PickupVariant.PICKUP_TRINKET, RandomJoker.Joker ,false}
-
-            mod.Saved.Jimbo.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(RandomJoker.Joker).Name] = RandomJoker.Edition
-        
-        --reverse tarot become their non-reverse variant
-        elseif ReturnTable[1] == PickupVariant.PICKUP_TAROTCARD 
-               and ReturnTable[2] >= Card.CARD_REVERSE_FOOL and ReturnTable[2] <= Card.CARD_REVERSE_WORLD then
-
-            ReturnTable[2] = ReturnTable[2] - 55
-    
-        end
+        return
     end
 
+    
+    if Game:GetRoom():GetType() == RoomType.ROOM_SHOP and Pickup:IsShopItem() then
+
+        if Pickup.ShopItemId <= 1 then --card pack
+            ReturnTable = {PickupVariant.PICKUP_TAROTCARD,mod:GetRandom(mod.Packs, mod.Saved.GeneralRNG),false}
+
+        elseif Pickup.ShopItemId == 2 then --voucher / joker if already bought
+            --ngl i'm really proud of the algorithm i wrote on this section
+
+            ---@type boolean | integer
+            local VoucherPresent = false
+            for i,v in ipairs(Isaac.FindByType(5, 100)) do
+                if v:ToPickup().ShopItemId == Pickup.ShopItemId then --if yes, the item voucher wasn't bought
+                    VoucherPresent = v.SubType
+                    break
+                end
+            end
+
+            if not Game:GetRoom():IsInitialized() then --if room is just being entered
+                --predicts the current voucher so it can exit the /repeat until/ statement
+                VoucherPresent = mod:GetRandom(mod.Saved.Pools.Vouchers, rNG, true)
+            end
+
+            if VoucherPresent then --voucher still here with us
+
+                local Rvoucher
+                repeat
+                    Rvoucher = mod:GetRandom(mod.Saved.Pools.Vouchers, rNG) --using this rng basically makes it un rerollable with mechines
+                    --PLEASE tell me if the RNG not advancing gets patched cause it'll break the voucher generation 
+
+                until not mod:Contained(mod.Saved.Jimbo.FloorVouchers, Rvoucher) --no dupes per floor
+                      or Rvoucher == VoucherPresent --if it's getting rerolled (kinda)
+
+                table.insert(mod.Saved.Jimbo.FloorVouchers, Rvoucher)
+
+                ReturnTable = {PickupVariant.PICKUP_COLLECTIBLE,Rvoucher, false}
+
+            else --replace with a joker if already bought instead
+
+                ReturnTable = {PickupVariant.PICKUP_TRINKET, 1, false}
+            end
+
+        elseif Pickup.ShopItemId == 3 then --basic shop item
+        
+            if Game:IsGreedMode() then
+                ReturnTable = {PickupVariant.PICKUP_COLLECTIBLE,
+                    ItemPool:GetCollectible(ItemPoolType.POOL_GREED_SHOP, true, RollRNG:GetSeed()), false}
+            else
+                ReturnTable = {PickupVariant.PICKUP_COLLECTIBLE,
+                    ItemPool:GetCollectible(ItemPoolType.POOL_SHOP, true, RollRNG:GetSeed()), false}
+
+            end
+            
+        
+        else
+            ReturnTable = {PickupVariant.PICKUP_TRINKET, 1 ,false}
+        end
+
+    elseif ReturnTable[1] ~= PickupVariant.PICKUP_COLLECTIBLE then
+
+        local PlanetChance = PlayerManager.GetNumCollectibles(mod.Vouchers.PlanetMerch) * 0.07 + PlayerManager.GetNumCollectibles(mod.Vouchers.PlanetTycoon) * 0.1
+        local TarotChance = PlayerManager.GetNumCollectibles(mod.Vouchers.TarotMerch) * 0.07 + PlayerManager.GetNumCollectibles(mod.Vouchers.TarotTycoon) * 0.1
+
+        TarotChance = TarotChance + 0.05*#mod:GetJimboJokerIndex(Game:GetPlayer(0),mod.Jokers.CARTOMANCER)
+
+
+        if TarotChance + PlanetChance > 1 then --if the sum of the chances is higher than 1 even it out
+            local Rapporto = PlanetChance / TarotChance
+
+            TarotChance = 1/(Rapporto+1)
+            PlanetChance = 1-PlanetChance
+        end
+
+
+        --MULTIPLAYER - PLACEHOLDER
+        --[[
+        for i,Player in ipairs(PlayerManager.GetPlayers()) do
+            if Player:GetPlayerType() == mod.Characters.JimboType then
+                for i=1, mod:GetValueRepetitions(mod.Saved.Jimbo.Inventory.Jokers, TrinketType.OOPS) do
+                    PlanetChance = PlanetChance * 2
+                    TarotChance = TarotChance * 2
+                end
+            end
+        end]]--
+        TarotChance = TarotChance + PlanetChance
+
+        local CardRoll = Game:GetPlayer(0):GetDropRNG():RandomFloat()
+
+        if CardRoll <= PlanetChance then
+            ReturnTable = {PickupVariant.PICKUP_TAROTCARD, Game:GetPlayer(0):GetDropRNG():RandomInt(mod.Planets.PLUTO, mod.Planets.SUN), false}
+
+        elseif CardRoll <= TarotChance then
+            ReturnTable = {PickupVariant.PICKUP_TAROTCARD, Game:GetPlayer(0):GetDropRNG():RandomInt(1, 22), false}
+
+        end
+
+    end
+
+    --if a trinket is selected, then roll for joker and edition
+    if ReturnTable[1] == PickupVariant.PICKUP_TRINKET then
+
+
+        local RandomJoker = mod:RandomJoker(RollRNG, {}, true)
+
+        ReturnTable = {PickupVariant.PICKUP_TRINKET, RandomJoker.Joker ,false}
+
+        mod.Saved.Jimbo.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(RandomJoker.Joker).Name] = RandomJoker.Edition
+    
+    --reverse tarot become their non-reverse variant
+    elseif ReturnTable[1] == PickupVariant.PICKUP_TAROTCARD 
+           and ReturnTable[2] >= Card.CARD_REVERSE_FOOL and ReturnTable[2] <= Card.CARD_REVERSE_WORLD then
+
+        ReturnTable[2] = ReturnTable[2] - 55
+
+    end
+    
     return ReturnTable
 end
 mod:AddCallback(ModCallbacks.MC_POST_PICKUP_SELECTION, mod.ShopItemChanger)
@@ -775,7 +767,7 @@ mod:AddPriorityCallback("TRUE_ROOM_CLEAR",CallbackPriority.LATE, mod.AddRoomsCle
 function mod:OnDeckShift(Player)
 
     --shuffle the deck if finished
-    if not mod.Saved.Jimbo.CurrentHand[1] then
+    if not next(mod.Saved.Jimbo.CurrentHand) then
 
         if mod.Saved.Jimbo.FirstDeck and mod.Saved.Jimbo.Progress.Room.Shots < Player:GetCustomCacheValue("hands") then
             mod.Saved.Jimbo.FirstDeck = false --no more stat boosts from cards in the cuurent room
@@ -948,6 +940,7 @@ function mod:TrinketEditionsRender(Trinket, Offset)
     if Edition ~= mod.Edition.BASE then
         Trinket:GetSprite():SetCustomShader(mod.EditionShaders[Edition])
     end
+    Trinket:GetSprite():SetCustomShader(mod.EditionShaders[mod.Edition.NEGATIVE])
 
     if Trinket.SubType == mod.Jokers.HOLOGRAM then
         JokerOverlaySprite:ReplaceSpritesheet(0, JokerConfig.GfxFileName)
@@ -988,7 +981,7 @@ function mod:JimboTakeDamage(Player,Amount,_,Source,_)
     ---@diagnostic disable-next-line: cast-local-type
     Player = Player:ToPlayer()
 
-    if not Player or Player:GetPlayerType() ~= mod.Characters.JimboType then
+    if not Player or Player:GetPlayerType() ~= mod.Characters.JimboType or Amount == 0 then
         return
     end
 
@@ -996,71 +989,70 @@ function mod:JimboTakeDamage(Player,Amount,_,Source,_)
         return false
     end
     
-    if Amount ~= 0 then
-        --only remove one eternal/rotten heart if he has any
-        if Player:GetEternalHearts() ~= 0  then
 
-            Player:AddEternalHearts(-1)
+    --only remove one eternal/rotten heart if he has any
+    if Player:GetEternalHearts() ~= 0  then
 
-        elseif Player:GetRottenHearts() ~= 0 then
+        Player:AddEternalHearts(-1)
 
-            Player:AddRottenHearts(-1)   
-            Player:AddHearts(-1) --rotten hearts leave you with half a red heart(??)
+    elseif Player:GetRottenHearts() ~= 0 then
 
-        elseif Player:GetBoneHearts() ~= 0 then
+        Player:AddRottenHearts(-1)   
+        Player:AddHearts(-1) --rotten hearts leave you with half a red heart(??)
 
-            if Player:GetHearts() > Player:GetMaxHearts() then --if a bone heart is filled
-                Player:AddHearts(-2)
-            else
-                Player:AddBoneHearts(-2)
-                sfx:Play(SoundEffect.SOUND_BONE_SNAP)
-            end
-            
-        else
+    elseif Player:GetBoneHearts() ~= 0 then
+
+        if Player:GetHearts() > Player:GetMaxHearts() then --if a bone heart is filled
             Player:AddHearts(-2)
+        else
+            Player:AddBoneHearts(-2)
+            sfx:Play(SoundEffect.SOUND_BONE_SNAP)
         end
-        Player:TakeDamage(0, DamageFlag.DAMAGE_FAKE, Source, 0) --take fake damage
-        Player:SetMinDamageCooldown(80)
-
-
-        --||DISCARD MECHANIC||
-        if mod.SelectionParams.Mode == mod.SelectionParams.Modes.NONE then
-
-            Isaac.RunCallback("HAND_DISCARD", Player, #mod.Saved.Jimbo.CurrentHand) --various joker/card effects
-
-            mod:DiscardSwoosh(Player)
-            
-            for i = #mod.Saved.Jimbo.CurrentHand, 1, -1 do
-
-                local RandomDirection = RandomVector()
-                
-                TearCardEnable = false
-                mod.Counters.SinceShoot = 0
-
-                local Tear = Player:FireTear(Player.Position, 10*Player.ShotSpeed * RandomDirection + Player:GetTearMovementInheritance(RandomDirection), true, true, true, Player)
-                mod:AddCardTearFalgs(Tear, false, true)
-
-                mod.Saved.Jimbo.CurrentHand[i] = nil
-            end
-
-            for i=1, mod.Saved.Jimbo.HandSize do
-
-                table.insert(mod.Saved.Jimbo.CurrentHand, 1, mod.Saved.Jimbo.DeckPointer)
-                mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer + 1
-            end
-
-
-            Isaac.RunCallback("DECK_SHIFT", Player)
-
-        end
-
-        DamagedThisFrame[Player:GetPlayerIndex()] = true
-        Isaac.CreateTimer(function ()
-            DamagedThisFrame[Player:GetPlayerIndex()] = false
-        end,0,1,true)
-
-        return false
+        
+    else
+        Player:AddHearts(-2)
     end
+    Player:TakeDamage(0, DamageFlag.DAMAGE_FAKE, Source, 0) --take fake damage
+    Player:SetMinDamageCooldown(80)
+
+
+    --||DISCARD MECHANIC||
+    if mod.SelectionParams.Mode == mod.SelectionParams.Modes.NONE then
+
+        Isaac.RunCallback("HAND_DISCARD", Player, #mod.Saved.Jimbo.CurrentHand) --various joker/card effects
+
+        mod:DiscardSwoosh(Player)
+        
+        for i = #mod.Saved.Jimbo.CurrentHand, 1, -1 do
+
+            local RandomDirection = RandomVector()
+            
+            mod.TearCardEnable = false
+            mod.Counters.SinceShoot = 0
+
+            local Tear = Player:FireTear(Player.Position, 10*Player.ShotSpeed * RandomDirection + Player:GetTearMovementInheritance(RandomDirection), true, true, true, Player)
+            mod:AddCardTearFalgs(Tear, false, true)
+
+            mod.Saved.Jimbo.CurrentHand[i] = nil
+        end
+
+        for i=1, mod.Saved.Jimbo.HandSize do
+
+            table.insert(mod.Saved.Jimbo.CurrentHand, 1, mod.Saved.Jimbo.DeckPointer)
+            mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer + 1
+        end
+
+
+        Isaac.RunCallback("DECK_SHIFT", Player)
+
+    end
+
+    DamagedThisFrame[Player:GetPlayerIndex()] = true
+    Isaac.CreateTimer(function ()
+        DamagedThisFrame[Player:GetPlayerIndex()] = false
+    end,0,1,true)
+
+    return false
 end
 mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, mod.JimboTakeDamage)
 
@@ -1232,6 +1224,17 @@ mod:AddCallback("HAND_DISCARD", mod.DiscardEffects)
 ----------------------------------------------------------
 
 --these calculations are used for normal items, NOT stats given by jokers or mod related stuff, as they are flat stat ups
+
+
+function mod:JokerStatReset(Player, Cache)
+
+    --resets the jokers stat boosts every evaluation since otherwise they would infinitely stack
+    mod:StatReset(Player, Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE,
+                  Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY,
+                  false, true, false)
+end
+mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.IMPORTANT, mod.JokerStatReset)
+
 ---@param Player EntityPlayer
 ---@param Cache CacheFlag
 function mod:JimboStatCalculator(Player, Cache)
@@ -1240,108 +1243,17 @@ function mod:JimboStatCalculator(Player, Cache)
     end
     --literally spent hours making calculations for stats just to realize that 1 single ratio is the best thing to do
 
-    --local PositiveDamageMult = 0.15
-    --local NegativeDamageMult = 0.55 
-
-    --local DamageMult = 1
-    
-
-    --local MaxTearsMult = 1
-
-    --[[
-    if Player:HasCollectible(CollectibleType.COLLECTIBLE_POLYPHEMUS) then
-        PositiveDamageMult = PositiveDamageMult * 2.25
-        
-    elseif Player:HasCollectible(CollectibleType.COLLECTIBLE_MUTANT_SPIDER) then
-        MaxTearsMult = MaxTearsMult * 0.42
-    elseif Player:HasCollectible(CollectibleType.COLLECTIBLE_INNER_EYE) then
-        MaxTearsMult = MaxTearsMult * 0.5
-
-    elseif Player:HasCollectible(CollectibleType.COLLECTIBLE_SOY_MILK) then
-        MaxTearsMult = MaxTearsMult * 5
-        NegativeDamageMult = NegativeDamageMult * 2
-        PositiveDamageMult = PositiveDamageMult / 2
-
-        DamageMult = DamageMult*2
-
-    elseif Player:HasCollectible(CollectibleType.COLLECTIBLE_ODD_MUSHROOM_THIN) then
-        NegativeDamageMult = NegativeDamageMult * 1.1
-        PositiveDamageMult = PositiveDamageMult * 0.9
-    end]]--
-
     if Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
 
         Player.Damage = (Player.Damage / 3.50)^0.75
-
-
-        --local AddedDamage = Player.Damage - 1
-        
-
-        --local DamageMult = (math.abs(math.atan(-AddedDamage)/(math.pi/2))^0.5   *0.4 + 0.35) * DamageMult
-        
-
-        --Player.Damage = 1 + AddedDamage * DamageMult
-
-        --[[
-        if AddedDamage >= 0 then
-            Player.Damage = 1 + AddedDamage* PositiveDamageMult 
-        else
-            Player.Damage = 1 + AddedDamage* NegativeDamageMult
-        end]]
     end
     if Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then
 
-        --sets the tears cap to 2
         Player.MaxFireDelay = mod:CalculateMaxFireDelay((mod:CalculateTears(Player.MaxFireDelay)/ 2.73)^0.75)
-
-
-        --Player.MaxFireDelay = math.max(Player.MaxFireDelay, mod:CalculateMaxFireDelay(mod.JimboMaxTears * MaxTearsMult))
-
-        --[[
-        if AddedTears < 0 then
-            if AddedTears < -0.4 then
-                Player.MaxFireDelay = JimboBaseDelay + mod:CalculateTearsUp(JimboBaseDelay, AddedTears + (1/(0.15*AddedTears + 0.2))*(-AddedTears))
-            else
-                Player.MaxFireDelay = JimboBaseDelay + mod:CalculateTearsUp(JimboBaseDelay, AddedTears + (1/(0.35*AddedTears + 0.5))*(-AddedTears))
-            end
-        elseif AddedTears <= 4 then
-            Player.MaxFireDelay = JimboBaseDelay - mod:CalculateTearsUp(JimboBaseDelay, (1/(0.75*AddedTears+1))*AddedTears)
-        else
-            AddedTears = AddedTears - 4
-            JimboBaseDelay = JimboBaseDelay - mod:CalculateTearsUp(JimboBaseDelay, 1)
-            Player.MaxFireDelay = JimboBaseDelay - mod:CalculateTearsUp(JimboBaseDelay, (1/(0.5*AddedTears+1))*AddedTears)
-        end]]
-
     end
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.JimboStatCalculator)
 
-
----@param Player EntityPlayer
----@param Cache CacheFlag
-function mod:JimboMinimumStats(Player, Cache)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType then
-        return
-    end
-
-    --print(mod:CalculateMaxFireDelay(Tears))
-    if Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
-
-        --print(Player.Damage)
-        Player.Damage = math.max(mod.JimboMinStats, Player.Damage)
-        --print(Player.Damage)
-
-    end
-    if Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then
-        local Tears = mod:CalculateTearsValue(Player)
-        Player.MaxFireDelay = math.min(mod:CalculateMaxFireDelay(mod.JimboMinStats), Player.MaxFireDelay)
-        --[[if Player.Damage * Tears < 4.5 then
-            Player.MaxFireDelay =  mod:CalculateMaxFireDelay(4.5 / Player.Damage)
-        end]]--
-    end
-end
---mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.IMPORTANT, mod.JimboMinimumStats)
---mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE, mod.JimboMinimumStats)
 
 ---@param Player EntityPlayer
 function mod:StatReset(Player, Damage, Tears, Evaluate, Jokers, Basic)
@@ -1371,15 +1283,6 @@ function mod:StatReset(Player, Damage, Tears, Evaluate, Jokers, Basic)
     end
 end
 
-function mod:JokerStatReset(Player, Cache)
-
-    --resets the jokers stat boosts every evaluation since otherwise they would infinitely stack
-    mod:StatReset(Player, Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE,
-                  Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY,
-                  false, true, false)
-end
-mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.IMPORTANT, mod.JokerStatReset)
-
 
 local LibraEnable = true
 --finally gives the actual stat changes to jimbo, also used for always active buffs
@@ -1395,17 +1298,15 @@ function mod:StatGiver(Player, Cache)
 
         --Player.Damage = (Player.Damage + (stats.Damage + stats.JokerDamage) * Player.Damage) * stats.JokerMult * stats.Mult
         mod.Saved.Jimbo.TrueDamageValue = (Player.Damage + (stats.Damage + stats.JokerDamage) * Player.Damage) * stats.JokerMult * stats.Mult
-    
+
         Player.Damage = 1
-    
+
     elseif Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then
 
         mod.Saved.Jimbo.TrueTearsValue = mod:CalculateTearsValue(Player) + (stats.Tears +  stats.JokerTears)* mod:CalculateTearsValue(Player)
-    
-        Player.MaxFireDelay = mod:CalculateMaxFireDelay(1)
-    end
 
-    
+        Player.MaxFireDelay = Player:GetCustomCacheValue(mod.CustomCache.HAND_COOLDOWN)
+    end
 
     --changing stats the next frame sadly causes some "jiggling" fpr the stats values, but it's needed due to
     --how libra and the minimum damage cap (0.5) work, but these ifs at leat limit the ammount of situations they can appear in
@@ -1428,7 +1329,7 @@ function mod:StatGiver(Player, Cache)
 
         Isaac.CreateTimer(function ()
             Player.Damage = 1
-            Player.MaxFireDelay = mod:CalculateMaxFireDelay(1)
+            Player.MaxFireDelay = Player:GetCustomCacheValue(mod.CustomCache.HAND_COOLDOWN)
         end,0,1,true)
 
     end
@@ -1471,16 +1372,18 @@ function mod:PlayCDCache(Player, Cache, Value)
         return
     end
 
-    Value = 60 --base starting point
+    Value = 30 --base starting point (1 second charge time)
 
     if Player:HasCollectible(CollectibleType.COLLECTIBLE_MONSTROS_LUNG) then
-        Value = Value + 35 * Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_MONSTROS_LUNG)^0.5
+        Value = Value + 20 * Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_MONSTROS_LUNG)^0.5
     end
     if Player:HasCollectible(CollectibleType.COLLECTIBLE_BRIMSTONE) then
-        Value = Value + 25
+        Value = Value + 15
     end
 
     Value = math.floor(Value)
+
+    Player.MaxFireDelay = Value
 
     return Value
 end
@@ -1643,7 +1546,7 @@ function mod:OnTearCardCollision(Tear,Collider,_)
 
     local TearRNG = Tear:GetDropRNG()
 
-    if mod:IsSuit(Player, TearData.Params.Suit, TearData.Params.Enhancement, mod.Suits.Heart) then --Hearts
+    if mod:IsSuit(Player, TearData.Params, mod.Suits.Heart) then --Hearts
 
         local Creep = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.PLAYER_CREEP_RED, Tear.Position, Vector.Zero, Tear, 0, TearRNG:GetSeed()):ToEffect()
         Creep.SpriteScale = Vector(1.2,1.2)
@@ -1651,9 +1554,9 @@ function mod:OnTearCardCollision(Tear,Collider,_)
         ---@diagnostic disable-next-line: need-check-nil
         Creep:Update()
     end
-    if mod:IsSuit(Player, TearData.Params.Suit, TearData.Params.Enhancement, mod.Suits.Club) then --Clubs
+    if mod:IsSuit(Player, TearData.Params, mod.Suits.Club) then --Clubs
         if TearRNG:RandomFloat() < 0.2 then
-            Game:BombExplosionEffects(Tear.Position, Tear.CollisionDamage / 2, TearFlags.TEAR_NORMAL, Color.Default, Tear.Parent, 0.5)
+            Game:BombExplosionEffects(Tear.Position, Tear.CollisionDamage / 2, Player:GetBombFlags(), Color.Default, Tear.Parent, 0.5)
             --Isaac.Explode(Tear.Position, Tear, Tear.CollisionDamage / 2)
         end
     end
@@ -1675,9 +1578,13 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
     local Player = Tear.Parent:ToPlayer()
 
     if not Player or Player:GetPlayerType() ~= mod.Characters.JimboType
-       and Tear.Variant ~= TearVariant.ERASER and Tear.Variant ~= TearVariant.BOBS_HEAD then
+       or Tear.Variant == TearVariant.ERASER or Tear.Variant == TearVariant.BOBS_HEAD
+       or Tear.Variant == TearVariant.KEY or Tear.Variant == TearVariant.KEY_BLOOD
+       or Tear.Variant == TearVariant.FETUS then
         return
     end
+
+    local Weapon = Player:GetWeapon(1)
 
     
     local CardShot
@@ -1689,7 +1596,7 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
         CardShot.Index = mod.Saved.Jimbo.CurrentHand[#mod.Saved.Jimbo.CurrentHand] --could be useful
     end
 
-    
+
 
     local TearData = Tear:GetData()
     TearData.Params = CardShot
@@ -1702,11 +1609,17 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
     --damage dealt = Damage * TearRate of the player
     Tear.CollisionDamage = mod.Saved.Jimbo.TrueDamageValue * mod.Saved.Jimbo.TrueTearsValue
 
-    if mod:IsSuit(Player, TearData.Params.Suit, TearData.Params.Enhancement, mod.Suits.Spade, false) then --SPADES
+    if Weapon and Weapon:GetModifiers() & WeaponModifier.CHOCOLATE_MILK == WeaponModifier.CHOCOLATE_MILK then
+        Tear.CollisionDamage = Tear.CollisionDamage *(0.1 + 0.0527*Weapon:GetCharge())
+    end
+
+
+
+    if mod:IsSuit(Player, TearData.Params, mod.Suits.Spade, false) then --SPADES
         Tear:AddTearFlags(TearFlags.TEAR_PIERCING)
         Tear:AddTearFlags(TearFlags.TEAR_SPECTRAL)
 
-    elseif mod:IsSuit(Player, TearData.Params.Suit, TearData.Params.Enhancement, mod.Suits.Diamond, false) then
+    elseif mod:IsSuit(Player, TearData.Params, mod.Suits.Diamond, false) then
         --Tear:AddTearFlags(TearFlags.TEAR_BACKSTAB)
         Tear:AddTearFlags(TearFlags.TEAR_BOUNCE)
     end
@@ -1714,12 +1627,12 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
 
 
     if mod.Counters.SinceShoot >= 4 then
-        TearCardEnable = true
+        mod.TearCardEnable = true
     end
 
 
-    --if (TearCardEnable and not Init) or (not TearCardEnable and Init and mod.Counters.SinceShoot > 2) then
-    if (ForceCard or TearCardEnable) and not Split then
+    --if (mod.TearCardEnable and not Init) or (not mod.TearCardEnable and Init and mod.Counters.SinceShoot > 2) then
+    if (ForceCard or mod.TearCardEnable) and not Split then
         
         Tear:ChangeVariant(mod.CARD_TEAR_VARIANT)
 
@@ -1741,7 +1654,7 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
 
                 table.remove(mod.Saved.Jimbo.CurrentHand)
 
-            else
+            elseif mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.DeckPointer] then
 
                 mod:AddValueToTable(mod.Saved.Jimbo.CurrentHand, mod.Saved.Jimbo.DeckPointer,false,true)
                 mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer + 1
@@ -1751,7 +1664,7 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
         end,0,1,true)
 
 
-        TearCardEnable = false
+        mod.TearCardEnable = false
         mod.Counters.SinceShoot = 0
 
         if not ForceCard then
@@ -1821,7 +1734,6 @@ mod:AddCallback(ModCallbacks.MC_POST_TEAR_INIT, mod.SplitTears)
 ---@param Tear EntityTear
 function mod:CardSpoof(Tear)
 
-    Tear = Tear:ToTear() or Tear
 
     if mod.CARD_TEAR_VARIANT == Tear.Variant  then
 
@@ -1838,7 +1750,7 @@ function mod:CardSpoof(Tear)
         sfx:Play(SoundEffect.SOUND_POT_BREAK, 0.3, 2, false, math.random()*0.5 + 2)
     end
 end
-mod:AddCallback(ModCallbacks.MC_POST_ENTITY_REMOVE, mod.CardSpoof, EntityType.ENTITY_TEAR)
+mod:AddCallback(ModCallbacks.MC_POST_TEAR_DEATH, mod.CardSpoof)
 
 
 
@@ -1851,15 +1763,31 @@ function mod:AdjustCardRotation(Tear)
 
     Data.Counter = Data.Counter or 2
 
-    if Data.Counter == 2 then
+    if Data.Counter ~= 2 then
+        Data.Counter = Data.Counter + 1
+        TearSprite.Rotation = Data.LastRotation or TearSprite.Rotation
+        return
+    end
+
+
+    if Tear.WaitFrames == 0 then --travelling like normal
         
         TearSprite.Rotation = (Tear.Velocity + Vector(0,math.min(Tear.FallingSpeed, 0))):GetAngleDegrees()
 
         Data.LastRotation = TearSprite.Rotation
         Data.Counter = 0
-    else
+
+    elseif Tear.WaitFrames == 86 then --just shot with anti-gravity
+
+        local Player = Tear.Parent:ToPlayer()
+
+    
+---@diagnostic disable-next-line: need-check-nil
+        Data.LastRotation = Player:GetAimDirection():GetAngleDegrees()
         TearSprite.Rotation = Data.LastRotation
-        Data.Counter = Data.Counter + 1
+
+    else --stopped in mid-air with anti-gravity
+        TearSprite.Rotation = Data.LastRotation or TearSprite.Rotation
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_TEAR_RENDER, mod.AdjustCardRotation, mod.CARD_TEAR_VARIANT)
@@ -1884,11 +1812,12 @@ function mod:FullDeckShuffle(Player)
     end
 end
 
+--VV sorry, didn't put many comments on these functions and I'm too lazy to do so now (I'll def regret this)
 
 local DescriptionHelperVariant = Isaac.GetEntityVariantByName("Description Helper")
 local DescriptionHelperSubType = Isaac.GetEntitySubTypeByName("Description Helper")
 
---allows to activate/disable selection states easly
+--allows to activate/disable selection states easily
 ---@param Player EntityPlayer
 function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
 
@@ -1966,7 +1895,12 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
 
         elseif NewMode == mod.SelectionParams.Modes.INVENTORY then
 
-            mod.SelectionParams.MaxSelectionNum = 2
+            if NewPurpose == mod.SelectionParams.Purposes.SMELTER then
+                mod.SelectionParams.MaxSelectionNum = 1
+            else
+                mod.SelectionParams.MaxSelectionNum = 2
+            end
+
             mod.SelectionParams.OptionsNum = #mod.Saved.Jimbo.Inventory
         end
     end
@@ -2002,7 +1936,7 @@ function mod:Select(Player)
 
                 mod.SelectionParams.SelectionNum = mod.SelectionParams.SelectionNum + 1
 
-                if mod.SelectionParams.MaxSelectionNum == mod.SelectionParams.SelectionNum then
+                if mod.SelectionParams.MaxSelectionNum == mod.SelectionParams.SelectionNum then --DSS TO BE ADDED
                     --makes things faster by automatically activating if you chose the maximum number of cards
                     mod:UseSelection(Player)
                     mod:SwitchCardSelectionStates(Player,mod.SelectionParams.Modes.NONE,0)
@@ -2088,7 +2022,7 @@ function mod:Select(Player)
         
     elseif mod.SelectionParams.Mode == mod.SelectionParams.Modes.INVENTORY then
 
-        if  mod.SelectionParams.Index <= #mod.Saved.Jimbo.Inventory then --a joker is selected
+        if mod.SelectionParams.Index <= #mod.Saved.Jimbo.Inventory then --a joker is selected
             
             local Choice = mod.SelectionParams.SelectedCards[mod.SelectionParams.Index]
 
@@ -2100,8 +2034,12 @@ function mod:Select(Player)
 
             
             else --if it's not currently selected
-            
-                if mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.SELLING then
+
+                if mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.SMELTER then --DSS TO BE ADDED
+                    mod:UseSelection(Player)
+                    mod:SwitchCardSelectionStates(Player,mod.SelectionParams.Modes.NONE,mod.SelectionParams.Purposes.NONE)
+    
+                elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.SELLING then
                     local FirstI
                     local SecondI = mod.SelectionParams.Index
                     for i,v in ipairs(mod.SelectionParams.SelectedCards) do
@@ -2124,30 +2062,40 @@ function mod:Select(Player)
                     mod.Saved.Jimbo.Progress.Inventory[SecondI],mod.Saved.Jimbo.Progress.Inventory[FirstI]
 
                     for _,GiftSlot in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.GIFT_CARD, true)) do
-                        
+
                         mod.Saved.Jimbo.Progress.Inventory[GiftSlot][FirstI],mod.Saved.Jimbo.Progress.Inventory[GiftSlot][SecondI] = 
                         mod.Saved.Jimbo.Progress.Inventory[GiftSlot][SecondI],mod.Saved.Jimbo.Progress.Inventory[GiftSlot][FirstI]    
-        
+                    
                     end
 
 
                     Isaac.RunCallback("INVENTORY_CHANGE", Player)
-                    
+
                     mod.SelectionParams.Purpose = mod.SelectionParams.Purposes.NONE
 
                 elseif mod.Saved.Jimbo.Inventory[mod.SelectionParams.Index].Joker ~= 0 then
-
+                       
                     sfx:Play(mod.Sounds.DESELECT)
 
                     mod.SelectionParams.SelectedCards[mod.SelectionParams.Index] = true
-                    mod.SelectionParams.Purpose = mod.SelectionParams.Purposes.SELLING
-                    
+
+                    if mod.SelectionParams.Purpose ~= mod.SelectionParams.Purposes.SMELTER then
+
+                        mod.SelectionParams.Purpose = mod.SelectionParams.Purposes.SELLING
+                    end
+
                 end
+
+
             end
 
         else--the confirm button is pressed
-            
-            if mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.SELLING then
+        
+            if mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.SMELTER then
+                mod:UseSelection(Player)
+                mod:SwitchCardSelectionStates(Player,mod.SelectionParams.Modes.NONE,mod.SelectionParams.Purposes.NONE)
+
+            elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.SELLING then
                 local SoldSlot
                 for i,v in ipairs(mod.SelectionParams.SelectedCards) do
                     if v then
@@ -2241,7 +2189,7 @@ function mod:UseSelection(Player)
                     break
                 end
             end
-            Isaac.RunCallback("INVENTORY_CHANGE", Player)
+            Isaac.RunCallback("DECK_MODIFY", Player, 0)
 
         --didn't want to put ~20 more elseifs so did this instead
         elseif mod.SelectionParams.Purpose >= mod.SelectionParams.Purposes.DEJA_VU then
@@ -2273,7 +2221,33 @@ function mod:UseSelection(Player)
             end
             Isaac.RunCallback("DECK_MODIFY", Player)
         end
+
+
+    elseif mod.SelectionParams.Mode == mod.SelectionParams.Modes.INVENTORY then
+
+        if mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.SMELTER then
+
+            local SelectedSlot = mod:GetValueIndex(mod.SelectionParams.SelectedCards, true, true) --finds the first true
+
+            local Joker = mod.Saved.Jimbo.Inventory[SelectedSlot].Joker
+
+            if Joker == mod.Jokers.GOLDEN_JOKER then --or Joker == mod.Jokers.GOLDEN_TICKET then
+                for i=1, 2 do --gives money 2 golden pennies
+                    local Seed = Random()
+                    Seed = Seed==0 and 1 or Seed
+
+                    Game:Spawn(EntityType.ENTITY_PICKUP,PickupVariant.PICKUP_COIN,Player.Position,RandomVector()*2,Player,CoinSubType.COIN_GOLDEN,Seed)
+                end
+
+                mod:SellJoker(Player, Joker, SelectedSlot)
+            else
+                mod:SellJoker(Player, Joker, SelectedSlot, 2)
+            end
+
+            
+        end
     end
+
     for i,_ in ipairs(mod.SelectionParams.SelectedCards) do
         mod.SelectionParams.SelectedCards[i] = false
     end

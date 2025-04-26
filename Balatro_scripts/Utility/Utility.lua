@@ -544,19 +544,20 @@ function mod:GetJimboJokerIndex(Player, Joker, SkipCopy)
 end
 
 
-function mod:IsSuit(Player, Suit, Enhancement, WantedSuit, MakeTable)
+---@param Player EntityPlayer
+function mod:IsSuit(Player, Card, WantedSuit, MakeTable)
     if MakeTable then --in this case makes a table telling the equivalent suits
 
-        if Enhancement == mod.Enhancement.STONE then
+        if Card.Enhancement == mod.Enhancement.STONE then
             return {} --no suit
-        elseif Enhancement == mod.Enhancement.WILD then
-            return {1,2,3,4} --every suit is good
+        elseif Card.Enhancement == mod.Enhancement.WILD then
+            return {true,true,true,true} --every suit is good
         end
-        local GoodSuits = {} 
+        local GoodSuits = {false,false,false,false}
+        GoodSuits[Card.Suit] = true
 
-        table.insert(GoodSuits, Suit)
-        
-        if (mod:JimboHasTrinket(Player, mod.Jokers.SMEARED_JOKER)) then
+
+        if mod:JimboHasTrinket(Player, mod.Jokers.SMEARED_JOKER) then
             --in this case spades/clubs and Hearts/diamonds are considered the same
 
             local Jump = 2 --distance SPADE/HEART => CLUB/DIAMOND
@@ -564,29 +565,44 @@ function mod:IsSuit(Player, Suit, Enhancement, WantedSuit, MakeTable)
             if WantedSuit > 2 then  --the suits are in order: (SPADE,HEART,CLUB,DIAMOND)
                 Jump = -2 --distance CLUB/DIAMOND => SPADE/HEART
             end
-            table.insert(GoodSuits, WantedSuit + Jump)
-            
+
+            GoodSuits[WantedSuit + Jump] = true
         end
+
+        if Player:HasCollectible(CollectibleType.COLLECTIBLE_BLOOD_BOMBS) --clubs count as hearts
+           and Card.Suit == mod.Suits.Club and WantedSuit == mod.Suits.Heart then
+
+            GoodSuits[mod.Suits.Heart] = true
+
+        end
+
         return GoodSuits
 
     else --in this case only says true or false if equal
-        if Enhancement == mod.Enhancement.STONE then
+        if Card.Enhancement == mod.Enhancement.STONE then
             return false
         
-        elseif Suit == WantedSuit or Enhancement == mod.Enhancement.WILD then
+        elseif Card.Suit == WantedSuit or Card.Enhancement == mod.Enhancement.WILD then
             return true
         end
         
-        if (mod:JimboHasTrinket(Player, mod.Jokers.SMEARED_JOKER)) then
+        if mod:JimboHasTrinket(Player, mod.Jokers.SMEARED_JOKER) then
             --in this case spades/clubs and Hearts/diamonds are considered the same
-            local Jump = 2 --distance SPADE/HEART => CLUB/DIAMOND
-            if WantedSuit > 2 then  --the suits are in order: (SPADE,HEART,CLUB,DIAMOND)
-                Jump = -2 --distance CLUB/DIAMOND => SPADE/HEART
-            end
-            if Suit == WantedSuit + Jump then
+
+            if Card.Suit % 2 == WantedSuit % 2 then
                 return true
             end
         end
+
+
+        if Player:HasCollectible(CollectibleType.COLLECTIBLE_BLOOD_BOMBS) --clubs count as hearts
+           and Card.Suit == mod.Suits.Club and WantedSuit == mod.Suits.Heart then
+
+            return true
+        end
+
+
+
         return false
     end
 end
@@ -710,11 +726,12 @@ function mod:FrameToSpecialCard(Frame)
     return Frame + mod.Spectrals.FAMILIAR - 36 --spectral cards
 end
 
-function mod:SellJoker(Player, Trinket, Slot)
+function mod:SellJoker(Player, Trinket, Slot, Multiplier)
     mod.Saved.Jimbo.Inventory[Slot].Joker = 0
     mod.Saved.Jimbo.Inventory[Slot].Edition = mod.Edition.BASE
 
-    local SellValue = mod:GetJokerCost(Trinket, Slot, Player)
+    local SellValue = mod:GetJokerCost(Trinket, Slot, Player) * (Multiplier or 1)
+    SellValue = math.floor(SellValue)
 
     mod.Saved.Jimbo.Progress.GiftCardExtra[Slot] = 0
 
@@ -954,6 +971,12 @@ function mod:DestroyCards(Player, DeckIndexes, DoEffects)
     for _, Index in ipairs(DeckIndexes) do
         local CardParams = mod.Saved.Jimbo.FullDeck[Index]
 
+        if mod:Contained(mod.Saved.Jimbo.CurrentHand) and #mod.Saved.Jimbo.CurrentHand > Player:GetCustomCacheValue("handsize") then
+---@diagnostic disable-next-line: param-type-mismatch
+            table.remove(mod.Saved.Jimbo.CurrentHand, mod:GetValueIndex(mod.Saved.Jimbo.CurrentHand, Index, true))
+        end
+
+
         table.remove(mod.Saved.Jimbo.FullDeck, Index)
         
         if DoEffects then
@@ -1031,7 +1054,7 @@ function mod:CardRipEffect(CardParams, Position)
 
         sfx:Play(SoundEffect.SOUND_POT_BREAK_2, 1, 2, false, 1.5 + math.random()*0.05) --PLACEHOLDER SOUND
 
-            elseif CardParams.Enhancement == mod.Enhancement.LUCKY then
+    elseif CardParams.Enhancement == mod.Enhancement.LUCKY then
 
         for i=1, 5 do
             local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Position,
@@ -1053,7 +1076,7 @@ function mod:CardRipEffect(CardParams, Position)
     
         sfx:Play(SoundEffect.SOUND_POT_BREAK, 1, 2, false, 1.5 + math.random()*0.05)
     
-            elseif CardParams.Enhancement == mod.Enhancement.MULT then
+    elseif CardParams.Enhancement == mod.Enhancement.MULT then
 
         for i=1, 2 do
             local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Position,

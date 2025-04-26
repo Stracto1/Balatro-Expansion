@@ -36,12 +36,27 @@ vec3 hsv2rgb(vec3 c) //aaand thank you again!
 void main(void)
 {
 	//apparently balatro's negative effect is nowhere near an actual negative filter, so
-	//I tried to read the original shader but had a stroke while doing so (godzilla reference)
+	//I tried to read the original shader but had a stroke while doing so (incredible godzilla reference)
 	//tried a method i found on reddit and it works quite well
-	vec4 Color = Color0 * texture2D(Texture0, TexCoord0);
+	// Clip
+	if(dot(gl_FragCoord.xy, ClipPlaneOut.xy) < ClipPlaneOut.z)
+		discard;
+
+	vec2 Ratio = vec2(32.0)/TextureSizeOut;
+
+	vec2 TrueCoord = TexCoord0;
+
+	TrueCoord.xy = fract(TrueCoord/Ratio); //makes the pattern repeat over the whole sprite (bigger sprites are divided in a grid of 32x32)
+
+		// Pixelate
+	vec2 pa = vec2(1.0+PixelationAmountOut, 1.0+PixelationAmountOut) / TextureSizeOut;
+	vec4 Color = Color0 * texture2D(Texture0, PixelationAmountOut > 0.0 ? TexCoord0 - mod(TexCoord0, pa) + pa * 0.5 : TexCoord0);
+	
+	//vec4 Color = Color0 * texture2D(Texture0, TexCoord0);
 
 	vec3 ColorHSV = rgb2hsv(Color.rgb);
 
+	//crazy ass if statement
 	if (((((ColorHSV.b <= 0.34)||(ColorHSV.b >= 0.84))&&(ColorHSV.g <= 0.48)))||((Color.r == Color.g)&&(Color.g == Color.b))){
 		//any color close to a greyscale is the actual inverted color
 		Color.r = 1 - Color.r;
@@ -50,13 +65,13 @@ void main(void)
 	}
 	else{
 	
-		ColorHSV.r = ColorHSV.r + 0.12; //moves the hue
+		ColorHSV.r = ColorHSV.r + 0.11; //moves the hue
 		Color.rgb = hsv2rgb(ColorHSV.rgb);
 	}
 
 
-	float XshinePoint = 0.66 * -TexCoord0.y + 0.12; //where the shine effect should be
-	float Distance = XshinePoint - TexCoord0.x; //the distance from the shine point
+	float XshinePoint = 0.66 * -TrueCoord.y + 0.12; //where the shine effect should be
+	float Distance = XshinePoint - TrueCoord.x; //the distance from the shine point
 
 	Color.rgb = mix(Color.rgb, vec3(1), clamp(0.36*cos(Distance * 20),0.05, 0.6)); //make it shine!
 	

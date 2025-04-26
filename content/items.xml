@@ -128,6 +128,15 @@
     <trinket cache="damage" gfx="baseball_card_trinket.png" name="Baseball Card" description="A collector's dream" customtags="!8 1 ?rare balatro mmult copy"/>
     <trinket gfx="diet_cola_trinket.png" name="Diet Cola" description="Sugar free!" customtags="!7 1 ?uncommon balatro activate copy"/>
 
+    <trinket gfx="trading_card_trinket.png" name="Trading Card" description="It's an investiment!" customtags="!6 0 ?uncommon balatro money copy"/>
+    <trinket cache="damage" gfx="spare trousers_trinket.png" name="Spare Trousers" description="Still good as new" customtags="!6 0 ?uncommon balatro mmult copy"/>
+    <trinket cache="damage" gfx="ancient_joker_trinket.png" name="Ancient Joker" description="It was just a classic" customtags="!8 1 ?rare balatro mmult copy"/>
+    <trinket cache="damage firedelay" gfx="malky_talky_trinket.png" name="Walkie Talkie" description="Roger roger" customtags="!4 0 ?common balatro mult chips value copy"/>
+    <trinket gfx="seltz_trinket.png" name="Seltz" description="Zhic zhic" customtags="!8 15 ?uncommon balatro activate value copy"/>
+    <trinket cache="damage" gfx="smiley_face_trinket.png" name="Smiley Face" description=":)" customtags="!4 0 ?common balatro mult value copy"/>
+    <trinket cache="damage" gfx="campfire_trinket.png" name="Campfire" description="Smore time!" customtags="!8 1 ?rare balatro mmult value copy"/>
+
+
 
 
 

@@ -51,10 +51,8 @@ local HandsBarFilling = Sprite("gfx/Cards_Bar_Filling.anm2")
 local CardFrame = Sprite("gfx/ui/CardSelection.anm2")
 CardFrame:SetAnimation("Frame")
 
-local Edition_Overlay = Sprite("gfx/ui/Edition Overlay.anm2", true) --used on the cards sprites instead of the shaders
-
-local CHARGED_ANIMATION = 22 --the length of an animation for chargebars
-local CHARGED_LOOP_ANIMATION = 10
+local CHARGED_ANIMATION = 11 --the length of an animation for chargebars
+local CHARGED_LOOP_ANIMATION = 5
 
 local DECK_RENDERING_POSITION = Vector(110,15) --in screen coordinates
 local HAND_RENDERING_POSITION = Vector(40,30) --in screen coordinates
@@ -415,15 +413,14 @@ function mod:JimboHandRender(Player, Offset)
             JimboCards.PlayingCards:SetFrame(ENHANCEMENTS_ANIMATIONS[Card.Enhancement], 4 * (Card.Value - 1) + Card.Suit-1) --sets the frame corresponding to the value and suit
             --JimboCards.PlayingCards:PlayOverlay("Seals")
             JimboCards.PlayingCards:SetOverlayFrame("Seals", Card.Seal)
-            Edition_Overlay:SetFrame("Editions", Card.Edition)
 
             JimboCards.PlayingCards.Scale = Vector(ScaleMult,ScaleMult)
-            Edition_Overlay.Scale = Vector(ScaleMult,ScaleMult)
 
+            if Card.Edition ~= mod.Edition.BASE then
+                JimboCards.PlayingCards:SetCustomShader(mod.EditionShaders[Card.Edition])
+            end
 
             JimboCards.PlayingCards:Render(PlayerScreenPos + TrueOffset[Pointer] + Offset)
-            Edition_Overlay:Render(PlayerScreenPos + TrueOffset[Pointer] + Offset)
-
         end
 
         RenderOff = Vector(RenderOff.X + 14*ScaleMult, BaseRenderOff.Y)
@@ -514,17 +511,16 @@ function mod:JimboPackRender(_,_,_,_,Player)
 
             JimboCards.Pack_PlayingCards:SetFrame(ENHANCEMENTS_ANIMATIONS[Card.Enhancement], 4 * (Card.Value - 1) + Card.Suit-1) --sets the frame corresponding to the value and suit
             JimboCards.Pack_PlayingCards:SetOverlayFrame("Seals", Card.Seal)
-            Edition_Overlay:SetFrame("Editions", Card.Edition)
-            Edition_Overlay.Scale = Vector.One
+
+            if Card.Edition ~= mod.Edition.BASE then
+                JimboCards.Pack_PlayingCards:SetCustomShader(mod.EditionShaders[Card.Edition])
+            end
 
             WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams.Frames*5+i*95))*1.5)
 
             JimboCards.Pack_PlayingCards:Render(mod:CoolVectorLerp(PlayerPos, RenderPos + WobblyEffect[i], mod.SelectionParams.Frames/10))
-            Edition_Overlay:Render(mod:CoolVectorLerp(PlayerPos, RenderPos + WobblyEffect[i], mod.SelectionParams.Frames/10))
-
 
             RenderPos.X = RenderPos.X + PACK_CARD_DISTANCE + CardHUDWidth
-
         end--end FOR
 
     elseif TruePurpose == mod.SelectionParams.Purposes.BuffonPack then
@@ -577,6 +573,7 @@ end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.JimboPackRender)
 
 
+local ChargeBarWeaponTypes = WeaponModifier.CHOCOLATE_MILK | WeaponModifier.MONSTROS_LUNG | WeaponModifier.CURSED_EYE | WeaponModifier.NEPTUNUS
 --handles the charge bar when the player is selecting cards
 ---@param Player EntityPlayer
 function mod:JimboBarRender(Player)
@@ -585,25 +582,50 @@ function mod:JimboBarRender(Player)
         return
     end
 
-    if Player:GetWeapon(1):GetWeaponType() == WeaponType.WEAPON_TEARS and Player:GetWeaponModifiers() == 0 then
-        local Cooldown = Player:GetCustomCacheValue("playcd")
+    local Weapon = Player:GetWeapon(1)
+    local WeaponModifiers = Player:GetWeaponModifiers()
 
-        local Data = Player:GetData()
-        if Data.PlayCD < Cooldown then --charging frames needed
+    if Weapon and Weapon:GetWeaponType() == WeaponType.WEAPON_TEARS
+       and WeaponModifiers & ChargeBarWeaponTypes == 0 then --renders a timer as a charge bar next to the player
 
-            HandChargeSprite:SetFrame("Charging", math.floor(Data.PlayCD * 100/Cooldown))
+        local Firedelay = Player.MaxFireDelay - (Player.FireDelay + 1) -- the minimum value is -1, but that would fuck up calculations
 
-        elseif Data.PlayCD < Cooldown + CHARGED_ANIMATION then --Charging frames + StartCharged frames
-            HandChargeSprite:SetFrame("StartCharged", math.floor((Data.PlayCD - Cooldown)/2))
+        local Frame = math.floor(100 * Firedelay/Player.MaxFireDelay)
+
+        HandChargeSprite.Offset = CHARGE_BAR_OFFSET * Player.SpriteScale
+
+        if Frame < 100 then --charging frames needed
+
+            HandChargeSprite:SetFrame("Charging", Frame)
+
+            HandChargeSprite:Render(Isaac.WorldToScreen(Player.Position))
+            HandChargeSprite:SetFrame(0)
+
+        elseif HandChargeSprite:GetAnimation() ~= "Charged" then
+        
+            HandChargeSprite:SetAnimation("StartCharged", false)
+
+            HandChargeSprite:Render(Isaac.WorldToScreen(Player.Position))
+
+            if Game:GetFrameCount()%2 == 0 then
+                --HandChargeSprite:Update()
+                HandChargeSprite:SetFrame(HandChargeSprite:GetFrame()+1) --for whatever reson Update() doesn't do the job
+            end
+
+            if HandChargeSprite:GetFrame() >= CHARGED_ANIMATION then
+                HandChargeSprite:SetAnimation("Charged")
+            end
 
         else
-            HandChargeSprite:SetFrame("Charged", math.floor((Data.PlayCD - Cooldown - CHARGED_ANIMATION)/2))
-        end
+            if HandChargeSprite:GetFrame() >= CHARGED_LOOP_ANIMATION then --again Update() is lazy so i loop over ir myself
+                HandChargeSprite:SetFrame(0)
 
-        --renders a timer as a charge bar next to the player
-        HandChargeSprite.Offset = CHARGE_BAR_OFFSET * Player.SpriteScale
-        HandChargeSprite:Render(Isaac.WorldToScreen(Player.Position))
-   
+            elseif Game:GetFrameCount()%2 == 0 then
+                HandChargeSprite:SetFrame(HandChargeSprite:GetFrame()+1)
+            end
+            
+            HandChargeSprite:Render(Isaac.WorldToScreen(Player.Position))
+        end
     end
 
     

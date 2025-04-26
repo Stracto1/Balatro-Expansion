@@ -726,7 +726,7 @@ function mod:SpectralCards(card, Player)
                     mod.Saved.Jimbo.FullDeck[v].Suit = RandomSuit
                 end
             end
-            Isaac.RunCallback("DECK_SHIFT", Player)
+            Isaac.RunCallback("DECK_MODIFY", Player, 0)
         elseif card == mod.Spectrals.OUIJA then
             --[[
             if mod.Saved.Jimbo.HandSize == 1 then
@@ -743,7 +743,8 @@ function mod:SpectralCards(card, Player)
                 end
             end
             
-            Isaac.RunCallback("DECK_SHIFT", Player)
+            Isaac.RunCallback("DECK_MODIFY", Player, 0)
+
         elseif card == mod.Spectrals.ECTOPLASM then 
             if mod.Saved.Jimbo.HandSize == 1 then
                 Player:AnimateSad()
@@ -777,36 +778,28 @@ function mod:SpectralCards(card, Player)
             Isaac.RunCallback("INVENTORY_CHANGE", Player)
 
         elseif card == mod.Spectrals.IMMOLATE then  
-            local ValidCards = {} --counts how many cards in the hand exist in the deck
-            for i,v in ipairs(mod.Saved.Jimbo.CurrentHand) do 
-                if mod.Saved.Jimbo.FullDeck[v] then
-                    table.insert(ValidCards, mod.Saved.Jimbo.CurrentHand[i])
-                end
-            end 
+
             local RandomCards = {}
-            if #ValidCards <= 3 then
-                RandomCards = ValidCards
-            else
-                for i = 1, #ValidCards do
-                    if i > 3 then --maximum of 3 times
-                        break
-                    end
-                    local Rcard = mod:GetRandom(mod.Saved.Jimbo.CurrentHand, CardRNG)
-                    table.insert(RandomCards,Rcard)
-                    table.remove(ValidCards, mod:GetValueIndex(ValidCards, Rcard, true))
-                end
+            table.move(mod.Saved.Jimbo.CurrentHand, 1, #mod.Saved.Jimbo.CurrentHand, 1, RandomCards)
+            
+            for i = #RandomCards - 1, 4, -1 do
+
+                local Rcard = CardRNG:RandomInt(1,i)
+
+                table.remove(RandomCards, Rcard)
+
             end
-            table.sort(RandomCards, function (a, b) --sorts it so table.remove doesn't move needed values
-                if a > b then
-                    return true
-                end
-                return false
-            end)
-            for _,v in ipairs(RandomCards) do
-                table.remove(mod.Saved.Jimbo.FullDeck, v)
-                Player:AddCoins(4)
-            end
-            Isaac.RunCallback("DECK_SHIFT", Player)
+            
+            mod:DestroyCards(Player, RandomCards, true)
+
+            local NumDestroyed = #RandomCards
+
+            Player:AddCoins(5*NumDestroyed)
+
+            mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW, 
+                                        mod.Sounds.MONEY, "+"..5*NumDestroyed.."$",mod.Spectrals.IMMOLATE)
+
+            Isaac.RunCallback("DECK_MODIFY", Player, -NumDestroyed)
 
         elseif card == mod.Spectrals.ANKH then
             
