@@ -13,7 +13,12 @@ function mod:CardCollisionSynergy(Tear,Collider,_)
 
     --print(Collider.Type, Collider.Variant, Collider.SubType)
 
-    if not Collider:IsActiveEnemy() or mod:Contained(TearData.CollidedWith, GetPtrHash(Collider)) then
+    if not Collider:IsActiveEnemy() then
+        return
+    end
+
+
+    if mod:Contained(TearData.CollidedWith, GetPtrHash(Collider)) then
         return
     end
 
@@ -22,17 +27,43 @@ function mod:CardCollisionSynergy(Tear,Collider,_)
 
 
     if Player:HasCollectible(CollectibleType.COLLECTIBLE_BRIMSTONE) then
+
         local Amount = mod:IsSuit(Player, TearData.Params, mod.Suits.Heart, false) and 2 or 1
 
         for i = 1, Amount, 1 do
 
             local Laser = Player:FireBrimstone(RandomVector(), Player)
 
+            if Player:HasCollectible(CollectibleType.COLLECTIBLE_TECHNOLOGY) then
+                Laser:SetDamageMultiplier(1.25)
+            else
+                Laser:SetScale(0.75)
+            end
+
+            Laser:SetDamageMultiplier(Laser:GetDamageMultiplier()*Tear.CollisionDamage/2) --idk why i need to set the multiplier like this 
+
+            --Laser.CollisionDamage = Tear.CollisionDamage   --insted of doing this
+            Laser.DisableFollowParent = true
+            Laser.Position = Tear.Position
+
+            Laser.TearFlags = Laser.TearFlags & ~TearFlags.TEAR_EXPLOSIVE --would be a suicide otherwise
+
+        end
+
+    elseif Player:HasCollectible(CollectibleType.COLLECTIBLE_TECHNOLOGY) then
+
+        local Amount = mod:IsSuit(Player, TearData.Params, mod.Suits.Heart, false) and 2 or 1
+
+        for i = 1, Amount, 1 do
+
+            local Laser = Player:FireTechLaser(Tear.Position, LaserOffset.LASER_TECH1_OFFSET, RandomVector(),
+                                               nil, false, Tear)
+
             Laser:SetKnockbackDirection(Vector.Zero)
             Laser:SetDamageMultiplier(Laser:GetDamageMultiplier()*Tear.CollisionDamage/2) --idk why i need to set the multiplier like this 
             --Laser.CollisionDamage = Tear.CollisionDamage   --insted of doing this
+
             Laser.DisableFollowParent = true
-            Laser.Position = Collider.Position
 
             Laser.TearFlags = Laser.TearFlags & ~TearFlags.TEAR_EXPLOSIVE --would be a suicide otherwise
 
@@ -171,6 +202,7 @@ function mod:SpadeOpenDoor(Tear)
     local Player = Tear.Parent:ToPlayer()
 
     if Player:GetPlayerType() ~= mod.Characters.JimboType
+       or not Player:HasCollectible(CollectibleType.COLLECTIBLE_SHARP_KEY)
        or not mod:IsSuit(Player, Data.Params, mod.Suits.Spade) then
         
         return
@@ -221,11 +253,66 @@ function mod:OnCardDeath(Tear)
             local Fetus = Player:FireTear(Tear.Position, RandomVector() * 4, false, true, false, Tear)
             Fetus:ChangeVariant(TearVariant.FETUS)
             Fetus:AddTearFlags(Tear.TearFlags | TearFlags.TEAR_FETUS) --aparently i need to give the fetus propreties
+            
+            Fetus.CollisionDamage = Tear.CollisionDamage / 2
+        
         end
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_TEAR_DEATH, mod.OnCardDeath)
 
+
+
+---@param Tear EntityTear
+function mod:OntearFired(Tear, Split)
+
+    local Player = Tear.Parent:ToPlayer()
+
+    if not Player or Player:GetPlayerType() ~= mod.Characters.JimboType then
+        return
+    end
+
+    local TearData = Tear:GetData()
+    
+    if not TearData.Params then
+        return
+    end
+
+    if Player:HasCollectible(CollectibleType.COLLECTIBLE_TECH_X) then
+        
+        local Seed = Random()
+        Seed = Seed == 0 and 1 or Seed
+
+        local Laser
+
+        if Player:HasCollectible(CollectibleType.COLLECTIBLE_BRIMSTONE) then
+
+            --spawning a LaserVariant.BRIM_TECH or THICK_RED makes it's color transparent balck for no reson
+            Laser = Game:Spawn(EntityType.ENTITY_LASER, LaserVariant.THIN_RED, Tear.Position, Vector.Zero,
+                               Tear, LaserSubType.LASER_SUBTYPE_RING_FOLLOW_PARENT, 1):ToLaser()
+
+            Laser.Radius = 60
+            Laser.Color:Reset()
+            Laser:SetDamageMultiplier(2)
+        else
+            Laser = Game:Spawn(EntityType.ENTITY_LASER, LaserVariant.THIN_RED, Tear.Position, Vector.Zero,
+                               Tear, LaserSubType.LASER_SUBTYPE_RING_FOLLOW_PARENT, 1):ToLaser()
+
+            Laser.Radius = 40
+        end
+
+
+        --local Laser = Player:FireTechXLaser(Tear.Position, Tear.Velocity, 60, Tear, 1)
+        
+        Laser:AddTearFlags(Tear.TearFlags)
+        Laser.Parent = Tear
+        Laser:SetDisableFollowParent(false)
+        Laser.CollisionDamage = Tear.CollisionDamage * Laser:GetDamageMultiplier() / 2
+
+    end
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, mod.OntearFired)
 
 
 

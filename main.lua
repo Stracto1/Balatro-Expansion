@@ -495,6 +495,10 @@ Balatro_Expansion.Saved.Jimbo.StatsToAdd.Mult = 1
 Balatro_Expansion.Saved.Jimbo.StatsToAdd.JokerDamage = 0
 Balatro_Expansion.Saved.Jimbo.StatsToAdd.JokerTears = 0
 Balatro_Expansion.Saved.Jimbo.StatsToAdd.JokerMult = 1
+Balatro_Expansion.JimboStartTears = 1.5
+
+Balatro_Expansion.Saved.Jimbo.TrueDamageValue = 1 --used to surpass the usual 0.5 minimum damage cap (got this idea from isaacguru's Utility Commands)
+Balatro_Expansion.Saved.Jimbo.TrueTearsValue = 2.5
 
 --list keeping in memory every "invisible" item given by jokers and such 
 Balatro_Expansion.Saved.Jimbo.InnateItems = {}
@@ -527,10 +531,6 @@ Balatro_Expansion.Saved.Jimbo.FloorVouchers = {} --says which vouchers have alre
 
 Balatro_Expansion.Saved.LasCardUsed = nil --the last card a player used
 Balatro_Expansion.Saved.Jimbo.EctoUses = 0 --how many times the Ectoplasm card got used in a run
-
-
-Balatro_Expansion.Saved.Jimbo.TrueDamageValue = 1 --used to surpass the usual 0.5 minimum damage cap (got this idea from isaacguru's Utility Commands)
-Balatro_Expansion.Saved.Jimbo.TrueTearsValue = 2
 
 Balatro_Expansion.Saved.Jimbo.Inventory = {}
 for i=1,3 do

@@ -546,6 +546,7 @@ end
 
 ---@param Player EntityPlayer
 function mod:IsSuit(Player, Card, WantedSuit, MakeTable)
+    
     if MakeTable then --in this case makes a table telling the equivalent suits
 
         if Card.Enhancement == mod.Enhancement.STONE then

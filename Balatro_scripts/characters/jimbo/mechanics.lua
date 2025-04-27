@@ -59,7 +59,8 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, mod.JimboInit)
 local GoodWeaponTypes = {
     WeaponType.WEAPON_TEARS,
     WeaponType.WEAPON_MONSTROS_LUNGS,
-    WeaponType.WEAPON_NOTCHED_AXE
+    WeaponType.WEAPON_NOTCHED_AXE,
+    WeaponType.WEAPON_URN_OF_SOULS
 }
 --makes basically every input possible when using jimbo (+ other stuff)
 ---@param Player EntityPlayer
@@ -74,8 +75,28 @@ function mod:JimboInputHandle(Player)
     local Weapon = Player:GetWeapon(1)
     
     if Weapon then
-        if not mod:Contained(GoodWeaponTypes, Weapon:GetWeaponType()) then
+        if Weapon:GetWeaponType() == WeaponType.WEAPON_SPIRIT_SWORD then
 
+            local newWeapon
+            local OldWeaponMod = Weapon:GetModifiers()
+
+
+            if Player:HasCollectible(CollectibleType.COLLECTIBLE_MONSTROS_LUNG) then
+                newWeapon = Isaac.CreateWeapon(WeaponType.WEAPON_MONSTROS_LUNGS, Player)
+
+            else
+                newWeapon = Isaac.CreateWeapon(WeaponType.WEAPON_TEARS, Player)
+            end
+
+            Player:SetWeapon(Weapon, 2)
+            Player:SetWeapon(newWeapon, 1)
+            Player:GetWeapon(2):SetModifiers(OldWeaponMod)
+            Player:EnableWeaponType(newWeapon:GetWeaponType(), true)
+
+
+        elseif not mod:Contained(GoodWeaponTypes, Weapon:GetWeaponType()) then
+
+            local OldWeaponMod = Weapon:GetModifiers()
             local newWeapon
 
             if Player:HasCollectible(CollectibleType.COLLECTIBLE_MONSTROS_LUNG) then
@@ -88,6 +109,7 @@ function mod:JimboInputHandle(Player)
             Isaac.DestroyWeapon(Weapon)
             Player:EnableWeaponType(newWeapon:GetWeaponType(), true)
             Player:SetWeapon(newWeapon, 1)
+            Player:GetWeapon(1):SetModifiers(OldWeaponMod)
         end
     end
     ----------------------------------------
@@ -940,7 +962,7 @@ function mod:TrinketEditionsRender(Trinket, Offset)
     if Edition ~= mod.Edition.BASE then
         Trinket:GetSprite():SetCustomShader(mod.EditionShaders[Edition])
     end
-    Trinket:GetSprite():SetCustomShader(mod.EditionShaders[mod.Edition.NEGATIVE])
+    --Trinket:GetSprite():SetCustomShader(mod.EditionShaders[mod.Edition.NEGATIVE])
 
     if Trinket.SubType == mod.Jokers.HOLOGRAM then
         JokerOverlaySprite:ReplaceSpritesheet(0, JokerConfig.GfxFileName)
@@ -1272,7 +1294,7 @@ function mod:StatReset(Player, Damage, Tears, Evaluate, Jokers, Basic)
     end
     if Tears then
         if Basic then
-            mod.Saved.Jimbo.StatsToAdd.Tears = 1.5
+            mod.Saved.Jimbo.StatsToAdd.Tears = mod.JimboStartTears
         end
         if Jokers then
             mod.Saved.Jimbo.StatsToAdd.JokerTears = 0
@@ -1375,10 +1397,10 @@ function mod:PlayCDCache(Player, Cache, Value)
     Value = 30 --base starting point (1 second charge time)
 
     if Player:HasCollectible(CollectibleType.COLLECTIBLE_MONSTROS_LUNG) then
-        Value = Value + 20 * Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_MONSTROS_LUNG)^0.5
+        Value = Value * (1 + 0.66 * Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_MONSTROS_LUNG)^0.5)
     end
     if Player:HasCollectible(CollectibleType.COLLECTIBLE_BRIMSTONE) then
-        Value = Value + 15
+        Value = Value * (1 + 0.5 * Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_MONSTROS_LUNG)^0.5)
     end
 
     Value = math.floor(Value)
@@ -1550,7 +1572,7 @@ function mod:OnTearCardCollision(Tear,Collider,_)
 
         local Creep = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.PLAYER_CREEP_RED, Tear.Position, Vector.Zero, Tear, 0, TearRNG:GetSeed()):ToEffect()
         Creep.SpriteScale = Vector(1.2,1.2)
-        Creep.CollisionDamage = Tear.CollisionDamage / 8
+        Creep.CollisionDamage = Tear.CollisionDamage / 6
         ---@diagnostic disable-next-line: need-check-nil
         Creep:Update()
     end
@@ -1580,9 +1602,10 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
     if not Player or Player:GetPlayerType() ~= mod.Characters.JimboType
        or Tear.Variant == TearVariant.ERASER or Tear.Variant == TearVariant.BOBS_HEAD
        or Tear.Variant == TearVariant.KEY or Tear.Variant == TearVariant.KEY_BLOOD
-       or Tear.Variant == TearVariant.FETUS then
+       or Tear.Variant == TearVariant.FETUS or (Tear.Variant == TearVariant.BONE and not Tear:HasTearFlags(TearFlags.TEAR_BONE)) then
         return
     end
+
 
     local Weapon = Player:GetWeapon(1)
 
@@ -1605,6 +1628,7 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
         TearData.Num = 0
     end
 
+    TearData.EnableSpawn = not Split
 
     --damage dealt = Damage * TearRate of the player
     Tear.CollisionDamage = mod.Saved.Jimbo.TrueDamageValue * mod.Saved.Jimbo.TrueTearsValue
@@ -1648,7 +1672,7 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
         Tear.Scale = mod:Clamp(Tear.Scale, 3, 0.75)
 
         Isaac.CreateTimer(function ()
-            if #mod.Saved.Jimbo.CurrentHand > Player:GetCustomCacheValue("handsize") 
+            if #mod.Saved.Jimbo.CurrentHand > Player:GetCustomCacheValue("handsize")
                or not mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.DeckPointer] then
                 --having more cards than you should removes the last card
 

@@ -3303,7 +3303,7 @@ function mod:DamageMultJokers(Player,_)
                     and item.Hidden == false
                     and Player:HasCollectible(Item, true, true) then
                     
-                        Mult = Mult * 1.15
+                        Mult = Mult * 1.1
                     end
                 end
 
@@ -3683,8 +3683,9 @@ function mod:RoughGemBackstab(Tear, Split)
 
     local TearData = Tear:GetData()
     
-    if mod:IsSuit(Player, TearData.Params, mod.Suits.Diamond, false)
+    if TearData.Params and mod:IsSuit(Player, TearData.Params, mod.Suits.Diamond, false)
        and mod:JimboHasTrinket(Player, mod.Jokers.ROUGH_GEM) then
+        
         Tear:AddTearFlags(TearFlags.TEAR_BACKSTAB)
     end
 

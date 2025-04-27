@@ -113,8 +113,6 @@ mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_MORPH, mod.NoRerolls)
 
 
 
-
-
 ---@param Player EntityPlayer
 function mod:VouchersAdded(Item,_,_,_,_,Player)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then

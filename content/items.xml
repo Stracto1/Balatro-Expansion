@@ -69,7 +69,7 @@
     <trinket cache="damage" gfx="lustyy_joker_trinket.png" name="Lusty Joker" description="He LOVES you!" customtags="!5 0 ?common balatro mult value copy"/>
     <trinket cache="damage" gfx="wrathful_joker_trinket.png" name="Wrathful Joker" description="He HATES you!" customtags="!5 0 ?common balatro mult value copy"/>
     <trinket cache="damage" gfx="greedy_joker_trinkett.png" name="Greedy Joker" description="He ROBS you!" customtags="!5 0 ?common balatro mult value copy"/>
-    <trinket cache="damage" gfx="gluttonous_joker_trinkett.png" name="Gluttonous Joker" description="He EATS you!" customtags="!5 0 ?common balatro mult value copy"/>
+    <trinket cache="damage" gfx="gluttonous_joker_trinket.png" name="Gluttonous Joker" description="He EATS you!" customtags="!5 0 ?common balatro mult value copy"/>
     <trinket gfx="merry_andy_trinket.png" name="Merry Andy" description="Merry Chris... wait what's Andy?" customtags="!7 0 ?common balatro activate"/>
     <trinket cache="damage" gfx="half_joker_trinket.png" name="Half Joker" description="It's just" customtags="!5 0 ?common balatro mult copy"/>
     <trinket gfx="credit_card_trinket.png" name="Credit Card" description="Shopping spree!" customtags="!2 0 ?common balatro activate"/>
