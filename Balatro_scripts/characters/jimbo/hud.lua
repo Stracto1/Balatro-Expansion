@@ -110,6 +110,7 @@ function mod:JimboInventoryHUD(offset,_,Position,_,Player)
             else
                 TrinketSprite:SetFrame("Idle", 0)
             end
+
             TrinketSprite:SetCustomShader(mod.EditionShaders[mod.Saved.Jimbo.Inventory[i].Edition])
             
         end

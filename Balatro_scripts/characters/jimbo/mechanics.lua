@@ -722,7 +722,7 @@ mod:AddCallback(ModCallbacks.MC_POST_ENTITY_REMOVE, mod.OverstockGreedJokerFix, 
 
 
 
-function mod:AddRoomsCleared(IsBoss, _)
+function mod:AddRoomsCleared(IsBoss, Hostile)
 
 
     if not Game:IsGreedMode() then
@@ -730,7 +730,10 @@ function mod:AddRoomsCleared(IsBoss, _)
             if Player:GetPlayerType() == mod.Characters.JimboType then
                 ---@diagnostic disable-next-line: param-type-mismatch
                 mod:StatReset(Player, true, true, true, false, true)
-                mod:FullDeckShuffle(Player)
+
+                if Hostile then
+                    mod:FullDeckShuffle(Player)
+                end
             end
         end
     end
@@ -906,7 +909,7 @@ function mod:JimboAddTrinket(Player, Trinket, _, StopEvaluation)
     mod.Saved.Jimbo.Progress.Inventory[EmptySlot] = tonumber(InitialProg)
 
     if not StopEvaluation then
-        Isaac.RunCallback("JOKER_ADDED", Player, Trinket, JokerEdition)
+        Isaac.RunCallback("JOKER_ADDED", Player, Trinket, JokerEdition, EmptySlot)
         Isaac.RunCallback("INVENTORY_CHANGE", Player)
     end
 
@@ -959,9 +962,9 @@ function mod:TrinketEditionsRender(Trinket, Offset)
     mod.Saved.Jimbo.FloorEditions[Index][JokerConfig.Name] = mod.Saved.Jimbo.FloorEditions[Index][JokerConfig.Name] or 0
 
     local Edition = mod.Saved.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name]
-    if Edition ~= mod.Edition.BASE then
-        Trinket:GetSprite():SetCustomShader(mod.EditionShaders[Edition])
-    end
+    
+    Trinket:GetSprite():SetCustomShader(mod.EditionShaders[Edition])
+
     --Trinket:GetSprite():SetCustomShader(mod.EditionShaders[mod.Edition.NEGATIVE])
 
     if Trinket.SubType == mod.Jokers.HOLOGRAM then
@@ -1409,7 +1412,7 @@ function mod:PlayCDCache(Player, Cache, Value)
 
     return Value
 end
-mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.PlayCDCache, "playcd")
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.PlayCDCache, mod.CustomCache.HAND_COOLDOWN)
 
 
 
@@ -1435,7 +1438,7 @@ function mod:InventorySizeCache(Player, Cache, Value)
 
     return Value
 end
-mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.InventorySizeCache, "inventory")
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.InventorySizeCache, mod.CustomCache.INVENTORY_SIZE)
 
 
 ---@param Player EntityPlayer
@@ -1454,6 +1457,9 @@ function mod:HandSizeCache(Player, Cache, Value)
     end
 
     Value = Value - 2*#mod:GetJimboJokerIndex(Player, mod.Jokers.MERRY_ANDY)
+
+    Value = Value + 2*#mod:GetJimboJokerIndex(Player, mod.Jokers.TROUBADOR)
+
 
     for _, Index in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.TURTLE_BEAN)) do
         Value = Value + mod.Saved.Jimbo.Progress.Inventory[Index]
@@ -1475,7 +1481,7 @@ function mod:HandSizeCache(Player, Cache, Value)
 
     return Value
 end
-mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.HandSizeCache, "handsize")
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.HandSizeCache, mod.CustomCache.HAND_SIZE)
 
 
 ---@param Player EntityPlayer
@@ -1514,7 +1520,7 @@ function mod:DiscardNumCache(Player, Cache, Value)
 
     return Value
 end
-mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.DiscardNumCache, "discards")
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.DiscardNumCache, mod.CustomCache.DISCARD_NUM)
 
 
 ---@param Player EntityPlayer
@@ -1532,6 +1538,7 @@ function mod:HandsCache(Player, Cache, Value)
         Value = Value + 5
     end
 
+    Value = Value - 5* #mod:GetJimboJokerIndex(Player, mod.Jokers.TROUBADOR)
     
     if mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR) then
         Value = 5
@@ -1541,7 +1548,7 @@ function mod:HandsCache(Player, Cache, Value)
 
     return Value
 end
-mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.HandsCache, "hands")
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.HandsCache, mod.CustomCache.HAND_NUM)
 
 -------------CARD TEARS-----------------------
 ----------------------------------------------
@@ -1679,7 +1686,7 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
                 table.remove(mod.Saved.Jimbo.CurrentHand)
 
             elseif mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.DeckPointer] then
-
+                
                 mod:AddValueToTable(mod.Saved.Jimbo.CurrentHand, mod.Saved.Jimbo.DeckPointer,false,true)
                 mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer + 1
             end
@@ -1828,11 +1835,12 @@ function mod:FullDeckShuffle(Player)
         local PlayerRNG = Player:GetDropRNG()
         mod.Saved.Jimbo.FullDeck = mod:Shuffle(mod.Saved.Jimbo.FullDeck, PlayerRNG)
 
-        mod.Saved.Jimbo.DeckPointer = 1
-        for i,v in ipairs(mod.Saved.Jimbo.CurrentHand) do
-            mod.Saved.Jimbo.CurrentHand[i] = mod.Saved.Jimbo.DeckPointer
-            mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer + 1
+        mod.Saved.Jimbo.DeckPointer = Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) + 1
+        for i=1, Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) do
+            mod.Saved.Jimbo.CurrentHand[i] = i
         end
+
+        Isaac.RunCallback("DECK_SHIFT", Player)
     end
 end
 

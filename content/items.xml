@@ -136,6 +136,18 @@
     <trinket cache="damage" gfx="smiley_face_trinket.png" name="Smiley Face" description=":)" customtags="!4 0 ?common balatro mult value copy"/>
     <trinket cache="damage" gfx="campfire_trinket.png" name="Campfire" description="Smore time!" customtags="!8 1 ?rare balatro mmult value copy"/>
 
+    <trinket cache="firedelay" gfx="castle_trinket.png" name="Castle" description="...vania" customtags="!6 0 ?uncommon balatro chips copy"/>
+    <trinket gfx="golden_ticket_trinket.png" name="Golden Ticket" description="Chocolate's fortune!" customtags="!5 1 ?common balatro money copy"/>
+    <trinket cache="damage" gfx="acrobat_trinket.png" name="Acrobat" description="Wait for it..." customtags="!6 1 ?uncommon balatro mmult copy"/>
+    <trinket gfx="sock_and_buskin_trinket.png" name="Sock and Buskin" description=":):" customtags="!6 0 ?uncommon balatro activate copy"/>
+    <trinket gfx="troubador_trinket.png" name="Troubador" description="Finder's keeper!" customtags="!6 0 ?uncommon balatro activate"/>
+    <trinket gfx="certificate_trinket.png" name="Certificate" description="I'm real!" customtags="!6 0 ?uncommon balatro activate copy"/>
+    <trinket cache="damage" gfx="throwback_trinket.png" name="Throwback" description="Fell the past" customtags="!6 1 ?uncommon balatro mmult copy"/>
+    <trinket gfx="hanging_chad_trinket.png" name="Hanging Chad" description="Aw dang it" customtags="!4 1 ?common balatro activate copy"/>
+    <trinket cache="damage" gfx="glass_joker_trinket.png" name="Glass Joker" description="Don't break it!" customtags="!6 1 ?uncommon balatro mmult copy"/>
+    <trinket gfx="showman_trinket.png" name="Showman" description="Show time!" customtags="!5 1 ?uncommon balatro activate"/>
+    <trinket cache="damage" gfx="flower_pot_trinket.png" name="Flower Pot" description="So colorful" customtags="!6 1 ?uncommon balatro mmult copy"/>
+    <trinket cache="firedelay" gfx="weejoker_trinket.png" name="Wee Joker" description="He's shmall" customtags="!8 1 ?rare balatro chips copy"/>
 
 
 

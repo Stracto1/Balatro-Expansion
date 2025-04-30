@@ -117,7 +117,7 @@ EnhancementDesc["en_us"][mod.Enhancement.NONE] = ""
 EnhancementDesc["en_us"][mod.Enhancement.BONUS] = "# {{ColorChips}}Bonus Card{{CR}}: When triggered gives {{ColorChips}}+0.75 Tears{{CR}}"
 EnhancementDesc["en_us"][mod.Enhancement.MULT] = "# {{ColorMult}}Mult Card{{CR}}: When triggered gives {{ColorMult}}+0.05 Damage{{CR}}"
 EnhancementDesc["en_us"][mod.Enhancement.GOLDEN] = "# {{ColorYellorange}}Gold Card{{CR}}: Holding it when a {{ColorYellorange}}blind{{CR}} is cleared gives {{ColorYellow}}2${{CR}} #!!! Cards played need to be {{ColorCyan}}Triggerable{{CR}} for the effect to occur"
-EnhancementDesc["en_us"][mod.Enhancement.GLASS] = "# {{ColorGlass}}Glass Card{{CR}}: When triggered gives {{ColorMult}}x1.3 Damage Multiplier{{CR}} #!!! When played {{ColorMint}}10% chance{{CR}} to get destroyed"
+EnhancementDesc["en_us"][mod.Enhancement.GLASS] = "# {{ColorGlass}}Glass Card{{CR}}: When triggered gives {{ColorMult}}x1.2 Damage Multiplier{{CR}} #!!! When scored {{ColorMint}}10% chance{{CR}} to get destroyed"
 EnhancementDesc["en_us"][mod.Enhancement.LUCKY] = "# {{ColorMint}}Lucky Card{{CR}}: When triggered {{ColorMint}}20% chance{{CR}} to give {{ColorMult}}+0.2 Mult{{CR}} and {{ColorMint}}5% chance{{CR}} to spawn {{ColorYellow}}10 {{Coin}}Coins{{CR}}"
 EnhancementDesc["en_us"][mod.Enhancement.STEEL] = "# {{ColorSilver}}Steel Card{{CR}}: When held in hand gives {{ColorMult}}x1.2 Damage Multiplier{{CR}}"
 EnhancementDesc["en_us"][mod.Enhancement.WILD] = "# {{ColorRainbow}}Wild Card{{CR}}: This card counts as every Suit"
@@ -181,7 +181,7 @@ EID:addTrinket(mod.Jokers.GOLDEN_JOKER, "{{PlayerJimbo}} Gives 4 {{Coin}} Coins 
 EID:addTrinket(mod.Jokers.FORTUNETELLER, "{{PlayerJimbo}} {{Damage}}{{ColorMult}}+0.04 {{CR}} Damage for every {{Card}}{{ColorPink}} Tarot Card {{CR}}used throughout the run" , "Fortuneteller", "en_us")
 EID:addTrinket(mod.Jokers.BLUEPRINT, "{{PlayerJimbo}} Copies the effect of the Joker to its right", "Blueprint", "en_us")
 EID:addTrinket(mod.Jokers.BRAINSTORM, "{{PlayerJimbo}} Copies the effect of the leftmost held Joker", "Brainstorm", "en_us")
-EID:addTrinket(mod.Jokers.MADNESS, "{{PlayerJimbo}} Destroys another random Joker and gains {{ColorMult}}+0.01X{{CR}} Damage Multiplier every {{ColorYellorange}}Small and Big Blind{{CR}} cleared", "Madness", "en_us")
+EID:addTrinket(mod.Jokers.MADNESS, "{{PlayerJimbo}} Destroys another random Joker and gains {{ColorMult}}+0.1X{{CR}} Damage Multiplier every {{ColorYellorange}}Small and Big Blind{{CR}} cleared", "Madness", "en_us")
 EID:addTrinket(mod.Jokers.MR_BONES, "{{PlayerJimbo}}Revives jimbo at Full Hp if he died after clearing at least half of the current Blind or during any {{BossRoom}} Bossfight #{{ColorMint}}20% chance{{CR}} to use the {{Collectible545}} Book of the Dead on every Room Clear", "Mr. Bones", "en_us")
 EID:addTrinket(mod.Jokers.ONIX_AGATE, "{{PlayerJimbo}} {{Damage}} {{ColorMult}}+0.07 {{CR}} Damage for every Club card triggered in the room", "Onyx Agate", "en_us")
 EID:addTrinket(mod.Jokers.ARROWHEAD, "{{PlayerJimbo}} {{Tears}} {{ColorChips}}+0.5 {{CR}} Tears per {{ColorGray}}Spade{{CR}} card triggered in the room # {{Tears}} {{ColorChips}}+0.5 {{CR}} Tears per {{Key}} Key held", "Arrowhead", "en_us")

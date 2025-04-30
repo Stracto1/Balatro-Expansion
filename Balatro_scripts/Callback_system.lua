@@ -101,6 +101,13 @@ function mod:OnGameStart(Continued)
         mod.Vouchers.Hieroglyph,
         mod.Vouchers.MagicTrick,
         mod.Vouchers.MoneySeed}
+
+
+        mod.Saved.FloorSkippedSpecials = 0
+        mod.Saved.RunSkippedSpecials = 0
+        mod.Saved.GlassBroken = 0
+        mod.Saved.TarotsUsed = 0
+
     
         mod.Saved.Jimbo.FullDeck = {}
         local index = 1
@@ -200,6 +207,8 @@ function mod:OnGameStart(Continued)
         mod.Saved.Jimbo.BigCleared = false
         mod.Saved.Jimbo.BossCleared = 0
 
+        mod.Saved.Jimbo.ShowmanRemovedItems = {}
+
         mod.Saved.Jimbo.Progress = {} --values used for jokers
         mod.Saved.Jimbo.Progress.Inventory = {0,0,0} --never reset, changed in different ways basing on the joker
         mod.Saved.Jimbo.Progress.GiftCardExtra = {0,0,0}
@@ -219,9 +228,12 @@ function mod:OnGameStart(Continued)
         end
         mod.Saved.Jimbo.Progress.Room.Shots = 0
         mod.Saved.Jimbo.Progress.Room.ChampKills = 0
+        mod.Saved.Jimbo.Progress.Room.KingsAtStart = 0
 
 
         mod.Saved.Jimbo.Progress.Floor = {}
+        mod.Saved.Jimbo.Progress.Floor.CardsUsed = 0
+
         mod.Saved.Jimbo.FloorVouchers = {}
 
 

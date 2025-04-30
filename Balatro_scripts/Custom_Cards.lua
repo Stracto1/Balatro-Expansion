@@ -713,7 +713,7 @@ function mod:SpectralCards(card, Player)
             Player:AnimateSad() --no joker for you if no slot is empty :(   ]]
 
             local RandomJoker = mod:RandomJoker(CardRNG, {}, true, "rare")
-            local Success = mod:AddJoker(Player, RandomJoker.Joker,RandomJoker.Edition) 
+            local Success = mod:AddJoker(Player, RandomJoker.Joker,RandomJoker.Edition)
 
             if not Success then
                 Player:AnimateSad()
@@ -827,12 +827,12 @@ function mod:SpectralCards(card, Player)
 
             for i=1,2 do
 
-                mod:AddJoker(Player, CopyJoker, CopyEdition, true)
+                mod:AddJoker(Player, CopyJoker, CopyEdition, false)
                 mod.Saved.Jimbo.Progress.Inventory[i] = CopyProgress
             end
                       
-            Isaac.RunCallback("JOKER_ADDED", Player, CopyJoker, CopyEdition)
-            Isaac.RunCallback("INVENTORY_CHANGE", Player)
+            --Isaac.RunCallback("JOKER_ADDED", Player, CopyJoker, CopyEdition)
+            --Isaac.RunCallback("INVENTORY_CHANGE", Player)
                 
         elseif card == mod.Spectrals.DEJA_VU then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, 

@@ -132,6 +132,18 @@ Balatro_Expansion.Jokers.SELTZER = Isaac.GetTrinketIdByName("Seltz")
 Balatro_Expansion.Jokers.SMILEY_FACE = Isaac.GetTrinketIdByName("Smiley Face")
 Balatro_Expansion.Jokers.CAMPFIRE = Isaac.GetTrinketIdByName("Campfire")
 
+Balatro_Expansion.Jokers.CASTLE = Isaac.GetTrinketIdByName("Castle")
+Balatro_Expansion.Jokers.GOLDEN_TICKET = Isaac.GetTrinketIdByName("Golden Ticket")
+Balatro_Expansion.Jokers.ACROBAT = Isaac.GetTrinketIdByName("Acrobat")
+Balatro_Expansion.Jokers.SOCK_BUSKIN = Isaac.GetTrinketIdByName("Sock and Buskin")
+Balatro_Expansion.Jokers.TROUBADOR = Isaac.GetTrinketIdByName("Troubador")
+Balatro_Expansion.Jokers.CERTIFICATE = Isaac.GetTrinketIdByName("Certificate")
+Balatro_Expansion.Jokers.THROWBACK = Isaac.GetTrinketIdByName("Throwback")
+Balatro_Expansion.Jokers.HANG_CHAD = Isaac.GetTrinketIdByName("Hanging Chad")
+Balatro_Expansion.Jokers.GLASS_JOKER = Isaac.GetTrinketIdByName("Glass Joker")
+Balatro_Expansion.Jokers.SHOWMAN = Isaac.GetTrinketIdByName("Showman")
+Balatro_Expansion.Jokers.FLOWER_POT = Isaac.GetTrinketIdByName("Flower Pot")
+Balatro_Expansion.Jokers.WEE_JOKER = Isaac.GetTrinketIdByName("Wee Joker")
 
 
 Balatro_Expansion.Trinkets = {} --rarities used for spawn weight and stuff
@@ -141,7 +153,6 @@ Balatro_Expansion.Trinkets.rare = {}
 Balatro_Expansion.Trinkets.legendary = {}
 
 for i, Joker in pairs(Balatro_Expansion.Jokers) do
-
     local Rarity = string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[3],"%?","")
 
     Balatro_Expansion.Trinkets[Rarity][#Balatro_Expansion.Trinkets[Rarity] + 1] = Joker
@@ -312,7 +323,7 @@ Balatro_Expansion.EditionShaders ={ --sadly these don't work for the bigger card
     "shaders/Polychrome_effect",
     "shaders/Negative_effect"
 }
-Balatro_Expansion.EditionShaders[0] = "shaders/Nothing" --prevents extra if statements on render
+Balatro_Expansion.EditionShaders[Balatro_Expansion.Edition.BASE] = "shaders/Nothing" --prevents extra if statements on render
 
 
 Balatro_Expansion.Rarities = {}
@@ -428,9 +439,6 @@ Balatro_Expansion.Saved.TrinketValues.FirstBrain = true
 Balatro_Expansion.Saved.TrinketValues.Dna = true
 ]]
 
-Balatro_Expansion.Saved.GeneralRNG = RNG(1) --RNG object used in various ways (Set on game start)
-
-
 Balatro_Expansion.Saved.Pools = {}
 Balatro_Expansion.Saved.Pools.Vouchers = {
 Balatro_Expansion.Vouchers.Grabber,
@@ -451,13 +459,20 @@ Balatro_Expansion.Vouchers.MagicTrick,
 Balatro_Expansion.Vouchers.MoneySeed
 }
 
+
+Balatro_Expansion.Saved.FloorSkippedSpecials = 0
+Balatro_Expansion.Saved.RunSkippedSpecials = 0
+Balatro_Expansion.Saved.GlassBroken = 0
+Balatro_Expansion.Saved.TarotsUsed = 0
+
+
 -----------JIMBO-------------------
 Balatro_Expansion.Saved.Jimbo = {}
 Balatro_Expansion.Saved.Jimbo.FullDeck = {} --the full deck of cards used by jimbo
 do
 local index = 1
-for i = 1, 4, 1 do --cycles between the suits
-    for j = 1, 13, 1 do --cycles for all the values
+for i = 1, 4 do --cycles between the suits
+    for j = 1, 13 do --cycles for all the values
         Balatro_Expansion.Saved.Jimbo.FullDeck[index] = {}
         Balatro_Expansion.Saved.Jimbo.FullDeck[index].Suit = i --Spades - Hearts - clubs - diamonds
         Balatro_Expansion.Saved.Jimbo.FullDeck[index].Value = j
@@ -505,9 +520,11 @@ Balatro_Expansion.Saved.Jimbo.InnateItems = {}
 Balatro_Expansion.Saved.Jimbo.InnateItems.General = {}
 Balatro_Expansion.Saved.Jimbo.InnateItems.Hack = {}
 
-Balatro_Expansion.Saved.Jimbo.Progress = {} --values used for jokers
+Balatro_Expansion.Saved.Jimbo.Progress = {} --values used for jokers and stuff
 Balatro_Expansion.Saved.Jimbo.Progress.Inventory = {0,0,0} --never reset, changed in different ways basing on the joker
 Balatro_Expansion.Saved.Jimbo.Progress.GiftCardExtra = {0,0,0}
+
+Balatro_Expansion.Saved.Jimbo.ShowmanRemovedItems = {}
 
 Balatro_Expansion.Saved.Jimbo.Progress.Blind = {} --reset every new blind
 Balatro_Expansion.Saved.Jimbo.Progress.Blind.Shots = 0
@@ -524,8 +541,10 @@ for Value =1, 14 do
 end
 Balatro_Expansion.Saved.Jimbo.Progress.Room.Shots = 0 --used to tell how many cards are already used
 Balatro_Expansion.Saved.Jimbo.Progress.Room.ChampKills = 0
+Balatro_Expansion.Saved.Jimbo.Progress.Room.KingsAtStart = 0
 
 Balatro_Expansion.Saved.Jimbo.Progress.Floor = {}
+Balatro_Expansion.Saved.Jimbo.Progress.Floor.CardsUsed = 0
 Balatro_Expansion.Saved.Jimbo.FloorVouchers = {} --says which vouchers have already been spawned in a floor
 
 
@@ -719,9 +738,9 @@ include("Balatro_scripts.Effects")
 include("Balatro_scripts.Utility.Utility")
 include("Balatro_scripts.Utility.save_manager")
 include("Balatro_scripts.Utility.cool_title")
-Balatro_Expansion.ItemManager = include("Balatro_scripts.Utility.hidden_item_manager")
-Balatro_Expansion.ItemManager = Balatro_Expansion.ItemManager:Init(Balatro_Expansion)
-Balatro_Expansion.Saved.HiddenItemsData = {}
+--Balatro_Expansion.ItemManager = include("Balatro_scripts.Utility.hidden_item_manager")
+--Balatro_Expansion.ItemManager = Balatro_Expansion.ItemManager:Init(Balatro_Expansion)
+--Balatro_Expansion.Saved.HiddenItemsData = {}
 
 ---------------CURSES/CHALLENGES-----------------
 -------------------------------------------------

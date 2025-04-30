@@ -760,22 +760,33 @@ function mod:RandomJoker(Rng, Exeptions, PlaySound, ForcedRarity)
     Exeptions = Exeptions or {}
     local Trinket = {}
     local Possibilities = {}
+    local HasShowman = false
 
     for i, Player in ipairs(PlayerManager.GetPlayers()) do
         if Player:GetPlayerType() == mod.Characters.JimboType then
-            for i, Slot in ipairs(mod.Saved.Jimbo.Inventory) do
-                if Slot.Joker ~= 0 then
-                    Exeptions[#Exeptions+1] = Slot.Joker
-                end
+            if mod:JimboHasTrinket(Player, mod.Jokers.SHOWMAN) then
+                HasShowman = true
             end
         end
     end
 
-    for i, Trinket in ipairs(Isaac.FindByType(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET)) do
-        
-        Exeptions[#Exeptions+1] = Trinket
-    end
+    if not HasShowman then --add to exeptions jokers held and in hìthe room
+    
+        for i, Player in ipairs(PlayerManager.GetPlayers()) do
+            if Player:GetPlayerType() == mod.Characters.JimboType then
+                for i, Slot in ipairs(mod.Saved.Jimbo.Inventory) do
+                    if Slot.Joker ~= 0 then
+                        Exeptions[#Exeptions+1] = Slot.Joker
+                    end
+                end
+            end
+        end
 
+        for _, Trinket in ipairs(Isaac.FindByType(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET)) do
+
+            Exeptions[#Exeptions+1] = Trinket.SubType
+        end
+    end
 
     if ForcedRarity then
         table.move(mod.Trinkets[ForcedRarity], 1, #mod.Trinkets[ForcedRarity], 1, Possibilities)
@@ -852,21 +863,40 @@ function mod:RandomJoker(Rng, Exeptions, PlaySound, ForcedRarity)
 end
 
 
-function mod:CardValueToName(Value, IsEID)
+function mod:CardValueToName(Value, IsEID, OnlyInitial)
 
     local String
 
     if Value == 1 then
-        String = "Ace"
-    elseif Value == 11 then
-        String = "Jack"
-    elseif Value == 12 then
-        String = "Queen"
-    elseif Value == 13 then
-        String = "King"
+        if OnlyInitial then
+            String = "A"
+        else
+            String = "Ace"
+        end
+    elseif Value == mod.Values.JACK then
+        if OnlyInitial then
+            String = "J"
+        else
+            String = "Jack"
+        end
+    elseif Value == mod.Values.QUEEN then
+        if OnlyInitial then
+            String = "Q"
+        else
+            String = "Queen"
+        end
+    elseif Value == mod.Values.KING then
+        if OnlyInitial then
+            String = "K"
+        else
+            String = "King"
+        end
     else
         String = tostring(Value)
     end
+
+
+
 
     if IsEID then
         String = "{{ColorYellorange}}"..String.."{{CR}}"
