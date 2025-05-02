@@ -4,7 +4,7 @@ local Game = Game()
 
 --local FirtsEffect = true --to prevent errors (was used for EntityEffects)
 
-local FIRST_EFFECT_POS = Vector(5,225)
+local FIRST_EFFECT_POS = Vector(10,225)
 local EFFECT_SLOT_DISTANCE = Vector(23, 0)
 local EffectsInterval = 23 --frames between 2 different effect on a same entity
 
@@ -54,7 +54,7 @@ function mod:CreateBalatroEffect(Slot, Colour, Sound, Text, Source, Offset, Volu
         IsEntity = true
     end
 
-    for ActiveEffect,_ in pairs(EffectParams) do --basically chacks if the table contains anything
+    for ActiveEffect,_ in pairs(EffectParams) do
 
         --effetcts are separated between entities and inventory, where only one of each can be on screen at a time
 

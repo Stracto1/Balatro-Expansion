@@ -120,7 +120,7 @@ function mod:VouchersAdded(Item,_,_,_,_,Player)
     end
 
     if Item == mod.Vouchers.Hieroglyph or Item == mod.Vouchers.Petroglyph then
-        Player:UseActiveItem(CollectibleType.COLLECTIBLE_FORGET_ME_NOW, UseFlag.USE_NOANIM)
+        Player:UseActiveItem(CollectibleType.COLLECTIBLE_FORGET_ME_NOW, UseFlag.USE_NOANIM|UseFlag.USE_MIMIC)
     end
 end
 mod:AddPriorityCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE,CallbackPriority.LATE, mod.VouchersAdded)

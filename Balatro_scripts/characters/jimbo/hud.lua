@@ -56,7 +56,9 @@ local CHARGED_LOOP_ANIMATION = 5
 
 local DECK_RENDERING_POSITION = Vector(110,15) --in screen coordinates
 local HAND_RENDERING_POSITION = Vector(40,30) --in screen coordinates
-local INVENTORY_RENDERING_POSITION = Vector(5,250)
+local INVENTORY_RENDERING_POSITION = Vector(10,250)
+local INVENTORY_COOP_OFFSET = {[0]=Vector(0,0), [1]=Vector(-10,0)}
+
 --local DECK_RENDERING_POSITION = Isaac.WorldToRenderPosition(Isaac.ScreenToWorld(Vector(760,745)))
 
 local HUD_FRAME = {}
@@ -78,16 +80,42 @@ local ENHANCEMENTS_ANIMATIONS = {"Base","Mult","Bonus","Wild","Glass","Steel","S
 -----------------------------------------
 
 --rendered the currently hald jokers
-function mod:JimboInventoryHUD(offset,_,Position,_,Player)
+---@param Player EntityPlayer
+---@param HeartSprite Sprite
+function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
 
+    local IsCoop = Game:GetNumPlayers() > 1
+    local ScaleMult = Vector.One *(IsCoop and 0.5 or 1) --smaller when in coop
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    HeartSprite.Offset = PIndex == 1 and Vector(-35,0) or Vector.Zero
+
+    local PlayerRenderMult = -2*(PIndex%2) + 1
+
+    TrinketSprite.Scale = ScaleMult
+
     local BasePos = INVENTORY_RENDERING_POSITION + Vector(20, -14)*Options.HUDOffset
+    if IsCoop then
+        BasePos = HeartPosition + INVENTORY_COOP_OFFSET[PIndex%2]
 
-    for i,Slot in ipairs(mod.Saved.Jimbo.Inventory) do
+        if PIndex%2 == 0 then --adds heart offset
+            BasePos = BasePos + (Game:GetLevel():GetCurses()&LevelCurse.CURSE_OF_THE_UNKNOWN ~= 0 and Vector(15,0) or (math.min(12,Player:GetEffectiveMaxHearts())* Vector(5,0))) * PlayerRenderMult
+        
+        else --adds offset if player has an active
+        
+            if Player:GetActiveItem(ActiveSlot.SLOT_PRIMARY) ~= 0 then
+                BasePos.X = BasePos.X -25
+            end
+        end
+    end
+    --print(BasePos)
 
-        local RenderPos = BasePos + Vector(23*i , 0)
+    for i,Slot in ipairs(mod.Saved.Jimbo[PIndex].Inventory) do
+
+        local RenderPos = BasePos + Vector(23*i , 0) * ScaleMult * PlayerRenderMult
         local JokerConfig = ItemsConfig:GetTrinket(Slot.Joker)
 
         if Slot.Joker == 0 then
@@ -96,12 +124,15 @@ function mod:JimboInventoryHUD(offset,_,Position,_,Player)
             TrinketSprite:SetFrame("Empty", 0)
         else
 
-            if mod.SelectionParams.Mode == mod.SelectionParams.Modes.INVENTORY and
-               mod.SelectionParams.SelectedCards[i] then
-                RenderPos.Y = RenderPos.Y - 9
+            if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.INVENTORY and
+               mod.SelectionParams[PIndex].SelectedCards[i] then
+                RenderPos.Y = RenderPos.Y - 9*ScaleMult.Y
             end
             TrinketSprite:ReplaceSpritesheet(0, JokerConfig.GfxFileName, true)
+
             if mod.Counters.Activated[i] then
+                --print(mod.Counters.Activated[i], i)
+
                 TrinketSprite:SetFrame("Effect", mod.Counters.Activated[i])
 
                 if mod.Counters.Activated[i] == JactivateLength then --stops the animation
@@ -111,7 +142,7 @@ function mod:JimboInventoryHUD(offset,_,Position,_,Player)
                 TrinketSprite:SetFrame("Idle", 0)
             end
 
-            TrinketSprite:SetCustomShader(mod.EditionShaders[mod.Saved.Jimbo.Inventory[i].Edition])
+            TrinketSprite:SetCustomShader(mod.EditionShaders[mod.Saved.Jimbo[PIndex].Inventory[i].Edition])
             
         end
 
@@ -127,23 +158,21 @@ function mod:JimboInventoryHUD(offset,_,Position,_,Player)
         JokerOverlaySprite:Update()
     end
 
-    if mod.SelectionParams.Mode == mod.SelectionParams.Modes.INVENTORY then
-        local RenderPos
-        if mod.SelectionParams.SelectedCards[mod.SelectionParams.Index] then
-            RenderPos = INVENTORY_RENDERING_POSITION + Vector(23 * mod.SelectionParams.Index, -9)
-        else
-            RenderPos = INVENTORY_RENDERING_POSITION + Vector(23 * mod.SelectionParams.Index, 0)
-        end
+    if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.INVENTORY then
+
+        local RenderPos = BasePos + Vector(23*mod.SelectionParams[PIndex].Index , 0) * ScaleMult * PlayerRenderMult
+
+        RenderPos.Y = RenderPos.Y - (mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams[PIndex].Index] and 9*ScaleMult.Y or 0)
 
         CardFrame:SetFrame(HUD_FRAME.Frame)
-        CardFrame.Scale = Vector.One
+        CardFrame.Scale = ScaleMult
         CardFrame:Render(RenderPos)
 
         --last confirm option
-        RenderPos = INVENTORY_RENDERING_POSITION + Vector(24 * (mod.Saved.Jimbo.InventorySize + 1), 0)
+        RenderPos = BasePos + Vector(23 * (mod.Saved.Jimbo[PIndex].InventorySize + 1), 0) * ScaleMult * PlayerRenderMult
         
         
-        if mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.SELLING then
+        if mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.SELLING then
             CardFrame:SetFrame(HUD_FRAME.Dollar)
         else
             CardFrame:SetFrame(HUD_FRAME.Confirm)
@@ -162,6 +191,8 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
         return
     end
 
+    local PIndex = Player:GetData().TruePlayerIndex
+
     -------STATS COUNTER RENDERING---------
     
     local ChipsPos = Vector(24,108) + Vector(20, 13)*Options.HUDOffset
@@ -178,36 +209,36 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
     local ChipsString
 
     do
-        local Log = math.floor(math.log(mod.Saved.Jimbo.TrueTearsValue, 10))
+        local Log = math.floor(math.log(mod.Saved.Jimbo[PIndex].TrueTearsValue, 10))
 
         if Log <= 0 then --ex. 5.00
-            ChipsString = tostring(mod:round(mod.Saved.Jimbo.TrueTearsValue, 2))
+            ChipsString = tostring(mod:round(mod.Saved.Jimbo[PIndex].TrueTearsValue, 2))
 
         elseif Log == 1 then --ex. 50.0
-            ChipsString = tostring(mod:round(mod.Saved.Jimbo.TrueTearsValue, 1))
+            ChipsString = tostring(mod:round(mod.Saved.Jimbo[PIndex].TrueTearsValue, 1))
 
         elseif Log == 2 then
 
-            ChipsString = tostring(mod:round(mod.Saved.Jimbo.TrueTearsValue, 0))
+            ChipsString = tostring(mod:round(mod.Saved.Jimbo[PIndex].TrueTearsValue, 0))
 
         else
-            ChipsString = tostring(mod:round(mod.Saved.Jimbo.TrueTearsValue /10^Log, 1)).." e"..tostring(Log)
+            ChipsString = tostring(mod:round(mod.Saved.Jimbo[PIndex].TrueTearsValue /10^Log, 1)).." e"..tostring(Log)
         end
 
-        Log = math.floor(math.log(mod.Saved.Jimbo.TrueDamageValue, 10))
+        Log = math.floor(math.log(mod.Saved.Jimbo[PIndex].TrueDamageValue, 10))
 
         if Log <= 0 then --ex. 5.05
-            MultString = tostring(mod:round(mod.Saved.Jimbo.TrueDamageValue, 2))
+            MultString = tostring(mod:round(mod.Saved.Jimbo[PIndex].TrueDamageValue, 2))
 
         elseif Log == 1 then --ex. 50.0
-            MultString = tostring(mod:round(mod.Saved.Jimbo.TrueDamageValue, 1))
+            MultString = tostring(mod:round(mod.Saved.Jimbo[PIndex].TrueDamageValue, 1))
 
         elseif Log == 2 then --ex. 500
 
-            MultString = tostring(mod:round(mod.Saved.Jimbo.TrueDamageValue, 0))
+            MultString = tostring(mod:round(mod.Saved.Jimbo[PIndex].TrueDamageValue, 0))
 
         else
-            MultString = tostring(mod:round(mod.Saved.Jimbo.TrueDamageValue /10^Log, 1)).." e"..tostring(Log)
+            MultString = tostring(mod:round(mod.Saved.Jimbo[PIndex].TrueDamageValue /10^Log, 1)).." e"..tostring(Log)
         end
     end
    
@@ -238,15 +269,15 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
     local Color = KColor.White
     local DarkColor = KColor(0.7,0.7,0.7,1)
 
-    if not mod.Saved.Jimbo.SmallCleared then
+    if not mod.Saved.Jimbo[PIndex].SmallCleared then
         Color = KColor(238/255, 186/255, 49/255, 1)
         DarkColor = KColor(166/255,130/255,34/255,1)
 
-        SmallProgress = mod.Saved.Jimbo.ClearedRooms
+        SmallProgress = mod.Saved.Jimbo[PIndex].ClearedRooms
     else
-        SmallProgress = mod.Saved.Jimbo.SmallBlind
+        SmallProgress = mod.Saved.Jimbo[PIndex].SmallBlind
     end
-    ProgressString = tostring(SmallProgress).."/"..tostring(mod.Saved.Jimbo.SmallBlind)
+    ProgressString = tostring(SmallProgress).."/"..tostring(mod.Saved.Jimbo[PIndex].SmallBlind)
 
     mod.Fonts.Balatro:DrawStringScaled(ProgressString,
     RenderPos.X ,RenderPos.Y, 0.5, 0.5, DarkColor)
@@ -261,20 +292,20 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
     Color = KColor.White
     DarkColor = KColor(0.7,0.7,0.7,1)
 
-    if mod.Saved.Jimbo.SmallCleared then
+    if mod.Saved.Jimbo[PIndex].SmallCleared then
     
-        if mod.Saved.Jimbo.BigCleared then
-            BigProgress = mod.Saved.Jimbo.BigBlind
+        if mod.Saved.Jimbo[PIndex].BigCleared then
+            BigProgress = mod.Saved.Jimbo[PIndex].BigBlind
         else
             Color = KColor(238/255, 186/255, 49/255, 1)
             DarkColor = KColor(166/255,130/255,34/255,1)
 
-            BigProgress = mod.Saved.Jimbo.ClearedRooms
+            BigProgress = mod.Saved.Jimbo[PIndex].ClearedRooms
         end
     else
         BigProgress = 0
     end
-    ProgressString = tostring(BigProgress).."/"..tostring(mod.Saved.Jimbo.BigBlind)
+    ProgressString = tostring(BigProgress).."/"..tostring(mod.Saved.Jimbo[PIndex].BigBlind)
 
     mod.Fonts.Balatro:DrawStringScaled(ProgressString,
     RenderPos.X, RenderPos.Y, 0.5, 0.5, DarkColor)
@@ -290,13 +321,13 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
         Color = KColor.White
         DarkColor = KColor(0.7,0.7,0.7,1)
 
-        if mod.Saved.Jimbo.SmallCleared and mod.Saved.Jimbo.BigCleared and mod.Saved.Jimbo.BossCleared ~= 2 then
+        if mod.Saved.Jimbo[PIndex].SmallCleared and mod.Saved.Jimbo[PIndex].BigCleared and mod.Saved.Jimbo[PIndex].BossCleared ~= 2 then
             Color = KColor(238/255, 186/255, 49/255, 1)
             DarkColor = KColor(166/255,130/255,34/255,1)
         end
 
         BossProgress = "Not Cleared"
-        if mod.Saved.Jimbo.BossCleared == 2 then
+        if mod.Saved.Jimbo[PIndex].BossCleared == 2 then
             RenderPos.X = RenderPos.X + 13
             BossProgress = "Cleared"
         end
@@ -312,11 +343,13 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.JimboDeckHUD)
 
 
 function mod:HandBarRender(offset,_,Position,_,Player)
+
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
+    local PIndex = Player:GetData().TruePlayerIndex
 
-    if mod.Saved.Jimbo.FirstDeck and not Game:GetRoom():IsClear() then
+    if mod.Saved.Jimbo[PIndex].FirstDeck and not Game:GetRoom():IsClear() then
         --HandsBar:SetFrame("Charge On", Frame)
         HandsBarFilling.Color:SetColorize(0.25,0.51,1,1)
     else
@@ -326,12 +359,12 @@ function mod:HandBarRender(offset,_,Position,_,Player)
 
     local HandsRemaining = Player:GetCustomCacheValue("hands")
     local PartialHands = nil
-    local Offset = Vector.Zero
+    local Offset = Vector(20, 12)*Options.HUDOffset
 
     while HandsRemaining > 0 do --up to 35 are displayed in 1 bar, then a sencond one appears and so on
 
         PartialHands = math.min(HandsRemaining, 35.0)
-        local FullBarShots =  PartialHands - HandsRemaining + mod.Saved.Jimbo.Progress.Room.Shots
+        local FullBarShots =  PartialHands - HandsRemaining + mod.Saved.Jimbo[PIndex].Progress.Room.Shots
 
         local Animation = HandsBarFilling:GetAnimationData("Charge On_"..tostring(PartialHands))
 
@@ -369,30 +402,31 @@ function mod:JimboHandRender(Player, Offset)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
+    local PIndex = Player:GetData().TruePlayerIndex
 
     local PlayerScreenPos = Isaac.WorldToRenderPosition(Player.Position)
 
 
     local TargetScale = 0.5
-    if mod.SelectionParams.Mode == mod.SelectionParams.Modes.HAND then
+    if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.HAND then
         TargetScale = 1 --while selecting the the cards gets bigger
     end
     if ScaleMult ~= TargetScale then
-        --ScaleMult = mod:Lerp(ScaleMult,TargetScale, mod.SelectionParams.Frames/100)
-        ScaleMult = mod:Lerp(1.5 - TargetScale,TargetScale, mod.SelectionParams.Frames/5)
+        --ScaleMult = mod:Lerp(ScaleMult,TargetScale, mod.SelectionParams[PIndex].Frames/100)
+        ScaleMult = mod:Lerp(1.5 - TargetScale,TargetScale, mod.SelectionParams[PIndex].Frames/5)
     end
 
-    local BaseRenderOff = Vector(-7 *(#mod.Saved.Jimbo.CurrentHand-1), 26 ) * ScaleMult
+    local BaseRenderOff = Vector(-7 *(#mod.Saved.Jimbo[PIndex].CurrentHand-1), 26 ) * ScaleMult
 
     local RenderOff = BaseRenderOff + Vector.Zero
     local TrueOffset = {}
 
     
-    for i, Pointer in ipairs(mod.Saved.Jimbo.CurrentHand) do
-        local Card = mod.Saved.Jimbo.FullDeck[Pointer]
+    for i, Pointer in ipairs(mod.Saved.Jimbo[PIndex].CurrentHand) do
+        local Card = mod.Saved.Jimbo[PIndex].FullDeck[Pointer]
         if Card then
 
-            if mod.SelectionParams.SelectedCards[i] and mod.SelectionParams.Mode == mod.SelectionParams.Modes.HAND then
+            if mod.SelectionParams[PIndex].SelectedCards[i] and mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.HAND then
                 RenderOff.Y = RenderOff.Y -  8
             end
              --moves up selected cards
@@ -427,42 +461,42 @@ function mod:JimboHandRender(Player, Offset)
         RenderOff = Vector(RenderOff.X + 14*ScaleMult, BaseRenderOff.Y)
     end
 
-    if mod.SelectionParams.Mode == mod.SelectionParams.Modes.HAND then
+    if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.HAND then
 
         --last confirm option
-        RenderOff = BaseRenderOff + Vector(14 * (#mod.Saved.Jimbo.CurrentHand), 0)
+        RenderOff = BaseRenderOff + Vector(14 * (#mod.Saved.Jimbo[PIndex].CurrentHand), 0)
         CardFrame:SetFrame(HUD_FRAME.Hand)
         CardFrame:Render(PlayerScreenPos + RenderOff + Offset)
 
 
 
-        RenderOff = BaseRenderOff + Vector(14 * (mod.SelectionParams.Index - 1) * ScaleMult, 0)
+        RenderOff = BaseRenderOff + Vector(14 * (mod.SelectionParams[PIndex].Index - 1) * ScaleMult, 0)
 
-        if mod.SelectionParams.SelectedCards[mod.SelectionParams.Index] then
+        if mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams[PIndex].Index] then
             RenderOff.Y = RenderOff.Y - 8
         end
 
         CardFrame.Scale = Vector(ScaleMult, ScaleMult)
         CardFrame:SetFrame(HUD_FRAME.Frame)
-        CardFrame:Render(PlayerScreenPos + (TrueOffset[mod.Saved.Jimbo.CurrentHand[mod.SelectionParams.Index]] or RenderOff)  + Offset)
+        CardFrame:Render(PlayerScreenPos + (TrueOffset[mod.Saved.Jimbo[PIndex].CurrentHand[mod.SelectionParams[PIndex].Index]] or RenderOff)  + Offset)
 
 
         --HAND TYPE TEXT RENDER--
-        --mod.Fonts.Balatro:DrawString(HAND_TYPE_NAMES[mod.SelectionParams.HandType],DECK_RENDERING_POSITION.X + 50,DECK_RENDERING_POSITION.Y -100,KColor(1,1,1,1))
+        --mod.Fonts.Balatro:DrawString(HAND_TYPE_NAMES[mod.SelectionParams[PIndex].HandType],DECK_RENDERING_POSITION.X + 50,DECK_RENDERING_POSITION.Y -100,KColor(1,1,1,1))
 
         --[[allows mouse controls to be used as a way to select cards--
         local MousePosition = Isaac.WorldToScreen(Input.GetMousePosition(true))
         if MousePosition.X >= DECK_RENDERING_POSITION.X and MousePosition.Y >= DECK_RENDERING_POSITION.Y  then
             local HandMousePosition = math.ceil((MousePosition.X - (DECK_RENDERING_POSITION.X))/CardHUDWidth)
-            if HandMousePosition <= mod.Saved.Jimbo.HandSize + 1 then
-                mod.SelectionParams.Index = HandMousePosition
+            if HandMousePosition <= mod.Saved.Jimbo[PIndex].HandSize + 1 then
+                mod.SelectionParams[PIndex].Index = HandMousePosition
             end
         end]]
 
     else
         ------DECK RENDERING----------
 
-        local CardsLeft = math.max((#mod.Saved.Jimbo.FullDeck - mod.Saved.Jimbo.DeckPointer)+1, 0)
+        local CardsLeft = math.max((#mod.Saved.Jimbo[PIndex].FullDeck - mod.Saved.Jimbo[PIndex].DeckPointer)+1, 0)
 
         --shows how many cards are left in the deck
         DeckSprite:SetFrame("idle", math.ceil(CardsLeft/7))
@@ -475,7 +509,7 @@ function mod:JimboHandRender(Player, Offset)
 
 
 
-        RenderOff = BaseRenderOff + Vector(14 * (#mod.Saved.Jimbo.CurrentHand - 1) * ScaleMult, 0)
+        RenderOff = BaseRenderOff + Vector(14 * (#mod.Saved.Jimbo[PIndex].CurrentHand - 1) * ScaleMult, 0)
 
         CardFrame.Scale = Vector(ScaleMult, ScaleMult)
         CardFrame:SetFrame(HUD_FRAME.Frame)
@@ -489,16 +523,22 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_RENDER, mod.JimboHandRender,PlayerVa
 ---@param Player EntityPlayer
 function mod:JimboPackRender(_,_,_,_,Player)
 
-    if Player:GetPlayerType() ~= mod.Characters.JimboType 
-       or mod.SelectionParams.Mode ~= mod.SelectionParams.Modes.PACK then
+    if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
-    local TruePurpose = mod.SelectionParams.Purpose & (~mod.SelectionParams.Purposes.MegaFlag) --removes it for pack checks
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    if mod.SelectionParams[PIndex].Mode ~= mod.SelectionParams.Modes.PACK then
+        return
+    end
+
+
+    local TruePurpose = mod.SelectionParams[PIndex].Purpose & (~mod.SelectionParams.Purposes.MegaFlag) --removes it for pack checks
     
     local PlayerPos = Isaac.WorldToScreen(Player.Position)
 
     --base point, increased while rendering 
-    local BaseRenderPos = Vector(PlayerPos.X - CardHUDWidth * mod.SelectionParams.OptionsNum /2 - PACK_CARD_DISTANCE * (mod.SelectionParams.OptionsNum - 1) /2,
+    local BaseRenderPos = Vector(PlayerPos.X - CardHUDWidth * mod.SelectionParams[PIndex].OptionsNum /2 - PACK_CARD_DISTANCE * (mod.SelectionParams[PIndex].OptionsNum - 1) /2,
                                  PlayerPos.Y + 20)
     BaseRenderPos.X = BaseRenderPos.X + 6.5--makes it centered
 
@@ -508,7 +548,7 @@ function mod:JimboPackRender(_,_,_,_,Player)
     if TruePurpose == mod.SelectionParams.Purposes.StandardPack then
         --SHOWS THE CHOICES AVAILABLE
 
-        for i,Card in ipairs(mod.SelectionParams.PackOptions) do --for every option
+        for i,Card in ipairs(mod.SelectionParams[PIndex].PackOptions) do --for every option
 
             JimboCards.Pack_PlayingCards:SetFrame(ENHANCEMENTS_ANIMATIONS[Card.Enhancement], 4 * (Card.Value - 1) + Card.Suit-1) --sets the frame corresponding to the value and suit
             JimboCards.Pack_PlayingCards:SetOverlayFrame("Seals", Card.Seal)
@@ -517,24 +557,24 @@ function mod:JimboPackRender(_,_,_,_,Player)
                 JimboCards.Pack_PlayingCards:SetCustomShader(mod.EditionShaders[Card.Edition])
             end
 
-            WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams.Frames*5+i*95))*1.5)
+            WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams[PIndex].Frames*5+i*95))*1.5)
 
-            JimboCards.Pack_PlayingCards:Render(mod:CoolVectorLerp(PlayerPos, RenderPos + WobblyEffect[i], mod.SelectionParams.Frames/10))
+            JimboCards.Pack_PlayingCards:Render(mod:CoolVectorLerp(PlayerPos, RenderPos + WobblyEffect[i], mod.SelectionParams[PIndex].Frames/10))
 
             RenderPos.X = RenderPos.X + PACK_CARD_DISTANCE + CardHUDWidth
         end--end FOR
 
     elseif TruePurpose == mod.SelectionParams.Purposes.BuffonPack then
         
-        for i,card in ipairs(mod.SelectionParams.PackOptions) do
+        for i,card in ipairs(mod.SelectionParams[PIndex].PackOptions) do
     
             TrinketSprite:ReplaceSpritesheet(0, ItemsConfig:GetTrinket(card.Joker).GfxFileName, true)
             TrinketSprite:SetFrame("Idle", 0)
 
-            WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams.Frames*5+i*95))*1.5)
+            WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams[PIndex].Frames*5+i*95))*1.5)
 
             TrinketSprite:SetCustomShader(mod.EditionShaders[card.Edition])
-            TrinketSprite:Render(mod:CoolVectorLerp(PlayerPos, RenderPos + WobblyEffect[i], mod.SelectionParams.Frames/10))
+            TrinketSprite:Render(mod:CoolVectorLerp(PlayerPos, RenderPos + WobblyEffect[i], mod.SelectionParams[PIndex].Frames/10))
 
             RenderPos.X = RenderPos.X + PACK_CARD_DISTANCE + CardHUDWidth
 
@@ -543,16 +583,16 @@ function mod:JimboPackRender(_,_,_,_,Player)
     else--TAROT, PLANET or SPECTRAL
     
         --SHOWS THE CHOICES AVAILABLE
-        for i,Option in ipairs(mod.SelectionParams.PackOptions) do
+        for i,Option in ipairs(mod.SelectionParams[PIndex].PackOptions) do
             
             if Option == 53 then --equivalent to the soul card
-                JimboCards.SpecialCards:SetFrame("Soul Stone",mod.SelectionParams.Frames % 47) --sets the frame corresponding to the value and suit
+                JimboCards.SpecialCards:SetFrame("Soul Stone",mod.SelectionParams[PIndex].Frames % 47) --sets the frame corresponding to the value and suit
             else
                 JimboCards.SpecialCards:SetFrame("idle",  Option)
             end
-            WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams.Frames*5+i*95))*1.5)
+            WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams[PIndex].Frames*5+i*95))*1.5)
 
-            JimboCards.SpecialCards:Render(mod:CoolVectorLerp(PlayerPos, RenderPos+WobblyEffect[i], mod.SelectionParams.Frames/10))
+            JimboCards.SpecialCards:Render(mod:CoolVectorLerp(PlayerPos, RenderPos+WobblyEffect[i], mod.SelectionParams[PIndex].Frames/10))
 
             RenderPos.X = RenderPos.X + PACK_CARD_DISTANCE + CardHUDWidth
 
@@ -564,8 +604,8 @@ function mod:JimboPackRender(_,_,_,_,Player)
     CardFrame:SetFrame(HUD_FRAME.Skip)
     CardFrame:Render(RenderPos)
 
-    RenderPos.X = BaseRenderPos.X + (mod.SelectionParams.Index - 1)*(PACK_CARD_DISTANCE + CardHUDWidth)
-    RenderPos = RenderPos + (WobblyEffect[mod.SelectionParams.Index] or Vector.Zero)
+    RenderPos.X = BaseRenderPos.X + (mod.SelectionParams[PIndex].Index - 1)*(PACK_CARD_DISTANCE + CardHUDWidth)
+    RenderPos = RenderPos + (WobblyEffect[mod.SelectionParams[PIndex].Index] or Vector.Zero)
 
     CardFrame:SetFrame(HUD_FRAME.Frame)
     CardFrame:Render(RenderPos)
@@ -582,6 +622,7 @@ function mod:JimboBarRender(Player)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
+    local PIndex = Player:GetData().TruePlayerIndex
 
     local Weapon = Player:GetWeapon(1)
     local WeaponModifiers = Player:GetWeaponModifiers()
@@ -596,7 +637,6 @@ function mod:JimboBarRender(Player)
         HandChargeSprite.Offset = CHARGE_BAR_OFFSET * Player.SpriteScale
 
         if Frame < 100 then --charging frames needed
-
             HandChargeSprite:SetFrame("Charging", Frame)
 
             HandChargeSprite:Render(Isaac.WorldToScreen(Player.Position))
@@ -631,11 +671,11 @@ function mod:JimboBarRender(Player)
 
     
     --------------HAND SELECTION COOLDOWN------------------
-    if mod.SelectionParams.Mode == mod.SelectionParams.Modes.NONE then
+    if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.NONE then
         return
     end
 
-    local HandFrame = 100 - math.ceil(mod.SelectionParams.Frames/2.25)
+    local HandFrame = 100 - math.ceil(mod.SelectionParams[PIndex].Frames/2.25)
     
     if HandFrame == 0 then
         sfx:Play(SoundEffect.SOUND_DEATH_BURST_BONE) --PLACEHOLDER
@@ -670,10 +710,12 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_RENDER, mod.JimboBarRender)
 
 
 function mod:DiscardSwoosh(Player)
+    
+    local PIndex = Player:GetData().TruePlayerIndex
 
-    local BaseRenderOff = Vector(-3.5 *(mod.Saved.Jimbo.HandSize-1), 13 )
+    local BaseRenderOff = Vector(-3.5 *(mod.Saved.Jimbo[PIndex].HandSize-1), 13 )
 
-    for i,v in ipairs(mod.Saved.Jimbo.CurrentHand) do
+    for i,v in ipairs(mod.Saved.Jimbo[PIndex].CurrentHand) do
 
         mod.LastCardFullPoss[v] = BaseRenderOff --does a cool swoosh effect
         
@@ -689,7 +731,7 @@ function mod:DebtIndicator(_,_,_,_,Player)
     end
 
     local Coins = Player:GetNumCoins()
-    local RenderPos = Vector(18,34)
+    local RenderPos = Vector(16,33) + Vector(20, 12)*Options.HUDOffset
 
     local ExtraZeros = 2
     if Coins ~= 0 then
@@ -705,3 +747,4 @@ function mod:DebtIndicator(_,_,_,_,Player)
 
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.DebtIndicator)
+

@@ -125,42 +125,43 @@ function mod:OnItemPickup(Type, _,FirstTime,_,_, Player)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
+    local PIndex = Player:GetData().TruePlayerIndex
 
     local Any = true
 
     if Type == CollectibleType.COLLECTIBLE_DOLLAR then
-        for Index,_ in ipairs(mod.Saved.Jimbo.FullDeck) do
-            mod.Saved.Jimbo.FullDeck[Index].Suit = mod.Suits.Diamond
+        for Index,_ in ipairs(mod.Saved.Jimbo[PIndex].FullDeck) do
+            mod.Saved.Jimbo[PIndex].FullDeck[Index].Suit = mod.Suits.Diamond
         end
 
     elseif Type == CollectibleType.COLLECTIBLE_PYRO then
-        for Index,_ in ipairs(mod.Saved.Jimbo.FullDeck) do
-            mod.Saved.Jimbo.FullDeck[Index].Suit = mod.Suits.Club
+        for Index,_ in ipairs(mod.Saved.Jimbo[PIndex].FullDeck) do
+            mod.Saved.Jimbo[PIndex].FullDeck[Index].Suit = mod.Suits.Club
         end
 
     elseif Type == CollectibleType.COLLECTIBLE_SKELETON_KEY then
-        for Index,_ in ipairs(mod.Saved.Jimbo.FullDeck) do
-            mod.Saved.Jimbo.FullDeck[Index].Suit = mod.Suits.Spade
+        for Index,_ in ipairs(mod.Saved.Jimbo[PIndex].FullDeck) do
+            mod.Saved.Jimbo[PIndex].FullDeck[Index].Suit = mod.Suits.Spade
         end
 
     elseif Type == CollectibleType.COLLECTIBLE_BODY then
-        for Index,_ in ipairs(mod.Saved.Jimbo.FullDeck) do
-            mod.Saved.Jimbo.FullDeck[Index].Suit = mod.Suits.Heart
+        for Index,_ in ipairs(mod.Saved.Jimbo[PIndex].FullDeck) do
+            mod.Saved.Jimbo[PIndex].FullDeck[Index].Suit = mod.Suits.Heart
         end
 
     elseif Type == CollectibleType.COLLECTIBLE_HEART or Type == CollectibleType.COLLECTIBLE_BINGE_EATER
         or Type == CollectibleType.COLLECTIBLE_BRIMSTONE  then
 
-        for _,Pointer in ipairs(mod.Saved.Jimbo.CurrentHand) do
-            mod.Saved.Jimbo.FullDeck[Pointer].Suit = mod.Suits.Heart
+        for _,Pointer in ipairs(mod.Saved.Jimbo[PIndex].CurrentHand) do
+            mod.Saved.Jimbo[PIndex].FullDeck[Pointer].Suit = mod.Suits.Heart
         end
 
 
 
     elseif Type == CollectibleType.COLLECTIBLE_QUARTER or Type == CollectibleType.COLLECTIBLE_BINGE_EATER then
 
-        for _,Pointer in ipairs(mod.Saved.Jimbo.CurrentHand) do
-            mod.Saved.Jimbo.FullDeck[Pointer].Suit = mod.Suits.Diamond
+        for _,Pointer in ipairs(mod.Saved.Jimbo[PIndex].CurrentHand) do
+            mod.Saved.Jimbo[PIndex].FullDeck[Pointer].Suit = mod.Suits.Diamond
         end
 
     elseif Type == CollectibleType.COLLECTIBLE_BOOM or Type == CollectibleType.COLLECTIBLE_BLOOD_BOMBS
@@ -171,15 +172,15 @@ function mod:OnItemPickup(Type, _,FirstTime,_,_, Player)
            or Type == CollectibleType.COLLECTIBLE_NANCY_BOMBS or Type == CollectibleType.COLLECTIBLE_STICKY_BOMBS
            or Type == CollectibleType.COLLECTIBLE_SCATTER_BOMBS or Type == CollectibleType.COLLECTIBLE_BRIMSTONE_BOMBS then
 
-        for _,Pointer in ipairs(mod.Saved.Jimbo.CurrentHand) do
-            mod.Saved.Jimbo.FullDeck[Pointer].Suit = mod.Suits.Club
+        for _,Pointer in ipairs(mod.Saved.Jimbo[PIndex].CurrentHand) do
+            mod.Saved.Jimbo[PIndex].FullDeck[Pointer].Suit = mod.Suits.Club
         end
 
     elseif (Type == CollectibleType.COLLECTIBLE_SHARP_KEY and FirstTime)
             or Type == CollectibleType.COLLECTIBLE_BINGE_EATER then
 
-        for _,Pointer in ipairs(mod.Saved.Jimbo.CurrentHand) do
-            mod.Saved.Jimbo.FullDeck[Pointer].Suit = mod.Suits.Spade
+        for _,Pointer in ipairs(mod.Saved.Jimbo[PIndex].CurrentHand) do
+            mod.Saved.Jimbo[PIndex].FullDeck[Pointer].Suit = mod.Suits.Spade
         end
 
     else

@@ -152,10 +152,11 @@ function mod:FloorHasShopOrTreasure()
     Available.Shop = true
 
     local Level = Game:GetLevel()
+    --[[
     mod.Saved.Other.Labyrinth = 1
     if Level:GetCurses() & LevelCurse.CURSE_OF_LABYRINTH == LevelCurse.CURSE_OF_LABYRINTH then
-        mod.Saved.Jimbo.Labyrinth = 2
-    end
+        mod.Saved.Jimbo[PIndex].Labyrinth = 2
+    end]]
     if Level:IsAscent() then
         Available.Treasure = false
         Available.Shop = false
@@ -254,27 +255,17 @@ end
 -------------JIMBO FUNCTIONS------------
 ---------------------------------------
 
-function mod:SubstituteCards(ChosenTable)
-    for i = #ChosenTable, 1,-1 do
-        if ChosenTable[i] then
-            --first adds the ammount of new cards needed
-            table.insert(mod.Saved.Jimbo.CurrentHand,#mod.Saved.Jimbo.CurrentHand+1, mod.Saved.Jimbo.DeckPointer)
-            mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer +1
-            --then removes the selected cards 
-            table.remove(mod.Saved.Jimbo.CurrentHand,i)
-        end
-    end
-    
-end
+
 
 --determines the corresponding poker hand basing on the hand given
 function mod:DeterminePokerHand(Player)
     local ElegibleHandTypes = mod.HandTypes.NONE
 
+    local PIndex = Player:GetData().TruePlayerIndex
     
     local RealHand = {}
-    for _,index in ipairs(mod.Saved.Jimbo.CurrentHand) do
-        table.insert(RealHand, mod.Saved.Jimbo.FullDeck[index])
+    for _,index in ipairs(mod.Saved.Jimbo[PIndex].CurrentHand) do
+        table.insert(RealHand, mod.Saved.Jimbo[PIndex].FullDeck[index])
         
     end
 
@@ -369,18 +360,7 @@ end
 function mod:IsFlush(Player, SuitTable)
     local CardSuits = {0,0,0,0} --spades, hearts, clubs, diamonds
 
-    local HasFourFingers = false
-
-    for _, Player in ipairs(PlayerManager.GetPlayers()) do
-        
-        for Index, Slot in ipairs(mod.Saved.Jimbo.Inventory) do
-            if Slot.Joker == mod.Jokers.FOUR_FINGER then
-                HasFourFingers = true
-                break
-            end
-        end
-
-    end
+    local HasFourFingers = mod:JimboHasTrinket(Player, mod.Jokers.FOUR_FINGER)
 
     for _, Suit in ipairs(SuitTable) do --cycles between all the cards in the used hand
         CardSuits[Suit] = CardSuits[Suit] + 1
@@ -406,20 +386,8 @@ function mod:IsStraight(Player, ValueTable)
         end
     end
 
-    local HasFourFingers = false
-    local HasShortcut = false
-
-    for _, Player in ipairs(PlayerManager.GetPlayers()) do
-        
-        for Index, Slot in ipairs(mod.Saved.Jimbo.Inventory) do
-            if Slot.Joker == mod.Jokers.FOUR_FINGER then
-                HasFourFingers = true
-            elseif Slot.Joker == mod.Jokers.SHORTCUT then
-                HasShortcut = true
-            end
-        end
-
-    end
+    local HasFourFingers = mod:JimboHasTrinket(Player, mod.Jokers.FOUR_FINGER)
+    local HasShortcut = mod:JimboHasTrinket(Player, mod.Jokers.SHORTCUT)
 
     local LowestValue = ValueTable[1]
     local ValueToKeepStreak = LowestValue
@@ -463,11 +431,12 @@ end
 function mod:GetCardValueRepetitions(Player, ValueTable)
 
     local CardValues = {0,0,0,0,0,0,0,0,0,0,0,0,0} -- all the card's possible values
+    local PIndex = Player:GetData().TruePlayerIndex
 
     --PAIRS CHECK
     for _, CardRank in ipairs(ValueTable) do --cycles between all the cards in the used hand
     
-        CardValues[CardRank] = CardValues[mod.Saved.Jimbo.FullDeck[CardRank].Value] + 1
+        CardValues[CardRank] = CardValues[mod.Saved.Jimbo[PIndex].FullDeck[CardRank].Value] + 1
     end
 
     local PairPresent = false --tells if there is a pair for a possible full house/two pairs
@@ -514,7 +483,9 @@ function mod:JimboHasTrinket(Player,Trinket)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return false
     end
-    for _,Slot in ipairs(mod.Saved.Jimbo.Inventory) do
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    for _,Slot in ipairs(mod.Saved.Jimbo[PIndex].Inventory) do
         if Slot.Joker == Trinket then
             return true
         end
@@ -524,15 +495,16 @@ end
 
 function mod:GetJimboJokerIndex(Player, Joker, SkipCopy)
     local Indexes = {}
+    local PIndex = Player:GetData().TruePlayerIndex
 
-    for i,Slot in ipairs(mod.Saved.Jimbo.Inventory) do
+    for i,Slot in ipairs(mod.Saved.Jimbo[PIndex].Inventory) do
         if Slot.Joker == Joker then
             table.insert(Indexes, i)
 
         elseif not SkipCopy
                and (Slot.Joker == mod.Jokers.BLUEPRINT or Slot.Joker == mod.Jokers.BRAINSTORM) then
 
-            local CopiedJoker = mod.Saved.Jimbo.Inventory[mod.Saved.Jimbo.Progress.Inventory[i]]
+            local CopiedJoker = mod.Saved.Jimbo[PIndex].Inventory[mod.Saved.Jimbo[PIndex].Progress.Inventory[i]]
             CopiedJoker = CopiedJoker and CopiedJoker.Joker or 0
 
             if CopiedJoker == Joker then
@@ -609,7 +581,7 @@ function mod:IsSuit(Player, Card, WantedSuit, MakeTable)
 end
 
 function mod:TryGamble(Player, RNG, Chance)
-    --Chance = Chance * (2 ^ mod:GetValueRepetitions(mod.Saved.Jimbo.Inventory, mod.Jokers.OOPS_6) 
+    Chance = Chance * (2 ^ #mod:GetJimboJokerIndex(Player, mod.Jokers.OOPS_6))
     if RNG then
         if RNG:RandomFloat() < Chance then
             return true
@@ -625,24 +597,26 @@ end
 ---@param SellSlot integer?
 function mod:GetJokerCost(Joker, SellSlot, Player)
     --removes ! from the customtag (see items.xml) 
+    local PIndex = Player:GetData().TruePlayerIndex
+
     local numstring = string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[1],"%!","")
 
     local Cost = tonumber(numstring)
 
     if SellSlot then --also tells if you want the buy/sell value as the return
     
-        Cost = math.floor((Cost + mod.Saved.Jimbo.Inventory[SellSlot].Edition) / 2)
+        Cost = math.floor((Cost + mod.Saved.Jimbo[PIndex].Inventory[SellSlot].Edition) / 2)
         if Joker == mod.Jokers.EGG then
-            Cost = mod.Saved.Jimbo.Progress.Inventory[SellSlot]
+            Cost = mod.Saved.Jimbo[PIndex].Progress.Inventory[SellSlot]
         end
 
-        mod.Saved.Jimbo.Progress.GiftCardExtra[SellSlot] = mod.Saved.Jimbo.Progress.GiftCardExtra[SellSlot] or 0
+        mod.Saved.Jimbo[PIndex].Progress.GiftCardExtra[SellSlot] = mod.Saved.Jimbo[PIndex].Progress.GiftCardExtra[SellSlot] or 0
 
-        Cost = Cost + mod.Saved.Jimbo.Progress.GiftCardExtra[SellSlot]
+        Cost = Cost + mod.Saved.Jimbo[PIndex].Progress.GiftCardExtra[SellSlot]
 
     else
         --print(tonumber(string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[1],"%!",""),2))
-        local EdValue = mod.Saved.Jimbo.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Joker).Name] or 0
+        local EdValue = mod.Saved.Jimbo[PIndex].FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Joker).Name] or 0
         
         Cost = Cost + EdValue
     end
@@ -663,47 +637,47 @@ function mod:GetJokerRarity(Joker)
 end
 
 function mod:AddJimboInventorySlots(Player, Amount)
-    mod.Saved.Jimbo.InventorySize = mod.Saved.Jimbo.InventorySize + Amount
+    local PIndex = Player:GetData().TruePlayerIndex
+
     if Amount >= 0 then
         for i=1,Amount do --just adds empty spaces to fill
-            table.insert(mod.Saved.Jimbo.Inventory, {["Joker"] = 0,["Edition"]=mod.Edition.BASE})
+            table.insert(mod.Saved.Jimbo[PIndex].Inventory, {["Joker"] = 0,["Edition"]=mod.Edition.BASE})
 
-            mod.Saved.Jimbo.Progress.GiftCardExtra[#mod.Saved.Jimbo.Inventory] = 0
+            mod.Saved.Jimbo[PIndex].Progress.GiftCardExtra[#mod.Saved.Jimbo[PIndex].Inventory] = 0
 
         end
     else
         for i=1, -Amount do
 
-            for j,Slot in ipairs(mod.Saved.Jimbo.Inventory) do
+            for j,Slot in ipairs(mod.Saved.Jimbo[PIndex].Inventory) do
                 if Slot.Joker == 0 then --searches for an empty slot to remove
-                    table.remove(mod.Saved.Jimbo.Inventory, j)
+                    table.remove(mod.Saved.Jimbo[PIndex].Inventory, j)
 
-                    table.remove(mod.Saved.Jimbo.Progress.GiftCardExtra, j)
+                    table.remove(mod.Saved.Jimbo[PIndex].Progress.GiftCardExtra, j)
 
                     return
                 end
             end
 
-            mod:SellJoker(Player, mod.Saved.Jimbo.Inventory.Jokers[1], 1)
+            mod:SellJoker(Player, mod.Saved.Jimbo[PIndex].Inventory.Jokers[1], 1)
         end
     end
 end
 
 function mod:ChangeJimboHandSize(Player, Amount)
-    
+    local PIndex = Player:GetData().TruePlayerIndex
+
     if Amount >= 0 then
         for i=1,Amount do --just adds empty spaces to fill
-            table.insert(mod.Saved.Jimbo.CurrentHand,1, mod.Saved.Jimbo.DeckPointer)
-            mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer + 1
+            table.insert(mod.Saved.Jimbo[PIndex].CurrentHand,1, mod.Saved.Jimbo[PIndex].DeckPointer)
+            mod.Saved.Jimbo[PIndex].DeckPointer = mod.Saved.Jimbo[PIndex].DeckPointer + 1
         end
-        mod.Saved.Jimbo.HandSize = mod.Saved.Jimbo.HandSize + Amount
     else
         for i=-1,Amount, -1 do
-            if mod.Saved.Jimbo.HandSize == 1 then
+            if mod.Saved.Jimbo[PIndex].HandSize == 1 then
                 return
             end
-            table.remove(mod.Saved.Jimbo.CurrentHand, mod.Saved.Jimbo.HandSize)
-            mod.Saved.Jimbo.HandSize = mod.Saved.Jimbo.HandSize - 1
+            table.remove(mod.Saved.Jimbo[PIndex].CurrentHand, mod.Saved.Jimbo[PIndex].HandSize)
         end
     end
 end
@@ -728,19 +702,21 @@ function mod:FrameToSpecialCard(Frame)
 end
 
 function mod:SellJoker(Player, Trinket, Slot, Multiplier)
-    mod.Saved.Jimbo.Inventory[Slot].Joker = 0
-    mod.Saved.Jimbo.Inventory[Slot].Edition = mod.Edition.BASE
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    mod.Saved.Jimbo[PIndex].Inventory[Slot].Joker = 0
+    mod.Saved.Jimbo[PIndex].Inventory[Slot].Edition = mod.Edition.BASE
 
     local SellValue = mod:GetJokerCost(Trinket, Slot, Player) * (Multiplier or 1)
     SellValue = math.floor(SellValue)
 
-    mod.Saved.Jimbo.Progress.GiftCardExtra[Slot] = 0
+    mod.Saved.Jimbo[PIndex].Progress.GiftCardExtra[Slot] = 0
 
-    if mod.Saved.Jimbo.Inventory[Slot].Edition == mod.Edition.NEGATIVE then
+    if mod.Saved.Jimbo[PIndex].Inventory[Slot].Edition == mod.Edition.NEGATIVE then
         --selling a negative joker reduces your inventory size
         mod:AddJimboInventorySlots(Player, -1)
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.INVENTORY, mod.SelectionParams.Purposes.NONE)
-        mod.SelectionParams.Index = mod.SelectionParams.Index - 1
+        mod.SelectionParams[PIndex].Index = mod.SelectionParams[PIndex].Index - 1
     end
 
     for i=1, SellValue do
@@ -763,18 +739,18 @@ function mod:RandomJoker(Rng, Exeptions, PlaySound, ForcedRarity)
     local HasShowman = false
 
     for i, Player in ipairs(PlayerManager.GetPlayers()) do
-        if Player:GetPlayerType() == mod.Characters.JimboType then
-            if mod:JimboHasTrinket(Player, mod.Jokers.SHOWMAN) then
-                HasShowman = true
-            end
+        if mod:JimboHasTrinket(Player, mod.Jokers.SHOWMAN) then
+            HasShowman = true
         end
     end
 
-    if not HasShowman then --add to exeptions jokers held and in hìthe room
+    if not HasShowman then --add to exeptions jokers held and in the room
     
         for i, Player in ipairs(PlayerManager.GetPlayers()) do
             if Player:GetPlayerType() == mod.Characters.JimboType then
-                for i, Slot in ipairs(mod.Saved.Jimbo.Inventory) do
+                local PIndex = Player:GetData().TruePlayerIndex
+
+                for i, Slot in ipairs(mod.Saved.Jimbo[PIndex].Inventory) do
                     if Slot.Joker ~= 0 then
                         Exeptions[#Exeptions+1] = Slot.Joker
                     end
@@ -818,8 +794,8 @@ function mod:RandomJoker(Rng, Exeptions, PlaySound, ForcedRarity)
         table.remove(Possibilities, mod:GetValueIndex(Possibilities, Trinket.Joker, true))
 
     until not mod:Contained(Exeptions, Trinket.Joker) --basic criteria
-          and (Trinket.Joker ~= mod.Jokers.GROS_MICHAEL or not mod.Saved.Jimbo.MichelDestroyed) --if it's michel, check if it was destroyed
-          and (Trinket.Joker ~= mod.Jokers.CAVENDISH or mod.Saved.Jimbo.MichelDestroyed) --if it's cavendish do the same but opposite
+          and (Trinket.Joker ~= mod.Jokers.GROS_MICHAEL or not mod.Saved.MichelDestroyed) --if it's michel, check if it was destroyed
+          and (Trinket.Joker ~= mod.Jokers.CAVENDISH or mod.Saved.MichelDestroyed) --if it's cavendish do the same but opposite
     
     local EdMult = 1
 
@@ -934,23 +910,11 @@ function mod:CardSuitToName(Suit, IsEID)
 end
 
 function mod:AddJoker(Player, Joker, Edition, StopEval)
-
-    --[[
-    local AnyEmptySlot = false
-    for i, Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
-        if Joker == 0 then --needs an empty slot
-            AnyEmptySlot = true
-            break
-        end
-    end
-
-    if not AnyEmptySlot then
-        return false --couldn't add a joker
-    end]]
+    local PIndex = Player:GetData().TruePlayerIndex
 
     Edition = Edition or mod.Edition.BASE
 
-    mod.Saved.Jimbo.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Joker).Name] = Edition
+    mod.Saved.Jimbo[PIndex].FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Joker).Name] = Edition
 
     return mod:JimboAddTrinket(Player, Joker, false, StopEval)
 end
@@ -961,19 +925,20 @@ function mod:AddCardToDeck(Player, CardTable,Amount, PutInHand)
     if Amount <= 0 then
         return
     end
+    local PIndex = Player:GetData().TruePlayerIndex
 
     for i=1, Amount do
-        table.insert(mod.Saved.Jimbo.FullDeck,1, CardTable) --adds it to pos 1 so it can't be seen again
+        table.insert(mod.Saved.Jimbo[PIndex].FullDeck,1, CardTable) --adds it to pos 1 so it can't be seen again
     end
 
-    for i,_ in ipairs(mod.Saved.Jimbo.CurrentHand) do
-        mod.Saved.Jimbo.CurrentHand[i] = mod.Saved.Jimbo.CurrentHand[i] + Amount --fixes the jump made by table.insert
+    for i,_ in ipairs(mod.Saved.Jimbo[PIndex].CurrentHand) do
+        mod.Saved.Jimbo[PIndex].CurrentHand[i] = mod.Saved.Jimbo[PIndex].CurrentHand[i] + Amount --fixes the jump made by table.insert
     end
-    mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer + 2 --fixes the jump made by table.insert
+    mod.Saved.Jimbo[PIndex].DeckPointer = mod.Saved.Jimbo[PIndex].DeckPointer + 2 --fixes the jump made by table.insert
 
     if PutInHand then
         for i=1, Amount do
-            table.insert(mod.Saved.Jimbo.CurrentHand, i) --adds it to the hand if necessary
+            table.insert(mod.Saved.Jimbo[PIndex].CurrentHand, i) --adds it to the hand if necessary
         end
     end
 
@@ -985,6 +950,7 @@ end
 
 local CardGotDestroyed = false
 function mod:DestroyCards(Player, DeckIndexes, DoEffects)
+    local PIndex = Player:GetData().TruePlayerIndex
 
     CardGotDestroyed = true
 
@@ -1000,15 +966,15 @@ function mod:DestroyCards(Player, DeckIndexes, DoEffects)
     end)
 
     for _, Index in ipairs(DeckIndexes) do
-        local CardParams = mod.Saved.Jimbo.FullDeck[Index]
+        local CardParams = mod.Saved.Jimbo[PIndex].FullDeck[Index]
 
-        if mod:Contained(mod.Saved.Jimbo.CurrentHand) and #mod.Saved.Jimbo.CurrentHand > Player:GetCustomCacheValue("handsize") then
+        if mod:Contained(mod.Saved.Jimbo[PIndex].CurrentHand) and #mod.Saved.Jimbo[PIndex].CurrentHand > Player:GetCustomCacheValue("handsize") then
 ---@diagnostic disable-next-line: param-type-mismatch
-            table.remove(mod.Saved.Jimbo.CurrentHand, mod:GetValueIndex(mod.Saved.Jimbo.CurrentHand, Index, true))
+            table.remove(mod.Saved.Jimbo[PIndex].CurrentHand, mod:GetValueIndex(mod.Saved.Jimbo[PIndex].CurrentHand, Index, true))
         end
 
 
-        table.remove(mod.Saved.Jimbo.FullDeck, Index)
+        table.remove(mod.Saved.Jimbo[PIndex].FullDeck, Index)
         
         if DoEffects then
             mod:CardRipEffect(CardParams, Player.Position)
@@ -1204,3 +1170,29 @@ function mod:NoBloodSplats(Effect)
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT, mod.NoBloodSplats, EffectVariant.BLOOD_SPLAT)
+
+
+
+
+
+
+
+
+
+-------TRASH--------
+--------------------
+--[[
+function mod:SubstituteCards(ChosenTable)
+    for i = #ChosenTable, 1,-1 do
+        if ChosenTable[i] then
+            --first adds the ammount of new cards needed
+            table.insert(mod.Saved.Jimbo[PIndex].CurrentHand,#mod.Saved.Jimbo[PIndex].CurrentHand+1, mod.Saved.Jimbo[PIndex].DeckPointer)
+            mod.Saved.Jimbo[PIndex].DeckPointer = mod.Saved.Jimbo[PIndex].DeckPointer +1
+            --then removes the selected cards 
+            table.remove(mod.Saved.Jimbo[PIndex].CurrentHand,i)
+        end
+    end
+    
+end
+
+---]]

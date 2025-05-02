@@ -62,13 +62,9 @@ function mod:LimitShopping(Item,Player,_)
 
     local NumCredit = 0
 
-    for _,player in ipairs(PlayerManager.GetPlayers()) do
-        for Index, Slot in ipairs(mod.Saved.Jimbo.Inventory) do
-            if Slot.Joker == mod.Jokers.CREDIT_CARD then
-
-                NumCredit = NumCredit + 1
-
-            end
+    for _,Player in ipairs(PlayerManager.GetPlayers()) do
+        if Player:GetPlayerType() == mod.Characters.JimboType then
+            NumCredit = NumCredit + #mod:GetJimboJokerIndex(Player, mod.Jokers.CREDIT_CARD)
         end
     end
 
@@ -117,13 +113,9 @@ function mod:NoGambleWithoutCredit(Slot,Player,_)
     local HasCredit = false
 
     for _,Player in ipairs(PlayerManager.GetPlayers()) do
-        for Index, Slot in ipairs(mod.Saved.Jimbo.Inventory) do
-            if Slot.Joker == mod.Jokers.CREDIT_CARD then
 
-                HasCredit = true
-                break
-
-            end
+        if Player:GetPlayerType() == mod.Characters.JimboType then
+            HasCredit = mod:JimboHasTrinket(Player, mod.Jokers.CREDIT_CARD)
         end
     end
 

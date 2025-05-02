@@ -22,7 +22,7 @@ local HoleChance = 0.003
 ---@param card Card
 function mod:NewTarotEffects(card, Player, UseFlags)
     if Player:GetPlayerType() == mod.Characters.JimboType then
-        local PIndex = Player:GetPlayerIndex()
+        local PIndex = Player:GetData().TruePlayerIndex
         local RandomSeed = Random()
 
         if RandomSeed==0 then RandomSeed=1 end
@@ -30,7 +30,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
         local IsTarot = false
 
         if card == Card.CARD_FOOL then
-            if mod.Saved.LastCardUsed then
+            if mod.Saved.Jimbo[PIndex].LastCardUsed then
 
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
                            RandomVector()*3, Player, mod.Saved.LastCardUsed, RandomSeed)
@@ -41,7 +41,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
             IsTarot = true
         else
         
-        mod.Saved.LastCardUsed = card
+        mod.Saved.Jimbo[PIndex].LastCardUsed = card
 
         if card == Card.CARD_MAGICIAN then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
@@ -118,8 +118,8 @@ function mod:NewTarotEffects(card, Player, UseFlags)
             local CardRNG = Player:GetCardRNG(card)
 
             local BaseJokers = {}
-            for i,Slot in ipairs(mod.Saved.Jimbo.Inventory) do
-                if Slot.Edition == mod.Edition.BASE and mod.Saved.Jimbo.Inventory[i].Joker ~= 0 then
+            for i,Slot in ipairs(mod.Saved.Jimbo[PIndex].Inventory) do
+                if Slot.Edition == mod.Edition.BASE and mod.Saved.Jimbo[PIndex].Inventory[i].Joker ~= 0 then
                     table.insert(BaseJokers, i)
                 end
             end
@@ -137,14 +137,14 @@ function mod:NewTarotEffects(card, Player, UseFlags)
                 local EdRoll = Player:GetCardRNG(Card.CARD_WHEEL_OF_FORTUNE):RandomFloat()
                 if EdRoll <= 0.5 then
                     sfx:Play(mod.Sounds.FOIL)
-                    mod.Saved.Jimbo.Inventory[RandIndex].Edition = mod.Edition.FOIL
+                    mod.Saved.Jimbo[PIndex].Inventory[RandIndex].Edition = mod.Edition.FOIL
                     --PLACEHOLDER place editions sounds
                 elseif EdRoll <= 0.85 then
                     sfx:Play(mod.Sounds.HOLO)
-                    mod.Saved.Jimbo.Inventory[RandIndex].Edition = mod.Edition.HOLOGRAPHIC
+                    mod.Saved.Jimbo[PIndex].Inventory[RandIndex].Edition = mod.Edition.HOLOGRAPHIC
                 else
                     sfx:Play(mod.Sounds.POLY)
-                    mod.Saved.Jimbo.Inventory[RandIndex].Edition = mod.Edition.POLYCROME
+                    mod.Saved.Jimbo[PIndex].Inventory[RandIndex].Edition = mod.Edition.POLYCROME
                 end
 
                 Isaac.RunCallback("INVENTORY_CHANGE", Player)
@@ -173,7 +173,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
 
             local CoinsToGain = 0
 
-            for i ,Slot in ipairs(mod.Saved.Jimbo.Inventory) do
+            for i ,Slot in ipairs(mod.Saved.Jimbo[PIndex].Inventory) do
                 if Slot.Joker ~= 0 then
                     CoinsToGain = CoinsToGain + mod:GetJokerCost(Slot.Joker, i, Player)
                 end
@@ -213,7 +213,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
 
             --[[
             local EmptySlot
-            for i, Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
+            for i, Joker in ipairs(mod.Saved.Jimbo[PIndex].Inventory.Jokers) do
                 if Joker == 0 then --needs an empty slot
                     EmptySlot = i
                     break
@@ -223,10 +223,10 @@ function mod:NewTarotEffects(card, Player, UseFlags)
             if EmptySlot then
                 
                 local RandomJoker = mod:RandomJoker(Player:GetCardRNG(Card.CARD_JUDGEMENT), {}, true)
-                mod.Saved.Jimbo.Inventory.Jokers[EmptySlot] = RandomJoker.Joker
-                mod.Saved.Jimbo.Inventory.Editions[EmptySlot] = RandomJoker.Edition
+                mod.Saved.Jimbo[PIndex].Inventory.Jokers[EmptySlot] = RandomJoker.Joker
+                mod.Saved.Jimbo[PIndex].Inventory.Editions[EmptySlot] = RandomJoker.Edition
 
-                mod.Saved.Jimbo.Progress.Inventory[EmptySlot] = tonumber(ItemsConfig:GetTrinket(RandomJoker.Joker):GetCustomTags()[2]) --sets the base progress
+                mod.Saved.Jimbo[PIndex].Progress.Inventory[EmptySlot] = tonumber(ItemsConfig:GetTrinket(RandomJoker.Joker):GetCustomTags()[2]) --sets the base progress
                 
                 Isaac.RunCallback("INVENTORY_CHANGE", Player)
             else
@@ -264,41 +264,47 @@ mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.NewTarotEffects)
 
 
 function mod:PlanetCards(card, Player,_)
-    if card >= mod.Planets.PLUTO and card <= mod.Planets.SUN then --if it's a planet Card
-        if Player:GetPlayerType() == mod.Characters.JimboType then
-            local Value = card - mod.Planets.PLUTO + 1 --gets the equivalent card value
-
-            mod.Saved.Jimbo.CardLevels[Value] = mod.Saved.Jimbo.CardLevels[Value] + 1
-
-            local ValueString 
-            if Value == 11 then
-                ValueString = "J"
-            elseif Value == 12 then
-                ValueString = "Q"
-            elseif Value == 13 then
-                ValueString = "K"
-            elseif Value == 1 then
-                ValueString = "Ace"
-            else
-                ValueString = tostring(Value)
-            end
-
-            --PLACEHOLDER
-            mod:CreateBalatroEffect(Player, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, ValueString.." Up!")
-
-        elseif false then --TAINTED JIMBO
-            local Hand = card - mod.Planets.PLUTO + 1 --gets the equivalent handtype
-
-            mod.Saved.Jimbo.HandLevels[Hand] = mod.Saved.Jimbo.HandLevels[Hand] + 1
-            mod.Saved.Jimbo.HandsStat[Hand] = mod.Saved.Jimbo.HandsStat[Hand] + mod.HandUpgrades[Hand]
-            if Hand == mod.HandTypes.STRAIGHT_FLUSH then
-                Hand = mod.HandTypes.ROYAL_FLUSH --upgrades both royal flush and straight flush
-                mod.Saved.Jimbo.HandLevels[Hand] = mod.Saved.Jimbo.HandLevels[Hand] + 1
-                mod.Saved.Jimbo.HandsStat[Hand] = mod.Saved.Jimbo.HandsStat[Hand] + mod.HandUpgrades[Hand]
-            end
-
-        end
+    if card <= mod.Planets.PLUTO or card >= mod.Planets.SUN then --if it's a planet Card
+        return
     end
+
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    if Player:GetPlayerType() == mod.Characters.JimboType then
+
+        local Value = card - mod.Planets.PLUTO + 1 --gets the equivalent card value
+
+        mod.Saved.Jimbo[PIndex].CardLevels[Value] = mod.Saved.Jimbo[PIndex].CardLevels[Value] + 1
+
+        local ValueString 
+        if Value == 11 then
+            ValueString = "J"
+        elseif Value == 12 then
+            ValueString = "Q"
+        elseif Value == 13 then
+            ValueString = "K"
+        elseif Value == 1 then
+            ValueString = "Ace"
+        else
+            ValueString = tostring(Value)
+        end
+
+        --PLACEHOLDER
+        mod:CreateBalatroEffect(Player, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, ValueString.." Up!")
+
+    elseif false then --TAINTED JIMBO
+        local Hand = card - mod.Planets.PLUTO + 1 --gets the equivalent handtype
+
+        mod.Saved.Jimbo[PIndex].HandLevels[Hand] = mod.Saved.Jimbo[PIndex].HandLevels[Hand] + 1
+        mod.Saved.Jimbo[PIndex].HandsStat[Hand] = mod.Saved.Jimbo[PIndex].HandsStat[Hand] + mod.HandUpgrades[Hand]
+        if Hand == mod.HandTypes.STRAIGHT_FLUSH then
+            Hand = mod.HandTypes.ROYAL_FLUSH --upgrades both royal flush and straight flush
+            mod.Saved.Jimbo[PIndex].HandLevels[Hand] = mod.Saved.Jimbo[PIndex].HandLevels[Hand] + 1
+            mod.Saved.Jimbo[PIndex].HandsStat[Hand] = mod.Saved.Jimbo[PIndex].HandsStat[Hand] + mod.HandUpgrades[Hand]
+        end
+
+    end
+    
 end
 mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.PlanetCards)
 
@@ -306,6 +312,7 @@ mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.PlanetCards)
 ---@param card Card
 function mod:CardPacks(card, Player,_)
 
+    local PIndex = Player:GetData().TruePlayerIndex
 
     if card == Card.CARD_PACK_STANDARD then
         Isaac.RunCallback("PACK_OPENED",Player,card)
@@ -355,7 +362,7 @@ function mod:CardPacks(card, Player,_)
 
             RandomPack[i] = RandomCard
         end
-        mod.SelectionParams.PackOptions = RandomPack
+        mod.SelectionParams[PIndex].PackOptions = RandomPack
 
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
                                               mod.SelectionParams.Purposes.StandardPack)
@@ -363,7 +370,7 @@ function mod:CardPacks(card, Player,_)
         if EditionRoll <= JumboChance then
 
             if EditionRoll <= MegaChance then
-                mod.SelectionParams.Purpose = mod.SelectionParams.Purpose + mod.SelectionParams.Purposes.MegaFlag
+                mod.SelectionParams[PIndex].Purpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.Purposes.MegaFlag
                 mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!")
             else
                 mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!")
@@ -408,7 +415,7 @@ function mod:CardPacks(card, Player,_)
             table.insert(RandomPack, RandomCard)
         end
         
-        mod.SelectionParams.PackOptions = RandomPack
+        mod.SelectionParams[PIndex].PackOptions = RandomPack
 
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
         mod.SelectionParams.Purposes.TarotPack)
@@ -416,7 +423,7 @@ function mod:CardPacks(card, Player,_)
         if EditionRoll <= JumboChance then
         
             if EditionRoll <= MegaChance then
-                mod.SelectionParams.Purpose = mod.SelectionParams.Purpose + mod.SelectionParams.Purposes.MegaFlag
+                mod.SelectionParams[PIndex].Purpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.Purposes.MegaFlag
                 mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!")
             else
                 mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!")
@@ -451,7 +458,7 @@ function mod:CardPacks(card, Player,_)
                 until not mod:Contained(RandomPack, Rplanet)
                 table.insert(RandomPack, Rplanet)
             end
-            mod.SelectionParams.PackOptions = RandomPack
+            mod.SelectionParams[PIndex].PackOptions = RandomPack
 
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
             mod.SelectionParams.Purposes.CelestialPack)
@@ -459,7 +466,7 @@ function mod:CardPacks(card, Player,_)
             if EditionRoll <= JumboChance then
         
                 if EditionRoll <= MegaChance then
-                    mod.SelectionParams.Purpose = mod.SelectionParams.Purpose + mod.SelectionParams.Purposes.MegaFlag
+                    mod.SelectionParams[PIndex].Purpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.Purposes.MegaFlag
                     mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!")
                 else
                     mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!")
@@ -477,15 +484,15 @@ function mod:CardPacks(card, Player,_)
                         Rplanet = PackRng:RandomInt(mod.Planets.PLUTO,mod.Planets.ERIS) --chooses a random planet
 
                         if Rplanet == mod.Planets.PLANET_X then
-                            if not mod.Saved.Jimbo.FiveUnlocked then
+                            if not mod.Saved.Jimbo[PIndex].FiveUnlocked then
                                 IsPlanetUnlocked = false
                             end
                         elseif Rplanet == mod.Planets.CERES then
-                            if not mod.Saved.Jimbo.FlushHouseUnlocked then
+                            if not mod.Saved.Jimbo[PIndex].FlushHouseUnlocked then
                                 IsPlanetUnlocked = false
                             end
                         elseif Rplanet == mod.Planets.ERIS then
-                            if not mod.Saved.Jimbo.FiveFlushUnlocked then
+                            if not mod.Saved.Jimbo[PIndex].FiveFlushUnlocked then
                                 IsPlanetUnlocked = false
                             end
                         end
@@ -497,7 +504,7 @@ function mod:CardPacks(card, Player,_)
                 RandomPack[i] = Rplanet
             end            
         end
-        mod.SelectionParams.PackOptions = RandomPack
+        mod.SelectionParams[PIndex].PackOptions = RandomPack
         
     elseif card == Card.CARD_PACK_SPECTRAL then
         Isaac.RunCallback("PACK_OPENED",Player,card)
@@ -529,7 +536,7 @@ function mod:CardPacks(card, Player,_)
 
             table.insert(RandomPack, RSpectral)
         end
-        mod.SelectionParams.PackOptions = RandomPack
+        mod.SelectionParams[PIndex].PackOptions = RandomPack
 
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
                                               mod.SelectionParams.Purposes.SpectralPack)
@@ -537,7 +544,7 @@ function mod:CardPacks(card, Player,_)
         if EditionRoll <= JumboChance then
         
             if EditionRoll <= MegaChance then
-                mod.SelectionParams.Purpose = mod.SelectionParams.Purpose + mod.SelectionParams.Purposes.MegaFlag
+                mod.SelectionParams[PIndex].Purpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.Purposes.MegaFlag
                 mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!")
             else
                 mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!")
@@ -567,7 +574,7 @@ function mod:CardPacks(card, Player,_)
             table.insert(Jokers, RandomPack[i].Joker)
         end
 
-        mod.SelectionParams.PackOptions = RandomPack
+        mod.SelectionParams[PIndex].PackOptions = RandomPack
 
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
                                               mod.SelectionParams.Purposes.BuffonPack)
@@ -575,7 +582,7 @@ function mod:CardPacks(card, Player,_)
         if EditionRoll <= JumboChance then
     
             if EditionRoll <= MegaChance then
-                mod.SelectionParams.Purpose = mod.SelectionParams.Purpose + mod.SelectionParams.Purposes.MegaFlag
+                mod.SelectionParams[PIndex].Purpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.Purposes.MegaFlag
                 mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!")
             else
                 mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!")
@@ -592,13 +599,15 @@ function mod:SpectralCards(card, Player)
         return
     end
 
+    local PIndex = Player:GetData().TruePlayerIndex
+
     if Player:GetPlayerType() == mod.Characters.JimboType then  
         local CardRNG = Player:GetCardRNG(card)
         if card == mod.Spectrals.FAMILIAR then
             
             local Valid = 0
-            for i,v in ipairs(mod.Saved.Jimbo.CurrentHand) do
-                if mod.Saved.Jimbo.FullDeck[v] then
+            for i,v in ipairs(mod.Saved.Jimbo[PIndex].CurrentHand) do
+                if mod.Saved.Jimbo[PIndex].FullDeck[v] then
                     Valid = Valid + 1
                 end
             end
@@ -609,9 +618,9 @@ function mod:SpectralCards(card, Player)
             --removes a random card from the deck
             local RandomCard
             repeat
-                RandomCard = mod:GetRandom(mod.Saved.Jimbo.CurrentHand, CardRNG)
-            until mod.Saved.Jimbo.FullDeck[RandomCard]
-            table.remove(mod.Saved.Jimbo.FullDeck, RandomCard)    
+                RandomCard = mod:GetRandom(mod.Saved.Jimbo[PIndex].CurrentHand, CardRNG)
+            until mod.Saved.Jimbo[PIndex].FullDeck[RandomCard]
+            table.remove(mod.Saved.Jimbo[PIndex].FullDeck, RandomCard)    
             for i = 1, 3 do --adds 3 face cards
                 local RandomFace = {}
                 RandomFace.Value = CardRNG:RandomInt(11,13)
@@ -621,14 +630,14 @@ function mod:SpectralCards(card, Player)
                 until RandomFace.Enhancement ~= mod.Enhancement.STONE
                 RandomFace.Seal = mod.Seals.NONE
                 RandomFace.Edition = mod.Edition.BASE
-                table.insert(mod.Saved.Jimbo.FullDeck, RandomFace)
+                table.insert(mod.Saved.Jimbo[PIndex].FullDeck, RandomFace)
             end
             Isaac.RunCallback("DECK_SHIFT", Player)
         elseif card == mod.Spectrals.GRIM then
 
             local Valid = 0
-            for i,v in ipairs(mod.Saved.Jimbo.CurrentHand) do
-                if mod.Saved.Jimbo.FullDeck[v] then
+            for i,v in ipairs(mod.Saved.Jimbo[PIndex].CurrentHand) do
+                if mod.Saved.Jimbo[PIndex].FullDeck[v] then
                     Valid = Valid + 1
                 end
             end
@@ -640,9 +649,9 @@ function mod:SpectralCards(card, Player)
             --removes a random card from the deck
             local RandomCard
             repeat
-                RandomCard = mod:GetRandom(mod.Saved.Jimbo.CurrentHand, CardRNG)
-            until mod.Saved.Jimbo.FullDeck[RandomCard]    
-            table.remove(mod.Saved.Jimbo.FullDeck, RandomCard)    
+                RandomCard = mod:GetRandom(mod.Saved.Jimbo[PIndex].CurrentHand, CardRNG)
+            until mod.Saved.Jimbo[PIndex].FullDeck[RandomCard]    
+            table.remove(mod.Saved.Jimbo[PIndex].FullDeck, RandomCard)    
             for i = 1, 2 do --adds 3 face cards
                 local RandomAce = {}
                 RandomAce.Value = 1
@@ -652,14 +661,14 @@ function mod:SpectralCards(card, Player)
                 until RandomAce.Enhancement ~= mod.Enhancement.STONE
                 RandomAce.Seal = mod.Seals.NONE
                 RandomAce.Edition = mod.Edition.BASE    
-                table.insert(mod.Saved.Jimbo.FullDeck, RandomAce)
+                table.insert(mod.Saved.Jimbo[PIndex].FullDeck, RandomAce)
             end 
             Isaac.RunCallback("DECK_SHIFT", Player)
         elseif card == mod.Spectrals.INCANTATION then
 
             local Valid = 0
-            for i,v in ipairs(mod.Saved.Jimbo.CurrentHand) do
-                if mod.Saved.Jimbo.FullDeck[v] then
+            for i,v in ipairs(mod.Saved.Jimbo[PIndex].CurrentHand) do
+                if mod.Saved.Jimbo[PIndex].FullDeck[v] then
                     Valid = Valid + 1
                 end
             end
@@ -671,9 +680,9 @@ function mod:SpectralCards(card, Player)
             ---removes a random card from the deck
             local RandomCard
             repeat
-                RandomCard = mod:GetRandom(mod.Saved.Jimbo.CurrentHand, CardRNG)
-            until mod.Saved.Jimbo.FullDeck[RandomCard]    
-            table.remove(mod.Saved.Jimbo.FullDeck, RandomCard)
+                RandomCard = mod:GetRandom(mod.Saved.Jimbo[PIndex].CurrentHand, CardRNG)
+            until mod.Saved.Jimbo[PIndex].FullDeck[RandomCard]    
+            table.remove(mod.Saved.Jimbo[PIndex].FullDeck, RandomCard)
             for i = 1, 4 do --adds 4 numbered cards
                 local RandomAce = {}
                 RandomAce.Value = CardRNG:RandomInt(2,10)
@@ -683,7 +692,7 @@ function mod:SpectralCards(card, Player)
                 until RandomCard.Enhancement ~= mod.Enhancement.STONE
                 RandomAce.Seal = mod.Seals.NONE
                 RandomAce.Edition = mod.Edition.BASE    
-                table.insert(mod.Saved.Jimbo.FullDeck, Random)
+                table.insert(mod.Saved.Jimbo[PIndex].FullDeck, Random)
             end
             Isaac.RunCallback("DECK_SHIFT", Player)
         elseif card == mod.Spectrals.TALISMAN then
@@ -702,10 +711,10 @@ function mod:SpectralCards(card, Player)
             --[[
             local RandomJoker = mod:RandomJoker(CardRNG, {}, true, "rare")
 
-            for i, Joker in ipairs(mod.Saved.Jimbo.Inventory.Jokers) do
+            for i, Joker in ipairs(mod.Saved.Jimbo[PIndex].Inventory.Jokers) do
                 if Joker == 0 then --the first empty slot
-                    mod.Saved.Jimbo.Inventory.Jokers[i] = RandomJoker
-                    mod.Saved.Jimbo.Inventory.Editions[i] = mod.Edition.BASE
+                    mod.Saved.Jimbo[PIndex].Inventory.Jokers[i] = RandomJoker
+                    mod.Saved.Jimbo[PIndex].Inventory.Editions[i] = mod.Edition.BASE
                     Isaac.RunCallback("INVENTORY_CHANGE", Player)
                     return
                 end
@@ -721,15 +730,15 @@ function mod:SpectralCards(card, Player)
         
         elseif card == mod.Spectrals.SIGIL then
             local RandomSuit = CardRNG:RandomInt(1,4)
-            for i,v in ipairs(mod.Saved.Jimbo.CurrentHand) do
-                if mod.Saved.Jimbo.FullDeck[v] then
-                    mod.Saved.Jimbo.FullDeck[v].Suit = RandomSuit
+            for i,v in ipairs(mod.Saved.Jimbo[PIndex].CurrentHand) do
+                if mod.Saved.Jimbo[PIndex].FullDeck[v] then
+                    mod.Saved.Jimbo[PIndex].FullDeck[v].Suit = RandomSuit
                 end
             end
             Isaac.RunCallback("DECK_MODIFY", Player, 0)
         elseif card == mod.Spectrals.OUIJA then
             --[[
-            if mod.Saved.Jimbo.HandSize == 1 then
+            if mod.Saved.Jimbo[PIndex].HandSize == 1 then
                 Player:AnimateSad()
                 return
             end
@@ -737,25 +746,25 @@ function mod:SpectralCards(card, Player)
 
             --every card is set to a random value
             local RandomValue = CardRNG:RandomInt(1,13)
-            for i,v in ipairs(mod.Saved.Jimbo.CurrentHand) do
-                if mod.Saved.Jimbo.FullDeck[v] then
-                    mod.Saved.Jimbo.FullDeck[v].Value = RandomValue
+            for i,v in ipairs(mod.Saved.Jimbo[PIndex].CurrentHand) do
+                if mod.Saved.Jimbo[PIndex].FullDeck[v] then
+                    mod.Saved.Jimbo[PIndex].FullDeck[v].Value = RandomValue
                 end
             end
             
             Isaac.RunCallback("DECK_MODIFY", Player, 0)
 
         elseif card == mod.Spectrals.ECTOPLASM then 
-            if mod.Saved.Jimbo.HandSize == 1 then
+            if mod.Saved.Jimbo[PIndex].HandSize == 1 then
                 Player:AnimateSad()
                 return --if hand size can't be decreased, don't to anything
             end
 
-            mod.Saved.Jimbo.EctoUses = mod.Saved.Jimbo.EctoUses + 1 
+            mod.Saved.Jimbo[PIndex].EctoUses = mod.Saved.Jimbo[PIndex].EctoUses + 1 
 
 
             local BaseJokers = {}--jokers with an edition cannot be chosen 
-            for i,Slot in ipairs(mod.Saved.Jimbo.Inventory) do
+            for i,Slot in ipairs(mod.Saved.Jimbo[PIndex].Inventory) do
                 if Slot.Joker ~= 0 and Slot.Edition == mod.Edition.BASE then
                     table.insert(BaseJokers, i)
                 end
@@ -766,11 +775,11 @@ function mod:SpectralCards(card, Player)
             end 
             
             local RandomSlot = mod:GetRandom(BaseJokers, CardRNG)
-            mod.Saved.Jimbo.Inventory[RandomSlot].Edition = mod.Edition.NEGATIVE
+            mod.Saved.Jimbo[PIndex].Inventory[RandomSlot].Edition = mod.Edition.NEGATIVE
             --adds a slot since he got a negative joker
             --mod:AddJimboInventorySlots(Player, 1)
 
-            --mod:ChangeJimboHandSize(Player, -mod.Saved.Jimbo.EctoUses)
+            --mod:ChangeJimboHandSize(Player, -mod.Saved.Jimbo[PIndex].EctoUses)
             --mod:ChangeJimboHandSize(Player, -1)
 
             sfx:Play(mod.Sounds.NEGATIVE)
@@ -780,7 +789,7 @@ function mod:SpectralCards(card, Player)
         elseif card == mod.Spectrals.IMMOLATE then  
 
             local RandomCards = {}
-            table.move(mod.Saved.Jimbo.CurrentHand, 1, #mod.Saved.Jimbo.CurrentHand, 1, RandomCards)
+            table.move(mod.Saved.Jimbo[PIndex].CurrentHand, 1, #mod.Saved.Jimbo[PIndex].CurrentHand, 1, RandomCards)
             
             for i = #RandomCards - 1, 4, -1 do
 
@@ -804,7 +813,7 @@ function mod:SpectralCards(card, Player)
         elseif card == mod.Spectrals.ANKH then
             
             local FilledSlots = {} --gets the slots filled with a joker
-            for i,Slot in ipairs(mod.Saved.Jimbo.Inventory) do
+            for i,Slot in ipairs(mod.Saved.Jimbo[PIndex].Inventory) do
                 if Slot.Joker ~= 0 then
                     table.insert(FilledSlots, i)
                 end
@@ -815,20 +824,20 @@ function mod:SpectralCards(card, Player)
             end
 
             local Rslot = mod:GetRandom(FilledSlots, CardRNG)
-            local CopyJoker = mod.Saved.Jimbo.Inventory[Rslot].Joker + 0
-            local CopyEdition = mod.Saved.Jimbo.Inventory[Rslot].Edition + 0
-            local CopyProgress = mod.Saved.Jimbo.Progress.Inventory[Rslot]
+            local CopyJoker = mod.Saved.Jimbo[PIndex].Inventory[Rslot].Joker + 0
+            local CopyEdition = mod.Saved.Jimbo[PIndex].Inventory[Rslot].Edition + 0
+            local CopyProgress = mod.Saved.Jimbo[PIndex].Progress.Inventory[Rslot]
 
             
-            for i, _ in ipairs(mod.Saved.Jimbo.Inventory) do
-                mod.Saved.Jimbo.Inventory[i].Joker = 0
-                mod.Saved.Jimbo.Inventory[i].Edition = 0
+            for i, _ in ipairs(mod.Saved.Jimbo[PIndex].Inventory) do
+                mod.Saved.Jimbo[PIndex].Inventory[i].Joker = 0
+                mod.Saved.Jimbo[PIndex].Inventory[i].Edition = 0
             end
 
             for i=1,2 do
 
                 mod:AddJoker(Player, CopyJoker, CopyEdition, false)
-                mod.Saved.Jimbo.Progress.Inventory[i] = CopyProgress
+                mod.Saved.Jimbo[PIndex].Progress.Inventory[i] = CopyProgress
             end
                       
             --Isaac.RunCallback("JOKER_ADDED", Player, CopyJoker, CopyEdition)
@@ -841,7 +850,7 @@ function mod:SpectralCards(card, Player)
         elseif card == mod.Spectrals.HEX then
 
             local FilledSlots = {} --gets the slot filled with a joker
-            for i,Slot in ipairs(mod.Saved.Jimbo.Inventory) do
+            for i,Slot in ipairs(mod.Saved.Jimbo[PIndex].Inventory) do
                 if Slot.Joker ~= 0 then
                     table.insert(FilledSlots, i)
                 end
@@ -852,12 +861,12 @@ function mod:SpectralCards(card, Player)
             end
 
             local Rslot = mod:GetRandom(FilledSlots, CardRNG)
-            for i, Slot in ipairs(mod.Saved.Jimbo.Inventory) do
+            for i, Slot in ipairs(mod.Saved.Jimbo[PIndex].Inventory) do
                 if i ~= Rslot then
-                    mod.Saved.Jimbo.Inventory[i].Joker = 0
-                    mod.Saved.Jimbo.Inventory[i].Edition = 0
+                    mod.Saved.Jimbo[PIndex].Inventory[i].Joker = 0
+                    mod.Saved.Jimbo[PIndex].Inventory[i].Edition = 0
                 else
-                    mod.Saved.Jimbo.Inventory[i].Edition = mod.Edition.POLYCROME
+                    mod.Saved.Jimbo[PIndex].Inventory[i].Edition = mod.Edition.POLYCROME
                 end
             end
 
@@ -889,7 +898,7 @@ function mod:SpectralCards(card, Player)
 
         elseif card == mod.Spectrals.BLACK_HOLE then
             for i = 1, 13 do
-                mod.Saved.Jimbo.CardLevels[i] = mod.Saved.Jimbo.CardLevels[i] + 1
+                mod.Saved.Jimbo[PIndex].CardLevels[i] = mod.Saved.Jimbo[PIndex].CardLevels[i] + 1
             end
 
             

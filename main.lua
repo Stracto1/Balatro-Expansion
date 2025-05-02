@@ -145,12 +145,31 @@ Balatro_Expansion.Jokers.SHOWMAN = Isaac.GetTrinketIdByName("Showman")
 Balatro_Expansion.Jokers.FLOWER_POT = Isaac.GetTrinketIdByName("Flower Pot")
 Balatro_Expansion.Jokers.WEE_JOKER = Isaac.GetTrinketIdByName("Wee Joker")
 
+Balatro_Expansion.Jokers.OOPS_6 = Isaac.GetTrinketIdByName("Oops! All 6s")
+Balatro_Expansion.Jokers.IDOL = Isaac.GetTrinketIdByName("The Idol")
+Balatro_Expansion.Jokers.SEE_DOUBLE = Isaac.GetTrinketIdByName("Seeing Double")
+Balatro_Expansion.Jokers.MATADOR = Isaac.GetTrinketIdByName("Matador")
+Balatro_Expansion.Jokers.HIT_ROAD = Isaac.GetTrinketIdByName("Hit the Road")
+Balatro_Expansion.Jokers.DUO = Isaac.GetTrinketIdByName("The Duo")
+Balatro_Expansion.Jokers.TRIO = Isaac.GetTrinketIdByName("The Trio")
+Balatro_Expansion.Jokers.FAMILY = Isaac.GetTrinketIdByName("The Family")
+Balatro_Expansion.Jokers.ORDER = Isaac.GetTrinketIdByName("The Order")
+Balatro_Expansion.Jokers.TRIBE = Isaac.GetTrinketIdByName("The Tribe")
+
+
 
 Balatro_Expansion.Trinkets = {} --rarities used for spawn weight and stuff
 Balatro_Expansion.Trinkets.common = {} 
 Balatro_Expansion.Trinkets.uncommon = {}
 Balatro_Expansion.Trinkets.rare = {}
 Balatro_Expansion.Trinkets.legendary = {}
+
+Balatro_Expansion.JokerTypes = {}
+Balatro_Expansion.JokerTypes.ECON = "money"
+Balatro_Expansion.JokerTypes.MULT = "mult"
+Balatro_Expansion.JokerTypes.XMULT = "mmult"
+Balatro_Expansion.JokerTypes.CHIPS = "chips"
+Balatro_Expansion.JokerTypes.EFFECT = "activate"
 
 for i, Joker in pairs(Balatro_Expansion.Jokers) do
     local Rarity = string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[3],"%?","")
@@ -381,7 +400,7 @@ Balatro_Expansion.BLINDS.BOSS = 2
 Balatro_Expansion.CustomCache = {}
 Balatro_Expansion.CustomCache.HAND_SIZE = "handsize"
 Balatro_Expansion.CustomCache.HAND_COOLDOWN = "playcd"
-Balatro_Expansion.CustomCache.DISCARD_NUM = "DiscardSwoosh"
+Balatro_Expansion.CustomCache.DISCARD_NUM = "discards"
 Balatro_Expansion.CustomCache.INVENTORY_SIZE = "inventory"
 Balatro_Expansion.CustomCache.HAND_NUM = "hands"
 
@@ -488,10 +507,9 @@ Balatro_Expansion.Saved.Jimbo.DeckPointer = 6 --the card that is going to be pic
 Balatro_Expansion.Saved.Jimbo.CurrentHand = {5,4,3,2,1} --the indexes leding to the cards in FullDeck
 Balatro_Expansion.Saved.Jimbo.LastShotIndex = 0
 
---these two don't do anything directly and are only used to not call #table every time
-Balatro_Expansion.Saved.Jimbo.HandSize = 5
-Balatro_Expansion.Saved.Jimbo.InventorySize = 3
-Balatro_Expansion.Saved.Jimbo.MichelDestroyed = false
+Balatro_Expansion.Saved.MichelDestroyed = false
+
+Balatro_Expansion.Saved.HasDebt = false
 
 Balatro_Expansion.Saved.Jimbo.SmallBlind = 0
 Balatro_Expansion.Saved.Jimbo.BigBlind = 0
@@ -545,10 +563,10 @@ Balatro_Expansion.Saved.Jimbo.Progress.Room.KingsAtStart = 0
 
 Balatro_Expansion.Saved.Jimbo.Progress.Floor = {}
 Balatro_Expansion.Saved.Jimbo.Progress.Floor.CardsUsed = 0
-Balatro_Expansion.Saved.Jimbo.FloorVouchers = {} --says which vouchers have already been spawned in a floor
+Balatro_Expansion.Saved.FloorVouchers = {} --says which vouchers have already been spawned in a floor
 
 
-Balatro_Expansion.Saved.LasCardUsed = nil --the last card a player used
+Balatro_Expansion.Saved.Jimbo.LastCardUsed = nil --the last card a player used
 Balatro_Expansion.Saved.Jimbo.EctoUses = 0 --how many times the Ectoplasm card got used in a run
 
 Balatro_Expansion.Saved.Jimbo.Inventory = {}
@@ -618,7 +636,7 @@ Balatro_Expansion.Saved.Jimbo.FiveUnlocked = false
 Balatro_Expansion.Saved.Jimbo.FlushHouseUnlocked = false
 Balatro_Expansion.Saved.Jimbo.FiveFlushUnlocked = false]]--
 
-Balatro_Expansion.Saved.Jimbo.FloorEditions = {} --used to save which trinkets have certaain edition modifiers applied
+Balatro_Expansion.Saved.FloorEditions = {} --used to save which trinkets have certaain edition modifiers applied
 
 --OTHER VALUES
 Balatro_Expansion.HpEnable = false
@@ -633,13 +651,9 @@ Balatro_Expansion.Counters.Activated = {}
 Balatro_Expansion.TearCardEnable = true --used in AddCardTearFlags()
 
 Balatro_Expansion.Saved.Other = {}
-Balatro_Expansion.Saved.Other.HasDebt = false
-Balatro_Expansion.Saved.Other.DamageTakenRoom = 0
-Balatro_Expansion.Saved.Other.DamageTakenFloor = 0
 Balatro_Expansion.Saved.Other.ShopEntered = false
 Balatro_Expansion.Saved.Other.TreasureEntered = false
-Balatro_Expansion.Saved.Other.Picked = {0}  --to prevent weird shenadigans
-Balatro_Expansion.Saved.Other.Tags = {}
+
 Balatro_Expansion.Saved.Other.Labyrinth = 1
 
 Balatro_Expansion.Saved.ModConfig = {}
@@ -648,17 +662,17 @@ Balatro_Expansion.Saved.ModConfig.ExtraReadability = false
 
 
 Balatro_Expansion.SelectionParams = {}
-Balatro_Expansion.SelectionParams.Frames = 0 -- in update frames
-Balatro_Expansion.SelectionParams.SelectedCards = {false,false,false,false,false}
-Balatro_Expansion.SelectionParams.Index = 1
-Balatro_Expansion.SelectionParams.HandType = 0
-Balatro_Expansion.SelectionParams.PossibleHandTypes = {} --this contains every kind of hand that the selected one contains
-Balatro_Expansion.SelectionParams.Mode = 0
-Balatro_Expansion.SelectionParams.Purpose = 0
-Balatro_Expansion.SelectionParams.PackOptions = {} --the options for the selection inside of a pack
-Balatro_Expansion.SelectionParams.OptionsNum = 0 --total amount of options
-Balatro_Expansion.SelectionParams.MaxSelectionNum = 0 --how many things you can choose at a time
-Balatro_Expansion.SelectionParams.SelectionNum = 0 --how many things you chose
+Balatro_Expansion.SelectionParams[0].Frames = 0 -- in update frames
+Balatro_Expansion.SelectionParams[0].SelectedCards = {false,false,false,false,false}
+Balatro_Expansion.SelectionParams[0].Index = 1
+Balatro_Expansion.SelectionParams[0].Mode = 0
+Balatro_Expansion.SelectionParams[0].Purpose = 0
+Balatro_Expansion.SelectionParams[0].PackOptions = {} --the options for the selection inside of a pack
+Balatro_Expansion.SelectionParams[0].OptionsNum = 0 --total amount of options
+Balatro_Expansion.SelectionParams[0].MaxSelectionNum = 0 --how many things you can choose at a time
+Balatro_Expansion.SelectionParams[0].SelectionNum = 0 --how many things you chose
+Balatro_Expansion.SelectionParams[0].PlayerChoosing = 0 --the true player index of who is choosing
+
 
 Balatro_Expansion.SelectionParams.Modes = {}
 Balatro_Expansion.SelectionParams.Modes.NONE = 0
@@ -708,20 +722,12 @@ Balatro_Expansion.SelectionParams.Purposes.MegaFlag = 128 --applied on top of th
 --heyo dear mod developer college! Fell free to take any of the code written here
 --but please make sure to give this mod credit when you take important/big chunks of code
 
---also i don't know whether or not this thing is coded properly, so if you have an
+--also i don't know wether or not this thing is coded properly, so if you have an
 --optimisation idea write it in the comments of the steam page and i'll try to implement it (giving you credit obv)
 
 --Wanna do a big shoutuot to CATINSURANCE for making very good yt tutorial vids and also 
 --because i took some inspiration from The Sheriff's code while making this
 
---[[
-local LogoSprite = Sprite("gfx/ui/main menu/titlemenu.anm2",true)
-print(LogoSprite:GetAnimation())
-
-LogoSprite:Load("gfx/ui/main menu/titlemenu.anm2", true)
-
---LogoSprite:ReplaceSpritesheet(2, "gfx/ui/main menu/logo_up.png", true)
-]]--
 
 
 
@@ -819,21 +825,7 @@ include("Balatro_scripts.Synergies")
 
 
 --include("Balatro_scripts.Trinkets_Effects")
---[[
-function Balatro_Expansion:Joker(player, _)
 
-    if player.HasTrinket(player, Balatro_Expansion.Jokers.JOKER) then --controls if it has the trinket
-        local JokerDMG = 0.5 --base dmg
-        local DMGToAdd = JokerDMG * player.GetTrinketMultiplier(player ,Balatro_Expansion.Jokers.JOKER) --scalable DMG up
-        if Balatro_Expansion.WantedEffect == Balatro_Expansion.Jokers.JOKER then
-            Balatro_Expansion:EffectConverter(1, DMGToAdd, player, 1)
-        end
-        player.Damage = player.Damage + DMGToAdd --flat DMG up
-    end
-end
-
-Balatro_Expansion:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Balatro_Expansion.Joker, CacheFlag.CACHE_DAMAGE)
-]]--
 
 
 -------------------OPTIMISATION FUNCTOINS------------------------------------

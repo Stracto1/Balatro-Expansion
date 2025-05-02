@@ -50,6 +50,9 @@ function mod:JimboInit(player)
 
         --player:SetPocketActiveItem(CollectibleType.COLLECTIBLE_THE_HAND,ActiveSlot.SLOT_POCKET)
         --ItemPool:RemoveCollectible(CollectibleType.COLLECTIBLE_THE_HAND)
+
+        player:AddCustomCacheTag(mod.CustomCache.HAND_COOLDOWN, true)
+        player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, mod.JimboInit)
@@ -69,6 +72,7 @@ function mod:JimboInputHandle(Player)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
+    local PIndex = Player:GetData().TruePlayerIndex
 
     -- got this from "sybil pseudoregalia" on the modding of isaac discord (my savior tbh) and modified it a bit
     ---------------------------------------
@@ -118,7 +122,7 @@ function mod:JimboInputHandle(Player)
     --print(Isaac.WorldToScreen(Player.Position))
 
     ----------SELECTION INPUT / INPUT COOLDOWN------------
-    if mod.SelectionParams.Mode ~= mod.SelectionParams.Modes.NONE then --while in the card selection menu cheks for inputs
+    if mod.SelectionParams[PIndex].Mode ~= mod.SelectionParams.Modes.NONE then --while in the card selection menu cheks for inputs
         -------------INPUT HANDLING-------------------(big ass if statements ik lol)
 
         --confirming/canceling 
@@ -134,17 +138,17 @@ function mod:JimboInputHandle(Player)
         --pressing left moving the selection
         if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTLEFT, Player.ControllerIndex) then
 
-            if mod.SelectionParams.Index > 1 then
-                mod.SelectionParams.Index = mod.SelectionParams.Index - 1
+            if mod.SelectionParams[PIndex].Index > 1 then
+                mod.SelectionParams[PIndex].Index = mod.SelectionParams[PIndex].Index - 1
 
             end
         end
 
         --pressing right moving the selection
         if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTRIGHT, Player.ControllerIndex) then
-            if mod.SelectionParams.Index <= mod.SelectionParams.OptionsNum then
+            if mod.SelectionParams[PIndex].Index <= mod.SelectionParams[PIndex].OptionsNum then
 
-                mod.SelectionParams.Index = mod.SelectionParams.Index + 1
+                mod.SelectionParams[PIndex].Index = mod.SelectionParams[PIndex].Index + 1
             end
         end
     
@@ -154,10 +158,10 @@ function mod:JimboInputHandle(Player)
         
         if Input.IsActionTriggered(ButtonAction.ACTION_DROP, Player.ControllerIndex) then
 
-            local LastCard = mod.Saved.Jimbo.CurrentHand[#mod.Saved.Jimbo.CurrentHand]
+            local LastCard = mod.Saved.Jimbo[PIndex].CurrentHand[#mod.Saved.Jimbo[PIndex].CurrentHand]
 
-            table.remove(mod.Saved.Jimbo.CurrentHand)
-            table.insert(mod.Saved.Jimbo.CurrentHand,1 ,LastCard)
+            table.remove(mod.Saved.Jimbo[PIndex].CurrentHand)
+            table.insert(mod.Saved.Jimbo[PIndex].CurrentHand,1 ,LastCard)
 
             mod.Counters.SinceShift = 0
         end
@@ -179,9 +183,10 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.JimboInputHandle)
 
 
 function mod:CountersUpdate()
+
     for i,v in pairs(mod.Counters) do
         if type(v) == "table" then
-            for j,w in ipairs(v) do
+            for j,_ in pairs(v) do
                 mod.Counters[i][j] = mod.Counters[i][j] + 1
             end
         else
@@ -189,10 +194,14 @@ function mod:CountersUpdate()
         end
     end
 
-    if mod.SelectionParams.Mode ~= mod.SelectionParams.Modes.NONE then
-        mod.SelectionParams.Frames = mod.SelectionParams.Frames + 1
-    else
-        mod.SelectionParams.Frames = mod.SelectionParams.Frames - 1
+    for _,Player in ipairs(PlayerManager.GetPlayers()) do
+        local PIndex = Player:GetData().TruePlayerIndex
+
+        if mod.SelectionParams[PIndex].Mode ~= mod.SelectionParams.Modes.NONE then
+            mod.SelectionParams[PIndex].Frames = mod.SelectionParams[PIndex].Frames + 1
+        else
+            mod.SelectionParams[PIndex].Frames = mod.SelectionParams[PIndex].Frames - 1
+        end
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.CountersUpdate)
@@ -200,11 +209,11 @@ mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.CountersUpdate)
 
 local CoinQuality = {[CoinSubType.COIN_PENNY] = 1, 
                     [CoinSubType.COIN_DOUBLEPACK] = 2, 
-                    [CoinSubType.COIN_STICKYNICKEL] = 4, 
-                    [CoinSubType.COIN_NICKEL] = 4, 
-                    [CoinSubType.COIN_LUCKYPENNY] = 5, 
-                    [CoinSubType.COIN_GOLDEN] = 5, 
-                    [CoinSubType.COIN_DIME] = 6}
+                    [CoinSubType.COIN_STICKYNICKEL] = 3, 
+                    [CoinSubType.COIN_NICKEL] = 3, 
+                    [CoinSubType.COIN_LUCKYPENNY] = 4, 
+                    [CoinSubType.COIN_GOLDEN] = 0.5, 
+                    [CoinSubType.COIN_DIME] = 5}
 --removes some coins spawnned by the game and players
 ---@param Pickup EntityPickup
 function mod:LessCoins(Pickup)
@@ -287,10 +296,10 @@ function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rN
                     Rvoucher = mod:GetRandom(mod.Saved.Pools.Vouchers, rNG) --using this rng basically makes it un rerollable with mechines
                     --PLEASE tell me if the RNG not advancing gets patched cause it'll break the voucher generation 
 
-                until not mod:Contained(mod.Saved.Jimbo.FloorVouchers, Rvoucher) --no dupes per floor
+                until not mod:Contained(mod.Saved.FloorVouchers, Rvoucher) --no dupes per floor
                       or Rvoucher == VoucherPresent --if it's getting rerolled (kinda)
 
-                table.insert(mod.Saved.Jimbo.FloorVouchers, Rvoucher)
+                table.insert(mod.Saved.FloorVouchers, Rvoucher)
 
                 ReturnTable = {PickupVariant.PICKUP_COLLECTIBLE,Rvoucher, false}
 
@@ -335,7 +344,7 @@ function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rN
         --[[
         for i,Player in ipairs(PlayerManager.GetPlayers()) do
             if Player:GetPlayerType() == mod.Characters.JimboType then
-                for i=1, mod:GetValueRepetitions(mod.Saved.Jimbo.Inventory.Jokers, TrinketType.OOPS) do
+                for i=1, mod:GetValueRepetitions(mod.Saved.Jimbo[PIndex].Inventory.Jokers, TrinketType.OOPS) do
                     PlanetChance = PlanetChance * 2
                     TarotChance = TarotChance * 2
                 end
@@ -363,7 +372,7 @@ function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rN
 
         ReturnTable = {PickupVariant.PICKUP_TRINKET, RandomJoker.Joker ,false}
 
-        mod.Saved.Jimbo.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(RandomJoker.Joker).Name] = RandomJoker.Edition
+        mod.Saved.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(RandomJoker.Joker).Name] = RandomJoker.Edition
     
     --reverse tarot become their non-reverse variant
     elseif ReturnTable[1] == PickupVariant.PICKUP_TAROTCARD 
@@ -529,21 +538,21 @@ mod:AddCallback(ModCallbacks.MC_PRE_LEVEL_PLACE_ROOM, mod.FloorModifier)
 --calculates how big the blinds are 
 function mod:CalculateBlinds()
 
-    mod.Saved.Jimbo.SmallCleared = false
-    mod.Saved.Jimbo.BigCleared = false
-    mod.Saved.Jimbo.BossCleared = 0
-    mod.Saved.Jimbo.ClearedRooms = 0
+    mod.Saved.SmallCleared = false
+    mod.Saved.BigCleared = false
+    mod.Saved.BossCleared = 0
+    mod.Saved.ClearedRooms = 0
 
     if Game:IsGreedMode() then
 
         if Game:GetLevel():GetName() == "shop" then
-            mod.Saved.Jimbo.SmallBlind = 0
-            mod.Saved.Jimbo.BigBlind = 0
+            mod.Saved.SmallBlind = 0
+            mod.Saved.BigBlind = 0
         else
-            mod.Saved.Jimbo.SmallBlind = 8
-            mod.Saved.Jimbo.BigBlind = 2
+            mod.Saved.SmallBlind = 8
+            mod.Saved.BigBlind = 2
             if Game:IsHardMode() then
-                mod.Saved.Jimbo.SmallBlind = mod.Saved.Jimbo.SmallBlind + 1
+                mod.Saved.SmallBlind = mod.Saved.SmallBlind + 1
             end
         end
 
@@ -555,8 +564,8 @@ function mod:CalculateBlinds()
             BasicRoomNum =  math.floor(BasicRoomNum * 0.55) --the minimum is 55% of rooms
         end
  
-        mod.Saved.Jimbo.SmallBlind = math.floor(BasicRoomNum/2) -- about half of the rooms
-        mod.Saved.Jimbo.BigBlind = BasicRoomNum - mod.Saved.Jimbo.SmallBlind --about half of the rooms
+        mod.Saved.SmallBlind = math.floor(BasicRoomNum/2) -- about half of the rooms
+        mod.Saved.BigBlind = BasicRoomNum - mod.Saved.SmallBlind --about half of the rooms
     end
     BasicRoomNum = 0 --resets the counter
     ShopAddedThisFloor = false
@@ -756,31 +765,31 @@ function mod:AddRoomsCleared(IsBoss, Hostile)
     end
 
 
-    if IsBoss and mod.Saved.Jimbo.BossCleared ~= 2
+    if IsBoss and mod.Saved.BossCleared ~= 2
        and (Game:GetLevel():GetStage() ~= LevelStage.STAGE7 or Game:GetRoom():GetDeliriumDistance() == 0) then
 
         
         if Game:GetLevel():GetCurses() & LevelCurse.CURSE_OF_LABYRINTH == LevelCurse.CURSE_OF_LABYRINTH
-           and mod.Saved.Jimbo.BossCleared == 0 then
+           and mod.Saved.BossCleared == 0 then
 
-            mod.Saved.Jimbo.BossCleared = 1 --basically serves as a "third state" symbolising that 1 of 2 bossrooms were completed
+            mod.Saved.BossCleared = 1 --basically serves as a "third state" symbolising that 1 of 2 bossrooms were completed
         else
             Isaac.RunCallback("BLIND_CLEARED", mod.BLINDS.BOSS)
-            mod.Saved.Jimbo.BossCleared = 2 -- all bosses completed
+            mod.Saved.BossCleared = 2 -- all bosses completed
         end
     else
-        mod.Saved.Jimbo.ClearedRooms = mod.Saved.Jimbo.ClearedRooms + 1
-        if not mod.Saved.Jimbo.SmallCleared then
-            if mod.Saved.Jimbo.ClearedRooms == mod.Saved.Jimbo.SmallBlind then
+        mod.Saved.ClearedRooms = mod.Saved.ClearedRooms + 1
+        if not mod.Saved.SmallCleared then
+            if mod.Saved.ClearedRooms == mod.Saved.SmallBlind then
                 Isaac.RunCallback("BLIND_CLEARED", mod.BLINDS.SMALL)
-                mod.Saved.Jimbo.SmallCleared = true
-                mod.Saved.Jimbo.ClearedRooms = 0
+                mod.Saved.SmallCleared = true
+                mod.Saved.ClearedRooms = 0
             end
         
-        elseif mod.Saved.Jimbo.ClearedRooms == mod.Saved.Jimbo.BigBlind and not mod.Saved.Jimbo.BigCleared then
+        elseif mod.Saved.ClearedRooms == mod.Saved.BigBlind and not mod.Saved.BigCleared then
             Isaac.RunCallback("BLIND_CLEARED", mod.BLINDS.BIG)
-            mod.Saved.Jimbo.BigCleared = true
-            mod.Saved.Jimbo.ClearedRooms = 0
+            mod.Saved.BigCleared = true
+            mod.Saved.ClearedRooms = 0
         end
     end
 end
@@ -791,11 +800,12 @@ mod:AddPriorityCallback("TRUE_ROOM_CLEAR",CallbackPriority.LATE, mod.AddRoomsCle
 ---@param Player EntityPlayer
 function mod:OnDeckShift(Player)
 
+    local PIndex = Player:GetData().TruePlayerIndex
     --shuffle the deck if finished
-    if not next(mod.Saved.Jimbo.CurrentHand) then
+    if not next(mod.Saved.Jimbo[PIndex].CurrentHand) then
 
-        if mod.Saved.Jimbo.FirstDeck and mod.Saved.Jimbo.Progress.Room.Shots < Player:GetCustomCacheValue("hands") then
-            mod.Saved.Jimbo.FirstDeck = false --no more stat boosts from cards in the cuurent room
+        if mod.Saved.Jimbo[PIndex].FirstDeck and mod.Saved.Jimbo[PIndex].Progress.Room.Shots < Player:GetCustomCacheValue("hands") then
+            mod.Saved.Jimbo[PIndex].FirstDeck = false --no more stat boosts from cards in the cuurent room
             Player:AnimateSad()
         end
         mod:FullDeckShuffle(Player)
@@ -810,7 +820,6 @@ mod:AddCallback("DECK_SHIFT", mod.OnDeckShift)
 function mod:GiveRewards(BlindType)
 
     local Seed = Game:GetSeeds():GetStartSeed()
-    local Jimbo
 
     --calculates the ammount of interests BEFORE giving the clear reward
     local MaxInterests = 5
@@ -831,9 +840,7 @@ function mod:GiveRewards(BlindType)
 
             ToTheMoonNum = ToTheMoonNum + #mod:GetJimboJokerIndex(Player, mod.Jokers.TO_THE_MOON)
 
-            Jimbo = Player
-
-            Jimbo:AddHearts(Jimbo:GetHeartLimit()) --fully heals 
+            --Jimbo:AddHearts(Jimbo:GetHeartLimit()) --fully heals 
 
             Isaac.CreateTimer(function ()
                 if BlindType == mod.BLINDS.SMALL then
@@ -859,12 +866,14 @@ function mod:GiveRewards(BlindType)
 
     Interests = Interests * (ToTheMoonNum+1)
 
-    --if mod.Saved.Jimbo.FirstDeck then
+    --if mod.Saved.Jimbo[PIndex].FirstDeck then
         --Jimbo:AddCoins(2)
     --end
 
     --gives interest
     Isaac.CreateTimer(function ()
+        local Jimbo = PlayerManager.FirstPlayerByType(mod.Characters.JimboType) or Game:GetPlayer(0)
+
         for i = 1, Interests do
             Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Jimbo.Position,
             RandomVector() * 4, PlayerManager.FirstPlayerByType(mod.Characters.JimboType),
@@ -886,10 +895,12 @@ function mod:JimboAddTrinket(Player, Trinket, _, StopEvaluation)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
+
+    local PIndex = Player:GetData().TruePlayerIndex
         
     Player:TryRemoveTrinket(Trinket) -- a custom table is used instead since he needs to hold many of them
 
-    local JokerEdition = mod.Saved.Jimbo.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Trinket).Name] or mod.Edition.BASE 
+    local JokerEdition = mod.Saved.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Trinket).Name] or mod.Edition.BASE 
 
 
     local EmptySlot = mod:GetJimboJokerIndex(Player, 0,true)[1]
@@ -902,11 +913,11 @@ function mod:JimboAddTrinket(Player, Trinket, _, StopEvaluation)
         return false
     end
 
-    mod.Saved.Jimbo.Inventory[EmptySlot].Joker = Trinket
-    mod.Saved.Jimbo.Inventory[EmptySlot].Edition = JokerEdition
+    mod.Saved.Jimbo[PIndex].Inventory[EmptySlot].Joker = Trinket
+    mod.Saved.Jimbo[PIndex].Inventory[EmptySlot].Edition = JokerEdition
 
     local InitialProg = ItemsConfig:GetTrinket(Trinket):GetCustomTags()[2]
-    mod.Saved.Jimbo.Progress.Inventory[EmptySlot] = tonumber(InitialProg)
+    mod.Saved.Jimbo[PIndex].Progress.Inventory[EmptySlot] = tonumber(InitialProg)
 
     if not StopEvaluation then
         Isaac.RunCallback("JOKER_ADDED", Player, Trinket, JokerEdition, EmptySlot)
@@ -958,10 +969,10 @@ function mod:TrinketEditionsRender(Trinket, Offset)
     local JokerConfig = ItemsConfig:GetTrinket(Trinket.SubType)
 
     --some precautions
-    mod.Saved.Jimbo.FloorEditions[Index] = mod.Saved.Jimbo.FloorEditions[Index] or {}
-    mod.Saved.Jimbo.FloorEditions[Index][JokerConfig.Name] = mod.Saved.Jimbo.FloorEditions[Index][JokerConfig.Name] or 0
+    mod.Saved.FloorEditions[Index] = mod.Saved.FloorEditions[Index] or {}
+    mod.Saved.FloorEditions[Index][JokerConfig.Name] = mod.Saved.FloorEditions[Index][JokerConfig.Name] or 0
 
-    local Edition = mod.Saved.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name]
+    local Edition = mod.Saved.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name]
     
     Trinket:GetSprite():SetCustomShader(mod.EditionShaders[Edition])
 
@@ -981,12 +992,12 @@ mod:AddCallback(ModCallbacks.MC_POST_PICKUP_RENDER, mod.TrinketEditionsRender, P
 
 
 function mod:EnableTrinketEditions()
-    mod.Saved.Jimbo.FloorEditions = {}
+    mod.Saved.FloorEditions = {}
     Isaac.CreateTimer(function()
         local AllRoomsDesc = Level:GetRooms()
         for i=1, Level:GetRoomCount()-1 do
             local RoomDesc = AllRoomsDesc:Get(i)
-            mod.Saved.Jimbo.FloorEditions[RoomDesc.ListIndex] = {}
+            mod.Saved.FloorEditions[RoomDesc.ListIndex] = {}
         end
     end, 1,1,true )
 end
@@ -1006,49 +1017,53 @@ function mod:JimboTakeDamage(Player,Amount,_,Source,_)
     ---@diagnostic disable-next-line: cast-local-type
     Player = Player:ToPlayer()
 
-    if not Player or Player:GetPlayerType() ~= mod.Characters.JimboType or Amount == 0 then
+    if not Player or Player:GetPlayerType() ~= mod.Characters.JimboType 
+       or DamagedThisFrame[Player:GetPlayerIndex()] then
         return
     end
 
-    if DamagedThisFrame[Player:GetPlayerIndex()] then
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    if Amount ~= 0 then
+        --at this point always returns false to swap the normal damage with a "custom" one
+
+        --only remove one eternal/rotten heart if he has any
+        if Player:GetEternalHearts() ~= 0  then
+
+            Player:AddEternalHearts(-1)
+
+        elseif Player:GetRottenHearts() ~= 0 then
+
+            Player:AddRottenHearts(-1)   
+            Player:AddHearts(-1) --rotten hearts leave you with half a red heart(??)
+
+        elseif Player:GetBoneHearts() ~= 0 then
+
+            if Player:GetHearts() > Player:GetMaxHearts() then --if a bone heart is filled
+                Player:AddHearts(-2)
+            else
+                Player:AddBoneHearts(-2)
+                sfx:Play(SoundEffect.SOUND_BONE_SNAP)
+            end
+
+        else
+            Player:AddHearts(-2)
+        end
+        Player:TakeDamage(0, DamageFlag.DAMAGE_FAKE, Source, 0) --take fake damage
+        Player:SetMinDamageCooldown(80)
+
         return false
     end
-    
-
-    --only remove one eternal/rotten heart if he has any
-    if Player:GetEternalHearts() ~= 0  then
-
-        Player:AddEternalHearts(-1)
-
-    elseif Player:GetRottenHearts() ~= 0 then
-
-        Player:AddRottenHearts(-1)   
-        Player:AddHearts(-1) --rotten hearts leave you with half a red heart(??)
-
-    elseif Player:GetBoneHearts() ~= 0 then
-
-        if Player:GetHearts() > Player:GetMaxHearts() then --if a bone heart is filled
-            Player:AddHearts(-2)
-        else
-            Player:AddBoneHearts(-2)
-            sfx:Play(SoundEffect.SOUND_BONE_SNAP)
-        end
-        
-    else
-        Player:AddHearts(-2)
-    end
-    Player:TakeDamage(0, DamageFlag.DAMAGE_FAKE, Source, 0) --take fake damage
-    Player:SetMinDamageCooldown(80)
 
 
     --||DISCARD MECHANIC||
-    if mod.SelectionParams.Mode == mod.SelectionParams.Modes.NONE then
+    if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.NONE then
 
-        Isaac.RunCallback("HAND_DISCARD", Player, #mod.Saved.Jimbo.CurrentHand) --various joker/card effects
+        Isaac.RunCallback("HAND_DISCARD", Player, #mod.Saved.Jimbo[PIndex].CurrentHand) --various joker/card effects
 
         mod:DiscardSwoosh(Player)
         
-        for i = #mod.Saved.Jimbo.CurrentHand, 1, -1 do
+        for i = #mod.Saved.Jimbo[PIndex].CurrentHand, 1, -1 do
 
             local RandomDirection = RandomVector()
             
@@ -1058,13 +1073,13 @@ function mod:JimboTakeDamage(Player,Amount,_,Source,_)
             local Tear = Player:FireTear(Player.Position, 10*Player.ShotSpeed * RandomDirection + Player:GetTearMovementInheritance(RandomDirection), true, true, true, Player)
             mod:AddCardTearFalgs(Tear, false, true)
 
-            mod.Saved.Jimbo.CurrentHand[i] = nil
+            mod.Saved.Jimbo[PIndex].CurrentHand[i] = nil
         end
 
-        for i=1, mod.Saved.Jimbo.HandSize do
+        for i=1, Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) do
 
-            table.insert(mod.Saved.Jimbo.CurrentHand, 1, mod.Saved.Jimbo.DeckPointer)
-            mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer + 1
+            table.insert(mod.Saved.Jimbo[PIndex].CurrentHand, 1, mod.Saved.Jimbo[PIndex].DeckPointer)
+            mod.Saved.Jimbo[PIndex].DeckPointer = mod.Saved.Jimbo[PIndex].DeckPointer + 1
         end
 
 
@@ -1077,10 +1092,8 @@ function mod:JimboTakeDamage(Player,Amount,_,Source,_)
         DamagedThisFrame[Player:GetPlayerIndex()] = false
     end,0,1,true)
 
-    return false
 end
-mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, mod.JimboTakeDamage)
-
+mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, mod.JimboTakeDamage, EntityType.ENTITY_PLAYER)
 
 
 ---@param Player EntityPlayer
@@ -1226,8 +1239,11 @@ function mod:DiscardEffects(Player)
 
     local PlayerRNG = Player:GetDropRNG()
     local SealTriggers = 1
-    for i,index in ipairs(mod.Saved.Jimbo.CurrentHand) do
-        local card = mod.Saved.Jimbo.FullDeck[index]
+
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    for i,index in ipairs(mod.Saved.Jimbo[PIndex].CurrentHand) do
+        local card = mod.Saved.Jimbo[PIndex].FullDeck[index]
 
         if card then --could be nil
             if card.Seal == mod.Seals.PURPLE and PlayerRNG:RandomFloat() <= 1/SealTriggers then
@@ -1282,14 +1298,17 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.JimboStatCalculator)
 
 ---@param Player EntityPlayer
 function mod:StatReset(Player, Damage, Tears, Evaluate, Jokers, Basic)
+
+    local PIndex = Player:GetData().TruePlayerIndex
+
     if Damage then
         if Basic then
-            mod.Saved.Jimbo.StatsToAdd.Damage = 0
-            mod.Saved.Jimbo.StatsToAdd.Mult = 1
+            mod.Saved.Jimbo[PIndex].StatsToAdd.Damage = 0
+            mod.Saved.Jimbo[PIndex].StatsToAdd.Mult = 1
         end
         if Jokers then
-            mod.Saved.Jimbo.StatsToAdd.JokerDamage = 0
-            mod.Saved.Jimbo.StatsToAdd.JokerMult = 1
+            mod.Saved.Jimbo[PIndex].StatsToAdd.JokerDamage = 0
+            mod.Saved.Jimbo[PIndex].StatsToAdd.JokerMult = 1
         end
         if Evaluate then
             Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, true)
@@ -1297,10 +1316,10 @@ function mod:StatReset(Player, Damage, Tears, Evaluate, Jokers, Basic)
     end
     if Tears then
         if Basic then
-            mod.Saved.Jimbo.StatsToAdd.Tears = mod.JimboStartTears
+            mod.Saved.Jimbo[PIndex].StatsToAdd.Tears = mod.JimboStartTears
         end
         if Jokers then
-            mod.Saved.Jimbo.StatsToAdd.JokerTears = 0
+            mod.Saved.Jimbo[PIndex].StatsToAdd.JokerTears = 0
         end
         if Evaluate then
             Player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
@@ -1317,18 +1336,20 @@ function mod:StatGiver(Player, Cache)
         return
     end
 
-    local stats = mod.Saved.Jimbo.StatsToAdd
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    local stats = mod.Saved.Jimbo[PIndex].StatsToAdd
 
     if Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
 
         --Player.Damage = (Player.Damage + (stats.Damage + stats.JokerDamage) * Player.Damage) * stats.JokerMult * stats.Mult
-        mod.Saved.Jimbo.TrueDamageValue = (Player.Damage + (stats.Damage + stats.JokerDamage) * Player.Damage) * stats.JokerMult * stats.Mult
+        mod.Saved.Jimbo[PIndex].TrueDamageValue = (Player.Damage + (stats.Damage + stats.JokerDamage) * Player.Damage) * stats.JokerMult * stats.Mult
 
         Player.Damage = 1
 
     elseif Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then
 
-        mod.Saved.Jimbo.TrueTearsValue = mod:CalculateTearsValue(Player) + (stats.Tears +  stats.JokerTears)* mod:CalculateTearsValue(Player)
+        mod.Saved.Jimbo[PIndex].TrueTearsValue = mod:CalculateTearsValue(Player) + (stats.Tears +  stats.JokerTears)* mod:CalculateTearsValue(Player)
 
         Player.MaxFireDelay = Player:GetCustomCacheValue(mod.CustomCache.HAND_COOLDOWN)
     end
@@ -1337,16 +1358,16 @@ function mod:StatGiver(Player, Cache)
     --how libra and the minimum damage cap (0.5) work, but these ifs at leat limit the ammount of situations they can appear in
     if Player:HasCollectible(CollectibleType.COLLECTIBLE_LIBRA) then
 
-        local HalfStat = (mod.Saved.Jimbo.TrueDamageValue + mod.Saved.Jimbo.TrueTearsValue)/2
-        --local HalfStat = ((mod.Saved.Jimbo.TrueDamageValue + mod.Saved.Jimbo.TrueTearsValue)/4)^0.5 --halfes the total card damage
+        local HalfStat = (mod.Saved.Jimbo[PIndex].TrueDamageValue + mod.Saved.Jimbo[PIndex].TrueTearsValue)/2
+        --local HalfStat = ((mod.Saved.Jimbo[PIndex].TrueDamageValue + mod.Saved.Jimbo[PIndex].TrueTearsValue)/4)^0.5 --halfes the total card damage
 
         if Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE 
            or Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY
            and LibraEnable then
             
             Isaac.CreateTimer(function ()
-                mod.Saved.Jimbo.TrueDamageValue = HalfStat
-                mod.Saved.Jimbo.TrueTearsValue = HalfStat
+                mod.Saved.Jimbo[PIndex].TrueDamageValue = HalfStat
+                mod.Saved.Jimbo[PIndex].TrueTearsValue = HalfStat
                 LibraEnable = true
             end,0,1,true)
             LibraEnable = false
@@ -1363,20 +1384,23 @@ mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE + 1
 
 
 function mod:IncreaseJimboStats(Player,TearsUp,DamageUp,Mult, Evaluate, Basic)
+
+    local PIndex = Player:GetData().TruePlayerIndex
+
     if Basic then
-        mod.Saved.Jimbo.StatsToAdd.Damage = mod.Saved.Jimbo.StatsToAdd.Damage + DamageUp
-        mod.Saved.Jimbo.StatsToAdd.Tears = mod.Saved.Jimbo.StatsToAdd.Tears + TearsUp
-        mod.Saved.Jimbo.StatsToAdd.Mult = mod.Saved.Jimbo.StatsToAdd.Mult * Mult
+        mod.Saved.Jimbo[PIndex].StatsToAdd.Damage = mod.Saved.Jimbo[PIndex].StatsToAdd.Damage + DamageUp
+        mod.Saved.Jimbo[PIndex].StatsToAdd.Tears = mod.Saved.Jimbo[PIndex].StatsToAdd.Tears + TearsUp
+        mod.Saved.Jimbo[PIndex].StatsToAdd.Mult = mod.Saved.Jimbo[PIndex].StatsToAdd.Mult * Mult
     else
-        mod.Saved.Jimbo.StatsToAdd.JokerDamage = mod.Saved.Jimbo.StatsToAdd.JokerDamage + DamageUp
-        mod.Saved.Jimbo.StatsToAdd.JokerTears = mod.Saved.Jimbo.StatsToAdd.JokerTears + TearsUp
-        mod.Saved.Jimbo.StatsToAdd.JokerMult = mod.Saved.Jimbo.StatsToAdd.JokerMult * Mult
+        mod.Saved.Jimbo[PIndex].StatsToAdd.JokerDamage = mod.Saved.Jimbo[PIndex].StatsToAdd.JokerDamage + DamageUp
+        mod.Saved.Jimbo[PIndex].StatsToAdd.JokerTears = mod.Saved.Jimbo[PIndex].StatsToAdd.JokerTears + TearsUp
+        mod.Saved.Jimbo[PIndex].StatsToAdd.JokerMult = mod.Saved.Jimbo[PIndex].StatsToAdd.JokerMult * Mult
     end
     
     if Evaluate then
         Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, false)
         Player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
-        --print(mod.Saved.Jimbo.StatsToAdd.Tears)
+        --print(mod.Saved.Jimbo[PIndex].StatsToAdd.Tears)
     end
 
 end
@@ -1406,9 +1430,8 @@ function mod:PlayCDCache(Player, Cache, Value)
         Value = Value * (1 + 0.5 * Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_MONSTROS_LUNG)^0.5)
     end
 
+    print(Value)
     Value = math.floor(Value)
-
-    Player.MaxFireDelay = Value
 
     return Value
 end
@@ -1422,19 +1445,21 @@ function mod:InventorySizeCache(Player, Cache, Value)
         return
     end
 
+    local PIndex = Player:GetData().TruePlayerIndex
+
     Value = 3 --base starting point
 
     if Player:HasCollectible(mod.Vouchers.Antimatter) then
         Value = Value + 1
     end
 
-    for _,Slot in ipairs(mod.Saved.Jimbo.Inventory) do
+    for _,Slot in ipairs(mod.Saved.Jimbo[PIndex].Inventory) do
         if Slot.Edition == mod.Edition.NEGATIVE then
             Value = Value + 1
         end
     end
 
-    mod:AddJimboInventorySlots(Player, Value-Player:GetCustomCacheValue("inventory"))
+    mod:AddJimboInventorySlots(Player, Value-#mod.Saved.Jimbo[PIndex].Inventory)
 
     return Value
 end
@@ -1446,6 +1471,8 @@ function mod:HandSizeCache(Player, Cache, Value)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
+
+    local PIndex = Player:GetData().TruePlayerIndex
 
     Value = 5 --base starting point
 
@@ -1462,18 +1489,18 @@ function mod:HandSizeCache(Player, Cache, Value)
 
 
     for _, Index in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.TURTLE_BEAN)) do
-        Value = Value + mod.Saved.Jimbo.Progress.Inventory[Index]
+        Value = Value + mod.Saved.Jimbo[PIndex].Progress.Inventory[Index]
     end
 
     Value = Value + #mod:GetJimboJokerIndex(Player, mod.Jokers.JUGGLER)
  
 
 
-    Value = Value - mod.Saved.Jimbo.EctoUses
+    Value = Value - mod.Saved.Jimbo[PIndex].EctoUses
 
     Value = math.max(1, Value) --minimum 1 card in hand
 
-    local SizeDifference = Value - Player:GetCustomCacheValue("handsize")
+    local SizeDifference = Value - #mod.Saved.Jimbo[PIndex].CurrentHand
 
     if SizeDifference > 0 then
         mod:ChangeJimboHandSize(Player, SizeDifference)
@@ -1613,24 +1640,23 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
         return
     end
 
-
+    local PIndex = Player:GetData().TruePlayerIndex
     local Weapon = Player:GetWeapon(1)
-
     
     local CardShot
     if Split then
-        CardShot = mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.LastShotIndex]
-        CardShot.Index = mod.Saved.Jimbo.LastShotIndex --could be useful
+        CardShot = mod.Saved.Jimbo[PIndex].FullDeck[mod.Saved.Jimbo[PIndex].LastShotIndex]
+        CardShot.Index = mod.Saved.Jimbo[PIndex].LastShotIndex --could be useful
     else
-        CardShot = mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[#mod.Saved.Jimbo.CurrentHand]]
-        CardShot.Index = mod.Saved.Jimbo.CurrentHand[#mod.Saved.Jimbo.CurrentHand] --could be useful
+        CardShot = mod.Saved.Jimbo[PIndex].FullDeck[mod.Saved.Jimbo[PIndex].CurrentHand[#mod.Saved.Jimbo[PIndex].CurrentHand]]
+        CardShot.Index = mod.Saved.Jimbo[PIndex].CurrentHand[#mod.Saved.Jimbo[PIndex].CurrentHand] --could be useful
     end
 
 
 
     local TearData = Tear:GetData()
     TearData.Params = CardShot
-    TearData.Num = mod.Saved.Jimbo.Progress.Blind.Shots + 1
+    TearData.Num = mod.Saved.Jimbo[PIndex].Progress.Blind.Shots + 1
     if ForceCard then
         TearData.Num = 0
     end
@@ -1638,7 +1664,7 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
     TearData.EnableSpawn = not Split
 
     --damage dealt = Damage * TearRate of the player
-    Tear.CollisionDamage = mod.Saved.Jimbo.TrueDamageValue * mod.Saved.Jimbo.TrueTearsValue
+    Tear.CollisionDamage = mod.Saved.Jimbo[PIndex].TrueDamageValue * mod.Saved.Jimbo[PIndex].TrueTearsValue
 
     if Weapon and Weapon:GetModifiers() & WeaponModifier.CHOCOLATE_MILK == WeaponModifier.CHOCOLATE_MILK then
         Tear.CollisionDamage = Tear.CollisionDamage *(0.1 + 0.0527*Weapon:GetCharge())
@@ -1679,16 +1705,16 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
         Tear.Scale = mod:Clamp(Tear.Scale, 3, 0.75)
 
         Isaac.CreateTimer(function ()
-            if #mod.Saved.Jimbo.CurrentHand > Player:GetCustomCacheValue("handsize")
-               or not mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.DeckPointer] then
+            if #mod.Saved.Jimbo[PIndex].CurrentHand > Player:GetCustomCacheValue("handsize")
+               or not mod.Saved.Jimbo[PIndex].FullDeck[mod.Saved.Jimbo[PIndex].DeckPointer] then
                 --having more cards than you should removes the last card
 
-                table.remove(mod.Saved.Jimbo.CurrentHand)
+                table.remove(mod.Saved.Jimbo[PIndex].CurrentHand)
 
-            elseif mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.DeckPointer] then
+            elseif mod.Saved.Jimbo[PIndex].FullDeck[mod.Saved.Jimbo[PIndex].DeckPointer] then
                 
-                mod:AddValueToTable(mod.Saved.Jimbo.CurrentHand, mod.Saved.Jimbo.DeckPointer,false,true)
-                mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer + 1
+                mod:AddValueToTable(mod.Saved.Jimbo[PIndex].CurrentHand, mod.Saved.Jimbo[PIndex].DeckPointer,false,true)
+                mod.Saved.Jimbo[PIndex].DeckPointer = mod.Saved.Jimbo[PIndex].DeckPointer + 1
             end
             
             Isaac.RunCallback("DECK_SHIFT",Player)
@@ -1700,18 +1726,18 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
 
         if not ForceCard then
 
-            mod.Saved.Jimbo.Progress.Room.Shots = mod.Saved.Jimbo.Progress.Room.Shots + 1
+            mod.Saved.Jimbo[PIndex].Progress.Room.Shots = mod.Saved.Jimbo[PIndex].Progress.Room.Shots + 1
 
-            if (mod.Saved.Jimbo.Progress.Room.Shots == Player:GetCustomCacheValue("hands")
+            if (mod.Saved.Jimbo[PIndex].Progress.Room.Shots == Player:GetCustomCacheValue("hands")
                 and not mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR)) --with burglar you can play all your deck
-                or not mod.Saved.Jimbo.FirstDeck then
+                or not mod.Saved.Jimbo[PIndex].FirstDeck then
 
                 Player:AnimateSad()
             end
 
             if not Game:GetRoom():IsClear()
-               and mod.Saved.Jimbo.FirstDeck
-               and (mod.Saved.Jimbo.Progress.Room.Shots < Player:GetCustomCacheValue("hands")
+               and mod.Saved.Jimbo[PIndex].FirstDeck
+               and (mod.Saved.Jimbo[PIndex].Progress.Room.Shots < Player:GetCustomCacheValue("hands")
                     or mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR)) then
 
                 Isaac.RunCallback("CARD_SHOT", Player, CardShot, true)
@@ -1719,7 +1745,7 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
 
         end
 
-        mod.Saved.Jimbo.LastShotIndex = CardShot.Index
+        mod.Saved.Jimbo[PIndex].LastShotIndex = CardShot.Index
 
     else
         Tear:ChangeVariant(mod.SUIT_TEAR_VARIANTS[TearData.Params.Suit])
@@ -1832,12 +1858,14 @@ mod:AddCallback(ModCallbacks.MC_PRE_TEAR_RENDER, mod.AdjustCardRotation, mod.CAR
 ---@param Player EntityPlayer
 function mod:FullDeckShuffle(Player)
     if Player:GetPlayerType() == mod.Characters.JimboType then
-        local PlayerRNG = Player:GetDropRNG()
-        mod.Saved.Jimbo.FullDeck = mod:Shuffle(mod.Saved.Jimbo.FullDeck, PlayerRNG)
 
-        mod.Saved.Jimbo.DeckPointer = Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) + 1
+        local PIndex = Player:GetData().TruePlayerIndex
+        local PlayerRNG = Player:GetDropRNG()
+        mod.Saved.Jimbo[PIndex].FullDeck = mod:Shuffle(mod.Saved.Jimbo[PIndex].FullDeck, PlayerRNG)
+
+        mod.Saved.Jimbo[PIndex].DeckPointer = Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) + 1
         for i=1, Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) do
-            mod.Saved.Jimbo.CurrentHand[i] = i
+            mod.Saved.Jimbo[PIndex].CurrentHand[i] = i
         end
 
         Isaac.RunCallback("DECK_SHIFT", Player)
@@ -1852,8 +1880,10 @@ local DescriptionHelperSubType = Isaac.GetEntitySubTypeByName("Description Helpe
 --allows to activate/disable selection states easily
 ---@param Player EntityPlayer
 function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
+    local PIndex = Player:GetData().TruePlayerIndex
 
-    mod.SelectionParams.Frames = 0
+    mod.SelectionParams[PIndex].Frames = 0
+
     if NewMode == mod.SelectionParams.Modes.NONE then
 
         for i,v in ipairs(Isaac.FindByType(1000, DescriptionHelperVariant, DescriptionHelperSubType)) do
@@ -1869,16 +1899,16 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
         end
         music:VolumeSlide(1, 0.04)
 
-        for i,v in ipairs(mod.SelectionParams.SelectedCards) do
-            mod.SelectionParams.SelectedCards[i] = false 
+        for i,v in ipairs(mod.SelectionParams[PIndex].SelectedCards) do
+            mod.SelectionParams[PIndex].SelectedCards[i] = false 
         end
-        mod.SelectionParams.Index = 1
-        mod.SelectionParams.SelectionNum = 0
+        mod.SelectionParams[PIndex].Index = 1
+        mod.SelectionParams[PIndex].SelectionNum = 0
         Game:GetRoom():SetPauseTimer(0)
 
     else
-        if mod.SelectionParams.Mode ~= mod.SelectionParams.Modes.NONE
-           and mod.SelectionParams.Purpose ~= mod.SelectionParams.Purposes.DEATH1 then
+        if mod.SelectionParams[PIndex].Mode ~= mod.SelectionParams.Modes.NONE
+           and mod.SelectionParams[PIndex].Purpose ~= mod.SelectionParams.Purposes.DEATH1 then
             --if changing from an "active" state to another
             mod:UseSelection(Player)
         end
@@ -1890,30 +1920,29 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
                        ,Vector.Zero, nil, DescriptionHelperSubType, 1)
         
         if NewMode == mod.SelectionParams.Modes.HAND then
-            mod.SelectionParams.OptionsNum = mod.Saved.Jimbo.HandSize
-
+            mod.SelectionParams[PIndex].OptionsNum = #mod.Saved.Jimbo[PIndex].CurrentHand
             if NewPurpose == mod.SelectionParams.Purposes.HAND then
-                mod.SelectionParams.MaxSelectionNum = 5
-                mod.SelectionParams.HandType = mod.HandTypes.NONE
+                mod.SelectionParams[PIndex].MaxSelectionNum = 5
+                mod.SelectionParams[PIndex].HandType = mod.HandTypes.NONE
                 return
             elseif NewPurpose >= mod.SelectionParams.Purposes.DEJA_VU then
-                mod.SelectionParams.MaxSelectionNum = 1
+                mod.SelectionParams[PIndex].MaxSelectionNum = 1
 
             else --various tarot cards
                 if NewPurpose == mod.SelectionParams.Purposes.DEATH1 then
 
-                    mod.SelectionParams.MaxSelectionNum = 2
+                    mod.SelectionParams[PIndex].MaxSelectionNum = 2
 
                 elseif NewPurpose >= mod.SelectionParams.Purposes.WORLD then --any suit based tarot
                     --WORLD, SUN, MOON, STAR
-                    mod.SelectionParams.MaxSelectionNum = 3
+                    mod.SelectionParams[PIndex].MaxSelectionNum = 3
 
                 else --any other card
                     local Size = -(NewPurpose % 2) + 2 --se main.lua to understand why this works
                     if Player:HasCollectible(CollectibleType.COLLECTIBLE_TAROT_CLOTH) then
                         Size = Size + 1
                     end
-                    mod.SelectionParams.MaxSelectionNum = Size
+                    mod.SelectionParams[PIndex].MaxSelectionNum = Size
                 end
             end
                 
@@ -1922,22 +1951,22 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
             music:PitchSlide(1.1)
             music:VolumeSlide(0.45, 0.02)
 
-            mod.SelectionParams.MaxSelectionNum = 1
-            mod.SelectionParams.OptionsNum = #mod.SelectionParams.PackOptions
+            mod.SelectionParams[PIndex].MaxSelectionNum = 1
+            mod.SelectionParams[PIndex].OptionsNum = #mod.SelectionParams[PIndex].PackOptions
 
         elseif NewMode == mod.SelectionParams.Modes.INVENTORY then
 
             if NewPurpose == mod.SelectionParams.Purposes.SMELTER then
-                mod.SelectionParams.MaxSelectionNum = 1
+                mod.SelectionParams[PIndex].MaxSelectionNum = 1
             else
-                mod.SelectionParams.MaxSelectionNum = 2
+                mod.SelectionParams[PIndex].MaxSelectionNum = 2
             end
 
-            mod.SelectionParams.OptionsNum = #mod.Saved.Jimbo.Inventory
+            mod.SelectionParams[PIndex].OptionsNum = #mod.Saved.Jimbo[PIndex].Inventory
         end
     end
-    mod.SelectionParams.Mode = NewMode
-    mod.SelectionParams.Purpose = NewPurpose
+    mod.SelectionParams[PIndex].Mode = NewMode
+    mod.SelectionParams[PIndex].Purpose = NewPurpose
 
 end
 
@@ -1945,45 +1974,46 @@ end
 ---@param Player EntityPlayer
 function mod:Select(Player)
     mod.Counters.SinceSelect = 0
+    local PIndex = Player:GetData().TruePlayerIndex
 
-    if mod.SelectionParams.Mode == mod.SelectionParams.Modes.HAND then
+    if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.HAND then
 
         --if its an actual option
-        if mod.SelectionParams.Index <= mod.Saved.Jimbo.HandSize then
-            local Choice = mod.SelectionParams.SelectedCards[mod.SelectionParams.Index]
+        if mod.SelectionParams[PIndex].Index <= mod.SelectionParams[PIndex].OptionsNum then
+            local Choice = mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams[PIndex].Index]
             
             if Choice then
 
                 sfx:Play(mod.Sounds.DESELECT)
 
-                mod.SelectionParams.SelectedCards[mod.SelectionParams.Index] = false                    
-                mod.SelectionParams.SelectionNum = mod.SelectionParams.SelectionNum - 1
+                mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams[PIndex].Index] = false                    
+                mod.SelectionParams[PIndex].SelectionNum = mod.SelectionParams[PIndex].SelectionNum - 1
 
             --if it's not currently selected and it doesn't surpass the limit
-            elseif mod.SelectionParams.SelectionNum < mod.SelectionParams.MaxSelectionNum then   
+            elseif mod.SelectionParams[PIndex].SelectionNum < mod.SelectionParams[PIndex].MaxSelectionNum then   
                 
                 sfx:Play(mod.Sounds.SELECT)
                 --confirm the selection
-                mod.SelectionParams.SelectedCards[mod.SelectionParams.Index] = true
+                mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams[PIndex].Index] = true
 
-                mod.SelectionParams.SelectionNum = mod.SelectionParams.SelectionNum + 1
+                mod.SelectionParams[PIndex].SelectionNum = mod.SelectionParams[PIndex].SelectionNum + 1
 
-                if mod.SelectionParams.MaxSelectionNum == mod.SelectionParams.SelectionNum then --DSS TO BE ADDED
+                if mod.SelectionParams[PIndex].MaxSelectionNum == mod.SelectionParams[PIndex].SelectionNum then --DSS TO BE ADDED
                     --makes things faster by automatically activating if you chose the maximum number of cards
                     mod:UseSelection(Player)
                     mod:SwitchCardSelectionStates(Player,mod.SelectionParams.Modes.NONE,0)
                     return
 
-                elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.DEATH1 then
-                    for i,v in ipairs(mod.SelectionParams.SelectedCards) do
+                elseif mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.DEATH1 then
+                    for i,v in ipairs(mod.SelectionParams[PIndex].SelectedCards) do
                         if v then
-                            DeathCopyCard = mod.Saved.Jimbo.CurrentHand[i]
+                            DeathCopyCard = mod.Saved.Jimbo[PIndex].CurrentHand[i]
                             break
                         end
                     end
                 end 
             end
-            if mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.HAND then
+            if mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.HAND then
                 --Isaac.RunCallback("HAND_TYPE_UPDATE")
             end
 
@@ -1993,21 +2023,21 @@ function mod:Select(Player)
             mod:SwitchCardSelectionStates(Player,mod.SelectionParams.Modes.NONE,0)
         end
 
-    elseif mod.SelectionParams.Mode == mod.SelectionParams.Modes.PACK then
+    elseif mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.PACK then
 
-        if mod.SelectionParams.Index > mod.SelectionParams.OptionsNum then--skip button
+        if mod.SelectionParams[PIndex].Index > mod.SelectionParams[PIndex].OptionsNum then--skip button
             
-            Isaac.RunCallback("PACK_SKIPPED", Player, mod.SelectionParams.Purpose)
+            Isaac.RunCallback("PACK_SKIPPED", Player, mod.SelectionParams[PIndex].Purpose)
             mod:SwitchCardSelectionStates(Player,mod.SelectionParams.Modes.NONE, 0)
             return
         end
 
-        local TruePurpose = mod.SelectionParams.Purpose & (~mod.SelectionParams.Purposes.MegaFlag) --removes it for pack checks
+        local TruePurpose = mod.SelectionParams[PIndex].Purpose & (~mod.SelectionParams.Purposes.MegaFlag) --removes it for pack checks
 
         sfx:Play(mod.Sounds.SELECT)
 
         if TruePurpose == mod.SelectionParams.Purposes.StandardPack then
-            local SelectedCard = mod.SelectionParams.PackOptions[mod.SelectionParams.Index]
+            local SelectedCard = mod.SelectionParams[PIndex].PackOptions[mod.SelectionParams[PIndex].Index]
 
             mod:AddCardToDeck(Player, SelectedCard, 1, true)
 
@@ -2015,69 +2045,69 @@ function mod:Select(Player)
 
         elseif TruePurpose == mod.SelectionParams.Purposes.BuffonPack then
 
-            local Joker = mod.SelectionParams.PackOptions[mod.SelectionParams.Index].Joker
-            local Edition = mod.SelectionParams.PackOptions[mod.SelectionParams.Index].Edition
+            local Joker = mod.SelectionParams[PIndex].PackOptions[mod.SelectionParams[PIndex].Index].Joker
+            local Edition = mod.SelectionParams[PIndex].PackOptions[mod.SelectionParams[PIndex].Index].Edition
             local Index = Level:GetCurrentRoomDesc().ListIndex
 
             Game:Spawn(EntityType.ENTITY_PICKUP,PickupVariant.PICKUP_TRINKET, Player.Position, RandomVector()*3,nil,Joker,Game:GetSeeds():GetStartSeed())
             
-            mod.Saved.Jimbo.FloorEditions[Index] = mod.Saved.Jimbo.FloorEditions[Index] or {}
+            mod.Saved.FloorEditions[Index] = mod.Saved.FloorEditions[Index] or {}
             
-            mod.Saved.Jimbo.FloorEditions[Index][ItemsConfig:GetTrinket(Joker).Name] = Edition
+            mod.Saved.FloorEditions[Index][ItemsConfig:GetTrinket(Joker).Name] = Edition
 
 
         else --tarot/planet/Spectral pack
-            local card = mod:FrameToSpecialCard(mod.SelectionParams.PackOptions[mod.SelectionParams.Index])
+            local card = mod:FrameToSpecialCard(mod.SelectionParams[PIndex].PackOptions[mod.SelectionParams[PIndex].Index])
             local RndSeed = Random()
             if RndSeed == 0 then RndSeed = 1 end
             Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position, RandomVector()* 2, nil, card, RndSeed)
             
         end
         if Player:HasCollectible(mod.Vouchers.MagicTrick) and mod:TryGamble(Player, Player:GetCollectibleRNG(mod.Vouchers.MagicTrick), 0.25)
-           and mod.SelectionParams.OptionsNum > 1 then
+           and mod.SelectionParams[PIndex].OptionsNum > 1 then
 
-            table.remove(mod.SelectionParams.PackOptions, mod.SelectionParams.Index)
-            mod.SelectionParams.OptionsNum = mod.SelectionParams.OptionsNum - 1
+            table.remove(mod.SelectionParams[PIndex].PackOptions, mod.SelectionParams[PIndex].Index)
+            mod.SelectionParams[PIndex].OptionsNum = mod.SelectionParams[PIndex].OptionsNum - 1
             mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "1 more!",mod.Vouchers.MagicTrick)
             return
         end
-        if mod.SelectionParams.Purpose & mod.SelectionParams.Purposes.MegaFlag == mod.SelectionParams.Purposes.MegaFlag 
-           and mod.SelectionParams.OptionsNum then
+        if mod.SelectionParams[PIndex].Purpose & mod.SelectionParams.Purposes.MegaFlag == mod.SelectionParams.Purposes.MegaFlag 
+           and mod.SelectionParams[PIndex].OptionsNum then
             
-            mod.SelectionParams.OptionsNum = mod.SelectionParams.OptionsNum - 1
-            mod.SelectionParams.Purpose = mod.SelectionParams.Purpose - mod.SelectionParams.Purposes.MegaFlag
-            table.remove(mod.SelectionParams.PackOptions, mod.SelectionParams.Index)
+            mod.SelectionParams[PIndex].OptionsNum = mod.SelectionParams[PIndex].OptionsNum - 1
+            mod.SelectionParams[PIndex].Purpose = mod.SelectionParams[PIndex].Purpose - mod.SelectionParams.Purposes.MegaFlag
+            table.remove(mod.SelectionParams[PIndex].PackOptions, mod.SelectionParams[PIndex].Index)
             return
         end
 
         mod:SwitchCardSelectionStates(Player,mod.SelectionParams.Modes.NONE, 0)
         
-    elseif mod.SelectionParams.Mode == mod.SelectionParams.Modes.INVENTORY then
+    elseif mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.INVENTORY then
 
-        if mod.SelectionParams.Index <= #mod.Saved.Jimbo.Inventory then --a joker is selected
+        if mod.SelectionParams[PIndex].Index <= #mod.Saved.Jimbo[PIndex].Inventory then --a joker is selected
             
-            local Choice = mod.SelectionParams.SelectedCards[mod.SelectionParams.Index]
+            local Choice = mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams[PIndex].Index]
 
             if Choice then
                 sfx:Play(mod.Sounds.DESELECT)
 
-                mod.SelectionParams.SelectedCards[mod.SelectionParams.Index] = false
-                mod.SelectionParams.Purpose = mod.SelectionParams.Purposes.NONE
+                mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams[PIndex].Index] = false
+                mod.SelectionParams[PIndex].Purpose = mod.SelectionParams.Purposes.NONE
 
             
             else --if it's not currently selected
 
-                if mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.SMELTER then --DSS TO BE ADDED
+                if mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.SMELTER then --DSS TO BE ADDED
                     mod:UseSelection(Player)
                     mod:SwitchCardSelectionStates(Player,mod.SelectionParams.Modes.NONE,mod.SelectionParams.Purposes.NONE)
     
-                elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.SELLING then
+                elseif mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.SELLING then
                     local FirstI
-                    local SecondI = mod.SelectionParams.Index
-                    for i,v in ipairs(mod.SelectionParams.SelectedCards) do
+                    local SecondI = mod.SelectionParams[PIndex].Index
+                    for i,v in ipairs(mod.SelectionParams[PIndex].SelectedCards) do
                         if v then
                            FirstI = i
-                           mod.SelectionParams.SelectedCards[i] = false
+                           mod.SelectionParams[PIndex].SelectedCards[i] = false
                            break
                         end
                     end
@@ -2087,33 +2117,33 @@ function mod:Select(Player)
                         sfx:Play(mod.Sounds.SELECT,1,2,false, 1.2)
                     end, 3, 1, false)
 
-                    mod.Saved.Jimbo.Inventory[FirstI].Joker,mod.Saved.Jimbo.Inventory[SecondI].Joker =
-                    mod.Saved.Jimbo.Inventory[SecondI].Joker,mod.Saved.Jimbo.Inventory[FirstI].Joker
+                    mod.Saved.Jimbo[PIndex].Inventory[FirstI].Joker,mod.Saved.Jimbo[PIndex].Inventory[SecondI].Joker =
+                    mod.Saved.Jimbo[PIndex].Inventory[SecondI].Joker,mod.Saved.Jimbo[PIndex].Inventory[FirstI].Joker
 
-                    mod.Saved.Jimbo.Progress.Inventory[FirstI],mod.Saved.Jimbo.Progress.Inventory[SecondI] =
-                    mod.Saved.Jimbo.Progress.Inventory[SecondI],mod.Saved.Jimbo.Progress.Inventory[FirstI]
+                    mod.Saved.Jimbo[PIndex].Progress.Inventory[FirstI],mod.Saved.Jimbo[PIndex].Progress.Inventory[SecondI] =
+                    mod.Saved.Jimbo[PIndex].Progress.Inventory[SecondI],mod.Saved.Jimbo[PIndex].Progress.Inventory[FirstI]
 
                     for _,GiftSlot in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.GIFT_CARD, true)) do
 
-                        mod.Saved.Jimbo.Progress.Inventory[GiftSlot][FirstI],mod.Saved.Jimbo.Progress.Inventory[GiftSlot][SecondI] = 
-                        mod.Saved.Jimbo.Progress.Inventory[GiftSlot][SecondI],mod.Saved.Jimbo.Progress.Inventory[GiftSlot][FirstI]    
+                        mod.Saved.Jimbo[PIndex].Progress.Inventory[GiftSlot][FirstI],mod.Saved.Jimbo[PIndex].Progress.Inventory[GiftSlot][SecondI] = 
+                        mod.Saved.Jimbo[PIndex].Progress.Inventory[GiftSlot][SecondI],mod.Saved.Jimbo[PIndex].Progress.Inventory[GiftSlot][FirstI]    
                     
                     end
 
 
                     Isaac.RunCallback("INVENTORY_CHANGE", Player)
 
-                    mod.SelectionParams.Purpose = mod.SelectionParams.Purposes.NONE
+                    mod.SelectionParams[PIndex].Purpose = mod.SelectionParams.Purposes.NONE
 
-                elseif mod.Saved.Jimbo.Inventory[mod.SelectionParams.Index].Joker ~= 0 then
+                elseif mod.Saved.Jimbo[PIndex].Inventory[mod.SelectionParams[PIndex].Index].Joker ~= 0 then
                        
                     sfx:Play(mod.Sounds.DESELECT)
 
-                    mod.SelectionParams.SelectedCards[mod.SelectionParams.Index] = true
+                    mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams[PIndex].Index] = true
 
-                    if mod.SelectionParams.Purpose ~= mod.SelectionParams.Purposes.SMELTER then
+                    if mod.SelectionParams[PIndex].Purpose ~= mod.SelectionParams.Purposes.SMELTER then
 
-                        mod.SelectionParams.Purpose = mod.SelectionParams.Purposes.SELLING
+                        mod.SelectionParams[PIndex].Purpose = mod.SelectionParams.Purposes.SELLING
                     end
 
                 end
@@ -2123,24 +2153,24 @@ function mod:Select(Player)
 
         else--the confirm button is pressed
         
-            if mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.SMELTER then
+            if mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.SMELTER then
                 mod:UseSelection(Player)
                 mod:SwitchCardSelectionStates(Player,mod.SelectionParams.Modes.NONE,mod.SelectionParams.Purposes.NONE)
 
-            elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.SELLING then
+            elseif mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.SELLING then
                 local SoldSlot
-                for i,v in ipairs(mod.SelectionParams.SelectedCards) do
+                for i,v in ipairs(mod.SelectionParams[PIndex].SelectedCards) do
                     if v then
                         SoldSlot = i
-                        mod.SelectionParams.SelectedCards[i] = false
+                        mod.SelectionParams[PIndex].SelectedCards[i] = false
                        break
                     end
                 end
                 --print(FirstI)
-                local Trinket = mod.Saved.Jimbo.Inventory[SoldSlot].Joker
+                local Trinket = mod.Saved.Jimbo[PIndex].Inventory[SoldSlot].Joker
 
                 mod:SellJoker(Player, Trinket, SoldSlot)
-                mod.SelectionParams.Purpose = mod.SelectionParams.Purposes.NONE
+                mod.SelectionParams[PIndex].Purpose = mod.SelectionParams.Purposes.NONE
             else
                 mod:SwitchCardSelectionStates(Player,mod.SelectionParams.Modes.NONE,mod.SelectionParams.Purposes.NONE)
             end
@@ -2153,70 +2183,71 @@ local PurposeEnh = {nil,2,4,9,5,3,6,nil,7,nil,8}
 --activates the current selection when finished
 ---@param Player EntityPlayer
 function mod:UseSelection(Player)
+    local PIndex = Player:GetData().TruePlayerIndex
 
-    if mod.SelectionParams.Mode == mod.SelectionParams.Modes.HAND then
+    if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.HAND then
         --could've done something nicer then these elseifs but works anyways
-        if mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.HAND then
+        if mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.HAND then
             --effects
-            mod:ActivateHandEffect(Player)
+            --mod:ActivateHandEffect(Player)
             --card substitution
-            mod:SubstituteCards(mod.SelectionParams.SelectedCards)
+            --mod:SubstituteCards(mod.SelectionParams[PIndex].SelectedCards)
 
-        elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.DEATH1 then --then the card that will become a copy
-            for i,v in ipairs(mod.SelectionParams.SelectedCards) do
+        elseif mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.DEATH1 then --then the card that will become a copy
+            for i,v in ipairs(mod.SelectionParams[PIndex].SelectedCards) do
                 if v then
-                    local selection = mod.Saved.Jimbo.CurrentHand[i] --gets the card that will be modified
-                    mod.Saved.Jimbo.FullDeck[selection] = mod.Saved.Jimbo.FullDeck[DeathCopyCard]
+                    local selection = mod.Saved.Jimbo[PIndex].CurrentHand[i] --gets the card that will be modified
+                    mod.Saved.Jimbo[PIndex].FullDeck[selection] = mod.Saved.Jimbo[PIndex].FullDeck[DeathCopyCard]
                     Isaac.RunCallback("DECK_MODIFY", Player)
                 end
             end
-        elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.HANGED then
+        elseif mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.HANGED then
             local selection = {}
-            for i,v in ipairs(mod.SelectionParams.SelectedCards) do
+            for i,v in ipairs(mod.SelectionParams[PIndex].SelectedCards) do
                 if v then
-                    table.insert(selection, mod.Saved.Jimbo.CurrentHand[i]) --gets the card that will be modified
+                    table.insert(selection, mod.Saved.Jimbo[PIndex].CurrentHand[i]) --gets the card that will be modified
                 end
             end
 
             mod:DestroyCards(Player, selection, true)
 
             Isaac.RunCallback("DECK_MODIFY", Player)
-        elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.STRENGTH then
-            for i,v in ipairs(mod.SelectionParams.SelectedCards) do
+        elseif mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.STRENGTH then
+            for i,v in ipairs(mod.SelectionParams[PIndex].SelectedCards) do
                 if v then
-                    if mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[i]].Value == 13 then
-                        mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[i]].Value = 1 --kings become aces
+                    if mod.Saved.Jimbo[PIndex].FullDeck[mod.Saved.Jimbo[PIndex].CurrentHand[i]].Value == 13 then
+                        mod.Saved.Jimbo[PIndex].FullDeck[mod.Saved.Jimbo[PIndex].CurrentHand[i]].Value = 1 --kings become aces
                     else
-                        mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[i]].Value = 
-                        mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[i]].Value + 1
+                        mod.Saved.Jimbo[PIndex].FullDeck[mod.Saved.Jimbo[PIndex].CurrentHand[i]].Value = 
+                        mod.Saved.Jimbo[PIndex].FullDeck[mod.Saved.Jimbo[PIndex].CurrentHand[i]].Value + 1
                     end
                 end
             end
             Isaac.RunCallback("DECK_MODIFY", Player)
-        elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.CRYPTID then
+        elseif mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.CRYPTID then
             local Chosen
-            for i,v in ipairs(mod.SelectionParams.SelectedCards) do
+            for i,v in ipairs(mod.SelectionParams[PIndex].SelectedCards) do
                 if v then
-                    Chosen = mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[i]]
+                    Chosen = mod.Saved.Jimbo[PIndex].FullDeck[mod.Saved.Jimbo[PIndex].CurrentHand[i]]
                     break
                 end
             end
 
             mod:AddCardToDeck(Player, Chosen, 2, true)
 
-        elseif mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.AURA then
-            for i,v in ipairs(mod.SelectionParams.SelectedCards) do
+        elseif mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.AURA then
+            for i,v in ipairs(mod.SelectionParams[PIndex].SelectedCards) do
                 if v then
                     local EdRoll = Player:GetCardRNG(mod.Spectrals.AURA):RandomFloat()
                     if EdRoll <= 0.5 then
                         sfx:Play(mod.Sounds.FOIL, 0.6)
-                        mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[i]].Edition = mod.Edition.FOIL
+                        mod.Saved.Jimbo[PIndex].FullDeck[mod.Saved.Jimbo[PIndex].CurrentHand[i]].Edition = mod.Edition.FOIL
                     elseif EdRoll <= 0.85 then
                         sfx:Play(mod.Sounds.HOLO, 0.6)
-                        mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[i]].Edition = mod.Edition.HOLOGRAPHIC
+                        mod.Saved.Jimbo[PIndex].FullDeck[mod.Saved.Jimbo[PIndex].CurrentHand[i]].Edition = mod.Edition.HOLOGRAPHIC
                     else
                         sfx:Play(mod.Sounds.POLY, 0.6)
-                        mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[i]].Edition = mod.Edition.POLYCROME
+                        mod.Saved.Jimbo[PIndex].FullDeck[mod.Saved.Jimbo[PIndex].CurrentHand[i]].Edition = mod.Edition.POLYCROME
                     end
                     break
                 end
@@ -2224,30 +2255,30 @@ function mod:UseSelection(Player)
             Isaac.RunCallback("DECK_MODIFY", Player, 0)
 
         --didn't want to put ~20 more elseifs so did this instead
-        elseif mod.SelectionParams.Purpose >= mod.SelectionParams.Purposes.DEJA_VU then
-            local NewSeal = mod.SelectionParams.Purpose - 16 --put the purposes in order to make this work
-            for i,v in ipairs(mod.SelectionParams.SelectedCards) do
+        elseif mod.SelectionParams[PIndex].Purpose >= mod.SelectionParams.Purposes.DEJA_VU then
+            local NewSeal = mod.SelectionParams[PIndex].Purpose - 16 --put the purposes in order to make this work
+            for i,v in ipairs(mod.SelectionParams[PIndex].SelectedCards) do
                 if v then
-                    mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[i]].Seal = NewSeal --kings become aces
+                    mod.Saved.Jimbo[PIndex].FullDeck[mod.Saved.Jimbo[PIndex].CurrentHand[i]].Seal = NewSeal --kings become aces
                     sfx:Play(mod.Sounds.SEAL)
                     break
                 end
             end
             Isaac.RunCallback("DECK_MODIFY", Player)
 
-        elseif mod.SelectionParams.Purpose >= mod.SelectionParams.Purposes.WORLD then 
-            local NewSuit = mod.SelectionParams.Purpose - mod.SelectionParams.Purposes.WORLD + 1--put the purposes in order to make this work
-            for i,v in ipairs(mod.SelectionParams.SelectedCards) do
+        elseif mod.SelectionParams[PIndex].Purpose >= mod.SelectionParams.Purposes.WORLD then 
+            local NewSuit = mod.SelectionParams[PIndex].Purpose - mod.SelectionParams.Purposes.WORLD + 1--put the purposes in order to make this work
+            for i,v in ipairs(mod.SelectionParams[PIndex].SelectedCards) do
                 if v then
-                    mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[i]].Suit = NewSuit
+                    mod.Saved.Jimbo[PIndex].FullDeck[mod.Saved.Jimbo[PIndex].CurrentHand[i]].Suit = NewSuit
                 end
             end
             Isaac.RunCallback("DECK_MODIFY", Player)
-        elseif mod.SelectionParams.Purpose >= mod.SelectionParams.Purposes.EMPRESS then
-            local NewEnh = PurposeEnh[mod.SelectionParams.Purpose] --put the purposes in order to make this work
-            for i,v in ipairs(mod.SelectionParams.SelectedCards) do
+        elseif mod.SelectionParams[PIndex].Purpose >= mod.SelectionParams.Purposes.EMPRESS then
+            local NewEnh = PurposeEnh[mod.SelectionParams[PIndex].Purpose] --put the purposes in order to make this work
+            for i,v in ipairs(mod.SelectionParams[PIndex].SelectedCards) do
                 if v then
-                    mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[i]].Enhancement = NewEnh
+                    mod.Saved.Jimbo[PIndex].FullDeck[mod.Saved.Jimbo[PIndex].CurrentHand[i]].Enhancement = NewEnh
 
                 end
             end
@@ -2255,13 +2286,13 @@ function mod:UseSelection(Player)
         end
 
 
-    elseif mod.SelectionParams.Mode == mod.SelectionParams.Modes.INVENTORY then
+    elseif mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.INVENTORY then
 
-        if mod.SelectionParams.Purpose == mod.SelectionParams.Purposes.SMELTER then
+        if mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.SMELTER then
 
-            local SelectedSlot = mod:GetValueIndex(mod.SelectionParams.SelectedCards, true, true) --finds the first true
+            local SelectedSlot = mod:GetValueIndex(mod.SelectionParams[PIndex].SelectedCards, true, true) --finds the first true
 
-            local Joker = mod.Saved.Jimbo.Inventory[SelectedSlot].Joker
+            local Joker = mod.Saved.Jimbo[PIndex].Inventory[SelectedSlot].Joker
 
             if Joker == mod.Jokers.GOLDEN_JOKER then --or Joker == mod.Jokers.GOLDEN_TICKET then
                 for i=1, 2 do --gives money 2 golden pennies
@@ -2280,8 +2311,8 @@ function mod:UseSelection(Player)
         end
     end
 
-    for i,_ in ipairs(mod.SelectionParams.SelectedCards) do
-        mod.SelectionParams.SelectedCards[i] = false
+    for i,_ in ipairs(mod.SelectionParams[PIndex].SelectedCards) do
+        mod.SelectionParams[PIndex].SelectedCards[i] = false
     end
 end
 
@@ -2292,14 +2323,14 @@ end
 --[[
 function mod:ChangeCurrentHandType()
     
-    mod.SelectionParams.PossibleHandTypes = mod:DeterminePokerHand()
-    mod.SelectionParams.HandType = mod:GetMax(mod.SelectionParams.PossibleHandTypes)
-    if mod.SelectionParams.HandType == 10 then
-        mod.Saved.Jimbo.FiveUnlocked = true
-    elseif mod.SelectionParams.HandType == 11 then
-        mod.Saved.Jimbo.FlushHouseUnlocked = true
-    elseif mod.SelectionParams.HandType == 12 then
-        mod.Saved.Jimbo.FiveFlushUnlocked = true
+    mod.SelectionParams[PIndex].PossibleHandTypes = mod:DeterminePokerHand()
+    mod.SelectionParams[PIndex].HandType = mod:GetMax(mod.SelectionParams[PIndex].PossibleHandTypes)
+    if mod.SelectionParams[PIndex].HandType == 10 then
+        mod.Saved.Jimbo[PIndex].FiveUnlocked = true
+    elseif mod.SelectionParams[PIndex].HandType == 11 then
+        mod.Saved.Jimbo[PIndex].FlushHouseUnlocked = true
+    elseif mod.SelectionParams[PIndex].HandType == 12 then
+        mod.Saved.Jimbo[PIndex].FiveFlushUnlocked = true
     end
 
 end
@@ -2309,9 +2340,9 @@ mod:AddCallback("HAND_TYPE_UPDATE", mod.ChangeCurrentHandType)
 function mod:ActivateHandEffect(Player)
     Isaac.RunCallback("HAND_TYPE_UPDATE") --updates a last time to be sure
 
-    --print(mod.SelectionParams.HandType)
-    --print(mod.Saved.Jimbo.HandsStat[1])
-    local StatsToGain = mod.Saved.Jimbo.HandsStat[mod.SelectionParams.HandType]
+    --print(mod.SelectionParams[PIndex].HandType)
+    --print(mod.Saved.Jimbo[PIndex].HandsStat[1])
+    local StatsToGain = mod.Saved.Jimbo[PIndex].HandsStat[mod.SelectionParams[PIndex].HandType]
 
     
     --local StatsToGain = mod:HandStatCalculatorA(Player)
@@ -2329,7 +2360,7 @@ function mod:PackShader(Name)
             Isaac.RunCallback(ModCallbacks.MC_POST_HUD_RENDER)
         end
         --time is the amount of seconds the player has been choosing for
-        local Time = math.min(255, mod.SelectionParams.Frames)
+        local Time = math.min(255, mod.SelectionParams[PIndex].Frames)
         local BackgroundColor = {200,0,0,1}
 
         local Params = {Time, BackgroundColor}
@@ -2397,8 +2428,8 @@ function mod:JimboShootCardTear(Player,Direction)
         return
     end
 
-    local CardShot = mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize] ]
-    CardShot.Index = mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize] --could be useful
+    local CardShot = mod.Saved.Jimbo[PIndex].FullDeck[mod.Saved.Jimbo[PIndex].CurrentHand[mod.Saved.Jimbo[PIndex].HandSize] ]
+    CardShot.Index = mod.Saved.Jimbo[PIndex].CurrentHand[mod.Saved.Jimbo[PIndex].HandSize] --could be useful
 
     LastCardFullPoss[CardShot.Index] = nil --needed to make the Hand HUD work properly
 
@@ -2455,15 +2486,15 @@ function mod:JimboShootCardTear(Player,Direction)
     mod.Counters.SinceShoot = 0
 
     
-    mod.Saved.Jimbo.CurrentHand[mod.Saved.Jimbo.HandSize -mod.Saved.Jimbo.Progress.Hand] = 0 --removes the used card
-    mod.Saved.Jimbo.Progress.Hand = mod.Saved.Jimbo.Progress.Hand + 1
+    mod.Saved.Jimbo[PIndex].CurrentHand[mod.Saved.Jimbo[PIndex].HandSize -mod.Saved.Jimbo[PIndex].Progress.Hand] = 0 --removes the used card
+    mod.Saved.Jimbo[PIndex].Progress.Hand = mod.Saved.Jimbo[PIndex].Progress.Hand + 1
 
-    if mod.Saved.Jimbo.Progress.Hand > mod.Saved.Jimbo.HandSize then--if all the hand is empty replace it with a new one
-        for i=1, mod.Saved.Jimbo.HandSize do
-            mod.Saved.Jimbo.CurrentHand[i] = mod.Saved.Jimbo.DeckPointer
-            mod.Saved.Jimbo.DeckPointer = mod.Saved.Jimbo.DeckPointer +1
+    if mod.Saved.Jimbo[PIndex].Progress.Hand > mod.Saved.Jimbo[PIndex].HandSize then--if all the hand is empty replace it with a new one
+        for i=1, mod.Saved.Jimbo[PIndex].HandSize do
+            mod.Saved.Jimbo[PIndex].CurrentHand[i] = mod.Saved.Jimbo[PIndex].DeckPointer
+            mod.Saved.Jimbo[PIndex].DeckPointer = mod.Saved.Jimbo[PIndex].DeckPointer +1
         end
-        mod.Saved.Jimbo.Progress.Hand = 1
+        mod.Saved.Jimbo[PIndex].Progress.Hand = 1
     end
 end
 

@@ -402,8 +402,7 @@ EID:addCard(mod.Spectrals.SOUL, "{{PlayerJimbo}} Gives a random {{ColorRainbow}}
 --uses a hacky entity to simulate the options being descripted, no idea if this is an optimal way or not
 local function BalatroInventoryCondition(descObj)
     if descObj.ObjType == EntityType.ENTITY_EFFECT and descObj.ObjVariant == DescriptionHelperVariant and descObj.ObjSubType == DescriptionHelperSubType then
-        if PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType)
-           and Balatro_Expansion.SelectionParams.Mode ~= Balatro_Expansion.SelectionParams.Modes.NONE then
+        if PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
             return true
         end
     end
@@ -418,233 +417,295 @@ local function BalatroInventoryCallback(descObj)
         Language = "en_us"
     end
 
-    local SelectedCard
-    local SelectedSlots
+    for _,Player in ipairs(PlayerManager.GetPlayers()) do
 
-    local Icon = ""
-    local Name = ""
-    local Description = ""
+        if Player:GetPlayerType() ~= mod.Characters.JimboType then
+            goto skip_player
+        end
+
+        local PIndex = Player:GetData().TruePlayerIndex
+
+        local SelectedCard
+        local SelectedSlots
+
+        local Icon = ""
+        local Name = ""
+        local Description = ""
 
 
-    if Balatro_Expansion.SelectionParams.Mode == Balatro_Expansion.SelectionParams.Modes.INVENTORY then
+        if Balatro_Expansion.SelectionParams[PIndex].Mode == Balatro_Expansion.SelectionParams.Modes.INVENTORY then
 
-        SelectedCard = Balatro_Expansion.Saved.Jimbo.Inventory[mod.SelectionParams.Index]
+            SelectedCard = Balatro_Expansion.Saved.Jimbo.Inventory[mod.SelectionParams[PIndex].Index]
 
-        if not SelectedCard then --the extra confirm button
+            if not SelectedCard then --the extra confirm button
 
-            if Balatro_Expansion.SelectionParams.Purpose == Balatro_Expansion.SelectionParams.Purposes.SELLING then
+                if Balatro_Expansion.SelectionParams[PIndex].Purpose == Balatro_Expansion.SelectionParams.Purposes.SELLING then
 
-                for i,selected in ipairs(mod.SelectionParams.SelectedCards) do
-                    if selected then
-                        SelectedCard = mod.Saved.Jimbo.Inventory[i].Joker
-                        SelectedSlots = i
-                        break
+                    for i,selected in ipairs(mod.SelectionParams[PIndex].SelectedCards) do
+                        if selected then
+                            SelectedCard = mod.Saved.Jimbo.Inventory[i].Joker
+                            SelectedSlots = i
+                            break
+                        end
                     end
+
+                    local CardIcon = EID:createItemIconObject("Trinket"..tostring(SelectedCard))
+
+                    EID:addIcon("CurrentCard", CardIcon[1], CardIcon[2], CardIcon[3], CardIcon[4], CardIcon[5], CardIcon[6], CardIcon[7])
+
+                    Icon = "{{Shop}}"
+                    Name = "Sell the selected joker"
+                    Description = "#{{CurrentCard}} Currently gives {{ColorYellorange}}"..Balatro_Expansion:GetJokerCost(SelectedCard, SelectedSlots).."${{CR}}"
+
+                else --not selling anything and confirm button
+
+                    Icon = ""
+                    Name = "Exit overview"
+                    Description = ""
                 end
+                goto FINISH
+            end
 
-                local CardIcon = EID:createItemIconObject("Trinket"..tostring(SelectedCard))
-                
-                EID:addIcon("CurrentCard", CardIcon[1], CardIcon[2], CardIcon[3], CardIcon[4], CardIcon[5], CardIcon[6], CardIcon[7])
+            SelectedCard = SelectedCard.Joker
 
-                Icon = "{{Shop}}"
-                Name = "Sell the selected joker"
-                Description = "#{{CurrentCard}} Currently gives {{ColorYellorange}}"..Balatro_Expansion:GetJokerCost(SelectedCard, SelectedSlots).."${{CR}}"
-
-            else --not selling anything and confirm button
+            if SelectedCard == 0 then --emtoy slot
 
                 Icon = ""
-                Name = "Exit overview"
-                Description = ""
-            end
-            goto FINISH
-        end
+                Name = "{{Blank}} Nothing"
+                Description = "Empty!"
 
-        SelectedCard = SelectedCard.Joker
+            else --slot with something
 
-        if SelectedCard == 0 then --emtoy slot
-
-            Icon = ""
-            Name = "{{Blank}} Nothing"
-            Description = "Empty!"
-
-        else --slot with something
-
-            descObj.ObjType = 5
-            descObj.ObjVariant = 350
-            descObj.ObjSubType = SelectedCard
+                descObj.ObjType = 5
+                descObj.ObjVariant = 350
+                descObj.ObjSubType = SelectedCard
 
 
-            local Tstring = "5.350."..tostring(SelectedCard)
-            
-            local CardIcon = EID:createItemIconObject("Trinket"..tostring(SelectedCard))
+                local Tstring = "5.350."..tostring(SelectedCard)
 
-            EID:addIcon("CurrentCard", CardIcon[1], CardIcon[2], CardIcon[3], CardIcon[4], CardIcon[5], CardIcon[6], CardIcon[7])
+                local CardIcon = EID:createItemIconObject("Trinket"..tostring(SelectedCard))
 
-            local Rarity = mod:GetJokerRarity(SelectedCard)
-            local RarityColor
-            if Rarity == "common" then
-                RarityColor = "{{ColorCyan}}"
-            elseif Rarity == "uncommon" then
-                RarityColor = "{{ColorLime}}"
-            elseif Rarity == "rare" then
-                RarityColor = "{{ColorRed}}"
-            else
-                RarityColor = "{{ColorRainbow}}"
-            end
+                EID:addIcon("CurrentCard", CardIcon[1], CardIcon[2], CardIcon[3], CardIcon[4], CardIcon[5], CardIcon[6], CardIcon[7])
 
-            Icon = "{{CurrentCard}}"
-            Name = RarityColor..EID:getObjectName(5, 350, SelectedCard).."{{CR}}#{{Blank}}"
-            Description = EID:getDescriptionEntry("custom", Tstring)[3]
-
-            local Edition = mod.Saved.Jimbo.Inventory[mod.SelectionParams.Index].Edition
-
-            local EditionDesc = JokerEditionDesc[Language][Edition]
-
-            Description = Description..EditionDesc
-
-            --PROGRESS--
-
-            local JokerConfig = ItemsConfig:GetTrinket(SelectedCard)
-            if JokerConfig:HasCustomTag("Value") then
-
-                local Value = Balatro_Expansion.Saved.Jimbo.Progress.Inventory[mod.SelectionParams.Index]
-                if JokerConfig:HasCustomTag("chips") then
-                    Description = Description.." #!!! Currently:{{ColorChips}} +"..tostring(Value).."{{CR}}"
-
-                elseif JokerConfig:HasCustomTag("mult") then
-                    Description = Description.." #!!! Currently:{{ColorMult}} +"..tostring(Value).."{{CR}}"
-
-                elseif JokerConfig:HasCustomTag("multm") then
-                    if SelectedCard == mod.Jokers.LOYALTY_CARD then
-                        if Value == 0 then
-                            Description = Description.." #!!! {{ColorYellorange}}Active!{{CR}}"
-                        else
-                            Description = Description.." #!!! Rooms left:{{ColorYellorange}} "..tostring(Value).."{{CR}}"
-                        end
-                    else
-                        Description = Description.." #!!! Currently:{{ColorMult}} X"..tostring(Value).."{{CR}}"
-                    end
-
-
-                elseif JokerConfig:HasCustomTag("money") then
-                    if SelectedCard == mod.Jokers.CLOUD_NINE then
-                        Description = Description.." #!!! Currently gives:{{ColorYellorange}} "..tostring(Value).."${{CR}}"
-
-                    elseif SelectedCard == mod.Jokers.TO_DO_LIST then
-
-                        Description = Description.." #!!! -Play {{ColorYellorange}} "..tostring(Value).."s{{CR}}"
-                    else
-                        Description = Description.." #!!! Currently:{{ColorYellorange}} "..tostring(Value).."${{CR}}"
-                    end
-                elseif JokerConfig:HasCustomTag("activate") then
-
-                    if SelectedCard == mod.Jokers.BLUEPRINT or SelectedCard == mod.Jokers.BRAINSTORM then
-
-                        if Value ~= 0 then
-                            Description = Description.." #!!! Currently:{{ColorLime}} Compatible{{CR}}"
-                        else
-                            Description = Description.." #!!! Currently:{{ColorMult}} Incompatible{{CR}}"
-                        end
-
-                    elseif SelectedCard == mod.Jokers.INVISIBLE_JOKER then
-
-                        if Value == 3 then
-                            Description = Description.." #!!! Currently cleared Blinds:{{ColorYellorange}} Ready!{{CR}}"
-                        else
-                            Description = Description.." #!!! Currently cleared Blinds: {{ColorYellorange}}"..tostring(Value).."/3{{CR}}"
-                        end
-
-                    elseif SelectedCard == mod.Jokers.DNA then
-                        if Balatro_Expansion.Saved.Jimbo.Progress.Blind.Shots == 0 then
-                            Description = Description.." #!!! Currently: {{ColorYellorange}}Ready!{{CR}}"
-
-                        else
-                            Description = Description.." #!!! Currently: {{ColorRed}}Not Active!{{CR}}"
-
-                        end
-
-                    elseif SelectedCard == mod.Jokers.SIXTH_SENSE then
-                        if Balatro_Expansion.Saved.Jimbo.Progress.Blind.Shots == 0 then
-                            Description = Description.." #!!! Currently: {{ColorYellorange}}Ready!{{CR}}"
-
-                        else
-                            Description = Description.." #!!! Currently: {{ColorRed}}Not Active!{{CR}}"
-
-                        end
-
-                    elseif SelectedCard == mod.Jokers.TURTLE_BEAN then
-
-                        Description = Description.." #!!! Currently: +"..tostring(Value).." Hand Size"
-                    end
+                local Rarity = mod:GetJokerRarity(SelectedCard)
+                local RarityColor
+                if Rarity == "common" then
+                    RarityColor = "{{ColorCyan}}"
+                elseif Rarity == "uncommon" then
+                    RarityColor = "{{ColorLime}}"
+                elseif Rarity == "rare" then
+                    RarityColor = "{{ColorRed}}"
+                else
+                    RarityColor = "{{ColorRainbow}}"
                 end
-                
+
+                Icon = "{{CurrentCard}}"
+                Name = RarityColor..EID:getObjectName(5, 350, SelectedCard).."{{CR}}#{{Blank}}"
+                Description = EID:getDescriptionEntry("custom", Tstring)[3]
+
+                local Edition = mod.Saved.Jimbo.Inventory[mod.SelectionParams[PIndex].Index].Edition
+
+                local EditionDesc = JokerEditionDesc[Language][Edition]
+
+                Description = Description..EditionDesc
+
+                --PROGRESS--
+
+                local JokerConfig = ItemsConfig:GetTrinket(SelectedCard)
+                if JokerConfig:HasCustomTag("Value") then
+
+                    local Value = Balatro_Expansion.Saved.Jimbo.Progress.Inventory[mod.SelectionParams[PIndex].Index]
+                    if JokerConfig:HasCustomTag("chips") then
+                        Description = Description.." #!!! Currently:{{ColorChips}} +"..tostring(Value).."{{CR}}"
+
+                    elseif JokerConfig:HasCustomTag("mult") then
+                        Description = Description.." #!!! Currently:{{ColorMult}} +"..tostring(Value).."{{CR}}"
+
+                    elseif JokerConfig:HasCustomTag("multm") then
+                        if SelectedCard == mod.Jokers.LOYALTY_CARD then
+                            if Value == 0 then
+                                Description = Description.." #!!! {{ColorYellorange}}Active!{{CR}}"
+                            else
+                                Description = Description.." #!!! Rooms left:{{ColorYellorange}} "..tostring(Value).."{{CR}}"
+                            end
+                        else
+                            Description = Description.." #!!! Currently:{{ColorMult}} X"..tostring(Value).."{{CR}}"
+                        end
+
+
+                    elseif JokerConfig:HasCustomTag("money") then
+                        if SelectedCard == mod.Jokers.CLOUD_NINE then
+                            Description = Description.." #!!! Currently gives:{{ColorYellorange}} "..tostring(Value).."${{CR}}"
+
+                        elseif SelectedCard == mod.Jokers.TO_DO_LIST then
+
+                            Description = Description.." #!!! -Play {{ColorYellorange}} "..tostring(Value).."s{{CR}}"
+                        else
+                            Description = Description.." #!!! Currently:{{ColorYellorange}} "..tostring(Value).."${{CR}}"
+                        end
+                    elseif JokerConfig:HasCustomTag("activate") then
+
+                        if SelectedCard == mod.Jokers.BLUEPRINT or SelectedCard == mod.Jokers.BRAINSTORM then
+
+                            if Value ~= 0 then
+                                Description = Description.." #!!! Currently:{{ColorLime}} Compatible{{CR}}"
+                            else
+                                Description = Description.." #!!! Currently:{{ColorMult}} Incompatible{{CR}}"
+                            end
+
+                        elseif SelectedCard == mod.Jokers.INVISIBLE_JOKER then
+
+                            if Value == 3 then
+                                Description = Description.." #!!! Currently cleared Blinds:{{ColorYellorange}} Ready!{{CR}}"
+                            else
+                                Description = Description.." #!!! Currently cleared Blinds: {{ColorYellorange}}"..tostring(Value).."/3{{CR}}"
+                            end
+
+                        elseif SelectedCard == mod.Jokers.DNA then
+                            if Balatro_Expansion.Saved.Jimbo.Progress.Blind.Shots == 0 then
+                                Description = Description.." #!!! Currently: {{ColorYellorange}}Ready!{{CR}}"
+
+                            else
+                                Description = Description.." #!!! Currently: {{ColorRed}}Not Active!{{CR}}"
+
+                            end
+
+                        elseif SelectedCard == mod.Jokers.SIXTH_SENSE then
+                            if Balatro_Expansion.Saved.Jimbo.Progress.Blind.Shots == 0 then
+                                Description = Description.." #!!! Currently: {{ColorYellorange}}Ready!{{CR}}"
+
+                            else
+                                Description = Description.." #!!! Currently: {{ColorRed}}Not Active!{{CR}}"
+
+                            end
+
+                        elseif SelectedCard == mod.Jokers.TURTLE_BEAN then
+
+                            Description = Description.." #!!! Currently: +"..tostring(Value).." Hand Size"
+                        end
+                    end
+
+                end
+
+                --SELL VALUE--
+
+                if SelectedCard == mod.Jokers.EGG then
+                    Description = Description.." #{{Shop}} Sells for {{ColorYellorange}}"..tostring(mod.Saved.Jimbo.Progress.Inventory[mod.SelectionParams[PIndex].Index]).."${{CR}}"
+
+                else
+                    Description = Description.." #{{Shop}} Sells for {{ColorYellorange}}"..tostring(mod:GetJokerCost(SelectedCard, mod.SelectionParams[PIndex].Index)).."${{CR}}"
+
+                end
             end
 
-            --SELL VALUE--
+        elseif Balatro_Expansion.SelectionParams[PIndex].Mode == Balatro_Expansion.SelectionParams.Modes.PACK then
 
-            if SelectedCard == mod.Jokers.EGG then
-                Description = Description.." #{{Shop}} Sells for {{ColorYellorange}}"..tostring(mod.Saved.Jimbo.Progress.Inventory[mod.SelectionParams.Index]).."${{CR}}"
+            SelectedCard = Balatro_Expansion.SelectionParams[PIndex].PackOptions[mod.SelectionParams[PIndex].Index]
+            SelectedSlots = mod.SelectionParams[PIndex].Index
 
+            if not SelectedCard then -- the skip option
+
+                Icon = ""
+                Name = "{{ColorSilver}}Skip{{CR}}#{{Blank}}"
+                Description = "Skip the remaining pack options" --wasn't able to find an api function for this
+
+                goto FINISH
+            end
+
+
+            if Balatro_Expansion.SelectionParams[PIndex].Purpose == Balatro_Expansion.SelectionParams.Purposes.BuffonPack then
+
+                descObj.ObjType = 5
+                descObj.ObjVariant = 350
+                descObj.ObjSubType = SelectedCard.Joker
+
+
+                local Tstring = "5.350."..tostring(SelectedCard.Joker)
+
+                local CardIcon = EID:createItemIconObject("Trinket"..tostring(SelectedCard.Joker))
+
+                EID:addIcon("CurrentCard", CardIcon[1], CardIcon[2], CardIcon[3], CardIcon[4], CardIcon[5], CardIcon[6], CardIcon[7])
+
+                local Rarity = mod:GetJokerRarity(SelectedCard.Joker)
+                local RarityColor
+                if Rarity == "common" then
+                    RarityColor = "{{ColorCyan}}"
+                elseif Rarity == "uncommon" then
+                    RarityColor = "{{ColorLime}}"
+                elseif Rarity == "rare" then
+                    RarityColor = "{{ColorRed}}"
+                else
+                    RarityColor = "{{ColorRainbow}}"
+                end
+
+                Icon = "{{CurrentCard}}"
+                Name = RarityColor..EID:getObjectName(5, 350, SelectedCard.Joker).."{{CR}}#{{Blank}}"
+                Description =""..EID:getDescriptionEntry("custom", Tstring)[3]
+
+
+                local EditionDesc = JokerEditionDesc[Language][SelectedCard.Edition] or JokerEditionDesc["en_us"][SelectedCard.Edition]
+
+                Description = Description..EditionDesc
+
+            elseif Balatro_Expansion.SelectionParams[PIndex].Purpose == Balatro_Expansion.SelectionParams.Purposes.StandardPack then 
+
+                Icon = "{{RedCard}}"
+
+                local CardName 
+                if SelectedCard.Enhancement == mod.Enhancement.STONE then
+                    CardName = "{{ColorGray}}Stone Card{{CR}}"
+
+                else
+                    CardName = mod:CardValueToName(SelectedCard.Value, true).." of "..mod:CardSuitToName(SelectedCard.Suit, true)
+
+                    CardName = CardName.."{{ColorCyan}} LV."..tostring(mod.Saved.Jimbo.CardLevels[SelectedCard.Value] + 1).."{{CR}}"
+                end
+
+                Name = CardName
+
+                local CardAttributes = EnhancementDesc[Language][SelectedCard.Enhancement]..SealDesc[Language][SelectedCard.Seal]..CardEditionDesc[Language][SelectedCard.Edition]
+
+                Description = CardAttributes
+
+            
             else
-                Description = Description.." #{{Shop}} Sells for {{ColorYellorange}}"..tostring(mod:GetJokerCost(SelectedCard, mod.SelectionParams.Index)).."${{CR}}"
+                local TrueCard = Balatro_Expansion:FrameToSpecialCard(SelectedCard)
+
+
+                descObj.ObjType = 5
+                descObj.ObjVariant = 300
+                descObj.ObjSubType = TrueCard
+
+
+                Icon = ""
+                Name = EID:getObjectName(5, 300, TrueCard).."#{{Blank}}"
+                if TrueCard <= Card.CARD_WORLD then
+                    Description = EID.descriptions[Language].cards[TrueCard][3] --wasn't able to find an api function for this
+                else
+                    local CardString = "5.300."..tostring(TrueCard)
+
+                    Description = EID:getDescriptionEntry("custom", CardString)[3]
+                end
 
             end
-        end
 
-    elseif Balatro_Expansion.SelectionParams.Mode == Balatro_Expansion.SelectionParams.Modes.PACK then
+        elseif Balatro_Expansion.SelectionParams[PIndex].Mode == Balatro_Expansion.SelectionParams.Modes.HAND then
 
-        SelectedCard = Balatro_Expansion.SelectionParams.PackOptions[mod.SelectionParams.Index]
-        SelectedSlots = mod.SelectionParams.Index
+            SelectedCard = mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[mod.SelectionParams[PIndex].Index]]
+            SelectedSlots = mod.SelectionParams[PIndex].Index
 
-        if not SelectedCard then -- the skip option
-            
-            Icon = ""
-            Name = "{{ColorSilver}}Skip{{CR}}#{{Blank}}"
-            Description = "Skip the remaining pack options" --wasn't able to find an api function for this
+            if not SelectedCard then -- the skip option
 
-            goto FINISH
-        end
+                Icon = ""
+                Name = "{{ColorSilver}}Confirm{{CR}}#{{Blank}}"
+                Description = "Confirm the current card selection as is" 
 
-
-        if Balatro_Expansion.SelectionParams.Purpose == Balatro_Expansion.SelectionParams.Purposes.BuffonPack then
-            
-            descObj.ObjType = 5
-            descObj.ObjVariant = 350
-            descObj.ObjSubType = SelectedCard.Joker
-
-
-            local Tstring = "5.350."..tostring(SelectedCard.Joker)
-            
-            local CardIcon = EID:createItemIconObject("Trinket"..tostring(SelectedCard.Joker))
-
-            EID:addIcon("CurrentCard", CardIcon[1], CardIcon[2], CardIcon[3], CardIcon[4], CardIcon[5], CardIcon[6], CardIcon[7])
-
-            local Rarity = mod:GetJokerRarity(SelectedCard.Joker)
-            local RarityColor
-            if Rarity == "common" then
-                RarityColor = "{{ColorCyan}}"
-            elseif Rarity == "uncommon" then
-                RarityColor = "{{ColorLime}}"
-            elseif Rarity == "rare" then
-                RarityColor = "{{ColorRed}}"
-            else
-                RarityColor = "{{ColorRainbow}}"
+                goto FINISH
             end
 
-            Icon = "{{CurrentCard}}"
-            Name = RarityColor..EID:getObjectName(5, 350, SelectedCard.Joker).."{{CR}}#{{Blank}}"
-            Description =""..EID:getDescriptionEntry("custom", Tstring)[3]
-
-
-            local EditionDesc = JokerEditionDesc[Language][SelectedCard.Edition] or JokerEditionDesc["en_us"][SelectedCard.Edition]
-
-            Description = Description..EditionDesc
-
-        elseif Balatro_Expansion.SelectionParams.Purpose == Balatro_Expansion.SelectionParams.Purposes.StandardPack then 
-            
             Icon = "{{RedCard}}"
 
-            local CardName 
+            local CardName
             if SelectedCard.Enhancement == mod.Enhancement.STONE then
                 CardName = "{{ColorGray}}Stone Card{{CR}}"
 
@@ -653,73 +714,22 @@ local function BalatroInventoryCallback(descObj)
 
                 CardName = CardName.."{{ColorCyan}} LV."..tostring(mod.Saved.Jimbo.CardLevels[SelectedCard.Value] + 1).."{{CR}}"
             end
-            
+
             Name = CardName
 
             local CardAttributes = EnhancementDesc[Language][SelectedCard.Enhancement]..SealDesc[Language][SelectedCard.Seal]..CardEditionDesc[Language][SelectedCard.Edition]
-            
+
             Description = CardAttributes
 
-        
-        else
-            local TrueCard = Balatro_Expansion:FrameToSpecialCard(SelectedCard)
-            
-
-            descObj.ObjType = 5
-            descObj.ObjVariant = 300
-            descObj.ObjSubType = TrueCard
-
-
-            Icon = ""
-            Name = EID:getObjectName(5, 300, TrueCard).."#{{Blank}}"
-            if TrueCard <= Card.CARD_WORLD then
-                Description = EID.descriptions[Language].cards[TrueCard][3] --wasn't able to find an api function for this
-            else
-                local CardString = "5.300."..tostring(TrueCard)
-
-                Description = EID:getDescriptionEntry("custom", CardString)[3]
-            end
-
         end
 
-    elseif Balatro_Expansion.SelectionParams.Mode == Balatro_Expansion.SelectionParams.Modes.HAND then
 
-        SelectedCard = mod.Saved.Jimbo.FullDeck[mod.Saved.Jimbo.CurrentHand[mod.SelectionParams.Index]]
-        SelectedSlots = mod.SelectionParams.Index
+        ::FINISH::
 
-        if not SelectedCard then -- the skip option
-            
-            Icon = ""
-            Name = "{{ColorSilver}}Confirm{{CR}}#{{Blank}}"
-            Description = "Confirm the current card selection as is" 
+        EID:appendToDescription(descObj, "#"..Icon.." "..Name.."# "..Description)
 
-            goto FINISH
-        end
-
-        Icon = "{{RedCard}}"
-
-        local CardName
-        if SelectedCard.Enhancement == mod.Enhancement.STONE then
-            CardName = "{{ColorGray}}Stone Card{{CR}}"
-
-        else
-            CardName = mod:CardValueToName(SelectedCard.Value, true).." of "..mod:CardSuitToName(SelectedCard.Suit, true)
-
-            CardName = CardName.."{{ColorCyan}} LV."..tostring(mod.Saved.Jimbo.CardLevels[SelectedCard.Value] + 1).."{{CR}}"
-        end
-        
-        Name = CardName
-
-        local CardAttributes = EnhancementDesc[Language][SelectedCard.Enhancement]..SealDesc[Language][SelectedCard.Seal]..CardEditionDesc[Language][SelectedCard.Edition]
-        
-        Description = CardAttributes
-
+        ::skip_player::
     end
-
-
-    ::FINISH::
-
-    EID:appendToDescription(descObj, "#"..Icon.." "..Name.."# "..Description)
     return descObj -- return the modified description object
 end
 EID:addDescriptionModifier("Balatro Inventory Overview", BalatroInventoryCondition, BalatroInventoryCallback)
