@@ -9,10 +9,8 @@ local SUIT_ANIMATIONS = {"Spade","Heart","Club","Diamond"}
 local HAND_TYPE_NAMES = {"high card","pair","Two pair","three of a kind","straight","flush","full house","four of a kind", "straight flush", "royal flush","five of a kind","fluah house","flush five"}
 HAND_TYPE_NAMES[0] = "none"
 
-local JokerOverlaySprite = Sprite("gfx/Specia_Joker_Overlay.anm2")
-JokerOverlaySprite:Play("Idle")
-
-local JOKER_OVERLAY_LENGTH = JokerOverlaySprite:GetAnimationData("Idle"):GetLength()
+local TrinketSprite = Sprite("gfx/005.350_trinket_custom.anm2")
+local JOKER_OVERLAY_LENGTH = TrinketSprite:GetAnimationData("Idle"):GetLength()
 
 local CHARGED_ANIMATION = 22 --the length of an animation for chargebars
 local CHARGED_LOOP_ANIMATION = 10
@@ -45,8 +43,6 @@ function mod:JimboInit(player)
         Data.NotAlrPressed.confirm = true
         Data.NotAlrPressed.ctrl = true
         Data.ALThold = 0 --used to activate the inventory selection
-
-        Data.JustPickedEdition = 0 --used for inventory jokers' edition
 
         --player:SetPocketActiveItem(CollectibleType.COLLECTIBLE_THE_HAND,ActiveSlot.SLOT_POCKET)
         --ItemPool:RemoveCollectible(CollectibleType.COLLECTIBLE_THE_HAND)
@@ -404,6 +400,22 @@ function mod:SetItemAsShop(Pickup)
     Pickup:MakeShopItem(-2)
 end
 mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT,mod.SetItemAsShop, PickupVariant.PICKUP_COLLECTIBLE)
+
+
+--makes every item a paid shop item (also see SetItemPrices)
+---@param Pickup EntityPickup
+function mod:EnableJokerAnimations(Pickup)
+
+    if not ItemsConfig:GetTrinket(Pickup.SubType):HasCustomTag("balatro") then
+        return
+    end
+
+    --using this an,2 enables the various joker animations such as the wobble for legendaries 
+
+    Pickup:GetSprite():Load("gfx/005.350_trinket_custom.anm2", true)
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT,mod.EnableJokerAnimations, PickupVariant.PICKUP_TRINKET)
 
 
 --sets the price for every item basing on quality and room
@@ -977,16 +989,6 @@ function mod:TrinketEditionsRender(Trinket, Offset)
     Trinket:GetSprite():SetCustomShader(mod.EditionShaders[Edition])
 
     --Trinket:GetSprite():SetCustomShader(mod.EditionShaders[mod.Edition.NEGATIVE])
-
-    if Trinket.SubType == mod.Jokers.HOLOGRAM then
-        JokerOverlaySprite:ReplaceSpritesheet(0, JokerConfig.GfxFileName)
-        JokerOverlaySprite:SetFrame(Trinket.FrameCount % JOKER_OVERLAY_LENGTH)
-
-        local Frame = Trinket:GetSprite():GetCurrentAnimationData():GetLayer(0):GetFrame(Trinket:GetSprite():GetFrame())
-
-        ---@diagnostic disable-next-line: need-check-nil
-        JokerOverlaySprite:Render(Isaac.WorldToRenderPosition(Trinket.Position) + Offset + Frame:GetPos() - Frame:GetPivot() + Vector(16,16))
-    end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PICKUP_RENDER, mod.TrinketEditionsRender, PickupVariant.PICKUP_TRINKET)
 

@@ -318,7 +318,6 @@ end
 function mod:InitJimboValues(Player, Force)
 
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
-        
         mod.Saved.Jimbo[Player:GetData().TruePlayerIndex] = 0
         return
     end
@@ -490,3 +489,15 @@ function mod:SaveStorage(IsExit)
 end
 mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.SaveStorage)
 mod:AddPriorityCallback(ModCallbacks.MC_POST_NEW_LEVEL,CallbackPriority.LATE, mod.SaveStorage)
+
+
+local function ResetJimboValues()
+    mod.Saved.Jimbo = {}
+    if mod.GameStarted then
+        for _, Player in ipairs(PlayerManager.GetPlayers()) do
+            mod:InitJimboValues(Player, true)
+
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_MODS_LOADED, mod.SaveStorage)

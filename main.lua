@@ -662,6 +662,7 @@ Balatro_Expansion.Saved.ModConfig.ExtraReadability = false
 
 
 Balatro_Expansion.SelectionParams = {}
+Balatro_Expansion.SelectionParams[0] = {}
 Balatro_Expansion.SelectionParams[0].Frames = 0 -- in update frames
 Balatro_Expansion.SelectionParams[0].SelectedCards = {false,false,false,false,false}
 Balatro_Expansion.SelectionParams[0].Index = 1

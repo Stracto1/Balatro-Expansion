@@ -4,9 +4,7 @@ local Game = Game()
 local ItemsConfig = Isaac.GetItemConfig()
 local sfx = SFXManager()
 
-local TrinketSprite = Sprite("gfx/005.350_custom.anm2")
-local JokerOverlaySprite = Sprite("gfx/Specia_Joker_Overlay.anm2")
-JokerOverlaySprite:Play("Idle")
+local TrinketSprite = Sprite("gfx/005.350_trinket_custom.anm2")
 local JactivateLength = TrinketSprite:GetAnimationData("Effect"):GetLength()
 
 local JimboCards = {PlayingCards = Sprite("gfx/ui/PlayingCards.anm2"),
@@ -139,7 +137,7 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
                     mod.Counters.Activated[i] = nil
                 end
             else
-                TrinketSprite:SetFrame("Idle", 0)
+                TrinketSprite:SetAnimation("Idle", false)
             end
 
             TrinketSprite:SetCustomShader(mod.EditionShaders[mod.Saved.Jimbo[PIndex].Inventory[i].Edition])
@@ -147,15 +145,10 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
         end
 
         TrinketSprite:Render(RenderPos)
-
-        if Slot.Joker == mod.Jokers.HOLOGRAM then
-            JokerOverlaySprite:ReplaceSpritesheet(0, JokerConfig.GfxFileName, true)
-            JokerOverlaySprite:Render(RenderPos)
-        end
     end
 
     if Isaac.GetFrameCount()% 2 == 0 then
-        JokerOverlaySprite:Update()
+        TrinketSprite:Update()
     end
 
     if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.INVENTORY then
