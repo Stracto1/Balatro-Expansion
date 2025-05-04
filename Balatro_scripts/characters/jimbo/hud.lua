@@ -54,7 +54,8 @@ local CHARGED_LOOP_ANIMATION = 5
 
 local DECK_RENDERING_POSITION = Vector(110,15) --in screen coordinates
 local HAND_RENDERING_POSITION = Vector(40,30) --in screen coordinates
-local INVENTORY_RENDERING_POSITION = Vector(10,250)
+local INVENTORY_RENDERING_POSITION = Vector(10,258)
+
 local INVENTORY_COOP_OFFSET = {[0]=Vector(0,0), [1]=Vector(-10,0)}
 
 --local DECK_RENDERING_POSITION = Isaac.WorldToRenderPosition(Isaac.ScreenToWorld(Vector(760,745)))
@@ -76,6 +77,13 @@ local ENHANCEMENTS_ANIMATIONS = {"Base","Mult","Bonus","Wild","Glass","Steel","S
 
 --------------HUD RENDER-----------------
 -----------------------------------------
+
+local function PreventErrors()
+    if not mod.Saved.Jimbo[0] then
+        return true
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, PreventErrors)
 
 --rendered the currently hald jokers
 ---@param Player EntityPlayer
@@ -262,15 +270,15 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
     local Color = KColor.White
     local DarkColor = KColor(0.7,0.7,0.7,1)
 
-    if not mod.Saved.Jimbo[PIndex].SmallCleared then
+    if not mod.Saved.SmallCleared then
         Color = KColor(238/255, 186/255, 49/255, 1)
         DarkColor = KColor(166/255,130/255,34/255,1)
 
-        SmallProgress = mod.Saved.Jimbo[PIndex].ClearedRooms
+        SmallProgress = mod.Saved.ClearedRooms
     else
-        SmallProgress = mod.Saved.Jimbo[PIndex].SmallBlind
+        SmallProgress = mod.Saved.SmallBlind
     end
-    ProgressString = tostring(SmallProgress).."/"..tostring(mod.Saved.Jimbo[PIndex].SmallBlind)
+    ProgressString = tostring(SmallProgress).."/"..tostring(mod.Saved.SmallBlind)
 
     mod.Fonts.Balatro:DrawStringScaled(ProgressString,
     RenderPos.X ,RenderPos.Y, 0.5, 0.5, DarkColor)
@@ -285,20 +293,20 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
     Color = KColor.White
     DarkColor = KColor(0.7,0.7,0.7,1)
 
-    if mod.Saved.Jimbo[PIndex].SmallCleared then
+    if mod.Saved.SmallCleared then
     
-        if mod.Saved.Jimbo[PIndex].BigCleared then
-            BigProgress = mod.Saved.Jimbo[PIndex].BigBlind
+        if mod.Saved.BigCleared then
+            BigProgress = mod.Saved.BigBlind
         else
             Color = KColor(238/255, 186/255, 49/255, 1)
             DarkColor = KColor(166/255,130/255,34/255,1)
 
-            BigProgress = mod.Saved.Jimbo[PIndex].ClearedRooms
+            BigProgress = mod.Saved.ClearedRooms
         end
     else
         BigProgress = 0
     end
-    ProgressString = tostring(BigProgress).."/"..tostring(mod.Saved.Jimbo[PIndex].BigBlind)
+    ProgressString = tostring(BigProgress).."/"..tostring(mod.Saved.BigBlind)
 
     mod.Fonts.Balatro:DrawStringScaled(ProgressString,
     RenderPos.X, RenderPos.Y, 0.5, 0.5, DarkColor)
@@ -314,13 +322,13 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
         Color = KColor.White
         DarkColor = KColor(0.7,0.7,0.7,1)
 
-        if mod.Saved.Jimbo[PIndex].SmallCleared and mod.Saved.Jimbo[PIndex].BigCleared and mod.Saved.Jimbo[PIndex].BossCleared ~= 2 then
+        if mod.Saved.SmallCleared and mod.Saved.BigCleared and mod.Saved.BossCleared ~= 2 then
             Color = KColor(238/255, 186/255, 49/255, 1)
             DarkColor = KColor(166/255,130/255,34/255,1)
         end
 
         BossProgress = "Not Cleared"
-        if mod.Saved.Jimbo[PIndex].BossCleared == 2 then
+        if mod.Saved.BossCleared == 2 then
             RenderPos.X = RenderPos.X + 13
             BossProgress = "Cleared"
         end
@@ -342,6 +350,7 @@ function mod:HandBarRender(offset,_,Position,_,Player)
     end
     local PIndex = Player:GetData().TruePlayerIndex
 
+    --print(mod.Saved.Jimbo[PIndex])
     if mod.Saved.Jimbo[PIndex].FirstDeck and not Game:GetRoom():IsClear() then
         --HandsBar:SetFrame("Charge On", Frame)
         HandsBarFilling.Color:SetColorize(0.25,0.51,1,1)
@@ -392,7 +401,7 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.HandBarRender)
 local ScaleMult = 0.5
 ---@param Player EntityPlayer
 function mod:JimboHandRender(Player, Offset)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.Saved.Jimbo[0] then
         return
     end
     local PIndex = Player:GetData().TruePlayerIndex
@@ -532,7 +541,7 @@ function mod:JimboPackRender(_,_,_,_,Player)
 
     --base point, increased while rendering 
     local BaseRenderPos = Vector(PlayerPos.X - CardHUDWidth * mod.SelectionParams[PIndex].OptionsNum /2 - PACK_CARD_DISTANCE * (mod.SelectionParams[PIndex].OptionsNum - 1) /2,
-                                 PlayerPos.Y + 20)
+                                 PlayerPos.Y + 28)
     BaseRenderPos.X = BaseRenderPos.X + 6.5--makes it centered
 
     local RenderPos = BaseRenderPos + Vector.Zero
@@ -593,6 +602,7 @@ function mod:JimboPackRender(_,_,_,_,Player)
 
     end--end PURPOSES
 
+    RenderPos.Y = RenderPos.Y - 8 --adjusts the difference in pivots
     CardFrame.Scale = Vector.One
     CardFrame:SetFrame(HUD_FRAME.Skip)
     CardFrame:Render(RenderPos)
@@ -703,15 +713,13 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_RENDER, mod.JimboBarRender)
 
 
 function mod:DiscardSwoosh(Player)
-    
     local PIndex = Player:GetData().TruePlayerIndex
 
-    local BaseRenderOff = Vector(-3.5 *(mod.Saved.Jimbo[PIndex].HandSize-1), 13 )
+    local BaseRenderOff = Vector(-3.5 *(Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE)-1), 13 )
 
     for i,v in ipairs(mod.Saved.Jimbo[PIndex].CurrentHand) do
 
         mod.LastCardFullPoss[v] = BaseRenderOff --does a cool swoosh effect
-        
     end
 end
 

@@ -269,31 +269,18 @@ function mod:PlanetCards(card, Player,_)
     end
 
     local PIndex = Player:GetData().TruePlayerIndex
+    local Hand = card - mod.Planets.PLUTO + 1 --gets the equivalent handtype
+
+    mod.Saved.PlanetTypesUsed = mod.Saved.PlanetTypesUsed | (1 << Hand)
 
     if Player:GetPlayerType() == mod.Characters.JimboType then
 
-        local Value = card - mod.Planets.PLUTO + 1 --gets the equivalent card value
-
-        mod.Saved.Jimbo[PIndex].CardLevels[Value] = mod.Saved.Jimbo[PIndex].CardLevels[Value] + 1
-
-        local ValueString 
-        if Value == 11 then
-            ValueString = "J"
-        elseif Value == 12 then
-            ValueString = "Q"
-        elseif Value == 13 then
-            ValueString = "K"
-        elseif Value == 1 then
-            ValueString = "Ace"
-        else
-            ValueString = tostring(Value)
-        end
+        mod.Saved.CardLevels[Hand] = mod.Saved.CardLevels[Hand] + 1
 
         --PLACEHOLDER
-        mod:CreateBalatroEffect(Player, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, ValueString.." Up!")
+        mod:CreateBalatroEffect(Player, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, mod:CardValueToName(Hand, false, true).." Up!")
 
     elseif false then --TAINTED JIMBO
-        local Hand = card - mod.Planets.PLUTO + 1 --gets the equivalent handtype
 
         mod.Saved.Jimbo[PIndex].HandLevels[Hand] = mod.Saved.Jimbo[PIndex].HandLevels[Hand] + 1
         mod.Saved.Jimbo[PIndex].HandsStat[Hand] = mod.Saved.Jimbo[PIndex].HandsStat[Hand] + mod.HandUpgrades[Hand]
@@ -808,8 +795,6 @@ function mod:SpectralCards(card, Player)
             mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW, 
                                         mod.Sounds.MONEY, "+"..5*NumDestroyed.."$",mod.Spectrals.IMMOLATE)
 
-            Isaac.RunCallback("DECK_MODIFY", Player, -NumDestroyed)
-
         elseif card == mod.Spectrals.ANKH then
             
             local FilledSlots = {} --gets the slots filled with a joker
@@ -898,7 +883,7 @@ function mod:SpectralCards(card, Player)
 
         elseif card == mod.Spectrals.BLACK_HOLE then
             for i = 1, 13 do
-                mod.Saved.Jimbo[PIndex].CardLevels[i] = mod.Saved.Jimbo[PIndex].CardLevels[i] + 1
+                mod.Saved.CardLevels[i] = mod.Saved.CardLevels[i] + 1
             end
 
             

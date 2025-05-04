@@ -114,8 +114,14 @@ function mod:OnGameStart(Continued)
         mod.Saved.RunSkippedSpecials = 0
         mod.Saved.GlassBroken = 0
         mod.Saved.TarotsUsed = 0
+        mod.Saved.PlanetTypesUsed = 0
 
         mod.Saved.HasDebt = false
+
+        mod.Saved.CardLevels = {}
+        for i=1, 13 do
+            mod.Saved.CardLevels[i] = 0
+        end
 
         if mod:Contained(Challenges, Game.Challenge) then
             mod.Saved.Other.ShopEntered = true
@@ -127,6 +133,8 @@ function mod:OnGameStart(Continued)
     
     for _, player in ipairs(PlayerManager.GetPlayers()) do  --evaluates again for the mod's trinkets since closing the game
         --resets stuff
+        mod:InitJimboValues(player, false)
+
         if player:GetPlayerType() == mod.Characters.JimboType then
             mod:StatReset(player,true,true,false,true,true)
 
@@ -332,6 +340,13 @@ function mod:InitJimboValues(Player, Force)
         PIndex = Player:GetData().TruePlayerIndex
     end
 
+    --SFXManager():Play(SoundEffect.SOUND_MEGA_BLAST_START)
+
+    --for i=0, PIndex do
+        --Game:Spawn(EntityType.ENTITY_GAPER,0, Isaac.GetRandomPosition(), Vector.Zero, nil, 0, 1)
+    --end
+    --print(PIndex)
+
     mod.SelectionParams[PIndex].Frames = 0 -- in update frames
     mod.SelectionParams[PIndex].SelectedCards = {false,false,false,false,false}
     mod.SelectionParams[PIndex].Index = 1
@@ -343,7 +358,7 @@ function mod:InitJimboValues(Player, Force)
     mod.SelectionParams[PIndex].SelectionNum = 0 --how many things you chose
     mod.SelectionParams[PIndex].PlayerChoosing = 0 --the true player index of who is choosing
 
-
+    mod.Saved.Jimbo[PIndex] = {}
     mod.Saved.Jimbo[PIndex].FullDeck = {}
     local index = 1
     for i = 1, 4, 1 do --cycles between the suits
@@ -391,11 +406,6 @@ function mod:InitJimboValues(Player, Force)
 
     mod.Saved.Jimbo[PIndex].TrueDamageValue = 1 --used to surpass the usual 0.5 minimum damage cap
     mod.Saved.Jimbo[PIndex].TrueTearsValue = 1
-
-    mod.Saved.Jimbo[PIndex].CardLevels = {}
-    for i=1, 13 do
-        mod.Saved.Jimbo[PIndex].CardLevels[i] = 0
-    end
 
     --[[
         mod.Saved.Jimbo[PIndex].HandLevels = {}
@@ -469,7 +479,7 @@ function mod:InitJimboValues(Player, Force)
     mod.Saved.Jimbo[PIndex].LastCardUsed = nil --the last card a player used
 
 end
-mod:AddCallback(ModCallbacks.MC_PLAYER_INIT_POST_LEVEL_INIT_STATS, mod.InitJimboValues)
+mod:AddCallback(ModCallbacks.MC_PLAYER_INIT_PRE_LEVEL_INIT_STATS, mod.InitJimboValues)
 
 
 
@@ -499,5 +509,6 @@ local function ResetJimboValues()
 
         end
     end
+    mod.GameStarted = false --prevents errors when using luamod in the console
 end
-mod:AddCallback(ModCallbacks.MC_POST_MODS_LOADED, mod.SaveStorage)
+mod:AddCallback(ModCallbacks.MC_POST_MODS_LOADED, ResetJimboValues)

@@ -160,6 +160,18 @@
     <trinket cache="damage" gfx="the_order_trinket.png" name="The Order" description="Follow it!" customtags="!8 1 ?rare balatro mmult copy"/>
     <trinket cache="damage" gfx="the_tribe_trinket.png" name="The Tribe" description="Me and the gang" customtags="!8 1 ?rare balatro mmult copy"/>
 
+    <trinket cache="firedelay" gfx="stuntman_trinket.png" name="Stuntman" description="Gonna risk it all!" customtags="!8 1 ?rare balatro chips copy"/>
+    <trinket gfx="satellite_trinket.png" name="Satellite" description="Reach as high as you can" customtags="!7 0 ?uncommon balatro money copy"/>
+    <trinket cache="damage" gfx="shoot_the_moon_trinket.png" name="Shoot the Moon" description="All hearts are mine" customtags="!6 1 ?common balatro mmult copy"/>
+    <trinket cache="damage" gfx="driver_licence_trinket.png" name="Driver's License" description="Don't forget it!" customtags="!8 1 ?rare balatro mmult copy"/>
+    <trinket cache="damage" gfx="astronomer_trinket.png" name="Astronomer" description="The star of the show" customtags="!8 1 ?uncommon balatro mmult copy"/>
+    <trinket cache="damage" gfx="burnt_joker_trinket.png" name="Burnt Joker" description="Don't leave me here!" customtags="!8 1 ?rare balatro activate copy"/>
+    <trinket cache="damage" gfx="bootstraps_trinket.png" name="Bootstraps" description="Thigthen your boots!" customtags="!8 1 ?uncommon balatro mult copy"/>
+    <trinket cache="damage" gfx="canio_trinket.png" name="Canio" description="La commedia è finita!" customtags="!20 1 ?legendary balatro mmult copy"/>
+    <trinket cache="damage" gfx="triboulet_trinket.png" name="Triboulet" description="patrons de la folie, je demande à mourir de vieillesse" customtags="!20 1 ?legendary balatro mmult copy"/>
+    <trinket cache="damage" gfx="yorick_trinket.png" name="Yorick" description="Sir, this skull belonged to Yorick" customtags="!20 1 ?legendary balatro mmult copy"/>
+    <trinket gfx="chicot_trinket.png" name="Chicot" description="Oh, mon Dieu! an accident" customtags="!20 1 ?legendary balatro activate copy"/>
+    <trinket gfx="perkeo_trinket.png" name="Perkeo" description="Perchè no?" customtags="!20 1 ?legendary balatro activate copy"/>
 
 
     <active name="The hand" chargetype="special" maxcharges="0" quality="2" craftquality="2" gfx="the_hand_active.png" description="Need a hand?"/>

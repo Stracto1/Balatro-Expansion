@@ -406,13 +406,19 @@ mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT,mod.SetItemAsShop, PickupVarian
 ---@param Pickup EntityPickup
 function mod:EnableJokerAnimations(Pickup)
 
-    if not ItemsConfig:GetTrinket(Pickup.SubType):HasCustomTag("balatro") then
+    local Config = ItemsConfig:GetTrinket(Pickup.SubType)
+    if not Config:HasCustomTag("balatro") then
         return
     end
 
     --using this an,2 enables the various joker animations such as the wobble for legendaries 
+    local Tsprite = Pickup:GetSprite()
+    local InitialAnimation = Tsprite:GetAnimation()
 
-    Pickup:GetSprite():Load("gfx/005.350_trinket_custom.anm2", true)
+    Tsprite:Load("gfx/005.350_trinket_custom.anm2", false)
+    Tsprite:ReplaceSpritesheet(0,Config.GfxFileName, false)
+    Tsprite:ReplaceSpritesheet(2,Config.GfxFileName, true)
+    Tsprite:Play(InitialAnimation, true)
 
 end
 mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT,mod.EnableJokerAnimations, PickupVariant.PICKUP_TRINKET)
@@ -458,6 +464,28 @@ function mod:SetItemPrices(Variant,SubType,ShopID,Price)
 
     if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_STEAM_SALE) then
         Cost = Cost * 2 - 1 --nullifies the usual steam sale effect and subratcts 1 instead
+    end
+
+    for _,Player in ipairs(PlayerManager.GetPlayers()) do
+        if mod:JimboHasTrinket(Player, mod.Jokers.ASTRONOMER) then
+            if Variant == PickupVariant.PICKUP_COLLECTIBLE then
+                if ItemsConfig:GetCollectible(SubType):HasTags(ItemConfig.TAG_STARS) then
+                    Cost = 0
+                else
+                    break
+                end
+
+            elseif Variant == PickupVariant.PICKUP_TAROTCARD then
+                if (SubType > mod.Planets.PLUTO and SubType < mod.Planets.SUN)
+                    or SubType == mod.Packs.CELESTIAL then
+                    Cost = 0
+                else
+                    break
+                end
+            else
+                break
+            end
+        end
     end
 
 
@@ -1074,6 +1102,7 @@ function mod:JimboTakeDamage(Player,Amount,_,Source,_)
 
             local Tear = Player:FireTear(Player.Position, 10*Player.ShotSpeed * RandomDirection + Player:GetTearMovementInheritance(RandomDirection), true, true, true, Player)
             mod:AddCardTearFalgs(Tear, false, true)
+            Tear:GetData().WasDiscarded = true
 
             mod.Saved.Jimbo[PIndex].CurrentHand[i] = nil
         end
@@ -1489,6 +1518,7 @@ function mod:HandSizeCache(Player, Cache, Value)
 
     Value = Value + 2*#mod:GetJimboJokerIndex(Player, mod.Jokers.TROUBADOR)
 
+    Value = Value - 3*#mod:GetJimboJokerIndex(Player, mod.Jokers.STUNTMAN, true)
 
     for _, Index in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.TURTLE_BEAN)) do
         Value = Value + mod.Saved.Jimbo[PIndex].Progress.Inventory[Index]
@@ -2213,7 +2243,6 @@ function mod:UseSelection(Player)
 
             mod:DestroyCards(Player, selection, true)
 
-            Isaac.RunCallback("DECK_MODIFY", Player)
         elseif mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.STRENGTH then
             for i,v in ipairs(mod.SelectionParams[PIndex].SelectedCards) do
                 if v then

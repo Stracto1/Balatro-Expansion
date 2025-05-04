@@ -965,14 +965,17 @@ function mod:DestroyCards(Player, DeckIndexes, DoEffects)
         return false
     end)
 
+    local DestroyedParams = {}
+
     for _, Index in ipairs(DeckIndexes) do
         local CardParams = mod.Saved.Jimbo[PIndex].FullDeck[Index]
 
+        DestroyedParams[#DestroyedParams+1] = CardParams
+
         if mod:Contained(mod.Saved.Jimbo[PIndex].CurrentHand) and #mod.Saved.Jimbo[PIndex].CurrentHand > Player:GetCustomCacheValue("handsize") then
----@diagnostic disable-next-line: param-type-mismatch
+        ---@diagnostic disable-next-line: param-type-mismatch
             table.remove(mod.Saved.Jimbo[PIndex].CurrentHand, mod:GetValueIndex(mod.Saved.Jimbo[PIndex].CurrentHand, Index, true))
         end
-
 
         table.remove(mod.Saved.Jimbo[PIndex].FullDeck, Index)
         
@@ -981,7 +984,7 @@ function mod:DestroyCards(Player, DeckIndexes, DoEffects)
         end
     end
 
-    Isaac.RunCallback("DECK_MODIFY", Player, -#DeckIndexes)
+    Isaac.RunCallback("DECK_MODIFY", Player, -#DeckIndexes, DestroyedParams)
 end
 
 

@@ -156,6 +156,19 @@ Balatro_Expansion.Jokers.FAMILY = Isaac.GetTrinketIdByName("The Family")
 Balatro_Expansion.Jokers.ORDER = Isaac.GetTrinketIdByName("The Order")
 Balatro_Expansion.Jokers.TRIBE = Isaac.GetTrinketIdByName("The Tribe")
 
+Balatro_Expansion.Jokers.STUNTMAN = Isaac.GetTrinketIdByName("Stuntman")
+Balatro_Expansion.Jokers.SATELLITE = Isaac.GetTrinketIdByName("Satellite")
+Balatro_Expansion.Jokers.SHOOT_MOON = Isaac.GetTrinketIdByName("Shoot the Moon")
+Balatro_Expansion.Jokers.DRIVER_LICENSE = Isaac.GetTrinketIdByName("Driver2s Lincense")
+Balatro_Expansion.Jokers.ASTRONOMER = Isaac.GetTrinketIdByName("Astronomer")
+Balatro_Expansion.Jokers.BURNT_JOKER = Isaac.GetTrinketIdByName("Burnt Joker")
+Balatro_Expansion.Jokers.BOOTSTRAP = Isaac.GetTrinketIdByName("Bootstraps")
+Balatro_Expansion.Jokers.CANIO = Isaac.GetTrinketIdByName("Canio")
+Balatro_Expansion.Jokers.TRIBOULET = Isaac.GetTrinketIdByName("Triboulet")
+Balatro_Expansion.Jokers.YORICK = Isaac.GetTrinketIdByName("Yorick")
+Balatro_Expansion.Jokers.CHICOT = Isaac.GetTrinketIdByName("Chicot")
+Balatro_Expansion.Jokers.PERKEO = Isaac.GetTrinketIdByName("Perkeo")
+
 
 
 Balatro_Expansion.Trinkets = {} --rarities used for spawn weight and stuff
@@ -483,6 +496,7 @@ Balatro_Expansion.Saved.FloorSkippedSpecials = 0
 Balatro_Expansion.Saved.RunSkippedSpecials = 0
 Balatro_Expansion.Saved.GlassBroken = 0
 Balatro_Expansion.Saved.TarotsUsed = 0
+Balatro_Expansion.Saved.PlanetTypesUsed = 0
 
 
 -----------JIMBO-------------------
@@ -579,9 +593,9 @@ end
 
 Balatro_Expansion.Saved.Jimbo.FirstDeck = true
 
-Balatro_Expansion.Saved.Jimbo.CardLevels = {}
+Balatro_Expansion.Saved.CardLevels = {}
 for i=1, 13 do
-    Balatro_Expansion.Saved.Jimbo.CardLevels[i] = 0
+    Balatro_Expansion.Saved.CardLevels[i] = 0
 end
 
 --[[
