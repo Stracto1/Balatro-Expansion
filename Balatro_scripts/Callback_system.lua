@@ -150,7 +150,15 @@ function mod:OnGameStart(Continued)
 
     mod.GameStarted = true
 
+    --[[
+    for i, Joker in pairs(mod.Jokers) do
+        Isaac.CreateTimer(function ()
+            Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET, Isaac.GetRandomPosition(), Vector.Zero, nil, Joker, 1)
+        end, Counter, 1, false)
 
+        Counter = Counter + Counter2
+        Counter2 = math.max(Counter2 - 3, 3)
+    end]]
     --print(mod.Saved.ModConfig.ExtraReadability)
 
     --[[
@@ -228,6 +236,8 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED ,mod.OnGameStart)
                                         --btw putting IMPORTANT as the prioriry here makes it not happen
 
+--Counter = 60
+--Counter2 = 36
 
 ---@param trinket TrinketType
 function mod:TrinketPickup(_,trinket,_)
@@ -325,6 +335,12 @@ end
 
 function mod:InitJimboValues(Player, Force)
 
+    local PIndex = Player:GetData().TruePlayerIndex
+    if not PIndex then
+        PlayerIndexUpdate(Player)
+        PIndex = Player:GetData().TruePlayerIndex
+    end
+
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         mod.Saved.Jimbo[Player:GetData().TruePlayerIndex] = 0
         return
@@ -332,12 +348,6 @@ function mod:InitJimboValues(Player, Force)
 
     if mod.Saved.Jimbo[Player:GetData().TruePlayerIndex] and not Force then
         return
-    end
-
-    local PIndex = Player:GetData().TruePlayerIndex
-    if not PIndex then
-        PlayerIndexUpdate(Player)
-        PIndex = Player:GetData().TruePlayerIndex
     end
 
     --SFXManager():Play(SoundEffect.SOUND_MEGA_BLAST_START)

@@ -135,6 +135,7 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
                 RenderPos.Y = RenderPos.Y - 9*ScaleMult.Y
             end
             TrinketSprite:ReplaceSpritesheet(0, JokerConfig.GfxFileName, true)
+            TrinketSprite:ReplaceSpritesheet(2, JokerConfig.GfxFileName, true)
 
             if mod.Counters.Activated[i] then
                 --print(mod.Counters.Activated[i], i)

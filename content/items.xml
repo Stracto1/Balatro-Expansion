@@ -169,7 +169,7 @@
     <trinket cache="damage" gfx="bootstraps_trinket.png" name="Bootstraps" description="Thigthen your boots!" customtags="!8 1 ?uncommon balatro mult copy"/>
     <trinket cache="damage" gfx="canio_trinket.png" name="Canio" description="La commedia è finita!" customtags="!20 1 ?legendary balatro mmult copy"/>
     <trinket cache="damage" gfx="triboulet_trinket.png" name="Triboulet" description="patrons de la folie, je demande à mourir de vieillesse" customtags="!20 1 ?legendary balatro mmult copy"/>
-    <trinket cache="damage" gfx="yorick_trinket.png" name="Yorick" description="Sir, this skull belonged to Yorick" customtags="!20 1 ?legendary balatro mmult copy"/>
+    <trinket cache="damage" gfx="yorik_trinket.png" name="Yorick" description="Sir, this skull belonged to Yorick" customtags="!20 1 ?legendary balatro mmult copy"/>
     <trinket gfx="chicot_trinket.png" name="Chicot" description="Oh, mon Dieu! an accident" customtags="!20 1 ?legendary balatro activate copy"/>
     <trinket gfx="perkeo_trinket.png" name="Perkeo" description="Perchè no?" customtags="!20 1 ?legendary balatro activate copy"/>
 
@@ -210,6 +210,9 @@
     <passive name="Recyclomancy" customcache="discards" quality="3" craftquality="2" gfx="recyclomancy_voucher.png" description="Useless junk!" customtags="balatro" achievement="PermaLocked" tags="quest"/>
     
 
+
+    <passive name="Horsey" cache="familiars" quality="2" craftquality="2" gfx="horsey_item.png" description="I trust you!" achievement="HorseyUnlock" tags="offensive summonable monstermanual"/>
+    <passive name="Box of Crayons" quality="1" craftquality="1" gfx="box_of_crayons_item.png" description="So much fun!" achievement="CrayinsUnlock" tags="offensive"/>
 
 
 

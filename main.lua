@@ -9,6 +9,7 @@ Balatro_Expansion.Jokers = {}
 Balatro_Expansion.Jokers.JOKER = Isaac.GetTrinketIdByName("Joker")
 --print(Balatro_Expansion.Jokers.JOKER)
 
+do --all jokers enum
 Balatro_Expansion.Jokers.BULL = Isaac.GetTrinketIdByName("Bull")
 Balatro_Expansion.Jokers.INVISIBLE_JOKER = Isaac.GetTrinketIdByName("Invisible joker")
 Balatro_Expansion.Jokers.ABSTRACT_JOKER = Isaac.GetTrinketIdByName("Abstract joker")
@@ -159,7 +160,7 @@ Balatro_Expansion.Jokers.TRIBE = Isaac.GetTrinketIdByName("The Tribe")
 Balatro_Expansion.Jokers.STUNTMAN = Isaac.GetTrinketIdByName("Stuntman")
 Balatro_Expansion.Jokers.SATELLITE = Isaac.GetTrinketIdByName("Satellite")
 Balatro_Expansion.Jokers.SHOOT_MOON = Isaac.GetTrinketIdByName("Shoot the Moon")
-Balatro_Expansion.Jokers.DRIVER_LICENSE = Isaac.GetTrinketIdByName("Driver2s Lincense")
+Balatro_Expansion.Jokers.DRIVER_LICENSE = Isaac.GetTrinketIdByName("Driver's License")
 Balatro_Expansion.Jokers.ASTRONOMER = Isaac.GetTrinketIdByName("Astronomer")
 Balatro_Expansion.Jokers.BURNT_JOKER = Isaac.GetTrinketIdByName("Burnt Joker")
 Balatro_Expansion.Jokers.BOOTSTRAP = Isaac.GetTrinketIdByName("Bootstraps")
@@ -168,7 +169,7 @@ Balatro_Expansion.Jokers.TRIBOULET = Isaac.GetTrinketIdByName("Triboulet")
 Balatro_Expansion.Jokers.YORICK = Isaac.GetTrinketIdByName("Yorick")
 Balatro_Expansion.Jokers.CHICOT = Isaac.GetTrinketIdByName("Chicot")
 Balatro_Expansion.Jokers.PERKEO = Isaac.GetTrinketIdByName("Perkeo")
-
+end
 
 
 Balatro_Expansion.Trinkets = {} --rarities used for spawn weight and stuff
@@ -184,6 +185,16 @@ Balatro_Expansion.JokerTypes.XMULT = "mmult"
 Balatro_Expansion.JokerTypes.CHIPS = "chips"
 Balatro_Expansion.JokerTypes.EFFECT = "activate"
 
+Balatro_Expansion.Collectibles = {} --rarities used for spawn weight and stuff
+Balatro_Expansion.Collectibles.HORSEY = Isaac.GetItemIdByName("Horsey")
+Balatro_Expansion.Collectibles.CRAYONS = Isaac.GetItemIdByName("Box of Crayons")
+
+Balatro_Expansion.Familiars = {}
+Balatro_Expansion.Familiars.HORSEY = Isaac.GetEntityVariantByName("Horsey")
+
+Balatro_Expansion.Effects = {}
+Balatro_Expansion.Effects.CRAYON_POWDER = Isaac.GetEntityVariantByName("Crayon Powder")
+
 for i, Joker in pairs(Balatro_Expansion.Jokers) do
     local Rarity = string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[3],"%?","")
 
@@ -192,7 +203,7 @@ end
 
 
 --------------------------------
-CollectibleType.COLLECTIBLE_THE_HAND = Isaac.GetItemIdByName("The hand")
+--CollectibleType.COLLECTIBLE_THE_HAND = Isaac.GetItemIdByName("The hand")
 ----------------------------------
 Card.CARD_PACK_STANDARD = Isaac.GetCardIdByName("Standard_Pack")
 Card.CARD_PACK_BUFFON =  Isaac.GetCardIdByName("Buffon_Pack")
@@ -731,6 +742,9 @@ Balatro_Expansion.SelectionParams.Purposes.BuffonPack = 27
 Balatro_Expansion.SelectionParams.Purposes.SELLING = 28
 Balatro_Expansion.SelectionParams.Purposes.SMELTER = 29
 Balatro_Expansion.SelectionParams.Purposes.MegaFlag = 128 --applied on top of the packs purposes to say it's a double choice
+
+
+
 ----------------------------- gaw damn those were a lot of variables
 
 
@@ -830,6 +844,8 @@ include("Balatro_scripts.characters.jimbo.DebtManager")
 include("Balatro_scripts.Custom_Cards") --jimbo cards effects
 include("Balatro_scripts.Synergies")
 
+
+include("Balatro_scripts.Collectibles.Unlockable Items")
 --include("Balatro_scripts.Trinket_Callbacks")
 
 ---------------------CACHE EVALUATION FUNCTIONS---------------------

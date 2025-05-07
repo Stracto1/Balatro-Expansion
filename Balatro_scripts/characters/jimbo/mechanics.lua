@@ -1330,6 +1330,10 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.JimboStatCalculator)
 ---@param Player EntityPlayer
 function mod:StatReset(Player, Damage, Tears, Evaluate, Jokers, Basic)
 
+    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+        return
+    end
+
     local PIndex = Player:GetData().TruePlayerIndex
 
     if Damage then
@@ -1461,7 +1465,6 @@ function mod:PlayCDCache(Player, Cache, Value)
         Value = Value * (1 + 0.5 * Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_MONSTROS_LUNG)^0.5)
     end
 
-    print(Value)
     Value = math.floor(Value)
 
     return Value

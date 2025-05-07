@@ -59,14 +59,23 @@ end
 ---@param RNG RNG
 ---@param Phantom boolean?
 function mod:GetRandom(Table, RNG, Phantom)
+
+    if not next(Table) then
+        return --don't bother if table is empty
+    end
+
     local Possibilities = {}
     for _,v in pairs(Table) do
         table.insert(Possibilities, v)
     end
-    if Phantom then
-        return Possibilities[RNG:PhantomInt(#Possibilities) + 1] -- +1 is to set it from 1 to #possibilities (sill no PhantomInt(min, max))
+    if RNG then 
+        if Phantom then
+            return Possibilities[RNG:PhantomInt(#Possibilities) + 1] -- +1 is to set it from 1 to #possibilities (sill no PhantomInt(min, max))
+        else
+            return Possibilities[RNG:RandomInt(1,#Possibilities)]
+        end
     else
-        return Possibilities[RNG:RandomInt(1,#Possibilities)]
+        return Possibilities[math.random(1,#Possibilities)]
     end
 end
 

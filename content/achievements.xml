@@ -2,4 +2,6 @@
 
     <achievement name="PermaLocked" hidden="true"/>
 
+    <achievement name="HorseyUnlock"/>
+
 </achievements>

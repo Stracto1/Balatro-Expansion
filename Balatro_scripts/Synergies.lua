@@ -232,16 +232,21 @@ mod:AddCallback(ModCallbacks.MC_POST_TEAR_UPDATE, mod.SpadeOpenDoor, mod.SUIT_TE
 function mod:OnCardDeath(Tear)
 
     local Data = Tear:GetData()
-    local Player = Tear.Parent:ToPlayer()
 
     --print(Tear.HomingFriction)
 
-    if Player:GetPlayerType() ~= mod.Characters.JimboType
-       or Tear.Variant ~= mod.CARD_TEAR_VARIANT
+    if Tear.Variant ~= mod.CARD_TEAR_VARIANT
        and not mod:Contained(mod.SUIT_TEAR_VARIANTS, Tear.Variant) then
 
         return
     end
+
+    local Player = Tear.Parent:ToPlayer()
+
+    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+        return
+    end
+
 
     if Player:HasCollectible(CollectibleType.COLLECTIBLE_C_SECTION) then
 
