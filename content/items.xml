@@ -10,168 +10,168 @@
 <!--the extra "!" and "?" are to force a certain order when using GetCustomTags() since apparently it sorts them alfabetically-->
 
 <items gfxroot="gfx/items/" version="1">
-    <trinket gfx="invisiblejoker_trinket.png" name="Invisible joker" description="Now you see me, now you don't" customtags="!7 0 ?rare balatro activate value"/>
-    <trinket gfx="rocket_trinket.png" name="Rocket" description="Blast off!" customtags="!6 2 ?uncommon balatro activate value money"/>
-    <trinket gfx="goldenjoker_trinket.png" name="Golden joker" description="Ooh, so shiny!" customtags="!6 0 ?common balatro activate money copy"/>
-    <trinket gfx="hallucination_trinket.png" name="Hallucination" description="Is it real?" customtags="!4 0 ?common balatro activate copy"/>
-    <trinket gfx="riffraff_trinket.png" name="Riff-raff" description="Better than nothing..." customtags="!6 0 ?common balatro activate copy"/>
-    <trinket gfx="vagabond_trinket.png" name="Vagabond" description="He lives under the Pontos" customtags="!8 0 ?rare balatro activate greedchange copy"/>
-    <trinket gfx="blueprint_trinket.png" name="Blueprint" description="Your latest project" customtags="!10 0 ?rare balatro activate value "/>
-    <trinket gfx="brainstorm_trinket.png" name="Brainstorm" description="Your very first idea" customtags="!10 0 ?rare balatro activate value "/>
-    <trinket gfx="smearedjoker_trinket.png" name="Smeared joker" description="Oops, my bad" customtags="!7 0 ?uncommon balatro activate "/>
-    <trinket gfx="mrbones_trinket.png" name="Mr. Bones" description="Try again..." customtags="!5 0 ?uncommon balatro activate revive chancerevive "/>
-    <trinket gfx="roughgem_trinket.png" name="Rough gem" description="Who doesn't want one?" customtags="!7 0 ?uncommon balatro activate money greedchange copy"/>
-    <trinket gfx="cartomancer_trinket.png" name="Cartomancer" description="Pick a card" customtags="!6 0 ?uncommon balatro activate copy"/>
-    <trinket gfx="dna_trinket.png" name="Dna" description="It duplicates" customtags="!8 0 ?rare balatro activate copy"/>
-    <trinket gfx="egg_trinket.png" name="Egg" description="Don't drop it!" customtags="!5 2 ?common balatro money value"/>
-    <trinket gfx="delayedgretification_trinket.png" name="Delayed gratification" description="play good, get rewards" customtags="!4 0 ?common balatro activate money greedchange "/>
+    <trinket gfx="invisiblejoker_trinket.png" name="Invisible joker" description="Now you see me, now you don't" customtags="!7 0 ?rare balatro activate value" achievement="PermaLocked"/>
+    <trinket gfx="rocket_trinket.png" name="Rocket" description="Blast off!" customtags="!6 2 ?uncommon balatro activate value money" achievement="PermaLocked"/>
+    <trinket gfx="goldenjoker_trinket.png" name="Golden joker" description="Ooh, so shiny!" customtags="!6 0 ?common balatro activate money copy" achievement="PermaLocked"/>
+    <trinket gfx="hallucination_trinket.png" name="Hallucination" description="Is it real?" customtags="!4 0 ?common balatro activate copy" achievement="PermaLocked"/>
+    <trinket gfx="riffraff_trinket.png" name="Riff-raff" description="Better than nothing..." customtags="!6 0 ?common balatro activate copy" achievement="PermaLocked"/>
+    <trinket gfx="vagabond_trinket.png" name="Vagabond" description="He lives under the Pontos" customtags="!8 0 ?rare balatro activate greedchange copy" achievement="PermaLocked"/>
+    <trinket gfx="blueprint_trinket.png" name="Blueprint" description="Your latest project" customtags="!10 0 ?rare balatro activate value " achievement="PermaLocked"/>
+    <trinket gfx="brainstorm_trinket.png" name="Brainstorm" description="Your very first idea" customtags="!10 0 ?rare balatro activate value " achievement="PermaLocked"/>
+    <trinket gfx="smearedjoker_trinket.png" name="Smeared joker" description="Oops, my bad" customtags="!7 0 ?uncommon balatro activate " achievement="PermaLocked"/>
+    <trinket gfx="mrbones_trinket.png" name="Mr. Bones" description="Try again..." customtags="!5 0 ?uncommon balatro activate revive chancerevive " achievement="PermaLocked"/>
+    <trinket gfx="roughgem_trinket.png" name="Rough gem" description="Who doesn't want one?" customtags="!7 0 ?uncommon balatro activate money greedchange copy" achievement="PermaLocked"/>
+    <trinket gfx="cartomancer_trinket.png" name="Cartomancer" description="Pick a card" customtags="!6 0 ?uncommon balatro activate copy" achievement="PermaLocked"/>
+    <trinket gfx="dna_trinket.png" name="Dna" description="It duplicates" customtags="!8 0 ?rare balatro activate copy" achievement="PermaLocked"/>
+    <trinket gfx="egg_trinket.png" name="Egg" description="Don't drop it!" customtags="!5 2 ?common balatro money value" achievement="PermaLocked"/>
+    <trinket gfx="delayedgretification_trinket.png" name="Delayed gratification" description="play good, get rewards" customtags="!4 0 ?common balatro activate money greedchange " achievement="PermaLocked"/>
 
-    <trinket cache="flying" gfx="cloudnine_trinket.png" name="Cloud 9" description="Feels floaty... Sometimes" customtags="!7 0 ?common balatro activate value "/>
-    <trinket cache="damage" gfx="joker_trinket.png" name="Joker" description="It's just a classic" customtags="!2 0 ?common balatro mult copy"/>
-    <trinket cache="firedelay" gfx="bull_trinket.png" name="Bull" description="Let's get in the market!" customtags="!6 0 ?uncommon balatro chips copy"/>
-    <trinket cache="damage" gfx="abstractjoker_trinket.png" name="Abstract joker" description="Such a piece of art" customtags="!4 0 ?common balatro mult copy"/>
-    <trinket cache="damage" gfx="misprint_trinket.png" name="Misprint" description="It jussic's stcla a" customtags="!4 0 ?common balatro mult value copy"/>
-    <trinket cache="damage" gfx="jokerstencil_trinket.png" name="Joker stencil" description="Keep it hollow" customtags="!8 0 ?uncommon balatro mmult value copy"/>
-    <trinket cache="firedelay" gfx="stonejoker_trinket.png" name="Stone joker" description="Rock the rocks" customtags="!6 0 ?uncommon balatro chips value copy"/>
-    <trinket cache="firedelay" gfx="icecream_trinket.png" name="Ice cream" description="Enjoy it until it lasts" customtags="!5 4 ?common balatro chips value copy"/>
-    <trinket cache="damage" gfx="popcorn_trinket.png" name="Popcorn" description="It's never enough" customtags="!5 1 ?common balatro mult value copy" />
-    <trinket cache="damage" gfx="ramen_trinket.png" name="Ramen" description="Good but make it last" customtags="!6 1.5 ?uncommon balatro mmult value copy"/>
-    <trinket cache="damage" gfx="evensteven_trinket.png" name="Even steven" description="Even he dislikes you" customtags="!5 0 ?common balatro mult copy"/>
-    <trinket cache="firedelay" gfx="oddtodd_trinket.png" name="Odd todd" description="what an odd character" customtags="!4 0 ?common balatro chips copy"/>
-    <trinket cache="damage" gfx="greenjoker_trinket.png" name="Green joker" description="The classic... but green" customtags="!4 0 ?common balatro mult value copy"/>
-    <trinket cache="damage" gfx="redcard_trinket.png" name="Red card" description="Stop right there!" customtags="!5 0 ?common balatro mult value copy"/>
-    <trinket cache="damage" gfx="fortuneteller_trinket.png" name="Fortune Teller" description="Your future is in the cards" customtags="!6 0 ?common balatro mult value copy"/>
-    <trinket cache="damage" gfx="madness_trinket.png" name="Madness" description="Embrace your true self" customtags="!7 1 ?uncommon balatro mmult value copy"/>
-    <trinket cache="damage" gfx="agateonyx_trinket.png" name="Onyx agate" description="What's this?" customtags="!7 0 ?uncommon balatro mult copy"/>
-    <trinket cache="firedelay" gfx="arrowhead_trinket.png" name="Arrowhead" description="Where's the rest?" customtags="!7 0 ?uncommon balatro chips copy"/>
-    <trinket cache="damage" gfx="bloodstone_trinket.png" name="Bloodstone" description="How did it end up here?" customtags="!7 1 ?uncommon balatro mmult copy"/>
-    <trinket cache="damage" gfx="grosmichael_trinket.png" name="Gros Michel" description="Please don't go..." customtags="!5 0 ?common balatro mult copy"/>
-    <trinket cache="damage" gfx="cavendish_trinket.png" name="Cavendish" description="Better than michel" customtags="!4 0 ?common balatro mmult copy"/>
-    <trinket cache="damage" gfx="flashcard_trinket.png" name="Flash card" description="Learn you ABCs!" customtags="!5 0 ?uncommon balatro mult value copy"/>
-    <trinket cache="damage" gfx="swashbuckler_trinket.png" name="Swashbuckler" description="Spending's power" customtags="!4 0 ?common balatro mult value copy"/>
-    <trinket cache="damage" gfx="sacrificialdagger_trinket.png" name="Cerimonial dagger" description="Give to gain" customtags="!6 0 ?uncommon balatro mult value copy"/>
-    <trinket cache="damage" gfx="loyaltycard_trinket.png" name="Loyalty card" description="Good prize once every while" customtags="!5 5 ?uncommon balatro mmult value greedchange copy"/>
-    <trinket cache="damage" gfx="supernova_trinket.png" name="Supernova" description="Let it grow..." customtags="!5 0 ?common balatro mult copy"/>
+    <trinket cache="flying" gfx="cloudnine_trinket.png" name="Cloud 9" description="Feels floaty... Sometimes" customtags="!7 0 ?common balatro activate value " achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="joker_trinket.png" name="Joker" description="It's just a classic" customtags="!2 0 ?common balatro mult copy" achievement="PermaLocked"/>
+    <trinket cache="firedelay" gfx="bull_trinket.png" name="Bull" description="Let's get in the market!" customtags="!6 0 ?uncommon balatro chips copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="abstractjoker_trinket.png" name="Abstract joker" description="Such a piece of art" customtags="!4 0 ?common balatro mult copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="misprint_trinket.png" name="Misprint" description="It jussic's stcla a" customtags="!4 0 ?common balatro mult value copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="jokerstencil_trinket.png" name="Joker stencil" description="Keep it hollow" customtags="!8 0 ?uncommon balatro mmult value copy" achievement="PermaLocked"/>
+    <trinket cache="firedelay" gfx="stonejoker_trinket.png" name="Stone joker" description="Rock the rocks" customtags="!6 0 ?uncommon balatro chips value copy" achievement="PermaLocked"/>
+    <trinket cache="firedelay" gfx="icecream_trinket.png" name="Ice cream" description="Enjoy it until it lasts" customtags="!5 4 ?common balatro chips value copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="popcorn_trinket.png" name="Popcorn" description="It's never enough" customtags="!5 1 ?common balatro mult value copy"  achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="ramen_trinket.png" name="Ramen" description="Good but make it last" customtags="!6 1.5 ?uncommon balatro mmult value copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="evensteven_trinket.png" name="Even steven" description="Even he dislikes you" customtags="!5 0 ?common balatro mult copy" achievement="PermaLocked"/>
+    <trinket cache="firedelay" gfx="oddtodd_trinket.png" name="Odd todd" description="what an odd character" customtags="!4 0 ?common balatro chips copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="greenjoker_trinket.png" name="Green joker" description="The classic... but green" customtags="!4 0 ?common balatro mult value copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="redcard_trinket.png" name="Red card" description="Stop right there!" customtags="!5 0 ?common balatro mult value copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="fortuneteller_trinket.png" name="Fortune Teller" description="Your future is in the cards" customtags="!6 0 ?common balatro mult value copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="madness_trinket.png" name="Madness" description="Embrace your true self" customtags="!7 1 ?uncommon balatro mmult value copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="agateonyx_trinket.png" name="Onyx agate" description="What's this?" customtags="!7 0 ?uncommon balatro mult copy" achievement="PermaLocked"/>
+    <trinket cache="firedelay" gfx="arrowhead_trinket.png" name="Arrowhead" description="Where's the rest?" customtags="!7 0 ?uncommon balatro chips copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="bloodstone_trinket.png" name="Bloodstone" description="How did it end up here?" customtags="!7 1 ?uncommon balatro mmult copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="grosmichael_trinket.png" name="Gros Michel" description="Please don't go..." customtags="!5 0 ?common balatro mult copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="cavendish_trinket.png" name="Cavendish" description="Better than michel" customtags="!4 0 ?common balatro mmult copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="flashcard_trinket.png" name="Flash card" description="Learn you ABCs!" customtags="!5 0 ?uncommon balatro mult value copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="swashbuckler_trinket.png" name="Swashbuckler" description="Spending's power" customtags="!4 0 ?common balatro mult value copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="sacrificialdagger_trinket.png" name="Cerimonial dagger" description="Give to gain" customtags="!6 0 ?uncommon balatro mult value copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="loyaltycard_trinket.png" name="Loyalty card" description="Good prize once every while" customtags="!5 5 ?uncommon balatro mmult value greedchange copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="supernova_trinket.png" name="Supernova" description="Let it grow..." customtags="!5 0 ?common balatro mult copy" achievement="PermaLocked"/>
     
-    <trinket cache="firedelay" gfx="sly_joker_trinket.png" name="Sly Joker" description="He's sly" customtags="!3 0 ?common balatro chips copy"/>
-    <trinket cache="firedelay" gfx="wily_joker_trinket.png" name="Wily Joker" description="He's wily" customtags="!4 0 ?common balatro chips copy"/>
-    <trinket cache="firedelay" gfx="clever_joker_trinket.png" name="Clever Joker" description="He's clever" customtags="!4 0 ?common balatro chips copy"/>
-    <trinket cache="firedelay" gfx="devious_joker_trinket.png" name="Devious Joker" description="He's devious" customtags="!4 0 ?common balatro chips copy"/>
-    <trinket cache="firedelay" gfx="crafty_joker_trinket.png" name="Crafty Joker" description="He's crafy" customtags="!4 0 ?common balatro chips copy"/>
-    <trinket cache="damage" gfx="jolly_joker_trinket.png" name="Jolly Joker" description="He's jolly" customtags="!3 0 ?common balatro mult copy"/>
-    <trinket cache="damage" gfx="zany_joker_trinket.png" name="Zany Joker" description="He's zany" customtags="!4 0 ?common balatro mult copy"/>
-    <trinket cache="damage" gfx="mad_joker_trinket.png" name="Mad Joker" description="He's mad" customtags="!4 0 ?common balatro mult copy"/>
-    <trinket cache="damage" gfx="crazy_joker_trinket.png" name="Crazy Joker" description="He's crazy" customtags="!4 0 ?common balatro mult copy"/>
-    <trinket cache="damage" gfx="droll_joker_trinket.png" name="Droll Joker" description="He's droll" customtags="!4 0 ?common balatro mult copy"/>
+    <trinket cache="firedelay" gfx="sly_joker_trinket.png" name="Sly Joker" description="He's sly" customtags="!3 0 ?common balatro chips copy" achievement="PermaLocked"/>
+    <trinket cache="firedelay" gfx="wily_joker_trinket.png" name="Wily Joker" description="He's wily" customtags="!4 0 ?common balatro chips copy" achievement="PermaLocked"/>
+    <trinket cache="firedelay" gfx="clever_joker_trinket.png" name="Clever Joker" description="He's clever" customtags="!4 0 ?common balatro chips copy" achievement="PermaLocked"/>
+    <trinket cache="firedelay" gfx="devious_joker_trinket.png" name="Devious Joker" description="He's devious" customtags="!4 0 ?common balatro chips copy" achievement="PermaLocked"/>
+    <trinket cache="firedelay" gfx="crafty_joker_trinket.png" name="Crafty Joker" description="He's crafy" customtags="!4 0 ?common balatro chips copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="jolly_joker_trinket.png" name="Jolly Joker" description="He's jolly" customtags="!3 0 ?common balatro mult copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="zany_joker_trinket.png" name="Zany Joker" description="He's zany" customtags="!4 0 ?common balatro mult copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="mad_joker_trinket.png" name="Mad Joker" description="He's mad" customtags="!4 0 ?common balatro mult copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="crazy_joker_trinket.png" name="Crazy Joker" description="He's crazy" customtags="!4 0 ?common balatro mult copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="droll_joker_trinket.png" name="Droll Joker" description="He's droll" customtags="!4 0 ?common balatro mult copy" achievement="PermaLocked"/>
     
-    <trinket gfx="mime_trinket.png" name="Mime" description="Oh no he's trapped!" customtags="!5 0 ?uncommon balatro activate copy"/>
-    <trinket gfx="four_fingers_trinket.png" name="Four Fingers" description="Gotcha finger!" customtags="!7 1 ?uncommon balatro activate copy"/>
-    <trinket cache="damage" gfx="lustyy_joker_trinket.png" name="Lusty Joker" description="He LOVES you!" customtags="!5 0 ?common balatro mult value copy"/>
-    <trinket cache="damage" gfx="wrathful_joker_trinket.png" name="Wrathful Joker" description="He HATES you!" customtags="!5 0 ?common balatro mult value copy"/>
-    <trinket cache="damage" gfx="greedy_joker_trinkett.png" name="Greedy Joker" description="He ROBS you!" customtags="!5 0 ?common balatro mult value copy"/>
-    <trinket cache="damage" gfx="gluttonous_joker_trinket.png" name="Gluttonous Joker" description="He EATS you!" customtags="!5 0 ?common balatro mult value copy"/>
-    <trinket gfx="merry_andy_trinket.png" name="Merry Andy" description="Merry Chris... wait what's Andy?" customtags="!7 0 ?common balatro activate"/>
-    <trinket cache="damage" gfx="half_joker_trinket.png" name="Half Joker" description="It's just" customtags="!5 0 ?common balatro mult copy"/>
-    <trinket gfx="credit_card_trinket.png" name="Credit Card" description="Shopping spree!" customtags="!2 0 ?common balatro activate"/>
+    <trinket gfx="mime_trinket.png" name="Mime" description="Oh no he's trapped!" customtags="!5 0 ?uncommon balatro activate copy" achievement="PermaLocked"/>
+    <trinket gfx="four_fingers_trinket.png" name="Four Fingers" description="Gotcha finger!" customtags="!7 1 ?uncommon balatro activate copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="lustyy_joker_trinket.png" name="Lusty Joker" description="He LOVES you!" customtags="!5 0 ?common balatro mult value copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="wrathful_joker_trinket.png" name="Wrathful Joker" description="He HATES you!" customtags="!5 0 ?common balatro mult value copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="greedy_joker_trinkett.png" name="Greedy Joker" description="He ROBS you!" customtags="!5 0 ?common balatro mult value copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="gluttonous_joker_trinket.png" name="Gluttonous Joker" description="He EATS you!" customtags="!5 0 ?common balatro mult value copy" achievement="PermaLocked"/>
+    <trinket gfx="merry_andy_trinket.png" name="Merry Andy" description="Merry Chris... wait what's Andy?" customtags="!7 0 ?common balatro activate" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="half_joker_trinket.png" name="Half Joker" description="It's just" customtags="!5 0 ?common balatro mult copy" achievement="PermaLocked"/>
+    <trinket gfx="credit_card_trinket.png" name="Credit Card" description="Shopping spree!" customtags="!2 0 ?common balatro activate" achievement="PermaLocked"/>
 
-    <trinket cache="firedelay" gfx="banner_trinket.png" name="Banner" description="Be proud!" customtags="!5 0 ?common balatro chips copy"/>
-    <trinket cache="damage" gfx="mystic_summit_trinket.png" name="Mystic Summit" description="May your fatigue be rewarded" customtags="!5 0 ?common balatro mult copy"/>
-    <trinket gfx="marble_joker_trinket.png" name="Marble Joker" description="Silky smooth" customtags="!6 0 ?uncommon balatro activate copy"/>
-    <trinket gfx="8_ball_trinket.png" name="8 Ball" description="Feels magical" customtags="!5 0 ?uncommon balatro activate copy"/>
-    <trinket gfx="dusk_trinket.png" name="Dusk" description="At last..." customtags="!5 0 ?uncommon balatro activate copy"/>
-    <trinket cache="damage" gfx="raised_fist_trinket.png" name="Raised Fist" description="Follow him!" customtags="!5 0 ?uncommon balatro mult value copy"/>
-    <trinket gfx="caos_the_clown_trinket.png" name="Chaos the Clown" description="Hacky discounts" customtags="!4 0 ?uncommon balatro activate"/>
-    <trinket cache="damage" gfx="fibonacci_trinket.png" name="Fibonacci" description="Fibonacci's currrrve!" customtags="!8 0 ?uncommon balatro mult value copy"/>
-    <trinket cache="damage" gfx="steel_joker_trinket.png" name="Steel Joker" description="Sharp hedged" customtags="!7 1 ?uncommon balatro mmult value copy"/>
-    <trinket cache="firedelay" gfx="scary_face_trinket.png" name="Scary Face" description="BOO!" customtags="!4 0 ?common balatro chips value copy"/>
-    <trinket gfx="hack_trinket.png" name="Hack" description="Why did the chicken cross the road?" customtags="!6 0 ?uncommon balatro activate copy"/>
-    <trinket gfx="pareidolia_trinket.png" name="Pareidolia" description="Faces everywhere!" customtags="!5 0 ?uncommon balatro activate"/>
+    <trinket cache="firedelay" gfx="banner_trinket.png" name="Banner" description="Be proud!" customtags="!5 0 ?common balatro chips copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="mystic_summit_trinket.png" name="Mystic Summit" description="May your fatigue be rewarded" customtags="!5 0 ?common balatro mult copy" achievement="PermaLocked"/>
+    <trinket gfx="marble_joker_trinket.png" name="Marble Joker" description="Silky smooth" customtags="!6 0 ?uncommon balatro activate copy" achievement="PermaLocked"/>
+    <trinket gfx="8_ball_trinket.png" name="8 Ball" description="Feels magical" customtags="!5 0 ?uncommon balatro activate copy" achievement="PermaLocked"/>
+    <trinket gfx="dusk_trinket.png" name="Dusk" description="At last..." customtags="!5 0 ?uncommon balatro activate copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="raised_fist_trinket.png" name="Raised Fist" description="Follow him!" customtags="!5 0 ?uncommon balatro mult value copy" achievement="PermaLocked"/>
+    <trinket gfx="caos_the_clown_trinket.png" name="Chaos the Clown" description="Hacky discounts" customtags="!4 0 ?uncommon balatro activate" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="fibonacci_trinket.png" name="Fibonacci" description="Fibonacci's currrrve!" customtags="!8 0 ?uncommon balatro mult value copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="steel_joker_trinket.png" name="Steel Joker" description="Sharp hedged" customtags="!7 1 ?uncommon balatro mmult value copy" achievement="PermaLocked"/>
+    <trinket cache="firedelay" gfx="scary_face_trinket.png" name="Scary Face" description="BOO!" customtags="!4 0 ?common balatro chips value copy" achievement="PermaLocked"/>
+    <trinket gfx="hack_trinket.png" name="Hack" description="Why did the chicken cross the road?" customtags="!6 0 ?uncommon balatro activate copy" achievement="PermaLocked"/>
+    <trinket gfx="pareidolia_trinket.png" name="Pareidolia" description="Faces everywhere!" customtags="!5 0 ?uncommon balatro activate" achievement="PermaLocked"/>
 
-    <trinket cache="firedelay damage" gfx="scholar_trinket.png" name="Scholar" description="Just put the fries in the bag" customtags="!4 0 ?common balatro chips mult value copy"/>
-    <trinket gfx="business_card_trinket.png" name="Business Card" description="Call me!" customtags="!4 0 ?common balatro money copy"/>
-    <trinket gfx="ride_the_bus_trinket.png" name="Ride the Bus" description="Always late..." customtags="!6 0 ?common balatro mult value copy"/>
-    <trinket gfx="space_joker_trinket.png" name="Space Joker" description="Wait, it's all earth?" customtags="!5 0 ?uncommon balatro chips copy"/>
-    <trinket gfx="burglar_trinket.png" customcache="hands" name="Burglar" description="All mine!" customtags="!6 0 ?uncommon balatro activate"/>
-    <trinket gfx="blackboard_trinket.png" name="Blackboard" description="PLACEHOLDER" customtags="!6 1 ?uncommon balatro mmult copy"/>
-    <trinket cache="firedelay" gfx="runner_trinket.png" name="Runner" description="Gotta stay fit" customtags="!5 0 ?common balatro chips value copy"/>
-    <trinket gfx="splash_trinket.png" name="Splash" description="But nothing happened" customtags="!3 0 ?common balatro activate copy"/>
-    <trinket cache="firedelay" gfx="blue_joker_trinket.png" name="Blue Joker" description="Not so classic, and blue" customtags="!5 0 ?common balatro chips value copy"/>
-    <trinket gfx="sixth_sense_trinket.png" name="Sixth Sense" description="I feel it in my gut" customtags="!6 0 ?uncommon balatro activate value"/>
-    <trinket cache="damage" gfx="constellation_trinket.png" name="Constellation" description="A celstial drawing" customtags="!6 1 ?uncommon balatro mmult value copy"/>
-    <trinket gfx="hiker_trinket.png" name="Hiker" description="Just a hobby" customtags="!5 0 ?uncommon balatro chips copy"/>
-    <trinket gfx="faceless_joker_trinket.png" name="Faceless Joker" description="Never faces any problem" customtags="!4 0 ?common balatro money copy"/>
-    <trinket gfx="superposition_trinket.png" name="Superposition" description="Make up your mind" customtags="!4 0 ?common balatro activate copy"/>
-    <trinket gfx="to_do_list_trinket.png" name="To Do List" description="Never-ending list" customtags="!4 0 ?common balatro money value copy"/>
+    <trinket cache="firedelay damage" gfx="scholar_trinket.png" name="Scholar" description="Just put the fries in the bag" customtags="!4 0 ?common balatro chips mult value copy" achievement="PermaLocked"/>
+    <trinket gfx="business_card_trinket.png" name="Business Card" description="Call me!" customtags="!4 0 ?common balatro money copy" achievement="PermaLocked"/>
+    <trinket gfx="ride_the_bus_trinket.png" name="Ride the Bus" description="Always late..." customtags="!6 0 ?common balatro mult value copy" achievement="PermaLocked"/>
+    <trinket gfx="space_joker_trinket.png" name="Space Joker" description="Wait, it's all earth?" customtags="!5 0 ?uncommon balatro chips copy" achievement="PermaLocked"/>
+    <trinket gfx="burglar_trinket.png" customcache="hands" name="Burglar" description="All mine!" customtags="!6 0 ?uncommon balatro activate" achievement="PermaLocked"/>
+    <trinket gfx="blackboard_trinket.png" name="Blackboard" description="PLACEHOLDER" customtags="!6 1 ?uncommon balatro mmult copy" achievement="PermaLocked"/>
+    <trinket cache="firedelay" gfx="runner_trinket.png" name="Runner" description="Gotta stay fit" customtags="!5 0 ?common balatro chips value copy" achievement="PermaLocked"/>
+    <trinket gfx="splash_trinket.png" name="Splash" description="But nothing happened" customtags="!3 0 ?common balatro activate copy" achievement="PermaLocked"/>
+    <trinket cache="firedelay" gfx="blue_joker_trinket.png" name="Blue Joker" description="Not so classic, and blue" customtags="!5 0 ?common balatro chips value copy" achievement="PermaLocked"/>
+    <trinket gfx="sixth_sense_trinket.png" name="Sixth Sense" description="I feel it in my gut" customtags="!6 0 ?uncommon balatro activate value" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="constellation_trinket.png" name="Constellation" description="A celstial drawing" customtags="!6 1 ?uncommon balatro mmult value copy" achievement="PermaLocked"/>
+    <trinket gfx="hiker_trinket.png" name="Hiker" description="Just a hobby" customtags="!5 0 ?uncommon balatro chips copy" achievement="PermaLocked"/>
+    <trinket gfx="faceless_joker_trinket.png" name="Faceless Joker" description="Never faces any problem" customtags="!4 0 ?common balatro money copy" achievement="PermaLocked"/>
+    <trinket gfx="superposition_trinket.png" name="Superposition" description="Make up your mind" customtags="!4 0 ?common balatro activate copy" achievement="PermaLocked"/>
+    <trinket gfx="to_do_list_trinket.png" name="To Do List" description="Never-ending list" customtags="!4 0 ?common balatro money value copy" achievement="PermaLocked"/>
 
-    <trinket cache="damage" gfx="card_sharp_trinket.png" name="Card Sharp" description="Knows your next move" customtags="!6 1 ?uncommon balatro mmult value copy"/>
-    <trinket cache="firedelay" gfx="square_joker_trinket.png" name="Square Joker" description="Nostalgia squared!" customtags="!4 0 ?common balatro chips copy"/>
-    <trinket gfx="seance_trinket.png" name="Sèance" description="Feel their words" customtags="!6 0 ?uncommon balatro activate copy"/>
-    <trinket cache="damage" gfx="vampire_trinket.png" name="Vampire" description="I AM DRATULA!" customtags="!7 1 ?uncommon balatro mmult value copy"/>
-    <trinket  gfx="shortcut_trinket.png" name="Shortcut" description="Trust me, i know this place" customtags="!7 -1 ?common balatro mult"/>
-    <trinket gfx="hologram_trinket.png" name="Hologram" description="So futuristc" customtags="!7 1 ?uncommon balatro money value copy"/>
+    <trinket cache="damage" gfx="card_sharp_trinket.png" name="Card Sharp" description="Knows your next move" customtags="!6 1 ?uncommon balatro mmult value copy" achievement="PermaLocked"/>
+    <trinket cache="firedelay" gfx="square_joker_trinket.png" name="Square Joker" description="Nostalgia squared!" customtags="!4 0 ?common balatro chips copy" achievement="PermaLocked"/>
+    <trinket gfx="seance_trinket.png" name="Sèance" description="Feel their words" customtags="!6 0 ?uncommon balatro activate copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="vampire_trinket.png" name="Vampire" description="I AM DRATULA!" customtags="!7 1 ?uncommon balatro mmult value copy" achievement="PermaLocked"/>
+    <trinket  gfx="shortcut_trinket.png" name="Shortcut" description="Trust me, i know this place" customtags="!7 -1 ?common balatro mult" achievement="PermaLocked"/>
+    <trinket gfx="hologram_trinket.png" name="Hologram" description="So futuristc" customtags="!7 1 ?uncommon balatro money value copy" achievement="PermaLocked"/>
 
-    <trinket cache="damage" gfx="baron_trinket.png" name="Baron" description="Royal expectations" customtags="!8 1 ?rare balatro mmult copy"/>
-    <trinket cache="damage" gfx="obelisk_trinket.png" name="Obelisk" description="Feels mystic" customtags="!8 1 ?rare balatro mmult value copy"/>
-    <trinket gfx="mides_mask_trinket.png" name="Midas Mask" description="Someone's curse" customtags="!7 0 ?uncommon balatro activate"/>
-    <trinket gfx="luchador_trinket.png" name="Luchador" description="Still undefeated!" customtags="!5 0 ?uncommon balatro activate copy"/>
-    <trinket cache="damage" gfx="photograph_trinket.png" name="Photograph" description="Good old times..." customtags="!5 1 ?common balatro mmult copy"/>
-    <trinket gfx="gift_card_trinket.png" name="Gift Card" description="I think it's a Ps5!" customtags="!6 0 ?uncommon balatro money"/>
-    <trinket gfx="black_bean_trinket.png" name="Turtle Bean" description="Toot hazard" customtags="!6 3 ?uncommon balatro value activate"/>
-    <trinket cache="damage" gfx="erosion_trinket.png" name="Erosion" description="Slow and inevitable" customtags="!6 0 ?uncommon balatro mult value copy"/>
-    <trinket gfx="reserved_parking_trinket.png" name="Reserved Parking" description="Like i care" customtags="!6 0 ?common balatro money copy"/>
+    <trinket cache="damage" gfx="baron_trinket.png" name="Baron" description="Royal expectations" customtags="!8 1 ?rare balatro mmult copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="obelisk_trinket.png" name="Obelisk" description="Feels mystic" customtags="!8 1 ?rare balatro mmult value copy" achievement="PermaLocked"/>
+    <trinket gfx="mides_mask_trinket.png" name="Midas Mask" description="Someone's curse" customtags="!7 0 ?uncommon balatro activate" achievement="PermaLocked"/>
+    <trinket gfx="luchador_trinket.png" name="Luchador" description="Still undefeated!" customtags="!5 0 ?uncommon balatro activate copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="photograph_trinket.png" name="Photograph" description="Good old times..." customtags="!5 1 ?common balatro mmult copy" achievement="PermaLocked"/>
+    <trinket gfx="gift_card_trinket.png" name="Gift Card" description="I think it's a Ps5!" customtags="!6 0 ?uncommon balatro money" achievement="PermaLocked"/>
+    <trinket gfx="black_bean_trinket.png" name="Turtle Bean" description="Toot hazard" customtags="!6 3 ?uncommon balatro value activate" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="erosion_trinket.png" name="Erosion" description="Slow and inevitable" customtags="!6 0 ?uncommon balatro mult value copy" achievement="PermaLocked"/>
+    <trinket gfx="reserved_parking_trinket.png" name="Reserved Parking" description="Like i care" customtags="!6 0 ?common balatro money copy" achievement="PermaLocked"/>
 
-    <trinket gfx="mail_in_rebate_trinket.png" name="Mail-in Rebate" description="Money to your door" customtags="!4 1 ?common balatro money copy"/>
-    <trinket gfx="to_the_moon_trinket.png" name="To the Moon" description="Never give up" customtags="!4 1 ?uncommon balatro money"/>
-    <trinket gfx="juggler_trinket.png" name="Juggler" description="Sick moves!" customtags="!4 1 ?common balatro activate"/>
-    <trinket gfx="drunkard_trinket.png" name="Drunkard" description="*YUCH*" customtags="!4 1 ?common balatro activate"/>
-    <trinket cache="damage" gfx="lucky_cat_trinket.png" name="Lucky Cat" description="Fortune is on your side" customtags="!6 1 ?uncommon balatro mmult copy"/>
-    <trinket cache="damage" gfx="baseball_card_trinket.png" name="Baseball Card" description="A collector's dream" customtags="!8 1 ?rare balatro mmult copy"/>
-    <trinket gfx="diet_cola_trinket.png" name="Diet Cola" description="Sugar free!" customtags="!7 1 ?uncommon balatro activate copy"/>
+    <trinket gfx="mail_in_rebate_trinket.png" name="Mail-in Rebate" description="Money to your door" customtags="!4 1 ?common balatro money copy" achievement="PermaLocked"/>
+    <trinket gfx="to_the_moon_trinket.png" name="To the Moon" description="Never give up" customtags="!4 1 ?uncommon balatro money" achievement="PermaLocked"/>
+    <trinket gfx="juggler_trinket.png" name="Juggler" description="Sick moves!" customtags="!4 1 ?common balatro activate" achievement="PermaLocked"/>
+    <trinket gfx="drunkard_trinket.png" name="Drunkard" description="*YUCH*" customtags="!4 1 ?common balatro activate" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="lucky_cat_trinket.png" name="Lucky Cat" description="Fortune is on your side" customtags="!6 1 ?uncommon balatro mmult copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="baseball_card_trinket.png" name="Baseball Card" description="A collector's dream" customtags="!8 1 ?rare balatro mmult copy" achievement="PermaLocked"/>
+    <trinket gfx="diet_cola_trinket.png" name="Diet Cola" description="Sugar free!" customtags="!7 1 ?uncommon balatro activate copy" achievement="PermaLocked"/>
 
-    <trinket gfx="trading_card_trinket.png" name="Trading Card" description="It's an investiment!" customtags="!6 0 ?uncommon balatro money copy"/>
-    <trinket cache="damage" gfx="spare trousers_trinket.png" name="Spare Trousers" description="Still good as new" customtags="!6 0 ?uncommon balatro mmult copy"/>
-    <trinket cache="damage" gfx="ancient_joker_trinket.png" name="Ancient Joker" description="It was just a classic" customtags="!8 1 ?rare balatro mmult copy"/>
-    <trinket cache="damage firedelay" gfx="malky_talky_trinket.png" name="Walkie Talkie" description="Roger roger" customtags="!4 0 ?common balatro mult chips value copy"/>
-    <trinket gfx="seltz_trinket.png" name="Seltz" description="Zhic zhic" customtags="!8 15 ?uncommon balatro activate value copy"/>
-    <trinket cache="damage" gfx="smiley_face_trinket.png" name="Smiley Face" description=":)" customtags="!4 0 ?common balatro mult value copy"/>
-    <trinket cache="damage" gfx="campfire_trinket.png" name="Campfire" description="Smore time!" customtags="!8 1 ?rare balatro mmult value copy"/>
+    <trinket gfx="trading_card_trinket.png" name="Trading Card" description="It's an investiment!" customtags="!6 0 ?uncommon balatro money copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="spare trousers_trinket.png" name="Spare Trousers" description="Still good as new" customtags="!6 0 ?uncommon balatro mmult copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="ancient_joker_trinket.png" name="Ancient Joker" description="It was just a classic" customtags="!8 1 ?rare balatro mmult copy" achievement="PermaLocked"/>
+    <trinket cache="damage firedelay" gfx="malky_talky_trinket.png" name="Walkie Talkie" description="Roger roger" customtags="!4 0 ?common balatro mult chips value copy" achievement="PermaLocked"/>
+    <trinket gfx="seltz_trinket.png" name="Seltz" description="Zhic zhic" customtags="!8 15 ?uncommon balatro activate value copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="smiley_face_trinket.png" name="Smiley Face" description=":)" customtags="!4 0 ?common balatro mult value copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="campfire_trinket.png" name="Campfire" description="Smore time!" customtags="!8 1 ?rare balatro mmult value copy" achievement="PermaLocked"/>
 
-    <trinket cache="firedelay" gfx="castle_trinket.png" name="Castle" description="...vania" customtags="!6 0 ?uncommon balatro chips copy"/>
-    <trinket gfx="golden_ticket_trinket.png" name="Golden Ticket" description="Chocolate's fortune!" customtags="!5 1 ?common balatro money copy"/>
-    <trinket cache="damage" gfx="acrobat_trinket.png" name="Acrobat" description="Wait for it..." customtags="!6 1 ?uncommon balatro mmult copy"/>
-    <trinket gfx="sock_and_buskin_trinket.png" name="Sock and Buskin" description=":):" customtags="!6 0 ?uncommon balatro activate copy"/>
-    <trinket gfx="troubador_trinket.png" name="Troubador" description="Finder's keeper!" customtags="!6 0 ?uncommon balatro activate"/>
-    <trinket gfx="certificate_trinket.png" name="Certificate" description="I'm real!" customtags="!6 0 ?uncommon balatro activate copy"/>
-    <trinket cache="damage" gfx="throwback_trinket.png" name="Throwback" description="Fell the past" customtags="!6 1 ?uncommon balatro mmult copy"/>
-    <trinket gfx="hanging_chad_trinket.png" name="Hanging Chad" description="Aw dang it" customtags="!4 1 ?common balatro activate copy"/>
-    <trinket cache="damage" gfx="glass_joker_trinket.png" name="Glass Joker" description="Don't break it!" customtags="!6 1 ?uncommon balatro mmult copy"/>
-    <trinket gfx="showman_trinket.png" name="Showman" description="Show time!" customtags="!5 1 ?uncommon balatro activate"/>
-    <trinket cache="damage" gfx="flower_pot_trinket.png" name="Flower Pot" description="So colorful" customtags="!6 1 ?uncommon balatro mmult copy"/>
-    <trinket cache="firedelay" gfx="weejoker_trinket.png" name="Wee Joker" description="He's shmall" customtags="!8 1 ?rare balatro chips copy"/>
+    <trinket cache="firedelay" gfx="castle_trinket.png" name="Castle" description="...vania" customtags="!6 0 ?uncommon balatro chips copy" achievement="PermaLocked"/>
+    <trinket gfx="golden_ticket_trinket.png" name="Golden Ticket" description="Chocolate's fortune!" customtags="!5 1 ?common balatro money copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="acrobat_trinket.png" name="Acrobat" description="Wait for it..." customtags="!6 1 ?uncommon balatro mmult copy" achievement="PermaLocked"/>
+    <trinket gfx="sock_and_buskin_trinket.png" name="Sock and Buskin" description=":):" customtags="!6 0 ?uncommon balatro activate copy" achievement="PermaLocked"/>
+    <trinket gfx="troubador_trinket.png" name="Troubador" description="Finder's keeper!" customtags="!6 0 ?uncommon balatro activate" achievement="PermaLocked"/>
+    <trinket gfx="certificate_trinket.png" name="Certificate" description="I'm real!" customtags="!6 0 ?uncommon balatro activate copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="throwback_trinket.png" name="Throwback" description="Fell the past" customtags="!6 1 ?uncommon balatro mmult copy" achievement="PermaLocked"/>
+    <trinket gfx="hanging_chad_trinket.png" name="Hanging Chad" description="Aw dang it" customtags="!4 1 ?common balatro activate copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="glass_joker_trinket.png" name="Glass Joker" description="Don't break it!" customtags="!6 1 ?uncommon balatro mmult copy" achievement="PermaLocked"/>
+    <trinket gfx="showman_trinket.png" name="Showman" description="Show time!" customtags="!5 1 ?uncommon balatro activate" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="flower_pot_trinket.png" name="Flower Pot" description="So colorful" customtags="!6 1 ?uncommon balatro mmult copy" achievement="PermaLocked"/>
+    <trinket cache="firedelay" gfx="weejoker_trinket.png" name="Wee Joker" description="He's shmall" customtags="!8 1 ?rare balatro chips copy" achievement="PermaLocked"/>
 
-    <trinket gfx="oops_6_trinket.png" name="Oops! All 6s" description="I'm just that lucky" customtags="!4 0 ?uncommon balatro activate"/>
-    <trinket cache="damage" gfx="the_idol_trinket.png" name="The Idol" description="Follow its orders" customtags="!6 0 ?rare balatro mmult copy"/>
-    <trinket cache="damage" gfx="seeing_double_trinket.png" name="Seeing Double" description="Double the fun!" customtags="!6 1 ?uncommon balatro mmult copy"/>
-    <trinket gfx="matador_trinket.png" name="Matador" description="Make him angry!" customtags="!7 0 ?uncommon balatro money copy"/>
-    <trinket cache="damage" gfx="hit_the_road_trinket.png" name="Hit the Road" description="...jack" customtags="!8 1 ?rare balatro mmult copy"/>
-    <trinket cache="damage" gfx="the_duo_trinket.png" name="The Duo" description="Me and bro" customtags="!8 1 ?rare balatro mmult copy"/>
-    <trinket cache="damage" gfx="the_trio_trinket.png" name="The Trio" description="Me, myself and I" customtags="!8 1 ?rare balatro mmult copy"/>
-    <trinket cache="damage" gfx="the_family_trinket.png" name="The Family" description="Me and the boys" customtags="!8 1 ?rare balatro mmult copy"/>
-    <trinket cache="damage" gfx="the_order_trinket.png" name="The Order" description="Follow it!" customtags="!8 1 ?rare balatro mmult copy"/>
-    <trinket cache="damage" gfx="the_tribe_trinket.png" name="The Tribe" description="Me and the gang" customtags="!8 1 ?rare balatro mmult copy"/>
+    <trinket gfx="oops_6_trinket.png" name="Oops! All 6s" description="I'm just that lucky" customtags="!4 0 ?uncommon balatro activate" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="the_idol_trinket.png" name="The Idol" description="Follow its orders" customtags="!6 0 ?rare balatro mmult copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="seeing_double_trinket.png" name="Seeing Double" description="Double the fun!" customtags="!6 1 ?uncommon balatro mmult copy" achievement="PermaLocked"/>
+    <trinket gfx="matador_trinket.png" name="Matador" description="Make him angry!" customtags="!7 0 ?uncommon balatro money copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="hit_the_road_trinket.png" name="Hit the Road" description="...jack" customtags="!8 1 ?rare balatro mmult copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="the_duo_trinket.png" name="The Duo" description="Me and bro" customtags="!8 1 ?rare balatro mmult copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="the_trio_trinket.png" name="The Trio" description="Me, myself and I" customtags="!8 1 ?rare balatro mmult copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="the_family_trinket.png" name="The Family" description="Me and the boys" customtags="!8 1 ?rare balatro mmult copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="the_order_trinket.png" name="The Order" description="Follow it!" customtags="!8 1 ?rare balatro mmult copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="the_tribe_trinket.png" name="The Tribe" description="Me and the gang" customtags="!8 1 ?rare balatro mmult copy" achievement="PermaLocked"/>
 
-    <trinket cache="firedelay" gfx="stuntman_trinket.png" name="Stuntman" description="Gonna risk it all!" customtags="!8 1 ?rare balatro chips copy"/>
-    <trinket gfx="satellite_trinket.png" name="Satellite" description="Reach as high as you can" customtags="!7 0 ?uncommon balatro money copy"/>
-    <trinket cache="damage" gfx="shoot_the_moon_trinket.png" name="Shoot the Moon" description="All hearts are mine" customtags="!6 1 ?common balatro mmult copy"/>
-    <trinket cache="damage" gfx="driver_licence_trinket.png" name="Driver's License" description="Don't forget it!" customtags="!8 1 ?rare balatro mmult copy"/>
-    <trinket cache="damage" gfx="astronomer_trinket.png" name="Astronomer" description="The star of the show" customtags="!8 1 ?uncommon balatro mmult copy"/>
-    <trinket cache="damage" gfx="burnt_joker_trinket.png" name="Burnt Joker" description="Don't leave me here!" customtags="!8 1 ?rare balatro activate copy"/>
-    <trinket cache="damage" gfx="bootstraps_trinket.png" name="Bootstraps" description="Thigthen your boots!" customtags="!8 1 ?uncommon balatro mult copy"/>
-    <trinket cache="damage" gfx="canio_trinket.png" name="Canio" description="La commedia è finita!" customtags="!20 1 ?legendary balatro mmult copy"/>
-    <trinket cache="damage" gfx="triboulet_trinket.png" name="Triboulet" description="patrons de la folie, je demande à mourir de vieillesse" customtags="!20 1 ?legendary balatro mmult copy"/>
-    <trinket cache="damage" gfx="yorik_trinket.png" name="Yorick" description="Sir, this skull belonged to Yorick" customtags="!20 1 ?legendary balatro mmult copy"/>
-    <trinket gfx="chicot_trinket.png" name="Chicot" description="Oh, mon Dieu! an accident" customtags="!20 1 ?legendary balatro activate copy"/>
-    <trinket gfx="perkeo_trinket.png" name="Perkeo" description="Perchè no?" customtags="!20 1 ?legendary balatro activate copy"/>
+    <trinket cache="firedelay" gfx="stuntman_trinket.png" name="Stuntman" description="Gonna risk it all!" customtags="!8 1 ?rare balatro chips copy" achievement="PermaLocked"/>
+    <trinket gfx="satellite_trinket.png" name="Satellite" description="Reach as high as you can" customtags="!7 0 ?uncommon balatro money copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="shoot_the_moon_trinket.png" name="Shoot the Moon" description="All hearts are mine" customtags="!6 1 ?common balatro mmult copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="driver_licence_trinket.png" name="Driver's License" description="Don't forget it!" customtags="!8 1 ?rare balatro mmult copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="astronomer_trinket.png" name="Astronomer" description="The star of the show" customtags="!8 1 ?uncommon balatro mmult copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="burnt_joker_trinket.png" name="Burnt Joker" description="Don't leave me here!" customtags="!8 1 ?rare balatro activate copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="bootstraps_trinket.png" name="Bootstraps" description="Thigthen your boots!" customtags="!8 1 ?uncommon balatro mult copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="canio_trinket.png" name="Canio" description="La commedia è finita!" customtags="!20 1 ?legendary balatro mmult copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="triboulet_trinket.png" name="Triboulet" description="patrons de la folie, je demande à mourir de vieillesse" customtags="!20 1 ?legendary balatro mmult copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="yorik_trinket.png" name="Yorick" description="Sir, this skull belonged to Yorick" customtags="!20 1 ?legendary balatro mmult copy" achievement="PermaLocked"/>
+    <trinket gfx="chicot_trinket.png" name="Chicot" description="Oh, mon Dieu! an accident" customtags="!20 1 ?legendary balatro activate copy" achievement="PermaLocked"/>
+    <trinket gfx="perkeo_trinket.png" name="Perkeo" description="Perchè no?" customtags="!20 1 ?legendary balatro activate copy" achievement="PermaLocked"/>
 
 
     <active name="The hand" chargetype="special" maxcharges="0" quality="2" craftquality="2" gfx="the_hand_active.png" description="Need a hand?"/>
@@ -212,7 +212,7 @@
 
 
     <passive name="Horsey" cache="familiars" quality="2" craftquality="2" gfx="horsey_item.png" description="I trust you!" achievement="HorseyUnlock" tags="offensive summonable monstermanual"/>
-    <passive name="Box of Crayons" quality="1" craftquality="1" gfx="box_of_crayons_item.png" description="So much fun!" achievement="CrayinsUnlock" tags="offensive"/>
+    <passive name="Box of Crayons" quality="1" craftquality="1" gfx="box_of_crayons_item.png" description="So much fun!" achievement="CrayonsUnlock" tags="offensive"/>
 
 
 

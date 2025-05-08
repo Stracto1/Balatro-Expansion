@@ -3,5 +3,6 @@
     <achievement name="PermaLocked" hidden="true"/>
 
     <achievement name="HorseyUnlock"/>
+    <achievement name="CrayonsUnlock"/>
 
 </achievements>

@@ -744,6 +744,34 @@ Balatro_Expansion.SelectionParams.Purposes.SMELTER = 29
 Balatro_Expansion.SelectionParams.Purposes.MegaFlag = 128 --applied on top of the packs purposes to say it's a double choice
 
 
+Balatro_Expansion.Saved.DSS = { 
+                                Jimbo={
+                                        HandHUDPosition = 1,
+                                        HandScale = 1
+                                    }, 
+                                T_Jimbo={},
+                                
+                                General={},
+                                MenuPalette = {},
+                                GamepadToggle = 1,
+                                MenuKeyBind = Keyboard.KEY_C,
+                                MenuHint = 1,
+                                MenuBuzzer = 1,
+                                MenusNotified = false,
+                                MenusPoppedUp = false,-- not sure
+                            }
+
+Balatro_Expansion.Achievements = {
+                                    T_JIMBO = Isaac.GetAchievementIdByName("T_JimboUnlock"),
+                                    Items = {   
+                                            [Balatro_Expansion.Collectibles.HORSEY] =Isaac.GetAchievementIdByName("HorseyUnlock"),
+                                            [Balatro_Expansion.Collectibles.CRAYONS] =Isaac.GetAchievementIdByName("CrayonUnlock"),
+                                            },
+                                    Trinkets = {},
+                                    Entities = {},
+                                    Pickups = {}
+                                 
+                                }
 
 ----------------------------- gaw damn those were a lot of variables
 
@@ -871,8 +899,8 @@ include("Balatro_scripts.Callback_system")
 
 ------------------EID----------------------
 -------------------------------------------
-include("Balatro_scripts.EID")
+include("Balatro_scripts.Compatibility.EID")
 
--------------MOD CONFIG MENU -------------
+-------------DSS MENU -------------
 ------------------------------------------
-include("Balatro_scripts.ModConfigMenu")
+include("Balatro_scripts.Compatibility.deadseascrolls")

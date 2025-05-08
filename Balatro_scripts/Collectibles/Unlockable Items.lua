@@ -22,7 +22,7 @@ CrayonColorSubType.PINK = 6
 CrayonColorSubType.PURPLE = 7
 CrayonColorSubType.GREY = 8
 CrayonColorSubType.YELLOW = 9
-CrayonColorSubType.NUM_COLORS = 8
+CrayonColorSubType.NUM_COLORS = 9
 
 
 local CrayonColors = {}
@@ -34,7 +34,7 @@ CrayonColors[CrayonColorSubType.GREEN] = Color(1,1,1,1,0,0,0,0.4,0.8,0.27,1)
 CrayonColors[CrayonColorSubType.PINK] = Color(1,1,1,1,0,0,0,0.89,0.48,0.8,1)
 CrayonColors[CrayonColorSubType.PURPLE] = Color(1,1,1,1,0,0,0,0.67,0.11,0.63,1)
 CrayonColors[CrayonColorSubType.GREY] = Color(1,1,1,1,0,0,0,0.6,0.6,0.6,1)
-CrayonColors[CrayonColorSubType.YELLOW] = Color(1,1,1,1,0,0,0,0.6,0.6,0.6,1)
+CrayonColors[CrayonColorSubType.YELLOW] = Color(1,1,1,1,0,0,0,0.9,0.83,0.31,1)
 
 
 
@@ -222,6 +222,7 @@ end
 mod:AddCallback(ModCallbacks.MC_FAMILIAR_UPDATE, mod.HorseyUpdate, mod.Familiars.HORSEY)
 
 
+
 ---@param Player EntityPlayer
 function mod:SpawnCrayonCreep(Player)
 
@@ -284,49 +285,54 @@ function mod:CrayonPowderUpdate(Powder)
 
                 if Powder.SubType == CrayonColorSubType.RED then
                     
-                    Entity:AddBaited(PowderRef, 1)
+                    Entity:AddBaited(PowderRef, 20)
                     Entity:SetBaitedCountdown(20)
 
                 elseif Powder.SubType == CrayonColorSubType.ORANGE then
                     
-                    Entity:AddBurn(PowderRef, 1, Damage)
+                    Entity:AddBurn(PowderRef, 23, Damage)
                     Entity:SetBurnCountdown(23)
 
 
                 elseif Powder.SubType == CrayonColorSubType.CYAN then
                 
-                    Entity:AddIce(PowderRef, 7)
+                    Entity:AddIce(PowderRef, 20)
 
-                    Entity:AddSlowing(PowderRef, 7, 0.85, Color(1.5,1.5,1.5,1)) --PLACEHOLDER COLOR
+                    Entity:AddSlowing(PowderRef, 20, 0.85, Color(1.5,1.5,1.5,1)) --PLACEHOLDER COLOR
                     Entity:SetSlowingCountdown(20)
 
                 elseif Powder.SubType == CrayonColorSubType.GREEN then
                     
-                    Entity:AddPoison(PowderRef, 1, Damage)
-                    Entity:SetPoisonCountdown(20)
+                    Entity:AddPoison(PowderRef, 23, Damage)
+                    Entity:SetPoisonCountdown(23)
 
 
                 elseif Powder.SubType == CrayonColorSubType.WHITE then
                     
-                    Entity:AddSlowing(PowderRef, 7, 0.7, Color(1.5,1.5,1.5,1)) --PLACEHOLDER COLOR
-                    Entity:SetSlowingCountdown(20)
+                    Entity:AddSlowing(PowderRef, 30, 0.7, Color(1.5,1.5,1.5,1)) --PLACEHOLDER COLOR
+                    Entity:SetSlowingCountdown(30)
 
 
                 elseif Powder.SubType == CrayonColorSubType.PINK then
                     
-                    Entity:AddCharmed(PowderRef, 1)
-                    Entity:SetCharmedCountdown(25)
+                    Entity:AddCharmed(PowderRef, 30)
+                    Entity:SetCharmedCountdown(30)
 
                 elseif Powder.SubType == CrayonColorSubType.PURPLE then
                     
-                    Entity:AddFear(PowderRef, 1)
-                    Entity:SetFearCountdown(10)
+                    Entity:AddFear(PowderRef, 20)
+                    Entity:SetFearCountdown(20)
 
                 elseif Powder.SubType == CrayonColorSubType.GREY then
                     
-                    Entity:AddMagnetized(PowderRef, 1)
+                    Entity:AddMagnetized(PowderRef, 15)
                     Entity:SetMagnetizedCountdown(15)
 
+                elseif Powder.SubType == CrayonColorSubType.YELLOW then
+
+                    local Laser = EntityLaser.ShootAngle(LaserVariant.ELECTRIC, Entity.Position, math.random(-180, 180), 2, Vector.Zero, Powder)
+                    Laser.MaxDistance = math.random()*45 + 40
+                    Laser.CollisionDamage = Damage
                 end
             end
         end
@@ -335,21 +341,7 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, mod.CrayonPowderUpdate, mod.Effects.CRAYON_POWDER)
 
 
----@param Player EntityPlayer
-function mod:ChooseRoomCrayonColor(Type,_,_,_,_, Player)
-
-    if Type and Type == mod.Collectibles.CRAYONS then
-
-        local RandomColor
-        local Data = Player:GetData()
-        repeat
-            RandomColor = math.random(CrayonColorSubType.NUM_COLORS)
-
-        until not Data.CrayonColor or RandomColor ~= Data.CrayonColor
-
-        Player:GetData().CrayonColor = RandomColor
-        return
-    end
+function mod:ChooseRoomCrayonColor()
 
     for _,Player in ipairs(PlayerManager.GetPlayers()) do
         if Player:HasCollectible(mod.Collectibles.CRAYONS) then
@@ -366,5 +358,21 @@ function mod:ChooseRoomCrayonColor(Type,_,_,_,_, Player)
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.ChooseRoomCrayonColor)
-mod:AddCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE, mod.ChooseRoomCrayonColor)
+
+
+function mod:ChooseRoomCrayonColor2(Type,_,_,_,_, Player)
+    if Type == mod.Collectibles.CRAYONS then
+
+        local RandomColor
+        local Data = Player:GetData()
+        repeat
+            RandomColor = math.random(CrayonColorSubType.NUM_COLORS)
+
+        until not Data.CrayonColor or RandomColor ~= Data.CrayonColor
+
+        Player:GetData().CrayonColor = RandomColor
+        return
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE, mod.ChooseRoomCrayonColor2)
 

@@ -242,7 +242,8 @@
 		"XMLNode",
 		"REPENTOGON",
         "ModConfigMenu",
-        "EID"
+        "EID",
+        "dssmod"
 	],
     "diagnostics.disable": [
     ]}
