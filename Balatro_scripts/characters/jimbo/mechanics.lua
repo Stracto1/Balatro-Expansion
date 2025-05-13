@@ -1654,11 +1654,11 @@ function mod:OnTearCardCollision(Tear,Collider,_)
 
     Isaac.RunCallback("CARD_HIT", Tear, Collider)
 end
-mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.CARD_TEAR_VARIANT)
-mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.SUIT_TEAR_VARIANTS[mod.Suits.Spade])
-mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.SUIT_TEAR_VARIANTS[mod.Suits.Heart])
-mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.SUIT_TEAR_VARIANTS[mod.Suits.Club])
-mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.SUIT_TEAR_VARIANTS[mod.Suits.Diamond])
+mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.Tears.CARD_TEAR_VARIANT)
+mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.Tears.SUIT_TEAR_VARIANTS[mod.Suits.Spade])
+mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.Tears.SUIT_TEAR_VARIANTS[mod.Suits.Heart])
+mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.Tears.SUIT_TEAR_VARIANTS[mod.Suits.Club])
+mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.Tears.SUIT_TEAR_VARIANTS[mod.Suits.Diamond])
 
 
 --Split is only given when called in mod:SplitTears()
@@ -1671,7 +1671,8 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
     if not Player or Player:GetPlayerType() ~= mod.Characters.JimboType
        or Tear.Variant == TearVariant.ERASER or Tear.Variant == TearVariant.BOBS_HEAD
        or Tear.Variant == TearVariant.KEY or Tear.Variant == TearVariant.KEY_BLOOD
-       or Tear.Variant == TearVariant.FETUS or (Tear.Variant == TearVariant.BONE and not Tear:HasTearFlags(TearFlags.TEAR_BONE)) then
+       or Tear.Variant == TearVariant.FETUS or (Tear.Variant == TearVariant.BONE and not Tear:HasTearFlags(TearFlags.TEAR_BONE))
+       or Tear.Variant == mod.Tears.BANANA_VARIANT then
         return
     end
 
@@ -1726,7 +1727,7 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
     --if (mod.TearCardEnable and not Init) or (not mod.TearCardEnable and Init and mod.Counters.SinceShoot > 2) then
     if (ForceCard or mod.TearCardEnable) and not Split then
         
-        Tear:ChangeVariant(mod.CARD_TEAR_VARIANT)
+        Tear:ChangeVariant(mod.Tears.CARD_TEAR_VARIANT)
 
         local TearSprite = Tear:GetSprite()
         TearSprite:Play(ENHANCEMENTS_ANIMATIONS[TearData.Params.Enhancement], true)
@@ -1783,7 +1784,7 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
         mod.Saved.Jimbo[PIndex].LastShotIndex = CardShot.Index
 
     else
-        Tear:ChangeVariant(mod.SUIT_TEAR_VARIANTS[TearData.Params.Suit])
+        Tear:ChangeVariant(mod.Tears.SUIT_TEAR_VARIANTS[TearData.Params.Suit])
 
         local TearSprite = Tear:GetSprite()
         TearSprite:Play("Rotate3", true)
@@ -1834,7 +1835,7 @@ function mod:CardSpoof(Tear)
 
         sfx:Play(SoundEffect.SOUND_POT_BREAK, 0.3, 2, false, math.random()*0.5 + 2)
 
-    elseif mod:Contained(mod.SUIT_TEAR_VARIANTS, Tear.Variant) then
+    elseif mod:Contained(mod.Tears.SUIT_TEAR_VARIANTS, Tear.Variant) then
 
         local Impact = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.IMPACT, Tear.Position + Vector(0, Tear.Height), Vector.Zero, Tear, 0, 1):ToEffect()
         Impact.SpriteScale = Vector(Tear.Scale, Tear.Scale)

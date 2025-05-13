@@ -301,10 +301,10 @@ function mod:CardPacks(card, Player,_)
 
     local PIndex = Player:GetData().TruePlayerIndex
 
-    if card == Card.CARD_PACK_STANDARD then
+    if card == mod.Packs.STANDARD then
         Isaac.RunCallback("PACK_OPENED",Player,card)
 
-        local PackRng = Player:GetCardRNG(Card.CARD_PACK_STANDARD)
+        local PackRng = Player:GetCardRNG(mod.Packs.STANDARD)
         local RandomPack = {}
 
         local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 4) or 3
@@ -364,10 +364,10 @@ function mod:CardPacks(card, Player,_)
             end
         end
 
-    elseif card == Card.CARD_PACK_TAROT then
+    elseif card == mod.Packs.ARCANA then
         Isaac.RunCallback("PACK_OPENED",Player,card)
 
-        local PackRng = Player:GetCardRNG(Card.CARD_PACK_TAROT)
+        local PackRng = Player:GetCardRNG(mod.Packs.ARCANA)
 
         local RandomPack = {}
         local Options = {}
@@ -418,10 +418,10 @@ function mod:CardPacks(card, Player,_)
         end
 
 
-    elseif card == Card.CARD_PACK_CELESTIAL then
+    elseif card == mod.Packs.CELESTIAL then
         Isaac.RunCallback("PACK_OPENED",Player,card)
 
-        local PackRng = Player:GetCardRNG(Card.CARD_PACK_CELESTIAL)
+        local PackRng = Player:GetCardRNG(mod.Packs.CELESTIAL)
         local RandomPack = {}
         if Player:GetPlayerType() == mod.Characters.JimboType then
             
@@ -493,10 +493,10 @@ function mod:CardPacks(card, Player,_)
         end
         mod.SelectionParams[PIndex].PackOptions = RandomPack
         
-    elseif card == Card.CARD_PACK_SPECTRAL then
+    elseif card == mod.Packs.SPECTRAL then
         Isaac.RunCallback("PACK_OPENED",Player,card)
         
-        local PackRng = Player:GetCardRNG(Card.CARD_PACK_SPECTRAL)
+        local PackRng = Player:GetCardRNG(mod.Packs.SPECTRAL)
         local RandomPack = {}
 
         local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 3) or 2

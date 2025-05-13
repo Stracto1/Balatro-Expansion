@@ -89,11 +89,11 @@ function mod:CardCollisionSynergy(Tear,Collider,_)
 
     end
 end
-mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.CARD_TEAR_VARIANT)
-mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.SUIT_TEAR_VARIANTS[mod.Suits.Spade])
-mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.SUIT_TEAR_VARIANTS[mod.Suits.Heart])
-mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.SUIT_TEAR_VARIANTS[mod.Suits.Club])
-mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.SUIT_TEAR_VARIANTS[mod.Suits.Diamond])
+mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.Tears.CARD_TEAR_VARIANT)
+mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.Tears.SUIT_TEAR_VARIANTS[mod.Suits.Spade])
+mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.Tears.SUIT_TEAR_VARIANTS[mod.Suits.Heart])
+mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.Tears.SUIT_TEAR_VARIANTS[mod.Suits.Club])
+mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.Tears.SUIT_TEAR_VARIANTS[mod.Suits.Diamond])
 
 
 
@@ -224,7 +224,7 @@ function mod:SpadeOpenDoor(Tear)
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_TEAR_UPDATE, mod.SpadeOpenDoor, mod.CARD_TEAR_VARIANT)
-mod:AddCallback(ModCallbacks.MC_POST_TEAR_UPDATE, mod.SpadeOpenDoor, mod.SUIT_TEAR_VARIANTS[mod.Suits.Spade])
+mod:AddCallback(ModCallbacks.MC_POST_TEAR_UPDATE, mod.SpadeOpenDoor, mod.Tears.SUIT_TEAR_VARIANTS[mod.Suits.Spade])
 
 
 
@@ -236,7 +236,7 @@ function mod:OnCardDeath(Tear)
     --print(Tear.HomingFriction)
 
     if Tear.Variant ~= mod.CARD_TEAR_VARIANT
-       and not mod:Contained(mod.SUIT_TEAR_VARIANTS, Tear.Variant) then
+       and not mod:Contained(mod.Tears.SUIT_TEAR_VARIANTS, Tear.Variant) then
 
         return
     end

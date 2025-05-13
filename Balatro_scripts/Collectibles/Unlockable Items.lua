@@ -1,7 +1,8 @@
----@diagnostic disable: undefined-field, need-check-nil
+---@diagnostic disable: undefined-field, need-check-nil, inject-field
 local mod = Balatro_Expansion
 local Game = Game()
 local ItemsConfig = Isaac.GetItemConfig()
+local sfx = SFXManager()
 
 local HORSEY_RADIUS = 20
 local HORSEY_MAX_JUMP_DELAY = 90
@@ -36,8 +37,10 @@ CrayonColors[CrayonColorSubType.PURPLE] = Color(1,1,1,1,0,0,0,0.67,0.11,0.63,1)
 CrayonColors[CrayonColorSubType.GREY] = Color(1,1,1,1,0,0,0,0.6,0.6,0.6,1)
 CrayonColors[CrayonColorSubType.YELLOW] = Color(1,1,1,1,0,0,0,0.9,0.83,0.31,1)
 
-
-
+local BananaState = {}
+BananaState.IDLE = 1 --waiting for someone stupid enough to fall for it
+BananaState.FLYING = 2 --in mid-air from initial throw
+BananaState.SLIP = 3 --disappearing
 
 
 ---@param Familiar EntityFamiliar
@@ -113,6 +116,9 @@ local function GetHorseyGridTarget(Familiar, Force)
     return mod:GetRandom(PossibleGrids)
 end
 
+------------FAMILIARS--------------
+-----------------------------------
+
 ---@param Player EntityPlayer
 function mod:GiveFamiliars(Player, _)
 
@@ -124,104 +130,340 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.GiveFamiliars, CacheFlag.CAC
 
 
 ---@param Familiar EntityFamiliar
-function mod:HorseyInit(Familiar)
+function mod:FamiliarInit(Familiar)
 
-    local Room = Game:GetRoom()
+    if Familiar.Variant == mod.Familiars.HORSEY then
+        local Room = Game:GetRoom()
+
+        
+        Familiar.Position = Room:GetGridPosition(Room:GetGridIndex(Familiar.Position))
+
+        Familiar.State = HorseyState.IDLE
+        Familiar.FireCooldown = HORSEY_JUMP_COOLDOWN
 
     
-    Familiar.Position = Room:GetGridPosition(Room:GetGridIndex(Familiar.Position))
-
-    Familiar.State = HorseyState.IDLE
-    Familiar.FireCooldown = HORSEY_JUMP_COOLDOWN
+    end
 end
-mod:AddCallback(ModCallbacks.MC_FAMILIAR_INIT, mod.HorseyInit, mod.Familiars.HORSEY)
+mod:AddCallback(ModCallbacks.MC_FAMILIAR_INIT, mod.FamiliarInit)
 
 
 ---@param Familiar EntityFamiliar
-function mod:HorseyUpdate(Familiar)
+function mod:FamiliarUpdate(Familiar)
 
     local Room = Game:GetRoom()
-    local HorseSprite = Familiar:GetSprite()
 
-    if Familiar.State == HorseyState.IDLE then
+    if Familiar.Variant == mod.Familiars.HORSEY then
+        local HorseSprite = Familiar:GetSprite()
 
-        Familiar.Position = Room:GetGridPosition(Room:GetGridIndex(Familiar.Position))
+        if Familiar.State == HorseyState.IDLE then
 
-        if Room:IsClear() then
-            Familiar.State = HorseyState.SLEEP
+            Familiar.Position = Room:GetGridPosition(Room:GetGridIndex(Familiar.Position))
 
-            HorseSprite:Play("StartSleep")
-        
-        elseif Familiar.FireCooldown < HORSEY_JUMP_COOLDOWN then
-            local DestinationGrid = GetHorseyGridTarget(Familiar, Familiar.FireCooldown == 0)
+            if Room:IsClear() then
+                Familiar.State = HorseyState.SLEEP
 
-            if DestinationGrid then
+                HorseSprite:Play("StartSleep")
+            
+            elseif Familiar.FireCooldown < HORSEY_JUMP_COOLDOWN then
+                local DestinationGrid = GetHorseyGridTarget(Familiar, Familiar.FireCooldown == 0)
 
-                Familiar:GetData().LastGrid = Room:GetGridIndex(Familiar.Position)
-                Familiar:GetData().TargetGrid = DestinationGrid
+                if DestinationGrid then
 
-                Familiar.State = HorseyState.JUMP
-                HorseSprite:Play("Jump")
+                    Familiar:GetData().LastGrid = Room:GetGridIndex(Familiar.Position)
+                    Familiar:GetData().TargetGrid = DestinationGrid
+
+                    Familiar.State = HorseyState.JUMP
+                    HorseSprite:Play("Jump")
+                end
+            end
+
+        elseif Familiar.State == HorseyState.JUMP then
+
+            if Familiar.Position.X == Room:GetGridPosition(Familiar:GetData().TargetGrid).X
+               and Familiar.Position.Y == Room:GetGridPosition(Familiar:GetData().TargetGrid).Y then
+
+                Familiar.Velocity = Vector.Zero
+            end
+
+            if HorseSprite:IsEventTriggered("Landing") then
+
+                local Shock = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.SHOCKWAVE, Familiar.Position, Vector.Zero,
+                                         Familiar, 0, 1):ToEffect()
+
+                ---@diagnostic disable-next-line: need-check-nil
+                Shock:SetRadii(15,30)
+                --Shock.CollisionDamage = 1 or Familiar.Player.Damage*1.5 + 1 :( no work
+
+                Shock.Parent = Familiar.Player
+
+                SFXManager():Play(SoundEffect.SOUND_CHEST_DROP) --PLACEHOLDER
+
+                Game:MakeShockwave(Familiar.Position, 0.015, 0.01, 5)
+                --Entity:AddKnockback(EntityRef(Familiar), (Entity.Position - Familiar.Position):Normalized(), 4, false)
+
+            elseif HorseSprite:IsEventTriggered("StartMove") then
+
+                Familiar.Velocity = (Room:GetGridPosition(Familiar:GetData().TargetGrid) - Familiar.Position) / 5
+
+                HorseSprite.FlipX = Familiar.Velocity.X >= 0
+
+            elseif HorseSprite:IsFinished("Jump") then
+
+                HorseSprite:Play("Idle")
+
+                Familiar.State = HorseyState.IDLE
+                Familiar.FireCooldown = HORSEY_MAX_JUMP_DELAY
+            end
+
+        elseif Familiar.State == HorseyState.SLEEP then
+
+            if not Room:IsClear() then
+
+                Familiar.State = HorseyState.IDLE
+                Familiar.FireCooldown = HORSEY_JUMP_COOLDOWN
+
+                HorseSprite:Play("Idle")
+
+            elseif HorseSprite:IsFinished("StartSleep") then
+                HorseSprite:Play("Sleep")
             end
         end
 
-    elseif Familiar.State == HorseyState.JUMP then
+        Familiar.FireCooldown = math.max(Familiar.FireCooldown - 1, 0)
 
-        if Familiar.Position.X == Room:GetGridPosition(Familiar:GetData().TargetGrid).X
-           and Familiar.Position.Y == Room:GetGridPosition(Familiar:GetData().TargetGrid).Y then
+    
+    end
+end
+mod:AddCallback(ModCallbacks.MC_FAMILIAR_UPDATE, mod.FamiliarUpdate)
 
-            Familiar.Velocity = Vector.Zero
+
+---@param Familiar EntityFamiliar
+---@param Collider Entity
+function mod:FamiliarCollision(Familiar, Collider,_)
+
+    if Familiar.Variant == mod.Familiars.BANANA_PEEL then
+
+        
+        
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_FAMILIAR_COLLISION, mod.FamiliarCollision)
+
+
+--------------EFFECTS--------------
+----------------------------------
+
+---@param Effect EntityEffect
+function mod:EffectInit(Effect)
+
+
+    if Effect.Variant == mod.Effects.CRAYON_POWDER then
+        local Sprite = Effect:GetSprite()
+
+        Sprite:SetFrame(math.random(0, Sprite:GetAnimationData("Idle"):GetLength()))
+
+        Effect:SetColor(CrayonColors[Effect.SubType], -1, 2, false, true)
+        
+        Effect.SpriteRotation = Effect.SpawnerEntity.Velocity:GetAngleDegrees()
+
+        Effect.SortingLayer = SortingLayer.SORTING_BACKGROUND
+        Effect:AddEntityFlags(EntityFlag.FLAG_NO_SPRITE_UPDATE)
+        
+    elseif Effect.Variant == mod.Effects.BANANA_PEEL then
+
+        local Data = Effect:GetData()
+
+        Effect.State = BananaState.FLYING
+
+        Data.ZSpeed = -math.random()*10 - 6
+        Data.ZAcceleration = 1 or math.random()*1.5 + 1    
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT, mod.EffectInit)
+
+
+---@param Effect EntityEffect
+function mod:EffectUpdate(Effect)
+
+    if Effect.Variant == mod.Effects.CRAYON_POWDER then
+        if Effect.Timeout <= 0 then
+            Effect.SpriteScale = Vector(Effect.SpriteScale.X - 0.05, Effect.SpriteScale.Y - 0.05)
+            Effect.Color.A = Effect.Color.A - 0.05
+
+            if Effect.SpriteScale.X < 0.1 then
+                Effect:Remove()
+            end
+            return
         end
 
-        if HorseSprite:IsEventTriggered("Landing") then
-               
-            local Shock = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.SHOCKWAVE, Familiar.Position, Vector.Zero,
-                                     Familiar, 0, 1):ToEffect()
-
-            ---@diagnostic disable-next-line: need-check-nil
-            Shock:SetRadii(15,30)
-            --Shock.CollisionDamage = 1 or Familiar.Player.Damage*1.5 + 1 :( no work
-
-            Shock.Parent = Familiar.Player
-
-            SFXManager():Play(SoundEffect.SOUND_CHEST_DROP) --PLACEHOLDER
-
-            Game:MakeShockwave(Familiar.Position, 0.015, 0.01, 5)
-            --Entity:AddKnockback(EntityRef(Familiar), (Entity.Position - Familiar.Position):Normalized(), 4, false)
-
-        elseif HorseSprite:IsEventTriggered("StartMove") then
-
-            Familiar.Velocity = (Room:GetGridPosition(Familiar:GetData().TargetGrid) - Familiar.Position) / 5
-
-            HorseSprite.FlipX = Familiar.Velocity.X >= 0
-
-        elseif HorseSprite:IsFinished("Jump") then
-
-            HorseSprite:Play("Idle")
-
-            Familiar.State = HorseyState.IDLE
-            Familiar.FireCooldown = HORSEY_MAX_JUMP_DELAY
+        if Effect.FrameCount % 6 ~= 0 then
+            return
         end
 
-    elseif Familiar.State == HorseyState.SLEEP then
+        local PowderRef = EntityRef(Effect)
+        local Player = Effect.SpawnerEntity:ToPlayer()
+        local Damage = Player and Player.Damage/2 or 1
 
-        if not Room:IsClear() then
+        for _,Entity in ipairs(Isaac.FindInCapsule(Effect:GetCollisionCapsule())) do
 
-            Familiar.State = HorseyState.IDLE
-            Familiar.FireCooldown = HORSEY_JUMP_COOLDOWN
+            ---@diagnostic disable-next-line: cast-local-type
+            Entity = Entity:ToNPC()
 
-            HorseSprite:Play("Idle")
+            if Entity and Entity:IsActiveEnemy() and not Entity:IsFlying() then
 
-        elseif HorseSprite:IsFinished("StartSleep") then
-            HorseSprite:Play("Sleep")
+                if Effect.SubType == CrayonColorSubType.RED then
+
+                    Entity:AddBaited(PowderRef, 20)
+                    Entity:SetBaitedCountdown(20)
+
+                elseif Effect.SubType == CrayonColorSubType.ORANGE then
+
+                    Entity:AddBurn(PowderRef, 23, Damage)
+                    Entity:SetBurnCountdown(23)
+
+
+                elseif Effect.SubType == CrayonColorSubType.CYAN then
+                
+                    Entity:AddIce(PowderRef, 20)
+
+                    Entity:AddSlowing(PowderRef, 20, 0.85, Color(1.5,1.5,1.5,1)) --PLACEHOLDER COLOR
+                    Entity:SetSlowingCountdown(20)
+
+                elseif Effect.SubType == CrayonColorSubType.GREEN then
+
+                    Entity:AddPoison(PowderRef, 23, Damage)
+                    Entity:SetPoisonCountdown(23)
+
+
+                elseif Effect.SubType == CrayonColorSubType.WHITE then
+
+                    Entity:AddSlowing(PowderRef, 30, 0.7, Color(1.5,1.5,1.5,1)) --PLACEHOLDER COLOR
+                    Entity:SetSlowingCountdown(30)
+
+
+                elseif Effect.SubType == CrayonColorSubType.PINK then
+
+                    Entity:AddCharmed(PowderRef, 30)
+                    Entity:SetCharmedCountdown(30)
+
+                elseif Effect.SubType == CrayonColorSubType.PURPLE then
+
+                    Entity:AddFear(PowderRef, 20)
+                    Entity:SetFearCountdown(20)
+
+                elseif Effect.SubType == CrayonColorSubType.GREY then
+
+                    Entity:AddMagnetized(PowderRef, 15)
+                    Entity:SetMagnetizedCountdown(15)
+
+                elseif Effect.SubType == CrayonColorSubType.YELLOW then
+
+                    local Laser = EntityLaser.ShootAngle(LaserVariant.ELECTRIC, Entity.Position, math.random(-180, 180), 2, Vector.Zero, Effect)
+                    Laser.MaxDistance = math.random()*45 + 40
+                    Laser.CollisionDamage = Damage
+                end
+            end
+        end
+
+    elseif Effect.Variant == mod.Effects.BANANA_PEEL then
+
+        if RoomTransition:GetTransitionMode() ~= 0 then
+            Effect:Remove()
+            return
+        end
+
+
+        if Effect.State == BananaState.FLYING then
+
+            Effect.EntityCollisionClass = EntityCollisionClass.ENTCOLL_NONE
+            Effect.GridCollisionClass = EntityGridCollisionClass.GRIDCOLL_WALLS
+
+            local Data = Effect:GetData()
+            
+            Effect.SpriteOffset.Y = math.min(Effect.SpriteOffset.Y + Data.ZSpeed,0)
+            Data.ZSpeed = Data.ZSpeed + Data.ZAcceleration
+
+            if Effect.SpriteOffset.Y == 0 then
+                Effect.State = BananaState.IDLE
+                sfx:Play(SoundEffect.SOUND_MEAT_IMPACTS)
+
+                Effect:AddVelocity(-Effect.Velocity)
+                Effect:GetSprite():Play("land")
+            end
+        elseif Effect.State == BananaState.SLIP then
+
+            Effect.EntityCollisionClass = EntityCollisionClass.ENTCOLL_NONE
+            Effect.GridCollisionClass = EntityGridCollisionClass.GRIDCOLL_NONE
+
+            if Effect:GetSprite():IsFinished("disappear") then
+                Effect:Remove()
+            end
+
+        elseif Effect.State == BananaState.IDLE then
+
+            Effect.EntityCollisionClass = EntityCollisionClass.ENTCOLL_ENEMIES
+            Effect.GridCollisionClass = EntityGridCollisionClass.GRIDCOLL_GROUND
+
+
+            for i,Collider in ipairs(Isaac.FindInCapsule(Effect:GetCollisionCapsule(), EntityPartition.ENEMY)) do
+                ---@diagnostic disable-next-line: cast-local-type
+                Collider = Collider:ToNPC()
+
+                local ColliderSpeed = Collider.Velocity:Length()
+                local Data = Collider:GetData()
+            
+                if Collider and Collider:IsActiveEnemy() and ColliderSpeed >= 0.25
+                    and not Data.HasBananaSlipped then
+                    
+                    sfx:Play(mod.Sounds.SLIP)
+                    Effect.State = BananaState.SLIP
+                    Effect:AddVelocity(Collider.Velocity * 3)
+                    Effect:GetSprite():Play("disappear")
+
+                    Collider:AddConfusion(EntityRef(Effect), 90, false)
+                    Data.HasBananaSlipped = EntityRef(Effect)
+                    Data.BananaSlipSpeed = -2*ColliderSpeed
+                    Data.BananaSlipAcceleration = ColliderSpeed / 9
+
+                    break
+                end
+            end
         end
     end
-
-    Familiar.FireCooldown = math.max(Familiar.FireCooldown - 1, 0)
 end
-mod:AddCallback(ModCallbacks.MC_FAMILIAR_UPDATE, mod.HorseyUpdate, mod.Familiars.HORSEY)
+mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, mod.EffectUpdate)
 
 
+---------GENERAL ENTITIES----------
+-----------------------------------
+
+
+---@param Entity Entity
+function mod:EntityInit(Entity)
+
+end
+--mod:AddCallback(ModCallbacks.MC_POST_NPC_INIT, mod.EntityInit, mod.Entities.BALATRO_TYPE)
+
+
+---@param Entity Entity
+function mod:EntityUpdate(Entity)
+
+    
+end
+--mod:AddCallback(ModCallbacks.MC_NPC_UPDATE, mod.EntityUpdate, mod.Entities.BALATRO_TYPE)
+
+
+---@param Entity Entity
+function mod:EntityCollision(Entity, Collider,_)
+
+
+end
+--mod:AddCallback(ModCallbacks.MC_PRE_NPC_COLLISION, mod.EntityCollision, mod.Entities.BALATRO_TYPE)
+
+
+
+----------ITEM EFFECTS---------
+-------------------------------
 
 ---@param Player EntityPlayer
 function mod:SpawnCrayonCreep(Player)
@@ -238,107 +480,6 @@ function mod:SpawnCrayonCreep(Player)
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, mod.SpawnCrayonCreep, PlayerVariant.PLAYER)
-
-
----@param Powder EntityEffect
-function mod:SetCrayonPowderColor(Powder)
-
-    local Sprite = Powder:GetSprite()
-
-    Sprite:SetFrame(math.random(0, Sprite:GetAnimationData("Idle"):GetLength()))
-
-    Powder:SetColor(CrayonColors[Powder.SubType], -1, 2, false, true)
-    
-    Powder.SpriteRotation = Powder.SpawnerEntity.Velocity:GetAngleDegrees()
-
-    Powder.SortingLayer = SortingLayer.SORTING_BACKGROUND
-    Powder:AddEntityFlags(EntityFlag.FLAG_NO_SPRITE_UPDATE)
-end
-mod:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT, mod.SetCrayonPowderColor, mod.Effects.CRAYON_POWDER)
-
-
----@param Powder EntityEffect
-function mod:CrayonPowderUpdate(Powder)
-
-    if Powder.Timeout <= 0 then
-        Powder.SpriteScale = Vector(Powder.SpriteScale.X - 0.05, Powder.SpriteScale.Y - 0.05)
-        Powder.Color.A = Powder.Color.A - 0.05
-
-        if Powder.SpriteScale.X < 0.1 then
-            Powder:Remove()
-        end
-        return
-    end
-
-    if Powder.FrameCount % 6 == 0 then
-
-        local PowderRef = EntityRef(Powder)
-        local Player = Powder.SpawnerEntity:ToPlayer()
-        local Damage = Player and Player.Damage/2 or 1
-        
-        for _,Entity in ipairs(Isaac.FindInCapsule(Powder:GetCollisionCapsule())) do
-            
-            ---@diagnostic disable-next-line: cast-local-type
-            Entity = Entity:ToNPC()
-
-            if Entity and Entity:IsActiveEnemy() and not Entity:IsFlying() then
-
-                if Powder.SubType == CrayonColorSubType.RED then
-                    
-                    Entity:AddBaited(PowderRef, 20)
-                    Entity:SetBaitedCountdown(20)
-
-                elseif Powder.SubType == CrayonColorSubType.ORANGE then
-                    
-                    Entity:AddBurn(PowderRef, 23, Damage)
-                    Entity:SetBurnCountdown(23)
-
-
-                elseif Powder.SubType == CrayonColorSubType.CYAN then
-                
-                    Entity:AddIce(PowderRef, 20)
-
-                    Entity:AddSlowing(PowderRef, 20, 0.85, Color(1.5,1.5,1.5,1)) --PLACEHOLDER COLOR
-                    Entity:SetSlowingCountdown(20)
-
-                elseif Powder.SubType == CrayonColorSubType.GREEN then
-                    
-                    Entity:AddPoison(PowderRef, 23, Damage)
-                    Entity:SetPoisonCountdown(23)
-
-
-                elseif Powder.SubType == CrayonColorSubType.WHITE then
-                    
-                    Entity:AddSlowing(PowderRef, 30, 0.7, Color(1.5,1.5,1.5,1)) --PLACEHOLDER COLOR
-                    Entity:SetSlowingCountdown(30)
-
-
-                elseif Powder.SubType == CrayonColorSubType.PINK then
-                    
-                    Entity:AddCharmed(PowderRef, 30)
-                    Entity:SetCharmedCountdown(30)
-
-                elseif Powder.SubType == CrayonColorSubType.PURPLE then
-                    
-                    Entity:AddFear(PowderRef, 20)
-                    Entity:SetFearCountdown(20)
-
-                elseif Powder.SubType == CrayonColorSubType.GREY then
-                    
-                    Entity:AddMagnetized(PowderRef, 15)
-                    Entity:SetMagnetizedCountdown(15)
-
-                elseif Powder.SubType == CrayonColorSubType.YELLOW then
-
-                    local Laser = EntityLaser.ShootAngle(LaserVariant.ELECTRIC, Entity.Position, math.random(-180, 180), 2, Vector.Zero, Powder)
-                    Laser.MaxDistance = math.random()*45 + 40
-                    Laser.CollisionDamage = Damage
-                end
-            end
-        end
-    end
-end
-mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, mod.CrayonPowderUpdate, mod.Effects.CRAYON_POWDER)
 
 
 function mod:ChooseRoomCrayonColor()
@@ -375,4 +516,148 @@ function mod:ChooseRoomCrayonColor2(Type,_,_,_,_, Player)
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE, mod.ChooseRoomCrayonColor2)
+
+
+---@param Player EntityPlayer
+---@param Rng RNG
+function mod:ActiveUse(Item, Rng, Player, Flag, Slot, Data)
+
+    local ReturnTable = {Discharge = false,
+                         Remove = false,
+                         ShowAnim = false}
+                         
+    if Item == mod.Collectibles.BANANA then
+
+        if Player:GetItemState() == mod.Collectibles.BANANA then
+
+            Player:SetItemState(CollectibleType.COLLECTIBLE_NULL)
+            Player:AnimateCollectible(mod.Collectibles.BANANA, "HideItem")
+        else
+
+            Player:SetItemState(mod.Collectibles.BANANA)
+            Player:AnimateCollectible(mod.Collectibles.BANANA, "LiftItem")
+        end
+        return ReturnTable
+
+    elseif Item == mod.Collectibles.EMPTY_BANANA then
+
+        local BananaSpeed = RandomVector()*(math.random() + 2)
+
+        local Banan = Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.BANANA_PEEL, Player.Position,
+                   BananaSpeed + Player:GetTearMovementInheritance(BananaSpeed), Player, 0, math.max(Random(), 1))
+        sfx:Play(SoundEffect.SOUND_SUMMON_POOF)
+
+        Banan:GetSprite():Play("throw")
+
+    end
+end
+mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.ActiveUse)
+
+
+---@param Player EntityPlayer
+function mod:PlayerUpdate(Player)
+
+    local ShootDirection = Player:GetShootingInput()
+
+    if Player:GetItemState() == mod.Collectibles.BANANA
+       and ShootDirection:Length() > 0 then
+
+        
+        Player:AnimateCollectible(mod.Collectibles.BANANA, "HideItem")
+        Player:SetItemState(CollectibleType.COLLECTIBLE_NULL)
+
+        Player:AddCollectible(mod.Collectibles.EMPTY_BANANA, 0, true, Player:GetActiveItemSlot(mod.Collectibles.BANANA))
+        Player:DischargeActiveItem()
+        
+        local Tear = Player:FireTear(Player.Position, ShootDirection*Player.ShotSpeed*3.3, false, false, false, Player, 1)
+        
+        sfx:Play(SoundEffect.SOUND_PLOP)
+        Tear:ChangeVariant(mod.Tears.BANANA_VARIANT)
+        Tear.CollisionDamage = 0
+        Tear.FallingAcceleration = 0
+
+
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, mod.PlayerUpdate)
+
+
+---@param Tear EntityTear
+function mod:BananaInfiniteRange(Tear)
+
+    if Tear.Variant == mod.Tears.BANANA_VARIANT then
+        Tear.FallingSpeed = 0
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_TEAR_UPDATE, mod.BananaInfiniteRange)
+
+
+---@param Tear EntityTear
+function mod:BananaExplosion(Tear)
+
+    if Tear.Variant == mod.Tears.BANANA_VARIANT then
+        
+        Game:GetRoom():MamaMegaExplosion(Tear.Position)
+
+        Isaac.CreateTimer(function ()
+            for _, Cloud in ipairs(Isaac.FindByType(1000, EffectVariant.DUST_CLOUD)) do
+
+                Cloud:SetColor(CrayonColors[CrayonColorSubType.YELLOW], -1, 1, true, true)
+            end
+        end,5,1, false)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_TEAR_DEATH, mod.BananaExplosion)
+
+
+function mod:ResetBananaCharge()
+
+    for i,Player in ipairs(PlayerManager.GetPlayers()) do
+
+        for Slot = ActiveSlot.SLOT_PRIMARY, ActiveSlot.SLOT_POCKET2 do    
+            local Item = Player:GetActiveItem(Slot)
+
+            if Item and Item == mod.Collectibles.EMPTY_BANANA then
+                
+                Player:AnimateCollectible(mod.Collectibles.BANANA, "UseItem")
+                Player:AddCollectible(mod.Collectibles.BANANA, 1, true, Slot)
+                sfx:Play(SoundEffect.SOUND_BEEP)
+            end
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.ResetBananaCharge)
+
+
+---@param Entity Entity
+function mod:EntityBananaSlip(Entity)
+
+    local Data = Entity:GetData()
+
+    if not Data.HasBananaSlipped then
+        return
+    end
+
+    Entity.SpriteRotation = Entity.SpriteRotation + 30
+    Entity.SpriteOffset.Y = Entity.SpriteOffset.Y + Data.BananaSlipSpeed
+    Data.BananaSlipSpeed = Data.BananaSlipSpeed + Data.BananaSlipAcceleration
+
+    if Entity.SpriteOffset.Y >= 0 then
+        
+        Entity.SpriteRotation = 0
+        Entity.SpriteOffset.Y = 0
+
+        Entity:TakeDamage(2.5*Data.BananaSlipSpeed, DamageFlag.DAMAGE_CRUSH, Data.HasBananaSlipped, 1)
+
+        if Entity:HasMortalDamage() then
+            Entity:AddEntityFlags(EntityFlag.FLAG_EXTRA_GORE)
+        end
+
+        Data.BananaSlipSpeed = nil
+        Data.HasBananaSlipped = nil
+        Data.BananaSlipAcceleration = nil
+    end
+    
+end
+mod:AddCallback(ModCallbacks.MC_NPC_UPDATE, mod.EntityBananaSlip)
 

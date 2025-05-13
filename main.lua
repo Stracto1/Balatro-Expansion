@@ -188,12 +188,21 @@ Balatro_Expansion.JokerTypes.EFFECT = "activate"
 Balatro_Expansion.Collectibles = {} --rarities used for spawn weight and stuff
 Balatro_Expansion.Collectibles.HORSEY = Isaac.GetItemIdByName("Horsey")
 Balatro_Expansion.Collectibles.CRAYONS = Isaac.GetItemIdByName("Box of Crayons")
+Balatro_Expansion.Collectibles.BANANA = Isaac.GetItemIdByName("Banana")
+Balatro_Expansion.Collectibles.EMPTY_BANANA = Isaac.GetItemIdByName("Empty Banana")
+
 
 Balatro_Expansion.Familiars = {}
 Balatro_Expansion.Familiars.HORSEY = Isaac.GetEntityVariantByName("Horsey")
 
 Balatro_Expansion.Effects = {}
 Balatro_Expansion.Effects.CRAYON_POWDER = Isaac.GetEntityVariantByName("Crayon Powder")
+Balatro_Expansion.Effects.BANANA_PEEL = Isaac.GetEntityVariantByName("Banana Peel")
+
+
+Balatro_Expansion.Entities = {}
+--Balatro_Expansion.Entities.BALATRO_TYPE = Isaac.GetEntityTypeByName("Banana Peel") --every entity has the same Type but different variants
+
 
 for i, Joker in pairs(Balatro_Expansion.Jokers) do
     local Rarity = string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[3],"%?","")
@@ -205,12 +214,6 @@ end
 --------------------------------
 --CollectibleType.COLLECTIBLE_THE_HAND = Isaac.GetItemIdByName("The hand")
 ----------------------------------
-Card.CARD_PACK_STANDARD = Isaac.GetCardIdByName("Standard_Pack")
-Card.CARD_PACK_BUFFON =  Isaac.GetCardIdByName("Buffon_Pack")
-Card.CARD_PACK_CELESTIAL =  Isaac.GetCardIdByName("Planet_Pack")
-Card.CARD_PACK_SPECTRAL =  Isaac.GetCardIdByName("Spectral_Pack")
-Card.CARD_PACK_TAROT =  Isaac.GetCardIdByName("Tarot_Pack")
-
 ------------------------
 Balatro_Expansion.Characters = {}
 Balatro_Expansion.Characters.JimboType = Isaac.GetPlayerTypeByName("Jimbo", false) -- Exactly as in the xml. The second argument is if you want the Tainted variant.
@@ -232,6 +235,8 @@ Balatro_Expansion.Sounds.EXPLOSION = Isaac.GetSoundIdByName("EXPLOSIONSFX")
 Balatro_Expansion.Sounds.PLAY = Isaac.GetSoundIdByName("CARDPLAYSFX")
 Balatro_Expansion.Sounds.SELECT = Isaac.GetSoundIdByName("CARDSELECTSFX")
 Balatro_Expansion.Sounds.DESELECT = Isaac.GetSoundIdByName("CARDDESELECTSFX")
+Balatro_Expansion.Sounds.SLIP = Isaac.GetSoundIdByName("SLIPSFX")
+
 
 
 Balatro_Expansion.EffectColors = {}
@@ -392,14 +397,14 @@ Balatro_Expansion.HandTypes.FLUSH_HOUSE = 1 << 11
 Balatro_Expansion.HandTypes.FIVE_FLUSH = 1 << 13
 
 
+Balatro_Expansion.Tears = {}
+Balatro_Expansion.Tears.CARD_TEAR_VARIANT = Isaac.GetEntityVariantByName("Tear Card")   
 
-Balatro_Expansion.CARD_TEAR_VARIANT = Isaac.GetEntityVariantByName("Tear Card")
-
-                                        
-Balatro_Expansion.SUIT_TEAR_VARIANTS = {Isaac.GetEntityVariantByName("Tear Spade Suit"),
-                                        Isaac.GetEntityVariantByName("Tear Heart Suit"),
-                                        Isaac.GetEntityVariantByName("Tear Club Suit"),
-                                        Isaac.GetEntityVariantByName("Tear Diamond Suit")}
+Balatro_Expansion.Tears.SUIT_TEAR_VARIANTS = {Isaac.GetEntityVariantByName("Tear Spade Suit"),
+                                                Isaac.GetEntityVariantByName("Tear Heart Suit"),
+                                                Isaac.GetEntityVariantByName("Tear Club Suit"),
+                                                Isaac.GetEntityVariantByName("Tear Diamond Suit")}
+Balatro_Expansion.Tears.BANANA_VARIANT = Isaac.GetEntityVariantByName("Tear Banana")
 
 
 
