@@ -104,7 +104,7 @@ local itemData = {
         Type = "Collectible",
         Name = "Horsey",
         UnlockMethod = "Unlocked by defeating Isaac",
-        Description = "Summons a horse familiar that periodically jumps, moving in an L shape and crating shockwaves that damage enemies upon landing.",
+        Description = "Summons a horse familiar that periodically jumps, moving in an L shape and creating shockwaves that damage enemies upon landing.",
         Achievement = mod.Achievements.Items[mod.Collectibles.HORSEY]
     },
     {
@@ -115,6 +115,15 @@ local itemData = {
         UnlockMethod = "Unlocked by defeating ???",
         Description = "While moving, Isaac leaves a trail of crayon dust which applies a different effect on enemies that step on it basing on it's color. The dust color changes every room.",
         Achievement = mod.Achievements.Items[mod.Collectibles.CRAYONS]
+    },
+    {
+        Id = Balatro_Expansion.Collectibles.BANANA,
+        Gfx = ItemsConfig:GetCollectible(Balatro_Expansion.Collectibles.BANANA).GfxFileName,
+        Type = "Collectible",
+        Name = "Banana",
+        UnlockMethod = "Unlocked by defeating ???",
+        Description = "When first used every floor, shoots a devastating banana that creates a Mama Mega! type explosion, then becomes a time-charged active that spawns banana peels able to make the enemies slip and take damamage.",
+        Achievement = mod.Achievements.Items[mod.Collectibles.BANANA]
     },
     {
         Divider = true,

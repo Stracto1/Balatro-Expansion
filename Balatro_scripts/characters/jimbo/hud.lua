@@ -79,7 +79,7 @@ local ENHANCEMENTS_ANIMATIONS = {"Base","Mult","Bonus","Wild","Glass","Steel","S
 -----------------------------------------
 
 local function PreventErrors()
-    if not mod.Saved.Jimbo[0] then
+    if not mod.GameStarted then
         return true
     end
 end

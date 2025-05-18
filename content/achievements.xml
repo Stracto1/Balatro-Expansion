@@ -2,7 +2,9 @@
 
     <achievement name="PermaLocked" hidden="true"/>
 
-    <achievement name="HorseyUnlock"/>
-    <achievement name="CrayonsUnlock"/>
+    <achievement name="HorseyUnlock" gfx="achievement_horsey.png"/>
+    <achievement name="CrayonsUnlock" gfx="achievement_box_crayons.png"/>
+    <achievement name="BananaUnlock" gfx="achievement_banana.png"/>
+
 
 </achievements>

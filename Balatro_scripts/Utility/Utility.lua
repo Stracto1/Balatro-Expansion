@@ -216,6 +216,14 @@ function mod:CoolLerp(a, b, t)
     return a + (b - a) * t
 end
 
+function mod:ExponentLerp(a, b, t, exp)
+    t = mod:Clamp(math.abs(t), 1,0)
+    exp = exp or 1
+
+    return a + (b - a) * t^exp
+end
+
+
 function mod:VectorLerp(vec1, vec2, percent)
     percent = mod:Clamp(math.abs(percent), 1,0)
     return vec1 * (1 - percent) + vec2 * percent

@@ -1,4 +1,4 @@
----@diagnostic disable: undefined-field, need-check-nil, inject-field
+---@diagnostic disable: undefined-field, need-check-nil, inject-field, cast-local-type
 local mod = Balatro_Expansion
 local Game = Game()
 local ItemsConfig = Isaac.GetItemConfig()
@@ -13,34 +13,83 @@ HorseyState.IDLE = 1 --waiting for something to jump on or to cooldown to reache
 HorseyState.JUMP = 2 --in mid-air
 HorseyState.SLEEP = 3
 
-local CrayonColorSubType = {}
-CrayonColorSubType.RED = 1
-CrayonColorSubType.CYAN = 2
-CrayonColorSubType.ORANGE = 3
-CrayonColorSubType.WHITE = 4
-CrayonColorSubType.GREEN = 5
-CrayonColorSubType.PINK = 6
-CrayonColorSubType.PURPLE = 7
-CrayonColorSubType.GREY = 8
-CrayonColorSubType.YELLOW = 9
-CrayonColorSubType.NUM_COLORS = 9
+local ColorSubType = {} --used to randomize familiar/effect colors
+ColorSubType.RED = 1
+ColorSubType.CYAN = 2
+ColorSubType.ORANGE = 3
+ColorSubType.WHITE = 4
+ColorSubType.GREEN = 5
+ColorSubType.PINK = 6
+ColorSubType.PURPLE = 7
+ColorSubType.GREY = 8
+ColorSubType.YELLOW = 9
+ColorSubType.NUM_COLORS = 9
 
 
 local CrayonColors = {}
-CrayonColors[CrayonColorSubType.RED] = Color(1,1,1,1,0,0,0,0.95,0.3,0.3,1)
-CrayonColors[CrayonColorSubType.CYAN] = Color(1,1,1,1,0,0,0,0.27,0.59,0.95,1)
-CrayonColors[CrayonColorSubType.ORANGE] = Color(1,1,1,1,0,0,0,0.95,0.59,0.2,1)
-CrayonColors[CrayonColorSubType.WHITE] = Color(1,1,1,1,0,0,0,1,0.95,0.95,1)
-CrayonColors[CrayonColorSubType.GREEN] = Color(1,1,1,1,0,0,0,0.4,0.8,0.27,1)
-CrayonColors[CrayonColorSubType.PINK] = Color(1,1,1,1,0,0,0,0.89,0.48,0.8,1)
-CrayonColors[CrayonColorSubType.PURPLE] = Color(1,1,1,1,0,0,0,0.67,0.11,0.63,1)
-CrayonColors[CrayonColorSubType.GREY] = Color(1,1,1,1,0,0,0,0.6,0.6,0.6,1)
-CrayonColors[CrayonColorSubType.YELLOW] = Color(1,1,1,1,0,0,0,0.9,0.83,0.31,1)
+CrayonColors[ColorSubType.RED] = Color(1,1,1,1,0,0,0,0.95,0.3,0.3,1)
+CrayonColors[ColorSubType.CYAN] = Color(1,1,1,1,0,0,0,0.27,0.59,0.95,1)
+CrayonColors[ColorSubType.ORANGE] = Color(1,1,1,1,0,0,0,0.95,0.59,0.2,1)
+CrayonColors[ColorSubType.WHITE] = Color(1,1,1,1,0,0,0,1,0.95,0.95,1)
+CrayonColors[ColorSubType.GREEN] = Color(1,1,1,1,0,0,0,0.4,0.8,0.27,1)
+CrayonColors[ColorSubType.PINK] = Color(1,1,1,1,0,0,0,0.89,0.48,0.8,1)
+CrayonColors[ColorSubType.PURPLE] = Color(1,1,1,1,0,0,0,0.67,0.11,0.63,1)
+CrayonColors[ColorSubType.GREY] = Color(1,1,1,1,0,0,0,0.6,0.6,0.6,1)
+CrayonColors[ColorSubType.YELLOW] = Color(1,1,1,1,0,0,0,0.9,0.83,0.31,1)
 
 local BananaState = {}
 BananaState.IDLE = 1 --waiting for someone stupid enough to fall for it
 BananaState.FLYING = 2 --in mid-air from initial throw
 BananaState.SLIP = 3 --disappearing
+
+local PUPPY_RESPAWN_TIMER = 270
+local PuppyState = {}
+PuppyState.IDLE = 1 --chilling with isaac while still attached
+PuppyState.ATTACK = 2 --disappearing
+PuppyState.EXPLODED = 3 --disappearing
+
+local PuppyColorsSuffix = {}
+PuppyColorsSuffix[ColorSubType.RED] = "_red"
+PuppyColorsSuffix[ColorSubType.CYAN] = "_cyan"
+PuppyColorsSuffix[ColorSubType.ORANGE] = "_orange"
+PuppyColorsSuffix[ColorSubType.WHITE] = "_white"
+PuppyColorsSuffix[ColorSubType.GREEN] = "_green"
+PuppyColorsSuffix[ColorSubType.PINK] = "_pink"
+PuppyColorsSuffix[ColorSubType.PURPLE] = "_red"
+PuppyColorsSuffix[ColorSubType.GREY] = "_grey"
+PuppyColorsSuffix[ColorSubType.YELLOW] = "_yellow"
+
+local LaughEffectType = {}
+LaughEffectType.GOOD = 1
+LaughEffectType.BAD = 0
+LaughEffectType.GASP = 2
+
+
+
+
+local function UnlockItems(_,Type)
+
+    if PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
+        
+        local GameData = Isaac.GetPersistentGameData()
+        if Type == CompletionType.MOMS_HEART then
+            --lil jester
+        elseif Type == CompletionType.ISAAC then
+            GameData:TryUnlock(mod.Achievements.Items[mod.Collectibles.HORSEY])
+
+        elseif Type == CompletionType.BLUE_BABY then
+            GameData:TryUnlock(mod.Achievements.Items[mod.Collectibles.CRAYONS])
+
+        elseif Type == CompletionType.BEAST then
+            GameData:TryUnlock(mod.Achievements.Items[mod.Collectibles.BANANA])
+
+        elseif Type == CompletionType.SATAN then
+            GameData:TryUnlock(mod.Achievements.Items[mod.Collectibles.BALOON_PUPPY])
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_COMPLETION_EVENT, UnlockItems)
+
 
 
 ---@param Familiar EntityFamiliar
@@ -123,8 +172,11 @@ end
 function mod:GiveFamiliars(Player, _)
 
     local FamiliarCount = Player:GetEffects():GetCollectibleEffectNum(mod.Collectibles.HORSEY) + Player:GetCollectibleNum(mod.Collectibles.HORSEY)
-
     Player:CheckFamiliar(mod.Familiars.HORSEY, FamiliarCount, RNG(math.max(Random(), 1)), ItemsConfig:GetCollectible(mod.Collectibles.HORSEY))
+
+    FamiliarCount = Player:GetEffects():GetCollectibleEffectNum(mod.Collectibles.BALOON_PUPPY) + Player:GetCollectibleNum(mod.Collectibles.BALOON_PUPPY)
+    print(FamiliarCount)
+    Player:CheckFamiliar(mod.Familiars.BLOON_PUPPY, FamiliarCount, RNG(math.max(Random(), 1)), ItemsConfig:GetCollectible(mod.Collectibles.BALOON_PUPPY))
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.GiveFamiliars, CacheFlag.CACHE_FAMILIARS)
 
@@ -135,13 +187,23 @@ function mod:FamiliarInit(Familiar)
     if Familiar.Variant == mod.Familiars.HORSEY then
         local Room = Game:GetRoom()
 
-        
         Familiar.Position = Room:GetGridPosition(Room:GetGridIndex(Familiar.Position))
 
         Familiar.State = HorseyState.IDLE
         Familiar.FireCooldown = HORSEY_JUMP_COOLDOWN
 
-    
+    elseif Familiar.Variant == mod.Familiars.BLOON_PUPPY then
+
+        Familiar.DepthOffset = Familiar.DepthOffset + 1000
+        Familiar.Position = Familiar.Player.Position
+
+        Familiar.EntityCollisionClass = EntityCollisionClass.ENTCOLL_ALL
+
+        Familiar.State = PuppyState.IDLE
+        Familiar.FireCooldown = 0
+        Familiar.MaxHitPoints = 16 * Familiar:GetMultiplier()
+
+        Familiar:GetSprite():ReplaceSpritesheet(0, "gfx/familiar/familiar_Baloon_Puppy"..PuppyColorsSuffix[math.random(ColorSubType.NUM_COLORS)]..".png", true)
     end
 end
 mod:AddCallback(ModCallbacks.MC_FAMILIAR_INIT, mod.FamiliarInit)
@@ -150,9 +212,8 @@ mod:AddCallback(ModCallbacks.MC_FAMILIAR_INIT, mod.FamiliarInit)
 ---@param Familiar EntityFamiliar
 function mod:FamiliarUpdate(Familiar)
 
-    local Room = Game:GetRoom()
-
     if Familiar.Variant == mod.Familiars.HORSEY then
+        local Room = Game:GetRoom()
         local HorseSprite = Familiar:GetSprite()
 
         if Familiar.State == HorseyState.IDLE then
@@ -231,19 +292,172 @@ function mod:FamiliarUpdate(Familiar)
 
         Familiar.FireCooldown = math.max(Familiar.FireCooldown - 1, 0)
 
-    
+    elseif Familiar.Variant == mod.Familiars.BLOON_PUPPY then
+
+        if Familiar.State == PuppyState.IDLE then
+            
+            local PlayerDistance = Familiar.Position + Familiar.SpriteOffset - Familiar.Player.Position
+            local DistanceLength = PlayerDistance:Length()
+            local DistanceAngle = PlayerDistance:GetAngleDegrees()
+
+            if DistanceLength > 90 then --reached maximum string length
+                
+                Familiar.Velocity = Familiar.Velocity*0.98 --gradually slows down
+
+                Familiar:AddVelocity(PlayerDistance/-100 * (1+((DistanceLength-90)/50)))
+                
+                --Familiar.Position = Familiar.Position - PlayerDistance/(DistanceLength/4)
+
+            elseif DistanceLength > 80 and DistanceAngle > -120 and DistanceAngle < -60 then --almost maximum length but not quite
+
+                Familiar.Velocity = Familiar.Velocity*0.95 --gradually slows down
+
+            else --string is loose
+                Familiar.Velocity = Familiar.Velocity*0.95
+                Familiar:AddVelocity(Vector(0,-0.15))
+
+            end
+
+        elseif Familiar.State == PuppyState.ATTACK then
+
+            Familiar:PickEnemyTarget(350, 13, 9) --switch target + prioritize low hp
+
+            if Familiar.Target then
+                Familiar:GetPathFinder():FindGridPath(Familiar.Target.Position, 1, 0, true)
+            else
+                Familiar:GetPathFinder():FindGridPath(Familiar.Player.Position, 0.5, 0, true)
+            end
+
+            Familiar.FireCooldown = Familiar.FireCooldown + 1
+
+        elseif Familiar.State == PuppyState.EXPLODED then
+
+            Familiar.FireCooldown = Familiar.FireCooldown - 1
+            if Familiar.FireCooldown == 0 then
+
+                Familiar:GetSprite():ReplaceSpritesheet(0, "gfx/familiar/familiar_Baloon_Puppy"..PuppyColorsSuffix[math.random(ColorSubType.NUM_COLORS)]..".png", true)
+
+                Familiar.Position = Familiar.Player.Position
+                Familiar:GetSprite():Play("Idle")
+
+                Familiar.HitPoints = Familiar.MaxHitPoints
+                Familiar.State = PuppyState.IDLE
+                Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.POOF01, Familiar.Position, Vector.Zero, Familiar, 0, 1)
+            end
+        end 
     end
 end
 mod:AddCallback(ModCallbacks.MC_FAMILIAR_UPDATE, mod.FamiliarUpdate)
 
 
 ---@param Familiar EntityFamiliar
+function mod:FamiliarRender(Familiar)
+
+    if Familiar.Variant == mod.Familiars.BLOON_PUPPY then
+
+        if Familiar.State == PuppyState.IDLE or Familiar.State == PuppyState.ATTACK then
+            
+            local PlayerDistance = Familiar.Position + Familiar.SpriteOffset - Familiar.Player.Position
+            local DistanceLength = PlayerDistance:Length()
+
+            local NumPoints = (DistanceLength // 50)+2
+            local FamiliarScreenPos = Isaac.WorldToScreen(Familiar.Position)
+            local PlayerScreenPos = mod:CoolVectorLerp(Isaac.WorldToScreen(Familiar.Player.Position), FamiliarScreenPos, Familiar.FireCooldown/35)
+
+            local LastPoint = PlayerScreenPos
+            local CurveExp = mod:CoolLerp(math.min(DistanceLength/100, 1.1), 1, Familiar.FireCooldown/20)
+
+            if PlayerDistance.Y < 0 then
+                
+                for i=0, 1, 1/NumPoints do
+
+                    local MidPoint = Vector.Zero
+
+                    MidPoint.X = mod:ExponentLerp(PlayerScreenPos.X, FamiliarScreenPos.X, i, CurveExp)
+                    MidPoint.Y = mod:ExponentLerp(PlayerScreenPos.Y, FamiliarScreenPos.Y, i, 1/CurveExp)
+
+                    Isaac.DrawLine(LastPoint,MidPoint,KColor.Black, KColor.Black, 1)
+
+                    LastPoint = MidPoint + Vector.Zero
+                end
+            else
+                for i=0, 1, 1/NumPoints do
+
+                    local MidPoint = Vector.Zero
+
+                    MidPoint.Y = mod:ExponentLerp(PlayerScreenPos.Y, FamiliarScreenPos.Y, i, CurveExp)
+                    MidPoint.X = mod:ExponentLerp(PlayerScreenPos.X, FamiliarScreenPos.X, i, 1/CurveExp)
+
+                    Isaac.DrawLine(LastPoint,MidPoint,KColor.Black, KColor.Black, 1)
+
+                    LastPoint = MidPoint + Vector.Zero
+                end
+            end
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_FAMILIAR_RENDER, mod.FamiliarRender)
+
+
+
+---@param Familiar EntityFamiliar
 ---@param Collider Entity
 function mod:FamiliarCollision(Familiar, Collider,_)
 
-    if Familiar.Variant == mod.Familiars.BANANA_PEEL then
+    if Familiar.Variant == mod.Familiars.BLOON_PUPPY then
 
-        
+        if Familiar.State == PuppyState.EXPLODED then
+            return
+        end
+
+        local Bullet = Collider:ToProjectile()
+        if Bullet and not Bullet:HasProjectileFlags(ProjectileFlags.CANT_HIT_PLAYER) then
+            
+            Familiar:TakeDamage(1, DamageFlag.DAMAGE_COUNTDOWN, EntityRef(Bullet), 7)
+            
+            if Familiar.HitPoints == 2 then --one hit away from death (take damage takes place next frame)
+                
+            
+                sfx:Play(SoundEffect.SOUND_BOSS1_EXPLOSIONS, 0.9, 2,false,1.2)
+                Familiar.State = PuppyState.EXPLODED
+                Familiar:GetSprite():Play("Explode")
+                Familiar.FireCooldown = PUPPY_RESPAWN_TIMER
+
+                for _, Entity in ipairs(Isaac.FindInRadius(Familiar.Position,30,EntityPartition.ENEMY|EntityPartition.BULLET)) do
+
+                    local NPC = Entity:ToNPC()
+                    local Bullet = Entity:ToProjectile()
+                    if NPC then
+                        NPC:TakeDamage((Familiar.Player.Damage * 3 + 2)*Familiar:GetMultiplier(), DamageFlag.DAMAGE_EXPLOSION, EntityRef(Familiar), 2)
+                        NPC:AddKnockback(EntityRef(Familiar), (NPC.Position - Familiar.Position):Resized(8), 30, true)
+
+                    elseif Bullet then
+
+                        Bullet.Velocity = -1.5*Bullet.Velocity
+                        Bullet:AddProjectileFlags(ProjectileFlags.HIT_ENEMIES|ProjectileFlags.CANT_HIT_PLAYER)
+                        Bullet.Damage = Bullet.Damage*2*Familiar:GetMultiplier()
+                    end
+                end
+            else
+                --no idea tf the editor is doing
+---@diagnostic disable-next-line: param-type-mismatch
+                Familiar:AddVelocity(Collider.Velocity/3) 
+            end
+
+            Bullet.Velocity = -Bullet.Velocity
+            Bullet:AddProjectileFlags(ProjectileFlags.HIT_ENEMIES|ProjectileFlags.CANT_HIT_PLAYER)
+            Bullet.Damage = Bullet.Damage*Familiar:GetMultiplier()
+            sfx:Play(SoundEffect.SOUND_JELLY_BOUNCE, 0.9)
+
+        elseif Familiar.State == PuppyState.ATTACK then
+            
+            local NPC = Collider:ToNPC()
+            if NPC and NPC:IsActiveEnemy() and NPC:IsVulnerableEnemy() then
+                
+                NPC:TakeDamage(Familiar:GetMultiplier(), DamageFlag.DAMAGE_COUNTDOWN, EntityRef(Familiar), 5)
+                Familiar:CanBlockProjectiles()
+            end
+        end
         
     end
 end
@@ -311,52 +525,52 @@ function mod:EffectUpdate(Effect)
 
             if Entity and Entity:IsActiveEnemy() and not Entity:IsFlying() then
 
-                if Effect.SubType == CrayonColorSubType.RED then
+                if Effect.SubType == ColorSubType.RED then
 
                     Entity:AddBaited(PowderRef, 20)
                     Entity:SetBaitedCountdown(20)
 
-                elseif Effect.SubType == CrayonColorSubType.ORANGE then
+                elseif Effect.SubType == ColorSubType.ORANGE then
 
                     Entity:AddBurn(PowderRef, 23, Damage)
                     Entity:SetBurnCountdown(23)
 
 
-                elseif Effect.SubType == CrayonColorSubType.CYAN then
+                elseif Effect.SubType == ColorSubType.CYAN then
                 
                     Entity:AddIce(PowderRef, 20)
 
                     Entity:AddSlowing(PowderRef, 20, 0.85, Color(1.5,1.5,1.5,1)) --PLACEHOLDER COLOR
                     Entity:SetSlowingCountdown(20)
 
-                elseif Effect.SubType == CrayonColorSubType.GREEN then
+                elseif Effect.SubType == ColorSubType.GREEN then
 
                     Entity:AddPoison(PowderRef, 23, Damage)
                     Entity:SetPoisonCountdown(23)
 
 
-                elseif Effect.SubType == CrayonColorSubType.WHITE then
+                elseif Effect.SubType == ColorSubType.WHITE then
 
                     Entity:AddSlowing(PowderRef, 30, 0.7, Color(1.5,1.5,1.5,1)) --PLACEHOLDER COLOR
                     Entity:SetSlowingCountdown(30)
 
 
-                elseif Effect.SubType == CrayonColorSubType.PINK then
+                elseif Effect.SubType == ColorSubType.PINK then
 
                     Entity:AddCharmed(PowderRef, 30)
                     Entity:SetCharmedCountdown(30)
 
-                elseif Effect.SubType == CrayonColorSubType.PURPLE then
+                elseif Effect.SubType == ColorSubType.PURPLE then
 
                     Entity:AddFear(PowderRef, 20)
                     Entity:SetFearCountdown(20)
 
-                elseif Effect.SubType == CrayonColorSubType.GREY then
+                elseif Effect.SubType == ColorSubType.GREY then
 
                     Entity:AddMagnetized(PowderRef, 15)
                     Entity:SetMagnetizedCountdown(15)
 
-                elseif Effect.SubType == CrayonColorSubType.YELLOW then
+                elseif Effect.SubType == ColorSubType.YELLOW then
 
                     local Laser = EntityLaser.ShootAngle(LaserVariant.ELECTRIC, Entity.Position, math.random(-180, 180), 2, Vector.Zero, Effect)
                     Laser.MaxDistance = math.random()*45 + 40
@@ -371,7 +585,6 @@ function mod:EffectUpdate(Effect)
             Effect:Remove()
             return
         end
-
 
         if Effect.State == BananaState.FLYING then
 
@@ -415,7 +628,7 @@ function mod:EffectUpdate(Effect)
                 if Collider and Collider:IsActiveEnemy() and ColliderSpeed >= 0.25
                     and not Data.HasBananaSlipped then
                     
-                    sfx:Play(mod.Sounds.SLIP)
+                    sfx:Play(mod.Sounds.SLIP, 0.55)
                     Effect.State = BananaState.SLIP
                     Effect:AddVelocity(Collider.Velocity * 3)
                     Effect:GetSprite():Play("disappear")
@@ -482,7 +695,7 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, mod.SpawnCrayonCreep, PlayerVariant.PLAYER)
 
 
-function mod:ChooseRoomCrayonColor()
+local function OnNewRoom()
 
     for _,Player in ipairs(PlayerManager.GetPlayers()) do
         if Player:HasCollectible(mod.Collectibles.CRAYONS) then
@@ -490,15 +703,24 @@ function mod:ChooseRoomCrayonColor()
             local RandomColor
             local Data = Player:GetData()
             repeat
-                RandomColor = math.random(CrayonColorSubType.NUM_COLORS)
+                RandomColor = math.random(ColorSubType.NUM_COLORS)
 
             until not Data.CrayonColor or RandomColor ~= Data.CrayonColor
 
             Player:GetData().CrayonColor = RandomColor
+
+        elseif Player:HasCollectible(mod.Collectibles.BALOON_PUPPY) then
+
+            for _, Puppy in ipairs(Isaac.FindByType(EntityType.ENTITY_FAMILIAR, mod.Familiars.BLOON_PUPPY)) do
+
+                Puppy = Puppy:ToFamiliar()
+                Puppy.State = PuppyState.IDLE
+                Puppy.FireCooldown = 0
+            end
         end
     end
 end
-mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.ChooseRoomCrayonColor)
+mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, OnNewRoom)
 
 
 function mod:ChooseRoomCrayonColor2(Type,_,_,_,_, Player)
@@ -507,7 +729,7 @@ function mod:ChooseRoomCrayonColor2(Type,_,_,_,_, Player)
         local RandomColor
         local Data = Player:GetData()
         repeat
-            RandomColor = math.random(CrayonColorSubType.NUM_COLORS)
+            RandomColor = math.random(ColorSubType.NUM_COLORS)
 
         until not Data.CrayonColor or RandomColor ~= Data.CrayonColor
 
@@ -569,10 +791,11 @@ function mod:PlayerUpdate(Player)
         Player:AddCollectible(mod.Collectibles.EMPTY_BANANA, 0, true, Player:GetActiveItemSlot(mod.Collectibles.BANANA))
         Player:DischargeActiveItem()
         
-        local Tear = Player:FireTear(Player.Position, ShootDirection*Player.ShotSpeed*3.3, false, false, false, Player, 1)
+        local Tear = Game:Spawn(EntityType.ENTITY_TEAR, mod.Tears.BANANA_VARIANT, Player.Position, ShootDirection*Player.ShotSpeed*2.75, Player, 0, 1):ToTear()
         
+        Tear.CanTriggerStreakEnd = false
+
         sfx:Play(SoundEffect.SOUND_PLOP)
-        Tear:ChangeVariant(mod.Tears.BANANA_VARIANT)
         Tear.CollisionDamage = 0
         Tear.FallingAcceleration = 0
 
@@ -602,7 +825,7 @@ function mod:BananaExplosion(Tear)
         Isaac.CreateTimer(function ()
             for _, Cloud in ipairs(Isaac.FindByType(1000, EffectVariant.DUST_CLOUD)) do
 
-                Cloud:SetColor(CrayonColors[CrayonColorSubType.YELLOW], -1, 1, true, true)
+                Cloud:SetColor(CrayonColors[ColorSubType.YELLOW], -1, 1, true, true)
             end
         end,5,1, false)
     end
@@ -660,4 +883,119 @@ function mod:EntityBananaSlip(Entity)
     
 end
 mod:AddCallback(ModCallbacks.MC_NPC_UPDATE, mod.EntityBananaSlip)
+
+---@param Entity Entity
+local function OnPlayerTakeDamage(_,Entity)
+    
+    Entity = Entity:ToPlayer()
+
+    if not Entity then
+        return
+    end
+
+    if Entity:HasCollectible(mod.Collectibles.BALOON_PUPPY) then
+        
+        for _, Puppy in ipairs(Isaac.FindByType(EntityType.ENTITY_FAMILIAR, mod.Familiars.BLOON_PUPPY)) do
+
+            Puppy = Puppy:ToFamiliar()
+            if Puppy.State == PuppyState.IDLE and Entity:GetPlayerIndex() == Puppy.Player:GetPlayerIndex() then
+                Puppy = Puppy:ToFamiliar()
+                Puppy.State = PuppyState.ATTACK
+                Puppy.FireCooldown = 0 --used as a timer for how long it has been attacking
+            end
+        end
+
+    elseif Entity:HasCollectible(mod.Collectibles.LAUGH_SIGN) then
+
+        mod:LaughSignEffect(LaughEffectType.BAD, Entity)
+
+    end
+end
+mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, OnPlayerTakeDamage, EntityType.ENTITY_PLAYER)
+
+
+
+function mod:LaughSignEffect(Type, Player)
+
+    if Type == LaughEffectType.BAD then
+        
+
+
+    elseif Type == LaughEffectType.GOOD then
+        local Timer = 15
+        for i=1, 3 do
+            
+            Isaac.CreateTimer(function ()
+
+                local Pickup = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_HEART, 
+                                          Isaac.GetFreeNearPosition(Player.Position, 30), Vector.Zero, Player,
+                                          HeartSubType.HEART_FULL, 1)
+
+                local Data = Pickup:GetData()
+                Data.LaughingSpawn = true
+                Data.RenderFrames = 0
+
+                --starts from off screen
+                Pickup.SpriteOffset = Vector(math.random(-110, 110),Isaac.GetScreenHeight() - Isaac.WorldToScreen(Pickup.Position).Y + 40)
+                Pickup.SpriteScale = Vector.One * 2.25
+                Data.StartThrowOffset = Pickup.SpriteOffset
+                Data.StartThrowRotation = math.random()*-360 - 360
+                Pickup.DepthOffset = 1000
+
+
+                Pickup:GetSprite():Play("Idle")
+
+            end, Timer, 1, true)
+
+            Timer = Timer + math.random(15,45)
+        end
+    
+    end
+
+end
+
+
+local function WaitForPickupLanding(_, Pickup, Collider)
+
+    local Data = Pickup:GetData()
+
+    if Data.LaughingSpawn then
+        
+        return true
+    end
+    
+end
+mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_COLLISION, WaitForPickupLanding)
+
+
+local function PickupThrowParabola(_, Pickup)
+
+    local Data = Pickup:GetData()
+    if not Data.LaughingSpawn then
+        return
+    end
+
+    if Pickup.SpriteScale.Y == 1 then --pickup landed
+        
+        Data.RenderFrames = nil
+        Data.LaughingSpawn = nil
+        Data.StartThrowOffset = nil
+        Data.StartThrowRotation = nil
+
+        Pickup.EntityCollisionClass = EntityCollisionClass.ENTCOLL_PLAYERONLY
+        Pickup.DepthOffset = 0
+
+    else
+        
+        Data.RenderFrames = Data.RenderFrames + 1
+
+        Pickup.SpriteOffset.Y = mod:ExponentLerp(Data.StartThrowOffset.Y, 0, Data.RenderFrames/300, 0.95)
+        Pickup.SpriteOffset.X = mod:Lerp(Data.StartThrowOffset.X, 0, Data.RenderFrames/900)
+
+        Pickup.SpriteScale = Vector.One * mod:ExponentLerp(2.25, 1, Data.RenderFrames/75, 3)
+        Pickup.SpriteRotation =mod:ExponentLerp(Data.StartThrowRotation, 0, Data.RenderFrames/75, 0.9)
+    end
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_PICKUP_RENDER, PickupThrowParabola)
 

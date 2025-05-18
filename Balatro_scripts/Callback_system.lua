@@ -130,10 +130,9 @@ function mod:OnGameStart(Continued)
         end
     end
     
-    
     for _, player in ipairs(PlayerManager.GetPlayers()) do  --evaluates again for the mod's trinkets since closing the game
         --resets stuff
-        mod:InitJimboValues(player, false)
+        mod:InitJimboValues(player, not Continued) -- on new run always initialise jimbo values
 
         if player:GetPlayerType() == mod.Characters.JimboType then
             mod:StatReset(player,true,true,false,true,true)
@@ -146,7 +145,6 @@ function mod:OnGameStart(Continued)
             --player:AddCacheFlags(CacheFlag.CACHE_ALL, true)
         end
     end
-
 
     mod.GameStarted = true
 
@@ -239,102 +237,10 @@ mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED ,mod.OnGameStart)
 --Counter = 60
 --Counter2 = 36
 
----@param trinket TrinketType
-function mod:TrinketPickup(_,trinket,_)
-    --print("trinket")
-    --[[
-    local Trinket = ItemsConfig:GetTrinket(trinket)
-    mod.WantedEffect = trinket
-    --these only make effects (only one per trinket)
-    if not (Trinket:HasCustomTag("mult") or Trinket:HasCustomTag("chips") or Trinket:HasCustomTag("multm") or Trinket:HasCustomTag("mult/chips") or Trinket:HasCustomTag("activate")) then
-        return --not a mod's trinket
-    end
-    --print("mod")
-    if mod:Contained(mod.Saved.Other.Picked, trinket) then --checks if the trinket was already taken this run
-        return
-    else
-        mod.Saved.Other.Picked[#mod.Saved.Other.Picked+1] = trinket
-        --table.insert((mod.Saved.Other.Picked), trinket)
-        --dude i swear to god, table.insert just won't work
-    end
-    --print("not contained")
-    for i=1, #Trinket:GetCustomTags(), 1 do --needed since certain trinkets have the same tags, whick would double the callbacks
-        local TagX = Trinket:GetCustomTags()[i]
-        if not mod:Contained(mod.Saved.Other.Tags, TagX) then
-            mod.Saved.Other.Tags[#mod.Saved.Other.Tags+1] =  TagX
-            if not (TagX == "mult" or TagX == "chips" or TagX == "multm" or TagX == "mult/chips") then
-                --print("idk")
-                if TagX == "newroom" then
-                    mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.OnNewRoom)
-            
-                elseif TagX == "newfloor" then
-                    mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.OnNewFloor)
-                
-                elseif TagX == "items" then
-                    --print("callback")
-                    mod:AddCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE, mod.OnItemPickup)
-                    mod:AddCallback(ModCallbacks.MC_POST_TRIGGER_COLLECTIBLE_REMOVED, mod.OnItemRemoval)
-
-                
-                elseif TagX == "coins" then
-                    mod:AddCallback(ModCallbacks.MC_POST_PICKUP_COLLISION, mod.OnPickupCollision, PickupVariant.PICKUP_COIN)
-                    mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_COLLISION, mod.PrePickupCollision, PickupVariant.PICKUP_COIN)
-                elseif TagX == "bombs" then
-                    mod:AddCallback(ModCallbacks.MC_POST_PICKUP_COLLISION, mod.OnPickupCollision, PickupVariant.PICKUP_BOMB)                    
-                    mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_COLLISION, mod.PrePickupCollision, PickupVariant.PICKUP_BOMB)
-                elseif TagX == "keys" then
-                    mod:AddCallback(ModCallbacks.MC_POST_PICKUP_COLLISION, mod.OnPickupCollision, PickupVariant.PICKUP_KEY)
-                    mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_COLLISION, mod.PrePickupCollision, PickupVariant.PICKUP_KEY)
-                elseif TagX == "hearts" then
-                    mod:AddCallback(ModCallbacks.MC_POST_PICKUP_COLLISION, mod.OnPickupCollision, PickupVariant.PICKUP_HEART)
-                    mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_COLLISION, mod.PrePickupCollision, PickupVariant.PICKUP_HEART)
-                elseif TagX == "cards" then --also includes runes and pills
-                    mod:AddCallback(ModCallbacks.MC_POST_PICKUP_COLLISION, mod.OnPickupCollision, PickupVariant.PICKUP_TAROTCARD)
-                    mod:AddCallback(ModCallbacks.MC_POST_PICKUP_COLLISION, mod.OnPickupCollision, PickupVariant.PICKUP_PILL)
-                    mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_COLLISION, mod.PrePickupCollision, PickupVariant.PICKUP_TAROTCARD)
-                    mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_COLLISION, mod.PrePickupCollision, PickupVariant.PICKUP_PILL)
-                    mod:AddCallback(ModCallbacks.MC_POST_PLAYER_REMOVE_CARD, mod.OnConsumableRemove)
-                    mod:AddCallback(ModCallbacks.MC_POST_PLAYER_REMOVE_PILL, mod.OnConsumableRemove)
-                
-                elseif TagX == "rocks" then
-                    mod:AddCallback(ModCallbacks.MC_POST_GRID_ROCK_DESTROY, mod.OnRockDestroy)
-                
-                elseif TagX == "pickupnum" then 
-                    mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.OnUpdate)
-                
-                elseif TagX == "roomclear" then
-                    mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, mod.OnRoomClear)
-                elseif TagX == "taken" then --damage taken
-                    mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, mod.OnTakenDamage, EntityType.ENTITY_PLAYER)
-                elseif TagX == "specificroom" then
-                    mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.OnSpecificRoomEnter)
-                elseif TagX == "bought" then
-                    mod:AddCallback(ModCallbacks.MC_POST_PICKUP_SHOP_PURCHASE, mod.OnShopPurchase)
-                elseif TagX == "removal" then
-                    mod:AddCallback(ModCallbacks.MC_POST_TRIGGER_TRINKET_REMOVED, mod.OnTrinketRemoval)
-                elseif TagX == "revive" then
-                    mod:AddCallback(ModCallbacks.MC_PRE_TRIGGER_PLAYER_DEATH, mod.OnDeath)
-                elseif TagX == "restock" then
-                    mod:AddCallback(ModCallbacks.MC_POST_RESTOCK_SHOP, mod.OnRestock)
-                elseif TagX == "carduse" then
-                    mod:AddCallback(ModCallbacks.MC_USE_CARD, mod.OnCardUse)
-                elseif TagX == "activeuse" then
-                    mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.OnActiveUse)
-                end
-            end
-            
-        end
-
-    end
-    --print(mod.Saved.Other.Tags)]]--
-end
---mod:AddCallback(ModCallbacks.MC_POST_TRIGGER_TRINKET_ADDED, mod.TrinketPickup)
---this got screpped cause it got more difficult to mantain when jimbo came in town
-
-
 
 function mod:InitJimboValues(Player, Force)
 
+    
     local PIndex = Player:GetData().TruePlayerIndex
     if not PIndex then
         PlayerIndexUpdate(Player)
@@ -346,7 +252,7 @@ function mod:InitJimboValues(Player, Force)
         return
     end
 
-    if mod.Saved.Jimbo[Player:GetData().TruePlayerIndex] and not Force then
+    if mod.Saved.Jimbo[Player:GetData().TruePlayerIndex] ~= 0 and not Force then
         return
     end
 
@@ -487,10 +393,8 @@ function mod:InitJimboValues(Player, Force)
 
     mod.Saved.Jimbo[PIndex].EctoUses = 0
     mod.Saved.Jimbo[PIndex].LastCardUsed = nil --the last card a player used
-
 end
 mod:AddCallback(ModCallbacks.MC_PLAYER_INIT_PRE_LEVEL_INIT_STATS, mod.InitJimboValues)
-
 
 
 

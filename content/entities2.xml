@@ -271,5 +271,10 @@
     <entity name="Banana Peel" anm2path="banana_peel_familiar.anm2" id="1000" variant="2600" 
     	friction="1" collisionRadius="9">
     </entity>
+
+    <entity name="Baloon Puppy" anm2path="baloon_puppy_familiar.anm2" id="3" 
+    	shodowSize="11" friction="0.9" collisionInterval="3" collisionRadius="16" collisionsMass="1" baseHP="15" 
+        gridCollision="none" tags="cansacrifice">
+    </entity>
     
 </entities>

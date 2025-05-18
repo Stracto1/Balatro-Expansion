@@ -190,10 +190,16 @@ Balatro_Expansion.Collectibles.HORSEY = Isaac.GetItemIdByName("Horsey")
 Balatro_Expansion.Collectibles.CRAYONS = Isaac.GetItemIdByName("Box of Crayons")
 Balatro_Expansion.Collectibles.BANANA = Isaac.GetItemIdByName("Banana")
 Balatro_Expansion.Collectibles.EMPTY_BANANA = Isaac.GetItemIdByName("Empty Banana")
+Balatro_Expansion.Collectibles.BALOON_PUPPY = Isaac.GetItemIdByName("Baloon Puppy")
+Balatro_Expansion.Collectibles.LAUGH_SIGN = Isaac.GetItemIdByName("Laugh Sign")
+
+
 
 
 Balatro_Expansion.Familiars = {}
 Balatro_Expansion.Familiars.HORSEY = Isaac.GetEntityVariantByName("Horsey")
+Balatro_Expansion.Familiars.BLOON_PUPPY = Isaac.GetEntityVariantByName("Baloon Puppy")
+
 
 Balatro_Expansion.Effects = {}
 Balatro_Expansion.Effects.CRAYON_POWDER = Isaac.GetEntityVariantByName("Crayon Powder")
@@ -769,8 +775,11 @@ Balatro_Expansion.Saved.DSS = {
 Balatro_Expansion.Achievements = {
                                     T_JIMBO = Isaac.GetAchievementIdByName("T_JimboUnlock"),
                                     Items = {   
-                                            [Balatro_Expansion.Collectibles.HORSEY] =Isaac.GetAchievementIdByName("HorseyUnlock"),
-                                            [Balatro_Expansion.Collectibles.CRAYONS] =Isaac.GetAchievementIdByName("CrayonUnlock"),
+                                            [Balatro_Expansion.Collectibles.HORSEY] = Isaac.GetAchievementIdByName("HorseyUnlock"),
+                                            [Balatro_Expansion.Collectibles.CRAYONS] = Isaac.GetAchievementIdByName("CrayonsUnlock"),
+                                            [Balatro_Expansion.Collectibles.BANANA] = Isaac.GetAchievementIdByName("BananaUnlock"),
+                                            [Balatro_Expansion.Collectibles.BALOON_PUPPY] = Isaac.GetAchievementIdByName("PuppyUnlock"),
+                                            [Balatro_Expansion.Collectibles.LAUGH_SIGN] = Isaac.GetAchievementIdByName("LaughUnlock"),
                                             },
                                     Trinkets = {},
                                     Entities = {},

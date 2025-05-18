@@ -1668,6 +1668,8 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
 
     local Player = Tear.Parent:ToPlayer()
 
+    print(Tear.Variant, mod.Tears.BANANA_VARIANT)
+
     if not Player or Player:GetPlayerType() ~= mod.Characters.JimboType
        or Tear.Variant == TearVariant.ERASER or Tear.Variant == TearVariant.BOBS_HEAD
        or Tear.Variant == TearVariant.KEY or Tear.Variant == TearVariant.KEY_BLOOD
