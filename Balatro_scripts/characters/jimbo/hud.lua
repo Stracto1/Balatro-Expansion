@@ -171,7 +171,7 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
         CardFrame:Render(RenderPos)
 
         --last confirm option
-        RenderPos = BasePos + Vector(23 * (mod.Saved.Jimbo[PIndex].InventorySize + 1), 0) * ScaleMult * PlayerRenderMult
+        RenderPos = BasePos + Vector(23 * (#mod.Saved.Jimbo[PIndex].Inventory + 1), 0) * ScaleMult * PlayerRenderMult
         
         
         if mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.SELLING then

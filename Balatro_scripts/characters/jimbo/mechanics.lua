@@ -1300,6 +1300,10 @@ mod:AddCallback("HAND_DISCARD", mod.DiscardEffects)
 
 function mod:JokerStatReset(Player, Cache)
 
+    if not mod.GameStarted then
+        return
+    end
+
     --resets the jokers stat boosts every evaluation since otherwise they would infinitely stack
     mod:StatReset(Player, Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE,
                   Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY,
@@ -1310,7 +1314,7 @@ mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.IMPORTAN
 ---@param Player EntityPlayer
 ---@param Cache CacheFlag
 function mod:JimboStatCalculator(Player, Cache)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted then
         return
     end
     --literally spent hours making calculations for stats just to realize that 1 single ratio is the best thing to do
@@ -1330,7 +1334,7 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.JimboStatCalculator)
 ---@param Player EntityPlayer
 function mod:StatReset(Player, Damage, Tears, Evaluate, Jokers, Basic)
 
-    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted then
         return
     end
 
@@ -1367,7 +1371,7 @@ local LibraEnable = true
 --finally gives the actual stat changes to jimbo, also used for always active buffs
 ---@param Player EntityPlayer
 function mod:StatGiver(Player, Cache)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted then
         return
     end
 
@@ -1452,7 +1456,7 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.AlwaysMaxCoins, "maxc
 
 ---@param Player EntityPlayer
 function mod:PlayCDCache(Player, Cache, Value)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted then
         return
     end
 
@@ -1475,7 +1479,7 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.PlayCDCache, mod.Cust
 
 ---@param Player EntityPlayer
 function mod:InventorySizeCache(Player, Cache, Value)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted then
         return
     end
 
@@ -1502,7 +1506,7 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.InventorySizeCache, m
 
 ---@param Player EntityPlayer
 function mod:HandSizeCache(Player, Cache, Value)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted then
         return
     end
 
@@ -1548,7 +1552,7 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.HandSizeCache, mod.Cu
 
 ---@param Player EntityPlayer
 function mod:DiscardNumCache(Player, Cache, Value)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted then
         return
     end
 
@@ -1587,7 +1591,7 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.DiscardNumCache, mod.
 
 ---@param Player EntityPlayer
 function mod:HandsCache(Player, Cache, Value)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted then
         return
     end
 
@@ -1668,7 +1672,7 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
 
     local Player = Tear.Parent:ToPlayer()
 
-    print(Tear.Variant, mod.Tears.BANANA_VARIANT)
+    --print(Tear.Variant, mod.Tears.BANANA_VARIANT)
 
     if not Player or Player:GetPlayerType() ~= mod.Characters.JimboType
        or Tear.Variant == TearVariant.ERASER or Tear.Variant == TearVariant.BOBS_HEAD

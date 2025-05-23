@@ -181,7 +181,7 @@ Balatro_Expansion.Trinkets.legendary = {}
 Balatro_Expansion.JokerTypes = {}
 Balatro_Expansion.JokerTypes.ECON = "money"
 Balatro_Expansion.JokerTypes.MULT = "mult"
-Balatro_Expansion.JokerTypes.XMULT = "mmult"
+Balatro_Expansion.JokerTypes.XMULT = "multm"
 Balatro_Expansion.JokerTypes.CHIPS = "chips"
 Balatro_Expansion.JokerTypes.EFFECT = "activate"
 
@@ -204,6 +204,7 @@ Balatro_Expansion.Familiars.BLOON_PUPPY = Isaac.GetEntityVariantByName("Baloon P
 Balatro_Expansion.Effects = {}
 Balatro_Expansion.Effects.CRAYON_POWDER = Isaac.GetEntityVariantByName("Crayon Powder")
 Balatro_Expansion.Effects.BANANA_PEEL = Isaac.GetEntityVariantByName("Banana Peel")
+Balatro_Expansion.Effects.TOMATO = Isaac.GetEntityVariantByName("Thrown Tomato")
 
 
 Balatro_Expansion.Entities = {}
@@ -241,7 +242,14 @@ Balatro_Expansion.Sounds.EXPLOSION = Isaac.GetSoundIdByName("EXPLOSIONSFX")
 Balatro_Expansion.Sounds.PLAY = Isaac.GetSoundIdByName("CARDPLAYSFX")
 Balatro_Expansion.Sounds.SELECT = Isaac.GetSoundIdByName("CARDSELECTSFX")
 Balatro_Expansion.Sounds.DESELECT = Isaac.GetSoundIdByName("CARDDESELECTSFX")
+
 Balatro_Expansion.Sounds.SLIP = Isaac.GetSoundIdByName("SLIPSFX")
+Balatro_Expansion.Sounds.LAUGH = Isaac.GetSoundIdByName("LAUGHSFX")
+Balatro_Expansion.Sounds.APPLAUSE = Isaac.GetSoundIdByName("APPLAUSESFX")
+Balatro_Expansion.Sounds.BOO = Isaac.GetSoundIdByName("BOOSFX")
+Balatro_Expansion.Sounds.GASP = Isaac.GetSoundIdByName("GASPSFX")
+Balatro_Expansion.Sounds.RANDOM_CROWD = Isaac.GetSoundIdByName("CROWDRANDOMSFX")
+Balatro_Expansion.Sounds.CROWD_TRANSITION = Isaac.GetSoundIdByName("TRANSITIONCROWDSFX")
 
 
 
@@ -604,6 +612,8 @@ Balatro_Expansion.Saved.FloorVouchers = {} --says which vouchers have already be
 
 Balatro_Expansion.Saved.Jimbo.LastCardUsed = nil --the last card a player used
 Balatro_Expansion.Saved.Jimbo.EctoUses = 0 --how many times the Ectoplasm card got used in a run
+Balatro_Expansion.Saved.Jimbo.NumActiveCostumes = 0
+
 
 Balatro_Expansion.Saved.Jimbo.Inventory = {}
 for i=1,3 do

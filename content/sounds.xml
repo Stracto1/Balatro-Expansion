@@ -54,5 +54,30 @@
         <sample weight="1" path="CartoonSlip2.wav" />
         <sample weight="1" path="CartoonSlip3.wav" />
     </sound>
+    <sound name="APPLAUSESFX">
+        <sample weight="1" path="crowd_applause1.wav" />
+        <sample weight="1" path="crowd_applause2.wav" />
+    </sound>
+    <sound name="BOOSFX">
+        <sample weight="0.1" path="crowd_boo1wav.wav" />
+        <sample weight="1" path="crowd_boo2.wav" />
+        <sample weight="1" path="crowd_boo3.wav" />
+    </sound>
+    <sound name="GASPSFX">
+        <sample weight="1" path="crowd_gasp1.wav" />
+    </sound>
+    <sound name="LAUGHSFX">
+        <sample weight="1" path="crowd_laugh1.wav" />
+        <sample weight="1" path="crowd_laugh2.wav" />
+        <sample weight="0.1" path="crowd_laugh3.wav" />
+        <sample weight="1" path="crowd_laugh4.wav" />
+    </sound>
+    <sound name="CROWDRANDOMSFX">
+        <sample weight="1" path="crowd_general.wav" />
+    </sound>
+    <sound name="TRANSITIONCROWDSFX">
+        <sample weight="1" path="crowd_transition1.wav" />
+        <sample weight="1" path="crowd_transition2.wav" />
+    </sound>
 
 </sounds>

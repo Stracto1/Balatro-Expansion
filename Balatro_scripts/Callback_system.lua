@@ -129,6 +129,9 @@ function mod:OnGameStart(Continued)
             mod.Saved.Other.ShopEntered = false
         end
     end
+
+    mod.GameStarted = true
+
     
     for _, player in ipairs(PlayerManager.GetPlayers()) do  --evaluates again for the mod's trinkets since closing the game
         --resets stuff
@@ -145,8 +148,6 @@ function mod:OnGameStart(Continued)
             --player:AddCacheFlags(CacheFlag.CACHE_ALL, true)
         end
     end
-
-    mod.GameStarted = true
 
     --[[
     for i, Joker in pairs(mod.Jokers) do
@@ -393,6 +394,7 @@ function mod:InitJimboValues(Player, Force)
 
     mod.Saved.Jimbo[PIndex].EctoUses = 0
     mod.Saved.Jimbo[PIndex].LastCardUsed = nil --the last card a player used
+    mod.Saved.Jimbo[PIndex].NumActiveCostumes = 0
 end
 mod:AddCallback(ModCallbacks.MC_PLAYER_INIT_PRE_LEVEL_INIT_STATS, mod.InitJimboValues)
 

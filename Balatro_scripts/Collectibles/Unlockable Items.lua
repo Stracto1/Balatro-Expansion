@@ -60,11 +60,24 @@ PuppyColorsSuffix[ColorSubType.GREY] = "_grey"
 PuppyColorsSuffix[ColorSubType.YELLOW] = "_yellow"
 
 local LaughEffectType = {}
-LaughEffectType.GOOD = 1
-LaughEffectType.BAD = 0
+LaughEffectType.GOOD = 0
+LaughEffectType.BAD = 1
 LaughEffectType.GASP = 2
+LaughEffectType.LAUGH = 3
+LaughEffectType.RANDOM = 4
+LaughEffectType.TRANSITION = 5
 
 
+local TomatoAnimations = {}
+TomatoAnimations.IDLE = {"Idle1","Idle2"}
+TomatoAnimations.SPLAT = {"Splat1","Splat2"}
+TomatoAnimations.DISAPPEAR = {"Disappear1","Disappear2"}
+TomatoAnimations.NUM_VARIANTS = 2
+
+local TomatoState = {}
+TomatoState.THROW = 0
+TomatoState.SPLAT = 3
+TomatoState.DISAPPEAR = 6
 
 
 local function UnlockItems(_,Type)
@@ -294,6 +307,22 @@ function mod:FamiliarUpdate(Familiar)
 
     elseif Familiar.Variant == mod.Familiars.BLOON_PUPPY then
 
+
+        Familiar.FlipX = Familiar.Velocity.X < 0
+
+        local Grid = Game:GetRoom():GetGridEntityFromPos(Familiar.Position)
+
+        if Familiar.State ~= PuppyState.EXPLODED
+           and Grid and Grid:GetType() == GridEntityType.GRID_ROCK_SPIKED
+           and Grid.State ~= 4 and Grid.State ~= 2 then --4 means a flat file-like effect is active | 2 means it's destroyed
+
+            Familiar.State = PuppyState.EXPLODED
+            Familiar:GetSprite():Play("Explode")
+            Familiar.FireCooldown = PUPPY_RESPAWN_TIMER
+            sfx:Play(SoundEffect.SOUND_BOSS1_EXPLOSIONS, 1, 2,false,1.2)
+
+        end
+
         if Familiar.State == PuppyState.IDLE then
             
             local PlayerDistance = Familiar.Position + Familiar.SpriteOffset - Familiar.Player.Position
@@ -322,10 +351,15 @@ function mod:FamiliarUpdate(Familiar)
 
             Familiar:PickEnemyTarget(350, 13, 9) --switch target + prioritize low hp
 
-            if Familiar.Target then
-                Familiar:GetPathFinder():FindGridPath(Familiar.Target.Position, 1, 0, true)
-            else
-                Familiar:GetPathFinder():FindGridPath(Familiar.Player.Position, 0.5, 0, true)
+            local TargetDistance = (Familiar.Target and Familiar.Target.Position or Familiar.Player.Position) - Familiar.Position
+            local Speed = Familiar.Target and 3.75 or 1.75
+            local MinDistance = Familiar.Target and 10 or 25
+
+
+            if TargetDistance:Length() >= MinDistance then
+
+                Familiar.Velocity = TargetDistance:Resized(Speed)
+                --Familiar:GetPathFinder():FindGridPath(Familiar.Player.Position, 0.5, 0, true)
             end
 
             Familiar.FireCooldown = Familiar.FireCooldown + 1
@@ -411,14 +445,15 @@ function mod:FamiliarCollision(Familiar, Collider,_)
         end
 
         local Bullet = Collider:ToProjectile()
+        local NPC = Collider:ToNPC()
+
         if Bullet and not Bullet:HasProjectileFlags(ProjectileFlags.CANT_HIT_PLAYER) then
             
             Familiar:TakeDamage(1, DamageFlag.DAMAGE_COUNTDOWN, EntityRef(Bullet), 7)
             
             if Familiar.HitPoints == 2 then --one hit away from death (take damage takes place next frame)
                 
-            
-                sfx:Play(SoundEffect.SOUND_BOSS1_EXPLOSIONS, 0.9, 2,false,1.2)
+                sfx:Play(SoundEffect.SOUND_BOSS1_EXPLOSIONS, 1, 2,false,1.2)
                 Familiar.State = PuppyState.EXPLODED
                 Familiar:GetSprite():Play("Explode")
                 Familiar.FireCooldown = PUPPY_RESPAWN_TIMER
@@ -449,13 +484,22 @@ function mod:FamiliarCollision(Familiar, Collider,_)
             Bullet.Damage = Bullet.Damage*Familiar:GetMultiplier()
             sfx:Play(SoundEffect.SOUND_JELLY_BOUNCE, 0.9)
 
-        elseif Familiar.State == PuppyState.ATTACK then
-            
-            local NPC = Collider:ToNPC()
-            if NPC and NPC:IsActiveEnemy() and NPC:IsVulnerableEnemy() then
+        elseif NPC then
+
+            if NPC.Type == EntityType.ENTITY_SPIKEBALL
+               or NPC.Type == EntityType.ENTITY_BALL_AND_CHAIN then
                 
-                NPC:TakeDamage(Familiar:GetMultiplier(), DamageFlag.DAMAGE_COUNTDOWN, EntityRef(Familiar), 5)
-                Familiar:CanBlockProjectiles()
+                Familiar.State = PuppyState.EXPLODED
+                Familiar:GetSprite():Play("Explode")
+                Familiar.FireCooldown = PUPPY_RESPAWN_TIMER
+                sfx:Play(SoundEffect.SOUND_BOSS1_EXPLOSIONS, 1, 2,false,1.2)
+            
+            elseif Familiar.State == PuppyState.ATTACK then
+                if NPC and NPC:IsActiveEnemy() and NPC:IsVulnerableEnemy() then
+
+                    NPC:TakeDamage(Familiar:GetMultiplier(), DamageFlag.DAMAGE_COUNTDOWN, EntityRef(Familiar), 5)
+                    Familiar:CanBlockProjectiles()
+                end
             end
         end
         
@@ -470,7 +514,6 @@ mod:AddCallback(ModCallbacks.MC_POST_FAMILIAR_COLLISION, mod.FamiliarCollision)
 ---@param Effect EntityEffect
 function mod:EffectInit(Effect)
 
-
     if Effect.Variant == mod.Effects.CRAYON_POWDER then
         local Sprite = Effect:GetSprite()
 
@@ -483,14 +526,8 @@ function mod:EffectInit(Effect)
         Effect.SortingLayer = SortingLayer.SORTING_BACKGROUND
         Effect:AddEntityFlags(EntityFlag.FLAG_NO_SPRITE_UPDATE)
         
-    elseif Effect.Variant == mod.Effects.BANANA_PEEL then
-
-        local Data = Effect:GetData()
-
-        Effect.State = BananaState.FLYING
-
-        Data.ZSpeed = -math.random()*10 - 6
-        Data.ZAcceleration = 1 or math.random()*1.5 + 1    
+    --elseif Effect.Variant == mod.Effects.BANANA_PEEL then
+  
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT, mod.EffectInit)
@@ -602,6 +639,9 @@ function mod:EffectUpdate(Effect)
 
                 Effect:AddVelocity(-Effect.Velocity)
                 Effect:GetSprite():Play("land")
+
+                Effect.EntityCollisionClass = EntityCollisionClass.ENTCOLL_ENEMIES
+                Effect.GridCollisionClass = EntityGridCollisionClass.GRIDCOLL_GROUND
             end
         elseif Effect.State == BananaState.SLIP then
 
@@ -613,10 +653,6 @@ function mod:EffectUpdate(Effect)
             end
 
         elseif Effect.State == BananaState.IDLE then
-
-            Effect.EntityCollisionClass = EntityCollisionClass.ENTCOLL_ENEMIES
-            Effect.GridCollisionClass = EntityGridCollisionClass.GRIDCOLL_GROUND
-
 
             for i,Collider in ipairs(Isaac.FindInCapsule(Effect:GetCollisionCapsule(), EntityPartition.ENEMY)) do
                 ---@diagnostic disable-next-line: cast-local-type
@@ -638,18 +674,88 @@ function mod:EffectUpdate(Effect)
                     Data.BananaSlipSpeed = -2*ColliderSpeed
                     Data.BananaSlipAcceleration = ColliderSpeed / 9
 
+                    if PlayerManager.AnyoneHasCollectible(mod.Collectibles.LAUGH_SIGN) then
+                        mod:LaughSignEffect(LaughEffectType.LAUGH)
+                    end
+
                     break
                 end
             end
         end
+
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, mod.EffectUpdate)
 
+---@param Effect EntityEffect
+local function EffectRender(_,Effect)
+
+    if Effect.Variant == mod.Effects.TOMATO then
+
+        local Data = Effect:GetData()
+        if not Data.LaughingSpawn then --already landed
+
+            local AnimIdx = Effect.State % (TomatoAnimations.NUM_VARIANTS + 1)
+
+            if Effect.FrameCount == 150 then
+                Effect:GetSprite():Play("Disappear"..tostring(AnimIdx))
+            elseif Effect:GetSprite():IsFinished("Disappear"..tostring(AnimIdx)) then
+
+                Effect:Remove()
+                return
+            end
+            return
+        end
+
+        if Effect.SpriteScale.Y == 1 then --just landed
+
+            Data.RenderFrames = nil
+            Data.LaughingSpawn = nil
+            Data.StartThrowOffset = nil
+            Data.StartThrowRotation = nil
+            Data.TargetThrowRotation = nil
+            Effect.DepthOffset = 0
+            Effect.SpriteRotation = 0
+
+            local Sprite = Effect:GetSprite()
+            local AnimIdx = Effect.State % (TomatoAnimations.NUM_VARIANTS+1)
+            Effect.State = TomatoState.SPLAT + AnimIdx
+            Sprite:Play("Splat"..tostring(AnimIdx))
+
+            sfx:Play(SoundEffect.SOUND_MEAT_IMPACTS)
+            Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Effect.Position,
+                       RandomVector()*3,Effect,0,1)
+
+
+
+            local Creep = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.PLAYER_CREEP_RED, Effect.Position, 
+                                     Vector.Zero, Effect, 0, math.max(Random(),1)):ToEffect()
+            Creep.CollisionDamage = Effect.SpawnerEntity:ToPlayer().Damage/4 or 0.5
+            Creep.SpriteScale = Vector.One * (2 + math.random()*1.5)
+            Creep.Timeout = 600
+            Creep:Update()
+
+            for _,Enemy in ipairs(Isaac.FindInRadius(Effect.Position, 35, EntityPartition.ENEMY)) do
+
+                Enemy:AddBaited(EntityRef(Effect), 120)
+            end
+        else
+
+            Data.RenderFrames = Data.RenderFrames + 1
+
+            Effect.SpriteOffset.Y = mod:ExponentLerp(Data.StartThrowOffset.Y, 0, Data.RenderFrames/300, 0.95)
+            Effect.SpriteOffset.X = mod:Lerp(Data.StartThrowOffset.X, 0, Data.RenderFrames/900)
+
+            Effect.SpriteScale = Vector.One * mod:ExponentLerp(2.25, 1, Data.RenderFrames/75, 2.5)
+            Effect.SpriteRotation = mod:ExponentLerp(Data.StartThrowRotation, Data.TargetThrowRotation, Data.RenderFrames/75, 0.9)
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_EFFECT_RENDER, EffectRender)
+
 
 ---------GENERAL ENTITIES----------
 -----------------------------------
-
 
 ---@param Entity Entity
 function mod:EntityInit(Entity)
@@ -697,6 +803,8 @@ mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, mod.SpawnCrayonCreep, Playe
 
 local function OnNewRoom()
 
+    local Room = Game:GetRoom()
+
     for _,Player in ipairs(PlayerManager.GetPlayers()) do
         if Player:HasCollectible(mod.Collectibles.CRAYONS) then
             
@@ -713,12 +821,20 @@ local function OnNewRoom()
 
             for _, Puppy in ipairs(Isaac.FindByType(EntityType.ENTITY_FAMILIAR, mod.Familiars.BLOON_PUPPY)) do
 
-                Puppy = Puppy:ToFamiliar()
-                Puppy.State = PuppyState.IDLE
-                Puppy.FireCooldown = 0
+                if Puppy.State ~= PuppyState.EXPLODED then
+                    Puppy = Puppy:ToFamiliar()
+                    Puppy.State = PuppyState.IDLE
+                    Puppy.FireCooldown = 0
+                end
             end
         end
     end
+
+    if PlayerManager.AnyoneHasCollectible(mod.Collectibles.LAUGH_SIGN) and Room:IsFirstVisit() then
+        mod:LaughSignEffect(LaughEffectType.GASP, PlayerManager.FirstCollectibleOwner(mod.Collectibles.LAUGH_SIGN))
+    end
+
+
 end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, OnNewRoom)
 
@@ -771,13 +887,20 @@ function mod:ActiveUse(Item, Rng, Player, Flag, Slot, Data)
 
         Banan:GetSprite():Play("throw")
 
+        local Data = Banan:GetData()
+
+        Banan.State = BananaState.FLYING
+
+        Data.ZSpeed = -math.random()*10 - 6
+        Data.ZAcceleration = 1 or math.random()*1.5 + 1  
+
     end
 end
 mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.ActiveUse)
 
 
 ---@param Player EntityPlayer
-function mod:PlayerUpdate(Player)
+local function OnPlayerUpdate(_,Player)
 
     local ShootDirection = Player:GetShootingInput()
 
@@ -802,7 +925,29 @@ function mod:PlayerUpdate(Player)
 
     end
 end
-mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, mod.PlayerUpdate)
+mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, OnPlayerUpdate)
+
+
+local function OnUpdate()
+
+    if PlayerManager.AnyoneHasCollectible(mod.Collectibles.LAUGH_SIGN) then
+        
+        if math.random() <= 0.001 then
+            mod:LaughSignEffect(LaughEffectType.RANDOM)
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_UPDATE, OnUpdate)
+
+
+local function OnStageTransition()
+    if PlayerManager.AnyoneHasCollectible(mod.Collectibles.LAUGH_SIGN) then
+        
+        mod:LaughSignEffect(LaughEffectType.TRANSITION)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_MUSIC_PLAY_JINGLE, OnStageTransition, Music.MUSIC_JINGLE_NIGHTMARE)
+
 
 
 ---@param Tear EntityTear
@@ -914,22 +1059,73 @@ end
 mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, OnPlayerTakeDamage, EntityType.ENTITY_PLAYER)
 
 
+local function OnRoomClear()
 
+    local Type = Game:GetRoom():GetType()
+    if Type == RoomType.ROOM_BOSS or Type == RoomType.ROOM_MINIBOSS then
+
+        for _,Player in ipairs(PlayerManager.GetPlayers()) do
+            if Player:HasCollectible(mod.Collectibles.LAUGH_SIGN) then
+
+                mod:LaughSignEffect(LaughEffectType.GOOD, Player)
+            end
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_ROOM_TRIGGER_CLEAR, OnRoomClear)
+
+
+---@param Player EntityPlayer?
 function mod:LaughSignEffect(Type, Player)
 
-    if Type == LaughEffectType.BAD then
-        
+    if Type == LaughEffectType.BAD then --throw tomatoes randomly in the room
+    
+        sfx:Play(mod.Sounds.BOO, 1, 120, false, math.random()*0.1 + 0.95)
 
-
-    elseif Type == LaughEffectType.GOOD then
-        local Timer = 15
-        for i=1, 3 do
+        local Timer = 10
+        for i=1, 5 + Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_ROTTEN_TOMATO)*2 do
             
             Isaac.CreateTimer(function ()
 
-                local Pickup = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_HEART, 
-                                          Isaac.GetFreeNearPosition(Player.Position, 30), Vector.Zero, Player,
-                                          HeartSubType.HEART_FULL, 1)
+                local Tomato = Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.TOMATO, 
+                                          Isaac.GetRandomPosition(), Vector.Zero, Player, 0, 1):ToEffect()
+
+                local Data = Tomato:GetData()
+                Data.LaughingSpawn = true
+                Data.RenderFrames = 0
+
+                local RandomAnimIdx = math.random(1, TomatoAnimations.NUM_VARIANTS)
+
+                Tomato:GetSprite():Play("Idle"..tostring(RandomAnimIdx))
+                Tomato.State = TomatoState.THROW + RandomAnimIdx
+
+
+                --starts from off screen
+                Tomato.SpriteOffset = Vector(math.random(-110, 110),Isaac.GetScreenHeight() - Isaac.WorldToScreen(Tomato.Position).Y + 40)
+                Tomato.SpriteScale = Vector.One * 2.25
+                Data.StartThrowOffset = Tomato.SpriteOffset
+                Data.StartThrowRotation = math.random()*-360 - 360
+                Data.TargetThrowRotation = RandomAnimIdx == 1 and -45 or 45 --replace this with a table if more animations appear(not gonna happen)
+
+                Tomato.DepthOffset = 1000
+
+            end, Timer, 1, true)
+
+            Timer = Timer + math.random(10,35)
+        end
+
+    elseif Type == LaughEffectType.GOOD then --throw pickups at player
+
+        sfx:Play(mod.Sounds.APPLAUSE, 1, 120, false, math.random()*0.1 + 0.95)
+        local Timer = 10
+        local Room = Game:GetRoom()
+        for i=1, 5 do
+            
+            Isaac.CreateTimer(function ()
+
+                local Pickup = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_NULL, 
+                                          Room:FindFreePickupSpawnPosition(Player.Position, 100), Vector.Zero, Player,
+                                          NullPickupSubType.NO_COLLECTIBLE_CHEST, math.max(Random(),1))
 
                 local Data = Pickup:GetData()
                 Data.LaughingSpawn = true
@@ -947,8 +1143,20 @@ function mod:LaughSignEffect(Type, Player)
 
             end, Timer, 1, true)
 
-            Timer = Timer + math.random(15,45)
+            Timer = Timer + math.random(10,30)
         end
+
+    elseif Type == LaughEffectType.GASP then
+        sfx:Play(mod.Sounds.GASP)
+
+    elseif Type == LaughEffectType.LAUGH then
+        sfx:Play(mod.Sounds.LAUGH)
+
+    elseif Type == LaughEffectType.RANDOM then
+        sfx:Play(mod.Sounds.RANDOM_CROWD, 1, 300, false, math.random()*0.1 + 0.95)
+
+    elseif Type == LaughEffectType.TRANSITION then
+        sfx:Play(mod.Sounds.CROWD_TRANSITION, 1, 2, false, math.random()*0.1 + 0.95)
     
     end
 
@@ -960,14 +1168,12 @@ local function WaitForPickupLanding(_, Pickup, Collider)
     local Data = Pickup:GetData()
 
     if Data.LaughingSpawn then
-        
         return true
     end
-    
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_COLLISION, WaitForPickupLanding)
 
-
+---@param Pickup EntityPickup
 local function PickupThrowParabola(_, Pickup)
 
     local Data = Pickup:GetData()
@@ -982,9 +1188,15 @@ local function PickupThrowParabola(_, Pickup)
         Data.StartThrowOffset = nil
         Data.StartThrowRotation = nil
 
-        Pickup.EntityCollisionClass = EntityCollisionClass.ENTCOLL_PLAYERONLY
-        Pickup.DepthOffset = 0
-
+        if Pickup.Variant == PickupVariant.PICKUP_BOMB
+           and Pickup.SubType == BombSubType.BOMB_TROLL or Pickup.SubType == BombSubType.BOMB_SUPERTROLL then
+            
+            Isaac.Explode(Pickup.Position, Pickup, 100)
+        else
+            Pickup.EntityCollisionClass = EntityCollisionClass.ENTCOLL_ALL --make the pickupable like normal
+            Pickup.DepthOffset = 0
+            sfx:Play(SoundEffect.SOUND_SCAMPER)
+        end
     else
         
         Data.RenderFrames = Data.RenderFrames + 1
@@ -992,7 +1204,7 @@ local function PickupThrowParabola(_, Pickup)
         Pickup.SpriteOffset.Y = mod:ExponentLerp(Data.StartThrowOffset.Y, 0, Data.RenderFrames/300, 0.95)
         Pickup.SpriteOffset.X = mod:Lerp(Data.StartThrowOffset.X, 0, Data.RenderFrames/900)
 
-        Pickup.SpriteScale = Vector.One * mod:ExponentLerp(2.25, 1, Data.RenderFrames/75, 3)
+        Pickup.SpriteScale = Vector.One * mod:ExponentLerp(2.25, 1, Data.RenderFrames/75, 2,5)
         Pickup.SpriteRotation =mod:ExponentLerp(Data.StartThrowRotation, 0, Data.RenderFrames/75, 0.9)
     end
 
