@@ -192,6 +192,8 @@ Balatro_Expansion.Collectibles.BANANA = Isaac.GetItemIdByName("Banana")
 Balatro_Expansion.Collectibles.EMPTY_BANANA = Isaac.GetItemIdByName("Empty Banana")
 Balatro_Expansion.Collectibles.BALOON_PUPPY = Isaac.GetItemIdByName("Baloon Puppy")
 Balatro_Expansion.Collectibles.LAUGH_SIGN = Isaac.GetItemIdByName("Laugh Sign")
+Balatro_Expansion.Collectibles.CLOWN = Isaac.GetItemIdByName("Clown Costume")
+Balatro_Expansion.Collectibles.POCKET_ACES = Isaac.GetItemIdByName("Pocket Aces")
 
 
 
@@ -250,6 +252,7 @@ Balatro_Expansion.Sounds.BOO = Isaac.GetSoundIdByName("BOOSFX")
 Balatro_Expansion.Sounds.GASP = Isaac.GetSoundIdByName("GASPSFX")
 Balatro_Expansion.Sounds.RANDOM_CROWD = Isaac.GetSoundIdByName("CROWDRANDOMSFX")
 Balatro_Expansion.Sounds.CROWD_TRANSITION = Isaac.GetSoundIdByName("TRANSITIONCROWDSFX")
+Balatro_Expansion.Sounds.CLOWN_HONK = Isaac.GetSoundIdByName("HONKSFX")
 
 
 

@@ -79,5 +79,8 @@
         <sample weight="1" path="crowd_transition1.wav" />
         <sample weight="1" path="crowd_transition2.wav" />
     </sound>
+    <sound name="HONKSFX">
+        <sample weight="1" path="clown_honk1.wav" />
+    </sound>
 
 </sounds>

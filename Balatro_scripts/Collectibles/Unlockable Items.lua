@@ -79,6 +79,9 @@ TomatoState.THROW = 0
 TomatoState.SPLAT = 3
 TomatoState.DISAPPEAR = 6
 
+BASE_CARD_ANIMATION = "Base"
+local SUIT_ANIMATIONS = {"Spade","Heart","Club","Diamond"}
+
 
 local function UnlockItems(_,Type)
 
@@ -882,17 +885,19 @@ function mod:ActiveUse(Item, Rng, Player, Flag, Slot, Data)
         local BananaSpeed = RandomVector()*(math.random() + 2)
 
         local Banan = Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.BANANA_PEEL, Player.Position,
-                   BananaSpeed + Player:GetTearMovementInheritance(BananaSpeed), Player, 0, math.max(Random(), 1))
+                   BananaSpeed + Player:GetTearMovementInheritance(BananaSpeed), Player, 0, math.max(Random(), 1)):ToEffect()
+        
         sfx:Play(SoundEffect.SOUND_SUMMON_POOF)
 
         Banan:GetSprite():Play("throw")
 
         local Data = Banan:GetData()
 
+        print(Banan.State)
         Banan.State = BananaState.FLYING
 
         Data.ZSpeed = -math.random()*10 - 6
-        Data.ZAcceleration = 1 or math.random()*1.5 + 1  
+        Data.ZAcceleration = 1 or math.random()*1.5 + 1
 
     end
 end
@@ -915,7 +920,8 @@ local function OnPlayerUpdate(_,Player)
         Player:DischargeActiveItem()
         
         local Tear = Game:Spawn(EntityType.ENTITY_TEAR, mod.Tears.BANANA_VARIANT, Player.Position, ShootDirection*Player.ShotSpeed*2.75, Player, 0, 1):ToTear()
-        
+        Tear.Parent = Player
+
         Tear.CanTriggerStreakEnd = false
 
         sfx:Play(SoundEffect.SOUND_PLOP)
@@ -1032,29 +1038,54 @@ mod:AddCallback(ModCallbacks.MC_NPC_UPDATE, mod.EntityBananaSlip)
 ---@param Entity Entity
 local function OnPlayerTakeDamage(_,Entity)
     
-    Entity = Entity:ToPlayer()
+    local Player = Entity:ToPlayer()
 
-    if not Entity then
+    if not Player then
         return
     end
 
-    if Entity:HasCollectible(mod.Collectibles.BALOON_PUPPY) then
+    if Player:HasCollectible(mod.Collectibles.BALOON_PUPPY) then
         
         for _, Puppy in ipairs(Isaac.FindByType(EntityType.ENTITY_FAMILIAR, mod.Familiars.BLOON_PUPPY)) do
 
             Puppy = Puppy:ToFamiliar()
-            if Puppy.State == PuppyState.IDLE and Entity:GetPlayerIndex() == Puppy.Player:GetPlayerIndex() then
+            if Puppy.State == PuppyState.IDLE and Player:GetPlayerIndex() == Puppy.Player:GetPlayerIndex() then
                 Puppy = Puppy:ToFamiliar()
                 Puppy.State = PuppyState.ATTACK
                 Puppy.FireCooldown = 0 --used as a timer for how long it has been attacking
             end
         end
+    end
+    if Player:HasCollectible(mod.Collectibles.LAUGH_SIGN) then
 
-    elseif Entity:HasCollectible(mod.Collectibles.LAUGH_SIGN) then
-
-        mod:LaughSignEffect(LaughEffectType.BAD, Entity)
+        mod:LaughSignEffect(LaughEffectType.BAD, Player)
 
     end
+    if Player:HasCollectible(mod.Collectibles.CLOWN) then
+        sfx:Play(mod.Sounds.CLOWN_HONK,1,2,false, 0.75 + math.random()*0.5)
+        Isaac.CreateTimer(function ()
+            sfx:Stop(SoundEffect.SOUND_ISAAC_HURT_GRUNT)
+        end,0,1, true)
+
+        for _, Enemy in ipairs(Isaac.GetRoomEntities()) do
+            
+            Enemy = Enemy:ToNPC()
+            if Enemy and Enemy:IsActiveEnemy() then
+                
+                local ClownRNG = Player:GetCollectibleRNG(mod.Collectibles.CLOWN)
+                local EffectRoll = ClownRNG:RandomFloat()
+
+                if EffectRoll <= 0.33 then
+                    Enemy:AddFear(EntityRef(Player), 100)
+
+                elseif EffectRoll >= 0.66 then
+                    Enemy:AddCharmed(EntityRef(Player), 100)
+
+                end
+            end
+        end
+    end
+
 end
 mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, OnPlayerTakeDamage, EntityType.ENTITY_PLAYER)
 
@@ -1147,10 +1178,10 @@ function mod:LaughSignEffect(Type, Player)
         end
 
     elseif Type == LaughEffectType.GASP then
-        sfx:Play(mod.Sounds.GASP)
+        sfx:Play(mod.Sounds.GASP, 1, 120)
 
     elseif Type == LaughEffectType.LAUGH then
-        sfx:Play(mod.Sounds.LAUGH)
+        sfx:Play(mod.Sounds.LAUGH, 1, 120)
 
     elseif Type == LaughEffectType.RANDOM then
         sfx:Play(mod.Sounds.RANDOM_CROWD, 1, 300, false, math.random()*0.1 + 0.95)
@@ -1172,6 +1203,7 @@ local function WaitForPickupLanding(_, Pickup, Collider)
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_COLLISION, WaitForPickupLanding)
+
 
 ---@param Pickup EntityPickup
 local function PickupThrowParabola(_, Pickup)
@@ -1210,4 +1242,45 @@ local function PickupThrowParabola(_, Pickup)
 
 end
 mod:AddCallback(ModCallbacks.MC_POST_PICKUP_RENDER, PickupThrowParabola)
+
+
+---@param Tear EntityTear
+local function PocketAcesTrigger(_, Tear)
+
+    local Player = Tear.Parent:ToPlayer()
+
+    if not Player or Player:GetPlayerType() == mod.Characters.JimboType
+       or not Player:HasCollectible(mod.Collectibles.POCKET_ACES) then
+        return
+    end
+
+    local CardChance = (1 + Player.Luck/3)/13
+
+    if math.random() >= CardChance then
+        return
+    end
+
+    if Tear:ToTear() then --change the variant as well
+
+        Tear:ChangeVariant(mod.Tears.CARD_TEAR_VARIANT)
+
+        local TearSprite = Tear:GetSprite()
+        TearSprite:Play(BASE_CARD_ANIMATION, true)
+        TearSprite:PlayOverlay(SUIT_ANIMATIONS[math.random(1,4)], true)
+
+        Tear.CollisionDamage = math.max(Tear.CollisionDamage, Player.Damage * mod:CalculateTears(Player.MaxFireDelay))
+    
+    else --only change the damage dealt
+    
+        local Laser = Tear:ToLaser()
+        local Multiplier = math.max(1, Player.Damage * mod:CalculateTears(Player.MaxFireDelay)/Laser.CollisionDamage)
+        Laser:SetDamageMultiplier(Laser:GetDamageMultiplier() * Multiplier)
+        Tear.CollisionDamage = Player.Damage * mod:CalculateTears(Player.MaxFireDelay)
+    
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, PocketAcesTrigger)
+mod:AddCallback(ModCallbacks.MC_POST_FIRE_BRIMSTONE, PocketAcesTrigger)
+mod:AddCallback(ModCallbacks.MC_POST_FIRE_BRIMSTONE_BALL, PocketAcesTrigger)
+
 

@@ -33,7 +33,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
             if mod.Saved.Jimbo[PIndex].LastCardUsed then
 
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
-                           RandomVector()*3, Player, mod.Saved.LastCardUsed, RandomSeed)
+                           RandomVector()*3, Player, mod.Saved.Jimbo[PIndex].LastCardUsed, RandomSeed)
             else
                 Player:AnimateSad()
             end

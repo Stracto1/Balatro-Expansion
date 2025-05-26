@@ -5,6 +5,14 @@
     <achievement name="HorseyUnlock" gfx="achievement_horsey.png"/>
     <achievement name="CrayonsUnlock" gfx="achievement_box_crayons.png"/>
     <achievement name="BananaUnlock" gfx="achievement_banana.png"/>
+    <achievement name="ClownUnlock" gfx="achievement_banana.png"/>
+    <achievement name="TragicomedyUnlock" gfx="achievement_banana.png"/>
+    <achievement name="LaughSignUnlock" gfx="achievement_banana.png"/>
+    <achievement name="LollypopUnlock" gfx="achievement_banana.png"/>
+    <achievement name="FunnyTeethUnlock" gfx="achievement_banana.png"/>
+    <achievement name="UmbrellaUnlock" gfx="achievement_banana.png"/>
+    <achievement name="BaloonPuppyUnlock" gfx="achievement_banana.png"/>
+    <achievement name="pocketAcesUnlock" gfx="achievement_banana.png"/>
 
 
 </achievements>

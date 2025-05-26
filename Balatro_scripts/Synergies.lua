@@ -8,22 +8,23 @@ local sfx = SFXManager()
 ---@param Collider Entity
 function mod:CardCollisionSynergy(Tear,Collider,_)
 
+    local Player = Tear.Parent:ToPlayer()
+
+    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+        return
+    end
+
     local TearData = Tear:GetData()
     TearData.CollidedWith = TearData.CollidedWith or {}
 
     --print(Collider.Type, Collider.Variant, Collider.SubType)
 
-    if not Collider:IsActiveEnemy() then
+    if not Collider:IsActiveEnemy() or mod:Contained(TearData.CollidedWith, GetPtrHash(Collider)) then
         return
     end
 
-
-    if mod:Contained(TearData.CollidedWith, GetPtrHash(Collider)) then
-        return
-    end
 
     local TearRNG = Tear:GetDropRNG()
-    local Player = Tear.Parent:ToPlayer()
 
 
     if Player:HasCollectible(CollectibleType.COLLECTIBLE_BRIMSTONE) then
@@ -202,7 +203,7 @@ function mod:SpadeOpenDoor(Tear)
     local Data = Tear:GetData()
     local Player = Tear.Parent:ToPlayer()
 
-    if Player:GetPlayerType() ~= mod.Characters.JimboType
+    if not Player or Player:GetPlayerType() ~= mod.Characters.JimboType
        or not Player:HasCollectible(CollectibleType.COLLECTIBLE_SHARP_KEY)
        or not mod:IsSuit(Player, Data.Params, mod.Suits.Spade) then
         

@@ -1,4 +1,9 @@
 <costumes anm2root="gfx/characters/">
     <costume id="5" anm2path="joker_hat.anm2" type="none" priority="1000" forceBodyColor="true" forceHeadColor="true" overwriteColor="true" skinColor="0" />
     <costume id="6" anm2path="joker_full_costume.anm2" type="none" priority="1000" forceBodyColor="true" forceHeadColor="true" overwriteColor="true" skinColor="0" />
+
+    <costume id="7" anm2path="clown_costume.anm2" type="passive" priority="1"/>    
+    <costume id="8" anm2path="tragicomedy_costume.anm2" type="passive" priority="1"/>
+
+
 </costumes>

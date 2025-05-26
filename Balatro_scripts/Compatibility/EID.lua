@@ -222,31 +222,31 @@ local function BalatroInventoryCallback(descObj)
                         elseif SelectedCard == mod.Jokers.INVISIBLE_JOKER then
 
                             if Value == 3 then
-                                Description = Description.." #!!! "..Description[Language].Other.Ready
+                                Description = Description.." #!!! "..Descriptions[Language].Other.Ready
                             else
-                                Description = Description.." #!!! "..Description[Language].Other.BlindsCleared.."{{ColorYellorange}}"..tostring(Value).."/3{{CR}}"
+                                Description = Description.." #!!! "..Descriptions[Language].Other.BlindsCleared.."{{ColorYellorange}}"..tostring(Value).."/3{{CR}}"
                             end
 
                         elseif SelectedCard == mod.Jokers.DNA then
                             if Balatro_Expansion.Saved.Jimbo[PIndex].Progress.Blind.Shots == 0 then
-                                Description = Description.." #!!! "..Description[Language].Other.Ready
+                                Description = Description.." #!!! "..Descriptions[Language].Other.Ready
 
                             else
-                                Description = Description.." #!!! "..Description[Language].Other.NotReady
+                                Description = Description.." #!!! "..Descriptions[Language].Other.NotReady
 
                             end
 
                         elseif SelectedCard == mod.Jokers.SIXTH_SENSE then
                             if Balatro_Expansion.Saved.Jimbo[PIndex].Progress.Blind.Shots == 0 then
-                                Description = Description.." #!!! "..Descriptions[Language].Other.Currently..Description[Language].Other.Ready
+                                Description = Description.." #!!! "..Descriptions[Language].Other.Currently..Descriptions[Language].Other.Ready
 
                             else
-                                Description = Description.." #!!! "..Descriptions[Language].Other.Currently..Description[Language].Other.NotReady
+                                Description = Description.." #!!! "..Descriptions[Language].Other.Currently..Descriptions[Language].Other.NotReady
 
                             end
                         elseif SelectedCard == mod.Jokers.TURTLE_BEAN then
 
-                            Description = Description.." #!!! "..Descriptions[Language].Other.Currently.." {{ColorCyan}}+"..tostring(Value).." "..Description[Language].Other.HandSize.."{{CR}}"
+                            Description = Description.." #!!! "..Descriptions[Language].Other.Currently.." {{ColorCyan}}+"..tostring(Value).." "..Descriptions[Language].Other.HandSize.."{{CR}}"
                         elseif SelectedCard == mod.Jokers.SELTZER then
 
                             Description = Description.." #!!! "..Descriptions[Language].Other.RoomsRemaining..tostring(Value)
@@ -274,8 +274,8 @@ local function BalatroInventoryCallback(descObj)
             if not SelectedCard then -- the skip option
 
                 Icon = ""
-                Name = Description[Language].Other.SkipName.."#{{Blank}}"
-                Description = Description[Language].Other.SkipDesc --wasn't able to find an api function for this
+                Name = Descriptions[Language].Other.SkipName.."#{{Blank}}"
+                Description = Descriptions[Language].Other.SkipDesc --wasn't able to find an api function for this
 
                 goto FINISH
             end
@@ -326,7 +326,7 @@ local function BalatroInventoryCallback(descObj)
                 else
                     CardName = mod:CardValueToName(SelectedCard.Value, true).." of "..mod:CardSuitToName(SelectedCard.Suit, true)
 
-                    CardName = CardName.."{{ColorCyan}} "..Description[Language].Other.LV..tostring(mod.Saved.Jimbo[PIndex].CardLevels[SelectedCard.Value] + 1).."{{CR}}"
+                    CardName = CardName.."{{ColorCyan}} "..Descriptions[Language].Other.LV..tostring(mod.Saved.CardLevels[SelectedCard.Value] + 1).."{{CR}}"
                 end
 
                 Name = CardName
@@ -365,8 +365,8 @@ local function BalatroInventoryCallback(descObj)
             if not SelectedCard then -- the skip option
 
                 Icon = ""
-                Name = Description[Language].Other.ConfirmName.."#{{Blank}}"
-                Description = Description[Language].Other.ConfirmDesc
+                Name = Descriptions[Language].Other.ConfirmName.."#{{Blank}}"
+                Description = Descriptions[Language].Other.ConfirmDesc
 
                 goto FINISH
             end
@@ -380,7 +380,7 @@ local function BalatroInventoryCallback(descObj)
             else
                 CardName = mod:CardValueToName(SelectedCard.Value, true).." of "..mod:CardSuitToName(SelectedCard.Suit, true)
 
-                CardName = CardName.."{{ColorCyan}} "..Description[Language].Other.LV..tostring(mod.Saved.Jimbo[PIndex].CardLevels[SelectedCard.Value] + 1).."{{CR}}"
+                CardName = CardName.."{{ColorCyan}} "..Descriptions[Language].Other.LV..tostring(mod.Saved.CardLevels[SelectedCard.Value] + 1).."{{CR}}"
             end
 
             Name = CardName

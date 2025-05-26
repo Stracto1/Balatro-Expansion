@@ -1,0 +1,4 @@
+<babies root="gfx/Characters/Player2/">
+
+	<baby id="694" name="Cool Egg Baby" skin="baby_egg.png" />
+</babies>

@@ -1632,7 +1632,8 @@ function mod:OnTearCardCollision(Tear,Collider,_)
     TearData.CollidedWith = TearData.CollidedWith or {}
 
 
-    if not Collider:IsActiveEnemy() or mod:Contained(TearData.CollidedWith, GetPtrHash(Collider)) then
+    if Player:GetPlayerType() ~= mod.Characters.JimboType or
+       not Collider:IsActiveEnemy() or mod:Contained(TearData.CollidedWith, GetPtrHash(Collider)) then
         return
     end
 
@@ -1834,7 +1835,7 @@ mod:AddCallback(ModCallbacks.MC_POST_TEAR_INIT, mod.SplitTears)
 function mod:CardSpoof(Tear)
 
 
-    if mod.CARD_TEAR_VARIANT == Tear.Variant  then
+    if mod.Tears.CARD_TEAR_VARIANT == Tear.Variant  then
 
         local Impact = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.IMPACT, Tear.Position + Vector(0, Tear.Height), Vector.Zero, Tear, 0, 1):ToEffect()
         Impact.SpriteScale = Vector(Tear.Scale, Tear.Scale)
@@ -1889,7 +1890,7 @@ function mod:AdjustCardRotation(Tear)
         TearSprite.Rotation = Data.LastRotation or TearSprite.Rotation
     end
 end
-mod:AddCallback(ModCallbacks.MC_PRE_TEAR_RENDER, mod.AdjustCardRotation, mod.CARD_TEAR_VARIANT)
+mod:AddCallback(ModCallbacks.MC_PRE_TEAR_RENDER, mod.AdjustCardRotation, mod.Tears.CARD_TEAR_VARIANT)
 
 
 

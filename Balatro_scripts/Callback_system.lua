@@ -47,6 +47,8 @@ function mod:OnGameStart(Continued)
                     PIndex = Player:GetData().TruePlayerIndex
                 end
 
+                print(PIndex, mod.Saved.Jimbo[PIndex])
+
                 for _,Group in pairs(mod.Saved.Jimbo[PIndex].InnateItems or {}) do
                     for _,Item in ipairs(Group) do
                         Player:AddInnateCollectible(Item)
