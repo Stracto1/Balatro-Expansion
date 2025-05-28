@@ -281,5 +281,17 @@
     	friction="1" collisionRadius="9">
     </entity>
 
+    <entity name="Falling Anvil" anm2path="falling_anvil_effect.anm2" id="1000" variant="2602" 
+    	friction="1" collisionRadius="9">
+    </entity>
+    <entity name="Player Umbrella" anm2path="player_umbrella_effect.anm2" id="1000" variant="2603" 
+    	friction="1" collisionRadius="9">
+    </entity>
+
+
+    <entity name="Pathfinder Slave" anm2path="" id="2743" variant="1" 
+    	friction="0" collisionRadius="9" tags="noreroll" gridCollision="ground" shutdoors="false">
+    </entity>
+
     
 </entities>

@@ -83,6 +83,28 @@ BASE_CARD_ANIMATION = "Base"
 local SUIT_ANIMATIONS = {"Spade","Heart","Club","Diamond"}
 
 
+local ComedicState = {}
+ComedicState.NONE = 0
+ComedicState.COMEDY = 1
+ComedicState.TRAGEDY = 2
+ComedicState.TRAGICOMEDY = 3
+
+local MaskCostume = {}
+MaskCostume[ComedicState.NONE] = 0
+MaskCostume[ComedicState.COMEDY] = Isaac.GetCostumeIdByPath("gfx/characters/comedy_mask_costume.anm2")
+MaskCostume[ComedicState.TRAGEDY] = Isaac.GetCostumeIdByPath("gfx/characters/tragic_mask_costume.anm2")
+MaskCostume[ComedicState.TRAGICOMEDY] = Isaac.GetCostumeIdByPath("gfx/characters/tragicomedy_mask_costume.anm2")
+
+local TragicomedyCaches = CacheFlag.CACHE_DAMAGE | CacheFlag.CACHE_FIREDELAY | CacheFlag.CACHE_RANGE | CacheFlag.CACHE_LUCK | CacheFlag.CACHE_SPEED 
+
+
+local AnvilStates = {}
+AnvilStates.FALLING = 0
+AnvilStates.REFLECTED = 30
+
+local ANVIL_FOLLOW_TIME = 30
+
+
 local function UnlockItems(_,Type)
 
     if PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
@@ -153,9 +175,9 @@ local function GetHorseyGridTarget(Familiar, Force)
                     if Force 
                        and TargetGrid ~= LastGrid
                        --and (math.abs(TargetCollum-LastCollum) > 1 or math.abs(TargetRow-LastRow) > 1)
-                       and TargetCollum ~= 1 and math.abs(TargetCollum - RoomWidth) > 2
+                       and TargetCollum ~= 1 and math.abs(TargetCollum - RoomWidth) > 2 --can't go on the room's borders
                        and TargetRow ~= 1 and math.abs(TargetRow - Room:GetGridHeight()) > 2 then
-                        --cannot go back to where it came from or on the room's borders
+                        --cannot go back to where it came from 
 
                         PossibleGrids[#PossibleGrids+1] = TargetGrid
 
@@ -520,6 +542,7 @@ function mod:EffectInit(Effect)
     if Effect.Variant == mod.Effects.CRAYON_POWDER then
         local Sprite = Effect:GetSprite()
 
+
         Sprite:SetFrame(math.random(0, Sprite:GetAnimationData("Idle"):GetLength()))
 
         Effect:SetColor(CrayonColors[Effect.SubType], -1, 2, false, true)
@@ -528,9 +551,10 @@ function mod:EffectInit(Effect)
 
         Effect.SortingLayer = SortingLayer.SORTING_BACKGROUND
         Effect:AddEntityFlags(EntityFlag.FLAG_NO_SPRITE_UPDATE)
-        
-    --elseif Effect.Variant == mod.Effects.BANANA_PEEL then
-  
+
+    elseif Effect.Variant == mod.Effects.ANVIL then
+        --Effect.PositionOffset = Vector(0, -1750)
+
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT, mod.EffectInit)
@@ -686,6 +710,99 @@ function mod:EffectUpdate(Effect)
             end
         end
 
+    elseif Effect.Variant == mod.Effects.ANVIL then
+
+        --for whaterver reason shodows can be rendered only if an effect has 2 or more as the timeout??
+        --alr also works if it's less than 0 but still wtf
+        Effect:SetTimeout(math.max(Effect.Timeout, 2)) 
+        if Effect.State == AnvilStates.FALLING then
+            
+            if Effect.Timeout <= 2 then
+                Effect.IsFollowing = false
+                Effect.Velocity = Vector.Zero
+            else
+                Effect.IsFollowing = true
+            end
+        
+            Effect.SpriteOffset.Y = Effect.SpriteOffset.Y + 15
+
+            if Effect.SpriteOffset.Y < 0 then
+                return
+            end
+
+            local Room = Game:GetRoom()
+            local AnvilGridIndex = Room:GetGridIndex(Effect.Position)
+
+            local Grid = Room:GetGridEntityFromPos(Effect.Position)
+            local FellOnWater = Room:GetWaterAmount() >= 0.2
+            local FellInPit = Grid and Grid:ToPit()
+
+
+            Game:MakeShockwave(Effect.Position, 0.025, 0.02, 10)
+
+            if FellInPit then --if it fell in a pit
+
+                if not FellOnWater then
+
+                    local Dust = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.DUST_CLOUD, Effect.Position,
+                                    RandomVector(), nil,0, math.max(1, Random())):ToEffect()
+                    Dust.SpriteScale = Vector(1.25, 1.25)
+                    Dust:SetTimeout(20)
+                end
+
+            else --fell on ground/rock
+
+                if Grid then
+
+                    Grid:Destroy(true)
+                    Room:RemoveGridEntityImmediate(AnvilGridIndex, 1, false)
+                end
+
+                if mod:CanTileBeBlocked(AnvilGridIndex) then
+                    local Pit = Isaac.GridSpawn(GridEntityType.GRID_PIT, 0, Effect.Position)
+
+                    if Pit then
+                        Pit = Pit:ToPit()
+
+                        Pit:UpdateCollision()
+                    end
+                end
+
+                local Shock = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.SHOCKWAVE, Effect.Position,
+                                         Vector.Zero, nil, 0, 1):ToEffect()
+
+                Shock:SetRadii(10,25)
+
+
+                Shock = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.SHOCKWAVE, Effect.Position,
+                                   Vector.Zero, nil, 0, 1):ToEffect()
+
+                Shock:SetRadii(35,75)
+                Shock.Parent = Effect.SpawnerEntity
+            end
+
+            if FellOnWater then
+
+                Effect:SpawnWaterImpactEffects(Effect.Position, Vector.One, 100)
+
+                Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BIG_SPLASH, Effect.Position,
+                           Vector.Zero, nil, 0, 1)
+                sfx:Play(SoundEffect.SOUND_BOSS2INTRO_WATER_EXPLOSION,1,2,false, 0.9 + math.random()*0.1)
+
+                for i=1, math.random(5,10) do
+
+                    local Tear = Game:Spawn(EntityType.ENTITY_TEAR, TearVariant.BLUE, Effect.Position,
+                                            RandomVector()* (4.5 + math.random()*2.5), nil, 0, math.max(1, Random())):ToTear()
+
+                    Tear.FallingSpeed = - (10 + math.random()*20)
+                    Tear.FallingAcceleration = 1.5 + math.random()*1.5
+
+                    Tear.Scale = 0.7 + math.random()*0.25
+                end
+            end
+
+            Effect:Remove()
+        end
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, mod.EffectUpdate)
@@ -752,6 +869,11 @@ local function EffectRender(_,Effect)
             Effect.SpriteScale = Vector.One * mod:ExponentLerp(2.25, 1, Data.RenderFrames/75, 2.5)
             Effect.SpriteRotation = mod:ExponentLerp(Data.StartThrowRotation, Data.TargetThrowRotation, Data.RenderFrames/75, 0.9)
         end
+
+    elseif Effect.Variant == mod.Effects.ANVIL then
+
+        Effect:SetShadowSize(0.5)
+        Effect:RenderShadowLayer(Vector.Zero)
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_EFFECT_RENDER, EffectRender)
@@ -809,6 +931,9 @@ local function OnNewRoom()
     local Room = Game:GetRoom()
 
     for _,Player in ipairs(PlayerManager.GetPlayers()) do
+
+        local PIndex = Player:GetData().TruePlayerIndex
+
         if Player:HasCollectible(mod.Collectibles.CRAYONS) then
             
             local RandomColor
@@ -819,8 +944,8 @@ local function OnNewRoom()
             until not Data.CrayonColor or RandomColor ~= Data.CrayonColor
 
             Player:GetData().CrayonColor = RandomColor
-
-        elseif Player:HasCollectible(mod.Collectibles.BALOON_PUPPY) then
+        end
+        if Player:HasCollectible(mod.Collectibles.BALOON_PUPPY) then
 
             for _, Puppy in ipairs(Isaac.FindByType(EntityType.ENTITY_FAMILIAR, mod.Familiars.BLOON_PUPPY)) do
 
@@ -830,6 +955,47 @@ local function OnNewRoom()
                     Puppy.FireCooldown = 0
                 end
             end
+        end
+        if Player:HasCollectible(mod.Collectibles.TRAGICOMEDY) then
+
+            ---@diagnostic disable-next-line: param-type-mismatch
+            Player:AddCacheFlags(TragicomedyCaches)
+            Player:TryRemoveNullCostume(MaskCostume[mod.Saved.Player[PIndex].ComedicState])
+            mod.Saved.Player[PIndex].ComedicState = ComedicState.NONE
+            
+
+            if Player:GetPlayerType() == mod.Characters.JimboType and mod:JimboHasTrinket(Player, mod.Jokers.SOCK_BUSKIN)
+               or Player:HasTrinket(mod.Jokers.SOCK_BUSKIN) 
+               or Player:HasCollectible(CollectibleType.COLLECTIBLE_DUALITY) then --set both tragic and comedy
+
+                mod.Saved.Player[PIndex].ComedicState = ComedicState.TRAGICOMEDY + 0
+
+            else
+
+                local MaskRNG = Player:GetCollectibleRNG(mod.Collectibles.TRAGICOMEDY)
+                local ComedicChance = MaskRNG:RandomFloat()
+
+                if ComedicChance <= 0.4 or Player:HasCollectible(CollectibleType.COLLECTIBLE_POLAROID) then
+                    mod.Saved.Player[PIndex].ComedicState = mod.Saved.Player[PIndex].ComedicState + ComedicState.COMEDY
+
+                end
+
+                ComedicChance = MaskRNG:RandomFloat()
+
+                if ComedicChance <= 0.4 or Player:HasCollectible(CollectibleType.COLLECTIBLE_NEGATIVE) then
+                    mod.Saved.Player[PIndex].ComedicState = mod.Saved.Player[PIndex].ComedicState + ComedicState.TRAGEDY
+
+                end
+
+                Player:AddNullCostume(MaskCostume[mod.Saved.Player[PIndex].ComedicState])
+            end
+
+            Player:EvaluateItems()
+
+        else --does not have tragicomedy
+            Player:TryRemoveNullCostume(MaskCostume[mod.Saved.Player[PIndex].ComedicState])
+            mod.Saved.Player[PIndex].ComedicState = ComedicState.NONE
+
         end
     end
 
@@ -893,12 +1059,21 @@ function mod:ActiveUse(Item, Rng, Player, Flag, Slot, Data)
 
         local Data = Banan:GetData()
 
-        print(Banan.State)
         Banan.State = BananaState.FLYING
 
         Data.ZSpeed = -math.random()*10 - 6
         Data.ZAcceleration = 1 or math.random()*1.5 + 1
 
+    elseif Item == mod.Collectibles.UMBRELLA then
+
+        local Anvil = Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.ANVIL, Player.Position, 
+                               Vector.Zero, Player, 0, 1):ToEffect()
+
+        Anvil:FollowParent(Player)
+        Anvil:SetTimeout(ANVIL_FOLLOW_TIME) --will follow the player for thim many frames
+    
+        Anvil.State = AnvilStates.FALLING
+        Anvil.SpriteOffset = Vector(0, -1050)
     end
 end
 mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.ActiveUse)
@@ -1283,4 +1458,37 @@ mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, PocketAcesTrigger)
 mod:AddCallback(ModCallbacks.MC_POST_FIRE_BRIMSTONE, PocketAcesTrigger)
 mod:AddCallback(ModCallbacks.MC_POST_FIRE_BRIMSTONE_BALL, PocketAcesTrigger)
 
+local function StatEvaluation(_,Player, Cache)
+
+    if Player:HasCollectible(mod.Collectibles.TRAGICOMEDY) then
+        
+        local PIndex = Player:GetData().TruePlayerIndex
+
+        if mod.Saved.Player[PIndex].ComedicState & ComedicState.COMEDY == ComedicState.COMEDY then
+            
+            if Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then
+                Player.MaxFireDelay = Player.MaxFireDelay - mod:CalculateTearsUp(Player.MaxFireDelay, 1)
+            end
+            if Cache & CacheFlag.CACHE_SPEED == CacheFlag.CACHE_SPEED then
+                Player.MoveSpeed = Player.MoveSpeed + 0.2
+            end
+            if Cache & CacheFlag.CACHE_LUCK == CacheFlag.CACHE_LUCK then
+                Player.Luck = Player.Luck + 2
+            end
+        end
+        if mod.Saved.Player[PIndex].ComedicState & ComedicState.TRAGEDY == ComedicState.TRAGEDY then
+
+            if Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then
+                Player.MaxFireDelay = Player.MaxFireDelay - mod:CalculateTearsUp(Player.MaxFireDelay, 0.5)
+            end
+            if Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
+                Player.Damage = Player.Damage + 1
+            end
+            if Cache & CacheFlag.CACHE_RANGE == CacheFlag.CACHE_RANGE then
+                Player.TearRange = Player.TearRange + 100
+            end
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, StatEvaluation)
 

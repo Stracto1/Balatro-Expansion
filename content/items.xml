@@ -215,11 +215,11 @@
     <active name="Banana" quality="2" craftquality="2" chargetype="normal" maxcharges="1" gfx="banana_item.png" description="A deadly weapon" achievement="BananaUnlock" tags="offensive"/>
     <active name="Empty Banana" quality="2" craftquality="-1" chargetype="timed" maxcharges="210" gfx="banana_exploded_item.png" description="A not so deadly weapon" achievement="BananaUnlock" hidden="true" tags="noeden nocantrip"/>
     <passive name="Clown Costume" id="7" quality="1" craftquality="1" gfx="clown_costume_item.png" description="Just a cosplay" addcostumeonpickup="true" achievement="ClownUnlock" tags="nolostbr"/>
-    <passive name="Tragicomedy" id="8" quality="3" craftquality="3" gfx="comedy_tragedy_masks_item.png" description=":):" achievement="TragicomedyUnlock" tags="offensive"/>
+    <passive name="Tragicomedy" quality="3" craftquality="3" gfx="comedy_tragedy_masks_item.png" description=":):" achievement="TragicomedyUnlock" tags="offensive"/>
     <passive name="Laugh Sign" quality="2" craftquality="2" gfx="laugh_sign_item.png" description="Completely honest laughter" achievement="LaughUnlock" tags="offensive"/>
     <passive name="Lollypop" quality="3" craftquality="3" gfx="lollypop_item.png" description="Suger frenzy!" achievement="LollypopUnlock" tags=""/>
     <familiar name="Funny Teeth" cache="familiars" quality="2" craftquality="2" gfx="teeth.png" description="Needs some help" achievement="TeethUnlock" tags="offensive familiar"/>
-    <active name="Umbrella" quality="3" craftquality="3" gfx="umbrella_item.png" description="Better take cover" achievement="UmbrellaUnlock" tags="offensive"/>
+    <active name="Umbrella" quality="3" craftquality="3" maxcharges="150" chargetype="timed" gfx="umbrella_item.png" description="Better take cover!" achievement="UmbrellaUnlock" tags="offensive"/>
     <familiar name="Baloon Puppy" cache="familiars" quality="2" craftquality="2" gfx="baloon_puppy_item.png" description="My dream buddy" achievement="PuppyUnlock" tags="offensive"/>
     <passive name="Pocket Aces" quality="3" craftquality="3" gfx="pocket_aces_item.png" description="A trick up my sleeve" achievement="PocketAcesUnlock" tags=""/>
 

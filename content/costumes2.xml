@@ -3,7 +3,10 @@
     <costume id="6" anm2path="joker_full_costume.anm2" type="none" priority="1000" forceBodyColor="true" forceHeadColor="true" overwriteColor="true" skinColor="0" />
 
     <costume id="7" anm2path="clown_costume.anm2" type="passive" priority="1"/>    
-    <costume id="8" anm2path="tragicomedy_costume.anm2" type="passive" priority="1"/>
+    <costume id="8" anm2path="tragicomedy_mask_costume.anm2" type="none" priority="100"/>
+    <costume id="9" anm2path="comedy_mask_costume.anm2" type="none" priority="100"/>
+    <costume id="10" anm2path="tragic_mask_costume.anm2" type="none" priority="100"/>
+
 
 
 </costumes>

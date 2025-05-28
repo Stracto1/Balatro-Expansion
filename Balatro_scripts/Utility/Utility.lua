@@ -4,6 +4,13 @@ local ItemsConfig = Isaac.GetItemConfig()
 local Game = Game()
 local sfx = SFXManager()
 
+local DoorSides = {}
+DoorSides.LEFT = 0
+DoorSides.UP = 1
+DoorSides.RIGHT = 2
+DoorSides.DOWN = 3
+
+
 --rounds down to numDecimal of spaces
 function mod:round(num, numDecimalPlaces)
     local mult = 10^(numDecimalPlaces or 0)
@@ -164,7 +171,7 @@ function mod:FloorHasShopOrTreasure()
     --[[
     mod.Saved.Other.Labyrinth = 1
     if Level:GetCurses() & LevelCurse.CURSE_OF_LABYRINTH == LevelCurse.CURSE_OF_LABYRINTH then
-        mod.Saved.Jimbo[PIndex].Labyrinth = 2
+        mod.Saved.Player[PIndex].Labyrinth = 2
     end]]
     if Level:IsAscent() then
         Available.Treasure = false
@@ -269,6 +276,63 @@ function mod:GetSignString(Num)
     end
 end
 
+function mod:CanTileBeBlocked(IndexToDestroy)
+
+    local Room = Game:GetRoom()
+    local CanTileBeBlocked = true
+
+    local StartingGridPath = Room:GetGridPath(IndexToDestroy)
+    Room:SetGridPath(IndexToDestroy, 1000)
+
+    --the idea is spawning an entity on a door and seeing if it can travel to every other door
+
+    local DoorPositions = {}
+
+    for Slot = DoorSlot.LEFT0 , DoorSlot.NUM_DOOR_SLOTS-1 do
+
+        local Door = Room:GetDoor(Slot)
+        if Door then
+
+            local Position = Door.Position
+            local DoorSide = Slot % 4
+
+            if DoorSide == DoorSides.LEFT then
+                
+                Position = Position + Vector(40,0)
+            elseif DoorSide == DoorSides.UP then
+                Position = Position + Vector(0,40)
+            elseif DoorSide == DoorSides.RIGHT then
+                Position = Position + Vector(-40,0)
+            elseif DoorSide == DoorSides.DOWN then
+                Position = Position + Vector(0,-40)
+            end
+
+            DoorPositions[#DoorPositions+1] = Position
+        end
+    end
+
+    local PathfinderSlave = Game:Spawn(mod.Entities.BALATRO_TYPE, mod.Entities.PATH_SLAVE, DoorPositions[1],
+                                       Vector.Zero, nil, 0, 1):ToNPC()
+
+    local Pathfinder = PathfinderSlave.Pathfinder
+
+    for i = 2, #DoorPositions do
+        
+        if not Pathfinder:HasPathToPos(DoorPositions[i], true) --if one door becomes unreachable, can't destroy
+           or IndexToDestroy == Room:GetGridIndex(DoorPositions[i]) then 
+            
+            CanTileBeBlocked = false
+            break
+        end
+    end
+
+    Room:SetGridPath(IndexToDestroy, StartingGridPath)
+    PathfinderSlave:Remove()
+
+    return CanTileBeBlocked
+
+end
+
 -------------JIMBO FUNCTIONS------------
 ---------------------------------------
 
@@ -281,8 +345,8 @@ function mod:DeterminePokerHand(Player)
     local PIndex = Player:GetData().TruePlayerIndex
     
     local RealHand = {}
-    for _,index in ipairs(mod.Saved.Jimbo[PIndex].CurrentHand) do
-        table.insert(RealHand, mod.Saved.Jimbo[PIndex].FullDeck[index])
+    for _,index in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
+        table.insert(RealHand, mod.Saved.Player[PIndex].FullDeck[index])
         
     end
 
@@ -453,7 +517,7 @@ function mod:GetCardValueRepetitions(Player, ValueTable)
     --PAIRS CHECK
     for _, CardRank in ipairs(ValueTable) do --cycles between all the cards in the used hand
     
-        CardValues[CardRank] = CardValues[mod.Saved.Jimbo[PIndex].FullDeck[CardRank].Value] + 1
+        CardValues[CardRank] = CardValues[mod.Saved.Player[PIndex].FullDeck[CardRank].Value] + 1
     end
 
     local PairPresent = false --tells if there is a pair for a possible full house/two pairs
@@ -502,7 +566,7 @@ function mod:JimboHasTrinket(Player,Trinket)
     end
     local PIndex = Player:GetData().TruePlayerIndex
 
-    for _,Slot in ipairs(mod.Saved.Jimbo[PIndex].Inventory) do
+    for _,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
         if Slot.Joker == Trinket then
             return true
         end
@@ -514,14 +578,14 @@ function mod:GetJimboJokerIndex(Player, Joker, SkipCopy)
     local Indexes = {}
     local PIndex = Player:GetData().TruePlayerIndex
 
-    for i,Slot in ipairs(mod.Saved.Jimbo[PIndex].Inventory) do
+    for i,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
         if Slot.Joker == Joker then
             table.insert(Indexes, i)
 
         elseif not SkipCopy
                and (Slot.Joker == mod.Jokers.BLUEPRINT or Slot.Joker == mod.Jokers.BRAINSTORM) then
 
-            local CopiedJoker = mod.Saved.Jimbo[PIndex].Inventory[mod.Saved.Jimbo[PIndex].Progress.Inventory[i]]
+            local CopiedJoker = mod.Saved.Player[PIndex].Inventory[mod.Saved.Player[PIndex].Progress.Inventory[i]]
             CopiedJoker = CopiedJoker and CopiedJoker.Joker or 0
 
             if CopiedJoker == Joker then
@@ -622,18 +686,18 @@ function mod:GetJokerCost(Joker, SellSlot, Player)
 
     if SellSlot then --also tells if you want the buy/sell value as the return
     
-        Cost = math.floor((Cost + mod.Saved.Jimbo[PIndex].Inventory[SellSlot].Edition) / 2)
+        Cost = math.floor((Cost + mod.Saved.Player[PIndex].Inventory[SellSlot].Edition) / 2)
         if Joker == mod.Jokers.EGG then
-            Cost = mod.Saved.Jimbo[PIndex].Progress.Inventory[SellSlot]
+            Cost = mod.Saved.Player[PIndex].Progress.Inventory[SellSlot]
         end
 
-        mod.Saved.Jimbo[PIndex].Progress.GiftCardExtra[SellSlot] = mod.Saved.Jimbo[PIndex].Progress.GiftCardExtra[SellSlot] or 0
+        mod.Saved.Player[PIndex].Progress.GiftCardExtra[SellSlot] = mod.Saved.Player[PIndex].Progress.GiftCardExtra[SellSlot] or 0
 
-        Cost = Cost + mod.Saved.Jimbo[PIndex].Progress.GiftCardExtra[SellSlot]
+        Cost = Cost + mod.Saved.Player[PIndex].Progress.GiftCardExtra[SellSlot]
 
     else
         --print(tonumber(string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[1],"%!",""),2))
-        local EdValue = mod.Saved.Jimbo[PIndex].FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Joker).Name] or 0
+        local EdValue = mod.Saved.Player[PIndex].FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Joker).Name] or 0
         
         Cost = Cost + EdValue
     end
@@ -658,25 +722,25 @@ function mod:AddJimboInventorySlots(Player, Amount)
 
     if Amount >= 0 then
         for i=1,Amount do --just adds empty spaces to fill
-            table.insert(mod.Saved.Jimbo[PIndex].Inventory, {["Joker"] = 0,["Edition"]=mod.Edition.BASE})
+            table.insert(mod.Saved.Player[PIndex].Inventory, {["Joker"] = 0,["Edition"]=mod.Edition.BASE})
 
-            mod.Saved.Jimbo[PIndex].Progress.GiftCardExtra[#mod.Saved.Jimbo[PIndex].Inventory] = 0
+            mod.Saved.Player[PIndex].Progress.GiftCardExtra[#mod.Saved.Player[PIndex].Inventory] = 0
 
         end
     else
         for i=1, -Amount do
 
-            for j,Slot in ipairs(mod.Saved.Jimbo[PIndex].Inventory) do
+            for j,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
                 if Slot.Joker == 0 then --searches for an empty slot to remove
-                    table.remove(mod.Saved.Jimbo[PIndex].Inventory, j)
+                    table.remove(mod.Saved.Player[PIndex].Inventory, j)
 
-                    table.remove(mod.Saved.Jimbo[PIndex].Progress.GiftCardExtra, j)
+                    table.remove(mod.Saved.Player[PIndex].Progress.GiftCardExtra, j)
 
                     return
                 end
             end
 
-            mod:SellJoker(Player, mod.Saved.Jimbo[PIndex].Inventory.Jokers[1], 1)
+            mod:SellJoker(Player, mod.Saved.Player[PIndex].Inventory.Jokers[1], 1)
         end
     end
 end
@@ -686,15 +750,15 @@ function mod:ChangeJimboHandSize(Player, Amount)
 
     if Amount >= 0 then
         for i=1,Amount do --just adds empty spaces to fill
-            table.insert(mod.Saved.Jimbo[PIndex].CurrentHand,1, mod.Saved.Jimbo[PIndex].DeckPointer)
-            mod.Saved.Jimbo[PIndex].DeckPointer = mod.Saved.Jimbo[PIndex].DeckPointer + 1
+            table.insert(mod.Saved.Player[PIndex].CurrentHand,1, mod.Saved.Player[PIndex].DeckPointer)
+            mod.Saved.Player[PIndex].DeckPointer = mod.Saved.Player[PIndex].DeckPointer + 1
         end
     else
         for i=-1,Amount, -1 do
-            if mod.Saved.Jimbo[PIndex].HandSize == 1 then
+            if mod.Saved.Player[PIndex].HandSize == 1 then
                 return
             end
-            table.remove(mod.Saved.Jimbo[PIndex].CurrentHand, mod.Saved.Jimbo[PIndex].HandSize)
+            table.remove(mod.Saved.Player[PIndex].CurrentHand, mod.Saved.Player[PIndex].HandSize)
         end
     end
 end
@@ -721,15 +785,15 @@ end
 function mod:SellJoker(Player, Trinket, Slot, Multiplier)
     local PIndex = Player:GetData().TruePlayerIndex
 
-    mod.Saved.Jimbo[PIndex].Inventory[Slot].Joker = 0
-    mod.Saved.Jimbo[PIndex].Inventory[Slot].Edition = mod.Edition.BASE
+    mod.Saved.Player[PIndex].Inventory[Slot].Joker = 0
+    mod.Saved.Player[PIndex].Inventory[Slot].Edition = mod.Edition.BASE
 
     local SellValue = mod:GetJokerCost(Trinket, Slot, Player) * (Multiplier or 1)
     SellValue = math.floor(SellValue)
 
-    mod.Saved.Jimbo[PIndex].Progress.GiftCardExtra[Slot] = 0
+    mod.Saved.Player[PIndex].Progress.GiftCardExtra[Slot] = 0
 
-    if mod.Saved.Jimbo[PIndex].Inventory[Slot].Edition == mod.Edition.NEGATIVE then
+    if mod.Saved.Player[PIndex].Inventory[Slot].Edition == mod.Edition.NEGATIVE then
         --selling a negative joker reduces your inventory size
         mod:AddJimboInventorySlots(Player, -1)
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.INVENTORY, mod.SelectionParams.Purposes.NONE)
@@ -767,7 +831,7 @@ function mod:RandomJoker(Rng, Exeptions, PlaySound, ForcedRarity)
             if Player:GetPlayerType() == mod.Characters.JimboType then
                 local PIndex = Player:GetData().TruePlayerIndex
 
-                for i, Slot in ipairs(mod.Saved.Jimbo[PIndex].Inventory) do
+                for i, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
                     if Slot.Joker ~= 0 then
                         Exeptions[#Exeptions+1] = Slot.Joker
                     end
@@ -931,7 +995,7 @@ function mod:AddJoker(Player, Joker, Edition, StopEval)
 
     Edition = Edition or mod.Edition.BASE
 
-    mod.Saved.Jimbo[PIndex].FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Joker).Name] = Edition
+    mod.Saved.Player[PIndex].FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Joker).Name] = Edition
 
     return mod:JimboAddTrinket(Player, Joker, false, StopEval)
 end
@@ -945,17 +1009,17 @@ function mod:AddCardToDeck(Player, CardTable,Amount, PutInHand)
     local PIndex = Player:GetData().TruePlayerIndex
 
     for i=1, Amount do
-        table.insert(mod.Saved.Jimbo[PIndex].FullDeck,1, CardTable) --adds it to pos 1 so it can't be seen again
+        table.insert(mod.Saved.Player[PIndex].FullDeck,1, CardTable) --adds it to pos 1 so it can't be seen again
     end
 
-    for i,_ in ipairs(mod.Saved.Jimbo[PIndex].CurrentHand) do
-        mod.Saved.Jimbo[PIndex].CurrentHand[i] = mod.Saved.Jimbo[PIndex].CurrentHand[i] + Amount --fixes the jump made by table.insert
+    for i,_ in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
+        mod.Saved.Player[PIndex].CurrentHand[i] = mod.Saved.Player[PIndex].CurrentHand[i] + Amount --fixes the jump made by table.insert
     end
-    mod.Saved.Jimbo[PIndex].DeckPointer = mod.Saved.Jimbo[PIndex].DeckPointer + 2 --fixes the jump made by table.insert
+    mod.Saved.Player[PIndex].DeckPointer = mod.Saved.Player[PIndex].DeckPointer + 2 --fixes the jump made by table.insert
 
     if PutInHand then
         for i=1, Amount do
-            table.insert(mod.Saved.Jimbo[PIndex].CurrentHand, i) --adds it to the hand if necessary
+            table.insert(mod.Saved.Player[PIndex].CurrentHand, i) --adds it to the hand if necessary
         end
     end
 
@@ -985,16 +1049,16 @@ function mod:DestroyCards(Player, DeckIndexes, DoEffects)
     local DestroyedParams = {}
 
     for _, Index in ipairs(DeckIndexes) do
-        local CardParams = mod.Saved.Jimbo[PIndex].FullDeck[Index]
+        local CardParams = mod.Saved.Player[PIndex].FullDeck[Index]
 
         DestroyedParams[#DestroyedParams+1] = CardParams
 
-        if mod:Contained(mod.Saved.Jimbo[PIndex].CurrentHand) and #mod.Saved.Jimbo[PIndex].CurrentHand > Player:GetCustomCacheValue("handsize") then
+        if mod:Contained(mod.Saved.Player[PIndex].CurrentHand) and #mod.Saved.Player[PIndex].CurrentHand > Player:GetCustomCacheValue("handsize") then
         ---@diagnostic disable-next-line: param-type-mismatch
-            table.remove(mod.Saved.Jimbo[PIndex].CurrentHand, mod:GetValueIndex(mod.Saved.Jimbo[PIndex].CurrentHand, Index, true))
+            table.remove(mod.Saved.Player[PIndex].CurrentHand, mod:GetValueIndex(mod.Saved.Player[PIndex].CurrentHand, Index, true))
         end
 
-        table.remove(mod.Saved.Jimbo[PIndex].FullDeck, Index)
+        table.remove(mod.Saved.Player[PIndex].FullDeck, Index)
         
         if DoEffects then
             mod:CardRipEffect(CardParams, Player.Position)
@@ -1206,10 +1270,10 @@ function mod:SubstituteCards(ChosenTable)
     for i = #ChosenTable, 1,-1 do
         if ChosenTable[i] then
             --first adds the ammount of new cards needed
-            table.insert(mod.Saved.Jimbo[PIndex].CurrentHand,#mod.Saved.Jimbo[PIndex].CurrentHand+1, mod.Saved.Jimbo[PIndex].DeckPointer)
-            mod.Saved.Jimbo[PIndex].DeckPointer = mod.Saved.Jimbo[PIndex].DeckPointer +1
+            table.insert(mod.Saved.Player[PIndex].CurrentHand,#mod.Saved.Player[PIndex].CurrentHand+1, mod.Saved.Player[PIndex].DeckPointer)
+            mod.Saved.Player[PIndex].DeckPointer = mod.Saved.Player[PIndex].DeckPointer +1
             --then removes the selected cards 
-            table.remove(mod.Saved.Jimbo[PIndex].CurrentHand,i)
+            table.remove(mod.Saved.Player[PIndex].CurrentHand,i)
         end
     end
     

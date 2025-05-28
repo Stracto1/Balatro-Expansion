@@ -163,7 +163,7 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE, mod.OnItemPickup)
 
 function mod:AlwaysOnNewRoom()
-    Room = Game:GetRoom():GetType()
+    local Room = Game:GetRoom():GetType()
     if Room == RoomType.ROOM_SHOP then
         TrinketValues.ShopEntered = true
     elseif Room == RoomType.ROOM_TREASURE then
@@ -198,7 +198,7 @@ function mod:OnNewRoom()
             player:AddCacheFlags(CacheFlag.CACHE_FLYING, true)
         end
     end
-    Room = Game:GetRoom():GetType()
+    local Room = Game:GetRoom():GetType()
     if Room == RoomType.ROOM_SHOP then
         TrinketValues.ShopEntered = true
     elseif Room == RoomType.ROOM_TREASURE then

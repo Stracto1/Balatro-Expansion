@@ -84,7 +84,7 @@ local function BalatroInventoryCallback(descObj)
 
         if Balatro_Expansion.SelectionParams[PIndex].Mode == Balatro_Expansion.SelectionParams.Modes.INVENTORY then
 
-            SelectedCard = Balatro_Expansion.Saved.Jimbo[PIndex].Inventory[mod.SelectionParams[PIndex].Index]
+            SelectedCard = Balatro_Expansion.Saved.Player[PIndex].Inventory[mod.SelectionParams[PIndex].Index]
 
             if not SelectedCard then --the extra confirm button
 
@@ -92,7 +92,7 @@ local function BalatroInventoryCallback(descObj)
 
                     for i,selected in ipairs(mod.SelectionParams[PIndex].SelectedCards) do
                         if selected then
-                            SelectedCard = mod.Saved.Jimbo[PIndex].Inventory[i].Joker
+                            SelectedCard = mod.Saved.Player[PIndex].Inventory[i].Joker
                             SelectedSlots = i
                             break
                         end
@@ -152,7 +152,7 @@ local function BalatroInventoryCallback(descObj)
                 Name = RarityColor..EID:getObjectName(5, 350, SelectedCard).."{{CR}}#{{Blank}}"
                 Description = EID:getDescriptionEntry("custom", Tstring)[3]
 
-                local Edition = mod.Saved.Jimbo[PIndex].Inventory[mod.SelectionParams[PIndex].Index].Edition
+                local Edition = mod.Saved.Player[PIndex].Inventory[mod.SelectionParams[PIndex].Index].Edition
 
                 local EditionDesc = Descriptions[Language].JokerEdition[Edition]
 
@@ -163,7 +163,7 @@ local function BalatroInventoryCallback(descObj)
                 local JokerConfig = ItemsConfig:GetTrinket(SelectedCard)
                 if JokerConfig:HasCustomTag("Value") then
 
-                    local Value = Balatro_Expansion.Saved.Jimbo[PIndex].Progress.Inventory[mod.SelectionParams[PIndex].Index]
+                    local Value = Balatro_Expansion.Saved.Player[PIndex].Progress.Inventory[mod.SelectionParams[PIndex].Index]
                     if JokerConfig:HasCustomTag("chips") then
                         if SelectedCard == mod.Jokers.WALKIE_TALKIE then
 
@@ -228,7 +228,7 @@ local function BalatroInventoryCallback(descObj)
                             end
 
                         elseif SelectedCard == mod.Jokers.DNA then
-                            if Balatro_Expansion.Saved.Jimbo[PIndex].Progress.Blind.Shots == 0 then
+                            if Balatro_Expansion.Saved.Player[PIndex].Progress.Blind.Shots == 0 then
                                 Description = Description.." #!!! "..Descriptions[Language].Other.Ready
 
                             else
@@ -237,7 +237,7 @@ local function BalatroInventoryCallback(descObj)
                             end
 
                         elseif SelectedCard == mod.Jokers.SIXTH_SENSE then
-                            if Balatro_Expansion.Saved.Jimbo[PIndex].Progress.Blind.Shots == 0 then
+                            if Balatro_Expansion.Saved.Player[PIndex].Progress.Blind.Shots == 0 then
                                 Description = Description.." #!!! "..Descriptions[Language].Other.Currently..Descriptions[Language].Other.Ready
 
                             else
@@ -258,7 +258,7 @@ local function BalatroInventoryCallback(descObj)
                 --SELL VALUE--
 
                 if SelectedCard == mod.Jokers.EGG then
-                    Description = Description.." #{{Shop}}"..Descriptions[Language].Other.SellsFor.."{{ColorYellorange}}"..tostring(mod.Saved.Jimbo[PIndex].Progress.Inventory[mod.SelectionParams[PIndex].Index]).."${{CR}}"
+                    Description = Description.." #{{Shop}}"..Descriptions[Language].Other.SellsFor.."{{ColorYellorange}}"..tostring(mod.Saved.Player[PIndex].Progress.Inventory[mod.SelectionParams[PIndex].Index]).."${{CR}}"
 
                 else
                     Description = Description.." #{{Shop}}"..Descriptions[Language].Other.SellsFor.."{{ColorYellorange}}"..tostring(mod:GetJokerCost(SelectedCard, mod.SelectionParams[PIndex].Index, Player)).."${{CR}}"
@@ -359,7 +359,7 @@ local function BalatroInventoryCallback(descObj)
 
         elseif Balatro_Expansion.SelectionParams[PIndex].Mode == Balatro_Expansion.SelectionParams.Modes.HAND then
 
-            SelectedCard = mod.Saved.Jimbo[PIndex].FullDeck[mod.Saved.Jimbo[PIndex].CurrentHand[mod.SelectionParams[PIndex].Index]]
+            SelectedCard = mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[mod.SelectionParams[PIndex].Index]]
             SelectedSlots = mod.SelectionParams[PIndex].Index
 
             if not SelectedCard then -- the skip option

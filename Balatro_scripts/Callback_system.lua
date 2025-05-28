@@ -47,9 +47,9 @@ function mod:OnGameStart(Continued)
                     PIndex = Player:GetData().TruePlayerIndex
                 end
 
-                print(PIndex, mod.Saved.Jimbo[PIndex])
+                print(PIndex, mod.Saved.Player[PIndex])
 
-                for _,Group in pairs(mod.Saved.Jimbo[PIndex].InnateItems or {}) do
+                for _,Group in pairs(mod.Saved.Player[PIndex].InnateItems or {}) do
                     for _,Item in ipairs(Group) do
                         Player:AddInnateCollectible(Item)
                     end
@@ -88,6 +88,7 @@ function mod:OnGameStart(Continued)
         mod.Saved.TrinketValues.Supernova = {}
         mod.Saved.TrinketValues.Dna = true]]
 
+        mod.Saved.ShowmanRemovedItems = {}
         mod.HpEnable = false
         mod.ShopAddedThisFloor = false
 
@@ -250,12 +251,13 @@ function mod:InitJimboValues(Player, Force)
         PIndex = Player:GetData().TruePlayerIndex
     end
 
+    mod.Saved.Player[PIndex] = {}
+    
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
-        mod.Saved.Jimbo[Player:GetData().TruePlayerIndex] = 0
-        return
+        goto shared_values
     end
 
-    if mod.Saved.Jimbo[Player:GetData().TruePlayerIndex] ~= 0 and not Force then
+    if mod.Saved.Player[Player:GetData().TruePlayerIndex] and not Force then
         return
     end
 
@@ -277,126 +279,133 @@ function mod:InitJimboValues(Player, Force)
     mod.SelectionParams[PIndex].SelectionNum = 0 --how many things you chose
     mod.SelectionParams[PIndex].PlayerChoosing = 0 --the true player index of who is choosing
 
-    mod.Saved.Jimbo[PIndex] = {}
-    mod.Saved.Jimbo[PIndex].FullDeck = {}
+    mod.Saved.Player[PIndex].FullDeck = {}
+    do
+        
     local index = 1
     for i = 1, 4, 1 do --cycles between the suits
         for j = 1, 13, 1 do --cycles for all the values
-            mod.Saved.Jimbo[PIndex].FullDeck[index] = {}
-            mod.Saved.Jimbo[PIndex].FullDeck[index].Suit = i --Spades - Hearts - clubs - diamonds
-            mod.Saved.Jimbo[PIndex].FullDeck[index].Value = j --1 ~ 13
-            mod.Saved.Jimbo[PIndex].FullDeck[index].Enhancement = mod.Enhancement.NONE
-            mod.Saved.Jimbo[PIndex].FullDeck[index].Seal = mod.Seals.NONE
-            mod.Saved.Jimbo[PIndex].FullDeck[index].Edition = mod.Edition.BASE
-            mod.Saved.Jimbo[PIndex].FullDeck[index].Upgrades = 0 --only used for the Hiker joker
+            mod.Saved.Player[PIndex].FullDeck[index] = {}
+            mod.Saved.Player[PIndex].FullDeck[index].Suit = i --Spades - Hearts - clubs - diamonds
+            mod.Saved.Player[PIndex].FullDeck[index].Value = j --1 ~ 13
+            mod.Saved.Player[PIndex].FullDeck[index].Enhancement = mod.Enhancement.NONE
+            mod.Saved.Player[PIndex].FullDeck[index].Seal = mod.Seals.NONE
+            mod.Saved.Player[PIndex].FullDeck[index].Edition = mod.Edition.BASE
+            mod.Saved.Player[PIndex].FullDeck[index].Upgrades = 0 --only used for the Hiker joker
             index = index +1
         end
     end
 
     local HandRNG = Game:GetPlayer(0):GetDropRNG()
 
-    mod.Saved.Jimbo[PIndex].FullDeck = mod:Shuffle(mod.Saved.Jimbo[PIndex].FullDeck, HandRNG)
+    mod.Saved.Player[PIndex].FullDeck = mod:Shuffle(mod.Saved.Player[PIndex].FullDeck, HandRNG)
 
-    mod.Saved.Jimbo[PIndex].DeckPointer = 6
-    mod.Saved.Jimbo[PIndex].CurrentHand = {5,4,3,2,1} --basically 5 different cards
-    mod.Saved.Jimbo[PIndex].LastShotIndex = 0
+    end
+    mod.Saved.Player[PIndex].DeckPointer = 6
+    mod.Saved.Player[PIndex].CurrentHand = {5,4,3,2,1} --basically 5 different cards
+    mod.Saved.Player[PIndex].LastShotIndex = 0
 
-    mod.Saved.Jimbo[PIndex].Inventory = {}
+    mod.Saved.Player[PIndex].Inventory = {}
     for i=1,3 do
-        mod.Saved.Jimbo[PIndex].Inventory[i] = {}
-        mod.Saved.Jimbo[PIndex].Inventory[i].Joker = 0
-        mod.Saved.Jimbo[PIndex].Inventory[i].Edition = mod.Edition.BASE
+        mod.Saved.Player[PIndex].Inventory[i] = {}
+        mod.Saved.Player[PIndex].Inventory[i].Joker = 0
+        mod.Saved.Player[PIndex].Inventory[i].Edition = mod.Edition.BASE
     end
     mod.Saved.MichelDestroyed = false
 
-    mod.Saved.Jimbo[PIndex].StatsToAdd = {}
-    mod.Saved.Jimbo[PIndex].StatsToAdd.Damage = 0
-    mod.Saved.Jimbo[PIndex].StatsToAdd.Tears = 1.5
-    mod.Saved.Jimbo[PIndex].StatsToAdd.Mult = 1
-    mod.Saved.Jimbo[PIndex].StatsToAdd.JokerDamage = 0
-    mod.Saved.Jimbo[PIndex].StatsToAdd.JokerTears = 0
-    mod.Saved.Jimbo[PIndex].StatsToAdd.JokerMult = 1
+    mod.Saved.Player[PIndex].StatsToAdd = {}
+    mod.Saved.Player[PIndex].StatsToAdd.Damage = 0
+    mod.Saved.Player[PIndex].StatsToAdd.Tears = 1.5
+    mod.Saved.Player[PIndex].StatsToAdd.Mult = 1
+    mod.Saved.Player[PIndex].StatsToAdd.JokerDamage = 0
+    mod.Saved.Player[PIndex].StatsToAdd.JokerTears = 0
+    mod.Saved.Player[PIndex].StatsToAdd.JokerMult = 1
 
-    mod.Saved.Jimbo[PIndex].InnateItems = {}
-    mod.Saved.Jimbo[PIndex].InnateItems.General = {}
-    mod.Saved.Jimbo[PIndex].InnateItems.Hack = {}
+    mod.Saved.Player[PIndex].InnateItems = {}
+    mod.Saved.Player[PIndex].InnateItems.General = {}
+    mod.Saved.Player[PIndex].InnateItems.Hack = {}
 
-    mod.Saved.Jimbo[PIndex].FirstDeck = true
+    mod.Saved.Player[PIndex].FirstDeck = true
 
-    mod.Saved.Jimbo[PIndex].TrueDamageValue = 1 --used to surpass the usual 0.5 minimum damage cap
-    mod.Saved.Jimbo[PIndex].TrueTearsValue = 1
+    mod.Saved.Player[PIndex].TrueDamageValue = 1 --used to surpass the usual 0.5 minimum damage cap
+    mod.Saved.Player[PIndex].TrueTearsValue = 1
 
     --[[
-        mod.Saved.Jimbo[PIndex].HandLevels = {}
-        mod.Saved.Jimbo[PIndex].HandLevels[mod.HandTypes.HIGH_CARD] = 1
-        mod.Saved.Jimbo[PIndex].HandLevels[mod.HandTypes.PAIR] = 1
-        mod.Saved.Jimbo[PIndex].HandLevels[mod.HandTypes.TWO_PAIR] = 1
-        mod.Saved.Jimbo[PIndex].HandLevels[mod.HandTypes.THREE] = 1
-        mod.Saved.Jimbo[PIndex].HandLevels[mod.HandTypes.STRAIGHT] = 1
-        mod.Saved.Jimbo[PIndex].HandLevels[mod.HandTypes.FLUSH] = 1
-        mod.Saved.Jimbo[PIndex].HandLevels[mod.HandTypes.FULL_HOUSE] = 1
-        mod.Saved.Jimbo[PIndex].HandLevels[mod.HandTypes.FOUR] = 1
-        mod.Saved.Jimbo[PIndex].HandLevels[mod.HandTypes.STRAIGHT_FLUSH] = 1
-        mod.Saved.Jimbo[PIndex].HandLevels[mod.HandTypes.ROYAL_FLUSH] = 1
-        mod.Saved.Jimbo[PIndex].HandLevels[mod.HandTypes.FIVE] = 1
-        mod.Saved.Jimbo[PIndex].HandLevels[mod.HandTypes.FLUSH_HOUSE] = 1
-        mod.Saved.Jimbo[PIndex].HandLevels[mod.HandTypes.FIVE_FLUSH] = 1
+        mod.Saved.Player[PIndex].HandLevels = {}
+        mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.HIGH_CARD] = 1
+        mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.PAIR] = 1
+        mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.TWO_PAIR] = 1
+        mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.THREE] = 1
+        mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.STRAIGHT] = 1
+        mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.FLUSH] = 1
+        mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.FULL_HOUSE] = 1
+        mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.FOUR] = 1
+        mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.STRAIGHT_FLUSH] = 1
+        mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.ROYAL_FLUSH] = 1
+        mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.FIVE] = 1
+        mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.FLUSH_HOUSE] = 1
+        mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.FIVE_FLUSH] = 1
         
-        mod.Saved.Jimbo[PIndex].HandsStat = {}
-        mod.Saved.Jimbo[PIndex].HandsStat[mod.HandTypes.NONE] = Vector(0,0)
-        mod.Saved.Jimbo[PIndex].HandsStat[mod.HandTypes.HIGH_CARD] = Vector(0.05,0.2)
-        mod.Saved.Jimbo[PIndex].HandsStat[mod.HandTypes.PAIR] = Vector(0.1,0.4)
-        mod.Saved.Jimbo[PIndex].HandsStat[mod.HandTypes.TWO_PAIR] = Vector(0.1,0.8)
-        mod.Saved.Jimbo[PIndex].HandsStat[mod.HandTypes.THREE] = Vector(0.15,1.2)
-        mod.Saved.Jimbo[PIndex].HandsStat[mod.HandTypes.STRAIGHT] = Vector(0.2,1.2)
-        mod.Saved.Jimbo[PIndex].HandsStat[mod.HandTypes.FLUSH] = Vector(0.2,1.4)
-        mod.Saved.Jimbo[PIndex].HandsStat[mod.HandTypes.FULL_HOUSE] = Vector(0.2,1.6)
-        mod.Saved.Jimbo[PIndex].HandsStat[mod.HandTypes.FOUR] = Vector(0.35,2.4)
-        mod.Saved.Jimbo[PIndex].HandsStat[mod.HandTypes.STRAIGHT_FLUSH] = Vector(0.4,4)
-        mod.Saved.Jimbo[PIndex].HandsStat[mod.HandTypes.ROYAL_FLUSH] = Vector(0.4,4)
-        mod.Saved.Jimbo[PIndex].HandsStat[mod.HandTypes.FIVE] = Vector(0.6,4.8)
-        mod.Saved.Jimbo[PIndex].HandsStat[mod.HandTypes.FLUSH_HOUSE] = Vector(0.7,5.6)
-        mod.Saved.Jimbo[PIndex].HandsStat[mod.HandTypes.FIVE_FLUSH] = Vector(0.8,6.4)
+        mod.Saved.Player[PIndex].HandsStat = {}
+        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.NONE] = Vector(0,0)
+        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.HIGH_CARD] = Vector(0.05,0.2)
+        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.PAIR] = Vector(0.1,0.4)
+        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.TWO_PAIR] = Vector(0.1,0.8)
+        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.THREE] = Vector(0.15,1.2)
+        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.STRAIGHT] = Vector(0.2,1.2)
+        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.FLUSH] = Vector(0.2,1.4)
+        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.FULL_HOUSE] = Vector(0.2,1.6)
+        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.FOUR] = Vector(0.35,2.4)
+        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.STRAIGHT_FLUSH] = Vector(0.4,4)
+        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.ROYAL_FLUSH] = Vector(0.4,4)
+        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.FIVE] = Vector(0.6,4.8)
+        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.FLUSH_HOUSE] = Vector(0.7,5.6)
+        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.FIVE_FLUSH] = Vector(0.8,6.4)
 
-        mod.Saved.Jimbo[PIndex].FiveUnlocked = false
-        mod.Saved.Jimbo[PIndex].FlushHouseUnlocked = false
-    mod.Saved.Jimbo[PIndex].FiveFlushUnlocked = false]]--
+        mod.Saved.Player[PIndex].FiveUnlocked = false
+        mod.Saved.Player[PIndex].FlushHouseUnlocked = false
+    mod.Saved.Player[PIndex].FiveFlushUnlocked = false]]--
 
     mod.Saved.ClearedRooms = 0
     mod.Saved.SmallCleared = false
     mod.Saved.BigCleared = false
     mod.Saved.BossCleared = 0
 
-    mod.Saved.ShowmanRemovedItems = {}
+    mod.Saved.Player[PIndex].Progress = {} --values used for jokers
+    mod.Saved.Player[PIndex].Progress.Inventory = {0,0,0} --never reset, changed in different ways basing on the joker
+    mod.Saved.Player[PIndex].Progress.GiftCardExtra = {0,0,0}
 
-    mod.Saved.Jimbo[PIndex].Progress = {} --values used for jokers
-    mod.Saved.Jimbo[PIndex].Progress.Inventory = {0,0,0} --never reset, changed in different ways basing on the joker
-    mod.Saved.Jimbo[PIndex].Progress.GiftCardExtra = {0,0,0}
+    mod.Saved.Player[PIndex].Progress.Blind = {} --reset every new blind
+    mod.Saved.Player[PIndex].Progress.Blind.Shots = 0
 
-    mod.Saved.Jimbo[PIndex].Progress.Blind = {} --reset every new blind
-    mod.Saved.Jimbo[PIndex].Progress.Blind.Shots = 0
-
-    mod.Saved.Jimbo[PIndex].Progress.Room = {} --reset every new room
-    mod.Saved.Jimbo[PIndex].Progress.Room.SuitUsed = {}
-    mod.Saved.Jimbo[PIndex].Progress.Room.SuitUsed[mod.Suits.Spade] = 0
-    mod.Saved.Jimbo[PIndex].Progress.Room.SuitUsed[mod.Suits.Heart] = 0
-    mod.Saved.Jimbo[PIndex].Progress.Room.SuitUsed[mod.Suits.Club] = 0
-    mod.Saved.Jimbo[PIndex].Progress.Room.SuitUsed[mod.Suits.Diamond] = 0
-    mod.Saved.Jimbo[PIndex].Progress.Room.ValueUsed = {}
+    mod.Saved.Player[PIndex].Progress.Room = {} --reset every new room
+    mod.Saved.Player[PIndex].Progress.Room.SuitUsed = {}
+    mod.Saved.Player[PIndex].Progress.Room.SuitUsed[mod.Suits.Spade] = 0
+    mod.Saved.Player[PIndex].Progress.Room.SuitUsed[mod.Suits.Heart] = 0
+    mod.Saved.Player[PIndex].Progress.Room.SuitUsed[mod.Suits.Club] = 0
+    mod.Saved.Player[PIndex].Progress.Room.SuitUsed[mod.Suits.Diamond] = 0
+    mod.Saved.Player[PIndex].Progress.Room.ValueUsed = {}
     for Value =1, 14 do
-        mod.Saved.Jimbo[PIndex].Progress.Room.ValueUsed[Value] = 0
+        mod.Saved.Player[PIndex].Progress.Room.ValueUsed[Value] = 0
     end
-    mod.Saved.Jimbo[PIndex].Progress.Room.Shots = 0
-    mod.Saved.Jimbo[PIndex].Progress.Room.ChampKills = 0
-    mod.Saved.Jimbo[PIndex].Progress.Room.KingsAtStart = 0
+    mod.Saved.Player[PIndex].Progress.Room.Shots = 0
+    mod.Saved.Player[PIndex].Progress.Room.ChampKills = 0
+    mod.Saved.Player[PIndex].Progress.Room.KingsAtStart = 0
 
 
-    mod.Saved.Jimbo[PIndex].Progress.Floor = {}
-    mod.Saved.Jimbo[PIndex].Progress.Floor.CardsUsed = 0
+    mod.Saved.Player[PIndex].Progress.Floor = {}
+    mod.Saved.Player[PIndex].Progress.Floor.CardsUsed = 0
 
-    mod.Saved.Jimbo[PIndex].EctoUses = 0
-    mod.Saved.Jimbo[PIndex].LastCardUsed = nil --the last card a player used
-    mod.Saved.Jimbo[PIndex].NumActiveCostumes = 0
+    mod.Saved.Player[PIndex].EctoUses = 0
+    mod.Saved.Player[PIndex].LastCardUsed = nil --the last card a player used
+    mod.Saved.Player[PIndex].NumActiveCostumes = 0
+
+    
+    ::shared_values::
+
+    mod.Saved.Player[PIndex].ComedicState = 0
+
+
 end
 mod:AddCallback(ModCallbacks.MC_PLAYER_INIT_PRE_LEVEL_INIT_STATS, mod.InitJimboValues)
 
@@ -420,7 +429,7 @@ mod:AddPriorityCallback(ModCallbacks.MC_POST_NEW_LEVEL,CallbackPriority.LATE, mo
 
 
 local function ResetJimboValues()
-    mod.Saved.Jimbo = {}
+    mod.Saved.Player = {}
     if mod.GameStarted then
         for _, Player in ipairs(PlayerManager.GetPlayers()) do
             mod:InitJimboValues(Player, true)

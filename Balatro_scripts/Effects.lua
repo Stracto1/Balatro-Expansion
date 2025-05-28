@@ -219,6 +219,7 @@ function mod:PackParticle(Effect)
 
         
         Particle:GetData().Velocity = RandomVector() * (math.random()*3.5 + 2)
+        Particle:SetTimeout(Particle:GetSprite():GetAnimationData("Float 1"):GetLength())
         
         --Particle:GetSprite():Play("Float 1")
 
@@ -234,10 +235,10 @@ mod:AddCallback(ModCallbacks.MC_POST_EFFECT_RENDER, mod.PackParticle, PartHelpVa
 function mod:PackParticleRemove(Effect)
 
     if Effect.FrameCount == 1 then
-        Effect.Velocity = Effect:GetData().Velocity
+        Effect.Velocity = Effect:GetData().Velocity or Vector.Zero
     end
 
-    if Effect.FrameCount >= Effect:GetSprite():GetAnimationData("Float 1"):GetLength() then
+    if Effect.Timeout == 0 then
         Effect:Remove()
     end
 end
