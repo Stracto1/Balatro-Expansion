@@ -196,6 +196,7 @@ Balatro_Expansion.Collectibles.CLOWN = Isaac.GetItemIdByName("Clown Costume")
 Balatro_Expansion.Collectibles.POCKET_ACES = Isaac.GetItemIdByName("Pocket Aces")
 Balatro_Expansion.Collectibles.TRAGICOMEDY = Isaac.GetItemIdByName("Tragicomedy")
 Balatro_Expansion.Collectibles.UMBRELLA = Isaac.GetItemIdByName("Umbrella")
+Balatro_Expansion.Collectibles.OPENED_UMBRELLA = Isaac.GetItemIdByName("Opened Umbrella")
 
 
 
@@ -210,6 +211,7 @@ Balatro_Expansion.Effects.CRAYON_POWDER = Isaac.GetEntityVariantByName("Crayon P
 Balatro_Expansion.Effects.BANANA_PEEL = Isaac.GetEntityVariantByName("Banana Peel")
 Balatro_Expansion.Effects.TOMATO = Isaac.GetEntityVariantByName("Thrown Tomato")
 Balatro_Expansion.Effects.ANVIL = Isaac.GetEntityVariantByName("Falling Anvil")
+Balatro_Expansion.Effects.UMBRELLA = Isaac.GetEntityVariantByName("Player Umbrella")
 
 
 Balatro_Expansion.Entities = {}
