@@ -1,4 +1,4 @@
----@diagnostic disable: need-check-nil
+---@diagnostic disable: need-check-nil, cast-local-type
 local mod = Balatro_Expansion
 local Game = Game()
 local sfx = SFXManager()
@@ -201,9 +201,15 @@ mod:AddCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE, mod.OnItemPickup)
 function mod:SpadeOpenDoor(Tear)
 
     local Data = Tear:GetData()
-    local Player = Tear.Parent:ToPlayer()
+    local Player = Tear.Parent
 
-    if not Player or Player:GetPlayerType() ~= mod.Characters.JimboType
+    if not Player then
+        return
+    end
+
+    Player = Player:ToPlayer()
+
+    if Player:GetPlayerType() ~= mod.Characters.JimboType
        or not Player:HasCollectible(CollectibleType.COLLECTIBLE_SHARP_KEY)
        or not mod:IsSuit(Player, Data.Params, mod.Suits.Spade) then
         

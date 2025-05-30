@@ -104,6 +104,7 @@ AnvilStates.REFLECTED = 30
 
 local ANVIL_FOLLOW_TIME = 35
 local ANVIL_START_HEIGHT = -1200
+local UMBRELLA_HEIGHT = -31
 
 
 local function UnlockItems(_,Type)
@@ -721,7 +722,8 @@ function mod:EffectUpdate(Effect)
 
         --for whaterver reason shadows can be rendered only if an effect has 2 or more as the timeout??
         --alr also works if it's less than 0 but still wtf
-        Effect:SetTimeout(math.max(Effect.Timeout, 2)) 
+        Effect:SetTimeout(math.max(Effect.Timeout, 2))
+
         if Effect.State == AnvilStates.FALLING then
             
             if Effect.Timeout <= 2 then
@@ -734,17 +736,30 @@ function mod:EffectUpdate(Effect)
             for _,Umbrella in ipairs(Isaac.FindInCapsule(Effect:GetCollisionCapsule(), EntityPartition.EFFECT)) do
                 
                 if Umbrella.Variant == mod.Effects.UMBRELLA
-                   and Effect.SpriteOffset.Y > -28 * Umbrella.SpriteScale.Y then
+                   and Effect.SpriteOffset.Y > UMBRELLA_HEIGHT * Umbrella.SpriteScale.Y then
 
-                    Umbrella:GetSprite():Play("Bounce")
-                    sfx:Play(SoundEffect.SOUND_MEGA_BLAST_START)
+                    Umbrella:GetSprite():Play("Bounce", true)
+                    sfx:Play(SoundEffect.SOUND_JELLY_BOUNCE)
 
-                    Data.FallingSpeed = -6
-                    Data.FallingAcceleration = 0.75
 
-                    Effect.Velocity = RandomVector()*6
+                    local Enemies = Isaac.FindInRadius(Effect.Position, 240, EntityPartition.ENEMY)
+
+                    Data.FallingSpeed = -6 - math.random()*4
+                    Data.FallingAcceleration = 0.75 + math.random()*0.5
+
+                    if next(Enemies) then
+                        local Target = mod:GetRandom(Enemies)
+
+                        local FlightTime = ((Data.FallingSpeed^2 + 2*Data.FallingAcceleration*Effect.SpriteOffset.Y)^0.5 - Data.FallingSpeed)*2/Data.FallingAcceleration
+
+
+                        Effect.Velocity = (Target.Position + Target.Velocity - Effect.Position)/FlightTime
+
+                    else
+                        Effect.Velocity = RandomVector() * (math.random()*5 + 2)
+                    end
+
                     Effect.State = AnvilStates.REFLECTED
-
                     return
                 end
             end
@@ -763,9 +778,7 @@ function mod:EffectUpdate(Effect)
 
             Game:MakeShockwave(Effect.Position, 0.025, 0.02, 10)
 
-            if FellInPit then --if it fell in a pit
-
-            else --fell on ground/rock
+            if not FellInPit then --fell on ground/rock
 
                 if Grid then
 
@@ -816,6 +829,7 @@ function mod:EffectUpdate(Effect)
                     Tear.Scale = 0.7 + math.random()*0.25
                 end
             else
+                sfx:Play(SoundEffect.SOUND_POT_BREAK, 1, 2, false, 0.8)
                 local Dust = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.DUST_CLOUD, Effect.Position,
                                 RandomVector(), nil,0, math.max(1, Random())):ToEffect()
                 Dust.SpriteScale = Vector(1.25, 1.25)
@@ -826,15 +840,40 @@ function mod:EffectUpdate(Effect)
 
         elseif Effect.State == AnvilStates.REFLECTED then
 
-            if Effect.SpriteOffset.Y < 0 then
+            Effect.SpriteRotation = Effect.SpriteRotation + (Effect.Velocity.X > 0 and 10 or -10)
+            local Room = Game:GetRoom()
+            local Grid = Room:GetGridEntityFromPos(Effect.Position)
+
+
+            if Effect.SpriteOffset.Y < 0
+               and not (Grid and Grid:GetType() == GridEntityType.GRID_WALL) then --break stuff when touching a wall or when landing
                 return
             end
 
 
+            local FellOnWater = Room:GetWaterAmount() >= 0.2
+
+            if FellOnWater then
+                Effect:SpawnWaterImpactEffects(Effect.Position, Vector.One, 100)
+
+                Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BIG_SPLASH, Effect.Position,
+                           Vector.Zero, nil, 0, 1)
+                sfx:Play(SoundEffect.SOUND_BOSS2INTRO_WATER_EXPLOSION,1,2,false, 0.9 + math.random()*0.1)
+
+            else
+                sfx:Play(SoundEffect.SOUND_POT_BREAK, 1, 2, false, 0.8)
+
+                local Dust = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.DUST_CLOUD, Effect.Position,
+                                RandomVector(), nil,0, math.max(1, Random())):ToEffect()
+                Dust.SpriteScale = Vector(1.25, 1.25)
+                Dust:SetTimeout(20)
+            end
+
             local Shock = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.SHOCKWAVE, Effect.Position,
                                          Vector.Zero, nil, 0, 1):ToEffect()
 
-            Shock:SetRadii(10,25)
+            Shock:SetRadii(10,35)
+            Shock.Parent = Game:GetPlayer(0)
 
             Effect:Remove()
         end
@@ -980,16 +1019,6 @@ local function OnNewRoom()
     for _,Player in ipairs(PlayerManager.GetPlayers()) do
 
         local PIndex = Player:GetData().TruePlayerIndex
-
-
-        for Slot = ActiveSlot.SLOT_PRIMARY, ActiveSlot.SLOT_POCKET2 do
-            local Item = Player:GetActiveItem(Slot)
-
-            if Item == mod.Collectibles.OPENED_UMBRELLA then
-                
-                Player:AddCollectible(mod.Collectibles.UMBRELLA, 1, true, Slot)
-            end
-        end
 
         if Player:HasCollectible(mod.Collectibles.CRAYONS) then
             
@@ -1137,19 +1166,28 @@ function mod:ActiveUse(Item, Rng, Player, Flags, Slot, Data)
         Data.FallingAcceleration = 0
 
 
-        local Umbrella = Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.UMBRELLA, Player.Position, 
+        if Flags & UseFlag.USE_MIMIC == 0 then
+            Player:AddCollectible(mod.Collectibles.OPENED_UMBRELLA, 0,  false, Slot)
+
+            local Umbrella = Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.UMBRELLA, Player.Position, 
                        Vector.Zero, Player, 0, 1):ToEffect()
 
-        Umbrella.SpriteScale = Player.SpriteScale
-        Umbrella.DepthOffset = 1
-        Umbrella.EntityCollisionClass = EntityCollisionClass.ENTCOLL_PLAYERONLY
-        Umbrella:FollowParent(Player)
-        Umbrella.SizeMulti = Vector(Umbrella.SpriteScale.X, 1)
-
-
-        if Flags & UseFlag.USE_MIMIC == UseFlag.USE_MIMIC then
-            Player:AddCollectible(mod.Collectibles.OPENED_UMBRELLA, 0,  false, Slot)
+            Umbrella.SpriteScale = Player.SpriteScale
+            Umbrella.DepthOffset = 10
+            Umbrella.EntityCollisionClass = EntityCollisionClass.ENTCOLL_PLAYERONLY
+            Umbrella:FollowParent(Player)
+            
+            Umbrella:SetSize(Umbrella.Size, Umbrella.SizeMulti*Umbrella.SpriteScale, 12)
+            Umbrella:AddEntityFlags(EntityFlag.FLAG_PERSISTENT)
         end
+
+        Isaac.CreateTimer(function ()
+            if Player:Exists() and not Player:IsDead()
+               and Player:HasCollectible(mod.Collectibles.OPENED_UMBRELLA) then
+                
+                Player:UseActiveItem(mod.Collectibles.UMBRELLA, UseFlag.USE_NOANIM | UseFlag.USE_MIMIC)
+            end
+        end, math.random(150, 210), 1, true)
 
     elseif Item == mod.Collectibles.OPENED_UMBRELLA then
 
@@ -1159,6 +1197,10 @@ function mod:ActiveUse(Item, Rng, Player, Flags, Slot, Data)
                 
                 Umbrella:GetSprite():Play("Retreat")
             end
+        end
+
+        if Flags & UseFlag.USE_MIMIC == 0 then
+            Player:AddCollectible(mod.Collectibles.UMBRELLA, 0,  false, Slot)
         end
     end
 end
@@ -1503,6 +1545,35 @@ local function PickupThrowParabola(_, Pickup)
 
 end
 mod:AddCallback(ModCallbacks.MC_POST_PICKUP_RENDER, PickupThrowParabola)
+
+
+local function OnItemLoss(_, Player, Item)
+
+    if Item == mod.Collectibles.OPENED_UMBRELLA then
+
+        for _,Umbrella in ipairs(Isaac.FindInRadius(Player.Position, 1, EntityPartition.EFFECT)) do
+            
+            if Umbrella.Variant == mod.Effects.UMBRELLA then
+                
+                Umbrella:GetSprite():Play("Retreat")
+            end
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_TRIGGER_COLLECTIBLE_REMOVED, OnItemLoss)
+
+
+local function OnItemAdded(_, Item, Charge, FirstTime, Slot, Var, Player)
+
+    if Item == mod.Collectibles.OPENED_UMBRELLA then
+
+        if not Player:HasCollectible(mod.Collectibles.UMBRELLA) then
+            
+            return {mod.Collectibles.UMBRELLA, 0, false, Slot, Var, Player}
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_ADD_COLLECTIBLE, OnItemAdded)
 
 
 ---@param Tear EntityTear

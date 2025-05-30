@@ -217,7 +217,7 @@ function mod:PackParticle(Effect)
         
         local Particle = Game:Spawn(EntityType.ENTITY_EFFECT, PartVariant, Effect.Position, Vector.Zero, nil, PartSub, 1):ToEffect()
 
-        
+    
         Particle:GetData().Velocity = RandomVector() * (math.random()*3.5 + 2)
         Particle:SetTimeout(Particle:GetSprite():GetAnimationData("Float 1"):GetLength())
         
