@@ -193,6 +193,7 @@ function mod:CountersUpdate()
     for _,Player in ipairs(PlayerManager.GetPlayers()) do
         local PIndex = Player:GetData().TruePlayerIndex
 
+        --print(PIndex, Player:GetPlayerType())
         if mod.SelectionParams[PIndex].Mode ~= mod.SelectionParams.Modes.NONE then
             mod.SelectionParams[PIndex].Frames = mod.SelectionParams[PIndex].Frames + 1
         else
@@ -1387,7 +1388,7 @@ function mod:StatGiver(Player, Cache)
         Player.Damage = 1
 
     elseif Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then
-
+        
         mod.Saved.Player[PIndex].TrueTearsValue = mod:CalculateTearsValue(Player) + (stats.Tears +  stats.JokerTears)* mod:CalculateTearsValue(Player)
 
         Player.MaxFireDelay = Player:GetCustomCacheValue(mod.CustomCache.HAND_COOLDOWN)

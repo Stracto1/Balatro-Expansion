@@ -1,6 +1,7 @@
 <achievements gfxroot="gfx/ui/achievement/">
 
     <achievement name="PermaLocked" hidden="true"/>
+    <achievement name="RagambledTJimboUnlock" gfx="achievement_horsey.png"/>
 
     <achievement name="HorseyUnlock" gfx="achievement_horsey.png"/>
     <achievement name="CrayonsUnlock" gfx="achievement_box_crayons.png"/>
@@ -12,7 +13,8 @@
     <achievement name="FunnyTeethUnlock" gfx="achievement_banana.png"/>
     <achievement name="UmbrellaUnlock" gfx="achievement_banana.png"/>
     <achievement name="BaloonPuppyUnlock" gfx="achievement_banana.png"/>
-    <achievement name="pocketAcesUnlock" gfx="achievement_banana.png"/>
+    <achievement name="PocketAcesUnlock" gfx="achievement_banana.png"/>
+    <achievement name="JokerTrinketUnlock" gfx="achievement_banana.png"/>
 
 
 </achievements>

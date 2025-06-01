@@ -293,7 +293,6 @@ function mod:DirectorVoucher(Item,Rng, Player, Flags,_,_)
         end
 
     elseif Item == mod.Vouchers.Retcon then
-        print("ye")
         if Player:GetNumCoins() >= 10 then
 
             --local Pool = Game:GetItemPool()

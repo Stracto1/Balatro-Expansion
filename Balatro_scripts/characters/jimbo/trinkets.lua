@@ -2529,11 +2529,9 @@ function mod:CopyAdjustments(Player)
         mod.Saved.ShowmanRemovedItems = {}
     end
 
-
     Player:AddCacheFlags(CacheFlag.CACHE_ALL)
 
     Player:EvaluateItems()
-
 end
 mod:AddCallback("INVENTORY_CHANGE", mod.CopyAdjustments)
 
@@ -3755,9 +3753,8 @@ function mod:DamageMultJokers(Player,_)
             mod:IncreaseJimboStats(Player, 0, 0, Mult, false, false)
         
         elseif Joker == mod.Jokers.CAVENDISH then
-            print(mod.Saved.Player[PIndex].StatsToAdd.JokerMult)
+
             mod:IncreaseJimboStats(Player, 0, 0, 2, false, false)
-            print(mod.Saved.Player[PIndex].StatsToAdd.JokerMult)
 
         elseif Joker == mod.Jokers.LOYALTY_CARD then
 
@@ -4547,7 +4544,8 @@ mod:AddCallback(ModCallbacks.MC_POST_NPC_DEATH, mod.EnemyKill)
 
 ---@param Door GridEntityDoor
 function mod:DoorUpdate(Door)
-    if not Door:IsRoomType(RoomType.ROOM_SECRET) and not Door:IsRoomType(RoomType.ROOM_SUPERSECRET)
+    if not mod.GameStarted or 
+       not Door:IsRoomType(RoomType.ROOM_SECRET) and not Door:IsRoomType(RoomType.ROOM_SUPERSECRET)
        or Door:IsOpen() then
         return
     end
@@ -4986,8 +4984,11 @@ function mod:IceCreamCreepFreeze(Effect)
 end
 mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, mod.IceCreamCreepFreeze, EffectVariant.PLAYER_CREEP_WHITE)
 
+
+
 ---@param Player EntityPlayer
-function mod:OnCostumeModify(_, Player)
+---@param Config ItemConfigItem
+function mod:OnCostumeModify(Config, Player)
 
     if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted then
         return
@@ -4995,7 +4996,6 @@ function mod:OnCostumeModify(_, Player)
     local PIndex = Player:GetData().TruePlayerIndex
 
     local NumActiveCostumes = 0
-    local CheckedItems = {}
     for _,LayerMap in ipairs(Player:GetCostumeLayerMap()) do
     
         --local ItemCongig = CostumeDesc:GetItemConfig()
@@ -5030,7 +5030,7 @@ function mod:OnCostumeModify(_, Player)
 
     for _,Index in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.SPARE_TROUSERS, true)) do
     
-        local Difference = (NumActiveCostumes - PastActiveCostumes)*0.1
+        local Difference = (NumActiveCostumes - mod.Saved.Player[PIndex].NumActiveCostumes)*0.1
 
         mod.Saved.Player[PIndex].Progress.Inventory[Index] = mod.Saved.Player[PIndex].Progress.Inventory[Index] + Difference
     
@@ -5040,7 +5040,7 @@ function mod:OnCostumeModify(_, Player)
         Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)
     end
 
-    PastActiveCostumes = NumActiveCostumes
+    mod.Saved.Player[PIndex].NumActiveCostumes = NumActiveCostumes
 
     Player:EvaluateItems()
 
@@ -5121,7 +5121,7 @@ function mod:OnGetCollectible(Type)
 
         if mod:JimboHasTrinket(Player, mod.Jokers.SHOWMAN) then
 
-            print(Game:GetItemPool():HasCollectible(Type))
+            --print(Game:GetItemPool():HasCollectible(Type))
         ---@diagnostic disable-next-line: undefined-field
             Game:GetItemPool():ResetCollectible(Type)
 

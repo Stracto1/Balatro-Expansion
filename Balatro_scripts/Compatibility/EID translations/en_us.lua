@@ -98,6 +98,13 @@ Descriptions.JokerEdition[mod.Edition.NEGATIVE] = "# {{ColorGray}}{{ColorFade}}N
 ----------------------------------------
 -------------####JOKERS####-------------
 -----------------------------------------
+
+EID:addTrinket(mod.Jokers.JOKER, "\1 {{ColorMult}}+1.2 {{CR}}Damage", "Joker", FileLanguage)
+
+Descriptions.Jokers.Jimbo = {}
+
+
+
 EID:addTrinket(mod.Jokers.JOKER, "{{PlayerJimbo}} {{ColorMult}}+0.2 {{CR}}Damage", "Joker", FileLanguage)
 EID:addTrinket(mod.Jokers.BULL, "{{PlayerJimbo}} {{Tears}} {{ColorChips}}+0.15 {{CR}}Tears for every {{Coin}} coin held", "Bull", FileLanguage)
 EID:addTrinket(mod.Jokers.INVISIBLE_JOKER, "{{PlayerJimbo}} Selling this joker after clearing 3 Blinds while holding it gives a copy of another held Joker", "Invisible Joker", FileLanguage)
@@ -390,5 +397,20 @@ EID:addCard(mod.Spectrals.CRYPTID, "{{PlayerJimbo}} Add {{ColorYellorange}}2{{CR
 EID:addCard(mod.Spectrals.BLACK_HOLE, "{{PlayerJimbo}} {{ColorYellorange}}All Cards{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}}", "Black Hole", FileLanguage)
 EID:addCard(mod.Spectrals.SOUL, "{{PlayerJimbo}} Gives a random {{ColorRainbow}}Legendary{{CR}} Joker#!!! Requires an empty Inventory slot", "The Soul", FileLanguage)
 
+
+
+EID:addCollectible(mod.Collectibles.BALOON_PUPPY, "Spawns a floating familiar that reflects shots back at enemies #Explodes dealing 3 x Isaac's Damage after taking enough damage #If Isaac takes damage, it starts chasing down enemies dealing 1 damage every tick", "Baloon Puppy",FileLanguage)		
+EID:addCollectible(mod.Collectibles.BANANA, "Isaac shoots a devastating banana that creates a {{Collectible483}} Mama Mega! explosion on contact #Upon use becomes {{Collectible"..tostring(mod.Collectibles.EMPTY_BANANA).."}} Empty Banana", "Banana",FileLanguage)		
+EID:addCollectible(mod.Collectibles.EMPTY_BANANA, "Leaves a banana peel on the ground, able to make any moving enemy to slip on it #Enemies that slip on these peels take more damage the faster they were moving #Entring a new floor recharges it to {{Collectible"..tostring(mod.Collectibles.BANANA).."}} Banana", "Empty Banana",FileLanguage)		
+EID:addCollectible(mod.Collectibles.CLOWN, "When Isaac takes damage, every enemy in the room has a 66% chance to get either {{Fear}} Fear or {{Charm}} Charm applied", "Clown Costume",FileLanguage)		
+EID:addCollectible(mod.Collectibles.CRAYONS, "While moving, Isaac leaves a trail of crayon dust that applies a variety of status effect to enemies that step on it #The dust's color changes every new room", "Box of Crayons",FileLanguage)		
+EID:addCollectible(mod.Collectibles.FUNNY_TEETH, "Spawns a familiar that chases enemies dealiing X contact damage every tick #{{Chargeable}} After being active for a while a player needs to recharge it by standing near it", "Funny Teeth",FileLanguage)		
+EID:addCollectible(mod.Collectibles.HORSEY, "Spawns a familiar moves in an L pattern, creating friendly shockwaves upon landing", "Horsey",FileLanguage)		
+EID:addCollectible(mod.Collectibles.LAUGH_SIGN, "An audience reacts live to Isaac's actions #{{BossRoom}} Clearing a boss room rewards the player with random pickups #Taking damage makes the audience mad, launching tomatoes that leave a damaging creep and apply {{Bait}} Bait upon landing", "Laugh Sign",FileLanguage)		
+EID:addCollectible(mod.Collectibles.LOLLYPOP, "A lollypop spawns on the ground every 25 seconds spent in an uncleared room #{{Collectible93}} Picking up these lollypops grants the Gamekid! effect for 5.5 seconds", "Lollypop",FileLanguage)		
+EID:addCollectible(mod.Collectibles.POCKET_ACES, "Tears have an 8% chance to become Aces #Ace cards deal the product of Isaac's {{Damage}} Damage and {{Tears}} Tears stat worth of damage #{{Luck}} Chance scales with luck", "Pocket Aces",FileLanguage)		
+EID:addCollectible(mod.Collectibles.TRAGICOMEDY, "40% chance to wear a comedy or tragedy mask upon entering a room #\1 Wearing a comedy mask grants: {{Tears}} +1 Firedelay, {{Speed}} +0.2 Speed and {{Luck}} +2 Luck #\1 Wearing a tragedy mask grants: {{Tears}} +0.5 Firedelay, {{Damage}} +1 Flat Damage and {{Range}} +2.5 Range #!!! both mask can be worn at once", "Tragicomedy",FileLanguage)		
+EID:addCollectible(mod.Collectibles.UMBRELLA, "Isaac opens an umbrella, causing anvils to fall on him every 5 ~ 7 seconds #Anvils can be reflected by the umbrella, sending them thorwards a random near enemy #Untouched anvils create damaging shockwaves and a pit #!!! Using the item again closes the umbrella, stopping the anvils from falling", "Umbrella",FileLanguage)		
+EID:addCollectible(mod.Collectibles.OPENED_UMBRELLA, "Isaac opens an umbrella, causing anvils to fall on him every 5 ~ 7 seconds #Anvils can be reflected by the umbrella, sending them thorwards a random near enemy #Untouched anvils create damaging shockwaves and a pit #!!! Using the item again closes the umbrella, stooping the anvils from falling", "Umbrella",FileLanguage)		
 
 return Descriptions

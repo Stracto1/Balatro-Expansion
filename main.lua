@@ -197,8 +197,8 @@ Balatro_Expansion.Collectibles.POCKET_ACES = Isaac.GetItemIdByName("Pocket Aces"
 Balatro_Expansion.Collectibles.TRAGICOMEDY = Isaac.GetItemIdByName("Tragicomedy")
 Balatro_Expansion.Collectibles.UMBRELLA = Isaac.GetItemIdByName("Umbrella")
 Balatro_Expansion.Collectibles.OPENED_UMBRELLA = Isaac.GetItemIdByName("Opened Umbrella")
-
-
+Balatro_Expansion.Collectibles.LOLLYPOP = Isaac.GetItemIdByName("Lollypop")
+Balatro_Expansion.Collectibles.FUNNY_TEETH = Isaac.GetItemIdByName("Funny Teeth")
 
 
 Balatro_Expansion.Familiars = {}
@@ -213,6 +213,8 @@ Balatro_Expansion.Effects.TOMATO = Isaac.GetEntityVariantByName("Thrown Tomato")
 Balatro_Expansion.Effects.ANVIL = Isaac.GetEntityVariantByName("Falling Anvil")
 Balatro_Expansion.Effects.UMBRELLA = Isaac.GetEntityVariantByName("Player Umbrella")
 
+Balatro_Expansion.Pickups = {}
+Balatro_Expansion.Pickups.LOLLYPOP = Isaac.GetEntityVariantByName("Base Lollypop")
 
 Balatro_Expansion.Entities = {}
 Balatro_Expansion.Entities.BALATRO_TYPE = Isaac.GetEntityTypeByName("Pathfinder Slave") --every entity has the same Type but different variants
@@ -258,6 +260,7 @@ Balatro_Expansion.Sounds.GASP = Isaac.GetSoundIdByName("GASPSFX")
 Balatro_Expansion.Sounds.RANDOM_CROWD = Isaac.GetSoundIdByName("CROWDRANDOMSFX")
 Balatro_Expansion.Sounds.CROWD_TRANSITION = Isaac.GetSoundIdByName("TRANSITIONCROWDSFX")
 Balatro_Expansion.Sounds.CLOWN_HONK = Isaac.GetSoundIdByName("HONKSFX")
+Balatro_Expansion.Sounds.EAT = Isaac.GetSoundIdByName("EATSFX")
 
 
 
@@ -802,9 +805,16 @@ Balatro_Expansion.Achievements = {
                                             [Balatro_Expansion.Collectibles.HORSEY] = Isaac.GetAchievementIdByName("HorseyUnlock"),
                                             [Balatro_Expansion.Collectibles.CRAYONS] = Isaac.GetAchievementIdByName("CrayonsUnlock"),
                                             [Balatro_Expansion.Collectibles.BANANA] = Isaac.GetAchievementIdByName("BananaUnlock"),
-                                            [Balatro_Expansion.Collectibles.BALOON_PUPPY] = Isaac.GetAchievementIdByName("PuppyUnlock"),
-                                            [Balatro_Expansion.Collectibles.LAUGH_SIGN] = Isaac.GetAchievementIdByName("LaughUnlock"),
-                                            },
+                                            [Balatro_Expansion.Collectibles.BALOON_PUPPY] = Isaac.GetAchievementIdByName("BaloonPuppyUnlock"),
+                                            [Balatro_Expansion.Collectibles.LAUGH_SIGN] = Isaac.GetAchievementIdByName("LaughSignUnlock"),
+                                            [Balatro_Expansion.Collectibles.TRAGICOMEDY] = Isaac.GetAchievementIdByName("TragicomedyUnlock"),
+                                            [Balatro_Expansion.Collectibles.UMBRELLA] = Isaac.GetAchievementIdByName("UmbrellaUnlock"),    
+                                            [Balatro_Expansion.Collectibles.FUNNY_TEETH] = Isaac.GetAchievementIdByName("FunnyTeethUnlock"),
+                                            [Balatro_Expansion.Collectibles.LOLLYPOP] = Isaac.GetAchievementIdByName("LollypopUnlock"),    
+                                            [Balatro_Expansion.Collectibles.CLOWN] = Isaac.GetAchievementIdByName("ClownUnlock"), 
+                                            [Balatro_Expansion.Collectibles.POCKET_ACES] = Isaac.GetAchievementIdByName("PocketAcesUnlock"), 
+
+                                        },
                                     Trinkets = {},
                                     Entities = {},
                                     Pickups = {}

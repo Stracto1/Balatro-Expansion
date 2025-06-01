@@ -106,6 +106,12 @@ local ANVIL_FOLLOW_TIME = 35
 local ANVIL_START_HEIGHT = -1200
 local UMBRELLA_HEIGHT = -31
 
+local MAX_LOLLYPOP_COOLDOWN = 600
+local LollypopPicker = WeightedOutcomePicker()
+LollypopPicker:AddOutcomeFloat(1, 1)
+LollypopPicker:AddOutcomeFloat(2, 1)
+LollypopPicker:AddOutcomeFloat(3, 0.01)
+
 
 local function UnlockItems(_,Type)
 
@@ -215,7 +221,6 @@ function mod:GiveFamiliars(Player, _)
     Player:CheckFamiliar(mod.Familiars.HORSEY, FamiliarCount, RNG(math.max(Random(), 1)), ItemsConfig:GetCollectible(mod.Collectibles.HORSEY))
 
     FamiliarCount = Player:GetEffects():GetCollectibleEffectNum(mod.Collectibles.BALOON_PUPPY) + Player:GetCollectibleNum(mod.Collectibles.BALOON_PUPPY)
-    print(FamiliarCount)
     Player:CheckFamiliar(mod.Familiars.BLOON_PUPPY, FamiliarCount, RNG(math.max(Random(), 1)), ItemsConfig:GetCollectible(mod.Collectibles.BALOON_PUPPY))
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.GiveFamiliars, CacheFlag.CACHE_FAMILIARS)
@@ -964,6 +969,61 @@ local function EffectRender(_,Effect)
 end
 mod:AddCallback(ModCallbacks.MC_POST_EFFECT_RENDER, EffectRender)
 
+-------------PICKUPS---------------
+-----------------------------------
+
+
+---@param Pickup EntityPickup
+---@param Player Entity
+local function PickupCollision(_, Pickup, Player)
+
+    Player = Player:ToPlayer()
+
+    if not Player then
+        return
+    end
+
+    if Pickup.Variant == mod.Pickups.LOLLYPOP then
+        
+        if Player:GetPlayerType() == PlayerType.PLAYER_THESOUL_B then
+            Player = Player:GetOtherTwin()
+        end
+
+        local Effects = Player:GetEffects()
+        Effects:AddCollectibleEffect(CollectibleType.COLLECTIBLE_GAMEKID, true, 1)
+        Effects:GetCollectibleEffect(CollectibleType.COLLECTIBLE_GAMEKID).Cooldown = 165
+
+        Pickup:GetSprite():Play("Collect")
+        Pickup.EntityCollisionClass = EntityCollisionClass.ENTCOLL_NONE
+        sfx:Play(mod.Sounds.EAT, 1, 10, false, 0.95 + math.random()*0.1)
+        Pickup.Velocity = Vector.Zero
+    end
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_PICKUP_COLLISION, PickupCollision)
+
+
+---@param Pickup EntityPickup
+local function PickupUpdate(_, Pickup)
+
+    if Pickup.Variant == mod.Pickups.LOLLYPOP then
+
+        local Sprite = Pickup:GetSprite()
+
+        if Sprite:IsEventTriggered("DropSound") then
+
+            sfx:Play(SoundEffect.SOUND_SCAMPER)
+
+        elseif Sprite:IsPlaying("Collect") then
+            Pickup.Velocity = Vector.Zero
+            Pickup:SetShadowSize(0)
+
+        elseif Sprite:IsFinished("Collect") then
+                Pickup:Remove()
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_PICKUP_UPDATE, PickupUpdate)
 
 ---------GENERAL ENTITIES----------
 -----------------------------------
@@ -1007,6 +1067,37 @@ function mod:SpawnCrayonCreep(Player)
 
             Powder:SetTimeout(100)
         end
+
+    elseif Player:HasCollectible(mod.Collectibles.LOLLYPOP) then
+
+        if Game:GetRoom():IsClear() then
+            return
+        end
+
+        local Data = Player:GetData()
+
+        if Player:GetEffects():GetCollectibleEffectNum(CollectibleType.COLLECTIBLE_GAMEKID) > 0 then --timer advances only while vulnerable
+            return
+        end
+
+        Data.LollypopCooldown = Data.LollypopCooldown and (Data.LollypopCooldown - 1) or MAX_LOLLYPOP_COOLDOWN
+    
+        if Data.LollypopCooldown <= 0 then
+
+            local LollypopNum = 0
+            for _, _ in ipairs(Isaac.FindByType(EntityType.ENTITY_PICKUP, mod.Pickups.LOLLYPOP)) do
+                LollypopNum = LollypopNum + 1
+            end
+
+            if LollypopNum >= 3 then
+                return
+            end
+
+            Game:Spawn(EntityType.ENTITY_PICKUP, mod.Pickups.LOLLYPOP, Isaac.GetRandomPosition(), Vector.Zero,
+                       nil, LollypopPicker:PickOutcome(Player:GetCollectibleRNG(mod.Collectibles.LOLLYPOP)), math.max(Random(), 1))
+
+            Data.LollypopCooldown = MAX_LOLLYPOP_COOLDOWN
+        end
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, mod.SpawnCrayonCreep, PlayerVariant.PLAYER)
@@ -1014,6 +1105,9 @@ mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, mod.SpawnCrayonCreep, Playe
 
 local function OnNewRoom()
 
+    if not mod.GameStarted then
+        return
+    end
     local Room = Game:GetRoom()
 
     for _,Player in ipairs(PlayerManager.GetPlayers()) do
@@ -1079,6 +1173,7 @@ local function OnNewRoom()
             Player:EvaluateItems()
 
         else --does not have tragicomedy
+        
             Player:TryRemoveNullCostume(MaskCostume[mod.Saved.Player[PIndex].ComedicState])
             mod.Saved.Player[PIndex].ComedicState = ComedicState.NONE
 
@@ -1615,7 +1710,12 @@ mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, PocketAcesTrigger)
 mod:AddCallback(ModCallbacks.MC_POST_FIRE_BRIMSTONE, PocketAcesTrigger)
 mod:AddCallback(ModCallbacks.MC_POST_FIRE_BRIMSTONE_BALL, PocketAcesTrigger)
 
+
 local function StatEvaluation(_,Player, Cache)
+
+    if not mod.GameStarted then
+        return
+    end
 
     if Player:HasCollectible(mod.Collectibles.TRAGICOMEDY) then
         
@@ -1644,6 +1744,20 @@ local function StatEvaluation(_,Player, Cache)
             if Cache & CacheFlag.CACHE_RANGE == CacheFlag.CACHE_RANGE then
                 Player.TearRange = Player.TearRange + 100
             end
+        end
+    end
+    if Player:HasCollectible(mod.Collectibles.LOLLYPOP) then
+
+        if Cache & CacheFlag.CACHE_SPEED == CacheFlag.CACHE_SPEED then
+            
+            Player.MoveSpeed = Player.MoveSpeed + 0.15*Player:GetCollectibleNum(mod.Collectibles.LOLLYPOP)
+        end
+    end
+
+    if Player:HasTrinket(mod.Jokers.JOKER) then
+        if  Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
+            
+            Player.Damage = Player.Damage + 1.2 * Player:GetTrinketMultiplier(mod.Jokers.JOKER)
         end
     end
 end

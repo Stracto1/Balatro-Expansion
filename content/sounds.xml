@@ -82,5 +82,8 @@
     <sound name="HONKSFX">
         <sample weight="1" path="clown_honk1.wav" />
     </sound>
+        <sound name="EATSFX">
+        <sample weight="1" path="foos_eat.wav" />
+    </sound>
 
 </sounds>

@@ -141,15 +141,19 @@ function mod:OnGameStart(Continued)
         mod:InitJimboValues(player, not Continued) -- on new run always initialise jimbo values
 
         if player:GetPlayerType() == mod.Characters.JimboType then
+
             mod:StatReset(player,true,true,false,true,true)
 
             for _, Cache in pairs(mod.CustomCache) do
                 player:AddCustomCacheTag(Cache, true)
             end
 
+
             Isaac.RunCallback("INVENTORY_CHANGE", player) --this evaluates everithing anyway
             --player:AddCacheFlags(CacheFlag.CACHE_ALL, true)
         end
+
+        
     end
 
     --[[
@@ -250,6 +254,7 @@ function mod:InitJimboValues(Player, Force)
         PlayerIndexUpdate(Player)
         PIndex = Player:GetData().TruePlayerIndex
     end
+    print(PIndex)
 
     mod.Saved.Player[PIndex] = {}
     
@@ -257,7 +262,7 @@ function mod:InitJimboValues(Player, Force)
         goto shared_values
     end
 
-    if mod.Saved.Player[Player:GetData().TruePlayerIndex] and not Force then
+    if mod.Saved.Player[PIndex] and not Force then
         return
     end
 
@@ -267,17 +272,6 @@ function mod:InitJimboValues(Player, Force)
         --Game:Spawn(EntityType.ENTITY_GAPER,0, Isaac.GetRandomPosition(), Vector.Zero, nil, 0, 1)
     --end
     --print(PIndex)
-
-    mod.SelectionParams[PIndex].Frames = 0 -- in update frames
-    mod.SelectionParams[PIndex].SelectedCards = {false,false,false,false,false}
-    mod.SelectionParams[PIndex].Index = 1
-    mod.SelectionParams[PIndex].Mode = 0
-    mod.SelectionParams[PIndex].Purpose = 0
-    mod.SelectionParams[PIndex].PackOptions = {} --the options for the selection inside of a pack
-    mod.SelectionParams[PIndex].OptionsNum = 0 --total amount of options
-    mod.SelectionParams[PIndex].MaxSelectionNum = 0 --how many things you can choose at a time
-    mod.SelectionParams[PIndex].SelectionNum = 0 --how many things you chose
-    mod.SelectionParams[PIndex].PlayerChoosing = 0 --the true player index of who is choosing
 
     mod.Saved.Player[PIndex].FullDeck = {}
     do
@@ -403,9 +397,20 @@ function mod:InitJimboValues(Player, Force)
     
     ::shared_values::
 
+    mod.SelectionParams[PIndex] = {}
+    mod.SelectionParams[PIndex].Frames = 0 -- in update frames
+    mod.SelectionParams[PIndex].SelectedCards = {false,false,false,false,false}
+    mod.SelectionParams[PIndex].Index = 1
+    mod.SelectionParams[PIndex].Mode = 0
+    mod.SelectionParams[PIndex].Purpose = 0
+    mod.SelectionParams[PIndex].PackOptions = {} --the options for the selection inside of a pack
+    mod.SelectionParams[PIndex].OptionsNum = 0 --total amount of options
+    mod.SelectionParams[PIndex].MaxSelectionNum = 0 --how many things you can choose at a time
+    mod.SelectionParams[PIndex].SelectionNum = 0 --how many things you chose
+    mod.SelectionParams[PIndex].PlayerChoosing = 0 --the true player index of who is choosing
+
+
     mod.Saved.Player[PIndex].ComedicState = 0
-
-
 end
 mod:AddCallback(ModCallbacks.MC_PLAYER_INIT_PRE_LEVEL_INIT_STATS, mod.InitJimboValues)
 

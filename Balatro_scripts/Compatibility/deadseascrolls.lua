@@ -122,8 +122,80 @@ local itemData = {
         Type = "Collectible",
         Name = "Banana",
         UnlockMethod = "Unlocked by defeating ???",
-        Description = "When first used every floor, shoots a devastating banana that creates a Mama Mega! type explosion, then becomes a time-charged active that spawns banana peels able to make the enemies slip and take damamage.",
+        Description = "When first used on every floor, shoots a devastating banana that creates a Mama Mega! type explosion, then becomes a time-charged active that spawns banana peels able to make the enemies slip and take damamage.",
         Achievement = mod.Achievements.Items[mod.Collectibles.BANANA]
+    },
+    {
+        Id = Balatro_Expansion.Collectibles.UMBRELLA,
+        Gfx = ItemsConfig:GetCollectible(Balatro_Expansion.Collectibles.UMBRELLA).GfxFileName,
+        Type = "Collectible",
+        Name = "Umbrella",
+        UnlockMethod = "Unlocked by defeating ???",
+        Description = "Causes anvils to fall on Isaac every 5 - 7 seconds. Anvils can be reflected by the umbrella, sending them thorwards a random near enemy. Using the item again closes the umbrella and stops the anvils from falling",
+        Achievement = mod.Achievements.Items[mod.Collectibles.UMBRELLA]
+    },
+    {
+        Id = Balatro_Expansion.Collectibles.CLOWN,
+        Gfx = ItemsConfig:GetCollectible(Balatro_Expansion.Collectibles.CLOWN).GfxFileName,
+        Type = "Collectible",
+        Name = "Clown Costume",
+        UnlockMethod = "Unlocked by defeating ???",
+        Description = "When taking damage, every enemy has a 33% chance to get either fear or charm effect applied",
+        Achievement = mod.Achievements.Items[mod.Collectibles.CLOWN]
+    },
+    {
+        Id = Balatro_Expansion.Collectibles.BALOON_PUPPY,
+        Gfx = ItemsConfig:GetCollectible(Balatro_Expansion.Collectibles.BALOON_PUPPY).GfxFileName,
+        Type = "Collectible",
+        Name = "Baloon Puppy",
+        UnlockMethod = "Unlocked by defeating ???",
+        Description = "Spawns a floating puppy as a familiar able to reflect projectiles that hit it, exploding after taking enough damage. If Isaac gets damaged the puppy starts chasing down enemies dealing contact damage",
+        Achievement = mod.Achievements.Items[mod.Collectibles.BALOON_PUPPY]
+    },
+    {
+        Id = Balatro_Expansion.Collectibles.TRAGICOMEDY,
+        Gfx = ItemsConfig:GetCollectible(Balatro_Expansion.Collectibles.TRAGICOMEDY).GfxFileName,
+        Type = "Collectible",
+        Name = "Tragicomedy",
+        UnlockMethod = "Unlocked by defeating ???",
+        Description = "Upon entering a room, Isaac has a 40% chance to wear either a comedy pr tragedy mask, gaining stats basing on the mask worn. Both masks can be worn at the same time.",
+        Achievement = mod.Achievements.Items[mod.Collectibles.TRAGICOMEDY]
+    },
+    {
+        Id = Balatro_Expansion.Collectibles.LAUGH_SIGN,
+        Gfx = ItemsConfig:GetCollectible(Balatro_Expansion.Collectibles.LAUGH_SIGN).GfxFileName,
+        Type = "Collectible",
+        Name = "Laugh Sign",
+        UnlockMethod = "Unlocked by defeating ???",
+        Description = "An audience reacts live to Isaac's actions, throwing objects into the room and making noise in the process",
+        Achievement = mod.Achievements.Items[mod.Collectibles.LAUGH_SIGN]
+    },
+    {
+        Id = Balatro_Expansion.Collectibles.LOLLYPOP,
+        Gfx = ItemsConfig:GetCollectible(Balatro_Expansion.Collectibles.LOLLYPOP).GfxFileName,
+        Type = "Collectible",
+        Name = "Lollypop",
+        UnlockMethod = "Unlocked by defeating ???",
+        Description = "Spawns a lollypop on the ground every 20 seconds spent in an uncleared room. Picking up the lollypops temporarely grants the Power pill effect",
+        Achievement = mod.Achievements.Items[mod.Collectibles.LOLLYPOP]
+    },
+    {
+        Id = Balatro_Expansion.Collectibles.FUNNY_TEETH,
+        Gfx = ItemsConfig:GetCollectible(Balatro_Expansion.Collectibles.FUNNY_TEETH).GfxFileName,
+        Type = "Collectible",
+        Name = "Funny Teeth",
+        UnlockMethod = "Unlocked by defeating ???",
+        Description = "Spawns a familiar that chases enemies and deals high contact damage. Afer being active for some time, a player needs to recharge it by standing near it for a few seconds",
+        Achievement = mod.Achievements.Items[mod.Collectibles.FUNNY_TEETH]
+    },
+    {
+        Id = Balatro_Expansion.Collectibles.POCKET_ACES,
+        Gfx = ItemsConfig:GetCollectible(Balatro_Expansion.Collectibles.POCKET_ACES).GfxFileName,
+        Type = "Collectible",
+        Name = "Pocket Aces",
+        UnlockMethod = "Unlocked by defeating ???",
+        Description = "Tears and lasers fired have a luck-based chance to become ace cards that deal damage equal to the product of the player's damage and tears stat",
+        Achievement = mod.Achievements.Items[mod.Collectibles.POCKET_ACES]
     },
     {
         Divider = true,
