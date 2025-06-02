@@ -225,5 +225,7 @@
     <familiar name="Baloon Puppy" cache="familiars" quality="2" craftquality="2" gfx="baloon_puppy_item.png" description="My dream buddy" achievement="BaloonPuppyUnlock" tags="offensive"/>
     <passive name="Pocket Aces" quality="3" craftquality="3" gfx="pocket_aces_item.png" description="A trick up my sleeve" achievement="PocketAcesUnlock" tags=""/>
 
+    <trinket gfx="tasty_candy_trinket.png" name="Tasty Candy" description="The perfect gift!" achievement="TastyCandyUnlock"/>
+
 
 </items>    

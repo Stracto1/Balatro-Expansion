@@ -112,25 +112,55 @@ LollypopPicker:AddOutcomeFloat(1, 1)
 LollypopPicker:AddOutcomeFloat(2, 1)
 LollypopPicker:AddOutcomeFloat(3, 0.01)
 
+local CandySheets = {}
+CandySheets[SlotVariant.BEGGAR] = "gfx/sprites/slot_004_beggar.png"
+CandySheets[SlotVariant.DEVIL_BEGGAR] = "gfx/sprites/slot_005_devil_beggar.png"
+CandySheets[SlotVariant.KEY_MASTER] = "gfx/sprites/slot_007_key_master.png"
+CandySheets[SlotVariant.BOMB_BUM] = "gfx/sprites/slot_009_bomb_bum.png"
+CandySheets[SlotVariant.BATTERY_BUM] = "gfx/sprites/slot_013_battery_bum.png"
+
 
 local function UnlockItems(_,Type)
 
     if PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
         
         local GameData = Isaac.GetPersistentGameData()
+
         if Type == CompletionType.MOMS_HEART then
-            --lil jester
+            GameData:TryUnlock(mod.Achievements.Trinkets[mod.Jokers.JOKER])
+
         elseif Type == CompletionType.ISAAC then
             GameData:TryUnlock(mod.Achievements.Items[mod.Collectibles.HORSEY])
 
         elseif Type == CompletionType.BLUE_BABY then
             GameData:TryUnlock(mod.Achievements.Items[mod.Collectibles.CRAYONS])
 
+        elseif Type == CompletionType.SATAN then
+            GameData:TryUnlock(mod.Achievements.Items[mod.Collectibles.BALOON_PUPPY])
+
+        elseif Type == CompletionType.LAMB then
+            GameData:TryUnlock(mod.Achievements.Items[mod.Collectibles.FUNNY_TEETH])
+
+        elseif Type == CompletionType.BOSS_RUSH then
+            GameData:TryUnlock(mod.Achievements.Items[mod.Collectibles.LOLLYPOP])
+
+        elseif Type == CompletionType.HUSH then
+            GameData:TryUnlock(mod.Achievements.Items[mod.Collectibles.LAUGH_SIGN])
+
+        elseif Type == CompletionType.MEGA_SATAN then
+            GameData:TryUnlock(mod.Achievements.Items[mod.Collectibles.UMBRELLA])
+
+        elseif Type == CompletionType.MOTHER then
+            GameData:TryUnlock(mod.Achievements.Items[mod.Collectibles.TRAGICOMEDY])
+
         elseif Type == CompletionType.BEAST then
             GameData:TryUnlock(mod.Achievements.Items[mod.Collectibles.BANANA])
 
-        elseif Type == CompletionType.SATAN then
-            GameData:TryUnlock(mod.Achievements.Items[mod.Collectibles.BALOON_PUPPY])
+        elseif Type == CompletionType.DELIRIUM then
+            GameData:TryUnlock(mod.Achievements.Items[mod.Collectibles.POCKET_ACES])
+
+        elseif Type == CompletionType.ULTRA_GREED then
+            GameData:TryUnlock(mod.Achievements.Items[mod.Collectibles.CLOWN])
         end
     end
 end
@@ -1763,3 +1793,35 @@ local function StatEvaluation(_,Player, Cache)
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, StatEvaluation)
 
+
+---@param Slot EntitySlot
+---@param Player EntityPlayer
+local function GuaranteeBeggarPayout(_, Slot, Player)
+
+    if not (Slot.Variant == SlotVariant.BEGGAR
+        or Slot.Variant == SlotVariant.KEY_MASTER
+        or Slot.Variant == SlotVariant.BOMB_BUM
+        or Slot.Variant == SlotVariant.BATTERY_BUM
+        or Slot.Variant == SlotVariant.DEVIL_BEGGAR) then
+                
+        return
+    end
+
+    Player = Player:ToPlayer()
+
+    if not Player then
+        return
+    end
+
+    if Player:HasTrinket(mod.Trinkets.TASTY_CANDY, true) then
+
+        Slot:GetSprite():ReplaceSpritesheet(2, CandySheets[Slot.Variant], true) --puts the candy in the bum's sprite
+        Slot:GetSprite():Play("PayPrize")
+
+
+        print(Slot:GetPrizeType())
+        --Slot:SetPrizeType(3)
+        Slot:SetState(2)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_SLOT_COLLISION, GuaranteeBeggarPayout)

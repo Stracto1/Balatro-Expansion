@@ -177,6 +177,7 @@ Balatro_Expansion.Trinkets.common = {}
 Balatro_Expansion.Trinkets.uncommon = {}
 Balatro_Expansion.Trinkets.rare = {}
 Balatro_Expansion.Trinkets.legendary = {}
+Balatro_Expansion.Trinkets.TASTY_CANDY = Isaac.GetTrinketIdByName("Tasty Candy")
 
 Balatro_Expansion.JokerTypes = {}
 Balatro_Expansion.JokerTypes.ECON = "money"
@@ -815,7 +816,9 @@ Balatro_Expansion.Achievements = {
                                             [Balatro_Expansion.Collectibles.POCKET_ACES] = Isaac.GetAchievementIdByName("PocketAcesUnlock"), 
 
                                         },
-                                    Trinkets = {},
+                                    Trinkets = {
+                                                [Balatro_Expansion.Jokers.JOKER] = Isaac.GetAchievementIdByName("JokerTrinketUnlock"), 
+                                        },
                                     Entities = {},
                                     Pickups = {}
                                  

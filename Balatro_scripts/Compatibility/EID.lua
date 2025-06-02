@@ -150,7 +150,7 @@ local function BalatroInventoryCallback(descObj)
 
                 Icon = "{{CurrentCard}}"
                 Name = RarityColor..EID:getObjectName(5, 350, SelectedCard).."{{CR}}#{{Blank}}"
-                Description = EID:getDescriptionEntry("custom", Tstring)[3]
+                Description = Descriptions[Language].Jokers.Jimbo[SelectedCard] --EID:getDescriptionEntry("custom", Tstring)[3]
 
                 local Edition = mod.Saved.Player[PIndex].Inventory[mod.SelectionParams[PIndex].Index].Edition
 
@@ -485,6 +485,29 @@ end
 
 EID:addDescriptionModifier("Balatro Extra descriptions", BalatroExtraDescCondition, BalatroExtraDescCallback)
 
+
+local function JimboGroundtrinketsCondition(descObj)
+
+    if PlayerManager.AnyoneIsPlayerType(Balatro_Expansion.Characters.JimboType) 
+       and descObj.ObjType == EntityType.ENTITY_PICKUP and descObj.ObjVariant == PickupVariant.PICKUP_TRINKET 
+       and ItemsConfig:GetTrinket(descObj.ObjSubType):HasCustomTag("balatro") then
+
+        return true
+    end
+end
+
+local function JimboGroundtrinketsCallback(descObj)
+
+    local Language = EID:getLanguage()
+    if not mod:Contained(SupportedLanguages, Language) then
+        Language = "en_us"
+    end
+
+    descObj.Description = Descriptions[Language].Jokers.Jimbo[descObj.ObjSubType]
+
+    return descObj
+end
+EID:addDescriptionModifier("Balatro Jimbo ground trinkets", JimboGroundtrinketsCondition, JimboGroundtrinketsCallback)
 
 
 local function BalatroOffsetCondition(descObj)

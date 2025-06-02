@@ -6,6 +6,9 @@ local sfx = SFXManager()
 
 local TrinketSprite = Sprite("gfx/005.350_trinket_custom.anm2")
 local JactivateLength = TrinketSprite:GetAnimationData("Effect"):GetLength()
+local JidleLength = TrinketSprite:GetAnimationData("Idle"):GetLength()
+
+local InventoryFrame = {0,0,0}
 
 local JimboCards = {PlayingCards = Sprite("gfx/ui/PlayingCards.anm2"),
                     Pack_PlayingCards = Sprite("gfx/ui/PackPlayCards.anm2"),
@@ -146,7 +149,15 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
                     mod.Counters.Activated[i] = nil
                 end
             else
-                TrinketSprite:SetAnimation("Idle", false)
+
+                if Isaac.GetFrameCount() % 2 == 0 then
+                    InventoryFrame[i] = InventoryFrame[i] and (InventoryFrame[i] + 1 or 0)
+
+                    InventoryFrame[i] = InventoryFrame[i] > JidleLength and 0 or InventoryFrame[i]
+                end
+
+                TrinketSprite:SetFrame("Idle", InventoryFrame[i])
+                --TrinketSprite:SetAnimation("Idle", false)
             end
 
             TrinketSprite:SetCustomShader(mod.EditionShaders[mod.Saved.Player[PIndex].Inventory[i].Edition])

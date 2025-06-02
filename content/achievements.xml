@@ -1,20 +1,21 @@
 <achievements gfxroot="gfx/ui/achievement/">
 
     <achievement name="PermaLocked" hidden="true"/>
-    <achievement name="RagambledTJimboUnlock" gfx="achievement_horsey.png"/>
+    <achievement name="RagambledTJimboUnlock" gfx="achievement_tainted_jimbo.png"/>
 
     <achievement name="HorseyUnlock" gfx="achievement_horsey.png"/>
     <achievement name="CrayonsUnlock" gfx="achievement_box_crayons.png"/>
     <achievement name="BananaUnlock" gfx="achievement_banana.png"/>
-    <achievement name="ClownUnlock" gfx="achievement_banana.png"/>
-    <achievement name="TragicomedyUnlock" gfx="achievement_banana.png"/>
-    <achievement name="LaughSignUnlock" gfx="achievement_banana.png"/>
-    <achievement name="LollypopUnlock" gfx="achievement_banana.png"/>
-    <achievement name="FunnyTeethUnlock" gfx="achievement_banana.png"/>
-    <achievement name="UmbrellaUnlock" gfx="achievement_banana.png"/>
-    <achievement name="BaloonPuppyUnlock" gfx="achievement_banana.png"/>
-    <achievement name="PocketAcesUnlock" gfx="achievement_banana.png"/>
-    <achievement name="JokerTrinketUnlock" gfx="achievement_banana.png"/>
+    <achievement name="ClownUnlock" gfx="achievement_clown_costume.png"/>
+    <achievement name="TragicomedyUnlock" gfx="achievement_tragicomedy.png"/>
+    <achievement name="LaughSignUnlock" gfx="achievement_laugh_sign.png"/>
+    <achievement name="LollypopUnlock" gfx="achievement_lollypop.png"/>
+    <achievement name="FunnyTeethUnlock" gfx="achievement_funny_teeth.png"/>
+    <achievement name="UmbrellaUnlock" gfx="achievement_Umbrella.png"/>
+    <achievement name="BaloonPuppyUnlock" gfx="achievement_baloon_puppy.png"/>
+    <achievement name="PocketAcesUnlock" gfx="achievement_pocket_aces.png"/>
+    <achievement name="JokerTrinketUnlock" gfx="achievement_joker.png"/>
+    <achievement name="TastyCandyUnlock" gfx="achievement_tasty_candy.png"/>
 
 
 </achievements>
