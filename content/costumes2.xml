@@ -1,12 +1,14 @@
 <costumes anm2root="gfx/characters/">
-    <costume id="5" anm2path="joker_hat.anm2" type="none" priority="1000" forceBodyColor="true" forceHeadColor="true" overwriteColor="true" skinColor="0" />
-    <costume id="6" anm2path="joker_full_costume.anm2" type="none" priority="1000" forceBodyColor="true" forceHeadColor="true" overwriteColor="true" skinColor="0" />
+    <costume id="110" anm2path="joker_hat.anm2" type="none" priority="1000" forceBodyColor="true" forceHeadColor="true" overwriteColor="true" skinColor="0" />
+    <costume id="111" anm2path="joker_full_costume.anm2" type="none" priority="1000" forceBodyColor="true" forceHeadColor="true" overwriteColor="true" skinColor="0" />
 
-    <costume id="7" anm2path="clown_costume.anm2" type="passive" priority="1"/>    
-    <costume id="8" anm2path="tragicomedy_mask_costume.anm2" type="none" priority="100"/>
-    <costume id="9" anm2path="comedy_mask_costume.anm2" type="none" priority="100"/>
-    <costume id="10" anm2path="tragic_mask_costume.anm2" type="none" priority="100"/>
+    <costume id="112" anm2path="tragicomedy_mask_costume.anm2" type="none" priority="100"/>
+    <costume id="113" anm2path="comedy_mask_costume.anm2" type="none" priority="100"/>
+    <costume id="114" anm2path="tragic_mask_costume.anm2" type="none" priority="100"/>
 
+    <costume id="34" anm2path="crayons_costume.anm2" type="passive" priority="1"/>  
+    <costume id="37" anm2path="clown_costume.anm2" type="passive" priority="1"/>  
+    <costume id="40" anm2path="lollypop_costume.anm2" type="passive" priority="10" hasSkinAlt="true"/> 
 
 
 </costumes>

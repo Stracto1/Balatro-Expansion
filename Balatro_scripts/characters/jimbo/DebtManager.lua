@@ -120,7 +120,7 @@ function mod:NoGambleWithoutCredit(Slot,Player,_)
     end
 
     if not HasCredit then
-        return false
+        return
     end
 
     if Player:GetNumCoins() == 0 then

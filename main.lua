@@ -177,7 +177,10 @@ Balatro_Expansion.Trinkets.common = {}
 Balatro_Expansion.Trinkets.uncommon = {}
 Balatro_Expansion.Trinkets.rare = {}
 Balatro_Expansion.Trinkets.legendary = {}
-Balatro_Expansion.Trinkets.TASTY_CANDY = Isaac.GetTrinketIdByName("Tasty Candy")
+Balatro_Expansion.Trinkets.TASTY_CANDY = {}
+for i = 1, 5 do --puts every candy stages
+    Balatro_Expansion.Trinkets.TASTY_CANDY[i] = Balatro_Expansion.Jokers.PERKEO + i
+end
 
 Balatro_Expansion.JokerTypes = {}
 Balatro_Expansion.JokerTypes.ECON = "money"
@@ -205,7 +208,7 @@ Balatro_Expansion.Collectibles.FUNNY_TEETH = Isaac.GetItemIdByName("Funny Teeth"
 Balatro_Expansion.Familiars = {}
 Balatro_Expansion.Familiars.HORSEY = Isaac.GetEntityVariantByName("Horsey")
 Balatro_Expansion.Familiars.BLOON_PUPPY = Isaac.GetEntityVariantByName("Baloon Puppy")
-
+Balatro_Expansion.Familiars.TEETH = Isaac.GetEntityVariantByName("Funny Teeth")
 
 Balatro_Expansion.Effects = {}
 Balatro_Expansion.Effects.CRAYON_POWDER = Isaac.GetEntityVariantByName("Crayon Powder")
@@ -817,7 +820,8 @@ Balatro_Expansion.Achievements = {
 
                                         },
                                     Trinkets = {
-                                                [Balatro_Expansion.Jokers.JOKER] = Isaac.GetAchievementIdByName("JokerTrinketUnlock"), 
+                                                [Balatro_Expansion.Jokers.JOKER] = Isaac.GetAchievementIdByName("JokerTrinketUnlock"),
+                                                [Balatro_Expansion.Trinkets.TASTY_CANDY[1]] = Isaac.GetAchievementIdByName("JokerTrinketUnlock"),
                                         },
                                     Entities = {},
                                     Pickups = {}

@@ -14,9 +14,9 @@ local function PlayerIndexUpdate(InitPlayer)
     local ControllersFound = {}
     local TrueIndex = 0
 
-    for i,Player in ipairs(PlayerManager.GetPlayers()) do
+    for _,Player in ipairs(PlayerManager.GetPlayers()) do
         local Data = Player:GetData()
-
+        --print("index: ",Player:GetPlayerIndex())
         Data.TruePlayerIndex = TrueIndex
         if not mod:Contained(ControllersFound, Player.ControllerIndex) then
             ControllersFound[#ControllersFound+1] = Player.ControllerIndex
@@ -138,10 +138,12 @@ function mod:OnGameStart(Continued)
     
     for _, player in ipairs(PlayerManager.GetPlayers()) do  --evaluates again for the mod's trinkets since closing the game
         --resets stuff
+
         mod:InitJimboValues(player, not Continued) -- on new run always initialise jimbo values
 
         if player:GetPlayerType() == mod.Characters.JimboType then
 
+            
             mod:StatReset(player,true,true,false,true,true)
 
             for _, Cache in pairs(mod.CustomCache) do
@@ -245,7 +247,7 @@ mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED ,mod.OnGameStart)
 --Counter = 60
 --Counter2 = 36
 
-
+---@param Player EntityPlayer
 function mod:InitJimboValues(Player, Force)
 
     
@@ -254,7 +256,8 @@ function mod:InitJimboValues(Player, Force)
         PlayerIndexUpdate(Player)
         PIndex = Player:GetData().TruePlayerIndex
     end
-    print(PIndex)
+
+    --print(PIndex)
 
     mod.Saved.Player[PIndex] = {}
     
@@ -412,7 +415,7 @@ function mod:InitJimboValues(Player, Force)
 
     mod.Saved.Player[PIndex].ComedicState = 0
 end
-mod:AddCallback(ModCallbacks.MC_PLAYER_INIT_PRE_LEVEL_INIT_STATS, mod.InitJimboValues)
+mod:AddCallback(ModCallbacks.MC_PLAYER_INIT_POST_LEVEL_INIT_STATS, mod.InitJimboValues)
 
 
 

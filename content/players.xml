@@ -10,7 +10,7 @@
         damagemodifier="0"
         rangemodifier="1"
         luckmodifier="1"
-        modcostume="5"
+        modcostume="110"
 
         
         portrait="playerportrait_jimbo.png"
@@ -27,7 +27,7 @@
         skinColor="-1"
         bSkinParent="Jimbo"
         costumeSuffix="jimbob"
-        modcostume="6"
+        modcostume="111"
         skinColor="0"
         
     />

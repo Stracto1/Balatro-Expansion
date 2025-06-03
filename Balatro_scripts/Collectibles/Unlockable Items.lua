@@ -118,6 +118,34 @@ CandySheets[SlotVariant.DEVIL_BEGGAR] = "gfx/sprites/slot_005_devil_beggar.png"
 CandySheets[SlotVariant.KEY_MASTER] = "gfx/sprites/slot_007_key_master.png"
 CandySheets[SlotVariant.BOMB_BUM] = "gfx/sprites/slot_009_bomb_bum.png"
 CandySheets[SlotVariant.BATTERY_BUM] = "gfx/sprites/slot_013_battery_bum.png"
+CandySheets[SlotVariant.ROTTEN_BEGGAR] = "gfx/sprites/rotten_beggar.png"
+
+local CandySheet = "gfx/sprites/tasty_candy_shard.png"
+
+
+local BombBumPayoutPicker = WeightedOutcomePicker()
+BombBumPayoutPicker:AddOutcomeWeight(1, 26) --coins
+BombBumPayoutPicker:AddOutcomeWeight(2, 9) --hearts
+BombBumPayoutPicker:AddOutcomeWeight(3, 5) --collectibles
+
+
+local MAX_TEETH_CHARGE = 225
+local MIN_TEETH_CHARGE = 120
+local TeethStates = {}
+TeethStates.IDLE = 0
+TeethStates.CHASE = 1
+TeethStates.CHARGE = 2
+TeethStates.TIRED = 3
+TeethStates.START_SLEEP = 4
+
+local TEETH_RICH_PATH = "gfx/familiar/teeth_but_rich_familiar.png"
+
+
+--for whatever reason the collisionInterval in .xml does nothing by itself so gotta do stuff manually
+local FamiliarCollisionInterval = {}
+FamiliarCollisionInterval[mod.Familiars.BLOON_PUPPY] = EntityConfig.GetEntity(EntityType.ENTITY_FAMILIAR, mod.Familiars.BLOON_PUPPY):GetCollisionInterval()
+FamiliarCollisionInterval[mod.Familiars.TEETH] = EntityConfig.GetEntity(EntityType.ENTITY_FAMILIAR, mod.Familiars.TEETH):GetCollisionInterval()
+
 
 
 local function UnlockItems(_,Type)
@@ -161,6 +189,8 @@ local function UnlockItems(_,Type)
 
         elseif Type == CompletionType.ULTRA_GREED then
             GameData:TryUnlock(mod.Achievements.Items[mod.Collectibles.CLOWN])
+        elseif Type == CompletionType.ULTRA_GREEDIER then
+            GameData:TryUnlock(mod.Achievements.Items[mod.Trinkets.TASTY_CANDY[1]])
         end
     end
 end
@@ -252,12 +282,16 @@ function mod:GiveFamiliars(Player, _)
 
     FamiliarCount = Player:GetEffects():GetCollectibleEffectNum(mod.Collectibles.BALOON_PUPPY) + Player:GetCollectibleNum(mod.Collectibles.BALOON_PUPPY)
     Player:CheckFamiliar(mod.Familiars.BLOON_PUPPY, FamiliarCount, RNG(math.max(Random(), 1)), ItemsConfig:GetCollectible(mod.Collectibles.BALOON_PUPPY))
+
+    FamiliarCount = Player:GetEffects():GetCollectibleEffectNum(mod.Collectibles.FUNNY_TEETH) + Player:GetCollectibleNum(mod.Collectibles.FUNNY_TEETH)
+    Player:CheckFamiliar(mod.Familiars.TEETH, FamiliarCount, RNG(math.max(Random(), 1)), ItemsConfig:GetCollectible(mod.Collectibles.FUNNY_TEETH))
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.GiveFamiliars, CacheFlag.CACHE_FAMILIARS)
 
 
 ---@param Familiar EntityFamiliar
 function mod:FamiliarInit(Familiar)
+
 
     if Familiar.Variant == mod.Familiars.HORSEY then
         local Room = Game:GetRoom()
@@ -279,6 +313,19 @@ function mod:FamiliarInit(Familiar)
         Familiar.MaxHitPoints = 16 * Familiar:GetMultiplier()
 
         Familiar:GetSprite():ReplaceSpritesheet(0, "gfx/familiar/familiar_Baloon_Puppy"..PuppyColorsSuffix[math.random(ColorSubType.NUM_COLORS)]..".png", true)
+    
+    elseif Familiar.Variant == mod.Familiars.TEETH then
+    
+        if Familiar.Player:HasCollectible(CollectibleType.COLLECTIBLE_MIDAS_TOUCH) then
+            Familiar:GetSprite():ReplaceSpritesheet(0, TEETH_RICH_PATH, true)
+
+        else
+            Familiar:GetSprite():Reload()
+        end
+
+        Familiar.State = TeethStates.IDLE
+        Familiar.FireCooldown = 300
+        Familiar.GridCollisionClass = EntityGridCollisionClass.GRIDCOLL_GROUND
     end
 end
 mod:AddCallback(ModCallbacks.MC_FAMILIAR_INIT, mod.FamiliarInit)
@@ -440,7 +487,93 @@ function mod:FamiliarUpdate(Familiar)
                 Familiar.State = PuppyState.IDLE
                 Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.POOF01, Familiar.Position, Vector.Zero, Familiar, 0, 1)
             end
-        end 
+        end
+
+    elseif Familiar.Variant == mod.Familiars.TEETH then
+
+        Familiar.FlipX = Familiar.Velocity.X < 0
+
+        if Familiar.State == TeethStates.IDLE
+           or Familiar.State == TeethStates.CHASE then
+            
+            Familiar:PickEnemyTarget(400, 13, 8)
+
+            if Familiar.Target then
+                Familiar:GetPathFinder():FindGridPath(Familiar.Target.Position, 1.5, 0, true)
+
+                Familiar.State = TeethStates.CHASE
+
+            elseif (Familiar.Player.Position - Familiar.Position):Length() > 60 then
+
+                Familiar:GetPathFinder():FindGridPath(Familiar.Player.Position, 0.9, 0, true)
+
+                Familiar.State = TeethStates.IDLE
+            else
+                Familiar.State = TeethStates.IDLE
+            end
+
+            local Sprite = Familiar:GetSprite()
+            local CanStop = Sprite:IsEventTriggered("CanSleep") or Sprite:IsPlaying("Idle")
+
+            if Familiar.Velocity:Length() > 1 then
+                
+                Sprite:Play("Chase")
+
+            elseif CanStop then
+
+                Sprite:Play("Idle")
+            end
+
+            --only decrease charge if it's chasing something
+            Familiar.FireCooldown = Familiar.State == TeethStates.CHASE and math.max(Familiar.FireCooldown - 1, 0) or Familiar.FireCooldown
+
+            --Familiar.FireCooldown = Familiar.FireCooldown - 1
+            if Familiar.FireCooldown <= 0 and CanStop then
+                
+                Sprite:Play("StartSleep")
+
+                Familiar.State = TeethStates.START_SLEEP
+            end
+
+        elseif Familiar.State == TeethStates.START_SLEEP then
+
+            local Sprite = Familiar:GetSprite()
+
+            if Sprite:IsFinished("StartSleep") then
+                
+                Familiar:AddEntityFlags(EntityFlag.FLAG_NO_SPRITE_UPDATE)
+                Familiar.State = TeethStates.TIRED
+
+            elseif Sprite:IsEventTriggered("CloseMouth") then
+                sfx:Play(SoundEffect.SOUND_THUMBS_DOWN)
+            end
+
+
+
+        elseif Familiar.State == TeethStates.TIRED then --currently not being charged by anyone
+        
+
+            if Familiar.FireCooldown >= MIN_TEETH_CHARGE
+               and (Familiar.FireCooldown >= MAX_TEETH_CHARGE
+                    or not next(Isaac.FindInRadius(Familiar.Position, Familiar.Size, EntityPartition.PLAYER))) then
+                
+                local Sprite = Familiar:GetSprite()
+
+                Sprite:Play("EndSleep")
+                Familiar:ClearEntityFlags(EntityFlag.FLAG_NO_SPRITE_UPDATE)
+
+                if Sprite:IsFinished("EndSleep") then
+                    
+                    Sprite:Play("Idle")
+                    Familiar.State = TeethStates.IDLE
+                
+                elseif Sprite:IsEventTriggered("OpenMouth") then
+
+                    sfx:Play(SoundEffect.SOUND_THUMBSUP, 0.9)
+                end
+            end
+        end
+
     end
 end
 mod:AddCallback(ModCallbacks.MC_FAMILIAR_UPDATE, mod.FamiliarUpdate)
@@ -499,6 +632,10 @@ mod:AddCallback(ModCallbacks.MC_PRE_FAMILIAR_RENDER, mod.FamiliarRender)
 ---@param Familiar EntityFamiliar
 ---@param Collider Entity
 function mod:FamiliarCollision(Familiar, Collider,_)
+
+    if Familiar.FrameCount % FamiliarCollisionInterval[Familiar.Variant] ~= 0 then
+        return
+    end
 
     if Familiar.Variant == mod.Familiars.BLOON_PUPPY then
 
@@ -559,16 +696,75 @@ function mod:FamiliarCollision(Familiar, Collider,_)
             elseif Familiar.State == PuppyState.ATTACK then
                 if NPC and NPC:IsActiveEnemy() and NPC:IsVulnerableEnemy() then
 
-                    NPC:TakeDamage(Familiar:GetMultiplier(), DamageFlag.DAMAGE_COUNTDOWN, EntityRef(Familiar), 5)
+                    NPC:TakeDamage(0.5 * Familiar:GetMultiplier(), DamageFlag.DAMAGE_COUNTDOWN, EntityRef(Familiar), 5)
                     Familiar:CanBlockProjectiles()
                 end
             end
         end
+
+    elseif Familiar.Variant == mod.Familiars.TEETH then
         
+        if Familiar.State == TeethStates.TIRED
+           or Familiar.State == TeethStates.CHARGE then
+            
+            Collider = Collider:ToPlayer()
+
+            if not Collider then
+                return
+            end
+
+            local Sprite = Familiar:GetSprite()
+
+            if Familiar.FireCooldown < MAX_TEETH_CHARGE then
+
+                Familiar.FireCooldown = Familiar.FireCooldown + 5
+
+                if not Sprite:IsPlaying("Charge") then
+                    Sprite:Play("Charge")
+                end
+
+                Sprite:Update()
+
+                if Familiar.FireCooldown % 40 == 0 then
+                    sfx:Play(SoundEffect.SOUND_BEEP, 0.8, 2, false, 0.45 + Familiar.FireCooldown/MAX_TEETH_CHARGE)
+                end
+
+                if Familiar.FireCooldown >= MIN_TEETH_CHARGE then
+
+                    Familiar:ClearEntityFlags(EntityFlag.FLAG_NO_SPRITE_UPDATE)
+                    Familiar.State = TeethStates.TIRED --will wake up next frame
+                else
+                    Familiar:AddEntityFlags(EntityFlag.FLAG_NO_SPRITE_UPDATE)
+                    Familiar.State = TeethStates.CHARGE
+                end
+            else
+                
+            end
+
+            
+
+        elseif Familiar.State == TeethStates.CHASE then
+            
+            local Enemy = Collider:ToNPC()
+
+            if not (Enemy and Enemy:IsVulnerableEnemy() and Enemy:IsActiveEnemy())then
+                return
+            end
+
+            Enemy:TakeDamage(1 * Familiar:GetMultiplier(), 0, EntityRef(Familiar), 0)
+
+            if Familiar.Player:HasCollectible(CollectibleType.COLLECTIBLE_MIDAS_TOUCH) then
+                
+                if math.random() < 0.01 then
+                    
+                    Enemy:AddMidasFreeze(EntityRef(Familiar), 90)
+                end
+            end
+        end
     end
 end
-mod:AddCallback(ModCallbacks.MC_POST_FAMILIAR_COLLISION, mod.FamiliarCollision)
-
+mod:AddCallback(ModCallbacks.MC_POST_FAMILIAR_COLLISION, mod.FamiliarCollision, mod.Familiars.BLOON_PUPPY)
+mod:AddCallback(ModCallbacks.MC_POST_FAMILIAR_COLLISION, mod.FamiliarCollision, mod.Familiars.TEETH)
 
 --------------EFFECTS--------------
 ----------------------------------
@@ -1688,6 +1884,7 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_TRIGGER_COLLECTIBLE_REMOVED, OnItemLoss)
 
 
+---@param Player EntityPlayer
 local function OnItemAdded(_, Item, Charge, FirstTime, Slot, Var, Player)
 
     if Item == mod.Collectibles.OPENED_UMBRELLA then
@@ -1695,6 +1892,17 @@ local function OnItemAdded(_, Item, Charge, FirstTime, Slot, Var, Player)
         if not Player:HasCollectible(mod.Collectibles.UMBRELLA) then
             
             return {mod.Collectibles.UMBRELLA, 0, false, Slot, Var, Player}
+        end
+
+    elseif Item == CollectibleType.COLLECTIBLE_MIDAS_TOUCH then
+
+        for _,Teeth in ipairs(Isaac.FindByType(EntityType.ENTITY_FAMILIAR, mod.Familiars.TEETH)) do
+            
+            Teeth = Teeth:ToFamiliar()
+            if Teeth.Player:GetPlayerIndex() == Player:GetPlayerIndex() then
+                Teeth:GetSprite():ReplaceSpritesheet(0, TEETH_RICH_PATH, true)
+            end
+
         end
     end
 end
@@ -1802,7 +2010,8 @@ local function GuaranteeBeggarPayout(_, Slot, Player)
         or Slot.Variant == SlotVariant.KEY_MASTER
         or Slot.Variant == SlotVariant.BOMB_BUM
         or Slot.Variant == SlotVariant.BATTERY_BUM
-        or Slot.Variant == SlotVariant.DEVIL_BEGGAR) then
+        or Slot.Variant == SlotVariant.DEVIL_BEGGAR
+        or Slot.Variant == SlotVariant.ROTTEN_BEGGAR) then
                 
         return
     end
@@ -1813,15 +2022,49 @@ local function GuaranteeBeggarPayout(_, Slot, Player)
         return
     end
 
-    if Player:HasTrinket(mod.Trinkets.TASTY_CANDY, true) then
+    local Sprite = Slot:GetSprite()
 
-        Slot:GetSprite():ReplaceSpritesheet(2, CandySheets[Slot.Variant], true) --puts the candy in the bum's sprite
-        Slot:GetSprite():Play("PayPrize")
-
-
-        print(Slot:GetPrizeType())
-        --Slot:SetPrizeType(3)
-        Slot:SetState(2)
+    if Sprite:IsPlaying("PayPrize") or Slot:GetState() == 2 then --if it's alredy paying out
+        return
     end
+
+    local CandySlot = -1
+
+    for i = 0, Player:GetMaxTrinkets() - 1 do
+        
+        if mod:Contained(mod.Trinkets.TASTY_CANDY, Player:GetTrinket(i)) then
+            
+            CandySlot = i
+            break
+        end
+    end
+
+    if CandySlot == -1 then --has no candy
+        Sprite:Reload()
+        return
+    end
+
+    Sprite:ReplaceSpritesheet(2, CandySheet, true) --puts the candy in the bum's sprite
+
+
+    local CurrentCandy = Player:GetTrinket(CandySlot)
+    local NewCandy = CurrentCandy - 1
+
+    --degrades the candy by one use
+    if mod:Contained(mod.Trinkets.TASTY_CANDY, NewCandy) then 
+        Player:TryRemoveTrinket(CurrentCandy)
+        Player:AddTrinket(NewCandy, false)
+
+    else
+        Player:TryRemoveTrinket(mod.Trinkets.TASTY_CANDY[1])
+
+    end
+
+    Sprite:Play("PayPrize")
+    Slot:SetState(2)
+
+    --if not set manually bomb bums always give a collectible
+    Slot:SetPrizeType(Slot.Variant == SlotVariant.BOMB_BUM and BombBumPayoutPicker:PickOutcome(Slot:GetDropRNG()) or 0)
+
 end
 mod:AddCallback(ModCallbacks.MC_PRE_SLOT_COLLISION, GuaranteeBeggarPayout)
