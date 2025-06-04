@@ -28,8 +28,8 @@
         bSkinParent="Jimbo"
         costumeSuffix="jimbob"
         modcostume="111"
-        skinColor="0"
-        
+        skinColor="0" 
+        canShoot="false"
     />
-    <!-- costume="104" -->
+    <!-- costume="104" haha le funny number-->
 </players>

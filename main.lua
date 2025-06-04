@@ -223,6 +223,7 @@ Balatro_Expansion.Pickups.LOLLYPOP = Isaac.GetEntityVariantByName("Base Lollypop
 Balatro_Expansion.Entities = {}
 Balatro_Expansion.Entities.BALATRO_TYPE = Isaac.GetEntityTypeByName("Pathfinder Slave") --every entity has the same Type but different variants
 Balatro_Expansion.Entities.PATH_SLAVE = Isaac.GetEntityVariantByName("Pathfinder Slave")
+--Balatro_Expansion.Entities.SHOP_MIMIC = Isaac.GetEntityVariantByName("Shop Mimic")
 
 for i, Joker in pairs(Balatro_Expansion.Jokers) do
     local Rarity = string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[3],"%?","")
@@ -237,6 +238,7 @@ end
 ------------------------
 Balatro_Expansion.Characters = {}
 Balatro_Expansion.Characters.JimboType = Isaac.GetPlayerTypeByName("Jimbo", false) -- Exactly as in the xml. The second argument is if you want the Tainted variant.
+Balatro_Expansion.Characters.TaintedJimbo = Isaac.GetPlayerTypeByName("Jimbo", true)
 
 Balatro_Expansion.Sounds = {}
 Balatro_Expansion.Sounds.ADDMULT = Isaac.GetSoundIdByName("ADDMULTSFX")
@@ -744,7 +746,7 @@ Balatro_Expansion.SelectionParams[0].PlayerChoosing = 0 --the true player index 
 
 Balatro_Expansion.SelectionParams.Modes = {}
 Balatro_Expansion.SelectionParams.Modes.NONE = 0
-Balatro_Expansion.SelectionParams.Modes.HAND = 1
+Balatro_Expansion.SelectionParams.Modes.HAND = 1 --used fo T.jimbo to make the enum more clear
 Balatro_Expansion.SelectionParams.Modes.PACK = 2
 Balatro_Expansion.SelectionParams.Modes.INVENTORY = 3
 
@@ -923,7 +925,15 @@ include("Balatro_scripts.characters.jimbo.mechanics")
 include("Balatro_scripts.characters.jimbo.trinkets") --jimbo trinkets/items effects
 include("Balatro_scripts.characters.jimbo.items")
 include("Balatro_scripts.characters.jimbo.hud")
-include("Balatro_scripts.characters.jimbo.DebtManager")
+
+
+include("Balatro_scripts.characters.T jimbo.mechanics")
+include("Balatro_scripts.characters.T jimbo.hud")
+
+
+
+
+include("Balatro_scripts.characters.DebtManager")
 include("Balatro_scripts.Custom_Cards") --jimbo cards effects
 include("Balatro_scripts.Synergies")
 

@@ -311,6 +311,10 @@
 	    <!--<preload-snd id="234" />  PENNYPICKUP -->
     </entity>
 
+    <entity name="Shop Mimic" anm2path="" id="2743" variant="2" 
+    	friction="0" collisionRadius="9" tags="noreroll" gridCollision="ground" shutdoors="false">
+    </entity>
+
 
     
 </entities>
