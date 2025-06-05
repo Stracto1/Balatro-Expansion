@@ -110,7 +110,7 @@ mod:AddCallback(ModCallbacks.MC_POST_CURSE_EVAL, SetCustomCurses)
 
 
 
---makes basically every input possible when using jimbo (+ other stuff)
+--makes basically every input possible when using T jimbo (+ other stuff)
 ---@param Player EntityPlayer
 local function JimboInputHandle(_, Player)
 
@@ -146,25 +146,7 @@ local function JimboInputHandle(_, Player)
         end
     end
 
-    --pressing right moving the selection
-    if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTUP, Player.ControllerIndex) then
-
-        if mod.SelectionParams[PIndex].Index < mod.SelectionParams[PIndex].OptionsNum then
-
-            mod.SelectionParams[PIndex].Index = mod.SelectionParams[PIndex].Index + 1
-        end
-    end
-
-
-    --pressing up moves the selection to hand cards
-    if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTDOWN, Player.ControllerIndex) then
-
-        if mod.SelectionParams[PIndex].Index < mod.SelectionParams[PIndex].OptionsNum then
-
-            mod.SelectionParams[PIndex].Index = mod.SelectionParams[PIndex].Index + 1
-        end
-    end
-
+    
     --pressing down moves the selection to hand cards
     if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTRIGHT, Player.ControllerIndex) then
 
@@ -172,6 +154,29 @@ local function JimboInputHandle(_, Player)
 
             mod.SelectionParams[PIndex].Index = mod.SelectionParams[PIndex].Index + 1
         end
+    end
+
+    --while opening a pack, pressing up moves to the card selection
+    if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTUP, Player.ControllerIndex)
+       and mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.PACK then
+
+        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams[PIndex].Purpose)
+    end
+
+
+    --while opening a pack, pressing up moves to the pack selection
+    if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTDOWN, Player.ControllerIndex)
+       and mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.HAND then
+
+        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK, mod.SelectionParams[PIndex].Purpose)
+
+    end
+
+    --confirms the curretn selection
+    if Input.IsActionTriggered(ButtonAction.ACTION_PILLCARD, Player.ControllerIndex)
+       and mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.HAND then
+
+        mod:UseSelection(Player)
     end
 
 
@@ -192,3 +197,17 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, JimboInputHandle)
 
 
+local function ActivateHandSelection()
+    if not mod.GameStarted then
+        return
+    end
+
+    if Game:GetRoom():IsClear() or true then
+        for _,Player in ipairs(PlayerManager.GetPlayers()) do
+            
+
+            mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams.Purposes.HAND)
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, ActivateHandSelection)

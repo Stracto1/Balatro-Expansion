@@ -190,6 +190,7 @@ mod:AddCallback(ModCallbacks.MC_HUD_UPDATE, mod.Increaseframes)
 
 function mod:PackParticleHelper(Player, _)
 
+    --mod.Counters.SincePackOpen = 0
     sfx:Play(mod.Sounds.EXPLOSION)
     for i=1, 3 do
         local Helper = Game:Spawn(EntityType.ENTITY_EFFECT, PartHelpVariant, Player.Position, Vector.Zero, nil, PartHelpSub, 1):ToEffect()

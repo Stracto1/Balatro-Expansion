@@ -161,7 +161,7 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYERHUD_RENDER_HEARTS, JimboHandRender)
 
 
 
-
+local CardScale = {}
 --handles the charge bar when the player is selecting cards
 ---@param Player EntityPlayer
 local function JimboPackRender(_,_,_,_,_,Player)
@@ -178,12 +178,16 @@ local function JimboPackRender(_,_,_,_,_,Player)
 
 
     local TruePurpose = mod.SelectionParams[PIndex].Purpose & (~mod.SelectionParams.Purposes.MegaFlag) --removes it for pack checks
-    
     local PlayerPos = Isaac.WorldToScreen(Player.Position)
 
+    local NumOptions = #mod.SelectionParams[PIndex].PackOptions
+
     --base point, increased while rendering 
-    local BaseRenderPos = Vector(Isaac.GetScreenWidth()/2 - CardHUDWidth * mod.SelectionParams[PIndex].OptionsNum /2 - PACK_CARD_DISTANCE * (mod.SelectionParams[PIndex].OptionsNum - 1) /2,
-                                 Isaac.GetScreenHeight() - HAND_RENDERING_HEIGHT - 35)
+    local BaseRenderPos = Vector(Isaac.GetScreenWidth() - CardHUDWidth * NumOptions - PACK_CARD_DISTANCE * (NumOptions - 1),
+                                 Isaac.GetScreenHeight() - HAND_RENDERING_HEIGHT - 30)
+
+    BaseRenderPos.X = BaseRenderPos.X/2 --centers the cards
+
     BaseRenderPos.X = BaseRenderPos.X + 6.5--makes it centered
 
     local RenderPos = BaseRenderPos + Vector.Zero
@@ -193,13 +197,15 @@ local function JimboPackRender(_,_,_,_,_,Player)
         --SHOWS THE CHOICES AVAILABLE
 
         for i,Card in ipairs(mod.SelectionParams[PIndex].PackOptions) do --for every option
-
+        
             JimboCards.Pack_PlayingCards:SetFrame(ENHANCEMENTS_ANIMATIONS[Card.Enhancement], 4 * (Card.Value - 1) + Card.Suit-1) --sets the frame corresponding to the value and suit
             JimboCards.Pack_PlayingCards:SetOverlayFrame("Seals", Card.Seal)
 
             if Card.Edition ~= mod.Edition.BASE then
                 JimboCards.Pack_PlayingCards:SetCustomShader(mod.EditionShaders[Card.Edition])
             end
+
+            --JimboCards.Pack_PlayingCards.Scale = Vector.One * mod:Lerp(CardScale[i], TargetScale, mod.Counters.SinceSelect)
 
             WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams[PIndex].Frames*5+i*95))*1.5)
 
@@ -224,19 +230,33 @@ local function JimboPackRender(_,_,_,_,_,Player)
 
         end
 
-    else--TAROT, PLANET or SPECTRAL
+    elseif TruePurpose == mod.SelectionParams.Purposes.CelestialPack then
+    
+
+    
+    else--TAROT or SPECTRAL packs
     
         --SHOWS THE CHOICES AVAILABLE
         for i,Option in ipairs(mod.SelectionParams[PIndex].PackOptions) do
             
+            local TargetScale = mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.PACK][i] and 1.25 or 1
+            CardScale[i] = CardScale[i] or TargetScale+0
+
             if Option == 53 then --equivalent to the soul card
                 JimboCards.SpecialCards:SetFrame("Soul Stone",mod.SelectionParams[PIndex].Frames % 47) --sets the frame corresponding to the value and suit
             else
                 JimboCards.SpecialCards:SetFrame("idle",  Option)
             end
+
             WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams[PIndex].Frames*5+i*95))*1.5)
 
-            JimboCards.SpecialCards:Render(mod:CoolVectorLerp(PlayerPos, RenderPos+WobblyEffect[i], mod.SelectionParams[PIndex].Frames/10))
+
+            local LerpedScale = mod:Lerp(CardScale[i], TargetScale, mod.Counters.SinceSelect/5)
+
+            CardScale[i] = LerpedScale == TargetScale and TargetScale+0 or CardScale[i]
+
+            JimboCards.SpecialCards.Scale = Vector.One * LerpedScale
+            JimboCards.SpecialCards:Render(mod:CoolVectorLerp(PlayerPos, RenderPos+WobblyEffect[i], mod.SelectionParams[PIndex].Frames/25))
 
             RenderPos.X = RenderPos.X + PACK_CARD_DISTANCE + CardHUDWidth
 
@@ -244,13 +264,24 @@ local function JimboPackRender(_,_,_,_,_,Player)
 
     end--end PURPOSES
 
-    RenderPos.Y = RenderPos.Y - 8 --adjusts the difference in pivots
-    CardFrame.Scale = Vector.One
-    CardFrame:SetFrame(HUD_FRAME.Skip)
-    CardFrame:Render(RenderPos)
 
-    RenderPos.X = BaseRenderPos.X + (mod.SelectionParams[PIndex].Index - 1)*(PACK_CARD_DISTANCE + CardHUDWidth)
-    RenderPos = RenderPos + (WobblyEffect[mod.SelectionParams[PIndex].Index] or Vector.Zero)
+    local Index = mod.SelectionParams[PIndex].Index
+    if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.HAND then
+        --here the params.index points to the card in hand, so use the pack selected card as a pointer
+
+        Index = mod:GetValueIndex(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.PACK], true, true)
+
+        if not Index then --no pack card got selected
+            return
+        end
+    end
+
+    --renders the frame on the selected card
+    RenderPos.X = BaseRenderPos.X + (Index - 1)*(PACK_CARD_DISTANCE + CardHUDWidth)
+    RenderPos.Y = RenderPos.Y - 8 * CardScale[Index] --fises the pivot displacement
+
+    RenderPos = RenderPos + (WobblyEffect[Index] or Vector.Zero)
+    CardFrame.Scale = Vector.One * CardScale[Index]
 
     CardFrame:SetFrame(HUD_FRAME.Frame)
     CardFrame:Render(RenderPos)

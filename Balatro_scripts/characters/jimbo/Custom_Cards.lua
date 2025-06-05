@@ -371,7 +371,7 @@ function mod:CardPacks(card, Player,_)
 
         local RandomPack = {}
         local Options = {}
-        for i=1,22 do
+        for i=1,22 do --adds every tarot card to the pool
             Options[#Options + 1] = i
         end
         if Player:HasCollectible(mod.Vouchers.Omen) then --adds the spectral cards to the possible outcomes

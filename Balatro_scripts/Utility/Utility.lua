@@ -38,7 +38,7 @@ function mod:GetValueIndex(Table, Value, Stop)
         end
     end
     if Stop then --if you got here with stop then didn't find anything
-        return 0 --prob won't give problems
+        return false --prob won't give problems
     end
     return WantedIndexes
 end
@@ -1266,17 +1266,20 @@ local music = MusicManager()
 function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
 
     local PIndex = Player:GetData().TruePlayerIndex
-    local PlayerType = Player:GetPlayerType()
+    local IsTaintedJimbo = Player:GetPlayerType() == mod.Characters.TaintedJimbo
 
-    mod.SelectionParams[PIndex].Frames = 0
+    
+    --if the selection changes from an""active"" to a ""not active"" state
+    if (NewMode == mod.SelectionParams.Modes.NONE) ~= (mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.NONE) then
+        mod.SelectionParams[PIndex].Frames = 0
+    end
 
     if NewMode == mod.SelectionParams.Modes.NONE then
 
         for i,v in ipairs(Isaac.FindByType(1000, DescriptionHelperVariant, DescriptionHelperSubType)) do
             v:Remove()
         end
-
-        Player:SetCanShoot(true)
+        
 
         if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_STOP_WATCH) then
             music:PitchSlide(0.9)
@@ -1285,96 +1288,106 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
         end
         music:VolumeSlide(1, 0.04)
 
-        if PlayerType ~= mod.Characters.TaintedJimbo then --T jimbo always keeps cards selected
+
+        mod.SelectionParams[PIndex].Index = 1
+
+        if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
+            mod.SelectionParams[PIndex].OptionsNum = #mod.Saved.Player[PIndex].CurrentHand
+            mod.SelectionParams[PIndex].MaxSelectionNum = 5
+
+            mod.SelectionParams[PIndex].PackOptions = {}
+        else
+            mod.SelectionParams[PIndex].OptionsNum = 0
+            mod.SelectionParams[PIndex].MaxSelectionNum = 0
 
             for i,v in ipairs(mod.SelectionParams[PIndex].SelectedCards) do
                 mod.SelectionParams[PIndex].SelectedCards[i] = false 
             end
             mod.SelectionParams[PIndex].SelectionNum = 0
+
+            Player:SetCanShoot(true)
+
+            Game:GetRoom():SetPauseTimer(0)
         end
 
-        mod.SelectionParams[PIndex].Index = 1
-        
-
-
-        if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
-            mod.SelectionParams[PIndex].OptionsNum = #mod.Saved.Player[PIndex].CurrentHand
-            mod.SelectionParams[PIndex].MaxSelectionNum = 5
-        else
-            mod.SelectionParams[PIndex].OptionsNum = 0
-            mod.SelectionParams[PIndex].MaxSelectionNum = 0
-        end
-
-
-        Game:GetRoom():SetPauseTimer(0)
-
-    else
-        if PlayerType ~= mod.Characters.TaintedJimbo
-           and mod.SelectionParams[PIndex].Mode ~= mod.SelectionParams.Modes.NONE
-           and mod.SelectionParams[PIndex].Purpose ~= mod.SelectionParams.Purposes.DEATH1 then
-            --if changing from an "active" state to another
-
-
-            mod:UseSelection(Player)    
-            
-
-        end
-
-        Game:GetRoom():SetPauseTimer(225)
-        Player:SetCanShoot(false)
-
-        Game:Spawn(EntityType.ENTITY_EFFECT, DescriptionHelperVariant, Player.Position
-                       ,Vector.Zero, nil, DescriptionHelperSubType, 1)
-        
-        if NewMode == mod.SelectionParams.Modes.HAND then
-            
-            mod.SelectionParams[PIndex].OptionsNum = #mod.Saved.Player[PIndex].CurrentHand
-            if NewPurpose == mod.SelectionParams.Purposes.HAND then
-                mod.SelectionParams[PIndex].MaxSelectionNum = 5
-                mod.SelectionParams[PIndex].HandType = mod.HandTypes.NONE
-    
-            elseif NewPurpose >= mod.SelectionParams.Purposes.DEJA_VU then
-                mod.SelectionParams[PIndex].MaxSelectionNum = 1
-
-            else --various tarot cards
-                if NewPurpose == mod.SelectionParams.Purposes.DEATH1 then
-
-                    mod.SelectionParams[PIndex].MaxSelectionNum = 2
-
-                elseif NewPurpose >= mod.SelectionParams.Purposes.WORLD then --any suit based tarot
-                    --WORLD, SUN, MOON, STAR
-                    mod.SelectionParams[PIndex].MaxSelectionNum = 3
-
-                else --any other card
-                    local Size = -(NewPurpose % 2) + 2 --se main.lua to understand why this works
-                    if Player:HasCollectible(CollectibleType.COLLECTIBLE_TAROT_CLOTH) then
-                        Size = Size + 1
-                    end
-                    mod.SelectionParams[PIndex].MaxSelectionNum = Size
-                end
-            end
-                
-        elseif NewMode == mod.SelectionParams.Modes.PACK then
-
-            music:PitchSlide(1.1)
-            music:VolumeSlide(0.45, 0.02)
-
-            mod.SelectionParams[PIndex].MaxSelectionNum = 1
-            mod.SelectionParams[PIndex].OptionsNum = #mod.SelectionParams[PIndex].PackOptions
-
-        elseif NewMode == mod.SelectionParams.Modes.INVENTORY then
-
-            if NewPurpose == mod.SelectionParams.Purposes.SMELTER then
-                mod.SelectionParams[PIndex].MaxSelectionNum = 1
-            else
-                mod.SelectionParams[PIndex].MaxSelectionNum = 2
-            end
-
-            mod.SelectionParams[PIndex].OptionsNum = #mod.Saved.Player[PIndex].Inventory
-        end
+        goto FINISH
     end
+
+    if not IsTaintedJimbo
+       and mod.SelectionParams[PIndex].Mode ~= mod.SelectionParams.Modes.NONE
+       and mod.SelectionParams[PIndex].Purpose ~= mod.SelectionParams.Purposes.DEATH1 then
+        --if changing from an "active" state to another
+
+
+        mod:UseSelection(Player)
+    end
+
+    Game:GetRoom():SetPauseTimer(225)
+    Player:SetCanShoot(false)
+
+    Game:Spawn(EntityType.ENTITY_EFFECT, DescriptionHelperVariant, Player.Position
+                   ,Vector.Zero, nil, DescriptionHelperSubType, 1)
+    mod.Counters.SinceSelect = 0
+    
+    if NewMode == mod.SelectionParams.Modes.HAND then
+        
+        mod.SelectionParams[PIndex].OptionsNum = #mod.Saved.Player[PIndex].CurrentHand
+        if NewPurpose == mod.SelectionParams.Purposes.HAND then
+            mod.SelectionParams[PIndex].MaxSelectionNum = 5
+            mod.SelectionParams[PIndex].HandType = mod.HandTypes.NONE
+
+        elseif NewPurpose >= mod.SelectionParams.Purposes.DEJA_VU then
+            mod.SelectionParams[PIndex].MaxSelectionNum = 1
+
+        else --various tarot cards
+            if NewPurpose == mod.SelectionParams.Purposes.DEATH1 then
+
+                mod.SelectionParams[PIndex].MaxSelectionNum = 2
+
+            elseif NewPurpose >= mod.SelectionParams.Purposes.WORLD then --any suit based tarot
+                --WORLD, SUN, MOON, STAR
+                mod.SelectionParams[PIndex].MaxSelectionNum = 3
+
+            else --any other card
+                local Size = -(NewPurpose % 2) + 2 --see main.lua to understand why this works
+                if Player:HasCollectible(CollectibleType.COLLECTIBLE_TAROT_CLOTH) then
+                    Size = Size + 1
+                end
+                mod.SelectionParams[PIndex].MaxSelectionNum = Size
+            end
+        end
+            
+    elseif NewMode == mod.SelectionParams.Modes.PACK then
+
+        music:PitchSlide(1.1)
+        music:VolumeSlide(0.45, 0.02)
+
+        mod.SelectionParams[PIndex].MaxSelectionNum = 2
+        mod.SelectionParams[PIndex].OptionsNum = #mod.SelectionParams[PIndex].PackOptions
+
+    elseif NewMode == mod.SelectionParams.Modes.INVENTORY then
+
+        if NewPurpose == mod.SelectionParams.Purposes.SMELTER then
+            mod.SelectionParams[PIndex].MaxSelectionNum = 1
+        else
+            mod.SelectionParams[PIndex].MaxSelectionNum = 2
+        end
+
+        mod.SelectionParams[PIndex].OptionsNum = #mod.Saved.Player[PIndex].Inventory
+    end
+
+    ::FINISH::
+
+    
     mod.SelectionParams[PIndex].Mode = NewMode
     mod.SelectionParams[PIndex].Purpose = NewPurpose
+
+    if IsTaintedJimbo then
+        mod.SelectionParams[PIndex].MaxSelectionNum = 5
+        mod.SelectionParams[PIndex].Index = math.min(mod.SelectionParams[PIndex].Index, mod.SelectionParams[PIndex].OptionsNum)
+    
+        --mod.SelectionParams[PIndex].SelectionNum = mod:GetValueRepetitions(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams[PIndex].Mode],)
+    end
 
 end
 

@@ -1961,6 +1961,14 @@ function mod:Select(Player)
 
     elseif mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.HAND then
 
+        if mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.NONE then
+            
+            print("purpose is set to NONE!")
+            return
+        end
+
+        print("at selection: ", mod.SelectionParams[PIndex].MaxSelectionNum)
+
         --if its an actual option
         if mod.SelectionParams[PIndex].Index <= mod.SelectionParams[PIndex].OptionsNum then
             local Choice = SelectedCards[mod.SelectionParams[PIndex].Index]
@@ -2012,6 +2020,19 @@ function mod:Select(Player)
         end
 
     elseif mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.PACK then
+
+        if PlayerType == mod.Characters.TaintedJimbo then
+            
+            for i,_ in ipairs(SelectedCards) do
+                
+                SelectedCards[i] = false
+            end
+
+            SelectedCards[mod.SelectionParams[PIndex].Index] = true
+            sfx:Play(mod.Sounds.SELECT)
+
+            return
+        end
 
         if mod.SelectionParams[PIndex].Index > mod.SelectionParams[PIndex].OptionsNum then--skip button
             
@@ -2173,23 +2194,45 @@ local PurposeEnh = {nil,2,4,9,5,3,6,nil,7,nil,8}
 function mod:UseSelection(Player)
 
     local PIndex = Player:GetData().TruePlayerIndex
+    local IsTaintedJimbo = Player:GetPlayerType() == mod.Characters.TaintedJimbo
 
-    local SelecredCards = mod.SelectionParams[PIndex].SelectedCards
-
-    if Player:GetType() == mod.Characters.TaintedJimbo then
-        SelecredCards = mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams[PIndex].Mode]
+    if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.NONE then
+        return
     end
 
-    if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.HAND then
-        --could've done something nicer then these elseifs but works anyways
-        if mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.HAND then
-            --effects
-            --mod:ActivateHandEffect(Player)
-            --card substitution
-            --mod:SubstituteCards(SelecredCards)
+    local SelectedCards
+    local PackSelectedCards
+    local HandSelectedCards
 
-        elseif mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.DEATH1 then --then the card that will become a copy
-            for i,v in ipairs(SelecredCards) do
+    if IsTaintedJimbo then
+        SelectedCards = mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams[PIndex].Mode]
+        PackSelectedCards = mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.PACK]
+        HandSelectedCards = mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]
+
+    else
+        SelectedCards = mod.SelectionParams[PIndex].SelectedCards
+
+        table.move(SelectedCards,1,#SelectedCards,1, PackSelectedCards)
+        table.move(SelectedCards,1,#SelectedCards,1, HandSelectedCards)
+    end
+
+
+    if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.HAND then
+        --maybe I could've done something nicer then these elseifs but works anyways
+
+        if IsTaintedJimbo
+           and (mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.TarotPack
+           or mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.SpectralPack) then
+
+            --T Jimbo could confirm the pack selection while being in the hand "area"
+            
+           mod.SelectionParams[PIndex].Mode = mod.SelectionParams.Modes.PACK
+           mod:UseSelection(Player)
+           return
+        end
+
+        if mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.DEATH1 then --then the card that will become a copy
+            for i,v in ipairs(SelectedCards) do
                 if v then
                     local selection = mod.Saved.Player[PIndex].CurrentHand[i] --gets the card that will be modified
                     mod.Saved.Player[PIndex].FullDeck[selection] = mod.Saved.Player[PIndex].FullDeck[DeathCopyCard]
@@ -2198,7 +2241,7 @@ function mod:UseSelection(Player)
             end
         elseif mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.HANGED then
             local selection = {}
-            for i,v in ipairs(SelecredCards) do
+            for i,v in ipairs(SelectedCards) do
                 if v then
                     table.insert(selection, mod.Saved.Player[PIndex].CurrentHand[i]) --gets the card that will be modified
                 end
@@ -2207,7 +2250,7 @@ function mod:UseSelection(Player)
             mod:DestroyCards(Player, selection, true)
 
         elseif mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.STRENGTH then
-            for i,v in ipairs(SelecredCards) do
+            for i,v in ipairs(SelectedCards) do
                 if v then
                     if mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Value == 13 then
                         mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Value = 1 --kings become aces
@@ -2220,7 +2263,7 @@ function mod:UseSelection(Player)
             Isaac.RunCallback("DECK_MODIFY", Player)
         elseif mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.CRYPTID then
             local Chosen
-            for i,v in ipairs(SelecredCards) do
+            for i,v in ipairs(SelectedCards) do
                 if v then
                     Chosen = mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]]
                     break
@@ -2230,7 +2273,7 @@ function mod:UseSelection(Player)
             mod:AddCardToDeck(Player, Chosen, 2, true)
 
         elseif mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.AURA then
-            for i,v in ipairs(SelecredCards) do
+            for i,v in ipairs(SelectedCards) do
                 if v then
                     local EdRoll = Player:GetCardRNG(mod.Spectrals.AURA):RandomFloat()
                     if EdRoll <= 0.5 then
@@ -2251,7 +2294,7 @@ function mod:UseSelection(Player)
         --didn't want to put ~20 more elseifs so did this instead
         elseif mod.SelectionParams[PIndex].Purpose >= mod.SelectionParams.Purposes.DEJA_VU then
             local NewSeal = mod.SelectionParams[PIndex].Purpose - 16 --put the purposes in order to make this work
-            for i,v in ipairs(SelecredCards) do
+            for i,v in ipairs(SelectedCards) do
                 if v then
                     mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Seal = NewSeal --kings become aces
                     sfx:Play(mod.Sounds.SEAL)
@@ -2262,7 +2305,7 @@ function mod:UseSelection(Player)
 
         elseif mod.SelectionParams[PIndex].Purpose >= mod.SelectionParams.Purposes.WORLD then 
             local NewSuit = mod.SelectionParams[PIndex].Purpose - mod.SelectionParams.Purposes.WORLD + 1--put the purposes in order to make this work
-            for i,v in ipairs(SelecredCards) do
+            for i,v in ipairs(SelectedCards) do
                 if v then
                     mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Suit = NewSuit
                 end
@@ -2270,7 +2313,7 @@ function mod:UseSelection(Player)
             Isaac.RunCallback("DECK_MODIFY", Player)
         elseif mod.SelectionParams[PIndex].Purpose >= mod.SelectionParams.Purposes.EMPRESS then
             local NewEnh = PurposeEnh[mod.SelectionParams[PIndex].Purpose] --put the purposes in order to make this work
-            for i,v in ipairs(SelecredCards) do
+            for i,v in ipairs(SelectedCards) do
                 if v then
                     mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Enhancement = NewEnh
 
@@ -2279,12 +2322,14 @@ function mod:UseSelection(Player)
             Isaac.RunCallback("DECK_MODIFY", Player)
         end
 
+        print(mod.SelectionParams[PIndex].MaxSelectionNum)
+
 
     elseif mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.INVENTORY then
 
         if mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.SMELTER then
 
-            local SelectedSlot = mod:GetValueIndex(SelecredCards, true, true) --finds the first true
+            local SelectedSlot = mod:GetValueIndex(SelectedCards, true, true) --finds the first true
 
             local Joker = mod.Saved.Player[PIndex].Inventory[SelectedSlot].Joker
 
@@ -2300,13 +2345,47 @@ function mod:UseSelection(Player)
             else
                 mod:SellJoker(Player, Joker, SelectedSlot, 2)
             end
-
-            
         end
+
+
+    elseif mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.PACK then
+        --THIS CAN ONLY HAPPEN FOR T.JIMBO
+        --packs for base Jimbo activate directly on selection
+
+        local PackIndex = mod:GetValueIndex(PackSelectedCards, true, true)
+
+        if not PackIndex then
+            return
+        end
+
+        if mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.TarotPack
+           or mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.SpectralPack then
+            
+            --Player:UseCard(mod:FrameToSpecialCard(mod.SelectionParams[PIndex].PackOptions[PackIndex]))
+
+            mod:TJimboUseTarot(Card.CARD_MAGICIAN, Player, 0)
+        end
+
+        if Game:GetRoom():IsClear() and false then
+
+            mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.NONE)
+        else
+            mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams.Purposes.HAND)
+        end
+        
     end
 
-    for i,_ in ipairs(SelecredCards) do
-        SelecredCards[i] = false
+    ::FINISH::
+
+    for i,_ in ipairs(SelectedCards) do
+        SelectedCards[i] = false
+    end
+
+    if IsTaintedJimbo then
+        for i,_ in ipairs(HandSelectedCards) do
+            HandSelectedCards[i] = false
+        end
+        mod.SelectionParams[PIndex].SelectionNum = 0
     end
 end
 

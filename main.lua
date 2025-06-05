@@ -714,6 +714,7 @@ Balatro_Expansion.ShopAddedThisFloor = false
 Balatro_Expansion.Counters = {}--table used for variuos counters increased every update (mainly used for animated HUD stuff)
 Balatro_Expansion.Counters.SinceShift = 0
 Balatro_Expansion.Counters.SinceSelect = 0
+--Balatro_Expansion.Counters.SincePackOpen = 0
 Balatro_Expansion.Counters.SinceShoot = 0
 Balatro_Expansion.Counters.Activated = {}
 
@@ -925,16 +926,18 @@ include("Balatro_scripts.characters.jimbo.mechanics")
 include("Balatro_scripts.characters.jimbo.trinkets") --jimbo trinkets/items effects
 include("Balatro_scripts.characters.jimbo.items")
 include("Balatro_scripts.characters.jimbo.hud")
+include("Balatro_scripts.characters.jimbo.Custom_Cards") --jimbo cards effects
 
 
 include("Balatro_scripts.characters.T jimbo.mechanics")
 include("Balatro_scripts.characters.T jimbo.hud")
+include("Balatro_scripts.characters.T jimbo.Custom_Cards")
 
 
 
 
 include("Balatro_scripts.characters.DebtManager")
-include("Balatro_scripts.Custom_Cards") --jimbo cards effects
+
 include("Balatro_scripts.Synergies")
 
 
