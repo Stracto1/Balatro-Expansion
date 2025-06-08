@@ -2324,6 +2324,10 @@ function mod:CopyAdjustments(Player)
     --Player:AddCustomCacheTag("handsize", false)
     --Player:AddCustomCacheTag("discards", false)
     --Player:AddCustomCacheTag("inventory", true)
+    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+        return
+    end
+    
     local PIndex = Player:GetData().TruePlayerIndex
 
     --FIRST it deternimes the bb / bs copied joker

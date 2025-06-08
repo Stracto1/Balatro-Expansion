@@ -3,6 +3,7 @@ local mod = Balatro_Expansion
 local ItemsConfig = Isaac.GetItemConfig()
 local Game = Game()
 local sfx = SFXManager()
+local Level = Game:GetLevel()
 
 local DoorSides = {}
 DoorSides.LEFT = 0
@@ -677,14 +678,15 @@ end
 
 ---@param SellSlot integer?
 function mod:GetJokerCost(Joker, SellSlot, Player)
-    --removes ! from the customtag (see items.xml) 
-    local PIndex = Player:GetData().TruePlayerIndex
+    --removes ! from the customtag (see items.xml)
 
     local numstring = string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[1],"%!","")
 
     local Cost = tonumber(numstring)
 
     if SellSlot then --also tells if you want the buy/sell value as the return
+    
+        local PIndex = Player:GetData().TruePlayerIndex
     
         Cost = math.floor((Cost + mod.Saved.Player[PIndex].Inventory[SellSlot].Edition) / 2)
         if Joker == mod.Jokers.EGG then
@@ -697,7 +699,7 @@ function mod:GetJokerCost(Joker, SellSlot, Player)
 
     else
         --print(tonumber(string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[1],"%!",""),2))
-        local EdValue = mod.Saved.Player[PIndex].FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Joker).Name] or 0
+        local EdValue = mod.Saved.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Joker).Name] or 0
         
         Cost = Cost + EdValue
     end
@@ -714,7 +716,19 @@ function mod:GetJokerCost(Joker, SellSlot, Player)
 end
 
 function mod:GetJokerRarity(Joker)
-    return string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[3],"%?","")
+    return string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[4],"%?","")
+end
+
+function mod:GetJokerInitialProgress(Joker, Tainted)
+
+    local Config = ItemsConfig:GetTrinket(Joker)
+    if Tainted then
+
+        return string.gsub(Config:GetCustomTags()[3],"%:","")
+    else
+
+        return tonumber(Config:GetCustomTags()[2])
+    end
 end
 
 function mod:AddJimboInventorySlots(Player, Amount)
@@ -991,14 +1005,60 @@ function mod:CardSuitToName(Suit, IsEID)
 end
 
 function mod:AddJoker(Player, Joker, Edition, StopEval)
-    local PIndex = Player:GetData().TruePlayerIndex
+    --local PIndex = Player:GetData().TruePlayerIndex
 
     Edition = Edition or mod.Edition.BASE
 
-    mod.Saved.Player[PIndex].FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Joker).Name] = Edition
+    mod.Saved.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Joker).Name] = Edition
 
     return mod:JimboAddTrinket(Player, Joker, false, StopEval)
 end
+
+
+---@param Player EntityPlayer
+---@param StopEvaluation boolean this is only set when called in mod:AddJoker
+function mod:JimboAddTrinket(Player, Trinket, _, StopEvaluation)
+
+    local IsTaintedJimbo = Player:GetPlayerType() == mod.Characters.TaintedJimbo
+
+    if not IsTaintedJimbo
+       and Player:GetPlayerType() ~= mod.Characters.JimboType then
+        return
+    end
+
+    local PIndex = Player:GetData().TruePlayerIndex
+        
+    Player:TryRemoveTrinket(Trinket) -- a custom table is used instead since he needs to hold many of them
+
+    local JokerEdition = mod.Saved.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Trinket).Name] or mod.Edition.BASE 
+
+
+    local EmptySlot = mod:GetJimboJokerIndex(Player, 0,true)[1]
+    
+    if not EmptySlot then
+        Isaac.CreateTimer(function ()
+            Player:AnimateSad()
+        end,0,1,false)
+        
+        return false
+    end
+
+    mod.Counters.SinceSelect = 0
+
+    mod.Saved.Player[PIndex].Inventory[EmptySlot].Joker = Trinket
+    mod.Saved.Player[PIndex].Inventory[EmptySlot].Edition = JokerEdition
+
+    mod.Saved.Player[PIndex].Progress.Inventory[EmptySlot] = mod:GetJokerInitialProgress(Trinket, IsTaintedJimbo)
+
+    if not StopEvaluation then
+        Isaac.RunCallback("JOKER_ADDED", Player, Trinket, JokerEdition, EmptySlot)
+        Isaac.RunCallback("INVENTORY_CHANGE", Player)
+    end
+
+    return true
+end
+mod:AddPriorityCallback(ModCallbacks.MC_POST_TRIGGER_TRINKET_ADDED,CallbackPriority.IMPORTANT, mod.JimboAddTrinket)
+
 
 
 function mod:AddCardToDeck(Player, CardTable,Amount, PutInHand)
@@ -1030,7 +1090,7 @@ end
 
 
 local CardGotDestroyed = false
-function mod:DestroyCards(Player, DeckIndexes, DoEffects)
+function mod:DestroyCards(Player, DeckIndexes, DoEffects, BlockSubstitution)
     local PIndex = Player:GetData().TruePlayerIndex
 
     CardGotDestroyed = true
@@ -1039,7 +1099,7 @@ function mod:DestroyCards(Player, DeckIndexes, DoEffects)
         CardGotDestroyed = false
     end,35,1,true)
 
-    table.sort(DeckIndexes, function (a, b) --sorts it so table.remove doesn't shift indexes around
+    table.sort(DeckIndexes, function (a, b) --sorts it so that table.remove doesn't shift indexes around
         if a > b then
             return true
         end
@@ -1053,8 +1113,13 @@ function mod:DestroyCards(Player, DeckIndexes, DoEffects)
 
         DestroyedParams[#DestroyedParams+1] = CardParams
 
-        if mod:Contained(mod.Saved.Player[PIndex].CurrentHand) and #mod.Saved.Player[PIndex].CurrentHand > Player:GetCustomCacheValue("handsize") then
-        ---@diagnostic disable-next-line: param-type-mismatch
+        print(BlockSubstitution)
+
+        if mod:Contained(mod.Saved.Player[PIndex].CurrentHand, Index) 
+           and (#mod.Saved.Player[PIndex].CurrentHand > Player:GetCustomCacheValue("handsize")
+           or BlockSubstitution) then
+        
+            ---@diagnostic disable-next-line: param-type-mismatch
             table.remove(mod.Saved.Player[PIndex].CurrentHand, mod:GetValueIndex(mod.Saved.Player[PIndex].CurrentHand, Index, true))
         end
 
@@ -1064,6 +1129,9 @@ function mod:DestroyCards(Player, DeckIndexes, DoEffects)
             mod:CardRipEffect(CardParams, Player.Position)
         end
     end
+
+    print("Size: ", #mod.Saved.Player[PIndex].CurrentHand)
+
 
     Isaac.RunCallback("DECK_MODIFY", Player, -#DeckIndexes, DestroyedParams)
 end
@@ -1268,9 +1336,12 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
     local PIndex = Player:GetData().TruePlayerIndex
     local IsTaintedJimbo = Player:GetPlayerType() == mod.Characters.TaintedJimbo
 
-    
-    --if the selection changes from an""active"" to a ""not active"" state
-    if (NewMode == mod.SelectionParams.Modes.NONE) ~= (mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.NONE) then
+    local OldMode = mod.SelectionParams[PIndex].Mode
+    local OldPurpose = mod.SelectionParams[PIndex].Purpose
+
+    mod.Counters.SinceSelect = 0
+    --if the selection changes from an ""active"" to a ""not active"" state
+    if (NewMode == mod.SelectionParams.Modes.NONE) ~= (OldMode == mod.SelectionParams.Modes.NONE) then
         mod.SelectionParams[PIndex].Frames = 0
     end
 
@@ -1292,6 +1363,7 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
         mod.SelectionParams[PIndex].Index = 1
 
         if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
+
             mod.SelectionParams[PIndex].OptionsNum = #mod.Saved.Player[PIndex].CurrentHand
             mod.SelectionParams[PIndex].MaxSelectionNum = 5
 
@@ -1313,23 +1385,27 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
         goto FINISH
     end
 
-    if not IsTaintedJimbo
-       and mod.SelectionParams[PIndex].Mode ~= mod.SelectionParams.Modes.NONE
-       and mod.SelectionParams[PIndex].Purpose ~= mod.SelectionParams.Purposes.DEATH1 then
-        --if changing from an "active" state to another
+    if not IsTaintedJimbo then
+        if mod.SelectionParams[PIndex].Mode ~= mod.SelectionParams.Modes.NONE
+           and mod.SelectionParams[PIndex].Purpose ~= mod.SelectionParams.Purposes.DEATH1 then
+            --if changing from an "active" state to another
 
-
-        mod:UseSelection(Player)
+            mod:UseSelection(Player)
+        end
+        
+        Game:GetRoom():SetPauseTimer(225)
+        Player:SetCanShoot(false)
     end
-
-    Game:GetRoom():SetPauseTimer(225)
-    Player:SetCanShoot(false)
-
-    Game:Spawn(EntityType.ENTITY_EFFECT, DescriptionHelperVariant, Player.Position
-                   ,Vector.Zero, nil, DescriptionHelperSubType, 1)
-    mod.Counters.SinceSelect = 0
     
     if NewMode == mod.SelectionParams.Modes.HAND then
+
+        --print(OldMode ~= mod.SelectionParams.Modes.HAND)
+        if OldMode == mod.SelectionParams.Modes.NONE
+           and IsTaintedJimbo then
+
+            mod.LastCardFullPoss = {}
+            mod:FullDeckShuffle(Player)
+        end
         
         mod.SelectionParams[PIndex].OptionsNum = #mod.Saved.Player[PIndex].CurrentHand
         if NewPurpose == mod.SelectionParams.Purposes.HAND then
@@ -1365,11 +1441,43 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
         mod.SelectionParams[PIndex].MaxSelectionNum = 2
         mod.SelectionParams[PIndex].OptionsNum = #mod.SelectionParams[PIndex].PackOptions
 
+        if IsTaintedJimbo then
+
+            if mod.SelectionParams[PIndex].PackPurpose ~= mod.SelectionParams.Purposes.NONE then
+                
+                NewPurpose = mod.SelectionParams[PIndex].PackPurpose
+            else
+
+                mod.SelectionParams[PIndex].PackPurpose = NewPurpose
+            end
+            
+        end
+
     elseif NewMode == mod.SelectionParams.Modes.INVENTORY then
+
+        if IsTaintedJimbo then
+            
+            local FirstJoker
+
+            for i, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+                
+                if Slot.Joker ~= 0 then
+                    FirstJoker = i
+                    break
+                end
+            end
+
+            if not FirstJoker then
+                return
+            end
+
+            mod.SelectionParams[PIndex].Index = FirstJoker
+        end
 
         if NewPurpose == mod.SelectionParams.Purposes.SMELTER then
             mod.SelectionParams[PIndex].MaxSelectionNum = 1
         else
+            NewPurpose = mod.SelectionParams.Purposes.NONE
             mod.SelectionParams[PIndex].MaxSelectionNum = 2
         end
 
@@ -1378,7 +1486,9 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
 
     ::FINISH::
 
-    
+    Game:Spawn(EntityType.ENTITY_EFFECT, DescriptionHelperVariant, Player.Position
+                   ,Vector.Zero, nil, DescriptionHelperSubType, 1)
+
     mod.SelectionParams[PIndex].Mode = NewMode
     mod.SelectionParams[PIndex].Purpose = NewPurpose
 
@@ -1391,7 +1501,27 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
 
 end
 
+--shuffles the deck
+---@param Player EntityPlayer
+function mod:FullDeckShuffle(Player)
+    if not (Player:GetPlayerType() == mod.Characters.JimboType
+       or Player:GetPlayerType() == mod.Characters.TaintedJimbo) then
 
+        return
+    end
+
+    local PIndex = Player:GetData().TruePlayerIndex
+    local PlayerRNG = Player:GetDropRNG()
+    mod.Saved.Player[PIndex].FullDeck = mod:Shuffle(mod.Saved.Player[PIndex].FullDeck, PlayerRNG)
+
+    mod.Saved.Player[PIndex].DeckPointer = Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) + 1
+    for i=1, Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) do
+        mod.Saved.Player[PIndex].CurrentHand[i] = i
+    end
+
+    Isaac.RunCallback("DECK_SHIFT", Player)
+    
+end
 
 
 -------TRASH--------

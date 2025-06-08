@@ -226,7 +226,7 @@ Balatro_Expansion.Entities.PATH_SLAVE = Isaac.GetEntityVariantByName("Pathfinder
 --Balatro_Expansion.Entities.SHOP_MIMIC = Isaac.GetEntityVariantByName("Shop Mimic")
 
 for i, Joker in pairs(Balatro_Expansion.Jokers) do
-    local Rarity = string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[3],"%?","")
+    local Rarity = string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[4],"%?","")
 
     Balatro_Expansion.Trinkets[Rarity][#Balatro_Expansion.Trinkets[Rarity] + 1] = Joker
 end
@@ -466,6 +466,8 @@ Balatro_Expansion.CustomCache.HAND_NUM = "hands"
 
 ---------------------------------
 Balatro_Expansion.LastCardFullPoss = {}
+Balatro_Expansion.JokerFullPosition = {} --used to save where a certain joker is when using T jimbo
+Balatro_Expansion.ConsumableFullPosition = {}
 
 
 Balatro_Expansion.Fonts = {}
@@ -710,6 +712,7 @@ Balatro_Expansion.Saved.FloorEditions = {} --used to save which trinkets have ce
 --OTHER VALUES
 Balatro_Expansion.HpEnable = false
 Balatro_Expansion.ShopAddedThisFloor = false
+Balatro_Expansion.AnimationIsPlaying = false
 
 Balatro_Expansion.Counters = {}--table used for variuos counters increased every update (mainly used for animated HUD stuff)
 Balatro_Expansion.Counters.SinceShift = 0
@@ -859,6 +862,7 @@ include("Balatro_scripts.Effects")
 include("Balatro_scripts.Utility.Utility")
 include("Balatro_scripts.Utility.save_manager")
 include("Balatro_scripts.Utility.cool_title")
+include("Balatro_scripts.Utility.Console Commands")
 --Balatro_Expansion.ItemManager = include("Balatro_scripts.Utility.hidden_item_manager")
 --Balatro_Expansion.ItemManager = Balatro_Expansion.ItemManager:Init(Balatro_Expansion)
 --Balatro_Expansion.Saved.HiddenItemsData = {}

@@ -91,6 +91,7 @@ function mod:OnGameStart(Continued)
         mod.Saved.ShowmanRemovedItems = {}
         mod.HpEnable = false
         mod.ShopAddedThisFloor = false
+        mod.AnimationIsPlaying = false
 
         mod.Saved.Pools = {}
         mod.Saved.Pools.Vouchers = {
@@ -127,6 +128,17 @@ function mod:OnGameStart(Continued)
             mod.Saved.CardLevels[i] = 0
         end
 
+        mod.ConsumableFullPosition = {}
+        mod.JokerFullPosition = {}
+        mod.LastCardFullPoss = {}
+        for k,_ in pairs(mod.Counters) do
+            if type(mod.Counters[k]) == "table" then
+                mod.Counters[k] = {}
+            else
+                mod.Counters[k] = 0
+            end
+        end
+
         if mod:Contained(Challenges, Game.Challenge) then
             mod.Saved.Other.ShopEntered = true
         else
@@ -142,7 +154,8 @@ function mod:OnGameStart(Continued)
 
         mod:InitJimboValues(player, not Continued) -- on new run always initialise jimbo values
 
-        if player:GetPlayerType() == mod.Characters.JimboType then
+        if player:GetPlayerType() == mod.Characters.JimboType 
+           or player:GetPlayerType() == mod.Characters.TaintedJimbo then
 
             
             mod:StatReset(player,true,true,false,true,true)
@@ -274,18 +287,20 @@ function mod:InitJimboValues(Player, Force)
     mod.Saved.Player[PIndex].FullDeck = {}
 
     local index = 1
-        for i = 1, 4, 1 do --cycles between the suits
-            for j = 1, 13, 1 do --cycles for all the values
-                mod.Saved.Player[PIndex].FullDeck[index] = {}
-                mod.Saved.Player[PIndex].FullDeck[index].Suit = i --Spades - Hearts - clubs - diamonds
-                mod.Saved.Player[PIndex].FullDeck[index].Value = j --1 ~ 13
-                mod.Saved.Player[PIndex].FullDeck[index].Enhancement = mod.Enhancement.NONE
-                mod.Saved.Player[PIndex].FullDeck[index].Seal = mod.Seals.NONE
-                mod.Saved.Player[PIndex].FullDeck[index].Edition = mod.Edition.BASE
-                mod.Saved.Player[PIndex].FullDeck[index].Upgrades = 0 --only used for the Hiker joker
-                index = index +1
-            end
+    for i = 1, 4, 1 do --cycles between the suits
+        for j = 1, 13, 1 do --cycles for all the values
+            mod.Saved.Player[PIndex].FullDeck[index] = {}
+            mod.Saved.Player[PIndex].FullDeck[index].Suit = i --Spades - Hearts - clubs - diamonds
+            mod.Saved.Player[PIndex].FullDeck[index].Value = j --1 ~ 13
+            mod.Saved.Player[PIndex].FullDeck[index].Enhancement = mod.Enhancement.NONE
+            mod.Saved.Player[PIndex].FullDeck[index].Seal = mod.Seals.NONE
+            mod.Saved.Player[PIndex].FullDeck[index].Edition = mod.Edition.BASE
+            mod.Saved.Player[PIndex].FullDeck[index].Upgrades = 0 --only used for the Hiker joker
+            index = index +1
         end
+    end
+
+    mod.Saved.Player[PIndex].EctoUses = 0
 
     -------------------------
     
@@ -393,7 +408,6 @@ function mod:InitJimboValues(Player, Force)
         mod.Saved.Player[PIndex].Progress.Floor = {}
         mod.Saved.Player[PIndex].Progress.Floor.CardsUsed = 0
 
-        mod.Saved.Player[PIndex].EctoUses = 0
         mod.Saved.Player[PIndex].LastCardUsed = nil --the last card a player used
         mod.Saved.Player[PIndex].NumActiveCostumes = 0
 
@@ -410,13 +424,17 @@ function mod:InitJimboValues(Player, Force)
         mod.Saved.Player[PIndex].LastShotIndex = 0
 
         mod.Saved.Player[PIndex].Inventory = {}
-        for i=1,3 do
+        for i=1,5 do
             mod.Saved.Player[PIndex].Inventory[i] = {}
             mod.Saved.Player[PIndex].Inventory[i].Joker = 0
             mod.Saved.Player[PIndex].Inventory[i].Edition = mod.Edition.BASE
         end
 
+        mod.Saved.Player[PIndex].Progress = {} --values used for jokers
+        mod.Saved.Player[PIndex].Progress.Inventory = {0,0,0} --never reset, changed in different ways basing on the joker
+        mod.Saved.Player[PIndex].Progress.GiftCardExtra = {0,0,0}
 
+        mod.Saved.Player[PIndex].Consumables = {{Card = -1, Edition = 0}, {Card = -1, Edition = 0}}
     end
     end
     
@@ -440,9 +458,11 @@ function mod:InitJimboValues(Player, Force)
 
         mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND] = {false,false,false,false,false}
         mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.PACK] = {false,false,false}
-        mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.INVENTORY] = {}
+        mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.INVENTORY] = {false,false,false,false,false}
 
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams.Purposes.HAND)
+    
+        mod.SelectionParams[PIndex].PackPurpose = 0
     else
         mod.SelectionParams[PIndex].SelectedCards = {false,false,false,false,false}
 

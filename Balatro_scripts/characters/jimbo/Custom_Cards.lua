@@ -77,7 +77,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
             for i=1, 2 do
                 repeat 
                     RandomTarots[i] = CardRNG:RandomInt(1,22)
-                until RandomTarots[i] ~= Card.CARD_EMPEROR --or mod:JimboHasTrinket(Player, mod.Jokers.SHOWMAN)
+                until RandomTarots[i] ~= Card.CARD_EMPEROR or mod:JimboHasTrinket(Player, mod.Jokers.SHOWMAN)
             end
             for _,Tarot in ipairs(RandomTarots) do
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
@@ -298,6 +298,10 @@ mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.PlanetCards)
 ---@param Player EntityPlayer
 ---@param card Card
 function mod:CardPacks(card, Player,_)
+
+    if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
+        return
+    end
 
     local PIndex = Player:GetData().TruePlayerIndex
 

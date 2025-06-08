@@ -18,73 +18,90 @@ local SoulChance = 0.003
 local HoleChance = 0.003
 
 
-local TarotMaxSelection = {}
-TarotMaxSelection[Card.CARD_FOOL] = 0
-TarotMaxSelection[Card.CARD_MAGICIAN] = 2
-TarotMaxSelection[Card.CARD_HIGH_PRIESTESS] = 0
-TarotMaxSelection[Card.CARD_EMPRESS] = 2
-TarotMaxSelection[Card.CARD_EMPEROR] = 0
-TarotMaxSelection[Card.CARD_HIEROPHANT] = 2
-TarotMaxSelection[Card.CARD_LOVERS] = 1
-TarotMaxSelection[Card.CARD_CHARIOT] = 1
-TarotMaxSelection[Card.CARD_JUSTICE] = 1
-TarotMaxSelection[Card.CARD_HERMIT] = 0
-TarotMaxSelection[Card.CARD_WHEEL_OF_FORTUNE] = 0
-TarotMaxSelection[Card.CARD_STRENGTH] = 2
-TarotMaxSelection[Card.CARD_HANGED_MAN] = 2
-TarotMaxSelection[Card.CARD_DEATH] = 2
-TarotMaxSelection[Card.CARD_TEMPERANCE] = 0
-TarotMaxSelection[Card.CARD_DEVIL] = 1
-TarotMaxSelection[Card.CARD_TOWER] = 1
-TarotMaxSelection[Card.CARD_STARS] = 3
-TarotMaxSelection[Card.CARD_MOON] = 3
-TarotMaxSelection[Card.CARD_SUN] = 3
-TarotMaxSelection[Card.CARD_JUDGEMENT] = 0
-TarotMaxSelection[Card.CARD_WORLD] = 3
+local TarotMaxSelection = {[Card.CARD_MAGICIAN] = 2,
+                           [Card.CARD_EMPRESS] = 2,
+                           [Card.CARD_HIEROPHANT] = 2,
+                           [Card.CARD_LOVERS] = 1,
+                           [Card.CARD_CHARIOT] = 1,
+                           [Card.CARD_JUSTICE] = 1,
+                           [Card.CARD_STRENGTH] = 2,
+                           [Card.CARD_HANGED_MAN] = 2,
+                           [Card.CARD_DEATH] = 2,
+                           [Card.CARD_DEVIL] = 1,
+                           [Card.CARD_TOWER] = 1,
+                           [Card.CARD_STARS] = 3,
+                           [Card.CARD_MOON] = 3,
+                           [Card.CARD_SUN] = 3,
+                           [Card.CARD_WORLD] = 3}
+
+
+
+
 
 
 --every tarot has a new effect when used by jimbo
 ---@param Player EntityPlayer
 ---@param card Card
-function mod:TJimboUseTarot(card, Player, UseFlags)
+local function TJimboUseTarot(card, Player, IsPack, UseFlags)
 
     local PIndex = Player:GetData().TruePlayerIndex
     
-    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo
-       or mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.NONE then
-        return false
-    end
-
-    local IsTarot = card >= Card.CARD_FOOL and card <= Card.CARD_WORLD
+    ---local IsTarot = card >= Card.CARD_FOOL and card <= Card.CARD_WORLD
 
     local RandomSeed = math.max(Random(),1)
     local SelectedCards = mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]
 
+
+    if TarotMaxSelection[card]
+       and (mod.SelectionParams[PIndex].SelectionNum > TarotMaxSelection[card] or mod.SelectionParams[PIndex].SelectionNum <= 0
+            or (card == Card.CARD_DEATH and mod.SelectionParams[PIndex].SelectionNum ~= 2)) then
+
+        sfx:Play(SoundEffect.SOUND_BOSS2INTRO_ERRORBUZZ)
+        return false
+    end
+
+    local FreeSpaces = 0
+
+    if not IsPack then
+        local NumConsumables = #mod.Saved.Player[PIndex].Consumables
+        
+        --removes the card that just got used
+        mod.Saved.Player[PIndex].Consumables[NumConsumables].Card = -1
+        mod.Saved.Player[PIndex].Consumables[NumConsumables].Edition = mod.Edition.BASE
+
+        table.insert(mod.Saved.Player[PIndex].Consumables, 1, mod.Saved.Player[PIndex].Consumables[NumConsumables])
+        table.remove(mod.Saved.Player[PIndex].Consumables, NumConsumables + 1)
+        
+    end
+    if card == Card.CARD_HIGH_PRIESTESS or card == Card.CARD_EMPEROR or card == Card.CARD_FOOL then
+        
+        for _, slot in ipairs(mod.Saved.Player[PIndex].Consumables) do 
+            if slot.Card == -1 then
+                FreeSpaces = FreeSpaces + 1
+            end
+        end
+    end
 
     if card == Card.CARD_FOOL then
 
 
         if mod.Saved.Player[PIndex].LastCardUsed then
 
-            --PLACEHOLDER, GIVE CARD TO THE PLAYER INSTEAD
-            Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
-                       RandomVector()*3, Player, mod.Saved.Player[PIndex].LastCardUsed, RandomSeed)
-        else
-            Player:AnimateSad()
-        end
+            if FreeSpaces == 0 then
+                return false
+            end
 
-        goto FINISH
+            mod:TJimboAddConsumable(Player, mod.Saved.Player[PIndex].LastCardUsed)
+            goto FINISH
+        else
+            return false
+        end
     end
     
     
 
     if card == Card.CARD_MAGICIAN then
         
-        if mod.SelectionParams[PIndex].SelectionNum > TarotMaxSelection[card] then
-            sfx:Play(SoundEffect.SOUND_BOSS2INTRO_ERRORBUZZ)
-            return false
-        end
-
         for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
             
             if Selected then
@@ -94,23 +111,23 @@ function mod:TJimboUseTarot(card, Player, UseFlags)
         
     elseif card == Card.CARD_HIGH_PRIESTESS then
 
-        --PLACEHOLDER, GIVE CARD TO THE PLAYER INSTEAD
+
+        if FreeSpaces == 0 then
+            return false
+        end
 
         local CardRNG = Player:GetCardRNG(card)
-        for i=1, 2 do
+        for i=0, FreeSpaces-1 do
             local Rplanet = CardRNG:RandomInt(mod.Planets.PLUTO, mod.Planets.ERIS)
 
-            Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
-                           RandomVector()*2, Player, Rplanet, RandomSeed)
+            mod:TJimboAddConsumable(Player, Rplanet, 0, true)
+            Isaac.CreateTimer(function ()
+                Player:AnimateCard(Rplanet)
+            end, 0 + i*15,1,true)
         end
         
     
     elseif card == Card.CARD_EMPRESS then
-
-        if mod.SelectionParams[PIndex].SelectionNum > TarotMaxSelection[card] then
-            sfx:Play(SoundEffect.SOUND_BOSS2INTRO_ERRORBUZZ)
-            return false
-        end
 
         for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
             
@@ -120,24 +137,31 @@ function mod:TJimboUseTarot(card, Player, UseFlags)
         end
     
     elseif card == Card.CARD_EMPEROR then
-        local RandomTarots = {}
-        local CardRNG = Player:GetCardRNG(card)
-        for i=1, 2 do
-            repeat 
-                RandomTarots[i] = CardRNG:RandomInt(1,22)
-            until RandomTarots[i] ~= Card.CARD_EMPEROR --or mod:JimboHasTrinket(Player, mod.Jokers.SHOWMAN)
-        end
-        for _,Tarot in ipairs(RandomTarots) do
-            Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
-                       RandomVector()*3, Player, Tarot, RandomSeed)
-        end
 
-    elseif card == Card.CARD_HIEROPHANT then
-
-       if mod.SelectionParams[PIndex].SelectionNum > TarotMaxSelection[card] then
-            sfx:Play(SoundEffect.SOUND_BOSS2INTRO_ERRORBUZZ)
+        if FreeSpaces == 0 then
             return false
         end
+
+        local RandomTarots = {}
+        local CardRNG = Player:GetCardRNG(card)
+        for i=1, FreeSpaces do
+            local Tarot
+            repeat 
+                Tarot = CardRNG:RandomInt(1,22)
+            until Tarot ~= Card.CARD_EMPEROR and
+                  (not mod:Contained(RandomTarots, Tarot) or mod:JimboHasTrinket(Player, mod.Jokers.SHOWMAN))
+
+            RandomTarots[i] = Tarot
+
+            mod:TJimboAddConsumable(Player, Tarot, 0, true)
+            Isaac.CreateTimer(function ()
+                Player:AnimateCard(Tarot)
+            end, 0 + (i-1)*15,1,true)
+
+        end
+        
+
+    elseif card == Card.CARD_HIEROPHANT then
 
         for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
             
@@ -148,24 +172,14 @@ function mod:TJimboUseTarot(card, Player, UseFlags)
 
     elseif card == Card.CARD_LOVERS then
 
-        if mod.SelectionParams[PIndex].SelectionNum > TarotMaxSelection[card] then
-            sfx:Play(SoundEffect.SOUND_BOSS2INTRO_ERRORBUZZ)
-            return false
-        end
-
         for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
             
             if Selected then
-                mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Enhancement = mod.Enhancement.LOVERS
+                mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Enhancement = mod.Enhancement.WILD
             end
         end
     
     elseif card == Card.CARD_CHARIOT then
-
-        if mod.SelectionParams[PIndex].SelectionNum > TarotMaxSelection[card] then
-            sfx:Play(SoundEffect.SOUND_BOSS2INTRO_ERRORBUZZ)
-            return false
-        end
 
         for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
             
@@ -173,12 +187,8 @@ function mod:TJimboUseTarot(card, Player, UseFlags)
                 mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Enhancement = mod.Enhancement.STEEL
             end
         end
-    elseif card == Card.CARD_JUSTICE then
 
-        if mod.SelectionParams[PIndex].SelectionNum > TarotMaxSelection[card] then
-            sfx:Play(SoundEffect.SOUND_BOSS2INTRO_ERRORBUZZ)
-            return false
-        end
+    elseif card == Card.CARD_JUSTICE then
 
         for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
             
@@ -186,9 +196,10 @@ function mod:TJimboUseTarot(card, Player, UseFlags)
                 mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Enhancement = mod.Enhancement.GLASS
             end
         end
+
     elseif card == Card.CARD_HERMIT then
-        local CoinsToAdd = Player:GetNumCoins()
-        if CoinsToAdd > 20 then CoinsToAdd = 20 end --no more then 20 coins
+        local CoinsToAdd =  mod.Saved.HasDebt and 0 or math.min(Player:GetNumCoins(), 20)
+         --no more then 20 coins
 
         Player:AddCoins(CoinsToAdd)
 
@@ -207,7 +218,6 @@ function mod:TJimboUseTarot(card, Player, UseFlags)
 
         if not next(BaseJokers) then
             
-            Player:AnimateSad()
             return false
         end
 
@@ -236,11 +246,6 @@ function mod:TJimboUseTarot(card, Player, UseFlags)
 
     elseif card == Card.CARD_STRENGTH then
 
-        if mod.SelectionParams[PIndex].SelectionNum > TarotMaxSelection[card] then
-            sfx:Play(SoundEffect.SOUND_BOSS2INTRO_ERRORBUZZ)
-            return false
-        end
-
         for i,v in ipairs(SelectedCards) do
             if v then
                 if mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Value == mod.Values.KING then
@@ -255,13 +260,34 @@ function mod:TJimboUseTarot(card, Player, UseFlags)
         
 
     elseif card == Card.CARD_HANGED_MAN then
-        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
-                                              mod.SelectionParams.Purposes.HANGED)
+        local selection = {}
+        for i,v in ipairs(SelectedCards) do
+            if v then
+                table.insert(selection, mod.Saved.Player[PIndex].CurrentHand[i]) --gets the card that will be modified
+            end
+        end
+
+        mod:DestroyCards(Player, selection, true, true)
 
     elseif card == Card.CARD_DEATH then
-        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
-                                              mod.SelectionParams.Purposes.DEATH1)
-        
+
+        local FirstIndex
+        local SecondCard
+
+        for i,v in ipairs(SelectedCards) do
+            if v then
+                if FirstIndex then
+                    SecondCard = mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]]
+                else
+                    FirstIndex = i
+                end
+            end
+        end
+
+        for k,v in pairs(SecondCard) do
+            
+            mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[FirstIndex]][k] = v
+        end        
 
     elseif card == Card.CARD_TEMPERANCE then
 
@@ -279,10 +305,7 @@ function mod:TJimboUseTarot(card, Player, UseFlags)
 
     elseif card == Card.CARD_DEVIL then
 
-        if mod.SelectionParams[PIndex].SelectionNum > TarotMaxSelection[card] then
-            sfx:Play(SoundEffect.SOUND_BOSS2INTRO_ERRORBUZZ)
-            return false
-        end
+        
 
         for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
             
@@ -293,10 +316,7 @@ function mod:TJimboUseTarot(card, Player, UseFlags)
 
     elseif card == Card.CARD_TOWER then
 
-        if mod.SelectionParams[PIndex].SelectionNum > TarotMaxSelection[card] then
-            sfx:Play(SoundEffect.SOUND_BOSS2INTRO_ERRORBUZZ)
-            return false
-        end
+        
 
         for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
             
@@ -308,10 +328,7 @@ function mod:TJimboUseTarot(card, Player, UseFlags)
 
     elseif card == Card.CARD_STARS then
 
-        if mod.SelectionParams[PIndex].SelectionNum > TarotMaxSelection[card] then
-            sfx:Play(SoundEffect.SOUND_BOSS2INTRO_ERRORBUZZ)
-            return false
-        end
+        
 
         for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
             
@@ -321,10 +338,7 @@ function mod:TJimboUseTarot(card, Player, UseFlags)
         end
 
     elseif card == Card.CARD_MOON then
-        if mod.SelectionParams[PIndex].SelectionNum > TarotMaxSelection[card] then
-            sfx:Play(SoundEffect.SOUND_BOSS2INTRO_ERRORBUZZ)
-            return false
-        end
+        
 
         for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
             
@@ -334,10 +348,7 @@ function mod:TJimboUseTarot(card, Player, UseFlags)
         end
         
     elseif card == Card.CARD_SUN then
-        if mod.SelectionParams[PIndex].SelectionNum > TarotMaxSelection[card] then
-            sfx:Play(SoundEffect.SOUND_BOSS2INTRO_ERRORBUZZ)
-            return false
-        end
+        
 
         for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
             
@@ -380,10 +391,7 @@ function mod:TJimboUseTarot(card, Player, UseFlags)
 
 
     elseif card == Card.CARD_WORLD then
-        if mod.SelectionParams[PIndex].SelectionNum > TarotMaxSelection[card] then
-            sfx:Play(SoundEffect.SOUND_BOSS2INTRO_ERRORBUZZ)
-            return false
-        end
+        
 
         for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
             
@@ -402,12 +410,19 @@ function mod:TJimboUseTarot(card, Player, UseFlags)
 
     Player:AnimateCard(card, "UseItem")
 
+    for i,_ in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
+        
+        mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND][i] = false
+    end
+    mod.SelectionParams[PIndex].SelectionNum = 0
+    
+
     return true
 end
 --mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.TJimboUseTarot)
 
 
-function mod:PlanetCards(card, Player,_)
+local function TJimboUsePlanet(card, Player, UseFlags)
     if card <= mod.Planets.PLUTO or card >= mod.Planets.SUN then --if it's a planet Card
         return
     end
@@ -437,295 +452,11 @@ function mod:PlanetCards(card, Player,_)
     end
     
 end
-mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.PlanetCards)
+--mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.PlanetCards)
+
 
 ---@param Player EntityPlayer
----@param card Card
-function mod:CardPacks(card, Player,_)
-
-    local PIndex = Player:GetData().TruePlayerIndex
-
-    if card == mod.Packs.STANDARD then
-        Isaac.RunCallback("PACK_OPENED",Player,card)
-
-        local PackRng = Player:GetCardRNG(mod.Packs.STANDARD)
-        local RandomPack = {}
-
-        local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 4) or 3
-
-        local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
-        if EditionRoll <= JumboChance then
-            Size = Size + 2
-        end
-
-        for i=1, Size do
-            local RandomCard = {}
-            RandomCard.Suit = PackRng:RandomInt(1, 4)
-            RandomCard.Value = PackRng:RandomInt(1,13)
-            RandomCard.Upgrades = 0
-
-            if PackRng:RandomFloat() < 0.4 then
-                RandomCard.Enhancement = PackRng:RandomInt(2,9) 
-            else
-                RandomCard.Enhancement = mod.Enhancement.NONE --no :(
-            end
-
-            if PackRng:RandomFloat() < 0.2 then
-                RandomCard.Seal = PackRng:RandomInt(1,4)
-                sfx:Play(mod.Sounds.SEAL)
-            else
-                RandomCard.Seal = mod.Seals.NONE --no :(
-            end
-
-            local EdRoll = PackRng:RandomFloat()
-            if EdRoll <= CardEditionChance.Foil then
-                RandomCard.Edition = mod.Edition.FOIL
-                sfx:Play(mod.Sounds.FOIL)
-            elseif EdRoll <= CardEditionChance.Holo then
-                RandomCard.Edition = mod.Edition.HOLOGRAPHIC
-                sfx:Play(mod.Sounds.HOLO)
-            elseif EdRoll <= CardEditionChance.Poly then
-                RandomCard.Edition = mod.Edition.POLYCROME
-                sfx:Play(mod.Sounds.POLY)
-            else
-                RandomCard.Edition = mod.Edition.BASE --no :(
-            end
-
-            RandomPack[i] = RandomCard
-        end
-        mod.SelectionParams[PIndex].PackOptions = RandomPack
-
-        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
-                                              mod.SelectionParams.Purposes.StandardPack)
-
-        if EditionRoll <= JumboChance then
-
-            if EditionRoll <= MegaChance then
-                mod.SelectionParams[PIndex].Purpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.Purposes.MegaFlag
-                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!")
-            else
-                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!")
-            end
-        end
-
-    elseif card == mod.Packs.ARCANA then
-        Isaac.RunCallback("PACK_OPENED",Player,card)
-
-        local PackRng = Player:GetCardRNG(mod.Packs.ARCANA)
-
-        local RandomPack = {}
-        local Options = {}
-        for i=1,22 do --adds every tarot card to the pool
-            Options[#Options + 1] = i
-        end
-        if Player:HasCollectible(mod.Vouchers.Omen) then --adds the spectral cards to the possible outcomes
-            for i= mod.Spectrals.FAMILIAR, mod.Spectrals.CRYPTID do
-                Options[#Options + 1] = i
-            end
-        end
-
-        local Size = Player:HasCollectible(mod.Vouchers.Crystal) and 4 or 3 --very cool lua thingy
-
-        local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
-        if EditionRoll <= JumboChance then
-            Size = Size + 2
-        end
-
-        for i=1, Size, 1 do
-            local RandomCard
-            repeat
-                if PackRng:RandomFloat() < SoulChance then
-                    RandomCard = mod.Spectrals.SOUL
-                else
-                    RandomCard = mod:GetRandom(Options, PackRng) --chooses a random not reversed tarot (i'll prob regret using this)
-                end
-                RandomCard = mod:SpecialCardToFrame(RandomCard)
-                
-            until not mod:Contained(RandomPack, RandomCard)
-            
-            table.insert(RandomPack, RandomCard)
-        end
-        
-        mod.SelectionParams[PIndex].PackOptions = RandomPack
-
-        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
-        mod.SelectionParams.Purposes.TarotPack)
-
-        if EditionRoll <= JumboChance then
-        
-            if EditionRoll <= MegaChance then
-                mod.SelectionParams[PIndex].Purpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.Purposes.MegaFlag
-                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!")
-            else
-                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!")
-            end 
-        end
-
-
-    elseif card == mod.Packs.CELESTIAL then
-        Isaac.RunCallback("PACK_OPENED",Player,card)
-
-        local PackRng = Player:GetCardRNG(mod.Packs.CELESTIAL)
-        local RandomPack = {}
-        if Player:GetPlayerType() == mod.Characters.JimboType then
-            
-            local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 4) or 3
-
-            local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
-            if EditionRoll <= JumboChance then
-                Size = Size + 2
-            end
-
-            for i=1, Size do
-                local Rplanet
-                repeat
-                    if PackRng:RandomFloat() < HoleChance then
-                        Rplanet = mod.Spectrals.BLACK_HOLE
-                    else
-                        Rplanet = PackRng:RandomInt(mod.Planets.PLUTO,mod.Planets.SUN) --chooses a random planet
-                    end
-                    Rplanet = mod:SpecialCardToFrame(Rplanet)
-
-                until not mod:Contained(RandomPack, Rplanet)
-                table.insert(RandomPack, Rplanet)
-            end
-            mod.SelectionParams[PIndex].PackOptions = RandomPack
-
-            mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
-            mod.SelectionParams.Purposes.CelestialPack)
-
-            if EditionRoll <= JumboChance then
-        
-                if EditionRoll <= MegaChance then
-                    mod.SelectionParams[PIndex].Purpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.Purposes.MegaFlag
-                    mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!")
-                else
-                    mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!")
-                end 
-            end
-
-        elseif false then --TAINTED JIMBO
-            for i=1, 3, 1 do
-                local Rplanet
-                repeat  --certain hand types should remain hidden until used one time
-                    local IsPlanetUnlocked = true
-                    if PackRng:RandomFloat() < HoleChance then
-                        Rplanet = mod.Spectrals.BLACK_HOLE
-                    else
-                        Rplanet = PackRng:RandomInt(mod.Planets.PLUTO,mod.Planets.ERIS) --chooses a random planet
-
-                        if Rplanet == mod.Planets.PLANET_X then
-                            if not mod.Saved.Player[PIndex].FiveUnlocked then
-                                IsPlanetUnlocked = false
-                            end
-                        elseif Rplanet == mod.Planets.CERES then
-                            if not mod.Saved.Player[PIndex].FlushHouseUnlocked then
-                                IsPlanetUnlocked = false
-                            end
-                        elseif Rplanet == mod.Planets.ERIS then
-                            if not mod.Saved.Player[PIndex].FiveFlushUnlocked then
-                                IsPlanetUnlocked = false
-                            end
-                        end
-                    end
-                    Rplanet = mod:SpecialCardToFrame(Rplanet)
-
-                until IsPlanetUnlocked and not mod:Contained(RandomPack, Rplanet)
-
-                RandomPack[i] = Rplanet
-            end            
-        end
-        mod.SelectionParams[PIndex].PackOptions = RandomPack
-        
-    elseif card == mod.Packs.SPECTRAL then
-        Isaac.RunCallback("PACK_OPENED",Player,card)
-        
-        local PackRng = Player:GetCardRNG(mod.Packs.SPECTRAL)
-        local RandomPack = {}
-
-        local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 3) or 2
-
-        local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
-        if EditionRoll <= JumboChance then
-            Size = Size + 2
-        end
-
-        for i=1, Size do
-            local RSpectral
-            repeat
-                local SuperRoll = PackRng:RandomFloat()
-                if SuperRoll <= SoulChance then
-                    RSpectral = mod.Spectrals.SOUL
-                elseif SuperRoll <= SoulChance + HoleChance then
-                    RSpectral = mod.Spectrals.BLACK_HOLE
-                else
-                    RSpectral = PackRng:RandomInt(mod.Spectrals.FAMILIAR,mod.Spectrals.CRYPTID) --chooses a random spectral card
-                end
-                RSpectral = mod:SpecialCardToFrame(RSpectral)
-
-            until not mod:Contained(RandomPack, RSpectral)
-
-            table.insert(RandomPack, RSpectral)
-        end
-        mod.SelectionParams[PIndex].PackOptions = RandomPack
-
-        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
-                                              mod.SelectionParams.Purposes.SpectralPack)
-
-        if EditionRoll <= JumboChance then
-        
-            if EditionRoll <= MegaChance then
-                mod.SelectionParams[PIndex].Purpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.Purposes.MegaFlag
-                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!")
-            else
-                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!")
-            end
-        end
-
-    elseif card == mod.Packs.BUFFON then
-        Isaac.RunCallback("PACK_OPENED",Player,card)
-
-        local RandomPack = {}
-        local Jokers = {}
-        for i,v in ipairs(Isaac.FindByType(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET)) do
-            table.insert ( Jokers, v.SubType)
-        end
-
-        local PackRng = Player:GetCardRNG(mod.Packs.BUFFON)
-
-        local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 3) or 2
-
-        local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
-        if EditionRoll <= JumboChance then
-            Size = Size + 2
-        end
-
-        for i=1, Size, 1 do
-            RandomPack[i] = mod:RandomJoker(PackRng, Jokers, true)
-            table.insert(Jokers, RandomPack[i].Joker)
-        end
-
-        mod.SelectionParams[PIndex].PackOptions = RandomPack
-
-        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
-                                              mod.SelectionParams.Purposes.BuffonPack)
-
-        if EditionRoll <= JumboChance then
-    
-            if EditionRoll <= MegaChance then
-                mod.SelectionParams[PIndex].Purpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.Purposes.MegaFlag
-                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!")
-            else
-                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!")
-            end
-        end
-
-    end
-end
-mod:AddCallback(ModCallbacks.MC_USE_CARD, mod.CardPacks)
-
----@param Player EntityPlayer
-function mod:SpectralCards(card, Player)
+local function TJimboUseSpectral(card, Player, UseFlags)
     if not (card >= mod.Spectrals.FAMILIAR and card <= mod.Spectrals.SOUL) then
         return
     end
@@ -1036,4 +767,262 @@ function mod:SpectralCards(card, Player)
 
     end
 end
-mod:AddCallback(ModCallbacks.MC_USE_CARD, mod.SpectralCards)
+--mod:AddCallback(ModCallbacks.MC_USE_CARD, mod.SpectralCards)
+
+
+
+function mod:TJimboUseCard(card, Player, IsPack, UseFlags)
+
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo
+       or mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.NONE then
+        return false
+    end
+
+    UseFlags = UseFlags or 0
+
+    local IsTarot = card >= Card.CARD_FOOL and card <= Card.CARD_WORLD
+    local IsPlanet = card >= mod.Planets.PLUTO and card <= mod.Planets.SUN
+    local IsSpectral = card >= mod.Spectrals.FAMILIAR and card <= mod.Spectrals.SOUL
+
+    local Success
+    if IsTarot then
+        
+        Success = TJimboUseTarot(card, Player, IsPack, UseFlags)
+
+    elseif IsPlanet then
+        
+        Success = TJimboUsePlanet(card, Player, UseFlags)
+
+    elseif IsSpectral then
+        
+        Success = TJimboUseSpectral(card, Player, UseFlags)
+    end
+
+    return Success
+
+end
+--mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.TJimboUseCard)
+
+
+
+---@param Player EntityPlayer
+---@param card Card
+local function TJimboCardPacks(_,card, Player,_)
+
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
+        return
+    end
+
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    if card == mod.Packs.STANDARD then
+        Isaac.RunCallback("PACK_OPENED",Player,card)
+
+        local PackRng = Player:GetCardRNG(mod.Packs.STANDARD)
+        local RandomPack = {}
+
+        local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 4) or 3
+
+        local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
+        if EditionRoll <= JumboChance then
+            Size = Size + 2
+        end
+
+        for i=1, Size do
+            local RandomCard = {}
+            RandomCard.Suit = PackRng:RandomInt(1, 4)
+            RandomCard.Value = PackRng:RandomInt(1,13)
+            RandomCard.Upgrades = 0
+
+            if PackRng:RandomFloat() < 0.4 then
+                RandomCard.Enhancement = PackRng:RandomInt(2,9) 
+            else
+                RandomCard.Enhancement = mod.Enhancement.NONE --no :(
+            end
+
+            if PackRng:RandomFloat() < 0.2 then
+                RandomCard.Seal = PackRng:RandomInt(1,4)
+                sfx:Play(mod.Sounds.SEAL)
+            else
+                RandomCard.Seal = mod.Seals.NONE --no :(
+            end
+
+            local EdRoll = PackRng:RandomFloat()
+            if EdRoll <= CardEditionChance.Foil then
+                RandomCard.Edition = mod.Edition.FOIL
+                sfx:Play(mod.Sounds.FOIL)
+            elseif EdRoll <= CardEditionChance.Holo then
+                RandomCard.Edition = mod.Edition.HOLOGRAPHIC
+                sfx:Play(mod.Sounds.HOLO)
+            elseif EdRoll <= CardEditionChance.Poly then
+                RandomCard.Edition = mod.Edition.POLYCROME
+                sfx:Play(mod.Sounds.POLY)
+            else
+                RandomCard.Edition = mod.Edition.BASE --no :(
+            end
+
+            RandomPack[i] = RandomCard
+        end
+        mod.SelectionParams[PIndex].PackOptions = RandomPack
+
+        mod.SelectionParams[PIndex].Frames = 0
+        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
+                                              mod.SelectionParams.Purposes.StandardPack)
+
+    elseif card == mod.Packs.ARCANA then
+        Isaac.RunCallback("PACK_OPENED",Player,card)
+
+        local PackRng = Player:GetCardRNG(mod.Packs.ARCANA)
+
+        local RandomPack = {}
+        local Options = {}
+        for i=1,22 do --adds every tarot card to the pool
+            Options[#Options + 1] = i
+        end
+        if Player:HasCollectible(mod.Vouchers.Omen) then --adds the spectral cards to the possible outcomes
+            for i= mod.Spectrals.FAMILIAR, mod.Spectrals.CRYPTID do
+                Options[#Options + 1] = i
+            end
+        end
+
+        local Size = Player:HasCollectible(mod.Vouchers.Crystal) and 4 or 3 --very cool lua thingy
+
+        local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
+        if EditionRoll <= JumboChance then
+            Size = Size + 2
+        end
+
+        for i=1, Size, 1 do
+            local RandomCard
+            repeat
+                if PackRng:RandomFloat() < SoulChance then
+                    RandomCard = mod.Spectrals.SOUL
+                else
+                    RandomCard = mod:GetRandom(Options, PackRng) --chooses a random not reversed tarot (i'll prob regret using this)
+                end
+                RandomCard = mod:SpecialCardToFrame(RandomCard)
+                
+            until not mod:Contained(RandomPack, RandomCard)
+            
+            table.insert(RandomPack, RandomCard)
+        end
+        
+        mod.SelectionParams[PIndex].PackOptions = RandomPack
+
+        mod.SelectionParams[PIndex].Frames = 0
+        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
+        mod.SelectionParams.Purposes.TarotPack)
+
+    elseif card == mod.Packs.CELESTIAL then
+        Isaac.RunCallback("PACK_OPENED",Player,card)
+
+        local PackRng = Player:GetCardRNG(mod.Packs.CELESTIAL)
+        local RandomPack = {}
+        
+        for i=1, 3, 1 do
+            local Rplanet
+            repeat  --certain hand types should remain hidden until used one time
+                local IsPlanetUnlocked = true
+                if PackRng:RandomFloat() < HoleChance then
+                    Rplanet = mod.Spectrals.BLACK_HOLE
+                else
+                    Rplanet = PackRng:RandomInt(mod.Planets.PLUTO,mod.Planets.ERIS) --chooses a random planet
+
+                    if Rplanet == mod.Planets.PLANET_X then
+                        if not mod.Saved.Player[PIndex].FiveUnlocked then
+                            IsPlanetUnlocked = false
+                        end
+                    elseif Rplanet == mod.Planets.CERES then
+                        if not mod.Saved.Player[PIndex].FlushHouseUnlocked then
+                            IsPlanetUnlocked = false
+                        end
+                    elseif Rplanet == mod.Planets.ERIS then
+                        if not mod.Saved.Player[PIndex].FiveFlushUnlocked then
+                            IsPlanetUnlocked = false
+                        end
+                    end
+                end
+                Rplanet = mod:SpecialCardToFrame(Rplanet)
+
+            until IsPlanetUnlocked and not mod:Contained(RandomPack, Rplanet)
+
+            RandomPack[i] = Rplanet
+        end            
+        
+        mod.SelectionParams[PIndex].PackOptions = RandomPack
+        mod.SelectionParams[PIndex].Frames = 0
+
+        mod.SelectionParams[PIndex].Frames = 0
+        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
+                                              mod.SelectionParams.Purposes.CelestialPack)
+        
+    elseif card == mod.Packs.SPECTRAL then
+        Isaac.RunCallback("PACK_OPENED",Player,card)
+        
+        local PackRng = Player:GetCardRNG(mod.Packs.SPECTRAL)
+        local RandomPack = {}
+
+        local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 3) or 2
+
+        local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
+        if EditionRoll <= JumboChance then
+            Size = Size + 2
+        end
+
+        for i=1, Size do
+            local RSpectral
+            repeat
+                local SuperRoll = PackRng:RandomFloat()
+                if SuperRoll <= SoulChance then
+                    RSpectral = mod.Spectrals.SOUL
+                elseif SuperRoll <= SoulChance + HoleChance then
+                    RSpectral = mod.Spectrals.BLACK_HOLE
+                else
+                    RSpectral = PackRng:RandomInt(mod.Spectrals.FAMILIAR,mod.Spectrals.CRYPTID) --chooses a random spectral card
+                end
+                RSpectral = mod:SpecialCardToFrame(RSpectral)
+
+            until not mod:Contained(RandomPack, RSpectral)
+
+            table.insert(RandomPack, RSpectral)
+        end
+        mod.SelectionParams[PIndex].PackOptions = RandomPack
+
+        mod.SelectionParams[PIndex].Frames = 0
+        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
+                                              mod.SelectionParams.Purposes.SpectralPack)
+
+    elseif card == mod.Packs.BUFFON then
+        Isaac.RunCallback("PACK_OPENED",Player,card)
+
+        local RandomPack = {}
+        local Jokers = {}
+        for i,v in ipairs(Isaac.FindByType(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET)) do
+            table.insert ( Jokers, v.SubType)
+        end
+
+        local PackRng = Player:GetCardRNG(mod.Packs.BUFFON)
+
+        local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 3) or 2
+
+        local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
+        if EditionRoll <= JumboChance then
+            Size = Size + 2
+        end
+
+        for i=1, Size, 1 do
+            RandomPack[i] = mod:RandomJoker(PackRng, Jokers, true)
+            table.insert(Jokers, RandomPack[i].Joker)
+        end
+
+        mod.SelectionParams[PIndex].PackOptions = RandomPack
+
+        mod.SelectionParams[PIndex].Frames = 0
+        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
+                                              mod.SelectionParams.Purposes.BuffonPack)
+
+    end
+end
+mod:AddCallback(ModCallbacks.MC_USE_CARD, TJimboCardPacks)

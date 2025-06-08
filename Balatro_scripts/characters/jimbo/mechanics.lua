@@ -256,7 +256,7 @@ function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rN
 
     local ReturnTable = {Variant, SubType, true} --basic return equal to not returning anything
 
-    local RollRNG = mod.Saved.GeneralRNG --tried using the rng from the callback but it gave the same results each time
+    local RollRNG = RNG(Game:GetRoom():GetSpawnSeed()) --tried using the rng from the callback but it gave the same results each time
 
 
     if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType)
@@ -839,7 +839,7 @@ end
 mod:AddPriorityCallback("TRUE_ROOM_CLEAR",CallbackPriority.LATE, mod.AddRoomsCleared)
 
 
---activates whenever the deckpointer is shifted (has the steel cards effect)
+--activates whenever the deckpointer is shifted
 ---@param Player EntityPlayer
 function mod:OnDeckShift(Player)
 
@@ -934,7 +934,7 @@ mod:AddPriorityCallback("BLIND_CLEARED",CallbackPriority.LATE, mod.GiveRewards)
 
 ---@param Player EntityPlayer
 ---@param StopEvaluation boolean this is only set when called in mod:AddJoker (Utility.lua)
-function mod:JimboAddTrinket(Player, Trinket, _, StopEvaluation)
+local function JimboAddTrinket(Player, Trinket, _, StopEvaluation)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
@@ -959,8 +959,8 @@ function mod:JimboAddTrinket(Player, Trinket, _, StopEvaluation)
     mod.Saved.Player[PIndex].Inventory[EmptySlot].Joker = Trinket
     mod.Saved.Player[PIndex].Inventory[EmptySlot].Edition = JokerEdition
 
-    local InitialProg = ItemsConfig:GetTrinket(Trinket):GetCustomTags()[2]
-    mod.Saved.Player[PIndex].Progress.Inventory[EmptySlot] = tonumber(InitialProg)
+    mod.Saved.Player[PIndex].Progress.Inventory[EmptySlot] = mod:GetJokerInitialProgress(Trinket)
+
 
     if not StopEvaluation then
         Isaac.RunCallback("JOKER_ADDED", Player, Trinket, JokerEdition, EmptySlot)
@@ -969,7 +969,7 @@ function mod:JimboAddTrinket(Player, Trinket, _, StopEvaluation)
 
     return true
 end
-mod:AddPriorityCallback(ModCallbacks.MC_POST_TRIGGER_TRINKET_ADDED,CallbackPriority.IMPORTANT, mod.JimboAddTrinket)
+--mod:AddPriorityCallback(ModCallbacks.MC_POST_TRIGGER_TRINKET_ADDED,CallbackPriority.IMPORTANT, mod.JimboAddTrinket)
 
 
 ---@param RNG RNG 
@@ -1900,23 +1900,7 @@ mod:AddCallback(ModCallbacks.MC_PRE_TEAR_RENDER, mod.AdjustCardRotation, mod.Tea
 ------------------VARIOUS/UTILITY------------------
 ------------------------------------------------
 
---shuffles the deck
----@param Player EntityPlayer
-function mod:FullDeckShuffle(Player)
-    if Player:GetPlayerType() == mod.Characters.JimboType then
 
-        local PIndex = Player:GetData().TruePlayerIndex
-        local PlayerRNG = Player:GetDropRNG()
-        mod.Saved.Player[PIndex].FullDeck = mod:Shuffle(mod.Saved.Player[PIndex].FullDeck, PlayerRNG)
-
-        mod.Saved.Player[PIndex].DeckPointer = Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) + 1
-        for i=1, Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) do
-            mod.Saved.Player[PIndex].CurrentHand[i] = i
-        end
-
-        Isaac.RunCallback("DECK_SHIFT", Player)
-    end
-end
 
 --VV sorry, didn't put many comments on these functions and I'm too lazy to do so now (I'll def regret this)
 
@@ -1963,11 +1947,11 @@ function mod:Select(Player)
 
         if mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.NONE then
             
-            print("purpose is set to NONE!")
+            --print("purpose is set to NONE!")
             return
         end
 
-        print("at selection: ", mod.SelectionParams[PIndex].MaxSelectionNum)
+        --print("at selection: ", mod.SelectionParams[PIndex].MaxSelectionNum)
 
         --if its an actual option
         if mod.SelectionParams[PIndex].Index <= mod.SelectionParams[PIndex].OptionsNum then
@@ -2247,7 +2231,7 @@ function mod:UseSelection(Player)
                 end
             end
 
-            mod:DestroyCards(Player, selection, true)
+            mod:DestroyCards(Player, selection, true, true)
 
         elseif mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.STRENGTH then
             for i,v in ipairs(SelectedCards) do
@@ -2322,7 +2306,7 @@ function mod:UseSelection(Player)
             Isaac.RunCallback("DECK_MODIFY", Player)
         end
 
-        print(mod.SelectionParams[PIndex].MaxSelectionNum)
+        --print(mod.SelectionParams[PIndex].MaxSelectionNum)
 
 
     elseif mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.INVENTORY then
@@ -2358,12 +2342,30 @@ function mod:UseSelection(Player)
             return
         end
 
-        if mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.TarotPack
-           or mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.SpectralPack then
-            
-            --Player:UseCard(mod:FrameToSpecialCard(mod.SelectionParams[PIndex].PackOptions[PackIndex]))
+        local PackPurpose = mod.SelectionParams[PIndex].PackPurpose & ~mod.SelectionParams.Purposes.MegaFlag
 
-            mod:TJimboUseTarot(Card.CARD_MAGICIAN, Player, 0)
+        if PackPurpose == mod.SelectionParams.Purposes.TarotPack
+           or PackPurpose == mod.SelectionParams.Purposes.SpectralPack then
+            
+            local Success = mod:TJimboUseCard(mod:FrameToSpecialCard(mod.SelectionParams[PIndex].PackOptions[PackIndex]), Player)
+
+            --local Success = mod:TJimboUseCard(Card.CARD_MAGICIAN, Player, 0)
+
+            if not Success then
+                
+                mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams[PIndex].PackPurpose)
+                return
+            end
+            if mod.SelectionParams[PIndex].Purpose & mod.SelectionParams.Purposes.MegaFlag == mod.SelectionParams.Purposes.MegaFlag then
+                
+                mod.SelectionParams[PIndex].Purpose = mod.SelectionParams[PIndex].Purpose & ~mod.SelectionParams.Purposes.MegaFlag
+                
+                table.remove(mod.SelectionParams[PIndex].PackOptions, PackIndex)
+                goto FINISH
+            end
+            
+            mod.SelectionParams[PIndex].PackOptions = {}
+            mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams.Purposes.NONE
         end
 
         if Game:GetRoom():IsClear() and false then

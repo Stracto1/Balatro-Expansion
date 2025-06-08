@@ -88,7 +88,7 @@ local function PreventErrors()
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, PreventErrors)
 
---rendered the currently hald jokers
+--rendered the currently held jokers
 ---@param Player EntityPlayer
 ---@param HeartSprite Sprite
 function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
