@@ -182,6 +182,24 @@ for i = 1, 5 do --puts every candy stages
     Balatro_Expansion.Trinkets.TASTY_CANDY[i] = Balatro_Expansion.Jokers.PERKEO + i
 end
 
+Balatro_Expansion.Callbalcks = {CARD_SHOT = "CARD_SHOT",
+                                CARD_HIT = "CARD_HIT",
+                                DISCARD = "HAND_DISCARD",
+                                JOKER_SOLD = "JOKER_SOLD",
+                                BLIND_CLEAR = "BLIND_CLEARED",
+                                BLIND_START = "BLIND_STARTED",
+                                PACK_OPEN = "PACK_OPENED",
+                                PACK_SKIP = "PACK_SKIPPED",
+                                TRUE_CLEAR = "TRUE_ROOM_CLEAR",
+                                INVENTORY_CHANGE = "INVENTORY_CHANGE",
+                                JOKER_ADDED = "JOKER_ADDED",
+                                DECK_SHIFT = "DECK_SHIFT",
+                                DECK_MODIFY = "DECK_MODIFY",
+                                HAND_PLAY = "HAND_PLAYED",
+                                POST_HAND_PLAY = "POST_HAND_PLAYED",
+                                HAND_UPDATE = "HAND_TYPE_UPDATE"}
+
+
 Balatro_Expansion.JokerTypes = {}
 Balatro_Expansion.JokerTypes.ECON = "money"
 Balatro_Expansion.JokerTypes.MULT = "mult"
@@ -276,6 +294,11 @@ Balatro_Expansion.EffectColors.BLUE = Color(49/255, 140/255, 238/255)
 Balatro_Expansion.EffectColors.YELLOW = Color(238/255, 186/255, 49/255)
 Balatro_Expansion.EffectColors.PURPLE = Color(238/255, 186/255, 49/255)
 
+Balatro_Expansion.EffectType = {NULL = -1,
+                                JOKER = 0,
+                                HAND = 1,
+                                ENTITY = 2}
+
 
 Balatro_Expansion.Packs = {}
 Balatro_Expansion.Packs.ARCANA =  Isaac.GetCardIdByName("Tarot_Pack")
@@ -363,6 +386,7 @@ Balatro_Expansion.Suits.Spade = 1
 Balatro_Expansion.Suits.Heart = 2
 Balatro_Expansion.Suits.Club = 3
 Balatro_Expansion.Suits.Diamond = 4
+Balatro_Expansion.Suits.ALL = 5
 
 Balatro_Expansion.Values = {}
 Balatro_Expansion.Values.JACK = 11
@@ -396,6 +420,9 @@ Balatro_Expansion.Edition.HOLOGRAPHIC = 2
 Balatro_Expansion.Edition.POLYCROME = 3
 Balatro_Expansion.Edition.NEGATIVE = 4
 
+Balatro_Expansion.Modifier = {DEBUFFED = 1 << 0,
+                              COVERED = 1 << 1}
+
 Balatro_Expansion.EditionShaders ={ --sadly these don't work for the bigger card spritesheet, if you know how to fix this please let me know!!
     "shaders/Foil_effect",
     "shaders/Holographic_effect",
@@ -422,10 +449,10 @@ Balatro_Expansion.HandTypes.FLUSH = 1 << 6
 Balatro_Expansion.HandTypes.FULL_HOUSE = 1 << 7
 Balatro_Expansion.HandTypes.FOUR = 1 << 8
 Balatro_Expansion.HandTypes.STRAIGHT_FLUSH = 1 << 9
-Balatro_Expansion.HandTypes.ROYAL_FLUSH = 1 << 10
-Balatro_Expansion.HandTypes.FIVE = 1 << 11
+Balatro_Expansion.HandTypes.FIVE = 1 << 10
 Balatro_Expansion.HandTypes.FLUSH_HOUSE = 1 << 11
-Balatro_Expansion.HandTypes.FIVE_FLUSH = 1 << 13
+Balatro_Expansion.HandTypes.FIVE_FLUSH = 1 << 12
+Balatro_Expansion.HandTypes.ROYAL_FLUSH = 1 << 13
 
 
 Balatro_Expansion.Tears = {}
@@ -573,6 +600,7 @@ Balatro_Expansion.Saved.Player.LastShotIndex = 0
 Balatro_Expansion.Saved.MichelDestroyed = false
 
 Balatro_Expansion.Saved.HasDebt = false
+Balatro_Expansion.Saved.EnableHand = false
 
 Balatro_Expansion.Saved.Player.SmallBlind = 0
 Balatro_Expansion.Saved.Player.BigBlind = 0
@@ -649,7 +677,7 @@ for i=1, 13 do
     Balatro_Expansion.Saved.CardLevels[i] = 0
 end
 
---[[
+
 Balatro_Expansion.Saved.Player.HandLevels = {}
 Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.HIGH_CARD] = 1
 Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.PAIR] = 1
@@ -665,41 +693,43 @@ Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.FIVE] = 1
 Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.FLUSH_HOUSE] = 1
 Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.FIVE_FLUSH] = 1
 
+Balatro_Expansion.Stats = {CHIPS = "X", MULT = "Y"}
+
 Balatro_Expansion.Saved.Player.HandsStat = {}
 Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.NONE] = Vector(0,0)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.HIGH_CARD] = Vector(0.05,0.2)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.PAIR] = Vector(0.1,0.4)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.TWO_PAIR] = Vector(0.1,0.8)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.THREE] = Vector(0.15,1.2)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.STRAIGHT] = Vector(0.2,1.2)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FLUSH] = Vector(0.2,1.4)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FULL_HOUSE] = Vector(0.2,1.6)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FOUR] = Vector(0.35,2.4)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.STRAIGHT_FLUSH] = Vector(0.4,4)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.ROYAL_FLUSH] = Vector(0.4,4)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FIVE] = Vector(0.6,4.8)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FLUSH_HOUSE] = Vector(0.7,5.6)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FIVE_FLUSH] = Vector(0.8,6.4)
+Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.HIGH_CARD] = Vector(0.2,0.05)
+Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.PAIR] = Vector(0.4,0.1)
+Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.TWO_PAIR] = Vector(0.8,0.1)
+Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.THREE] = Vector(1.2,0.15)
+Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.STRAIGHT] = Vector(1.2,0.2)
+Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FLUSH] = Vector(1.4,0.2)
+Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FULL_HOUSE] = Vector(1.6,0.2)
+Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FOUR] = Vector(2.4,0.35)
+Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.STRAIGHT_FLUSH] = Vector(4,0.4)
+Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.ROYAL_FLUSH] = Vector(4,0.4)
+Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FIVE] = Vector(4.8,0.6)
+Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FLUSH_HOUSE] = Vector(5.6,0.7)
+Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FIVE_FLUSH] = Vector(6.4,0.8)
 
 
 Balatro_Expansion.HandUpgrades = {}
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.HIGH_CARD] = Vector(0.05,0.4)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.PAIR] = Vector(0.05,0.6)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.TWO_PAIR] = Vector(0.05,0.6)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.THREE] = Vector(0.1,0.8)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.STRAIGHT] = Vector(0.15,1.2)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FLUSH] = Vector(0.1,0.6)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FULL_HOUSE] = Vector(0.1,1)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FOUR] = Vector(0.15,1.2)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.STRAIGHT_FLUSH] = Vector(0.2,1.6)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.ROYAL_FLUSH] = Vector(0.2,1.6)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FIVE] = Vector(0.15,1.4)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FLUSH_HOUSE] = Vector(0.2,1.6)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FIVE_FLUSH] = Vector(0.15,2)
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.HIGH_CARD] = Vector(0.4,0.05)
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.PAIR] = Vector(0.6,0.05)
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.TWO_PAIR] = Vector(0.6,0.05)
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.THREE] = Vector(0.8,0.1)
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.STRAIGHT] = Vector(1.2,0.15)
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FLUSH] = Vector(0.6,0.1)
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FULL_HOUSE] = Vector(1,0.1)
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FOUR] = Vector(1.2,0.15)
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.STRAIGHT_FLUSH] = Vector(1.6,0.2)
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.ROYAL_FLUSH] = Vector(1.6,0.2)
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FIVE] = Vector(1.4,0.15)
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FLUSH_HOUSE] = Vector(1.6,0.2)
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FIVE_FLUSH] = Vector(2,0.15)
 
 Balatro_Expansion.Saved.Player.FiveUnlocked = false
 Balatro_Expansion.Saved.Player.FlushHouseUnlocked = false
-Balatro_Expansion.Saved.Player.FiveFlushUnlocked = false]]--
+Balatro_Expansion.Saved.Player.FiveFlushUnlocked = false
 
 --  VALUES SHARED BETWWEN JIMBO AND NORMALS
 
@@ -745,7 +775,6 @@ Balatro_Expansion.SelectionParams[0].PackOptions = {} --the options for the sele
 Balatro_Expansion.SelectionParams[0].OptionsNum = 0 --total amount of options
 Balatro_Expansion.SelectionParams[0].MaxSelectionNum = 0 --how many things you can choose at a time
 Balatro_Expansion.SelectionParams[0].SelectionNum = 0 --how many things you chose
-Balatro_Expansion.SelectionParams[0].PlayerChoosing = 0 --the true player index of who is choosing
 
 
 Balatro_Expansion.SelectionParams.Modes = {}
@@ -789,6 +818,7 @@ Balatro_Expansion.SelectionParams.Purposes.SpectralPack = 26
 Balatro_Expansion.SelectionParams.Purposes.BuffonPack = 27
 Balatro_Expansion.SelectionParams.Purposes.SELLING = 28
 Balatro_Expansion.SelectionParams.Purposes.SMELTER = 29
+Balatro_Expansion.SelectionParams.Purposes.AIMING = 30
 Balatro_Expansion.SelectionParams.Purposes.MegaFlag = 128 --applied on top of the packs purposes to say it's a double choice
 
 
@@ -936,7 +966,7 @@ include("Balatro_scripts.characters.jimbo.Custom_Cards") --jimbo cards effects
 include("Balatro_scripts.characters.T jimbo.mechanics")
 include("Balatro_scripts.characters.T jimbo.hud")
 include("Balatro_scripts.characters.T jimbo.Custom_Cards")
-
+include("Balatro_scripts.characters.T jimbo.scoring system")
 
 
 

@@ -11,8 +11,8 @@ CardEditionChance.Holo = 0.068 --is actually 0.028
 CardEditionChance.Poly = 0.080 --is actually 0.012
 CardEditionChance.Negative = 0.003 --is actually 0.012
 
-local MegaChance = 0.15 --0.10 originally
-local JumboChance = 0.55 --0.4 originally
+local MegaChance = 0.1 --0.10 originally
+local JumboChance = 0.4 --0.4 originally
 
 local SoulChance = 0.003
 local HoleChance = 0.003
@@ -35,6 +35,12 @@ local TarotMaxSelection = {[Card.CARD_MAGICIAN] = 2,
                            [Card.CARD_WORLD] = 3}
 
 
+local SpectralMaxSelection = {[mod.Spectrals.AURA] = 1,
+                              [mod.Spectrals.TALISMAN] = 1,
+                              [mod.Spectrals.DEJA_VU] = 1,
+                              [mod.Spectrals.TRANCE] = 1,
+                              [mod.Spectrals.MEDIUM] = 1,
+                              [mod.Spectrals.CRYPTID] = 1}
 
 
 
@@ -53,10 +59,11 @@ local function TJimboUseTarot(card, Player, IsPack, UseFlags)
 
 
     if TarotMaxSelection[card]
+       and not mod.Saved.EnableHand --is selection is impossible
        and (mod.SelectionParams[PIndex].SelectionNum > TarotMaxSelection[card] or mod.SelectionParams[PIndex].SelectionNum <= 0
-            or (card == Card.CARD_DEATH and mod.SelectionParams[PIndex].SelectionNum ~= 2)) then
+            or (card == Card.CARD_DEATH and mod.SelectionParams[PIndex].SelectionNum ~= 2)) then --if the wrong number of cards is selected
 
-        sfx:Play(SoundEffect.SOUND_BOSS2INTRO_ERRORBUZZ)
+        sfx:Play(SoundEffect.SOUND_THUMBS_DOWN)
         return false
     end
 
@@ -423,349 +430,432 @@ end
 
 
 local function TJimboUsePlanet(card, Player, UseFlags)
-    if card <= mod.Planets.PLUTO or card >= mod.Planets.SUN then --if it's a planet Card
-        return
-    end
 
     local PIndex = Player:GetData().TruePlayerIndex
-    local Hand = card - mod.Planets.PLUTO + 1 --gets the equivalent handtype
+    local PlanetHandType = 1 << (card - mod.Planets.PLUTO + 1) --gets the equivalent handtype
 
-    mod.Saved.PlanetTypesUsed = mod.Saved.PlanetTypesUsed | (1 << Hand)
+    mod.Saved.PlanetTypesUsed = mod.Saved.PlanetTypesUsed | PlanetHandType
 
-    if Player:GetPlayerType() == mod.Characters.JimboType then
-
-        mod.Saved.CardLevels[Hand] = mod.Saved.CardLevels[Hand] + 1
-
-        --PLACEHOLDER
-        mod:CreateBalatroEffect(Player, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, mod:CardValueToName(Hand, false, true).." Up!")
-
-    elseif false then --TAINTED JIMBO
-
-        mod.Saved.Player[PIndex].HandLevels[Hand] = mod.Saved.Player[PIndex].HandLevels[Hand] + 1
-        mod.Saved.Player[PIndex].HandsStat[Hand] = mod.Saved.Player[PIndex].HandsStat[Hand] + mod.HandUpgrades[Hand]
-        if Hand == mod.HandTypes.STRAIGHT_FLUSH then
-            Hand = mod.HandTypes.ROYAL_FLUSH --upgrades both royal flush and straight flush
-            mod.Saved.Player[PIndex].HandLevels[Hand] = mod.Saved.Player[PIndex].HandLevels[Hand] + 1
-            mod.Saved.Player[PIndex].HandsStat[Hand] = mod.Saved.Player[PIndex].HandsStat[Hand] + mod.HandUpgrades[Hand]
-        end
-
-    end
+    mod.Saved.Player[PIndex].HandLevels[PlanetHandType] = mod.Saved.Player[PIndex].HandLevels[PlanetHandType] + 1
+    mod.Saved.Player[PIndex].HandsStat[PlanetHandType] = mod.Saved.Player[PIndex].HandsStat[PlanetHandType] + mod.HandUpgrades[PlanetHandType]
     
+    if PlanetHandType == mod.HandTypes.STRAIGHT_FLUSH then
+        PlanetHandType = mod.HandTypes.ROYAL_FLUSH --upgrades both royal flush and straight flush
+        mod.Saved.Player[PIndex].HandLevels[PlanetHandType] = mod.Saved.Player[PIndex].HandLevels[PlanetHandType] + 1
+        mod.Saved.Player[PIndex].HandsStat[PlanetHandType] = mod.Saved.Player[PIndex].HandsStat[PlanetHandType] + mod.HandUpgrades[PlanetHandType]
+    end
+
+    return true
 end
 --mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.PlanetCards)
 
 
 ---@param Player EntityPlayer
 local function TJimboUseSpectral(card, Player, UseFlags)
-    if not (card >= mod.Spectrals.FAMILIAR and card <= mod.Spectrals.SOUL) then
-        return
-    end
-
+    
     local PIndex = Player:GetData().TruePlayerIndex
 
-    if Player:GetPlayerType() == mod.Characters.JimboType then  
-        local CardRNG = Player:GetCardRNG(card)
-        if card == mod.Spectrals.FAMILIAR then
-            
-            local Valid = 0
-            for i,v in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
-                if mod.Saved.Player[PIndex].FullDeck[v] then
-                    Valid = Valid + 1
-                end
-            end
-            if Valid == 0 then --if no cards are valid then cancel
-                Player:AnimateSad()
-                return
-            end
-            --removes a random card from the deck
-            local RandomCard
-            repeat
-                RandomCard = mod:GetRandom(mod.Saved.Player[PIndex].CurrentHand, CardRNG)
-            until mod.Saved.Player[PIndex].FullDeck[RandomCard]
-            table.remove(mod.Saved.Player[PIndex].FullDeck, RandomCard)    
-            for i = 1, 3 do --adds 3 face cards
-                local RandomFace = {}
-                RandomFace.Value = CardRNG:RandomInt(11,13)
-                RandomFace.Suit = CardRNG:RandomInt(1,4)
-                repeat 
-                    RandomFace.Enhancement = CardRNG:RandomInt(2,9)
-                until RandomFace.Enhancement ~= mod.Enhancement.STONE
-                RandomFace.Seal = mod.Seals.NONE
-                RandomFace.Edition = mod.Edition.BASE
-                table.insert(mod.Saved.Player[PIndex].FullDeck, RandomFace)
-            end
-            Isaac.RunCallback("DECK_SHIFT", Player)
-        elseif card == mod.Spectrals.GRIM then
+    if SpectralMaxSelection[card]
+       and not mod.Saved.EnableHand --if selection is impossible
+       and (mod.SelectionParams[PIndex].SelectionNum > SpectralMaxSelection[card] or mod.SelectionParams[PIndex].SelectionNum <= 0
+            or (card == Card.CARD_DEATH and mod.SelectionParams[PIndex].SelectionNum ~= 2)) then --if the wrong number of cards is selected
 
-            local Valid = 0
-            for i,v in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
-                if mod.Saved.Player[PIndex].FullDeck[v] then
-                    Valid = Valid + 1
-                end
-            end
-            if Valid == 0 then --if no cards are valid then cancel
-                Player:AnimateSad()
-                return
-            end
+        sfx:Play(SoundEffect.SOUND_THUMBS_DOWN)
+        return false
+    end
 
-            --removes a random card from the deck
-            local RandomCard
-            repeat
-                RandomCard = mod:GetRandom(mod.Saved.Player[PIndex].CurrentHand, CardRNG)
-            until mod.Saved.Player[PIndex].FullDeck[RandomCard]    
-            table.remove(mod.Saved.Player[PIndex].FullDeck, RandomCard)    
-            for i = 1, 2 do --adds 3 face cards
-                local RandomAce = {}
-                RandomAce.Value = 1
-                RandomAce.Suit = CardRNG:RandomInt(1,4)
-                repeat 
-                    RandomAce.Enhancement = CardRNG:RandomInt(2,9)
-                until RandomAce.Enhancement ~= mod.Enhancement.STONE
-                RandomAce.Seal = mod.Seals.NONE
-                RandomAce.Edition = mod.Edition.BASE    
-                table.insert(mod.Saved.Player[PIndex].FullDeck, RandomAce)
-            end 
-            Isaac.RunCallback("DECK_SHIFT", Player)
-        elseif card == mod.Spectrals.INCANTATION then
 
-            local Valid = 0
-            for i,v in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
-                if mod.Saved.Player[PIndex].FullDeck[v] then
-                    Valid = Valid + 1
-                end
+    local CardRNG = Player:GetCardRNG(card)
+
+    if card == mod.Spectrals.FAMILIAR then
+
+        if Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) == 1 then
+            return false --if hand size can't be decreased, don't to anything
+        end
+
+        local Valid = 0
+        for i,v in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
+            if mod.Saved.Player[PIndex].FullDeck[v] then
+                Valid = Valid + 1
             end
-            if Valid == 0 then --if no cards are valid then cancel
-                Player:AnimateSad()
-                return
+        end
+        if Valid == 0 then --if no cards are valid then cancel
+            return false
+        end
+        --removes a random card from the deck
+        local RandomCard
+        repeat
+            RandomCard = mod:GetRandom(mod.Saved.Player[PIndex].CurrentHand, CardRNG)
+        until mod.Saved.Player[PIndex].FullDeck[RandomCard]
+
+        mod:DestroyCards(Player, {RandomCard}, true, false)
+
+        for i = 1, 3 do --adds 3 face cards
+            local RandomFace = {}
+            RandomFace.Value = CardRNG:RandomInt(11,13)
+            RandomFace.Suit = CardRNG:RandomInt(1,4)
+            repeat 
+                RandomFace.Enhancement = CardRNG:RandomInt(2,9)
+            until RandomFace.Enhancement ~= mod.Enhancement.STONE
+            RandomFace.Seal = mod.Seals.NONE
+            RandomFace.Edition = mod.Edition.BASE
+
+            mod:AddCardToDeck(Player, RandomFace, 1, true)
+        end
+        Isaac.RunCallback("DECK_SHIFT", Player)
+
+
+    elseif card == mod.Spectrals.GRIM then
+
+        if Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) == 1 then
+            return false --if hand size can't be decreased, don't to anything
+        end
+
+        local Valid = 0
+        for i,v in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
+            if mod.Saved.Player[PIndex].FullDeck[v] then
+                Valid = Valid + 1
             end
+        end
+        if Valid == 0 then --if no cards are valid then cancel
+            return false
+        end
 
-            ---removes a random card from the deck
-            local RandomCard
-            repeat
-                RandomCard = mod:GetRandom(mod.Saved.Player[PIndex].CurrentHand, CardRNG)
-            until mod.Saved.Player[PIndex].FullDeck[RandomCard]    
-            table.remove(mod.Saved.Player[PIndex].FullDeck, RandomCard)
-            for i = 1, 4 do --adds 4 numbered cards
-                local RandomAce = {}
-                RandomAce.Value = CardRNG:RandomInt(2,10)
-                RandomAce.Suit = CardRNG:RandomInt(1,4)
-                repeat 
-                    RandomCard.Enhancement = CardRNG:RandomInt(2,9)
-                until RandomCard.Enhancement ~= mod.Enhancement.STONE
-                RandomAce.Seal = mod.Seals.NONE
-                RandomAce.Edition = mod.Edition.BASE    
-                table.insert(mod.Saved.Player[PIndex].FullDeck, Random)
+        --removes a random card from the deck
+        local RandomCard
+        repeat
+            RandomCard = mod:GetRandom(mod.Saved.Player[PIndex].CurrentHand, CardRNG)
+        until mod.Saved.Player[PIndex].FullDeck[RandomCard]    
+
+        mod:DestroyCards(Player, {RandomCard}, true, false) 
+
+        for i = 1, 2 do --adds 3 face cards
+            local RandomAce = {}
+            RandomAce.Value = 1
+            RandomAce.Suit = CardRNG:RandomInt(1,4)
+            repeat 
+                RandomAce.Enhancement = CardRNG:RandomInt(2,9)
+            until RandomAce.Enhancement ~= mod.Enhancement.STONE
+            RandomAce.Seal = mod.Seals.NONE
+            RandomAce.Edition = mod.Edition.BASE    
+
+            mod:AddCardToDeck(Player, RandomAce, 1, true)
+        end 
+        Isaac.RunCallback("DECK_SHIFT", Player)
+
+    elseif card == mod.Spectrals.INCANTATION then
+
+        if Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) == 1 then
+            return false --if hand size can't be decreased, don't to anything
+        end
+
+        local Valid = 0
+        for i,v in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
+            if mod.Saved.Player[PIndex].FullDeck[v] then
+                Valid = Valid + 1
             end
-            Isaac.RunCallback("DECK_SHIFT", Player)
-        elseif card == mod.Spectrals.TALISMAN then
-            mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
-                                                  mod.SelectionParams.Purposes.TALISMAN)
-            
-        elseif card == mod.Spectrals.AURA then  
-            mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, 
-                                                  mod.SelectionParams.Purposes.AURA)
-            
-        elseif card == mod.Spectrals.WRAITH then
+        end
+        if Valid == 0 then --if no cards are valid then cancel
+            return false
+        end
 
-            mod.Saved.Other.HasDebt = false
-            Player:AddCoins(-Player:GetNumCoins()) --makes him poor 
-            
-            --[[
-            local RandomJoker = mod:RandomJoker(CardRNG, {}, true, "rare")
+        ---removes a random card from the deck
+        local RandomCard
+        repeat
+            RandomCard = mod:GetRandom(mod.Saved.Player[PIndex].CurrentHand, CardRNG)
+        until mod.Saved.Player[PIndex].FullDeck[RandomCard]    
 
-            for i, Joker in ipairs(mod.Saved.Player[PIndex].Inventory.Jokers) do
-                if Joker == 0 then --the first empty slot
-                    mod.Saved.Player[PIndex].Inventory.Jokers[i] = RandomJoker
-                    mod.Saved.Player[PIndex].Inventory.Editions[i] = mod.Edition.BASE
-                    Isaac.RunCallback("INVENTORY_CHANGE", Player)
-                    return
-                end
-            end
-            Player:AnimateSad() --no joker for you if no slot is empty :(   ]]
+        mod:DestroyCards(Player, {RandomCard}, true, false)
 
-            local RandomJoker = mod:RandomJoker(CardRNG, {}, true, "rare")
-            local Success = mod:AddJoker(Player, RandomJoker.Joker,RandomJoker.Edition)
+        for i = 1, 4 do --adds 4 numbered cards
+            local RandomPip = {}
+            RandomPip.Value = CardRNG:RandomInt(2,10)
+            RandomPip.Suit = CardRNG:RandomInt(1,4)
+            repeat 
+                RandomPip.Enhancement = CardRNG:RandomInt(2,9)
+            until RandomPip.Enhancement ~= mod.Enhancement.STONE
+            RandomPip.Seal = mod.Seals.NONE
+            RandomPip.Edition = mod.Edition.BASE    
 
-            if not Success then
-                Player:AnimateSad()
-            end
+            mod:AddCardToDeck(Player, RandomPip, 1, true)
+        end
+        Isaac.RunCallback("DECK_SHIFT", Player)
+
+    elseif card == mod.Spectrals.TALISMAN then
         
-        elseif card == mod.Spectrals.SIGIL then
-            local RandomSuit = CardRNG:RandomInt(1,4)
-            for i,v in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
-                if mod.Saved.Player[PIndex].FullDeck[v] then
-                    mod.Saved.Player[PIndex].FullDeck[v].Suit = RandomSuit
-                end
+        for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
+            
+            if Selected then
+                mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Seal = mod.Seals.GOLDEN
             end
-            Isaac.RunCallback("DECK_MODIFY", Player, 0)
-        elseif card == mod.Spectrals.OUIJA then
-            --[[
-            if mod.Saved.Player[PIndex].HandSize == 1 then
-                Player:AnimateSad()
+        end
+        
+    elseif card == mod.Spectrals.AURA then  
+
+        for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
+            
+            if Selected then
+                local EdRoll = CardRNG:RandomFloat()
+                if EdRoll <= 0.5 then
+                    sfx:Play(mod.Sounds.FOIL, 0.6)
+                    mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Edition = mod.Edition.FOIL
+                elseif EdRoll <= 0.85 then
+                    sfx:Play(mod.Sounds.HOLO, 0.6)
+                    mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Edition = mod.Edition.HOLOGRAPHIC
+                else
+                    sfx:Play(mod.Sounds.POLY, 0.6)
+                    mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Edition = mod.Edition.POLYCROME
+                end
+                break
+            end
+        end
+        
+    elseif card == mod.Spectrals.WRAITH then
+
+        mod.Saved.Other.HasDebt = false
+        Player:AddCoins(-Player:GetNumCoins()) --makes him poor 
+        
+        --[[
+        local RandomJoker = mod:RandomJoker(CardRNG, {}, true, "rare")
+
+        for i, Joker in ipairs(mod.Saved.Player[PIndex].Inventory.Jokers) do
+            if Joker == 0 then --the first empty slot
+                mod.Saved.Player[PIndex].Inventory.Jokers[i] = RandomJoker
+                mod.Saved.Player[PIndex].Inventory.Editions[i] = mod.Edition.BASE
+                Isaac.RunCallback("INVENTORY_CHANGE", Player)
                 return
             end
-            mod:ChangeJimboHandSize(Player, -1)]]--
+        end
+        Player:AnimateSad() --no joker for you if no slot is empty :(   ]]
 
-            --every card is set to a random value
-            local RandomValue = CardRNG:RandomInt(1,13)
-            for i,v in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
-                if mod.Saved.Player[PIndex].FullDeck[v] then
-                    mod.Saved.Player[PIndex].FullDeck[v].Value = RandomValue
-                end
+        local RandomJoker = mod:RandomJoker(CardRNG, {}, true, "rare")
+        local Success = mod:AddJoker(Player, RandomJoker.Joker,RandomJoker.Edition)
+
+        if not Success then
+            return false
+        end
+    
+    elseif card == mod.Spectrals.SIGIL then
+
+        if Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) == 1 then
+            return false --if hand size can't be decreased, don't to anything
+        end
+
+        local RandomSuit = CardRNG:RandomInt(1,4)
+        for i,v in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
+            if mod.Saved.Player[PIndex].FullDeck[v] then
+                mod.Saved.Player[PIndex].FullDeck[v].Suit = RandomSuit
             end
-            
-            Isaac.RunCallback("DECK_MODIFY", Player, 0)
+        end
+        Isaac.RunCallback("DECK_MODIFY", Player, 0)
 
-        elseif card == mod.Spectrals.ECTOPLASM then 
-            if mod.Saved.Player[PIndex].HandSize == 1 then
-                Player:AnimateSad()
-                return --if hand size can't be decreased, don't to anything
+    elseif card == mod.Spectrals.OUIJA then
+
+        if Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) == 1 then
+            return false --if hand size can't be decreased, don't to anything
+        end
+
+        --every card is set to a random suit
+        local RandomValue = CardRNG:RandomInt(1,13)
+        for i,v in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
+            if mod.Saved.Player[PIndex].FullDeck[v] then
+                mod.Saved.Player[PIndex].FullDeck[v].Value = RandomValue
             end
+        end
 
-            mod.Saved.Player[PIndex].EctoUses = mod.Saved.Player[PIndex].EctoUses + 1 
+        mod.Saved.Player[PIndex].OuijaUses = mod.Saved.Player[PIndex].OuijaUses + 1
+        
+        Isaac.RunCallback("DECK_MODIFY", Player, 0)
+        Player:AddCustomCacheTag(mod.CustomCache.HAND_SIZE, true)
+
+    elseif card == mod.Spectrals.ECTOPLASM then 
+        if mod.Saved.Player[PIndex].HandSize == 1 then
+            return false --if hand size can't be decreased, don't to anything
+        end
+
+        mod.Saved.Player[PIndex].EctoUses = mod.Saved.Player[PIndex].EctoUses + 1 
 
 
-            local BaseJokers = {}--jokers with an edition cannot be chosen 
-            for i,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
-                if Slot.Joker ~= 0 and Slot.Edition == mod.Edition.BASE then
-                    table.insert(BaseJokers, i)
-                end
+        local BaseJokers = {}--jokers with an edition cannot be chosen 
+        for i,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+            if Slot.Joker ~= 0 and Slot.Edition == mod.Edition.BASE then
+                table.insert(BaseJokers, i)
             end
-            if not next(BaseJokers) then
-                Player:AnimateSad()
-                return --if no joker can be chosen then don't do anything
-            end 
-            
-            local RandomSlot = mod:GetRandom(BaseJokers, CardRNG)
-            mod.Saved.Player[PIndex].Inventory[RandomSlot].Edition = mod.Edition.NEGATIVE
-            --adds a slot since he got a negative joker
-            --mod:AddJimboInventorySlots(Player, 1)
+        end
+        if not next(BaseJokers) then
+            Player:AnimateSad()
+            return --if no joker can be chosen then don't do anything
+        end 
+        
+        local RandomSlot = mod:GetRandom(BaseJokers, CardRNG)
+        mod.Saved.Player[PIndex].Inventory[RandomSlot].Edition = mod.Edition.NEGATIVE
+        --adds a slot since he got a negative joker
+        --mod:AddJimboInventorySlots(Player, 1)
 
-            --mod:ChangeJimboHandSize(Player, -mod.Saved.Player[PIndex].EctoUses)
-            --mod:ChangeJimboHandSize(Player, -1)
+        --mod:ChangeJimboHandSize(Player, -mod.Saved.Player[PIndex].EctoUses)
+        --mod:ChangeJimboHandSize(Player, -1)
 
-            sfx:Play(mod.Sounds.NEGATIVE)
-            
-            Isaac.RunCallback("INVENTORY_CHANGE", Player)
+        sfx:Play(mod.Sounds.NEGATIVE)
+        
+        Isaac.RunCallback("INVENTORY_CHANGE", Player)
 
-        elseif card == mod.Spectrals.IMMOLATE then  
+    elseif card == mod.Spectrals.IMMOLATE then
 
-            local RandomCards = {}
-            table.move(mod.Saved.Player[PIndex].CurrentHand, 1, #mod.Saved.Player[PIndex].CurrentHand, 1, RandomCards)
-            
-            for i = #RandomCards - 1, 4, -1 do
+        if Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) == 1 then
+            return false --if hand size can't be decreased, don't to anything
+        end
 
-                local Rcard = CardRNG:RandomInt(1,i)
+        local RandomCards = {}
+        table.move(mod.Saved.Player[PIndex].CurrentHand, 1, #mod.Saved.Player[PIndex].CurrentHand, 1, RandomCards)
+        
+        for i = #RandomCards - 1, 5, -1 do
 
-                table.remove(RandomCards, Rcard)
+            local Rcard = CardRNG:RandomInt(1,i+1)
 
+            table.remove(RandomCards, Rcard)
+
+        end
+        
+        mod:DestroyCards(Player, RandomCards, true)
+
+        Player:AddCoins(20)
+
+        mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW, 
+                                    mod.Sounds.MONEY, "+20$",mod.Spectrals.IMMOLATE)
+
+    elseif card == mod.Spectrals.ANKH then
+        
+        local FilledSlots = {} --gets the slots filled with a joker
+        for i,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+            if Slot.Joker ~= 0 then
+                table.insert(FilledSlots, i)
             end
+        end
+        if not next(FilledSlots) then
+
+            return false
+        end
+
+        local Rslot = mod:GetRandom(FilledSlots, CardRNG)
+        local CopyJoker = mod.Saved.Player[PIndex].Inventory[Rslot].Joker + 0
+        local CopyEdition = mod.Saved.Player[PIndex].Inventory[Rslot].Edition + 0
+        local CopyProgress = mod.Saved.Player[PIndex].Progress.Inventory[Rslot]
+
+        
+        for i, _ in ipairs(mod.Saved.Player[PIndex].Inventory) do
+            mod.Saved.Player[PIndex].Inventory[i].Joker = 0
+            mod.Saved.Player[PIndex].Inventory[i].Edition = 0
+        end
+
+        for i=1,2 do
+
+            mod:AddJoker(Player, CopyJoker, CopyEdition, false)
+            mod.Saved.Player[PIndex].Progress.Inventory[i] = CopyProgress
+        end
+                  
+        --Isaac.RunCallback("JOKER_ADDED", Player, CopyJoker, CopyEdition)
+        --Isaac.RunCallback("INVENTORY_CHANGE", Player)
             
-            mod:DestroyCards(Player, RandomCards, true)
+    elseif card == mod.Spectrals.DEJA_VU then
 
-            local NumDestroyed = #RandomCards
-
-            Player:AddCoins(5*NumDestroyed)
-
-            mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW, 
-                                        mod.Sounds.MONEY, "+"..5*NumDestroyed.."$",mod.Spectrals.IMMOLATE)
-
-        elseif card == mod.Spectrals.ANKH then
+        for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
             
-            local FilledSlots = {} --gets the slots filled with a joker
-            for i,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
-                if Slot.Joker ~= 0 then
-                    table.insert(FilledSlots, i)
-                end
+            if Selected then
+                mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Seal = mod.Seals.RED
             end
-            if not next(FilledSlots) then
-                Player:AnimateSad()
-                return
+        end
+    
+    elseif card == mod.Spectrals.HEX then
+
+        local FilledSlots = {} --gets the slot filled with a joker
+        for i,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+            if Slot.Joker ~= 0 then
+                table.insert(FilledSlots, i)
             end
+        end
+        if not next(FilledSlots) then
+            Player:AnimateSad()
+            return
+        end
 
-            local Rslot = mod:GetRandom(FilledSlots, CardRNG)
-            local CopyJoker = mod.Saved.Player[PIndex].Inventory[Rslot].Joker + 0
-            local CopyEdition = mod.Saved.Player[PIndex].Inventory[Rslot].Edition + 0
-            local CopyProgress = mod.Saved.Player[PIndex].Progress.Inventory[Rslot]
-
-            
-            for i, _ in ipairs(mod.Saved.Player[PIndex].Inventory) do
+        local Rslot = mod:GetRandom(FilledSlots, CardRNG)
+        for i, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+            if i ~= Rslot then
                 mod.Saved.Player[PIndex].Inventory[i].Joker = 0
                 mod.Saved.Player[PIndex].Inventory[i].Edition = 0
+            else
+                mod.Saved.Player[PIndex].Inventory[i].Edition = mod.Edition.POLYCROME
             end
-
-            for i=1,2 do
-
-                mod:AddJoker(Player, CopyJoker, CopyEdition, false)
-                mod.Saved.Player[PIndex].Progress.Inventory[i] = CopyProgress
-            end
-                      
-            --Isaac.RunCallback("JOKER_ADDED", Player, CopyJoker, CopyEdition)
-            --Isaac.RunCallback("INVENTORY_CHANGE", Player)
-                
-        elseif card == mod.Spectrals.DEJA_VU then
-            mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, 
-                                                  mod.SelectionParams.Purposes.DEJA_VU)
-        
-        elseif card == mod.Spectrals.HEX then
-
-            local FilledSlots = {} --gets the slot filled with a joker
-            for i,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
-                if Slot.Joker ~= 0 then
-                    table.insert(FilledSlots, i)
-                end
-            end
-            if not next(FilledSlots) then
-                Player:AnimateSad()
-                return
-            end
-
-            local Rslot = mod:GetRandom(FilledSlots, CardRNG)
-            for i, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
-                if i ~= Rslot then
-                    mod.Saved.Player[PIndex].Inventory[i].Joker = 0
-                    mod.Saved.Player[PIndex].Inventory[i].Edition = 0
-                else
-                    mod.Saved.Player[PIndex].Inventory[i].Edition = mod.Edition.POLYCROME
-                end
-            end
-
-            sfx:Play(mod.Sounds.POLY)
-
-            Isaac.RunCallback("INVENTORY_CHANGE", Player)
-            
-        elseif card == mod.Spectrals.TRANCE then
-            mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, 
-                                                  mod.SelectionParams.Purposes.TRANCE)
- 
-        elseif card == mod.Spectrals.MEDIUM then
-            mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, 
-                                                  mod.SelectionParams.Purposes.MADIUM)
-
-
-        elseif card == mod.Spectrals.CRYPTID then
-            mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
-                                                  mod.SelectionParams.Purposes.CRYPTID)
-            
-        elseif card == mod.Spectrals.SOUL then
-
-            local Legendary = mod:RandomJoker(CardRNG, {}, true, "legendary")
-            
-            local Success = mod:AddJoker(Player, Legendary.Joker, Legendary.Edition)
-            if not Success then
-                Player:AnimateSad()
-            end
-
-        elseif card == mod.Spectrals.BLACK_HOLE then
-            for i = 1, 13 do
-                mod.Saved.CardLevels[i] = mod.Saved.CardLevels[i] + 1
-            end
-
-            
         end
-    elseif false then  --PLACEHODER FOR TJIMBO
+
+        sfx:Play(mod.Sounds.POLY)
+
+        Isaac.RunCallback("INVENTORY_CHANGE", Player)
+        
+    elseif card == mod.Spectrals.TRANCE then
+
+        for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
+            
+            if Selected then
+                mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Seal = mod.Seals.BLUE
+            end
+        end
+ 
+    elseif card == mod.Spectrals.MEDIUM then
+
+        for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
+            
+            if Selected then
+                mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Seal = mod.Seals.PURPLE
+            end
+        end
+
+
+    elseif card == mod.Spectrals.CRYPTID then
+
+        for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
+            
+            if Selected then
+
+                local CopiedCard = mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]]
+
+                mod:AddCardToDeck(Player, CopiedCard, 2, true)
+
+                break
+            end
+        end
+        
+    elseif card == mod.Spectrals.SOUL then
+
+        local Legendary = mod:RandomJoker(CardRNG, {}, true, "legendary")
+        
+        local Success = mod:AddJoker(Player, Legendary.Joker, Legendary.Edition)
+        if not Success then
+            return false
+        end
+
+    elseif card == mod.Spectrals.BLACK_HOLE then
+        for i = 1, 13 do
+            mod.Saved.CardLevels[i] = mod.Saved.CardLevels[i] + 1
+        end
 
     end
+
+    ::FINISH::
+
+    --mod.Saved.Player[PIndex].LastCardUsed = card
+
+    Player:AnimateCard(card, "UseItem")
+    Game:MakeShockwave(Player.Position, 0.025, 0.025, 10)
+
+    for i,_ in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
+        
+        mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND][i] = false
+    end
+    mod.SelectionParams[PIndex].SelectionNum = 0
+
+
+    return true
 end
 --mod:AddCallback(ModCallbacks.MC_USE_CARD, mod.SpectralCards)
 
@@ -773,17 +863,16 @@ end
 
 function mod:TJimboUseCard(card, Player, IsPack, UseFlags)
 
-    local PIndex = Player:GetData().TruePlayerIndex
-
-    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo
-       or mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.NONE then
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
         return false
     end
+
+    local PIndex = Player:GetData().TruePlayerIndex
 
     UseFlags = UseFlags or 0
 
     local IsTarot = card >= Card.CARD_FOOL and card <= Card.CARD_WORLD
-    local IsPlanet = card >= mod.Planets.PLUTO and card <= mod.Planets.SUN
+    local IsPlanet = card >= mod.Planets.PLUTO and card <= mod.Planets.ERIS
     local IsSpectral = card >= mod.Spectrals.FAMILIAR and card <= mod.Spectrals.SOUL
 
     local Success
@@ -824,11 +913,6 @@ local function TJimboCardPacks(_,card, Player,_)
         local RandomPack = {}
 
         local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 4) or 3
-
-        local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
-        if EditionRoll <= JumboChance then
-            Size = Size + 2
-        end
 
         for i=1, Size do
             local RandomCard = {}

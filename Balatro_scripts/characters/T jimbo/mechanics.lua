@@ -4,6 +4,7 @@ local mod = Balatro_Expansion
 local Game = Game()
 local Level = Game:GetLevel()
 local ItemsConfig = Isaac.GetItemConfig()
+local sfx = SFXManager()
 
 local SMALL_BLIND_ROOMIDX = 0
 local BIG_BLIND_ROOMIDX = 16
@@ -18,6 +19,24 @@ local ShopRoomIndex = 0
 local BossRoomIndex = 0
 -----------------------------------
 
+
+
+--setups variables for jimbo
+---@param player EntityPlayer
+function mod:JimboInit(player)
+    if player:GetPlayerType() == mod.Characters.TaintedJimbo then
+        local Data = player:GetData()
+
+        Data.ALThold = 0 --used to sell consumables
+
+        --player:SetPocketActiveItem(CollectibleType.COLLECTIBLE_THE_HAND,ActiveSlot.SLOT_POCKET)
+        --ItemPool:RemoveCollectible(CollectibleType.COLLECTIBLE_THE_HAND)
+
+        player:AddCustomCacheTag(mod.CustomCache.HAND_COOLDOWN, true)
+        player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, mod.JimboInit)
 
 --Adds the small/big blind rooms + saves the room index of shops and boss rooms
 ---@param RoomConfig RoomConfigRoom
@@ -162,10 +181,6 @@ local function JimboInputHandle(_, Player)
     local PIndex = Player:GetData().TruePlayerIndex
     local Params = mod.SelectionParams[PIndex]
 
-    if Params.Mode == mod.SelectionParams.Modes.NONE then
-        return
-    end
-
     ----------------------------------------
 
     --local Data = Player:GetData()
@@ -173,12 +188,23 @@ local function JimboInputHandle(_, Player)
 
     ----------SELECTION INPUT / INPUT COOLDOWN------------
     
-    -------------INPUT HANDLING------------------- (big ass if statements if lol)
+    -------------INPUT HANDLING-------------------
+    
+    --confirms the curretn selection
+    if Input.IsActionTriggered(ButtonAction.ACTION_PILLCARD, Player.ControllerIndex) then
+
+        mod:UseSelection(Player)
+    end
+
+    
+    
+    if mod.AnimationIsPlaying then
+        return
+    end
 
     --confirming/canceling 
     if Input.IsActionTriggered(ButtonAction.ACTION_MENUCONFIRM, Player.ControllerIndex)
-        and not Input.IsActionPressed(ButtonAction.ACTION_ITEM, Player.ControllerIndex)--usually they share buttons
-        or Input.IsMouseBtnPressed(MouseButton.LEFT) then
+        and not Input.IsActionPressed(ButtonAction.ACTION_ITEM, Player.ControllerIndex) then--usually they share buttons
 
         mod:Select(Player)
 
@@ -210,8 +236,8 @@ local function JimboInputHandle(_, Player)
 
             --also holding ALT also makes you move the card itself 
             if Params.Mode ~= mod.SelectionParams.Modes.PACK
-               and (Input.IsButtonPressed(Keyboard.KEY_LEFT_ALT, Player.ControllerIndex)
-               or Input.IsButtonPressed(Keyboard.KEY_RIGHT_ALT, Player.ControllerIndex)) then
+               and (Input.IsButtonPressed(Keyboard.KEY_LEFT_SHIFT, Player.ControllerIndex)
+               or Input.IsButtonPressed(Keyboard.KEY_RIGHT_SHIFT, Player.ControllerIndex)) then
 
                 Params.SelectedCards[Params.Mode][Params.Index], Params.SelectedCards[Params.Mode][Params.Index + Step] =
                 Params.SelectedCards[Params.Mode][Params.Index + Step], Params.SelectedCards[Params.Mode][Params.Index]
@@ -227,11 +253,11 @@ local function JimboInputHandle(_, Player)
                     PlayerInventory[Params.Index],  PlayerInventory[Params.Index + Step] = 
                     PlayerInventory[Params.Index + Step],  PlayerInventory[Params.Index]
                 end
+
+                mod.Counters.SinceSelect = 0
             end
 
             Params.Index = Params.Index + Step
-
-            mod.Counters.SinceSelect = 0
         end
     end
 
@@ -248,6 +274,7 @@ local function JimboInputHandle(_, Player)
 
                 for i = Params.Index + 1, Params.OptionsNum do
                     
+                    print(i, mod.Saved.Player[PIndex].Inventory[i].Joker)
                     if mod.Saved.Player[PIndex].Inventory[i].Joker ~= 0 then
                         Step = SlotsSkipped
                         break
@@ -261,8 +288,8 @@ local function JimboInputHandle(_, Player)
 
             --also holding ALT also makes you move the card itself 
             if Params.Mode ~= mod.SelectionParams.Modes.PACK
-               and (Input.IsButtonPressed(Keyboard.KEY_LEFT_ALT, Player.ControllerIndex)
-               or Input.IsButtonPressed(Keyboard.KEY_RIGHT_ALT, Player.ControllerIndex)) then
+               and (Input.IsButtonPressed(Keyboard.KEY_LEFT_SHIFT, Player.ControllerIndex)
+               or Input.IsButtonPressed(Keyboard.KEY_RIGHT_SHIFT, Player.ControllerIndex)) then
 
                 Params.SelectedCards[Params.Mode][Params.Index], Params.SelectedCards[Params.Mode][Params.Index + Step] =
                 Params.SelectedCards[Params.Mode][Params.Index + Step], Params.SelectedCards[Params.Mode][Params.Index]
@@ -274,15 +301,16 @@ local function JimboInputHandle(_, Player)
                     PlayerHand[Params.Index + Step],  PlayerHand[Params.Index]
                 else
                     
-                    local PlayerInventory = mod.Saved.Player[PIndex].CurrentHand
+                    local PlayerInventory = mod.Saved.Player[PIndex].Inventory
                     PlayerInventory[Params.Index],  PlayerInventory[Params.Index + Step] = 
                     PlayerInventory[Params.Index + Step],  PlayerInventory[Params.Index]
                 end
+
+                mod.Counters.SinceSelect = 0
             end
 
             Params.Index = Params.Index + Step
 
-            mod.Counters.SinceSelect = 0
         end
     end
 
@@ -294,11 +322,13 @@ local function JimboInputHandle(_, Player)
         --local IsPackActive = Params.PackPurpose ~= mod.SelectionParams.Purposes.NONE
         local CurrentMode = Params.Mode
 
-        if CurrentMode == mod.SelectionParams.Modes.HAND then
+        if CurrentMode == mod.SelectionParams.Modes.HAND
+           or CurrentMode == mod.SelectionParams.Modes.NONE
+           or not mod.Saved.EnableHand then
             
             DestinationMode = mod.SelectionParams.Modes.INVENTORY
 
-        elseif CurrentMode == mod.SelectionParams.Modes.PACK then
+        else --if CurrentMode == mod.SelectionParams.Modes.PACK then
     
             DestinationMode = mod.SelectionParams.Modes.HAND
         end
@@ -316,8 +346,14 @@ local function JimboInputHandle(_, Player)
         local CurrentMode = Params.Mode
 
         if CurrentMode == mod.SelectionParams.Modes.INVENTORY then
+           
+           
+            if mod.Saved.EnableHand then
 
-            DestinationMode = mod.SelectionParams.Modes.HAND
+                DestinationMode = mod.SelectionParams.Modes.HAND
+            else
+                DestinationMode = mod.SelectionParams.Modes.NONE
+            end
 
         elseif CurrentMode == mod.SelectionParams.Modes.HAND and IsPackActive then
     
@@ -328,19 +364,93 @@ local function JimboInputHandle(_, Player)
 
     end
 
-    --confirms the curretn selection
-    if Input.IsActionTriggered(ButtonAction.ACTION_PILLCARD, Player.ControllerIndex) then
-
-        mod:UseSelection(Player)
-    end
-
     if Input.IsActionTriggered(ButtonAction.ACTION_ITEM, Player.ControllerIndex) then
         
         local CardToUse = mod:FrameToSpecialCard(mod.Saved.Player[PIndex].Consumables[#mod.Saved.Player[PIndex].Consumables].Card)
         local Success = mod:TJimboUseCard(CardToUse, Player, false)
-        print(Success)
+        --print(Success)
     end
 
+    if Input.IsActionTriggered(ButtonAction.ACTION_DROP, Player.ControllerIndex) then
+
+        local FirstCard
+
+        for i, Consumable in ipairs(mod.Saved.Player[PIndex].Consumables) do
+            
+            if Consumable.Card ~= -1 then
+                FirstCard = i
+                break
+            end
+        end
+
+        if FirstCard then
+            local NumConsumables = #mod.Saved.Player[PIndex].Consumables
+            
+            table.insert(mod.Saved.Player[PIndex].Consumables, FirstCard, mod.Saved.Player[PIndex].Consumables[NumConsumables])
+            table.remove(mod.Saved.Player[PIndex].Consumables, NumConsumables + 1)
+
+            mod.Counters.SinceSelect = 0
+        end
+    end
+
+    if Input.IsButtonPressed(Keyboard.KEY_LEFT_ALT, Player.ControllerIndex)
+       or Input.IsButtonPressed(Keyboard.KEY_RIGHT_ALT, Player.ControllerIndex) then
+
+        local Data = Player:GetData()
+        if Data.ALThold ~= 0
+           or Input.IsButtonTriggered(Keyboard.KEY_LEFT_ALT, Player.ControllerIndex)
+           or Input.IsButtonTriggered(Keyboard.KEY_RIGHT_ALT, Player.ControllerIndex) then
+            
+            Data.ALThold = Data.ALThold and Data.ALThold + 1 or 0
+        end
+
+        if Data.ALThold >= 75 then
+
+            local Success
+
+            if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.INVENTORY then
+                
+                local SelectedSlot = mod:GetValueIndex(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.INVENTORY], true, true) 
+
+                if SelectedSlot then
+                    Success = mod:SellJoker(Player, SelectedSlot)
+
+                    mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.INVENTORY][SelectedSlot] = false
+                
+                    local JokerSlot
+
+                    for i,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+                        
+                        if Slot.Joker ~= 0 then
+                            JokerSlot = i
+                            break
+                        end
+                    end
+
+                    if JokerSlot then
+                        mod.SelectionParams[PIndex].Index = JokerSlot
+
+                    elseif mod.Saved.EnableHand then
+                        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams[PIndex].Purpose)
+                    else
+                        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.NONE)
+                    end
+                
+                else
+                    Success = false
+                end
+            else
+                Success = mod:SellConsumable(Player)
+            end
+
+            if not Success then
+                sfx:Play(SoundEffect.SOUND_THUMBS_DOWN)
+            end
+            Data.ALThold = 0
+        end
+    else
+        Player:GetData().ALThold = 0
+    end
     
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, JimboInputHandle)
@@ -363,13 +473,187 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, ActivateHandSelection)
 
 
+function mod:UpdateCurrentHandType(Player)
+
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    if mod.SelectionParams[PIndex].PackPurpose == mod.SelectionParams.Purposes.CelestialPack then
+    
+        local Planet = mod.Planets.PLUTO - 1
+        for i,v in ipairs(mod.SelectionParams[PIndex].PackOptions) do
+            if mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.PACK][i] then
+                Planet = mod:FrameToSpecialCard(v)
+            end
+        end
+
+        local PlanetHandType = 1 << (Planet - mod.Planets.PLUTO + 1) --gets the equivalent handtype
+
+        mod.SelectionParams[PIndex].HandType = PlanetHandType
+
+    elseif mod.Saved.EnableHand then
+        mod.SelectionParams[PIndex].PossibleHandTypes = mod:DeterminePokerHand(Player)
+        mod.SelectionParams[PIndex].HandType = mod:GetBitMaskMax(mod.SelectionParams[PIndex].PossibleHandTypes)
+    end
+
+    --print("hand type: ",mod.SelectionParams[PIndex].HandType)
+    --[[
+    if mod.SelectionParams[PIndex].HandType == mod.HandTypes.FIVE then
+        mod.Saved.Player[PIndex].FiveUnlocked = true
+    elseif mod.SelectionParams[PIndex].HandType == 11 then
+        mod.Saved.Player[PIndex].FlushHouseUnlocked = true
+    elseif mod.SelectionParams[PIndex].HandType == 12 then
+        mod.Saved.Player[PIndex].FiveFlushUnlocked = true
+    end
+    ]]
+
+
+end
+mod:AddCallback(mod.Callbalcks.HAND_UPDATE, mod.UpdateCurrentHandType)
+
+
+
+---@param Player EntityPlayer
+function mod:SetupForHandPlay(Player)
+
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
+        return
+    end
+
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    mod.SelectionParams[PIndex].PlayedCards = {}
+    for i,Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
+        
+        if Selected then
+            mod.SelectionParams[PIndex].PlayedCards[#mod.SelectionParams[PIndex].PlayedCards+1] = mod.Saved.Player[PIndex].CurrentHand[i]
+        end
+    end
+
+    mod.SelectionParams[PIndex].ScoringCards = mod:GetScoringCards(Player, mod.SelectionParams[PIndex].HandType)
+
+    --[[could lead to problems with save states after leaving during a hand scoring
+    for i = #mod.Saved.Player[PIndex].CurrentHand, 1, -1 do
+        
+        if mod:Contained(mod.SelectionParams[PIndex].PlayedCards, mod.Saved.Player[PIndex].CurrentHand[i]) then
+            
+            table.remove(mod.Saved.Player[PIndex].CurrentHand, i)
+        end
+    end]]
+    
+    mod.AnimationIsPlaying = true
+end
+mod:AddPriorityCallback(mod.Callbalcks.HAND_PLAY, CallbackPriority.IMPORTANT, mod.SetupForHandPlay)
+
+
+
+
+---@param Player EntityPlayer
+function mod:ActivateCurrentHand(Player)
+
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
+        return
+    end
+
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    local TargetPosition
+
+    for _,Target in ipairs(Isaac.FindByType(EntityType.ENTITY_EFFECT, EffectVariant.TARGET)) do
+        
+        local Player = Target.Parent and Target.Parent:ToPlayer() or nil
+        if Player and Player:GetPlayerType() == mod.Characters.TaintedJimbo then
+            TargetPosition = Target.Position
+            break
+        end
+    end
+
+    if not TargetPosition then
+        print("couldn't find shit, sorry!")
+        return
+    end
+
+    
+
+    print(Player:GetMarkedTarget())
+
+end
+mod:AddCallback(mod.Callbalcks.POST_HAND_PLAY, mod.ActivateCurrentHand)
 
 
 
 
 
+---@param Player EntityPlayer
+function mod:SetupForNextHandPlay(Player)
+
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
+        return
+    end
+
+    local PIndex = Player:GetData().TruePlayerIndex
 
 
+    mod.Saved.Player[PIndex].HandsRemaining = mod.Saved.Player[PIndex].HandsRemaining - 1
+
+    if mod.Saved.Player[PIndex].HandsRemaining <= 0 then
+        Player:Kill()
+    end
+
+
+    for i = #mod.Saved.Player[PIndex].CurrentHand, 1, -1 do
+        
+        if mod:Contained(mod.SelectionParams[PIndex].PlayedCards, mod.Saved.Player[PIndex].CurrentHand[i]) then
+            
+            table.remove(mod.Saved.Player[PIndex].CurrentHand, i)
+        end
+    end
+    mod.SelectionParams[PIndex].PlayedCards = {}
+    mod.SelectionParams[PIndex].ScoringCards = 0
+    mod.SelectionParams[PIndex].HandType = mod.HandTypes.NONE
+    mod.SelectionParams[PIndex].PossibleHandType = mod.HandTypes.NONE
+
+
+    Player:AddCustomCacheTag(mod.CustomCache.HAND_SIZE, true)
+    local CurrentHandSize = Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE)
+    local DeckSize = #mod.Saved.Player[PIndex].FullDeck - 1
+
+
+    for i = #mod.Saved.Player[PIndex].CurrentHand, CurrentHandSize - 1 do
+
+        if mod.Saved.Player[PIndex].DeckPointer > DeckSize then
+            Player:Kill()
+            return
+        end
+        
+        table.insert(mod.Saved.Player[PIndex].CurrentHand, mod.Saved.Player[PIndex].DeckPointer)
+
+        mod.Saved.Player[PIndex].DeckPointer = mod.Saved.Player[PIndex].DeckPointer + 1
+    end
+    
+
+    --print("scoring: ", mod.SelectionParams[PIndex].ScoringCards)
+    mod.Counters.SinceSelect = 0
+    mod.AnimationIsPlaying = false
+
+    mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams.Purposes.HAND)
+end
+mod:AddPriorityCallback(mod.Callbalcks.POST_HAND_PLAY, CallbackPriority.LATE, mod.SetupForNextHandPlay)
+
+
+---@param Effect EntityEffect
+local function MoveHandTarget(_,Effect)
+
+    local Player = Effect.Parent and Effect.Parent:ToPlayer() or nil
+
+    if not Player or Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
+        return
+    end
+
+    Game:GetRoom():GetCamera():SetFocusPosition(Effect.Position)
+
+    Effect:AddVelocity(Player:GetAimDirection()*7)
+end
+mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, MoveHandTarget, EffectVariant.TARGET)
 
 
 ------------------STATS------------------
@@ -378,8 +662,8 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, ActivateHandSelection)
 
 
 ---@param Player EntityPlayer
-function mod:InventorySizeCache(Player, Cache, Value)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted then
+function mod:TJimboInventorySizeCache(Player, Cache, Value)
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo or not mod.GameStarted then
         return
     end
 
@@ -401,18 +685,18 @@ function mod:InventorySizeCache(Player, Cache, Value)
 
     return Value
 end
-mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.InventorySizeCache, mod.CustomCache.INVENTORY_SIZE)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.TJimboInventorySizeCache, mod.CustomCache.INVENTORY_SIZE)
 
 
 ---@param Player EntityPlayer
-function mod:HandSizeCache(Player, Cache, Value)
+function mod:TJimboHandSizeCache(Player, Cache, Value)
     if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo or not mod.GameStarted then
         return
     end
 
     local PIndex = Player:GetData().TruePlayerIndex
 
-    Value = 5 --base starting point
+    Value = 8 --base starting point
 
     if Player:HasCollectible(mod.Vouchers.Brush) then
         Value = Value + 1
@@ -434,25 +718,31 @@ function mod:HandSizeCache(Player, Cache, Value)
     Value = Value + #mod:GetJimboJokerIndex(Player, mod.Jokers.JUGGLER)
  
 
+    Value = Value - mod.Saved.Player[PIndex].OuijaUses
 
-    Value = Value - mod.Saved.Player[PIndex].EctoUses
+    for i=1, mod.Saved.Player[PIndex].EctoUses do
+        
+        Value = Value - i
+    end
 
-    Value = math.max(1, Value) --minimum 1 card in hand
+    Value = math.max(0, Value) --btw it's an instant loss if your hand size is 0
 
+    --[[
     local SizeDifference = Value - #mod.Saved.Player[PIndex].CurrentHand
 
     if SizeDifference > 0 then
         mod:ChangeJimboHandSize(Player, SizeDifference)
     end
+    ]]
 
     return Value
 end
-mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.HandSizeCache, mod.CustomCache.HAND_SIZE)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.TJimboHandSizeCache, mod.CustomCache.HAND_SIZE)
 
 
 ---@param Player EntityPlayer
-function mod:DiscardNumCache(Player, Cache, Value)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted then
+function mod:TJimboDiscardNumCache(Player, Cache, Value)
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo or not mod.GameStarted then
         return
     end
 
@@ -478,41 +768,39 @@ function mod:DiscardNumCache(Player, Cache, Value)
         Value = 1
     end
 
-    --Value = math.max(1, Value) --minimum 1 discard
 
-    mod.HpEnable = true
-    Player:AddMaxHearts(Value*2 - Player:GetMaxHearts())
-    mod.HpEnable = false
 
     return Value
 end
-mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.DiscardNumCache, mod.CustomCache.DISCARD_NUM)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.TJimboDiscardNumCache, mod.CustomCache.DISCARD_NUM)
 
 
 ---@param Player EntityPlayer
-function mod:HandsCache(Player, Cache, Value)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted then
+function mod:TJimboHandsCache(Player, Cache, Value)
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo or not mod.GameStarted then
         return
     end
 
-    Value = 25 --starting point
+    Value = 4 --starting point
 
     if Player:HasCollectible(mod.Vouchers.Grabber) then
-        Value = Value + 5
+        Value = Value + 1
     end
     if Player:HasCollectible(mod.Vouchers.NachoTong) then
-        Value = Value + 5
+        Value = Value + 1
     end
 
-    Value = Value - 5* #mod:GetJimboJokerIndex(Player, mod.Jokers.TROUBADOR)
+    Value = Value - 1* #mod:GetJimboJokerIndex(Player, mod.Jokers.TROUBADOR)
     
     if mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR) then
-        Value = 5
+        Value = Value + 3
     end
 
-    Value = math.max(Value ,5)
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    mod.Saved.Player[PIndex].HandsRemaining = Value
 
     return Value
 end
-mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.HandsCache, mod.CustomCache.HAND_NUM)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.TJimboHandsCache, mod.CustomCache.HAND_NUM)
 

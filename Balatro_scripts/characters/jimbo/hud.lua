@@ -137,6 +137,9 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
                mod.SelectionParams[PIndex].SelectedCards[i] then
                 RenderPos.Y = RenderPos.Y - 9*ScaleMult.Y
             end
+
+            mod.JokerFullPosition[i] = mod.JokerFullPosition[i] or RenderPos
+
             TrinketSprite:ReplaceSpritesheet(0, JokerConfig.GfxFileName, true)
             TrinketSprite:ReplaceSpritesheet(2, JokerConfig.GfxFileName, true)
 
@@ -175,6 +178,7 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
 
         local RenderPos = BasePos + Vector(23*mod.SelectionParams[PIndex].Index , 0) * ScaleMult * PlayerRenderMult
 
+        
         RenderPos.Y = RenderPos.Y - (mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams[PIndex].Index] and 9*ScaleMult.Y or 0)
 
         CardFrame:SetFrame(HUD_FRAME.Frame)

@@ -4,9 +4,13 @@ local Game = Game()
 
 --local FirtsEffect = true --to prevent errors (was used for EntityEffects)
 
+local EffectAnimations = Sprite("gfx/ActivateAnimation.Anm2")
+
+local AnimLength = EffectAnimations:GetAnimationData("idle"):GetLength()
+
 local FIRST_EFFECT_POS = Vector(10,225)
 local EFFECT_SLOT_DISTANCE = Vector(23, 0)
-local EffectsInterval = 23 --frames between 2 different effect on a same entity
+local EffectsInterval = AnimLength + 5 --frames between 2 different effect on a same entity
 
 local PartVariant = Isaac.GetEntityVariantByName("Pack Particle")
 local PartHelpVariant = Isaac.GetEntityVariantByName("Pack Particle Helper")
@@ -30,10 +34,6 @@ EffectParams[1].Source = mod.Jokers.JOKER
 
 
 
-local EffectAnimations = Sprite("gfx/ActivateAnimation.Anm2")
-
-local AnimLength = EffectAnimations:GetAnimationData("idle"):GetLength()
-
 local sfx = SFXManager()
 
 --------------------EFFECTS FUNCTIONS---------------------------
@@ -44,33 +44,37 @@ local sfx = SFXManager()
 
 local StackedEffects = 0
 --here Position colud be an entity, in that case 
-function mod:CreateBalatroEffect(Slot, Colour, Sound, Text, Source, Offset, Volume)
 
-    local IsEntity = false
-    local EffectSlot = Slot
-    if type(Slot) == "userdata" then --basically checks if it's an entity
+function mod:CreateBalatroEffect(Position, Colour, Sound, Text, EffectType)--Source, Offset, Volume)
 
-        EffectSlot = GetPtrHash(Slot)
+    EffectType = EffectType or mod.EffectType.NULL
+    local IsEntity = EffectType == mod.EffectType.ENTITY
+    local EffectSlot = Position
+
+    if Position.Position then --basically checks if it's an entity
+
+        EffectSlot = GetPtrHash(Position)
         IsEntity = true
     end
 
-    for ActiveEffect,_ in pairs(EffectParams) do
+    for Position, Params in pairs(EffectParams) do
 
         --effetcts are separated between entities and inventory, where only one of each can be on screen at a time
 
-        if not (IsEntity or EffectParams[ActiveEffect].IsEntity) then --entities effects are delayed only if the same entity has more than one effect
-
-            --print("Skipped")
+        if EffectType == Params.Type
+           and Params.Type ~= mod.EffectType.ENTITY 
+           and Params.Type ~= mod.EffectType.NULL then --entities effects are delayed only if the same entity has more than one effect
 
             StackedEffects = StackedEffects + 1
 
             Isaac.CreateTimer(function()
-                            mod:CreateBalatroEffect(Slot, Colour, Sound, Text, Source, Offset, Volume)
-                            end,  EffectsInterval - EffectParams[ActiveEffect].Frames, 1, false)
+                            mod:CreateBalatroEffect(Position, Colour, Sound, Text, EffectType)--Source, Offset, Volume)
+                            end,  EffectsInterval - EffectParams[Position].Frames, 1, false)
 
             return
         end
     end
+    StackedEffects = 0
 
     do --rounds the number to 2 decimals so it doesn't get too long
 
@@ -112,13 +116,13 @@ function mod:CreateBalatroEffect(Slot, Colour, Sound, Text, Source, Offset, Volu
     EffectParams[EffectSlot] = {}
     if IsEntity then
         
-        EffectParams[EffectSlot].Position = EntityPtr(Slot)
-        EffectParams[EffectSlot].Offset = Offset or Vector(0,20)
+        EffectParams[EffectSlot].Position = EntityPtr(Position)
+        EffectParams[EffectSlot].Offset = Vector(0,20)
     else
-        EffectParams[EffectSlot].Position = FIRST_EFFECT_POS + EFFECT_SLOT_DISTANCE * Slot
-        EffectParams[EffectSlot].Offset = Offset or Vector.Zero
+        EffectParams[EffectSlot].Position = Position
+        EffectParams[EffectSlot].Offset = Vector(0,-10)
 
-        mod.Counters.Activated[Slot] = 0
+        mod.Counters.Activated[Position] = 0
     end
 
 
@@ -126,12 +130,12 @@ function mod:CreateBalatroEffect(Slot, Colour, Sound, Text, Source, Offset, Volu
     EffectParams[EffectSlot].Color = Colour
     EffectParams[EffectSlot].Text = Text
     EffectParams[EffectSlot].Rotation = math.random(90)
-    EffectParams[EffectSlot].Source = Source
-    EffectParams[EffectSlot].IsEntity = IsEntity
+    --EffectParams[EffectSlot].Source = Source
+    EffectParams[EffectSlot].Type = EffectType
 
 
     if Sound then
-        sfx:Play(Sound, Volume or 1, 2, false, 0.95 + math.random()*0.1 + 0.05*StackedEffects)
+        sfx:Play(Sound, 1, 2, false, 0.95 + math.random()*0.1 + 0.05*StackedEffects)
     end
     --print("created")
 end
@@ -140,6 +144,7 @@ end
 function mod:RenderEffect(_,_,_,_,_)
 
     for _, Params in pairs(EffectParams) do
+
         --local Sprite = EffectAnimations[Params.Color]
         
         --print(" Render frame: "..tostring(Params.Frames))
@@ -149,7 +154,7 @@ function mod:RenderEffect(_,_,_,_,_)
         Sprite:SetFrame("idle", Params.Frames)
 
         local RenderPos
-        if Params.IsEntity then
+        if Params.Type == mod.EffectType.ENTITY then
             if Params.Position then
                 --here Params.Position is an EntityPtr
                 RenderPos = Isaac.WorldToScreen(Params.Position.Ref.Position) + Params.Offset
@@ -172,7 +177,7 @@ function mod:RenderEffect(_,_,_,_,_)
         end        
     end
 end
-mod:AddCallback(ModCallbacks.MC_POST_PLAYERHUD_RENDER_HEARTS, mod.RenderEffect)
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.RenderEffect)
 
 
 function mod:Increaseframes()

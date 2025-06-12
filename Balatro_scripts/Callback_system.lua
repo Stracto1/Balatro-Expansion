@@ -58,36 +58,6 @@ function mod:OnGameStart(Continued)
         end
     else
 
-        --all of this only happens on new runs--
-        ---------------------------------------------
-
-        --[[reset most of the saved values
-        mod.Saved.TrinketValues.LastMisprintDMG = 0
-        mod.Saved.TrinketValues.Fortune_Teller = 0
-        mod.Saved.TrinketValues.Stone_joker = 0
-        mod.Saved.TrinketValues.Ice_cream = 1
-        mod.Saved.TrinketValues.Popcorn = 2
-        mod.Saved.TrinketValues.Ramen = 1.3
-        mod.Saved.TrinketValues.Rocket = 3
-        mod.Saved.TrinketValues.Green_joker = 0
-        mod.Saved.TrinketValues.Red_card = 0
-        mod.Saved.TrinketValues.Blueprint = 0
-        mod.Saved.TrinketValues.Brainstorm = 0
-        mod.Saved.TrinketValues.Madness = 1
-        mod.Saved.TrinketValues.LastBPitem = 0
-        mod.Saved.TrinketValues.Flash_card = 0
-        mod.Saved.TrinketValues.MichaelDestroyed = false
-        mod.Saved.TrinketValues.GoldenMichelGone = false
-        mod.Saved.TrinketValues.FirstBrain = true
-        mod.Saved.TrinketValues.Cloud_9 = 9
-        mod.Saved.TrinketValues.Loyalty_card = 6
-        mod.Saved.TrinketValues.Labyrinth = 1
-        mod.Saved.TrinketValues.Sacrificial_dagger = 0
-        mod.Saved.TrinketValues.Swashbuckler = 0
-        mod.Saved.TrinketValues.Egg = 3
-        mod.Saved.TrinketValues.Supernova = {}
-        mod.Saved.TrinketValues.Dna = true]]
-
         mod.Saved.ShowmanRemovedItems = {}
         mod.HpEnable = false
         mod.ShopAddedThisFloor = false
@@ -122,6 +92,11 @@ function mod:OnGameStart(Continued)
 
         mod.Saved.HasDebt = false
         mod.Saved.MichelDestroyed = false
+
+        --secret hand types
+        mod.Saved.FiveUnlocked = false --five of a kind
+        mod.Saved.FlushHouseUnlocked = false --flush house
+        mod.Saved.FiveFlushUnlocked = false  --flush five
 
         mod.Saved.CardLevels = {}
         for i=1, 13 do
@@ -172,88 +147,6 @@ function mod:OnGameStart(Continued)
         
     end
 
-    --[[
-    for i, Joker in pairs(mod.Jokers) do
-        Isaac.CreateTimer(function ()
-            Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET, Isaac.GetRandomPosition(), Vector.Zero, nil, Joker, 1)
-        end, Counter, 1, false)
-
-        Counter = Counter + Counter2
-        Counter2 = math.max(Counter2 - 3, 3)
-    end]]
-    --print(mod.Saved.ModConfig.ExtraReadability)
-
-    --[[
-    --print(#mod.Saved.Other.Tags)
-    for j = 1, #mod.Saved.Other.Tags, 1 do
-        local TagX = mod.Saved.Other.Tags[j]
-        --print(TagX)
-        if not (TagX == "mult" or TagX == "chips" or TagX == "multm") then
-            if TagX == "newroom" then
-                mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.OnNewRoom)
-            
-            elseif TagX == "newfloor" then
-                mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.OnNewFloor)
-
-            elseif TagX == "items" then
-                mod:AddCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE, mod.OnItemPickup)
-                mod:AddCallback(ModCallbacks.MC_POST_TRIGGER_COLLECTIBLE_REMOVED, mod.OnItemRemoval)
-                
-            elseif TagX == "coins" then
-                mod:AddCallback(ModCallbacks.MC_POST_PICKUP_COLLISION, mod.OnPickupCollision, PickupVariant.PICKUP_COIN)
-                mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_COLLISION, mod.PrePickupCollision, PickupVariant.PICKUP_COIN)
-            elseif TagX == "bombs" then
-                mod:AddCallback(ModCallbacks.MC_POST_PICKUP_COLLISION, mod.OnPickupCollision, PickupVariant.PICKUP_BOMB)
-                mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_COLLISION, mod.PrePickupCollision, PickupVariant.PICKUP_BOMB)
-            elseif TagX == "keys" then
-                mod:AddCallback(ModCallbacks.MC_POST_PICKUP_COLLISION, mod.OnPickupCollision, PickupVariant.PICKUP_KEY)
-                mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_COLLISION, mod.PrePickupCollision, PickupVariant.PICKUP_KEY)
-            elseif TagX == "hearts" then
-                mod:AddCallback(ModCallbacks.MC_POST_PICKUP_COLLISION, mod.OnPickupCollision, PickupVariant.PICKUP_HEART)
-                mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_COLLISION, mod.PrePickupCollision, PickupVariant.PICKUP_HEART)
-            elseif TagX == "cards" then --also includes runes and pills
-                mod:AddCallback(ModCallbacks.MC_POST_PICKUP_COLLISION, mod.OnPickupCollision, PickupVariant.PICKUP_TAROTCARD)
-                mod:AddCallback(ModCallbacks.MC_POST_PICKUP_COLLISION, mod.OnPickupCollision, PickupVariant.PICKUP_PILL)
-                mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_COLLISION, mod.PrePickupCollision, PickupVariant.PICKUP_TAROTCARD)
-                mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_COLLISION, mod.PrePickupCollision, PickupVariant.PICKUP_PILL)
-            elseif TagX == "cardremove" then --also includes runes and pills
-                mod:AddCallback(ModCallbacks.MC_POST_PLAYER_REMOVE_CARD, mod.OnConsumableRemove)
-                mod:AddCallback(ModCallbacks.MC_POST_PLAYER_REMOVE_PILL, mod.OnConsumableRemove)
-            
-            elseif TagX == "rocks" then
-                mod:AddCallback(ModCallbacks.MC_POST_GRID_ROCK_DESTROY, mod.OnRockDestroy)
-                
-            elseif TagX == "pickupnum" then --they all give the same callvack
-                mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.OnUpdate)
-            
-            elseif TagX == "roomclear" then
-                mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, mod.OnRoomClear)
-                
-            elseif TagX == "taken" then
-                mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, mod.OnTakenDamage, EntityType.ENTITY_PLAYER)
-                
-            elseif TagX == "specificroom" then
-                mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.OnSpecificRoomEnter)
-                
-            elseif TagX == "bought" then
-                mod:AddCallback(ModCallbacks.MC_POST_PICKUP_SHOP_PURCHASE, mod.OnShopPurchase)
-                
-            elseif TagX == "removal" then
-                mod:AddCallback(ModCallbacks.MC_POST_TRIGGER_TRINKET_REMOVED, mod.OnTrinketRemoval)
-            elseif TagX == "revive" then
-                mod:AddCallback(ModCallbacks.MC_PRE_TRIGGER_PLAYER_DEATH, mod.OnDeath)
-            elseif TagX == "restock" then
-                mod:AddCallback(ModCallbacks.MC_POST_RESTOCK_SHOP, mod.OnRestock)                
-            elseif TagX == "carduse" then
-                mod:AddCallback(ModCallbacks.MC_USE_CARD, mod.OnCardUse)
-                mod:AddCallback(ModCallbacks.MC_USE_PILL, mod.OnPillUse)
-            elseif TagX == "activeuse" then
-                mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.OnActiveUse)
-            end
-        end
-    end
-    --print(mod.Saved.Other.Tags)]]--
-    --this got screpped cause it got more difficult to mantain when jimbo came in town
 end
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED ,mod.OnGameStart)
                                         --btw putting IMPORTANT as the prioriry here makes it not happen
@@ -284,34 +177,31 @@ function mod:InitJimboValues(Player, Force)
     do
     ---(T.)Jimbo Values -----
 
-    mod.Saved.Player[PIndex].FullDeck = {}
-
-    local index = 1
-    for i = 1, 4, 1 do --cycles between the suits
-        for j = 1, 13, 1 do --cycles for all the values
-            mod.Saved.Player[PIndex].FullDeck[index] = {}
-            mod.Saved.Player[PIndex].FullDeck[index].Suit = i --Spades - Hearts - clubs - diamonds
-            mod.Saved.Player[PIndex].FullDeck[index].Value = j --1 ~ 13
-            mod.Saved.Player[PIndex].FullDeck[index].Enhancement = mod.Enhancement.NONE
-            mod.Saved.Player[PIndex].FullDeck[index].Seal = mod.Seals.NONE
-            mod.Saved.Player[PIndex].FullDeck[index].Edition = mod.Edition.BASE
-            mod.Saved.Player[PIndex].FullDeck[index].Upgrades = 0 --only used for the Hiker joker
-            index = index +1
-        end
-    end
 
     mod.Saved.Player[PIndex].EctoUses = 0
+    mod.Saved.Player[PIndex].OuijaUses = 0
 
     -------------------------
     
         
 
     if PType == mod.Characters.JimboType then
-        
-        local HandRNG = Game:GetPlayer(0):GetDropRNG()
 
-        mod.Saved.Player[PIndex].FullDeck = mod:Shuffle(mod.Saved.Player[PIndex].FullDeck, HandRNG)
+        mod.Saved.Player[PIndex].FullDeck = {}
 
+        local index = 1
+        for i = 1, 4, 1 do --cycles between the suits
+            for j = 1, 13, 1 do --cycles for all the values
+                mod.Saved.Player[PIndex].FullDeck[index] = {}
+                mod.Saved.Player[PIndex].FullDeck[index].Suit = i --Spades - Hearts - clubs - diamonds
+                mod.Saved.Player[PIndex].FullDeck[index].Value = j --1 ~ 13
+                mod.Saved.Player[PIndex].FullDeck[index].Enhancement = mod.Enhancement.NONE
+                mod.Saved.Player[PIndex].FullDeck[index].Seal = mod.Seals.NONE
+                mod.Saved.Player[PIndex].FullDeck[index].Edition = mod.Edition.BASE
+                mod.Saved.Player[PIndex].FullDeck[index].Upgrades = 0 --only used for the Hiker joker
+                index = index +1
+            end
+        end
     
         mod.Saved.Player[PIndex].DeckPointer = 6
         mod.Saved.Player[PIndex].CurrentHand = {5,4,3,2,1} --basically 5 different cards
@@ -342,41 +232,6 @@ function mod:InitJimboValues(Player, Force)
         mod.Saved.Player[PIndex].TrueDamageValue = 1 --used to surpass the usual 0.5 minimum damage cap
         mod.Saved.Player[PIndex].TrueTearsValue = 1
 
-        --[[
-        mod.Saved.Player[PIndex].HandLevels = {}
-        mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.HIGH_CARD] = 1
-        mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.PAIR] = 1
-        mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.TWO_PAIR] = 1
-        mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.THREE] = 1
-        mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.STRAIGHT] = 1
-        mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.FLUSH] = 1
-        mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.FULL_HOUSE] = 1
-        mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.FOUR] = 1
-        mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.STRAIGHT_FLUSH] = 1
-        mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.ROYAL_FLUSH] = 1
-        mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.FIVE] = 1
-        mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.FLUSH_HOUSE] = 1
-        mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.FIVE_FLUSH] = 1
-        
-        mod.Saved.Player[PIndex].HandsStat = {}
-        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.NONE] = Vector(0,0)
-        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.HIGH_CARD] = Vector(0.05,0.2)
-        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.PAIR] = Vector(0.1,0.4)
-        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.TWO_PAIR] = Vector(0.1,0.8)
-        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.THREE] = Vector(0.15,1.2)
-        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.STRAIGHT] = Vector(0.2,1.2)
-        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.FLUSH] = Vector(0.2,1.4)
-        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.FULL_HOUSE] = Vector(0.2,1.6)
-        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.FOUR] = Vector(0.35,2.4)
-        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.STRAIGHT_FLUSH] = Vector(0.4,4)
-        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.ROYAL_FLUSH] = Vector(0.4,4)
-        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.FIVE] = Vector(0.6,4.8)
-        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.FLUSH_HOUSE] = Vector(0.7,5.6)
-        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.FIVE_FLUSH] = Vector(0.8,6.4)
-
-        mod.Saved.Player[PIndex].FiveUnlocked = false
-        mod.Saved.Player[PIndex].FlushHouseUnlocked = false
-        mod.Saved.Player[PIndex].FiveFlushUnlocked = false]]--
 
         mod.Saved.ClearedRooms = 0
         mod.Saved.SmallCleared = false
@@ -412,15 +267,28 @@ function mod:InitJimboValues(Player, Force)
         mod.Saved.Player[PIndex].NumActiveCostumes = 0
 
     elseif PType == mod.Characters.TaintedJimbo then
-        
 
-        local HandRNG = Game:GetPlayer(0):GetDropRNG()
+        mod.Saved.Player[PIndex].FullDeck = {}
 
-        mod.Saved.Player[PIndex].FullDeck = mod:Shuffle(mod.Saved.Player[PIndex].FullDeck, HandRNG)
-
+        local index = 1
+        for i = 1, 4, 1 do --cycles between the suits
+            for j = 1, 13, 1 do --cycles for all the values
+                mod.Saved.Player[PIndex].FullDeck[index] = {}
+                mod.Saved.Player[PIndex].FullDeck[index].Suit = i --Spades - Hearts - clubs - diamonds
+                mod.Saved.Player[PIndex].FullDeck[index].Value = j --1 ~ 13
+                mod.Saved.Player[PIndex].FullDeck[index].Enhancement = mod.Enhancement.NONE
+                mod.Saved.Player[PIndex].FullDeck[index].Seal = mod.Seals.NONE
+                mod.Saved.Player[PIndex].FullDeck[index].Edition = mod.Edition.BASE
+                mod.Saved.Player[PIndex].FullDeck[index].Upgrades = 0 --only used for the Hiker joker
+                mod.Saved.Player[PIndex].FullDeck[index].Modifiers = 0
+                --mod.Saved.Player[PIndex].FullDeck[index].Debuffed = false
+                --mod.Saved.Player[PIndex].FullDeck[index].Covered = false
+                index = index +1
+            end
+        end
     
-        mod.Saved.Player[PIndex].DeckPointer = 6
-        mod.Saved.Player[PIndex].CurrentHand = {5,4,3,2,1} --basically 5 different cards
+        mod.Saved.Player[PIndex].DeckPointer = 9
+        mod.Saved.Player[PIndex].CurrentHand = {8,7,6,5,4,3,2,1} --basically 5 different cards
         mod.Saved.Player[PIndex].LastShotIndex = 0
 
         mod.Saved.Player[PIndex].Inventory = {}
@@ -435,8 +303,47 @@ function mod:InitJimboValues(Player, Force)
         mod.Saved.Player[PIndex].Progress.GiftCardExtra = {0,0,0}
 
         mod.Saved.Player[PIndex].Consumables = {{Card = -1, Edition = 0}, {Card = -1, Edition = 0}}
+
+        mod.Saved.Player[PIndex].MultValue = 1
+        mod.Saved.Player[PIndex].ChipsValue = 1
+
+
+        mod.Saved.Player[PIndex].HandsRemaining = 4
+        mod.Saved.Player[PIndex].DiscrdsRemaining = 4
+
+        mod.Saved.Player[PIndex].HandLevels = {[mod.HandTypes.HIGH_CARD] = 1,
+                                               [mod.HandTypes.PAIR] = 1,
+                                               [mod.HandTypes.TWO_PAIR] = 1,
+                                               [mod.HandTypes.THREE] = 1,
+                                               [mod.HandTypes.STRAIGHT] = 1,
+                                               [mod.HandTypes.FLUSH] = 1,
+                                               [mod.HandTypes.FULL_HOUSE] = 1,
+                                               [mod.HandTypes.FOUR] = 1,
+                                               [mod.HandTypes.STRAIGHT_FLUSH] = 1,
+                                               [mod.HandTypes.ROYAL_FLUSH] = 1,
+                                               [mod.HandTypes.FIVE] = 1,
+                                               [mod.HandTypes.FLUSH_HOUSE] = 1,
+                                               [mod.HandTypes.FIVE_FLUSH] = 1}
+        
+        mod.Saved.Player[PIndex].HandsStat = {[mod.HandTypes.NONE] = Vector(0,0),
+                                              [mod.HandTypes.HIGH_CARD] = Vector(0.2,0.05),
+                                              [mod.HandTypes.PAIR] = Vector(0.4,0.1),
+                                              [mod.HandTypes.TWO_PAIR] = Vector(0.8,0.1),
+                                              [mod.HandTypes.THREE] = Vector(1.2,0.15),
+                                              [mod.HandTypes.STRAIGHT] = Vector(1.2,0.2),
+                                              [mod.HandTypes.FLUSH] = Vector(1.4,0.2),
+                                              [mod.HandTypes.FULL_HOUSE] = Vector(1.6,0.2),
+                                              [mod.HandTypes.FOUR] = Vector(2.4,0.35),
+                                              [mod.HandTypes.STRAIGHT_FLUSH] = Vector(4,0.4),
+                                              [mod.HandTypes.ROYAL_FLUSH] = Vector(4,0.4),
+                                              [mod.HandTypes.FIVE] = Vector(4.8,0.6),
+                                              [mod.HandTypes.FLUSH_HOUSE] = Vector(5.6,0.7),
+                                              [mod.HandTypes.FIVE_FLUSH] = Vector(6.4,0.8)}
+
     end
     end
+
+    mod.Saved.Player[PIndex].FullDeck = mod:Shuffle(mod.Saved.Player[PIndex].FullDeck, Game:GetPlayer(0):GetDropRNG())
     
     ::shared_values::
 
@@ -448,8 +355,7 @@ function mod:InitJimboValues(Player, Force)
     mod.SelectionParams[PIndex].PackOptions = {} --the options for the selection inside of a pack
     mod.SelectionParams[PIndex].OptionsNum = 0 --total amount of options
     mod.SelectionParams[PIndex].MaxSelectionNum = 0 --how many things you can choose at a time
-    mod.SelectionParams[PIndex].SelectionNum = 0 --how many things you chose
-    --mod.SelectionParams[PIndex].PlayerChoosing = 0 --the true player index of who is choosing
+    mod.SelectionParams[PIndex].SelectionNum = 0 --how many things you choosing
 
 
     if PType == mod.Characters.TaintedJimbo then --keeps in memory every different selection to make it much cooler
@@ -463,6 +369,10 @@ function mod:InitJimboValues(Player, Force)
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams.Purposes.HAND)
     
         mod.SelectionParams[PIndex].PackPurpose = 0
+        mod.SelectionParams[PIndex].HandType = mod.HandTypes.NONE
+        mod.SelectionParams[PIndex].PossibleHandTypes = mod.HandTypes.NONE
+        mod.SelectionParams[PIndex].PlayedCards = {} --contains the deck indexes of cards played from your hand
+        mod.SelectionParams[PIndex].ScoringCards = 0
     else
         mod.SelectionParams[PIndex].SelectedCards = {false,false,false,false,false}
 
@@ -489,6 +399,18 @@ function mod:SaveStorage(IsExit)
     end
     if type(IsExit) ~= "nil" then --this variable exists only when the GAME_EXIT callback is called
         mod.GameStarted = false
+
+        --[[
+        for _,Player in ipairs(PlayerManager.GetPlayers()) do
+            if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
+                local PIndex = Player:GetData().TruePlayerIndex
+
+                for _ , v in ipairs(mod.SelectionParams[PIndex].PlayedCards) do
+                
+                    table.insert(mod.Saved.Player[PIndex].CurrentHand, v)
+                end
+            end
+        end]]
         --print("is now false")
     end
 end

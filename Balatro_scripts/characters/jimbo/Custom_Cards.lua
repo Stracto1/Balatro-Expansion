@@ -175,7 +175,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
 
             for i ,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
                 if Slot.Joker ~= 0 then
-                    CoinsToGain = CoinsToGain + mod:GetJokerCost(Slot.Joker, i, Player)
+                    CoinsToGain = CoinsToGain + mod:GetJokerCost(Slot.Joker, Slot.Edition, i, Player)
                 end
             end
             Player:AddCoins(CoinsToGain)
@@ -267,31 +267,20 @@ function mod:PlanetCards(card, Player,_)
     if card <= mod.Planets.PLUTO or card >= mod.Planets.SUN then --if it's a planet Card
         return
     end
+    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+        return
+    end
 
     local PIndex = Player:GetData().TruePlayerIndex
     local Hand = card - mod.Planets.PLUTO + 1 --gets the equivalent handtype
 
     mod.Saved.PlanetTypesUsed = mod.Saved.PlanetTypesUsed | (1 << Hand)
 
-    if Player:GetPlayerType() == mod.Characters.JimboType then
+    mod.Saved.CardLevels[Hand] = mod.Saved.CardLevels[Hand] + 1
 
-        mod.Saved.CardLevels[Hand] = mod.Saved.CardLevels[Hand] + 1
+    --PLACEHOLDER
+    mod:CreateBalatroEffect(Player, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, mod:CardValueToName(Hand, false, true).." Up!")
 
-        --PLACEHOLDER
-        mod:CreateBalatroEffect(Player, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, mod:CardValueToName(Hand, false, true).." Up!")
-
-    elseif false then --TAINTED JIMBO
-
-        mod.Saved.Player[PIndex].HandLevels[Hand] = mod.Saved.Player[PIndex].HandLevels[Hand] + 1
-        mod.Saved.Player[PIndex].HandsStat[Hand] = mod.Saved.Player[PIndex].HandsStat[Hand] + mod.HandUpgrades[Hand]
-        if Hand == mod.HandTypes.STRAIGHT_FLUSH then
-            Hand = mod.HandTypes.ROYAL_FLUSH --upgrades both royal flush and straight flush
-            mod.Saved.Player[PIndex].HandLevels[Hand] = mod.Saved.Player[PIndex].HandLevels[Hand] + 1
-            mod.Saved.Player[PIndex].HandsStat[Hand] = mod.Saved.Player[PIndex].HandsStat[Hand] + mod.HandUpgrades[Hand]
-        end
-
-    end
-    
 end
 mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.PlanetCards)
 
@@ -611,7 +600,9 @@ function mod:SpectralCards(card, Player)
             repeat
                 RandomCard = mod:GetRandom(mod.Saved.Player[PIndex].CurrentHand, CardRNG)
             until mod.Saved.Player[PIndex].FullDeck[RandomCard]
-            table.remove(mod.Saved.Player[PIndex].FullDeck, RandomCard)    
+
+            mod:DestroyCards(Player, {RandomCard}, true, false)
+
             for i = 1, 3 do --adds 3 face cards
                 local RandomFace = {}
                 RandomFace.Value = CardRNG:RandomInt(11,13)
@@ -621,8 +612,11 @@ function mod:SpectralCards(card, Player)
                 until RandomFace.Enhancement ~= mod.Enhancement.STONE
                 RandomFace.Seal = mod.Seals.NONE
                 RandomFace.Edition = mod.Edition.BASE
-                table.insert(mod.Saved.Player[PIndex].FullDeck, RandomFace)
+
+                mod:AddCardToDeck(Player, RandomFace, 1, true)
+                --table.insert(mod.Saved.Player[PIndex].FullDeck, RandomFace)
             end
+
             Isaac.RunCallback("DECK_SHIFT", Player)
         elseif card == mod.Spectrals.GRIM then
 
@@ -642,7 +636,9 @@ function mod:SpectralCards(card, Player)
             repeat
                 RandomCard = mod:GetRandom(mod.Saved.Player[PIndex].CurrentHand, CardRNG)
             until mod.Saved.Player[PIndex].FullDeck[RandomCard]    
-            table.remove(mod.Saved.Player[PIndex].FullDeck, RandomCard)    
+
+            mod:DestroyCards(Player, {RandomCard}, true, false)
+
             for i = 1, 2 do --adds 3 face cards
                 local RandomAce = {}
                 RandomAce.Value = 1
@@ -651,8 +647,9 @@ function mod:SpectralCards(card, Player)
                     RandomAce.Enhancement = CardRNG:RandomInt(2,9)
                 until RandomAce.Enhancement ~= mod.Enhancement.STONE
                 RandomAce.Seal = mod.Seals.NONE
-                RandomAce.Edition = mod.Edition.BASE    
-                table.insert(mod.Saved.Player[PIndex].FullDeck, RandomAce)
+                RandomAce.Edition = mod.Edition.BASE  
+                
+                mod:AddCardToDeck(Player, RandomAce, 1, true)
             end 
             Isaac.RunCallback("DECK_SHIFT", Player)
         elseif card == mod.Spectrals.INCANTATION then
@@ -672,18 +669,21 @@ function mod:SpectralCards(card, Player)
             local RandomCard
             repeat
                 RandomCard = mod:GetRandom(mod.Saved.Player[PIndex].CurrentHand, CardRNG)
-            until mod.Saved.Player[PIndex].FullDeck[RandomCard]    
-            table.remove(mod.Saved.Player[PIndex].FullDeck, RandomCard)
+            until mod.Saved.Player[PIndex].FullDeck[RandomCard]  
+            
+            mod:DestroyCards(Player, {RandomCard}, true, false)
+
             for i = 1, 4 do --adds 4 numbered cards
-                local RandomAce = {}
-                RandomAce.Value = CardRNG:RandomInt(2,10)
-                RandomAce.Suit = CardRNG:RandomInt(1,4)
+                local RandomPip = {}
+                RandomPip.Value = CardRNG:RandomInt(2,10)
+                RandomPip.Suit = CardRNG:RandomInt(1,4)
                 repeat 
-                    RandomCard.Enhancement = CardRNG:RandomInt(2,9)
-                until RandomCard.Enhancement ~= mod.Enhancement.STONE
-                RandomAce.Seal = mod.Seals.NONE
-                RandomAce.Edition = mod.Edition.BASE    
-                table.insert(mod.Saved.Player[PIndex].FullDeck, Random)
+                    RandomPip.Enhancement = CardRNG:RandomInt(2,9)
+                until RandomPip.Enhancement ~= mod.Enhancement.STONE
+                RandomPip.Seal = mod.Seals.NONE
+                RandomPip.Edition = mod.Edition.BASE    
+
+                mod:AddCardToDeck(Player, RandomPip, 1, true)
             end
             Isaac.RunCallback("DECK_SHIFT", Player)
         elseif card == mod.Spectrals.TALISMAN then
@@ -746,7 +746,7 @@ function mod:SpectralCards(card, Player)
             Isaac.RunCallback("DECK_MODIFY", Player, 0)
 
         elseif card == mod.Spectrals.ECTOPLASM then 
-            if mod.Saved.Player[PIndex].HandSize == 1 then
+            if Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) == 1 then
                 Player:AnimateSad()
                 return --if hand size can't be decreased, don't to anything
             end
@@ -784,7 +784,7 @@ function mod:SpectralCards(card, Player)
             
             for i = #RandomCards - 1, 4, -1 do
 
-                local Rcard = CardRNG:RandomInt(1,i)
+                local Rcard = CardRNG:RandomInt(1,i+1)
 
                 table.remove(RandomCards, Rcard)
 

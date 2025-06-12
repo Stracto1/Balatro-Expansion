@@ -622,6 +622,7 @@ function mod:OnyxAgate(player,_)
     if player:GetPlayerType() ~= mod.Characters.JimboType and player:HasTrinket(Onix_agate) then
         --print("onyx")
         local Bombs = player:GetNumBombs()
+        local Damage = 0
         if Bombs <= 10 then
             Damage = (Bombs * 0.10) * player:GetTrinketMultiplier(Onix_agate)
         elseif Bombs <= 25 then
