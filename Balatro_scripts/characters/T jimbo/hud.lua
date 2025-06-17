@@ -775,7 +775,7 @@ local function JimboStatsHUD(_,offset,_,Position,_,Player)
 
     
      --HAND TYPE TEXT RENDER--
-    mod.Fonts.Balatro:DrawString(HAND_TYPE_NAMES[mod.SelectionParams[PIndex].HandType],100,100 -100,KColor(1,1,1,1))
+    mod.Fonts.Balatro:DrawString(HAND_TYPE_NAMES[mod.SelectionParams[PIndex].HandType],100,25,KColor(1,1,1,1))
 
 
 

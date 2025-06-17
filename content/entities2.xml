@@ -163,7 +163,7 @@
     </entity>
 
 
-        <!--SPECTRAL CARDS-->
+    <!--SPECTRAL CARDS-->
 
     <entity name="Familiar" anm2path="Spectral_familiar.anm2" id="5" variant="300" subtype="2494"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
@@ -256,6 +256,8 @@
     </entity>
 
 
+
+
     <entity name="Horsey" anm2path="familiar_Horsey.anm2" id="3" 
     	shodowSize="11" friction="1" tags="cansacrifice">
     </entity>
@@ -270,6 +272,8 @@
     </entity>
 
 
+
+    <!-- EFFECTS -->
 
     <entity name="Crayon Powder" anm2path="crayon_powder.anm2" id="1000" variant="2599" 
     	friction="1" collisionRadius="3"  collisionRadiusXMulti="3"> 
@@ -290,7 +294,7 @@
     	friction="1" collisionRadius="11" collisionRadiusXMulti="1.75" collisionRadiusXMulti="1.1">
     </entity>
 
-<!--EFFECTS-->
+
     <entity anm2path="" id="1000" variant="2596" name="Pack Particle Helper" />
     <entity anm2path="Particle.anm2" friction="1" id="1000" variant="2597" name="Pack Particle" />
     <entity anm2path="" id="1000"  friction="0" variant="2598" name="Description Helper" />
@@ -298,6 +302,8 @@
     <entity name="Pathfinder Slave" anm2path="" id="2743" variant="1" 
     	friction="0" collisionRadius="9" tags="noreroll" gridCollision="ground" shutdoors="false">
     </entity>
+
+    
     <entity anm2path="lollypop_1_pickup.anm2" baseHP="0" boss="0" champion="0" collisionDamage="0" collisionMass="3" collisionRadius="12" friction="1" id="5" name="Base Lollypop" numGridCollisionPoints="24" shadowSize="14" stageHP="0" variant="2036" subtype="1">
         <gibs amount="0" blood="0" bone="0" eye="0" gut="0" large="0" />
 	    <!--<preload-snd id="234" />  PENNYPICKUP -->

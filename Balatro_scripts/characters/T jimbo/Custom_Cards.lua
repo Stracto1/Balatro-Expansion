@@ -57,11 +57,10 @@ local function TJimboUseTarot(card, Player, IsPack, UseFlags)
     local RandomSeed = math.max(Random(),1)
     local SelectedCards = mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]
 
-
     if TarotMaxSelection[card]
-       and not mod.Saved.EnableHand --is selection is impossible
-       and (mod.SelectionParams[PIndex].SelectionNum > TarotMaxSelection[card] or mod.SelectionParams[PIndex].SelectionNum <= 0
-            or (card == Card.CARD_DEATH and mod.SelectionParams[PIndex].SelectionNum ~= 2)) then --if the wrong number of cards is selected
+       and (not mod.Saved.EnableHand --is selection is impossible
+       or (mod.SelectionParams[PIndex].SelectionNum > TarotMaxSelection[card] or mod.SelectionParams[PIndex].SelectionNum <= 0
+            or (card == Card.CARD_DEATH and mod.SelectionParams[PIndex].SelectionNum ~= 2))) then --if the wrong number of cards is selected
 
         sfx:Play(SoundEffect.SOUND_THUMBS_DOWN)
         return false

@@ -76,8 +76,8 @@ TomatoAnimations.NUM_VARIANTS = 2
 
 local TomatoState = {}
 TomatoState.THROW = 0
-TomatoState.SPLAT = 3
-TomatoState.DISAPPEAR = 6
+TomatoState.SPLAT = TomatoAnimations.NUM_VARIANTS+1
+TomatoState.DISAPPEAR = (TomatoAnimations.NUM_VARIANTS+1)*2
 
 BASE_CARD_ANIMATION = "Base"
 local SUIT_ANIMATIONS = {"Spade","Heart","Club","Diamond"}

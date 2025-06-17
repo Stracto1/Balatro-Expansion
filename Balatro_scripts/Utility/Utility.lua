@@ -360,6 +360,30 @@ function mod:CanTileBeBlocked(IndexToDestroy)
 
 end
 
+local function IsSpecialBossFight(_, CurrentBossType)
+
+    local Room = Game:GetRoom()
+    local Level = Game:GetLevel()
+
+    local Type = CurrentBossType or Room:GetBossID()
+
+    mod.Saved.IsSpecialBossFight = mod.Saved.IsSpecialBossFight
+                                   or (mod:Contained(mod.SPECIAL_BOSSES, CurrentBossType)
+                                   or Level:GetCurrentRoomDesc().Flags & RoomDescriptor.FLAG_NO_WALLS ~= 0)
+
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_BOSS_INTRO_SHOW, IsSpecialBossFight)
+mod:AddPriorityCallback(ModCallbacks.MC_POST_NEW_ROOM, CallbackPriority.IMPORTANT, IsSpecialBossFight)
+
+
+local function ResetSpecialBossFight()
+
+    mod.Saved.IsSpecialBossFight = false
+end
+mod:AddCallback(ModCallbacks.MC_PRE_NEW_ROOM, ResetSpecialBossFight)
+
+
 -------------JIMBO FUNCTIONS------------
 ---------------------------------------
 
@@ -515,7 +539,7 @@ function mod:IsStraight(Player, HandTable)
     local HasFourFingers = mod:JimboHasTrinket(Player, mod.Jokers.FOUR_FINGER)
     local HasShortcut = mod:JimboHasTrinket(Player, mod.Jokers.SHORTCUT)
 
-    local LowestValue = ValueTable[1] 
+    local LowestValue = ValueTable[1]
     local ValueToKeepStreak = LowestValue + 1
     local StraightStreak = 1
     for _, CardValue in ipairs(ValueTable) do --cycles between all the cards in the used hand
@@ -545,7 +569,7 @@ function mod:IsStraight(Player, HandTable)
 
     end
 
-    return StraightStreak >= 5 or (HasFourFingers and StraightStreak >= 4), LowestValue == 10
+    return StraightStreak >= 5 or (HasFourFingers and StraightStreak >= 4), LowestValue >= 10
 end
 
 function mod:GetCardValueRepetitions(Player, HandTable)
@@ -615,12 +639,13 @@ function mod:GetScoringCards(Player, HandType)
         local MaxValue = 1
 
         for i,Card in ipairs(PlayerHand) do
+
             
             if Card.Enhancement == mod.Enhancement.STONE then
             elseif Card.Value > MaxValue then
                 
                 MaxValue = Card.Value
-                MaxValueIndex = 1
+                MaxValueIndex = i
 
             elseif Card.Value == 1 then
                 MaxValue = Card.Value
@@ -939,7 +964,7 @@ function mod:GetScoringCards(Player, HandType)
         end
     end
 
-
+    print(ReturnMask, tonumber(tostring(ReturnMask), 2))
     return ReturnMask
 end
 
@@ -1799,7 +1824,134 @@ function mod:FullDeckShuffle(Player)
 end
 
 
+function mod:RefillHand(Player)
 
+    local PIndex = Player:GetData().TruePlayerIndex
+    local DeckSize = #mod.Saved.Player[PIndex].FullDeck - 1
+
+    for i = #mod.Saved.Player[PIndex].CurrentHand, Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) - 1 do
+
+        if mod.Saved.Player[PIndex].DeckPointer > DeckSize then
+            
+            return false
+        end
+        
+        table.insert(mod.Saved.Player[PIndex].CurrentHand, mod.Saved.Player[PIndex].DeckPointer)
+
+        mod.Saved.Player[PIndex].DeckPointer = mod.Saved.Player[PIndex].DeckPointer + 1
+    end
+
+    return true
+end
+
+
+function mod:ChooseBossBlind(SpecialBoss)
+    
+    --resets the pool in case it gets emptied
+    if not next(mod.Saved.Pools.BossBlinds) then
+        
+        mod.Saved.Pools.BossBlinds = { mod.BLINDS.BOSS_HOOK,
+                                       mod.BLINDS.BOSS_CLUB,
+                                       mod.BLINDS.BOSS_PSYCHIC,
+                                       mod.BLINDS.BOSS_GOAD,
+                                       mod.BLINDS.BOSS_WINDOW,
+                                       mod.BLINDS.BOSS_MANACLE,
+                                       mod.BLINDS.BOSS_PILLAR,
+                                       mod.BLINDS.BOSS_HEAD,
+                                       }
+
+        if AnteLevel >= 2 then
+
+            local InitialBossNum = #mod.Saved.Pools.BossBlinds
+                
+            mod.Saved.Pools.BossBlinds[InitialBossNum+1] = mod.BLINDS.BOSS_HOUSE
+            mod.Saved.Pools.BossBlinds[InitialBossNum+2] = mod.BLINDS.BOSS_WALL
+            mod.Saved.Pools.BossBlinds[InitialBossNum+3] = mod.BLINDS.BOSS_WHEEL
+            mod.Saved.Pools.BossBlinds[InitialBossNum+4] = mod.BLINDS.BOSS_ARM
+            mod.Saved.Pools.BossBlinds[InitialBossNum+5] = mod.BLINDS.BOSS_FISH
+            mod.Saved.Pools.BossBlinds[InitialBossNum+6] = mod.BLINDS.BOSS_WATER
+            mod.Saved.Pools.BossBlinds[InitialBossNum+7] = mod.BLINDS.BOSS_MOUTH
+            mod.Saved.Pools.BossBlinds[InitialBossNum+8] = mod.BLINDS.BOSS_NEEDLE
+        end       
+        if AnteLevel >= 3 then
+        
+            local InitialBossNum = #mod.Saved.Pools.BossBlinds
+        
+            mod.Saved.Pools.BossBlinds[InitialBossNum+1] = mod.BLINDS.BOSS_EYE
+            mod.Saved.Pools.BossBlinds[InitialBossNum+2] = mod.BLINDS.BOSS_TOOTH
+        end
+        if AnteLevel >= 4 then
+        
+            mod.Saved.Pools.BossBlinds[#mod.Saved.Pools.BossBlinds+1] = mod.BLINDS.BOSS_PLANT
+        end
+        if AnteLevel >= 5 then
+        
+            mod.Saved.Pools.BossBlinds[#mod.Saved.Pools.BossBlinds+1] = mod.BLINDS.BOSS_SERPENT
+        end
+        if AnteLevel >= 6 then
+        
+            mod.Saved.Pools.BossBlinds[#mod.Saved.Pools.BossBlinds+1] = mod.BLINDS.BOSS_OX
+        
+        end
+
+    end
+
+    if not next(mod.Saved.Pools.SpecialBossBlinds) then
+
+        mod.Saved.Pools.SpecialBossBlinds = { mod.BLINDS.BOSS_HEART,
+                                              mod.BLINDS.BOSS_BELL,
+                                              mod.BLINDS.BOSS_VESSEL,
+                                              mod.BLINDS.BOSS_ACORN,
+                                              mod.BLINDS.BOSS_LEAF,
+                                              }
+    end
+
+    if SpecialBoss then
+
+        AnteBoss = mod:GetRandom(mod.Saved.Pools.SpecialBossBlinds, RNG(Game:GetLevel():GetDungeonPlacementSeed()))
+
+        table.remove(mod.Saved.Pools.SpecialBossBlinds, mod:GetValueIndex(mod.Saved.Pools.SpecialBossBlinds, AnteBoss, true))
+
+    else
+
+        AnteBoss = mod:GetRandom(mod.Saved.Pools.BossBlinds, RNG(Game:GetLevel():GetDungeonPlacementSeed()))
+
+        table.remove(mod.Saved.Pools.BossBlinds, mod:GetValueIndex(mod.Saved.Pools.BossBlinds, AnteBoss, true))
+
+    end
+
+end
+
+
+---@param Trinket EntityPickup
+function mod:TrinketEditionsRender(Trinket, Offset)
+    local Index = Level:GetCurrentRoomDesc().ListIndex
+    local JokerConfig = ItemsConfig:GetTrinket(Trinket.SubType)
+
+    --some precautions
+    mod.Saved.FloorEditions[Index] = mod.Saved.FloorEditions[Index] or {}
+    mod.Saved.FloorEditions[Index][JokerConfig.Name] = mod.Saved.FloorEditions[Index][JokerConfig.Name] or 0
+
+    local Edition = mod.Saved.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name]
+    
+    Trinket:GetSprite():SetCustomShader(mod.EditionShaders[Edition])
+
+    --Trinket:GetSprite():SetCustomShader(mod.EditionShaders[mod.Edition.NEGATIVE])
+end
+mod:AddCallback(ModCallbacks.MC_POST_PICKUP_RENDER, mod.TrinketEditionsRender, PickupVariant.PICKUP_TRINKET)
+
+
+function mod:EnableTrinketEditions()
+    mod.Saved.FloorEditions = {}
+    Isaac.CreateTimer(function()
+        local AllRoomsDesc = Level:GetRooms()
+        for i=1, Level:GetRoomCount()-1 do
+            local RoomDesc = AllRoomsDesc:Get(i)
+            mod.Saved.FloorEditions[RoomDesc.ListIndex] = {}
+        end
+    end, 1,1,true )
+end
+mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.EnableTrinketEditions)
 
 
 
@@ -1858,6 +2010,7 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
                 local Target = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.TARGET, Player.Position, Vector.Zero, Player, 0, math.max(Random(), 1))
                 
                 Target.Parent = Player
+                Target.SortingLayer = SortingLayer.SORTING_BACKGROUND
             end
         else
             mod.SelectionParams[PIndex].OptionsNum = 0
@@ -1997,7 +2150,7 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
 
     if IsTaintedJimbo then
         mod.SelectionParams[PIndex].MaxSelectionNum = 5
-        mod.SelectionParams[PIndex].Index = math.min(mod.SelectionParams[PIndex].Index, mod.SelectionParams[PIndex].OptionsNum)
+        mod.SelectionParams[PIndex].Index = mod:Clamp(mod.SelectionParams[PIndex].Index, mod.SelectionParams[PIndex].OptionsNum, 1)
     
         --mod.SelectionParams[PIndex].SelectionNum = mod:GetValueRepetitions(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams[PIndex].Mode],)
     
@@ -2329,7 +2482,9 @@ function mod:UseSelection(Player)
 
         if mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.AIMING then
             
-            Isaac.RunCallback(mod.Callbalcks.POST_HAND_PLAY, Player)
+
+            mod:ActivateCurrentHand(Player)
+            --Isaac.RunCallback(mod.Callbalcks.POST_HAND_PLAY, Player)
         end
 
 
@@ -2349,9 +2504,12 @@ function mod:UseSelection(Player)
 
             elseif mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.HAND then
 
-                mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.HAND)
+                if mod.SelectionParams[PIndex].HandType ~= mod.HandTypes.NONE then
+
+                    mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.HAND)
                 
-                Isaac.RunCallback(mod.Callbalcks.HAND_PLAY, Player)
+                    Isaac.RunCallback(mod.Callbalcks.HAND_PLAY, Player)
+                end
                 return
             end
         end

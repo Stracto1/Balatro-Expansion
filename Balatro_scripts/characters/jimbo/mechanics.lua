@@ -1006,37 +1006,6 @@ end
 mod:AddCallback(ModCallbacks.MC_GET_TRINKET, mod.JimboTrinketPool)
 
 
----@param Trinket EntityPickup
-function mod:TrinketEditionsRender(Trinket, Offset)
-    local Index = Level:GetCurrentRoomDesc().ListIndex
-    local JokerConfig = ItemsConfig:GetTrinket(Trinket.SubType)
-
-    --some precautions
-    mod.Saved.FloorEditions[Index] = mod.Saved.FloorEditions[Index] or {}
-    mod.Saved.FloorEditions[Index][JokerConfig.Name] = mod.Saved.FloorEditions[Index][JokerConfig.Name] or 0
-
-    local Edition = mod.Saved.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name]
-    
-    Trinket:GetSprite():SetCustomShader(mod.EditionShaders[Edition])
-
-    --Trinket:GetSprite():SetCustomShader(mod.EditionShaders[mod.Edition.NEGATIVE])
-end
-mod:AddCallback(ModCallbacks.MC_POST_PICKUP_RENDER, mod.TrinketEditionsRender, PickupVariant.PICKUP_TRINKET)
-
-
-function mod:EnableTrinketEditions()
-    mod.Saved.FloorEditions = {}
-    Isaac.CreateTimer(function()
-        local AllRoomsDesc = Level:GetRooms()
-        for i=1, Level:GetRoomCount()-1 do
-            local RoomDesc = AllRoomsDesc:Get(i)
-            mod.Saved.FloorEditions[RoomDesc.ListIndex] = {}
-        end
-    end, 1,1,true )
-end
-mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.EnableTrinketEditions)
-
-
 local DamagedThisFrame = {}
 DamagedThisFrame[0] = false
 DamagedThisFrame[1] = false

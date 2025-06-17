@@ -182,6 +182,8 @@ for i = 1, 5 do --puts every candy stages
     Balatro_Expansion.Trinkets.TASTY_CANDY[i] = Balatro_Expansion.Jokers.PERKEO + i
 end
 
+Balatro_Expansion.INFINITE_HANDS = -1
+
 Balatro_Expansion.Callbalcks = {CARD_SHOT = "CARD_SHOT",
                                 CARD_HIT = "CARD_HIT",
                                 DISCARD = "HAND_DISCARD",
@@ -197,7 +199,8 @@ Balatro_Expansion.Callbalcks = {CARD_SHOT = "CARD_SHOT",
                                 DECK_MODIFY = "DECK_MODIFY",
                                 HAND_PLAY = "HAND_PLAYED",
                                 POST_HAND_PLAY = "POST_HAND_PLAYED",
-                                HAND_UPDATE = "HAND_TYPE_UPDATE"}
+                                HAND_UPDATE = "HAND_TYPE_UPDATE",
+                                BALATRO_PLATE_PRESSED = "BALATRO_PLATE_PRESSED",}
 
 
 Balatro_Expansion.JokerTypes = {}
@@ -243,6 +246,11 @@ Balatro_Expansion.Entities.BALATRO_TYPE = Isaac.GetEntityTypeByName("Pathfinder 
 Balatro_Expansion.Entities.PATH_SLAVE = Isaac.GetEntityVariantByName("Pathfinder Slave")
 --Balatro_Expansion.Entities.SHOP_MIMIC = Isaac.GetEntityVariantByName("Shop Mimic")
 
+Balatro_Expansion.Grids = {}
+Balatro_Expansion.Grids.PLATE_VARIANT = 146
+Balatro_Expansion.Grids.PLATE_PATH = "gfx/grid/grid_balatro_pressureplate.anm2"
+
+
 for i, Joker in pairs(Balatro_Expansion.Jokers) do
     local Rarity = string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[4],"%?","")
 
@@ -254,6 +262,10 @@ end
 --CollectibleType.COLLECTIBLE_THE_HAND = Isaac.GetItemIdByName("The hand")
 ----------------------------------
 ------------------------
+
+
+Balatro_Expansion.SPECIAL_BOSSES = {BossType.MOTHER, BossType.MEGA_SATAN, BossType.HUSH, BossType.DELIRIUM, BossType.BEAST, BossType.DOGMA}
+
 Balatro_Expansion.Characters = {}
 Balatro_Expansion.Characters.JimboType = Isaac.GetPlayerTypeByName("Jimbo", false) -- Exactly as in the xml. The second argument is if you want the Tainted variant.
 Balatro_Expansion.Characters.TaintedJimbo = Isaac.GetPlayerTypeByName("Jimbo", true)
@@ -479,10 +491,41 @@ Balatro_Expansion.AllCurses.THE_WALL = 1 << (Isaac.GetCurseIdByName("curse of th
 
 Balatro_Expansion.NormalCurses[1] = Balatro_Expansion.AllCurses.THE_WALL
 
-Balatro_Expansion.BLINDS = {}
-Balatro_Expansion.BLINDS.SMALL = 0
-Balatro_Expansion.BLINDS.BIG = 1
-Balatro_Expansion.BLINDS.BOSS = 2
+Balatro_Expansion.BLINDS = {CASHOUT = -2, --used as a pressure plate vardata, not really a type of blind
+                            SKIP = -1,
+                            SMALL = 0,
+                            BIG = 1,
+                            BOSS = 2,
+                            BOSS_HOOK = 4,
+                            BOSS_OX = 8,
+                            BOSS_HOUSE = 12,
+                            BOSS_WALL = 16,
+                            BOSS_WHEEL = 20,
+                            BOSS_ARM = 24,
+                            BOSS_CLUB = 28,
+                            BOSS_FISH = 32,
+                            BOSS_PSYCHIC = 36,
+                            BOSS_GOAD = 40,
+                            BOSS_WATER = 44,
+                            BOSS_WINDOW = 48,
+                            BOSS_MANACLE = 52,
+                            BOSS_EYE = 56,
+                            BOSS_MOUTH = 60,
+                            BOSS_PLANT = 64,
+                            BOSS_SERPENT = 68,
+                            BOSS_PILLAR = 72,
+                            BOSS_NEEDLE = 76,
+                            BOSS_HEAD = 80,
+                            BOSS_TOOTH = 84,
+                            BOSS_FLINT = 88,
+                            BOSS_MARK = 92,
+                            BOSS_ACORN = 96,
+                            BOSS_LEAF = 100,
+                            BOSS_HEART = 104,
+                            BOSS_VESSEL = 108,
+                            BOSS_BELL = 112}
+
+
 
 Balatro_Expansion.CustomCache = {}
 Balatro_Expansion.CustomCache.HAND_SIZE = "handsize"
@@ -548,31 +591,47 @@ Balatro_Expansion.Saved.TrinketValues.Dna = true
 ]]
 
 Balatro_Expansion.Saved.Pools = {}
-Balatro_Expansion.Saved.Pools.Vouchers = {
-Balatro_Expansion.Vouchers.Grabber,
-Balatro_Expansion.Vouchers.Overstock,
-Balatro_Expansion.Vouchers.Wasteful,
-Balatro_Expansion.Vouchers.RerollSurplus,
-Balatro_Expansion.Vouchers.TarotMerch,
-Balatro_Expansion.Vouchers.PlanetMerch,
-Balatro_Expansion.Vouchers.Clearance,
-Balatro_Expansion.Vouchers.Hone,
-Balatro_Expansion.Vouchers.Crystal,
-Balatro_Expansion.Vouchers.Blank,
-Balatro_Expansion.Vouchers.Telescope,
-Balatro_Expansion.Vouchers.Brush,
-Balatro_Expansion.Vouchers.Director,
-Balatro_Expansion.Vouchers.Hieroglyph,
-Balatro_Expansion.Vouchers.MagicTrick,
-Balatro_Expansion.Vouchers.MoneySeed
-}
+Balatro_Expansion.Saved.Pools.Vouchers = { Balatro_Expansion.Vouchers.Grabber,
+                                           Balatro_Expansion.Vouchers.Overstock,
+                                           Balatro_Expansion.Vouchers.Wasteful,
+                                           Balatro_Expansion.Vouchers.RerollSurplus,
+                                           Balatro_Expansion.Vouchers.TarotMerch,
+                                           Balatro_Expansion.Vouchers.PlanetMerch,
+                                           Balatro_Expansion.Vouchers.Clearance,
+                                           Balatro_Expansion.Vouchers.Hone,
+                                           Balatro_Expansion.Vouchers.Crystal,
+                                           Balatro_Expansion.Vouchers.Blank,
+                                           Balatro_Expansion.Vouchers.Telescope,
+                                           Balatro_Expansion.Vouchers.Brush,
+                                           Balatro_Expansion.Vouchers.Director,
+                                           Balatro_Expansion.Vouchers.Hieroglyph,
+                                           Balatro_Expansion.Vouchers.MagicTrick,
+                                           Balatro_Expansion.Vouchers.MoneySeed
+                                        }
 
+Balatro_Expansion.Saved.Pools.BossBlinds = { Balatro_Expansion.BLINDS.BOSS_HOOK,
+                                             Balatro_Expansion.BLINDS.BOSS_CLUB,
+                                             Balatro_Expansion.BLINDS.BOSS_PSYCHIC,
+                                             Balatro_Expansion.BLINDS.BOSS_GOAD,
+                                             Balatro_Expansion.BLINDS.BOSS_WINDOW,
+                                             Balatro_Expansion.BLINDS.BOSS_MANACLE,
+                                             Balatro_Expansion.BLINDS.BOSS_PILLAR,
+                                             Balatro_Expansion.BLINDS.BOSS_HEAD,
+                                             }
+
+Balatro_Expansion.Saved.Pools.SpecialBossBlinds = { Balatro_Expansion.BLINDS.BOSS_HEART,
+                                                    Balatro_Expansion.BLINDS.BOSS_BELL,
+                                                    Balatro_Expansion.BLINDS.BOSS_VESSEL,
+                                                    Balatro_Expansion.BLINDS.BOSS_ACORN,
+                                                    Balatro_Expansion.BLINDS.BOSS_LEAF,
+                                                    }
 
 Balatro_Expansion.Saved.FloorSkippedSpecials = 0
 Balatro_Expansion.Saved.RunSkippedSpecials = 0
 Balatro_Expansion.Saved.GlassBroken = 0
 Balatro_Expansion.Saved.TarotsUsed = 0
 Balatro_Expansion.Saved.PlanetTypesUsed = 0
+Balatro_Expansion.Saved.BlindBeingPlayed = Balatro_Expansion.BLINDS.SKIP
 
 
 -----------JIMBO-------------------
@@ -604,10 +663,15 @@ Balatro_Expansion.Saved.EnableHand = false
 
 Balatro_Expansion.Saved.Player.SmallBlind = 0
 Balatro_Expansion.Saved.Player.BigBlind = 0
-Balatro_Expansion.Saved.Player.ClearedRooms = 0
-Balatro_Expansion.Saved.Player.SmallCleared = false
-Balatro_Expansion.Saved.Player.BigCleared = false
-Balatro_Expansion.Saved.Player.BossCleared = 0  --0 = no | 1 = partially | 2 = yes
+Balatro_Expansion.Saved.ClearedRooms = 0
+Balatro_Expansion.Saved.SmallCleared = false
+Balatro_Expansion.Saved.BigCleared = false
+Balatro_Expansion.Saved.BossCleared = 0  --0 = no | 1 = partially | 2 = yes
+
+Balatro_Expansion.BossProgress = {NOT_CLEARED = 0,
+                                  PARTIAL = 1,
+                                  CLEARED = 2}
+
 
 Balatro_Expansion.StatEnable = false --needed cause i hate my life
 Balatro_Expansion.Saved.Player.StatsToAdd = {}
@@ -948,31 +1012,25 @@ end
 --------------TRINKETS/ITEMS CALLBACKS---------------
 -----------------------------------------------------
 
---all of the callbacks used by the trinkets and items made by this mod
 
---STATS TRINKETS: their value is increassed/decreades in their assingned callbacks
-                --such as OnNewFloor() ecc.
-                --while the statups are given in their cache evaluation functions (obv)
-
---ACTIVATE TRINKETS: usually all they do is put in a function called whenever it needs to activate,
-                --   which can be found inside the section of the cache evaluation functions
-include("Balatro_scripts.characters.jimbo.mechanics")
+include("Balatro_scripts.characters.jimbo.mechanics") --general mechanics such as blind progression
 include("Balatro_scripts.characters.jimbo.trinkets") --jimbo trinkets/items effects
-include("Balatro_scripts.characters.jimbo.items")
-include("Balatro_scripts.characters.jimbo.hud")
+include("Balatro_scripts.characters.jimbo.items") --most items (vouchers) effects
+include("Balatro_scripts.characters.jimbo.hud") --hud handling
 include("Balatro_scripts.characters.jimbo.Custom_Cards") --jimbo cards effects
+include("Balatro_scripts.characters.jimbo.Synergies") --specific synergies
 
 
 include("Balatro_scripts.characters.T jimbo.mechanics")
 include("Balatro_scripts.characters.T jimbo.hud")
 include("Balatro_scripts.characters.T jimbo.Custom_Cards")
-include("Balatro_scripts.characters.T jimbo.scoring system")
+include("Balatro_scripts.characters.T jimbo.scoring system") --hand scoring handling
 
 
 
 include("Balatro_scripts.characters.DebtManager")
 
-include("Balatro_scripts.Synergies")
+include("Balatro_scripts.custom_grid")
 
 
 include("Balatro_scripts.Collectibles.Unlockable Items")
