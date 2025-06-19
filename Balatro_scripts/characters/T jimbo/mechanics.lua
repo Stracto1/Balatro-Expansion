@@ -6,10 +6,23 @@ local Level = Game:GetLevel()
 local ItemsConfig = Isaac.GetItemConfig()
 local sfx = SFXManager()
 
+local HAND_POOF_COLOR = Color(1,1,1,1,0,0,0,0.27,0.59, 1.5,1) --0.95
+
+--local LevelDescriptorFlags = {SMALL_BLIND = 1 << 20, BIG_BLIND = 1 << 21, JIMBO_SHOP = 1 << 22}
+
+mod.FullDoorSlot = {[RoomShape.ROOMSHAPE_1x1] = 1 << DoorSlot.LEFT0 | 1 << DoorSlot.UP0 | 1 << DoorSlot.DOWN0 | 1 << DoorSlot.RIGHT0,
+                    [RoomShape.ROOMSHAPE_1x2] = 1 << DoorSlot.LEFT0 | 1 << DoorSlot.LEFT1 | 1 << DoorSlot.UP0 | 1 << DoorSlot.DOWN0 | 1 << DoorSlot.RIGHT1 | 1 << DoorSlot.RIGHT0,
+                    [RoomShape.ROOMSHAPE_2x1] = 1 << DoorSlot.LEFT0 | 1 << DoorSlot.UP0 | 1 << DoorSlot.UP1 | 1 << DoorSlot.DOWN0 | 1 << DoorSlot.DOWN1 | 1 << DoorSlot.RIGHT0,
+                    [RoomShape.ROOMSHAPE_IH] = 1 << DoorSlot.LEFT0 |  1 << DoorSlot.RIGHT0,
+                    [RoomShape.ROOMSHAPE_IIH] = 1 << DoorSlot.LEFT0 |  1 << DoorSlot.RIGHT0,
+                    [RoomShape.ROOMSHAPE_IV] = 1 << DoorSlot.UP0 |  1 << DoorSlot.DOWN0,
+                    [RoomShape.ROOMSHAPE_IIV] = 1 << DoorSlot.UP0 |  1 << DoorSlot.DOWN0,
+                    FULL = 1 << DoorSlot.LEFT0 | 1 << DoorSlot.UP0 | 1 << DoorSlot.DOWN0 | 1 << DoorSlot.RIGHT0 | 1 << DoorSlot.LEFT1 | 1 << DoorSlot.UP1 | 1 << DoorSlot.DOWN1 | 1 << DoorSlot.RIGHT1}
+
 
 local SCREEN_TO_WORLD_RATIO = 4
 
-local BASE_HAND_RADIUS = 40 --this gets increased by the handtype's base mult value (considering planet upgrades)
+local BASE_HAND_RADIUS = 45 --this gets increased by the handtype's base mult value (considering planet upgrades)
 
 
 
@@ -49,21 +62,43 @@ local function FloorModifier(_,LevelGen,RoomConfig,Seed)
     end
     
     --print(RoomIndex)
+    Game:GetLevel():GetRoomByIdx(LevelGen:Column() + LevelGen:Row()*13)
 
     if RoomConfig.Type == RoomType.ROOM_BOSS then --and (not RoomConfig.StageID == 26 or RoomConfig.Shape == RoomShape.ROOMSHAPE_2x2) then
-        --("s")
 
         mod.Saved.BossIndex = LevelGen:Column() + LevelGen:Row()*13
 
-    
-        mod:PlaceBlindRooms(LevelGen:Column(), LevelGen:Row())
 
-        --return NewRoom --replaces the room with the new only
+    elseif RoomConfig.Type == RoomType.ROOM_ULTRASECRET then
+
+        --the blind rooms are placed next to the ultra sectret since it has guaranteed space close to it
+        --mod:PlaceBlindRooms(LevelGen:Column(), LevelGen:Row())
     end
 
 end
 mod:AddCallback(ModCallbacks.MC_PRE_LEVEL_PLACE_ROOM, FloorModifier)
 
+
+
+local function FloorModifier()
+
+    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then
+        return
+    end
+
+    local Rooms = Game:GetLevel():GetRooms()
+
+    for i = 0, Rooms.Size - 1 do
+        
+        local Room = Rooms:Get(i)
+
+        Room.AllowedDoors = mod.FullDoorSlot[Room.Data.Shape] or mod.FullDoorSlot.FULL --(i think) helps to always give the blind rooms a valid position 
+    end
+
+    mod:PlaceBlindRoomsForReal()
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, FloorModifier)
 
 
 ---@param Player EntityPlayer
@@ -535,6 +570,11 @@ function mod:UpdateCurrentHandType(Player)
 end
 mod:AddCallback(mod.Callbalcks.HAND_UPDATE, mod.UpdateCurrentHandType)
 
+local function effectTest(_, Effect)
+    
+    print(Effect.Variant, Effect.SubType)
+end
+--mod:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT, effectTest)
 
 
 
@@ -565,22 +605,66 @@ function mod:ActivateCurrentHand(Player)
         return
     end
 
-    local HandHype = mod.SelectionParams[PIndex].HandType
 
+    local HandHype = mod.SelectionParams[PIndex].HandType
 
     if HandHype == mod.HandTypes.HIGH_CARD then
         print("idk cacati addosso")
     end
 
+    local RadiusMultiplier = mod.Saved.Player[PIndex].HandsStat[HandHype][mod.Stats.MULT]
+    local FullHandDamage = mod.Saved.Player[PIndex].ChipsValue * mod.Saved.Player[PIndex].MultValue
+    local FullyDamagedEnemies = {}
+
+    for _, Enemy in ipairs(Isaac.FindInRadius(TargetPosition, 
+                                              BASE_HAND_RADIUS * RadiusMultiplier,
+                                              EntityPartition.ENEMY)) do
+
+        if Enemy:IsActiveEnemy() and Enemy:IsVulnerableEnemy() then
+
+            Enemy:TakeDamage(FullHandDamage,
+                             DamageFlag.DAMAGE_IGNORE_ARMOR, EntityRef(Player), 0)
+
+            FullyDamagedEnemies[#FullyDamagedEnemies+1] = GetPtrHash(Enemy)
+        end
+    end
+
+    local Poof = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.POOF02, TargetPosition,
+                            Vector.Zero, nil, 3, 1)
+
+    Poof.SpriteScale = Vector.One * 0.8 * RadiusMultiplier
+    Poof:SetColor(HAND_POOF_COLOR, -1, 100, false, false)
+
+    local Poof = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.POOF02, TargetPosition,
+                            Vector.Zero, nil, 4, 1)
+
+    Poof.SpriteScale = Vector.One * 0.8 * RadiusMultiplier
+    Poof:SetColor(HAND_POOF_COLOR, -1, 100, false, false)
+    --Poof:SetColor(Color.ProjectileHushBlue, -1, 1, false, false)
+
+
+
 
     for _,Enemy in ipairs(Isaac.GetRoomEntities()) do
 
-        if Enemy:IsActiveEnemy() then
+        if Enemy:IsActiveEnemy() and not mod:Contained(FullyDamagedEnemies, GetPtrHash(Enemy)) then
             
-            Enemy:TakeDamage(mod.Saved.Player[PIndex].ChipsValue * mod.Saved.Player[PIndex].MultValue,
+            Enemy:TakeDamage(FullHandDamage / 2.5,
                              DamageFlag.DAMAGE_IGNORE_ARMOR, EntityRef(Player), 0)
 
-            Enemy:MakeBloodPoof()
+
+            local Poof = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.POOF02, Enemy.Position,
+                                    Vector.Zero, nil, 3, 1)
+
+            Poof.SpriteScale = Vector.One * 0.33
+            Poof:SetColor(HAND_POOF_COLOR, -1, 100, false, false)
+
+            local Poof = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.POOF02, Enemy.Position,
+                                    Vector.Zero, nil, 4, 1)
+
+            Poof.SpriteScale = Vector.One * 0.33
+            Poof:SetColor(HAND_POOF_COLOR, -1, 100, false, false)
+            --Poof:SetColor(Color.ProjectileHushBlue, -1, 1, false, false)
         end
     end
 
@@ -725,6 +809,17 @@ local function MoveHandTarget(_,Effect)
     Game:GetRoom():GetCamera():SetFocusPosition(Effect.Position)
 
     Effect:AddVelocity(Player:GetAimDirection()*6.25)
+
+    local PIndex = Player:GetData().TruePlayerIndex
+    local HandHype = mod.SelectionParams[PIndex].HandType
+
+    local RadiusMultiplier = mod.Saved.Player[PIndex].HandsStat[HandHype][mod.Stats.MULT]
+
+    for _, Enemy in ipairs(Isaac.FindInRadius(Effect.Position, BASE_HAND_RADIUS * RadiusMultiplier, EntityPartition.ENEMY)) do
+        
+        Enemy:SetColor(Color(1.5,1.5,1.5,1, 0.1, 0.1, 0.1), 2, 100, true, false)
+
+    end
 end
 mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, MoveHandTarget, EffectVariant.TARGET)
 
@@ -751,8 +846,6 @@ local function OnBlindButtonPressed(_, VarData)
 
             Player:AnimateTeleport(true)
         end
-
-        print("cash pressed")
 
         Isaac.CreateTimer(function ()
                                 if TimerFixerVariable == 1 then
@@ -980,7 +1073,7 @@ local function InitializeAnte()
     Plate.State = 3
     Plate:GetSprite():Play("Switched")
 
-    Plate = mod:SpawnBalatroPressurePlate(Room:GetGridPosition(55), mod.Saved.AnteBoss)
+    Plate = mod:SpawnBalatroPressurePlate(Room:GetGridPosition(70), mod.Saved.AnteBoss)
     Plate.State = 3
     Plate:GetSprite():Play("Switched")
 
@@ -1004,9 +1097,9 @@ local function EnemyHPScaling(_,Enemy)
 
     if mod.Saved.AnteLevel <= 0 then
 
-        AnteFactor = 1/(2 - mod.Saved.AnteLevel) --(0 --> 0.5 || -1 --> 0.33 and so on)
+        AnteFactor = 1/(3 - mod.Saved.AnteLevel) --(0 --> 1 || -1 --> 0.5 and so on)
     else
-        AnteFactor = mod.Saved.AnteLevel
+        AnteFactor = mod.Saved.AnteLevel + 1
     end
 
     if Enemy:IsActiveEnemy() then

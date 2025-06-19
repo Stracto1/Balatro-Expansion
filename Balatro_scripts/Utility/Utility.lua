@@ -5,6 +5,10 @@ local Game = Game()
 local sfx = SFXManager()
 local Level = Game:GetLevel()
 
+local RoomHolderMode = {ANY = -1, HOSTILE = 0} --idk but this seems like it after trying ~20 room generations
+
+local MAX_SEED_VALUE = 2^32 - 1
+
 local DoorSides = {}
 DoorSides.LEFT = 0
 DoorSides.UP = 1
@@ -1960,92 +1964,90 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.EnableTrinketEditions)
 
 
-function mod:PlaceBlindRooms(Collum, Row)
+
+
+function mod:PlaceBlindRoomsForReal()
+
+    local Level = Game:GetLevel()
 
     local RoomSeed = Game:GetSeeds():GetStageSeed(Isaac.GetCurrentStageConfigId())
+    local RoomRNG = RNG(RoomSeed)
+    local RoomPlaceSeed = Level:GetDungeonPlacementSeed()
+    local PlaceRNG = RNG(RoomPlaceSeed)
 
-    Collum = Collum + 3
-    Row = Row + 1
-    if Collum > 12 then 
-        Collum = 1
-        Row = Row + 2
+    local SmallDesc
+    local BigDesc
+    local ShopDesc
 
-        if Row > 11 then
-            Collum = 1
-            Row = 1
-        end
-    end
+    local tries = 0
 
+    repeat
+
+        local BigRoom = RoomConfigHolder.GetRandomRoom( RoomRNG:RandomInt(MAX_SEED_VALUE) + 1,
+                                                        true, 
+                                                        Isaac.GetCurrentStageConfigId(),
+                                                        RoomType.ROOM_DEFAULT,
+                                                        RoomShape.ROOMSHAPE_2x2,
+                                                        -1, -1,
+                                                        7,
+                                                        10,
+                                                        0,
+                                                        -1,RoomHolderMode.HOSTILE)
+
+        local PlaceSeed = PlaceRNG:RandomInt(MAX_SEED_VALUE) + 1
+
+        for i = 3, 168 do
+
+            BigDesc = Level:TryPlaceRoom(BigRoom, i, -1, PlaceSeed, true, true, true)
+
+            if BigDesc then
+                mod.Saved.BigBlindIndex = i
+                break
+
+            else
+                Isaac.DebugString("FAILED TO PLACE AT "..tostring(mod.Saved.BigBlindIndex))
+            end
+        end     
+        
+        tries = tries + 1
     
-    local SmallEntry = Isaac.LevelGeneratorEntry()
-    SmallEntry:SetAllowedDoors(math.maxinteger)
-    SmallEntry:SetColIdx(Collum)
-    SmallEntry:SetLineIdx(Row)
-    
-    mod.Saved.SmallBlindIndex = Collum + Row*13
+    until BigDesc
 
-    local SmallRoom = RoomConfigHolder.GetRandomRoom(RoomSeed,
-                                                     true, 
-                                                     Isaac.GetCurrentStageConfigId(),
-                                                     RoomType.ROOM_DEFAULT,
-                                                     RoomShape.ROOMSHAPE_1x1,
-                                                     -1, -1,
-                                                     7,
-                                                     10,
-                                                     0,-1,-1)
+    tries = 0
 
+    repeat
 
-    local SmallSuccess = Level:PlaceRoom(SmallEntry, SmallRoom, RoomSeed)
-    print("small placed:",SmallSuccess)
-    
+        local SmallRoom = RoomConfigHolder.GetRandomRoom( RoomRNG:RandomInt(MAX_SEED_VALUE) + 1,
+                                                        true, 
+                                                        Isaac.GetCurrentStageConfigId(),
+                                                        RoomType.ROOM_DEFAULT,
+                                                        RoomShape.ROOMSHAPE_1x1,
+                                                        -1, -1,
+                                                        7,
+                                                        10,
+                                                        0,
+                                                        -1,RoomHolderMode.HOSTILE)
 
+        local PlaceSeed = PlaceRNG:RandomInt(MAX_SEED_VALUE) + 1
 
-    Collum = Collum + 3
-    Row = Row + 1
-    if Collum > 12 then 
-        Collum = 1
-        Row = Row + 2
+        for i = 0, 168 do
 
-        if Row > 11 then
-            Collum = 1
-            Row = 1
+            SmallDesc = Level:TryPlaceRoom(SmallRoom, i, -1, PlaceSeed, true, true, true)
+            
+            if SmallDesc then
+
+                mod.Saved.SmallBlindIndex = i
+                break
+            else
+                Isaac.DebugString("FAILED TO PLACE AT "..tostring(mod.Saved.BigBlindIndex))
+            end
         end
-    end
 
-    local BigEntry = Isaac.LevelGeneratorEntry()
-    BigEntry:SetAllowedDoors(0)
-    BigEntry:SetColIdx(Collum)
-    BigEntry:SetLineIdx(Row)
-    --print(Collum, Row)
+    until SmallDesc
 
-    local BigRoom = RoomConfigHolder.GetRandomRoom( RoomSeed,
-                                                    true, 
-                                                    Isaac.GetCurrentStageConfigId(),
-                                                    RoomType.ROOM_DEFAULT,
-                                                    RoomShape.ROOMSHAPE_2x2,
-                                                    -1, -1,
-                                                    7,
-                                                    10,
-                                                    0,-1,-1)
+    SmallDesc:AddRestrictedGridIndex(67)
 
-
-    local BigSuccess = Level:PlaceRoom(BigEntry, BigRoom, RoomSeed)
-    print("Big placed:",BigSuccess)
-
-    mod.Saved.BigBlindIndex = Collum + Row*13
-
-
-    Collum = Collum + 3
-    Row = Row + 1
-    if Collum > 12 then 
-        Collum = 1
-        Row = Row + 2
-
-        if Row > 11 then
-            Collum = 1
-            Row = 1
-        end
-    end
+    tries = 0
 
     local ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_3
 
@@ -2055,29 +2057,37 @@ function mod:PlaceBlindRooms(Collum, Row)
         ShopQuality= RoomSubType.SHOP_KEEPER_LEVEL_4
     end
 
+    repeat
 
-    local ShopEntry = Isaac.LevelGeneratorEntry()
-    ShopEntry:SetAllowedDoors(0)
-    ShopEntry:SetColIdx(Collum)
-    ShopEntry:SetLineIdx(Row)
-    --print(Collum, Row)
+        local ShopRoom = RoomConfigHolder.GetRandomRoom(RoomRNG:RandomInt(MAX_SEED_VALUE) + 1,
+                                                        false, 
+                                                        StbType.SPECIAL_ROOMS,
+                                                        RoomType.ROOM_SHOP,
+                                                        RoomShape.NUM_ROOMSHAPES,
+                                                        -1, -1,
+                                                        0,
+                                                        10,
+                                                        0, ShopQuality, RoomHolderMode.ANY)
 
-    local ShopRoom = RoomConfigHolder.GetRandomRoom(RoomSeed,
-                                                    false, 
-                                                    StbType.SPECIAL_ROOMS,
-                                                    RoomType.ROOM_SHOP,
-                                                    RoomShape.NUM_ROOMSHAPES,
-                                                    -1, -1,
-                                                    0,
-                                                    10,
-                                                    0,ShopQuality)
+        local PlaceSeed = PlaceRNG:RandomInt(MAX_SEED_VALUE) + 1
 
+        for i = 5, 168 do
 
-    local ShopSuccess = Level:PlaceRoom(ShopEntry, ShopRoom, RoomSeed)
-    print("Shop placed:", ShopSuccess)
+            ShopDesc = Level:TryPlaceRoom(ShopRoom, i, -1, PlaceSeed, true, true, true)
+            
+            if ShopDesc then
 
-    mod.Saved.ShopIndex = Collum + Row*13
+                mod.Saved.ShopIndex = i
+                break
 
+            else
+                Isaac.DebugString("FAILED TO PLACE AT "..tostring(mod.Saved.BigBlindIndex))
+            end
+        end
+
+    until ShopDesc
+
+ 
 end
 
 

@@ -104,9 +104,10 @@ local function BalatroPlateUpdate(_, Plate)
     if Plate.State == PlateState.OFF then
         for _,Player in ipairs(PlayerManager.GetPlayers()) do
 
-            if Game:GetRoom():GetGridIndex(Player.Position) == Plate:GetGridIndex() then
+            if Game:GetRoom():GetGridIndex(Player.Position - Player.Velocity*2.25) == Plate:GetGridIndex() then
 
                 --print("uhhh")
+                Player.Velocity = Vector.Zero
                 mod.Saved.BlindBeingPlayed = Plate.VarData
                 Plate.State = PlateState.PRESSED
                 Isaac.RunCallback(mod.Callbalcks.BALATRO_PLATE_PRESSED, Plate.VarData)
