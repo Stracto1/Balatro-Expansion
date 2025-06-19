@@ -1860,7 +1860,7 @@ function mod:ChooseBossBlind(SpecialBoss)
                                        mod.BLINDS.BOSS_HEAD,
                                        }
 
-        if AnteLevel >= 2 then
+        if mod.Saved.AnteLevel >= 2 then
 
             local InitialBossNum = #mod.Saved.Pools.BossBlinds
                 
@@ -1873,22 +1873,22 @@ function mod:ChooseBossBlind(SpecialBoss)
             mod.Saved.Pools.BossBlinds[InitialBossNum+7] = mod.BLINDS.BOSS_MOUTH
             mod.Saved.Pools.BossBlinds[InitialBossNum+8] = mod.BLINDS.BOSS_NEEDLE
         end       
-        if AnteLevel >= 3 then
+        if mod.Saved.AnteLevel >= 3 then
         
             local InitialBossNum = #mod.Saved.Pools.BossBlinds
         
             mod.Saved.Pools.BossBlinds[InitialBossNum+1] = mod.BLINDS.BOSS_EYE
             mod.Saved.Pools.BossBlinds[InitialBossNum+2] = mod.BLINDS.BOSS_TOOTH
         end
-        if AnteLevel >= 4 then
+        if mod.Saved.AnteLevel >= 4 then
         
             mod.Saved.Pools.BossBlinds[#mod.Saved.Pools.BossBlinds+1] = mod.BLINDS.BOSS_PLANT
         end
-        if AnteLevel >= 5 then
+        if mod.Saved.AnteLevel >= 5 then
         
             mod.Saved.Pools.BossBlinds[#mod.Saved.Pools.BossBlinds+1] = mod.BLINDS.BOSS_SERPENT
         end
-        if AnteLevel >= 6 then
+        if mod.Saved.AnteLevel >= 6 then
         
             mod.Saved.Pools.BossBlinds[#mod.Saved.Pools.BossBlinds+1] = mod.BLINDS.BOSS_OX
         
@@ -1908,18 +1908,24 @@ function mod:ChooseBossBlind(SpecialBoss)
 
     if SpecialBoss then
 
-        AnteBoss = mod:GetRandom(mod.Saved.Pools.SpecialBossBlinds, RNG(Game:GetLevel():GetDungeonPlacementSeed()))
+        mod.Saved.AnteBoss = mod:GetRandom(mod.Saved.Pools.SpecialBossBlinds, RNG(Game:GetLevel():GetDungeonPlacementSeed()))
 
-        table.remove(mod.Saved.Pools.SpecialBossBlinds, mod:GetValueIndex(mod.Saved.Pools.SpecialBossBlinds, AnteBoss, true))
+        table.remove(mod.Saved.Pools.SpecialBossBlinds, mod:GetValueIndex(mod.Saved.Pools.SpecialBossBlinds, mod.Saved.AnteBoss, true))
 
     else
 
-        AnteBoss = mod:GetRandom(mod.Saved.Pools.BossBlinds, RNG(Game:GetLevel():GetDungeonPlacementSeed()))
+        mod.Saved.AnteBoss = mod:GetRandom(mod.Saved.Pools.BossBlinds, RNG(Game:GetLevel():GetDungeonPlacementSeed()))
 
-        table.remove(mod.Saved.Pools.BossBlinds, mod:GetValueIndex(mod.Saved.Pools.BossBlinds, AnteBoss, true))
+        table.remove(mod.Saved.Pools.BossBlinds, mod:GetValueIndex(mod.Saved.Pools.BossBlinds, mod.Saved.AnteBoss, true))
 
     end
 
+end
+
+
+function mod:GetBlindLevel(PlateVarData)
+
+    return math.min(PlateVarData & ~mod.BLINDS.SKIP, mod.BLINDS.BOSS)
 end
 
 
@@ -1954,6 +1960,125 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.EnableTrinketEditions)
 
 
+function mod:PlaceBlindRooms(Collum, Row)
+
+    local RoomSeed = Game:GetSeeds():GetStageSeed(Isaac.GetCurrentStageConfigId())
+
+    Collum = Collum + 3
+    Row = Row + 1
+    if Collum > 12 then 
+        Collum = 1
+        Row = Row + 2
+
+        if Row > 11 then
+            Collum = 1
+            Row = 1
+        end
+    end
+
+    
+    local SmallEntry = Isaac.LevelGeneratorEntry()
+    SmallEntry:SetAllowedDoors(math.maxinteger)
+    SmallEntry:SetColIdx(Collum)
+    SmallEntry:SetLineIdx(Row)
+    
+    mod.Saved.SmallBlindIndex = Collum + Row*13
+
+    local SmallRoom = RoomConfigHolder.GetRandomRoom(RoomSeed,
+                                                     true, 
+                                                     Isaac.GetCurrentStageConfigId(),
+                                                     RoomType.ROOM_DEFAULT,
+                                                     RoomShape.ROOMSHAPE_1x1,
+                                                     -1, -1,
+                                                     7,
+                                                     10,
+                                                     0,-1,-1)
+
+
+    local SmallSuccess = Level:PlaceRoom(SmallEntry, SmallRoom, RoomSeed)
+    print("small placed:",SmallSuccess)
+    
+
+
+    Collum = Collum + 3
+    Row = Row + 1
+    if Collum > 12 then 
+        Collum = 1
+        Row = Row + 2
+
+        if Row > 11 then
+            Collum = 1
+            Row = 1
+        end
+    end
+
+    local BigEntry = Isaac.LevelGeneratorEntry()
+    BigEntry:SetAllowedDoors(0)
+    BigEntry:SetColIdx(Collum)
+    BigEntry:SetLineIdx(Row)
+    --print(Collum, Row)
+
+    local BigRoom = RoomConfigHolder.GetRandomRoom( RoomSeed,
+                                                    true, 
+                                                    Isaac.GetCurrentStageConfigId(),
+                                                    RoomType.ROOM_DEFAULT,
+                                                    RoomShape.ROOMSHAPE_2x2,
+                                                    -1, -1,
+                                                    7,
+                                                    10,
+                                                    0,-1,-1)
+
+
+    local BigSuccess = Level:PlaceRoom(BigEntry, BigRoom, RoomSeed)
+    print("Big placed:",BigSuccess)
+
+    mod.Saved.BigBlindIndex = Collum + Row*13
+
+
+    Collum = Collum + 3
+    Row = Row + 1
+    if Collum > 12 then 
+        Collum = 1
+        Row = Row + 2
+
+        if Row > 11 then
+            Collum = 1
+            Row = 1
+        end
+    end
+
+    local ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_3
+
+    if PlayerManager.AnyoneHasCollectible(mod.Vouchers.OverstockPlus) then
+        ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_3
+    elseif PlayerManager.AnyoneHasCollectible(mod.Vouchers.Overstock) then
+        ShopQuality= RoomSubType.SHOP_KEEPER_LEVEL_4
+    end
+
+
+    local ShopEntry = Isaac.LevelGeneratorEntry()
+    ShopEntry:SetAllowedDoors(0)
+    ShopEntry:SetColIdx(Collum)
+    ShopEntry:SetLineIdx(Row)
+    --print(Collum, Row)
+
+    local ShopRoom = RoomConfigHolder.GetRandomRoom(RoomSeed,
+                                                    false, 
+                                                    StbType.SPECIAL_ROOMS,
+                                                    RoomType.ROOM_SHOP,
+                                                    RoomShape.NUM_ROOMSHAPES,
+                                                    -1, -1,
+                                                    0,
+                                                    10,
+                                                    0,ShopQuality)
+
+
+    local ShopSuccess = Level:PlaceRoom(ShopEntry, ShopRoom, RoomSeed)
+    print("Shop placed:", ShopSuccess)
+
+    mod.Saved.ShopIndex = Collum + Row*13
+
+end
 
 
 --VV sorry, didn't put many comments on these functions and I'm too lazy to do so now (I'll def regret this)

@@ -190,6 +190,7 @@ Balatro_Expansion.Callbalcks = {CARD_SHOT = "CARD_SHOT",
                                 JOKER_SOLD = "JOKER_SOLD",
                                 BLIND_CLEAR = "BLIND_CLEARED",
                                 BLIND_START = "BLIND_STARTED",
+                                BLIND_SKIP = "BLIND_SKIPPED",
                                 PACK_OPEN = "PACK_OPENED",
                                 PACK_SKIP = "PACK_SKIPPED",
                                 TRUE_CLEAR = "TRUE_ROOM_CLEAR",
@@ -492,38 +493,38 @@ Balatro_Expansion.AllCurses.THE_WALL = 1 << (Isaac.GetCurseIdByName("curse of th
 Balatro_Expansion.NormalCurses[1] = Balatro_Expansion.AllCurses.THE_WALL
 
 Balatro_Expansion.BLINDS = {CASHOUT = -2, --used as a pressure plate vardata, not really a type of blind
-                            SKIP = -1,
-                            SMALL = 0,
-                            BIG = 1,
-                            BOSS = 2,
-                            BOSS_HOOK = 4,
-                            BOSS_OX = 8,
-                            BOSS_HOUSE = 12,
-                            BOSS_WALL = 16,
-                            BOSS_WHEEL = 20,
-                            BOSS_ARM = 24,
-                            BOSS_CLUB = 28,
-                            BOSS_FISH = 32,
-                            BOSS_PSYCHIC = 36,
-                            BOSS_GOAD = 40,
-                            BOSS_WATER = 44,
-                            BOSS_WINDOW = 48,
-                            BOSS_MANACLE = 52,
-                            BOSS_EYE = 56,
-                            BOSS_MOUTH = 60,
-                            BOSS_PLANT = 64,
-                            BOSS_SERPENT = 68,
-                            BOSS_PILLAR = 72,
-                            BOSS_NEEDLE = 76,
-                            BOSS_HEAD = 80,
-                            BOSS_TOOTH = 84,
-                            BOSS_FLINT = 88,
-                            BOSS_MARK = 92,
-                            BOSS_ACORN = 96,
-                            BOSS_LEAF = 100,
-                            BOSS_HEART = 104,
-                            BOSS_VESSEL = 108,
-                            BOSS_BELL = 112}
+                            SKIP = 2048,
+                            SMALL = 1,
+                            BIG = 2,
+                            BOSS = 4,
+                            BOSS_HOOK = 12,
+                            BOSS_OX = 20,
+                            BOSS_HOUSE = 28,
+                            BOSS_WALL = 36,
+                            BOSS_WHEEL = 44,
+                            BOSS_ARM = 52,
+                            BOSS_CLUB = 60,
+                            BOSS_FISH = 68,
+                            BOSS_PSYCHIC = 76,
+                            BOSS_GOAD = 84,
+                            BOSS_WATER = 92,
+                            BOSS_WINDOW = 100,
+                            BOSS_MANACLE = 108,
+                            BOSS_EYE = 116,
+                            BOSS_MOUTH = 128,
+                            BOSS_PLANT = 132,
+                            BOSS_SERPENT = 140,
+                            BOSS_PILLAR = 148,
+                            BOSS_NEEDLE = 156,
+                            BOSS_HEAD = 164,
+                            BOSS_TOOTH = 172,
+                            BOSS_FLINT = 180,
+                            BOSS_MARK = 188,
+                            BOSS_ACORN = 196,
+                            BOSS_LEAF = 204,
+                            BOSS_HEART = 212,
+                            BOSS_VESSEL = 220,
+                            BOSS_BELL = 228}
 
 
 
@@ -631,7 +632,7 @@ Balatro_Expansion.Saved.RunSkippedSpecials = 0
 Balatro_Expansion.Saved.GlassBroken = 0
 Balatro_Expansion.Saved.TarotsUsed = 0
 Balatro_Expansion.Saved.PlanetTypesUsed = 0
-Balatro_Expansion.Saved.BlindBeingPlayed = Balatro_Expansion.BLINDS.SKIP
+Balatro_Expansion.Saved.BlindBeingPlayed = Balatro_Expansion.BLINDS.CASHOUT
 
 
 -----------JIMBO-------------------
@@ -661,12 +662,20 @@ Balatro_Expansion.Saved.MichelDestroyed = false
 Balatro_Expansion.Saved.HasDebt = false
 Balatro_Expansion.Saved.EnableHand = false
 
-Balatro_Expansion.Saved.Player.SmallBlind = 0
-Balatro_Expansion.Saved.Player.BigBlind = 0
+Balatro_Expansion.Saved.SmallBlind = 0
+Balatro_Expansion.Saved.BigBlind = 0
 Balatro_Expansion.Saved.ClearedRooms = 0
 Balatro_Expansion.Saved.SmallCleared = false
 Balatro_Expansion.Saved.BigCleared = false
 Balatro_Expansion.Saved.BossCleared = 0  --0 = no | 1 = partially | 2 = yes
+Balatro_Expansion.Saved.AnteLevel = 0
+Balatro_Expansion.Saved.MaxAnteLevel = 0 --used to add correctly bosses to the pool (getting hierogliph could trigger the addition more than once)
+Balatro_Expansion.Saved.AnteBoss = Balatro_Expansion.BLINDS.BOSS
+
+Balatro_Expansion.Saved.SmallBlindIndex = 6
+Balatro_Expansion.Saved.BigBlindIndex = 1
+Balatro_Expansion.Saved.ShopIndex = 1
+Balatro_Expansion.Saved.BossIndex = 1
 
 Balatro_Expansion.BossProgress = {NOT_CLEARED = 0,
                                   PARTIAL = 1,

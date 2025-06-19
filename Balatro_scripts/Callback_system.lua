@@ -109,6 +109,19 @@ function mod:OnGameStart(Continued)
         mod.Saved.PlanetTypesUsed = 0
         mod.Saved.BlindBeingPlayed = mod.BLINDS.SKIP
 
+        mod.Saved.ClearedRooms = 0
+        mod.Saved.SmallCleared = false
+        mod.Saved.BigCleared = false
+        mod.Saved.BossCleared = mod.BossProgress.NOT_CLEARED
+        mod.Saved.AnteLevel = 0
+        mod.Saved.MaxAnteLevel = 0
+        mod.Saved.AnteBoss = mod.BLINDS.BOSS
+
+        --mod.Saved.SmallBlindIndex = 1
+        --mod.Saved.BigBlindIndex = 1
+        --mod.Saved.ShopIndex = 1
+        --mod.Saved.BossIndex = 1
+
         mod.Saved.HasDebt = false
         mod.Saved.MichelDestroyed = false
 
@@ -251,12 +264,6 @@ function mod:InitJimboValues(Player, Force)
         mod.Saved.Player[PIndex].TrueDamageValue = 1 --used to surpass the usual 0.5 minimum damage cap
         mod.Saved.Player[PIndex].TrueTearsValue = 1
 
-
-        mod.Saved.ClearedRooms = 0
-        mod.Saved.SmallCleared = false
-        mod.Saved.BigCleared = false
-        mod.Saved.BossCleared = mod.BossProgress.NOT_CLEARED
-
         mod.Saved.Player[PIndex].Progress = {} --values used for jokers
         mod.Saved.Player[PIndex].Progress.Inventory = {0,0,0} --never reset, changed in different ways basing on the joker
         mod.Saved.Player[PIndex].Progress.GiftCardExtra = {0,0,0}
@@ -344,20 +351,36 @@ function mod:InitJimboValues(Player, Force)
                                                [mod.HandTypes.FLUSH_HOUSE] = 1,
                                                [mod.HandTypes.FIVE_FLUSH] = 1}
         
+        --[[
         mod.Saved.Player[PIndex].HandsStat = {[mod.HandTypes.NONE] = Vector(0,0),
-                                              [mod.HandTypes.HIGH_CARD] = Vector(0.2,1),
-                                              [mod.HandTypes.PAIR] = Vector(0.4,2),
-                                              [mod.HandTypes.TWO_PAIR] = Vector(0.8,2),
-                                              [mod.HandTypes.THREE] = Vector(1.2,3),
-                                              [mod.HandTypes.STRAIGHT] = Vector(1.2,4),
-                                              [mod.HandTypes.FLUSH] = Vector(1.4,4),
-                                              [mod.HandTypes.FULL_HOUSE] = Vector(1.6,4),
-                                              [mod.HandTypes.FOUR] = Vector(2.4,7),
-                                              [mod.HandTypes.STRAIGHT_FLUSH] = Vector(4,8),
-                                              [mod.HandTypes.ROYAL_FLUSH] = Vector(4,8),
-                                              [mod.HandTypes.FIVE] = Vector(4.8,6),
-                                              [mod.HandTypes.FLUSH_HOUSE] = Vector(5.6,14),
-                                              [mod.HandTypes.FIVE_FLUSH] = Vector(6.4,16)}
+                                              [mod.HandTypes.HIGH_CARD] = Vector(1,1),
+                                              [mod.HandTypes.PAIR] = Vector(2,2),
+                                              [mod.HandTypes.TWO_PAIR] = Vector(4,2),
+                                              [mod.HandTypes.THREE] = Vector(6,3),
+                                              [mod.HandTypes.STRAIGHT] = Vector(6,4),
+                                              [mod.HandTypes.FLUSH] = Vector(7,4),
+                                              [mod.HandTypes.FULL_HOUSE] = Vector(8,4),
+                                              [mod.HandTypes.FOUR] = Vector(12,7),
+                                              [mod.HandTypes.STRAIGHT_FLUSH] = Vector(20,8),
+                                              [mod.HandTypes.ROYAL_FLUSH] = Vector(20,8),
+                                              [mod.HandTypes.FIVE] = Vector(24,6),
+                                              [mod.HandTypes.FLUSH_HOUSE] = Vector(28,14),
+                                              [mod.HandTypes.FIVE_FLUSH] = Vector(32,16)}]]
+
+        mod.Saved.Player[PIndex].HandsStat = {[mod.HandTypes.NONE] = Vector(0, 0),
+                                              [mod.HandTypes.HIGH_CARD] = Vector(1, 1),
+                                              [mod.HandTypes.PAIR] = Vector(2, 1.5),
+                                              [mod.HandTypes.TWO_PAIR] = Vector(4, 1.5),
+                                              [mod.HandTypes.THREE] = Vector(6, 2),
+                                              [mod.HandTypes.STRAIGHT] = Vector(6, 2.5),
+                                              [mod.HandTypes.FLUSH] = Vector(7, 2.5),
+                                              [mod.HandTypes.FULL_HOUSE] = Vector(8, 2.5),
+                                              [mod.HandTypes.FOUR] = Vector(12, 4),
+                                              [mod.HandTypes.STRAIGHT_FLUSH] = Vector(20, 4.5),
+                                              [mod.HandTypes.ROYAL_FLUSH] = Vector(20, 4.5),
+                                              [mod.HandTypes.FIVE] = Vector(24, 3.5),
+                                              [mod.HandTypes.FLUSH_HOUSE] = Vector(28, 7.5),
+                                              [mod.HandTypes.FIVE_FLUSH] = Vector(32, 8.5)}
 
     end
     end

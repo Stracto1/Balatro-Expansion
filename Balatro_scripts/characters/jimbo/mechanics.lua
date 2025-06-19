@@ -862,6 +862,10 @@ mod:AddCallback("DECK_SHIFT", mod.OnDeckShift)
 
 function mod:GiveRewards(BlindType)
 
+    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
+        return
+    end
+
     local Seed = Game:GetSeeds():GetStartSeed()
 
     --calculates the ammount of interests BEFORE giving the clear reward
@@ -929,7 +933,7 @@ function mod:GiveRewards(BlindType)
 
 
 end
-mod:AddPriorityCallback("BLIND_CLEARED",CallbackPriority.LATE, mod.GiveRewards)
+mod:AddPriorityCallback(mod.Callbalcks.BLIND_CLEAR,CallbackPriority.LATE, mod.GiveRewards)
 
 
 ---@param Player EntityPlayer

@@ -2,7 +2,12 @@ local mod = Balatro_Expansion
 
 local Game = Game()
 
-local BALATRO_PLATE_SUFFIX = {[mod.BLINDS.SKIP] = "skip",
+local PlateState = {PRESSED = 3,
+                    OFF = 0}
+
+local BALATRO_PLATE_SUFFIX = {[mod.BLINDS.CASHOUT] = "cashout",
+                              [mod.BLINDS.SKIP | mod.BLINDS.SMALL] = "skip",
+                              [mod.BLINDS.SKIP | mod.BLINDS.BIG] = "skip",
                               [mod.BLINDS.SMALL] = "small",
                               [mod.BLINDS.BIG] = "big",
                               [mod.BLINDS.BOSS] = "big",
@@ -92,21 +97,65 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, ResetPlateSprite)
 ---@param Plate GridEntityPressurePlate
 local function BalatroPlateUpdate(_, Plate)
 
-    if Plate.State == 3 or Plate:GetVariant() ~= mod.Grids.PLATE_VARIANT  then
+    if Plate:GetVariant() ~= mod.Grids.PLATE_VARIANT  then
         return
     end
 
-    for _,Player in ipairs(PlayerManager.GetPlayers()) do
-        
-        if Game:GetRoom():GetGridIndex(Player.Position) == Plate:GetGridIndex() then
-            
-            Plate.State = 3
-            Isaac.RunCallback(mod.Callbalcks.BALATRO_PLATE_PRESSED, Plate.VarData)
-            --print("yessir")
+    if Plate.State == PlateState.OFF then
+        for _,Player in ipairs(PlayerManager.GetPlayers()) do
+
+            if Game:GetRoom():GetGridIndex(Player.Position) == Plate:GetGridIndex() then
+
+                --print("uhhh")
+                mod.Saved.BlindBeingPlayed = Plate.VarData
+                Plate.State = PlateState.PRESSED
+                Isaac.RunCallback(mod.Callbalcks.BALATRO_PLATE_PRESSED, Plate.VarData)
+                --print(Plate.VarData)
+                return
+                --print("yessir")
+            end
         end
     end
     --Plate:GetSprite():SetFrame("Off", 0)
     --print(Plate.State, Plate.VarData)
+
+    
+    local PlateBlindLevel = mod:GetBlindLevel(Plate.VarData)
+
+    local ShouldPlateBeAvailable = false
+    
+    if PlateBlindLevel == mod.BLINDS.SMALL then
+        
+        ShouldPlateBeAvailable = not mod.Saved.SmallCleared
+
+    elseif PlateBlindLevel == mod.BLINDS.BIG then
+
+        ShouldPlateBeAvailable = mod.Saved.SmallCleared and not mod.Saved.BigCleared
+
+    elseif PlateBlindLevel == mod.BLINDS.BOSS then
+
+        ShouldPlateBeAvailable = mod.Saved.SmallCleared and mod.Saved.BigCleared
+
+    else --if PlateBlindLevel == mod.BLINDS.CASHOUT then
+    
+        ShouldPlateBeAvailable = true
+    end
+
+    ShouldPlateBeAvailable = ShouldPlateBeAvailable and mod.Saved.BlindBeingPlayed ~= PlateBlindLevel
+
+
+    local Sprite = Plate:GetSprite()
+
+    if ShouldPlateBeAvailable then
+        
+        Plate.State = PlateState.OFF
+        Sprite:Play("Off")
+
+    else
+        Plate.State = PlateState.PRESSED
+        Sprite:Play("Switched", false)
+    end
+
 
 end
 ---@diagnostic disable-next-line: undefined-field

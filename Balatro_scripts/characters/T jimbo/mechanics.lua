@@ -6,20 +6,14 @@ local Level = Game:GetLevel()
 local ItemsConfig = Isaac.GetItemConfig()
 local sfx = SFXManager()
 
-local SMALL_BLIND_ROOMIDX = 0
-local BIG_BLIND_ROOMIDX = 16
 
 local SCREEN_TO_WORLD_RATIO = 4
 
-local HIGH_CARD_RADIUS = 45
-local PAIR_RADIUS = 75
-local THREE_OAK_RADIUS = 100
-local FOUR_OAK_RADIUS = 145
+local BASE_HAND_RADIUS = 40 --this gets increased by the handtype's base mult value (considering planet upgrades)
+
 
 
 ----FUTURE GLOBALS -----
-local AnteLevel = 0
-local AnteBoss = mod.BLINDS.BOSS_OX
 local AnteVoucher = mod.Vouchers.Grabber
 
 local ShopRoomIndex = 0
@@ -53,70 +47,19 @@ local function FloorModifier(_,LevelGen,RoomConfig,Seed)
     if not PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then
         return
     end
-    --mod.ShopAddedThisFloor = false
-    local Level = Game:GetLevel()
-    local RoomIndex = LevelGen:Column() + LevelGen:Row()*13
     
     --print(RoomIndex)
 
-    if RoomConfig.Type == RoomType.ROOM_SHOP then
+    if RoomConfig.Type == RoomType.ROOM_BOSS then --and (not RoomConfig.StageID == 26 or RoomConfig.Shape == RoomShape.ROOMSHAPE_2x2) then
         --("s")
-        local ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_3
 
-        if PlayerManager.AnyoneHasCollectible(mod.Vouchers.OverstockPlus) then
-            ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_3
-        elseif PlayerManager.AnyoneHasCollectible(mod.Vouchers.Overstock) then
-            ShopQuality= RoomSubType.SHOP_KEEPER_LEVEL_4
-        end
-
-        local NewRoom = RoomConfigHolder.GetRandomRoom(Seed,false, StbType.SPECIAL_ROOMS, RoomType.ROOM_SHOP, RoomShape.ROOMSHAPE_1x1,-1,-1,0,10,0, ShopQuality)
-
-        Isaac.CreateTimer(
-        function()
-            Level:GetRoomByIdx(RoomIndex).DisplayFlags = 5
-
-            Level:UpdateVisibility()
-        end, 1, 1, true)
-
-
-            local SmallEntry = Isaac.LevelGeneratorEntry()
-    SmallEntry:SetAllowedDoors(math.maxinteger)
-    SmallEntry:SetColIdx(0)
-    SmallEntry:SetLineIdx(0)
-
-    local SmallRoom = RoomConfigHolder.GetRandomRoom(1,
-                                                     true, 
-                                                     Isaac.GetCurrentStageConfigId(),
-                                                     RoomType.ROOM_DEFAULT,
-                                                     RoomShape.ROOMSHAPE_1x1,
-                                                     -1, -1,
-                                                     7,
-                                                     10,
-                                                     0,-1,-1)
-
-    local BigEntry = Isaac.LevelGeneratorEntry()
-    BigEntry:SetAllowedDoors(0)
-    BigEntry:SetColIdx(3)
-    BigEntry:SetLineIdx(1)
-
-    local BigRoom = RoomConfigHolder.GetRandomRoom(1,
-                                                     true, 
-                                                     Isaac.GetCurrentStageConfigId(),
-                                                     RoomType.ROOM_DEFAULT,
-                                                     RoomShape.ROOMSHAPE_2x2,
-                                                     -1, -1,
-                                                     7,
-                                                     10,
-                                                     0,-1,-1)
+        mod.Saved.BossIndex = LevelGen:Column() + LevelGen:Row()*13
 
     
-    Level:PlaceRoom(SmallEntry, SmallRoom, 1)
-    Level:PlaceRoom(BigEntry, BigRoom, 1)
+        mod:PlaceBlindRooms(LevelGen:Column(), LevelGen:Row())
 
-        return NewRoom --replaces the room with the new only
+        --return NewRoom --replaces the room with the new only
     end
-
-
 
 end
 mod:AddCallback(ModCallbacks.MC_PRE_LEVEL_PLACE_ROOM, FloorModifier)
@@ -281,7 +224,7 @@ local function JimboInputHandle(_, Player)
 
                 for i = Params.Index + 1, Params.OptionsNum do
                     
-                    print(i, mod.Saved.Player[PIndex].Inventory[i].Joker)
+                    --print(i, mod.Saved.Player[PIndex].Inventory[i].Joker)
                     if mod.Saved.Player[PIndex].Inventory[i].Joker ~= 0 then
                         Step = SlotsSkipped
                         break
@@ -500,101 +443,6 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, SpawnAdditionalTargets)
 
 
---STATE = 3 IF PRESSED
-
-
-local function InitializeAnte()
-    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then
-        return
-    end
-
-    AnteLevel = AnteLevel + 1
-    AnteLevel = 1
-
-    -------BOSS POOL MANAGER---------
-    ---------------------------------
-    
-    if AnteLevel == 2 then
-
-        local InitialBossNum = #mod.Saved.Pools.BossBlinds
-
-        mod.Saved.Pools.BossBlinds[InitialBossNum+1] = mod.BLINDS.BOSS_HOUSE
-        mod.Saved.Pools.BossBlinds[InitialBossNum+2] = mod.BLINDS.BOSS_WALL
-        mod.Saved.Pools.BossBlinds[InitialBossNum+3] = mod.BLINDS.BOSS_WHEEL
-        mod.Saved.Pools.BossBlinds[InitialBossNum+4] = mod.BLINDS.BOSS_ARM
-        mod.Saved.Pools.BossBlinds[InitialBossNum+5] = mod.BLINDS.BOSS_FISH
-        mod.Saved.Pools.BossBlinds[InitialBossNum+6] = mod.BLINDS.BOSS_WATER
-        mod.Saved.Pools.BossBlinds[InitialBossNum+7] = mod.BLINDS.BOSS_MOUTH
-        mod.Saved.Pools.BossBlinds[InitialBossNum+8] = mod.BLINDS.BOSS_NEEDLE
-
-    elseif AnteLevel == 3 then
-
-        local InitialBossNum = #mod.Saved.Pools.BossBlinds
-
-        mod.Saved.Pools.BossBlinds[InitialBossNum+1] = mod.BLINDS.BOSS_EYE
-        mod.Saved.Pools.BossBlinds[InitialBossNum+2] = mod.BLINDS.BOSS_TOOTH
-
-    elseif AnteLevel == 4 then
-
-        mod.Saved.Pools.BossBlinds[#mod.Saved.Pools.BossBlinds+1] = mod.BLINDS.BOSS_PLANT
-
-    elseif AnteLevel == 5 then
-
-        mod.Saved.Pools.BossBlinds[#mod.Saved.Pools.BossBlinds+1] = mod.BLINDS.BOSS_SERPENT
-
-    elseif AnteLevel == 6 then
-
-        mod.Saved.Pools.BossBlinds[#mod.Saved.Pools.BossBlinds+1] = mod.BLINDS.BOSS_OX
-
-    end
-
-    local CurrentStage = Game:GetLevel():GetStage()
-
-    local SpecialBoss = CurrentStage == LevelStage.STAGE4_2 --mom's heart / mother floor
-                        or CurrentStage == LevelStage.STAGE6 -- dark room / chest
-                        or CurrentStage == LevelStage.STAGE7 --void
-                        or CurrentStage == LevelStage.STAGE8 -- home
-
-    mod:ChooseBossBlind(SpecialBoss)
-
-    -----------------------------------
-    ----------------------------------
-    
-    
-    mod.Saved.SmallCleared = false
-    mod.Saved.BigCleared = false
-    mod.Saved.BossCleared = mod.BossProgress.NOT_CLEARED
-    
-
-    local Room = Game:GetRoom()
-    local Plate
-
-    mod:SpawnBalatroPressurePlate(Room:GetGridPosition(49), mod.BLINDS.SMALL)
-
-    Plate = mod:SpawnBalatroPressurePlate(Room:GetGridPosition(52), mod.BLINDS.BIG)
-    Plate.State = 3
-    Plate:GetSprite():Play("Switched")
-
-    Plate = mod:SpawnBalatroPressurePlate(Room:GetGridPosition(55), AnteBoss)
-    Plate.State = 3
-    Plate:GetSprite():Play("Switched")
-
-    mod:SpawnBalatroPressurePlate(Room:GetGridPosition(79), mod.BLINDS.SKIP)
-
-    Plate = mod:SpawnBalatroPressurePlate(Room:GetGridPosition(82), mod.BLINDS.SKIP)
-    Plate.State = 3
-    Plate:GetSprite():Play("Switched")
-
-    Plate = mod:SpawnBalatroPressurePlate(Room:GetGridPosition(85), mod.BLINDS.SKIP)
-    Plate.State = 3
-    Plate:GetSprite():Play("Switched")
-
-    --Plate:GetSprite():GetLayer(1):SetColor(Color.LaserIpecac)
-    
-end
-mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, InitializeAnte)
-
-
 
 ---@param NPC EntityNPC
 ---@param Target Entity
@@ -689,40 +537,6 @@ mod:AddCallback(mod.Callbalcks.HAND_UPDATE, mod.UpdateCurrentHandType)
 
 
 
----@param Player EntityPlayer
-function mod:SetupForHandPlay(Player)
-
-    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
-        return
-    end
-
-    local PIndex = Player:GetData().TruePlayerIndex
-
-    mod.SelectionParams[PIndex].PlayedCards = {}
-    for i,Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
-        
-        if Selected then
-            mod.SelectionParams[PIndex].PlayedCards[#mod.SelectionParams[PIndex].PlayedCards+1] = mod.Saved.Player[PIndex].CurrentHand[i]
-        end
-    end
-
-    mod.SelectionParams[PIndex].ScoringCards = mod:GetScoringCards(Player, mod.SelectionParams[PIndex].HandType)
-
-    --[[could lead to problems with save states after leaving during a hand scoring
-    for i = #mod.Saved.Player[PIndex].CurrentHand, 1, -1 do
-        
-        if mod:Contained(mod.SelectionParams[PIndex].PlayedCards, mod.Saved.Player[PIndex].CurrentHand[i]) then
-            
-            table.remove(mod.Saved.Player[PIndex].CurrentHand, i)
-        end
-    end]]
-    
-    mod.AnimationIsPlaying = true
-end
-mod:AddPriorityCallback(mod.Callbalcks.HAND_PLAY, CallbackPriority.IMPORTANT, mod.SetupForHandPlay)
-
-
-
 
 ---@param Player EntityPlayer
 function mod:ActivateCurrentHand(Player)
@@ -769,13 +583,90 @@ function mod:ActivateCurrentHand(Player)
             Enemy:MakeBloodPoof()
         end
     end
+
+    mod.Saved.Player[PIndex].HandsRemaining = mod.Saved.Player[PIndex].HandsRemaining - 1
+
+
+    Isaac.CreateTimer(function ()
+
+
+                        --after playing the hand, checks if everyone is dead, in that case the blind is cleared
+                        local AllDead = true
+
+                        for _,Enemy in ipairs(Isaac.GetRoomEntities()) do
+
+                            if Enemy:IsActiveEnemy() and (not Enemy:IsDead() or not Enemy:HasMortalDamage()) then
+                                
+                                AllDead = false
+                            end
+                        end
+
+                        --print(AllDead)
+
+                        if AllDead then
+                            
+                            Isaac.RunCallback(mod.Callbalcks.BLIND_CLEAR, mod.Saved.BlindBeingPlayed)
+
+                            return
+                        end
+
+                        if mod.Saved.Player[PIndex].HandsRemaining <= 0 then
+                        
+                            if mod.Saved.BlindBeingPlayed >= mod.BLINDS.BOSS_ACORN then --special bosses give you unlimited hands 
+                            
+                                Player:AddCustomCacheTag(mod.CustomCache.HAND_NUM, true)
+                            else
+                                sfx:Play(SoundEffect.SOUND_BOSS2INTRO_ERRORBUZZ)
+                                Isaac.CreateTimer(function ()
+                                                    Player:Kill()
+                                                end, 40, 1, true)
+
+                                return
+                            end
+                        
+                        end
+
+                        Isaac.RunCallback(mod.Callbalcks.POST_HAND_PLAY, Player)
+                    end, 10, 1, true)
+
     
-    Isaac.RunCallback(mod.Callbalcks.POST_HAND_PLAY, Player)
     
 end
 --mod:AddCallback(mod.Callbalcks.POST_HAND_PLAY, mod.ActivateCurrentHand)
 
 
+
+---@param Player EntityPlayer
+function mod:SetupForHandScoring(Player)
+
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
+        return
+    end
+
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    mod.SelectionParams[PIndex].PlayedCards = {}
+    for i,Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
+        
+        if Selected then
+            mod.SelectionParams[PIndex].PlayedCards[#mod.SelectionParams[PIndex].PlayedCards+1] = mod.Saved.Player[PIndex].CurrentHand[i]
+        end
+    end
+
+    mod.SelectionParams[PIndex].ScoringCards = mod:GetScoringCards(Player, mod.SelectionParams[PIndex].HandType)
+
+    --[[could lead to problems with save states after leaving during a hand scoring
+    for i = #mod.Saved.Player[PIndex].CurrentHand, 1, -1 do
+        
+        if mod:Contained(mod.SelectionParams[PIndex].PlayedCards, mod.Saved.Player[PIndex].CurrentHand[i]) then
+            
+            table.remove(mod.Saved.Player[PIndex].CurrentHand, i)
+        end
+    end]]
+    
+    mod.AnimationIsPlaying = true
+end
+mod:AddPriorityCallback(mod.Callbalcks.HAND_PLAY, CallbackPriority.IMPORTANT, mod.SetupForHandScoring)
 
 
 
@@ -787,31 +678,6 @@ function mod:SetupForNextHandPlay(Player)
     end
 
     local PIndex = Player:GetData().TruePlayerIndex
-
-    local EveryoneIsDead = true
-    for i,v in ipairs(Isaac.GetRoomEntities()) do
-        
-        if v:IsActiveEnemy(true) then
-            if not v:IsDead() and not v:HasMortalDamage() then
-        
-                EveryoneIsDead = false
-                break
-            end
-        end
-    end
-
-
-    mod.Saved.Player[PIndex].HandsRemaining = mod.Saved.Player[PIndex].HandsRemaining - 1
-
-    if mod.Saved.Player[PIndex].HandsRemaining <= 0 then
-
-        if mod.Saved.BlindBeingPlayed >= mod.BLINDS.BOSS_ACORN then
-            
-            Player:AddCustomCacheTag(mod.CustomCache.HAND_NUM, true)
-        else
-            Player:Kill()
-        end
-    end
 
 
     for i = #mod.Saved.Player[PIndex].CurrentHand, 1, -1 do
@@ -846,6 +712,7 @@ end
 mod:AddPriorityCallback(mod.Callbalcks.POST_HAND_PLAY, CallbackPriority.LATE, mod.SetupForNextHandPlay)
 
 
+
 ---@param Effect EntityEffect
 local function MoveHandTarget(_,Effect)
 
@@ -857,9 +724,14 @@ local function MoveHandTarget(_,Effect)
 
     Game:GetRoom():GetCamera():SetFocusPosition(Effect.Position)
 
-    Effect:AddVelocity(Player:GetAimDirection()*7)
+    Effect:AddVelocity(Player:GetAimDirection()*6.25)
 end
 mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, MoveHandTarget, EffectVariant.TARGET)
+
+
+
+------------BLIND SYSTEM------------
+------------------------------------
 
 
 
@@ -867,28 +739,98 @@ local TimerFixerVariable = 0
 
 local function OnBlindButtonPressed(_, VarData)
 
-    --Game:ChangeRoom(SMALL_BLIND_ROOMIDX)
-    for i,Player in ipairs(PlayerManager.GetPlayers()) do
-
-        Player:AnimateTeleport(true)
-    end
+    
 
     --the first timer activates frame-one for some reason...
     --so only do this on the second timer
-    Isaac.CreateTimer(function ()
-                        if TimerFixerVariable == 1 then
-                            Game:StartRoomTransition(SMALL_BLIND_ROOMIDX, Direction.NO_DIRECTION, RoomTransitionAnim.PIXELATION)
-                            
-                        elseif TimerFixerVariable == 2 then
-                            Isaac.RunCallback(mod.Callbalcks.BLIND_START, VarData)
-                            TimerFixerVariable = 0
-                        else
-                            TimerFixerVariable = TimerFixerVariable + 1
-                        end
-                        
-                    end, 7, 2, true)
 
+
+    if VarData == mod.BLINDS.CASHOUT then
+        
+        for i,Player in ipairs(PlayerManager.GetPlayers()) do
+
+            Player:AnimateTeleport(true)
+        end
+
+        print("cash pressed")
+
+        Isaac.CreateTimer(function ()
+                                if TimerFixerVariable == 1 then
+                                    Game:StartRoomTransition(mod.Saved.ShopIndex, Direction.NO_DIRECTION, RoomTransitionAnim.PIXELATION)
+
+                                elseif TimerFixerVariable == 2 then
+                                    --Isaac.RunCallback(mod.Callbalcks.BLIND_START, VarData)
+                                    TimerFixerVariable = 0
+                                else
+                                    TimerFixerVariable = TimerFixerVariable + 1
+                                end
+
+                            end, 7, 2, true)
+
+        --Isaac.RunCallback(mod.Callbalcks.BLIND_SKIP, Plate.VarData)
+
+    elseif VarData & mod.BLINDS.SKIP == mod.BLINDS.SKIP then
+                
+        Isaac.RunCallback(mod.Callbalcks.BLIND_SKIP, VarData)
     
+    else
+        for i,Player in ipairs(PlayerManager.GetPlayers()) do
+
+            Player:AnimateTeleport(true)
+        end
+
+        
+
+        --print(mod.Saved.SmallBlindIndex)
+
+        if VarData == mod.BLINDS.SMALL then
+
+            Isaac.CreateTimer(function ()
+                                if TimerFixerVariable == 1 then
+                                    Game:StartRoomTransition(mod.Saved.SmallBlindIndex, Direction.NO_DIRECTION, RoomTransitionAnim.PIXELATION)
+
+                                elseif TimerFixerVariable == 2 then
+                                    Isaac.RunCallback(mod.Callbalcks.BLIND_START, VarData)
+                                    TimerFixerVariable = 0
+                                else
+                                    TimerFixerVariable = TimerFixerVariable + 1
+                                end
+
+                            end, 7, 2, true)
+
+        elseif VarData == mod.BLINDS.BIG then
+
+            Isaac.CreateTimer(function ()
+                                if TimerFixerVariable == 1 then
+                                    Game:StartRoomTransition(mod.Saved.BigBlindIndex, Direction.NO_DIRECTION, RoomTransitionAnim.PIXELATION)
+
+                                elseif TimerFixerVariable == 2 then
+                                    Isaac.RunCallback(mod.Callbalcks.BLIND_START, VarData)
+                                    TimerFixerVariable = 0
+                                else
+                                    TimerFixerVariable = TimerFixerVariable + 1
+                                end
+
+                            end, 20, 2, true)
+
+        else --BOSS BLIND
+
+            Isaac.CreateTimer(function ()
+                                if TimerFixerVariable == 1 then
+                                    Game:StartRoomTransition(mod.Saved.BossIndex, Direction.NO_DIRECTION, RoomTransitionAnim.PIXELATION)
+
+                                elseif TimerFixerVariable == 2 then
+                                    Isaac.RunCallback(mod.Callbalcks.BLIND_START, VarData)
+                                    TimerFixerVariable = 0
+                                else
+                                    TimerFixerVariable = TimerFixerVariable + 1
+                                end
+
+                            end, 7, 2, true)
+
+        end
+    end
+
 end
 mod:AddCallback(mod.Callbalcks.BALATRO_PLATE_PRESSED, OnBlindButtonPressed)
 
@@ -900,7 +842,192 @@ local function OnBlindStart(_, BlindData)
     end
 
 end
-mod:AddCallback(mod.Callbalcks.BLIND_START, OnBlindStart)
+mod:AddPriorityCallback(mod.Callbalcks.BLIND_START, CallbackPriority.IMPORTANT, OnBlindStart)
+
+
+local function OnBlindSkip(_, BlindType)
+
+    --BlindType = BlindType & ~mod.BLINDS.SKIP
+    local BlindLevel = mod:GetBlindLevel(BlindType)
+
+
+    if BlindLevel == mod.BLINDS.SMALL then
+        
+        mod.Saved.SmallCleared = true
+
+    else
+        mod.Saved.BigCleared = true
+    end
+
+end
+mod:AddPriorityCallback(mod.Callbalcks.BLIND_SKIP, CallbackPriority.IMPORTANT, OnBlindSkip)
+
+
+local function OnBlindClear(_, BlindData)
+
+    local Room = Game:GetRoom()
+
+    for _,Player in ipairs(PlayerManager.GetPlayers()) do
+        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.NONE)
+    end
+
+    for i = 0, Room:GetGridSize() do
+
+        local GridEntity = Room:GetGridEntity(i)
+
+        if not GridEntity then
+            goto SKIP_TILE
+        end
+
+        if GridEntity:IsBreakableRock() then
+            GridEntity:Destroy()
+
+        else
+            local Pit = GridEntity:ToPit()
+
+            if Pit then
+
+                Pit:MakeBridge()
+            end
+        end
+
+        ::SKIP_TILE::
+    end
+
+
+    if mod:GetBlindLevel(BlindData) == mod.BLINDS.BOSS then
+        return
+    end
+
+    mod:SpawnBalatroPressurePlate(Room:GetCenterPos(), mod.BLINDS.CASHOUT)
+end
+mod:AddPriorityCallback(mod.Callbalcks.BLIND_CLEAR, CallbackPriority.IMPORTANT, OnBlindClear)
+
+
+
+--STATE = 3 IF PRESSED
+
+local function InitializeAnte()
+    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then
+        return
+    end
+
+    mod.Saved.AnteLevel = mod.Saved.AnteLevel + 1
+
+    -------BOSS POOL MANAGER---------
+    ---------------------------------
+    
+    if mod.Saved.AnteLevel == 2 and mod.Saved.MaxAnteLevel ~= 2 then
+
+        local InitialBossNum = #mod.Saved.Pools.BossBlinds
+
+        mod.Saved.Pools.BossBlinds[InitialBossNum+1] = mod.BLINDS.BOSS_HOUSE
+        mod.Saved.Pools.BossBlinds[InitialBossNum+2] = mod.BLINDS.BOSS_WALL
+        mod.Saved.Pools.BossBlinds[InitialBossNum+3] = mod.BLINDS.BOSS_WHEEL
+        mod.Saved.Pools.BossBlinds[InitialBossNum+4] = mod.BLINDS.BOSS_ARM
+        mod.Saved.Pools.BossBlinds[InitialBossNum+5] = mod.BLINDS.BOSS_FISH
+        mod.Saved.Pools.BossBlinds[InitialBossNum+6] = mod.BLINDS.BOSS_WATER
+        mod.Saved.Pools.BossBlinds[InitialBossNum+7] = mod.BLINDS.BOSS_MOUTH
+        mod.Saved.Pools.BossBlinds[InitialBossNum+8] = mod.BLINDS.BOSS_NEEDLE
+
+    elseif mod.Saved.AnteLevel == 3 and mod.Saved.MaxAnteLevel ~= 3 then
+
+        local InitialBossNum = #mod.Saved.Pools.BossBlinds
+
+        mod.Saved.Pools.BossBlinds[InitialBossNum+1] = mod.BLINDS.BOSS_EYE
+        mod.Saved.Pools.BossBlinds[InitialBossNum+2] = mod.BLINDS.BOSS_TOOTH
+
+    elseif mod.Saved.AnteLevel == 4 and mod.Saved.MaxAnteLevel ~= 4 then
+
+        mod.Saved.Pools.BossBlinds[#mod.Saved.Pools.BossBlinds+1] = mod.BLINDS.BOSS_PLANT
+
+    elseif mod.Saved.AnteLevel == 5 and mod.Saved.MaxAnteLevel ~= 5 then
+
+        mod.Saved.Pools.BossBlinds[#mod.Saved.Pools.BossBlinds+1] = mod.BLINDS.BOSS_SERPENT
+
+    elseif mod.Saved.AnteLevel == 6 and mod.Saved.MaxAnteLevel ~= 6 then
+
+        mod.Saved.Pools.BossBlinds[#mod.Saved.Pools.BossBlinds+1] = mod.BLINDS.BOSS_OX
+
+    end
+
+    mod.Saved.MaxAnteLevel = math.max(mod.Saved.AnteLevel, mod.Saved.MaxAnteLevel)
+
+    local CurrentStage = Game:GetLevel():GetStage()
+
+    local SpecialBoss = CurrentStage == LevelStage.STAGE4_2 --mom's heart / mother floor
+                        or CurrentStage == LevelStage.STAGE6 -- dark room / chest
+                        or CurrentStage == LevelStage.STAGE7 --void
+                        or CurrentStage == LevelStage.STAGE8 -- home
+
+    mod:ChooseBossBlind(SpecialBoss)
+
+
+    -------------CUSTOM PRESSURE PLATES-------------
+    ------------------------------------------------
+    
+    mod.Saved.SmallCleared = false
+    mod.Saved.BigCleared = false
+    mod.Saved.BossCleared = mod.BossProgress.NOT_CLEARED
+    
+
+    local Room = Game:GetRoom()
+    local Plate
+
+    mod:SpawnBalatroPressurePlate(Room:GetGridPosition(49), mod.BLINDS.SMALL)
+
+    Plate = mod:SpawnBalatroPressurePlate(Room:GetGridPosition(52), mod.BLINDS.BIG)
+    Plate.State = 3
+    Plate:GetSprite():Play("Switched")
+
+    Plate = mod:SpawnBalatroPressurePlate(Room:GetGridPosition(55), mod.Saved.AnteBoss)
+    Plate.State = 3
+    Plate:GetSprite():Play("Switched")
+
+    mod:SpawnBalatroPressurePlate(Room:GetGridPosition(79), mod.BLINDS.SKIP | mod.BLINDS.SMALL)
+
+    Plate = mod:SpawnBalatroPressurePlate(Room:GetGridPosition(82), mod.BLINDS.SKIP | mod.BLINDS.BIG)
+    Plate.State = 3
+    Plate:GetSprite():Play("Switched")
+
+    --Plate:GetSprite():GetLayer(1):SetColor(Color.LaserIpecac)
+    
+end
+mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, InitializeAnte)
+
+
+--all enemies' HP get scaled basing on how many antes have been cleared this run
+---@param Enemy EntityNPC
+local function EnemyHPScaling(_,Enemy)
+
+    local AnteFactor
+
+    if mod.Saved.AnteLevel <= 0 then
+
+        AnteFactor = 1/(2 - mod.Saved.AnteLevel) --(0 --> 0.5 || -1 --> 0.33 and so on)
+    else
+        AnteFactor = mod.Saved.AnteLevel
+    end
+
+    if Enemy:IsActiveEnemy() then
+        
+        if Enemy:IsBoss() then
+            
+            Enemy.MaxHitPoints = Enemy.MaxHitPoints * AnteFactor^0.85
+            Enemy.HitPoints = Enemy.HitPoints * AnteFactor^0.85
+
+            --print("Boss HP:", Enemy.MaxHitPoints)
+        else
+            Enemy.MaxHitPoints = Enemy.MaxHitPoints * AnteFactor
+            Enemy.HitPoints = Enemy.HitPoints * AnteFactor
+
+            --print("Enemy HP:", Enemy.MaxHitPoints)
+        end
+
+    end
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_NPC_INIT, EnemyHPScaling)
 
 
 
