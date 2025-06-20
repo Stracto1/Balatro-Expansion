@@ -5,8 +5,6 @@ local Game = Game()
 local sfx = SFXManager()
 local Level = Game:GetLevel()
 
-local RoomHolderMode = {ANY = -1, HOSTILE = 0} --idk but this seems like it after trying ~20 room generations
-
 local MAX_SEED_VALUE = 2^32 - 1
 
 local DoorSides = {}
@@ -968,7 +966,8 @@ function mod:GetScoringCards(Player, HandType)
         end
     end
 
-    print(ReturnMask, tonumber(tostring(ReturnMask), 2))
+    print(ReturnMask)
+
     return ReturnMask
 end
 
@@ -1983,7 +1982,11 @@ function mod:PlaceBlindRoomsForReal()
 
     repeat
 
-        local BigRoom = RoomConfigHolder.GetRandomRoom( RoomRNG:RandomInt(MAX_SEED_VALUE) + 1,
+        local BigRoom
+
+        repeat
+
+            BigRoom = RoomConfigHolder.GetRandomRoom( RoomRNG:RandomInt(MAX_SEED_VALUE) + 1,
                                                         true, 
                                                         Isaac.GetCurrentStageConfigId(),
                                                         RoomType.ROOM_DEFAULT,
@@ -1992,7 +1995,25 @@ function mod:PlaceBlindRoomsForReal()
                                                         7,
                                                         10,
                                                         0,
-                                                        -1,RoomHolderMode.HOSTILE)
+                                                        -1,-1)
+
+
+            local Entries = BigRoom.Spawns
+            local IsHostile
+
+            for i = 0, Entries.Size-1 do
+                
+                local Entity = Entries:Get(i):PickEntry(0)
+
+                local Config = EntityConfig.GetEntity(Entity.Type, Entity.Variant)
+
+                if Config and Config:CanShutDoors() then
+                    
+                    IsHostile = true
+                    break
+                end
+            end
+        until IsHostile
 
         local PlaceSeed = PlaceRNG:RandomInt(MAX_SEED_VALUE) + 1
 
@@ -2017,7 +2038,10 @@ function mod:PlaceBlindRoomsForReal()
 
     repeat
 
-        local SmallRoom = RoomConfigHolder.GetRandomRoom( RoomRNG:RandomInt(MAX_SEED_VALUE) + 1,
+        local SmallRoom 
+
+        repeat
+            SmallRoom = RoomConfigHolder.GetRandomRoom( RoomRNG:RandomInt(MAX_SEED_VALUE) + 1,
                                                         true, 
                                                         Isaac.GetCurrentStageConfigId(),
                                                         RoomType.ROOM_DEFAULT,
@@ -2026,7 +2050,27 @@ function mod:PlaceBlindRoomsForReal()
                                                         7,
                                                         10,
                                                         0,
-                                                        -1,RoomHolderMode.HOSTILE)
+                                                        -1,-1)
+
+            local Entries = SmallRoom.Spawns
+            local IsHostile
+
+            for i = 0, Entries.Size-1 do
+                
+                local Entity = Entries:Get(i):PickEntry(0)
+
+                local Config = EntityConfig.GetEntity(Entity.Type, Entity.Variant)
+
+                if Config and Config:CanShutDoors() then
+                    
+                    IsHostile = true
+                    break
+                end
+            end
+
+        until IsHostile --makes sure the room has at least 1 enemy
+
+
 
         local PlaceSeed = PlaceRNG:RandomInt(MAX_SEED_VALUE) + 1
 
@@ -2067,7 +2111,7 @@ function mod:PlaceBlindRoomsForReal()
                                                         -1, -1,
                                                         0,
                                                         10,
-                                                        0, ShopQuality, RoomHolderMode.ANY)
+                                                        0, ShopQuality, -1)
 
         local PlaceSeed = PlaceRNG:RandomInt(MAX_SEED_VALUE) + 1
 
@@ -2643,7 +2687,7 @@ function mod:UseSelection(Player)
 
                     mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.HAND)
                 
-                    Isaac.RunCallback(mod.Callbalcks.HAND_PLAY, Player)
+                    Isaac.RunCallback(mod.Callbalcks.PRE_HAND_PLAY, Player)
                 end
                 return
             end
@@ -2829,6 +2873,55 @@ function mod:UseSelection(Player)
 end
 
 
+---@param Player EntityPlayer
+function mod:DiscardSelection(Player)
+
+    local IsTaintedJimbo = Player:GetPlayerType() == mod.Characters.TaintedJimbo
+
+    if not IsTaintedJimbo then
+        return
+    end
+
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    if mod.SelectionParams[PIndex].SelectionNum <= 0 then
+        print("choose something dog!")
+        return
+    end
+
+    local CurrentMode = mod.SelectionParams[PIndex].Mode
+    local CurrentPurpose = mod.SelectionParams[PIndex].Purpose
+
+    local SelectedCards = mod.SelectionParams[PIndex].SelectedCards[CurrentMode] or {}
+    local PackSelectedCards = mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.PACK]
+    local HandSelectedCards = mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]
+
+
+    if CurrentMode == mod.SelectionParams.Modes.HAND 
+       and CurrentPurpose == mod.SelectionParams.Purposes.HAND then
+        
+        for i = #mod.Saved.Player[PIndex].CurrentHand, 1, -1 do
+            
+            if HandSelectedCards[i] then
+                table.remove(mod.Saved.Player[PIndex].CurrentHand, i)
+            end
+        end
+
+        mod:RefillHand(Player)
+    end
+
+
+    for i,_ in ipairs(SelectedCards) do
+        SelectedCards[i] = false
+    end
+
+    for i,_ in ipairs(HandSelectedCards) do
+        HandSelectedCards[i] = false
+    end
+    mod.SelectionParams[PIndex].SelectionNum = 0
+    mod.Counters.SinceSelect = 0
+
+end
 
 -------TRASH--------
 --------------------

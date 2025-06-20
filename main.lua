@@ -198,6 +198,7 @@ Balatro_Expansion.Callbalcks = {CARD_SHOT = "CARD_SHOT",
                                 JOKER_ADDED = "JOKER_ADDED",
                                 DECK_SHIFT = "DECK_SHIFT",
                                 DECK_MODIFY = "DECK_MODIFY",
+                                PRE_HAND_PLAY = "PRE_HAND_PLAYED",
                                 HAND_PLAY = "HAND_PLAYED",
                                 POST_HAND_PLAY = "POST_HAND_PLAYED",
                                 HAND_UPDATE = "HAND_TYPE_UPDATE",
@@ -492,11 +493,11 @@ Balatro_Expansion.AllCurses.THE_WALL = 1 << (Isaac.GetCurseIdByName("curse of th
 
 Balatro_Expansion.NormalCurses[1] = Balatro_Expansion.AllCurses.THE_WALL
 
-Balatro_Expansion.BLINDS = {CASHOUT = -2, --used as a pressure plate vardata, not really a type of blind
-                            SKIP = 2048,
+Balatro_Expansion.BLINDS = {CASHOUT = 4096, --used as a pressure plate vardata, not really a type of blind
+                            SKIP = 2048, --used as a flag along with another blind
                             SMALL = 1,
                             BIG = 2,
-                            BOSS = 4,
+                            BOSS = 4, --used as a flag along with a specific boss type
                             BOSS_HOOK = 12,
                             BOSS_OX = 20,
                             BOSS_HOUSE = 28,

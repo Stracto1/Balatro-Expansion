@@ -129,8 +129,6 @@ function mod:ScoreCards(Player)
         end
     end
 
-    mod.SelectionParams[PIndex].ScoringCards = mod:GetScoringCards(Player, mod.SelectionParams[PIndex].HandType)
-
 --------------------------------------------------
 -----------------IN HAND EFFECTS------------------
 --------------------------------------------------
@@ -155,6 +153,8 @@ function mod:ScoreCards(Player)
     Isaac.CreateTimer(function ()
         NumEffectPlayed = 0
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.AIMING)
+    
+        mod.AnimationIsPlaying = false
     end, IntervalTime(NumEffectPlayed), 1, true)
 end
 mod:AddCallback(mod.Callbalcks.HAND_PLAY, mod.ScoreCards)

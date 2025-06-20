@@ -138,20 +138,21 @@ local function JimboHandRender(_,_,_,_,_,Player)
         if not Card
            or (mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.NONE 
                and (mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.HAND
-                    or mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.AIMING)   
-               and mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND][i]) then 
+                    or mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.AIMING)
+               and mod:Contained(mod.SelectionParams[PIndex].PlayedCards, Pointer)) then 
 
             --print(Pointer, "skipped")
             goto SKIP
         end
 
+        mod.LastCardFullPoss[Pointer] = mod.LastCardFullPoss[Pointer] or DECK_RENDERING_POSITION --check nil
+
+
         --moves up selected cards
         if mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND][i] then
             TargetRenderPos.Y = TargetRenderPos.Y -  8
         end
-        
 
-        mod.LastCardFullPoss[Pointer] = mod.LastCardFullPoss[Pointer] or DECK_RENDERING_POSITION --check nil
 
         if not mod.Saved.EnableHand then --mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.NONE then
 
@@ -171,17 +172,20 @@ local function JimboHandRender(_,_,_,_,_,Player)
                 end
             end
 
-            mod.LastCardFullPoss[Pointer] = TargetRenderPos + Vector.Zero
+
+            mod.LastCardFullPoss[Pointer] = BaseRenderPos + Vector(14,0)*(i-1)
 
             TargetRenderPos = DECK_RENDERING_POSITION + Vector.Zero
 
-            RenderPos[Pointer] = Vector(mod:Lerp(mod.LastCardFullPoss[Pointer].X, TargetRenderPos.X, LerpTime)
-                                        ,mod:Lerp(mod.LastCardFullPoss[Pointer].Y, TargetRenderPos.Y, LerpTime))
-        
+            RenderPos[Pointer] = Vector(mod:Lerp(mod.LastCardFullPoss[Pointer].X, TargetRenderPos.X, LerpTime),
+                                        mod:Lerp(mod.LastCardFullPoss[Pointer].Y, TargetRenderPos.Y, LerpTime))
+            
+
             if RenderPos[Pointer].X == TargetRenderPos.X and RenderPos[Pointer].Y == TargetRenderPos.Y then
                 table.remove(mod.Saved.Player[PIndex].CurrentHand, i)
                 sfx:Play(mod.Sounds.SELECT)
             end
+
         
         else
 
@@ -203,8 +207,9 @@ local function JimboHandRender(_,_,_,_,_,Player)
 
             if RenderPos[Pointer].X == TargetRenderPos.X and RenderPos[Pointer].Y == TargetRenderPos.Y then
                 --print(Pointer, "assigned")
-                mod.LastCardFullPoss[Pointer] = TargetRenderPos + Vector.Zero
+                mod.LastCardFullPoss[Pointer] = TargetRenderPos  + Vector.Zero
             end
+
         end
         -------------------------------------------------------------
 
@@ -212,12 +217,15 @@ local function JimboHandRender(_,_,_,_,_,Player)
 
 
         JimboCards.PlayingCards:Render(RenderPos[Pointer])
-        
+
+
         TargetRenderPos = Vector(TargetRenderPos.X + 14, BaseRenderPos.Y)
+
 
         ::SKIP::
 
     end
+
 
     if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.HAND then
 
@@ -312,18 +320,25 @@ local function JimboPlayedHandRender(_,_,_,_,_,Player)
         
         mod.LastCardFullPoss[Pointer] = mod.LastCardFullPoss[Pointer] or DECK_RENDERING_POSITION --check nil
 
+        --print(i, mod.SelectionParams[PIndex].ScoringCards & 2^(i-1) ~= 0)
         if mod.SelectionParams[PIndex].ScoringCards & 2^(i-1) ~= 0 then
             
             TargetRenderPos.Y = TargetRenderPos.Y - 8
         end
 
+        local TimeOffset = i
+
         if mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.AIMING then
             
             TargetRenderPos.X = Isaac.GetScreenWidth() + 50
+            TimeOffset = 0
         end
 
-        RenderPos[Pointer] = Vector(mod:Lerp(mod.LastCardFullPoss[Pointer].X, TargetRenderPos.X, mod.Counters.SinceSelect/4)
-                                        ,mod:Lerp(mod.LastCardFullPoss[Pointer].Y, TargetRenderPos.Y, mod.Counters.SinceSelect/1.25))
+
+        
+
+        RenderPos[Pointer] = mod:Lerp(mod.LastCardFullPoss[Pointer], TargetRenderPos, mod.Counters.SinceSelect/4 - TimeOffset)
+                                        
 
         if RenderPos[Pointer].X == TargetRenderPos.X and RenderPos[Pointer].Y == TargetRenderPos.Y then
             --print(Pointer, "played assigned")

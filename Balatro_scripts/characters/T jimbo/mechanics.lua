@@ -6,6 +6,8 @@ local Level = Game:GetLevel()
 local ItemsConfig = Isaac.GetItemConfig()
 local sfx = SFXManager()
 
+local TimerFixerVariable = 0
+
 local HAND_POOF_COLOR = Color(1,1,1,1,0,0,0,0.27,0.59, 1.5,1) --0.95
 
 --local LevelDescriptorFlags = {SMALL_BLIND = 1 << 20, BIG_BLIND = 1 << 21, JIMBO_SHOP = 1 << 22}
@@ -55,7 +57,7 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, mod.JimboInit)
 --Adds the small/big blind rooms + saves the room index of shops and boss rooms
 ---@param RoomConfig RoomConfigRoom
 ---@param LevelGen LevelGeneratorRoom
-local function FloorModifier(_,LevelGen,RoomConfig,Seed)
+local function SaveBossRoomIndex(_,LevelGen,RoomConfig,Seed)
 
     if not PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then
         return
@@ -76,7 +78,7 @@ local function FloorModifier(_,LevelGen,RoomConfig,Seed)
     end
 
 end
-mod:AddCallback(ModCallbacks.MC_PRE_LEVEL_PLACE_ROOM, FloorModifier)
+mod:AddCallback(ModCallbacks.MC_PRE_LEVEL_PLACE_ROOM, SaveBossRoomIndex)
 
 
 
@@ -160,7 +162,7 @@ mod:AddCallback(ModCallbacks.MC_POST_CURSE_EVAL, SetCustomCurses)
 ---@param Player EntityPlayer
 local function JimboInputHandle(_, Player)
 
-    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo or not mod.GameStarted then
         return
     end
     local PIndex = Player:GetData().TruePlayerIndex
@@ -174,17 +176,26 @@ local function JimboInputHandle(_, Player)
     ----------SELECTION INPUT / INPUT COOLDOWN------------
     
     -------------INPUT HANDLING-------------------
-    
-    --confirms the curretn selection
+
+    if mod.AnimationIsPlaying then
+        return
+    end
+
+        --confirms the curretn selection
     if Input.IsActionTriggered(ButtonAction.ACTION_PILLCARD, Player.ControllerIndex) then
 
         mod:UseSelection(Player)
-    end
 
-    
-    
-    if mod.AnimationIsPlaying then
-        return
+    elseif Input.IsActionTriggered(ButtonAction.ACTION_BOMB, Player.ControllerIndex) then
+
+        if mod.Saved.Player[PIndex].DiscardsRemaining <= 0 then
+            print("not enough discards loser!")
+            return
+        end
+
+        mod.Saved.Player[PIndex].DiscardsRemaining = mod.Saved.Player[PIndex].DiscardsRemaining - 1
+
+        mod:DiscardSelection(Player)
     end
 
     --confirming/canceling 
@@ -318,7 +329,9 @@ local function JimboInputHandle(_, Player)
             DestinationMode = mod.SelectionParams.Modes.HAND
         end
 
-        mod:SwitchCardSelectionStates(Player, DestinationMode, Params.Purpose)
+        if DestinationMode then
+            mod:SwitchCardSelectionStates(Player, DestinationMode, Params.Purpose)
+        end
     end
 
 
@@ -326,7 +339,7 @@ local function JimboInputHandle(_, Player)
     if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTDOWN, Player.ControllerIndex)
        and Params.Mode ~= mod.SelectionParams.Modes.PACK then
 
-        local DestinationMode = Params.Mode + 0
+        local DestinationMode
         local IsPackActive = Params.PackPurpose ~= mod.SelectionParams.Purposes.NONE
         local CurrentMode = Params.Mode
 
@@ -345,9 +358,12 @@ local function JimboInputHandle(_, Player)
             DestinationMode = mod.SelectionParams.Modes.PACK
         end
 
-        mod:SwitchCardSelectionStates(Player, DestinationMode, Params.Purpose)
+        if DestinationMode then
+            mod:SwitchCardSelectionStates(Player, DestinationMode, Params.Purpose)
+        end
 
     end
+
 
     if Input.IsActionTriggered(ButtonAction.ACTION_ITEM, Player.ControllerIndex) then
         
@@ -511,22 +527,6 @@ mod:AddCallback(ModCallbacks.MC_NPC_PICK_TARGET, PreventTjimboTarget)
 ----------HANDS SYSTEM----------
 --------------------------------
 
-local function ActivateHandSelection()
-    if not mod.GameStarted or Game:GetRoom():IsClear() then
-        return
-    end
-
-    for _,Player in ipairs(PlayerManager.GetPlayers()) do
-        
-        if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
-            mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams.Purposes.HAND)
-        
-            Player:AddCustomCacheTag(mod.CustomCache.HAND_NUM, true)
-        end
-    end
-end
-mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, ActivateHandSelection)
-
 
 function mod:UpdateCurrentHandType(Player)
 
@@ -569,6 +569,7 @@ function mod:UpdateCurrentHandType(Player)
 
 end
 mod:AddCallback(mod.Callbalcks.HAND_UPDATE, mod.UpdateCurrentHandType)
+
 
 local function effectTest(_, Effect)
     
@@ -670,16 +671,23 @@ function mod:ActivateCurrentHand(Player)
 
     mod.Saved.Player[PIndex].HandsRemaining = mod.Saved.Player[PIndex].HandsRemaining - 1
 
+    for i = #mod.Saved.Player[PIndex].CurrentHand, 1, -1 do
+        
+        if mod:Contained(mod.SelectionParams[PIndex].PlayedCards, mod.Saved.Player[PIndex].CurrentHand[i]) then
+
+            table.remove(mod.Saved.Player[PIndex].CurrentHand, i)
+        end
+    end
 
     Isaac.CreateTimer(function ()
-
 
                         --after playing the hand, checks if everyone is dead, in that case the blind is cleared
                         local AllDead = true
 
                         for _,Enemy in ipairs(Isaac.GetRoomEntities()) do
 
-                            if Enemy:IsActiveEnemy() and (not Enemy:IsDead() or not Enemy:HasMortalDamage()) then
+                            if Enemy:IsActiveEnemy() and Enemy:IsVulnerableEnemy()
+                               and (not Enemy:IsDead() or not Enemy:HasMortalDamage()) then
                                 
                                 AllDead = false
                             end
@@ -698,6 +706,7 @@ function mod:ActivateCurrentHand(Player)
                         
                             if mod.Saved.BlindBeingPlayed >= mod.BLINDS.BOSS_ACORN then --special bosses give you unlimited hands 
                             
+                                Player:AddCustomCacheTag(mod.CustomCache.DISCARD_NUM)
                                 Player:AddCustomCacheTag(mod.CustomCache.HAND_NUM, true)
                             else
                                 sfx:Play(SoundEffect.SOUND_BOSS2INTRO_ERRORBUZZ)
@@ -713,8 +722,6 @@ function mod:ActivateCurrentHand(Player)
                         Isaac.RunCallback(mod.Callbalcks.POST_HAND_PLAY, Player)
                     end, 10, 1, true)
 
-    
-    
 end
 --mod:AddCallback(mod.Callbalcks.POST_HAND_PLAY, mod.ActivateCurrentHand)
 
@@ -729,15 +736,27 @@ function mod:SetupForHandScoring(Player)
 
     local PIndex = Player:GetData().TruePlayerIndex
 
+    mod.SelectionParams[PIndex].ScoringCards = mod:GetScoringCards(Player, mod.SelectionParams[PIndex].HandType)
+
+
+    local TIMER_INCREASE = 4
+    local CurrentTimer = TIMER_INCREASE
+
     mod.SelectionParams[PIndex].PlayedCards = {}
     for i,Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
         
         if Selected then
-            mod.SelectionParams[PIndex].PlayedCards[#mod.SelectionParams[PIndex].PlayedCards+1] = mod.Saved.Player[PIndex].CurrentHand[i]
+            Isaac.CreateTimer(function ()
+                mod.SelectionParams[PIndex].PlayedCards[#mod.SelectionParams[PIndex].PlayedCards+1] = mod.Saved.Player[PIndex].CurrentHand[i] + 0
+                mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND][i] = false
+
+                --print(mod.SelectionParams[PIndex].PlayedCards[#mod.SelectionParams[PIndex].PlayedCards+1])
+            end, CurrentTimer, 1, true)
+
+            CurrentTimer = CurrentTimer + TIMER_INCREASE
         end
     end
 
-    mod.SelectionParams[PIndex].ScoringCards = mod:GetScoringCards(Player, mod.SelectionParams[PIndex].HandType)
 
     --[[could lead to problems with save states after leaving during a hand scoring
     for i = #mod.Saved.Player[PIndex].CurrentHand, 1, -1 do
@@ -749,8 +768,12 @@ function mod:SetupForHandScoring(Player)
     end]]
     
     mod.AnimationIsPlaying = true
+
+    Isaac.CreateTimer(function ()
+        Isaac.RunCallback(mod.Callbalcks.HAND_PLAY, Player)
+    end, CurrentTimer + 10, 1, true)
 end
-mod:AddPriorityCallback(mod.Callbalcks.HAND_PLAY, CallbackPriority.IMPORTANT, mod.SetupForHandScoring)
+mod:AddCallback(mod.Callbalcks.PRE_HAND_PLAY, mod.SetupForHandScoring)
 
 
 
@@ -764,13 +787,6 @@ function mod:SetupForNextHandPlay(Player)
     local PIndex = Player:GetData().TruePlayerIndex
 
 
-    for i = #mod.Saved.Player[PIndex].CurrentHand, 1, -1 do
-        
-        if mod:Contained(mod.SelectionParams[PIndex].PlayedCards, mod.Saved.Player[PIndex].CurrentHand[i]) then
-            
-            table.remove(mod.Saved.Player[PIndex].CurrentHand, i)
-        end
-    end
     mod.SelectionParams[PIndex].PlayedCards = {}
     mod.SelectionParams[PIndex].ScoringCards = 0
     mod.SelectionParams[PIndex].HandType = mod.HandTypes.NONE
@@ -829,16 +845,13 @@ mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, MoveHandTarget, EffectVarian
 ------------------------------------
 
 
-
-local TimerFixerVariable = 0
-
 local function OnBlindButtonPressed(_, VarData)
 
     
+    mod.Saved.BlindBeingPlayed = VarData
 
     --the first timer activates frame-one for some reason...
     --so only do this on the second timer
-
 
     if VarData == mod.BLINDS.CASHOUT then
         
@@ -848,22 +861,20 @@ local function OnBlindButtonPressed(_, VarData)
         end
 
         Isaac.CreateTimer(function ()
-                                if TimerFixerVariable == 1 then
+                                if TimerFixerVariable == 0 then
                                     Game:StartRoomTransition(mod.Saved.ShopIndex, Direction.NO_DIRECTION, RoomTransitionAnim.PIXELATION)
+                                    TimerFixerVariable = TimerFixerVariable + 1
 
-                                elseif TimerFixerVariable == 2 then
+                                elseif TimerFixerVariable == 1 then
                                     --Isaac.RunCallback(mod.Callbalcks.BLIND_START, VarData)
                                     TimerFixerVariable = 0
-                                else
-                                    TimerFixerVariable = TimerFixerVariable + 1
                                 end
 
                             end, 7, 2, true)
 
-        --Isaac.RunCallback(mod.Callbalcks.BLIND_SKIP, Plate.VarData)
 
     elseif VarData & mod.BLINDS.SKIP == mod.BLINDS.SKIP then
-                
+        
         Isaac.RunCallback(mod.Callbalcks.BLIND_SKIP, VarData)
     
     else
@@ -872,21 +883,20 @@ local function OnBlindButtonPressed(_, VarData)
             Player:AnimateTeleport(true)
         end
 
-        
-
         --print(mod.Saved.SmallBlindIndex)
 
         if VarData == mod.BLINDS.SMALL then
 
             Isaac.CreateTimer(function ()
-                                if TimerFixerVariable == 1 then
+                                
+                                if TimerFixerVariable == 0 then
                                     Game:StartRoomTransition(mod.Saved.SmallBlindIndex, Direction.NO_DIRECTION, RoomTransitionAnim.PIXELATION)
 
-                                elseif TimerFixerVariable == 2 then
+                                    TimerFixerVariable = TimerFixerVariable + 1
+
+                                elseif TimerFixerVariable == 1 then
                                     Isaac.RunCallback(mod.Callbalcks.BLIND_START, VarData)
                                     TimerFixerVariable = 0
-                                else
-                                    TimerFixerVariable = TimerFixerVariable + 1
                                 end
 
                             end, 7, 2, true)
@@ -894,29 +904,28 @@ local function OnBlindButtonPressed(_, VarData)
         elseif VarData == mod.BLINDS.BIG then
 
             Isaac.CreateTimer(function ()
-                                if TimerFixerVariable == 1 then
+                                if TimerFixerVariable == 0 then
                                     Game:StartRoomTransition(mod.Saved.BigBlindIndex, Direction.NO_DIRECTION, RoomTransitionAnim.PIXELATION)
+                                    TimerFixerVariable = TimerFixerVariable + 1
 
-                                elseif TimerFixerVariable == 2 then
+                                elseif TimerFixerVariable == 1 then
                                     Isaac.RunCallback(mod.Callbalcks.BLIND_START, VarData)
                                     TimerFixerVariable = 0
-                                else
-                                    TimerFixerVariable = TimerFixerVariable + 1
                                 end
 
-                            end, 20, 2, true)
+                            end, 7, 2, true)
 
         else --BOSS BLIND
 
             Isaac.CreateTimer(function ()
-                                if TimerFixerVariable == 1 then
+                                if TimerFixerVariable == 0 then
                                     Game:StartRoomTransition(mod.Saved.BossIndex, Direction.NO_DIRECTION, RoomTransitionAnim.PIXELATION)
+                                    TimerFixerVariable = TimerFixerVariable + 1
 
-                                elseif TimerFixerVariable == 2 then
+                                elseif TimerFixerVariable == 1 then
                                     Isaac.RunCallback(mod.Callbalcks.BLIND_START, VarData)
                                     TimerFixerVariable = 0
-                                else
-                                    TimerFixerVariable = TimerFixerVariable + 1
+
                                 end
 
                             end, 7, 2, true)
@@ -924,6 +933,7 @@ local function OnBlindButtonPressed(_, VarData)
         end
     end
 
+    mod:ResetPlatesData()
 end
 mod:AddCallback(mod.Callbalcks.BALATRO_PLATE_PRESSED, OnBlindButtonPressed)
 
@@ -931,7 +941,13 @@ mod:AddCallback(mod.Callbalcks.BALATRO_PLATE_PRESSED, OnBlindButtonPressed)
 local function OnBlindStart(_, BlindData)
 
     for _,Player in ipairs(PlayerManager.GetPlayers()) do
-        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams.Purposes.HAND)
+        
+        if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
+            mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams.Purposes.HAND)
+        
+            Player:AddCustomCacheTag(mod.CustomCache.DISCARD_NUM)
+            Player:AddCustomCacheTag(mod.CustomCache.HAND_NUM, true)
+        end
     end
 
 end
@@ -1093,26 +1109,26 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, InitializeAnte)
 ---@param Enemy EntityNPC
 local function EnemyHPScaling(_,Enemy)
 
-    local AnteFactor
+    local ScalingFactor
 
     if mod.Saved.AnteLevel <= 0 then
 
-        AnteFactor = 1/(3 - mod.Saved.AnteLevel) --(0 --> 1 || -1 --> 0.5 and so on)
+        ScalingFactor = 1/(1 - mod.Saved.AnteLevel) --(0 --> 1 || -1 --> 0.5 and so on)
     else
-        AnteFactor = mod.Saved.AnteLevel + 1
+        ScalingFactor = mod.Saved.AnteLevel + 0.5*mod:GetBlindLevel(mod.Saved.BlindBeingPlayed)
     end
 
     if Enemy:IsActiveEnemy() then
         
         if Enemy:IsBoss() then
             
-            Enemy.MaxHitPoints = Enemy.MaxHitPoints * AnteFactor^0.85
-            Enemy.HitPoints = Enemy.HitPoints * AnteFactor^0.85
+            Enemy.MaxHitPoints = Enemy.MaxHitPoints * ScalingFactor^0.85
+            Enemy.HitPoints = Enemy.HitPoints * ScalingFactor^0.85
 
             --print("Boss HP:", Enemy.MaxHitPoints)
         else
-            Enemy.MaxHitPoints = Enemy.MaxHitPoints * AnteFactor
-            Enemy.HitPoints = Enemy.HitPoints * AnteFactor
+            Enemy.MaxHitPoints = Enemy.MaxHitPoints * ScalingFactor
+            Enemy.HitPoints = Enemy.HitPoints * ScalingFactor
 
             --print("Enemy HP:", Enemy.MaxHitPoints)
         end
@@ -1192,6 +1208,10 @@ function mod:TJimboHandSizeCache(Player, Cache, Value)
         Value = Value - i
     end
 
+    if mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_MANACLE then
+        Value = Value - 1
+    end
+
     Value = math.max(0, Value) --btw it's an instant loss if your hand size is 0
 
     --[[
@@ -1232,10 +1252,16 @@ function mod:TJimboDiscardNumCache(Player, Cache, Value)
 
 
     if mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR) then
-        Value = 1
+        Value = 0
     end
 
 
+    Value = math.max(Value, 0)
+
+
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    mod.Saved.Player[PIndex].DiscardsRemaining = Value
 
     return Value
 end
@@ -1268,11 +1294,12 @@ function mod:TJimboHandsCache(Player, Cache, Value)
 
     Value = math.max(Value, 1)
 
-    mod.Saved.Player[PIndex].HandsRemaining = Value
 
     if mod.Saved.BlindBeingPlayed >=  mod.BLINDS.BOSS_ACORN then
         Value = mod.INFINITE_HANDS
     end
+
+    mod.Saved.Player[PIndex].HandsRemaining = Value
 
     return Value
 end

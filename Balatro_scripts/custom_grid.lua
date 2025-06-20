@@ -42,42 +42,84 @@ local BALATRO_PLATE_SUFFIX = {[mod.BLINDS.CASHOUT] = "cashout",
 }
 
 
+---@param Plate GridEntityPressurePlate
+local function InitBalatroPlate(Plate)
+
+    Plate:GetSprite():ReplaceSpritesheet(0, "gfx/grid/grid_balatro_pressureplate_"..BALATRO_PLATE_SUFFIX[Plate.VarData]..".png", true)
+
+
+
+    local PlateBlindLevel = mod:GetBlindLevel(Plate.VarData)
+
+    local ShouldPlateBeAvailable = false
+    
+    if PlateBlindLevel == mod.BLINDS.SMALL then
+        
+        ShouldPlateBeAvailable = not mod.Saved.SmallCleared
+
+    elseif PlateBlindLevel == mod.BLINDS.BIG then
+
+        ShouldPlateBeAvailable = mod.Saved.SmallCleared and not mod.Saved.BigCleared
+
+    elseif PlateBlindLevel == mod.BLINDS.BOSS then
+
+        ShouldPlateBeAvailable = mod.Saved.SmallCleared and mod.Saved.BigCleared
+
+    else --if PlateBlindLevel == mod.BLINDS.CASHOUT then
+    
+        ShouldPlateBeAvailable = true
+    end
+
+    ShouldPlateBeAvailable = ShouldPlateBeAvailable and mod.Saved.BlindBeingPlayed ~= PlateBlindLevel
+
+
+    local Sprite = Plate:GetSprite()
+
+    if ShouldPlateBeAvailable then
+        
+        Plate.State = PlateState.OFF
+        Plate.NextGreedAnimation = "0"
+        Sprite:Play("Off")
+
+    else
+        Plate.State = PlateState.PRESSED
+        Plate.NextGreedAnimation = "3"
+        Sprite:Play("Switched", false)
+    end
+
+end
+
+
 function mod:SpawnBalatroPressurePlate(Position, VarData)
     VarData = VarData or 0
 
-    local Plate = Isaac.GridSpawn(GridEntityType.GRID_PRESSURE_PLATE, mod.Grids.PLATE_VARIANT, Position)
+    local Plate = Isaac.GridSpawn(GridEntityType.GRID_PRESSURE_PLATE, mod.Grids.PLATE_VARIANT, Game:GetRoom():FindFreeTilePosition(Position, -1))
 
     if Plate then
 
         Plate.VarData = VarData
 
-        local Sprite = Plate:GetSprite()
-        Sprite:ReplaceSpritesheet(0, "gfx/grid/grid_balatro_pressureplate_"..BALATRO_PLATE_SUFFIX[VarData]..".png", true)
+        --Sprite:ReplaceSpritesheet(0, "gfx/grid/grid_balatro_pressureplate_"..BALATRO_PLATE_SUFFIX[VarData]..".png", true)
         
-        --Sprite:Load(mod.Grids.PLATE_PATH) loading a new anm2 makes the button freaky for no reason apparently
-        --Sprite:SetFrame("Off", 0)
-        --Sprite:GetLayer(1):SetColor(Color.LaserFireMind)
-        --print(Plate:GetSprite():GetAnimation())
+        InitBalatroPlate(Plate:ToPressurePlate())
+    else
+        print("something went wron in plate spawning!")
     end
 
     return Plate
 end
 
---STATE = 3 IF PRESSED
----@param Plate GridEntityPressurePlate
-local function BalatroPlateInit(_, Plate)
-
-    print("ye")
-    --Plate:GetSprite():SetFrame("Off", 0)
-    --print(Plate.State, Plate.VarData)
-
-end
----@diagnostic disable-next-line: undefined-field
---mod:AddCallback(ModCallbacks.MC_PRE_GRID_ENTITY_SPAWN, BalatroPlateInit)
 
 
----@param Plate GridEntityPressurePlate
-local function ResetPlateSprite(_, Plate)
+function mod:ResetPlatesData()
+
+    if not mod.GameStarted then
+        Isaac.CreateTimer(function ()
+            mod:ResetPlatesData()
+        end, 1,1, true)
+
+        return
+    end
 
     local Room = Game:GetRoom()
 
@@ -85,40 +127,24 @@ local function ResetPlateSprite(_, Plate)
         local Plate = Room:GetGridEntity(i)
         if Plate and Plate:GetType() == GridEntityType.GRID_PRESSURE_PLATE and Plate:GetVariant() == mod.Grids.PLATE_VARIANT then
             
-            Plate:GetSprite():ReplaceSpritesheet(0, "gfx/grid/grid_balatro_pressureplate_"..BALATRO_PLATE_SUFFIX[Plate.VarData]..".png", true)
+            InitBalatroPlate(Plate:ToPressurePlate())
+            --Plate:GetSprite():ReplaceSpritesheet(0, "gfx/grid/grid_balatro_pressureplate_"..BALATRO_PLATE_SUFFIX[Plate.VarData]..".png", true)
         end
     end
 
 end
-mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, ResetPlateSprite)
+mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.ResetPlatesData)
+
+
 
 
 --STATE = 3 IF PRESSED
 ---@param Plate GridEntityPressurePlate
-local function BalatroPlateUpdate(_, Plate)
+local function BalatroPostPlateUpdate(_, Plate)
 
     if Plate:GetVariant() ~= mod.Grids.PLATE_VARIANT  then
         return
     end
-
-    if Plate.State == PlateState.OFF then
-        for _,Player in ipairs(PlayerManager.GetPlayers()) do
-
-            if Game:GetRoom():GetGridIndex(Player.Position - Player.Velocity*2.25) == Plate:GetGridIndex() then
-
-                --print("uhhh")
-                Player.Velocity = Vector.Zero
-                mod.Saved.BlindBeingPlayed = Plate.VarData
-                Plate.State = PlateState.PRESSED
-                Isaac.RunCallback(mod.Callbalcks.BALATRO_PLATE_PRESSED, Plate.VarData)
-                --print(Plate.VarData)
-                return
-                --print("yessir")
-            end
-        end
-    end
-    --Plate:GetSprite():SetFrame("Off", 0)
-    --print(Plate.State, Plate.VarData)
 
     
     local PlateBlindLevel = mod:GetBlindLevel(Plate.VarData)
@@ -157,7 +183,37 @@ local function BalatroPlateUpdate(_, Plate)
         Sprite:Play("Switched", false)
     end
 
-
 end
 ---@diagnostic disable-next-line: undefined-field
+--mod:AddCallback(ModCallbacks.MC_POST_GRID_ENTITY_PRESSUREPLATE_UPDATE, BalatroPostPlateUpdate)
+
+
+
+--STATE = 3 IF PRESSED
+---@param Plate GridEntityPressurePlate
+local function BalatroPlateUpdate(_, Plate)
+
+    if Plate:GetVariant() ~= mod.Grids.PLATE_VARIANT  then
+        return
+    end
+
+    if Plate.State ~= tonumber(Plate.NextGreedAnimation) and Plate.State == PlateState.PRESSED then
+    --if it just got pressed and someone is on top of it
+
+        local Room = Game:GetRoom()
+        for _,Player in ipairs(PlayerManager.GetPlayers()) do
+
+            --print(Player.Position , Room:GetGridPosition(Plate:GetGridIndex()))
+            if Player.Position:Distance(Room:GetGridPosition(Plate:GetGridIndex())) <= 25  then
+    
+                Isaac.RunCallback(mod.Callbalcks.BALATRO_PLATE_PRESSED, Plate.VarData)
+
+                break
+            end            
+        end
+
+        Plate.NextGreedAnimation = tostring(Plate.State)
+        --print("change to", Plate.NextGreedAnimation)
+    end
+end
 mod:AddCallback(ModCallbacks.MC_POST_GRID_ENTITY_PRESSUREPLATE_UPDATE, BalatroPlateUpdate)
