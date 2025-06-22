@@ -168,7 +168,7 @@
     <trinket cache="damage" gfx="burnt_joker_trinket.png" name="Burnt Joker" description="Don't leave me here!" customtags="!8 1 :0 ?rare balatro activate copy" achievement="PermaLocked"/>
     <trinket cache="damage" gfx="bootstraps_trinket.png" name="Bootstraps" description="Thigthen your boots!" customtags="!8 1 :0 ?uncommon balatro mult copy" achievement="PermaLocked"/>
     <trinket cache="damage" gfx="canio_trinket.png" name="Canio" description="La commedia è finita!" customtags="!20 1 :0 ?legendary balatro multm copy" achievement="PermaLocked"/>
-    <trinket cache="damage" gfx="triboulet_trinket.png" name="Triboulet" description="patrons de la folie, je demande à mourir de vieillesse" customtags="!20 1 :0 ?legendary balatro multm copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="triboulet_trinket.png" name="Triboulet" description="Patrons de la folie, je demande à mourir de vieillesse" customtags="!20 1 :0 ?legendary balatro multm copy" achievement="PermaLocked"/>
     <trinket cache="damage" gfx="yorik_trinket.png" name="Yorick" description="Sir, this skull belonged to Yorick" customtags="!20 1 :0 ?legendary balatro multm copy" achievement="PermaLocked"/>
     <trinket gfx="chicot_trinket.png" name="Chicot" description="Oh, mon Dieu! an accident" customtags="!20 1 :0 ?legendary balatro activate copy" achievement="PermaLocked"/>
     <trinket gfx="perkeo_trinket.png" name="Perkeo" description="Perchè no?" customtags="!20 1 :0 ?legendary balatro activate copy" achievement="PermaLocked"/>

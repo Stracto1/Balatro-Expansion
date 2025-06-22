@@ -776,7 +776,6 @@ mod:AddCallback(ModCallbacks.MC_POST_ENTITY_REMOVE, mod.OverstockGreedJokerFix, 
 
 function mod:AddRoomsCleared(IsBoss, Hostile)
 
-
     if not Game:IsGreedMode() then
         for i,Player in ipairs(PlayerManager.GetPlayers()) do
             if Player:GetPlayerType() == mod.Characters.JimboType then

@@ -362,6 +362,16 @@ function mod:CanTileBeBlocked(IndexToDestroy)
 
 end
 
+
+function mod:IsFibonacciNumber(Number)
+
+    local Test1 = (5*Number^2 - 4)^0.5
+    local Test2 = (5*Number^2 + 4)^0.5
+
+    return math.floor(Test1) == Test1 or math.floor(Test2) == Test2
+end
+
+
 local function IsSpecialBossFight(_, CurrentBossType)
 
     local Room = Game:GetRoom()
@@ -384,6 +394,8 @@ local function ResetSpecialBossFight()
     mod.Saved.IsSpecialBossFight = false
 end
 mod:AddCallback(ModCallbacks.MC_PRE_NEW_ROOM, ResetSpecialBossFight)
+
+
 
 
 -------------JIMBO FUNCTIONS------------
@@ -1082,6 +1094,19 @@ function mod:IsSuit(Player, Card, WantedSuit, MakeTable)
     end
 end
 
+
+function mod:IsValue(Player, Card, WantedValue)
+
+    if WantedValue == mod.Values.FACE then
+        
+        return (Card.Value >= mod.Values.JACK and Card.Enhancement ~= mod.Enhancement.STONE)
+               or mod:JimboHasTrinket(Player, mod.Jokers.PAREIDOLIA)
+    else
+        return Card.Value == WantedValue and Card.Enhancement ~= mod.Enhancement.STONE
+    end
+end
+
+
 function mod:TryGamble(Player, RNG, Chance)
     Chance = Chance * (2 ^ #mod:GetJimboJokerIndex(Player, mod.Jokers.OOPS_6))
     if RNG then
@@ -1287,7 +1312,7 @@ function mod:SellConsumable(Player)
 
     local PIndex = Player:GetData().TruePlayerIndex
     local NumConsumables = #mod.Saved.Player[PIndex].Consumables
-    local CardToSell = mod.Saved.Player[PIndex].Consumables[NumConsumables].Card + 0
+    local CardToSell = mod.Saved.Player[PIndex].Consumables[1]
 
     if CardToSell == -1 then
         return false
@@ -1295,17 +1320,14 @@ function mod:SellConsumable(Player)
 
     local PlayerConsumables = mod.Saved.Player[PIndex].Consumables
 
-    CardToSell = mod:FrameToSpecialCard(CardToSell)
 
-    local Edition = PlayerConsumables[NumConsumables].Edition + 0
-
-    local SellValue = mod:GetConsumableCost(CardToSell, Edition, true)
+    local SellValue = mod:GetConsumableCost(mod:FrameToSpecialCard(CardToSell.Card), CardToSell.Edition, true)
 
     mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..SellValue.."$")
     Player:AddCoins(SellValue)
 
-    table.remove(PlayerConsumables, NumConsumables)
-    table.insert(PlayerConsumables, 1, {Card = -1, Edition = 0})
+    table.remove(PlayerConsumables, 1)
+    table.insert(PlayerConsumables, NumConsumables, {Card = -1, Edition = mod.Edition.BASE})
 
     return true
 end
@@ -1416,6 +1438,18 @@ function mod:RandomJoker(Rng, Exeptions, PlaySound, ForcedRarity)
     end
 
     return Trinket
+end
+
+
+function mod:RandomTarot(Rng, CanBeSoul, ExeptHeld, ExeptPack)
+
+    local HasShowman = false
+
+    for i, Player in ipairs(PlayerManager.GetPlayers()) do
+        if mod:JimboHasTrinket(Player, mod.Jokers.SHOWMAN) then
+            HasShowman = true
+        end
+    end
 end
 
 
@@ -1576,7 +1610,9 @@ end
 
 local CardGotDestroyed = false
 function mod:DestroyCards(Player, DeckIndexes, DoEffects, BlockSubstitution)
+
     local PIndex = Player:GetData().TruePlayerIndex
+    local IsTaintedJimbo = Player:GetPlayerType() == mod.Characters.TaintedJimbo
 
     CardGotDestroyed = true
 
@@ -1598,7 +1634,7 @@ function mod:DestroyCards(Player, DeckIndexes, DoEffects, BlockSubstitution)
 
         DestroyedParams[#DestroyedParams+1] = CardParams
 
-        if mod:Contained(mod.Saved.Player[PIndex].CurrentHand, Index) 
+        if mod:Contained(mod.Saved.Player[PIndex].CurrentHand, Index)
            and (#mod.Saved.Player[PIndex].CurrentHand > Player:GetCustomCacheValue("handsize")
            or BlockSubstitution) then
         
@@ -1606,10 +1642,16 @@ function mod:DestroyCards(Player, DeckIndexes, DoEffects, BlockSubstitution)
             table.remove(mod.Saved.Player[PIndex].CurrentHand, mod:GetValueIndex(mod.Saved.Player[PIndex].CurrentHand, Index, true))
         end
 
+        if IsTaintedJimbo
+           and mod:Contained(mod.SelectionParams[PIndex].PlayedCards, Index) then
+
+            table.remove(mod.SelectionParams[PIndex].PlayedCards, mod:GetValueIndex(mod.SelectionParams[PIndex].PlayedCards, Index, true))
+        end
+
         table.remove(mod.Saved.Player[PIndex].FullDeck, Index)
         
         if DoEffects then
-            mod:CardRipEffect(CardParams, Player.Position)
+            mod:CardRipEffect(CardParams, IsTaintedJimbo and Isaac.ScreenToWorld(mod.LastCardFullPoss[Index]) or Player.Position)
         end
     end
 

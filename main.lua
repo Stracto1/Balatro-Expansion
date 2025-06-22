@@ -309,9 +309,10 @@ Balatro_Expansion.EffectColors.YELLOW = Color(238/255, 186/255, 49/255)
 Balatro_Expansion.EffectColors.PURPLE = Color(238/255, 186/255, 49/255)
 
 Balatro_Expansion.EffectType = {NULL = -1,
-                                JOKER = 0,
-                                HAND = 1,
-                                ENTITY = 2}
+                                JOKER = -2,
+                                HAND = -3,
+                                ENTITY = -4,
+                                HAND_FROM_JOKER = 0}
 
 
 Balatro_Expansion.Packs = {}
@@ -683,6 +684,9 @@ Balatro_Expansion.BossProgress = {NOT_CLEARED = 0,
                                   CLEARED = 2}
 
 
+Balatro_Expansion.JokerProgress = {NOT_ACTIVE = 0, ACTIVE = 1}
+
+
 Balatro_Expansion.StatEnable = false --needed cause i hate my life
 Balatro_Expansion.Saved.Player.StatsToAdd = {}
 --basic stat ups that always apply 
@@ -771,35 +775,35 @@ Balatro_Expansion.Stats = {CHIPS = "X", MULT = "Y"}
 
 Balatro_Expansion.Saved.Player.HandsStat = {}
 Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.NONE] = Vector(0,0)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.HIGH_CARD] = Vector(0.2,0.05)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.PAIR] = Vector(0.4,0.1)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.TWO_PAIR] = Vector(0.8,0.1)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.THREE] = Vector(1.2,0.15)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.STRAIGHT] = Vector(1.2,0.2)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FLUSH] = Vector(1.4,0.2)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FULL_HOUSE] = Vector(1.6,0.2)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FOUR] = Vector(2.4,0.35)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.STRAIGHT_FLUSH] = Vector(4,0.4)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.ROYAL_FLUSH] = Vector(4,0.4)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FIVE] = Vector(4.8,0.6)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FLUSH_HOUSE] = Vector(5.6,0.7)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FIVE_FLUSH] = Vector(6.4,0.8)
+Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.HIGH_CARD] = Vector(5,1)
+Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.PAIR] = Vector(10,2)
+Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.TWO_PAIR] = Vector(20,2)
+Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.THREE] = Vector(30,3)
+Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.STRAIGHT] = Vector(30,4)
+Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FLUSH] = Vector(35,4)
+Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FULL_HOUSE] = Vector(40,4)
+Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FOUR] = Vector(60,7)
+Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.STRAIGHT_FLUSH] = Vector(100,8)
+Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.ROYAL_FLUSH] = Vector(100,8)
+Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FIVE] = Vector(120,12)
+Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FLUSH_HOUSE] = Vector(120,14)
+Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FIVE_FLUSH] = Vector(120,16)
 
 
 Balatro_Expansion.HandUpgrades = {}
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.HIGH_CARD] = Vector(0.4,0.05)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.PAIR] = Vector(0.6,0.05)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.TWO_PAIR] = Vector(0.6,0.05)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.THREE] = Vector(0.8,0.1)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.STRAIGHT] = Vector(1.2,0.15)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FLUSH] = Vector(0.6,0.1)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FULL_HOUSE] = Vector(1,0.1)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FOUR] = Vector(1.2,0.15)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.STRAIGHT_FLUSH] = Vector(1.6,0.2)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.ROYAL_FLUSH] = Vector(1.6,0.2)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FIVE] = Vector(1.4,0.15)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FLUSH_HOUSE] = Vector(1.6,0.2)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FIVE_FLUSH] = Vector(2,0.15)
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.HIGH_CARD] = Vector(10,1)
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.PAIR] = Vector(15,1)
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.TWO_PAIR] = Vector(20,1)
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.THREE] = Vector(20,2)
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.STRAIGHT] = Vector(30,3)
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FLUSH] = Vector(15,2)
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FULL_HOUSE] = Vector(25,2)
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FOUR] = Vector(30,3)
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.STRAIGHT_FLUSH] = Vector(40,4)
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.ROYAL_FLUSH] = Vector(40,4)
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FIVE] = Vector(35,3)
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FLUSH_HOUSE] = Vector(40,4)
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FIVE_FLUSH] = Vector(50,3)
 
 Balatro_Expansion.Saved.Player.FiveUnlocked = false
 Balatro_Expansion.Saved.Player.FlushHouseUnlocked = false

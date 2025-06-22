@@ -75,8 +75,9 @@ local function TJimboUseTarot(card, Player, IsPack, UseFlags)
         mod.Saved.Player[PIndex].Consumables[NumConsumables].Card = -1
         mod.Saved.Player[PIndex].Consumables[NumConsumables].Edition = mod.Edition.BASE
 
-        table.insert(mod.Saved.Player[PIndex].Consumables, 1, mod.Saved.Player[PIndex].Consumables[NumConsumables])
-        table.remove(mod.Saved.Player[PIndex].Consumables, NumConsumables + 1)
+        table.remove(mod.Saved.Player[PIndex].Consumables, 1)
+        table.insert(mod.Saved.Player[PIndex].Consumables, NumConsumables, {Card = -1, Edition = mod.Edition.BASE})
+        
         
     end
     if card == Card.CARD_HIGH_PRIESTESS or card == Card.CARD_EMPEROR or card == Card.CARD_FOOL then

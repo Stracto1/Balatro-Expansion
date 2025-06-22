@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.lua": "lua",
         ".anm2": "xml"
     }
 }

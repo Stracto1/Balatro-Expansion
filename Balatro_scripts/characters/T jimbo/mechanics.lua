@@ -24,8 +24,8 @@ mod.FullDoorSlot = {[RoomShape.ROOMSHAPE_1x1] = 1 << DoorSlot.LEFT0 | 1 << DoorS
 
 local SCREEN_TO_WORLD_RATIO = 4
 
-local BASE_HAND_RADIUS = 45 --this gets increased by the handtype's base mult value (considering planet upgrades)
-
+local BASE_HAND_RADIUS = 30 --this gets increased by the handtype's base mult value (considering planet upgrades)
+local FIXED_HAND_RADIUS = 10
 
 
 ----FUTURE GLOBALS -----
@@ -117,12 +117,13 @@ function mod:TJimboAddConsumable(Player, card, Slot, StopAnimation)
     if mod:Contained(mod.Packs, card) then
         
         Player:UseCard(card)
-        goto REMOVE
+        
+        return false
     end
 
     
-    for i = #mod.Saved.Player[PIndex].Consumables, 1, -1 do
-        if mod.Saved.Player[PIndex].Consumables[i].Card == -1 then
+    for i, Consumable in ipairs(mod.Saved.Player[PIndex].Consumables) do
+        if Consumable.Card == -1 then
             EmptySlot = i
             break
         end
@@ -136,16 +137,14 @@ function mod:TJimboAddConsumable(Player, card, Slot, StopAnimation)
             end,0,1,true)
         end
 
-        goto REMOVE
+        return false
     end
 
     mod.Saved.Player[PIndex].Consumables[EmptySlot].Card = mod:SpecialCardToFrame(card)
 
-    ::REMOVE::
-
-    Player:SetCard(Slot, 0)
+    return false
 end
-mod:AddPriorityCallback(ModCallbacks.MC_POST_PLAYER_ADD_CARD,CallbackPriority.IMPORTANT, mod.TJimboAddConsumable)
+mod:AddPriorityCallback(ModCallbacks.MC_PRE_PLAYER_ADD_CARD,CallbackPriority.IMPORTANT, mod.TJimboAddConsumable)
 
 
 
@@ -207,54 +206,54 @@ local function JimboInputHandle(_, Player)
     end
 
     --pressing left moving the selection
-    if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTLEFT, Player.ControllerIndex) then
+    if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTLEFT, Player.ControllerIndex)
+       and Params.Index > 1 then
 
+        local Step = 0
 
-        if Params.Index > 1 then
-            local Step = 0
+        if Params.Mode == mod.SelectionParams.Modes.INVENTORY then
+            
+            local SlotsSkipped = 1
 
-            if Params.Mode == mod.SelectionParams.Modes.INVENTORY then
+            for i = Params.Index - 1, 1, -1 do
                 
-                local SlotsSkipped = 1
-
-                for i = Params.Index - 1, 1, -1 do
-                    
-                    if mod.Saved.Player[PIndex].Inventory[i].Joker ~= 0 then
-                        Step = -SlotsSkipped
-                        break
-                    end
-
-                    SlotsSkipped = SlotsSkipped + 1
-                end
-            else
-                Step = -1
-            end
-
-            --also holding ALT also makes you move the card itself 
-            if Params.Mode ~= mod.SelectionParams.Modes.PACK
-               and (Input.IsButtonPressed(Keyboard.KEY_LEFT_SHIFT, Player.ControllerIndex)
-               or Input.IsButtonPressed(Keyboard.KEY_RIGHT_SHIFT, Player.ControllerIndex)) then
-
-                Params.SelectedCards[Params.Mode][Params.Index], Params.SelectedCards[Params.Mode][Params.Index + Step] =
-                Params.SelectedCards[Params.Mode][Params.Index + Step], Params.SelectedCards[Params.Mode][Params.Index]
-
-                if Params.Mode == mod.SelectionParams.Modes.HAND then
-                    
-                    local PlayerHand = mod.Saved.Player[PIndex].CurrentHand
-                    PlayerHand[Params.Index],  PlayerHand[Params.Index + Step] = 
-                    PlayerHand[Params.Index + Step],  PlayerHand[Params.Index]
-                else
-                    
-                    local PlayerInventory = mod.Saved.Player[PIndex].Inventory
-                    PlayerInventory[Params.Index],  PlayerInventory[Params.Index + Step] = 
-                    PlayerInventory[Params.Index + Step],  PlayerInventory[Params.Index]
+                if mod.Saved.Player[PIndex].Inventory[i].Joker ~= 0 then
+                    Step = -SlotsSkipped
+                    break
                 end
 
-                mod.Counters.SinceSelect = 0
+                SlotsSkipped = SlotsSkipped + 1
             end
-
-            Params.Index = Params.Index + Step
+        else
+            Step = -1
         end
+
+        -- holding SHIFT also makes you move the card itself 
+        if Params.Mode ~= mod.SelectionParams.Modes.PACK
+           and (Input.IsButtonPressed(Keyboard.KEY_LEFT_SHIFT, Player.ControllerIndex)
+           or Input.IsButtonPressed(Keyboard.KEY_RIGHT_SHIFT, Player.ControllerIndex)) then
+
+            Params.SelectedCards[Params.Mode][Params.Index], Params.SelectedCards[Params.Mode][Params.Index + Step] =
+            Params.SelectedCards[Params.Mode][Params.Index + Step], Params.SelectedCards[Params.Mode][Params.Index]
+
+            if Params.Mode == mod.SelectionParams.Modes.HAND then
+                
+                local PlayerHand = mod.Saved.Player[PIndex].CurrentHand
+                PlayerHand[Params.Index],  PlayerHand[Params.Index + Step] =
+                PlayerHand[Params.Index + Step],  PlayerHand[Params.Index]
+            else
+                
+                local PlayerInventory = mod.Saved.Player[PIndex].Inventory
+                PlayerInventory[Params.Index],  PlayerInventory[Params.Index + Step] =
+                PlayerInventory[Params.Index + Step],  PlayerInventory[Params.Index]
+            end
+
+            mod.Counters.SinceSelect = 0
+
+            Isaac.RunCallback(mod.Callbalcks.INVENTORY_CHANGE, Player)
+        end
+
+        Params.Index = Params.Index + Step
     end
 
     
@@ -367,7 +366,7 @@ local function JimboInputHandle(_, Player)
 
     if Input.IsActionTriggered(ButtonAction.ACTION_ITEM, Player.ControllerIndex) then
         
-        local CardToUse = mod:FrameToSpecialCard(mod.Saved.Player[PIndex].Consumables[#mod.Saved.Player[PIndex].Consumables].Card)
+        local CardToUse = mod:FrameToSpecialCard(mod.Saved.Player[PIndex].Consumables[1].Card)
         local Success = mod:TJimboUseCard(CardToUse, Player, false)
         --print(Success)
     end
@@ -1122,13 +1121,13 @@ local function EnemyHPScaling(_,Enemy)
         
         if Enemy:IsBoss() then
             
-            Enemy.MaxHitPoints = Enemy.MaxHitPoints * ScalingFactor^0.85
-            Enemy.HitPoints = Enemy.HitPoints * ScalingFactor^0.85
+            Enemy.MaxHitPoints = Enemy.MaxHitPoints * 5 * ScalingFactor^0.85
+            Enemy.HitPoints = Enemy.HitPoints * 5 * ScalingFactor^0.85
 
             --print("Boss HP:", Enemy.MaxHitPoints)
         else
-            Enemy.MaxHitPoints = Enemy.MaxHitPoints * ScalingFactor
-            Enemy.HitPoints = Enemy.HitPoints * ScalingFactor
+            Enemy.MaxHitPoints = Enemy.MaxHitPoints * 5 * ScalingFactor
+            Enemy.HitPoints = Enemy.HitPoints * 5 * ScalingFactor
 
             --print("Enemy HP:", Enemy.MaxHitPoints)
         end

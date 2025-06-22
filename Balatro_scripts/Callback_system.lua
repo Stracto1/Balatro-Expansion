@@ -368,19 +368,19 @@ function mod:InitJimboValues(Player, Force)
                                               [mod.HandTypes.FIVE_FLUSH] = Vector(32,16)}]]
 
         mod.Saved.Player[PIndex].HandsStat = {[mod.HandTypes.NONE] = Vector(0, 0),
-                                              [mod.HandTypes.HIGH_CARD] = Vector(1, 1),
-                                              [mod.HandTypes.PAIR] = Vector(2, 1.5),
-                                              [mod.HandTypes.TWO_PAIR] = Vector(4, 1.5),
-                                              [mod.HandTypes.THREE] = Vector(6, 2),
-                                              [mod.HandTypes.STRAIGHT] = Vector(6, 2.5),
-                                              [mod.HandTypes.FLUSH] = Vector(7, 2.5),
-                                              [mod.HandTypes.FULL_HOUSE] = Vector(8, 2.5),
-                                              [mod.HandTypes.FOUR] = Vector(12, 4),
-                                              [mod.HandTypes.STRAIGHT_FLUSH] = Vector(20, 4.5),
-                                              [mod.HandTypes.ROYAL_FLUSH] = Vector(20, 4.5),
-                                              [mod.HandTypes.FIVE] = Vector(24, 3.5),
-                                              [mod.HandTypes.FLUSH_HOUSE] = Vector(28, 7.5),
-                                              [mod.HandTypes.FIVE_FLUSH] = Vector(32, 8.5)}
+                                              [mod.HandTypes.HIGH_CARD] = Vector(5, 1),
+                                              [mod.HandTypes.PAIR] = Vector(10, 2),
+                                              [mod.HandTypes.TWO_PAIR] = Vector(20, 2),
+                                              [mod.HandTypes.THREE] = Vector(30, 3),
+                                              [mod.HandTypes.STRAIGHT] = Vector(30, 4),
+                                              [mod.HandTypes.FLUSH] = Vector(35, 4),
+                                              [mod.HandTypes.FULL_HOUSE] = Vector(40, 4),
+                                              [mod.HandTypes.FOUR] = Vector(60, 7),
+                                              [mod.HandTypes.STRAIGHT_FLUSH] = Vector(100, 8),
+                                              [mod.HandTypes.ROYAL_FLUSH] = Vector(100, 8),
+                                              [mod.HandTypes.FIVE] = Vector(120, 12),
+                                              [mod.HandTypes.FLUSH_HOUSE] = Vector(140, 14),
+                                              [mod.HandTypes.FIVE_FLUSH] = Vector(160, 16)}
 
     end
     end
