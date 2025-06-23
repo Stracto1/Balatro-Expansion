@@ -13,6 +13,8 @@ DoorSides.UP = 1
 DoorSides.RIGHT = 2
 DoorSides.DOWN = 3
 
+local SCREEN_TO_WORLD_RATIO = 4
+
 local EditionValue = {[mod.Edition.BASE] = 0,
                       [mod.Edition.FOIL] = 2,
                       [mod.Edition.HOLOGRAPHIC] = 3,
@@ -89,6 +91,24 @@ function mod:GetBitMaskMax(Mask)
     end
 
     return MaxValue
+end
+
+
+
+function mod:GetBitMaskMin(Mask)
+
+    local MinValue = mod:GetBitMaskMax(Mask)
+
+    for i = math.log(MinValue, 2), 0, -1 do
+
+        local Val = 2^i
+        
+        if Val & Mask ~= 0 then
+            MinValue = Val
+        end
+    end
+
+    return MinValue
 end
 
 ---@param Table tablelib
@@ -983,6 +1003,10 @@ function mod:GetScoringCards(Player, HandType)
     return ReturnMask
 end
 
+function mod:PlayedCardIsScored(PIndex, Index) 
+    return mod.SelectionParams[PIndex].ScoringCards & 2^(Index-1) ~= 0
+end
+
 
 function mod:GetActualCardValue(Value)
     if Value >=10 then
@@ -1651,7 +1675,7 @@ function mod:DestroyCards(Player, DeckIndexes, DoEffects, BlockSubstitution)
         table.remove(mod.Saved.Player[PIndex].FullDeck, Index)
         
         if DoEffects then
-            mod:CardRipEffect(CardParams, IsTaintedJimbo and Isaac.ScreenToWorld(mod.LastCardFullPoss[Index]) or Player.Position)
+            mod:CardRipEffect(CardParams, IsTaintedJimbo and Isaac.ScreenToWorld(mod.LastCardFullPoss[Index]) * SCREEN_TO_WORLD_RATIO or Player.Position)
         end
     end
 

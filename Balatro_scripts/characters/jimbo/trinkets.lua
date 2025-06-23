@@ -12,7 +12,7 @@ local ItemsConfig = Isaac.GetItemConfig()
 local sfx = SFXManager()
 local SUIT_FLAG = 7 --111 00..
 local VALUE_FLAG = 120 --000 1111 00..
-local YORIK_VALUE_FLAG = 63 --000 1111 00..
+local YORIK_VALUE_FLAG = 63 --111111 00..
 local BaronKings = 0
 
 --local INVENTORY_RENDERING_POSITION = Vector(20,220) 
@@ -1988,7 +1988,7 @@ function mod:OnNewRoomJokers()
                     elseif mod:IsSuit(Player, card, mod.Suits.Club) then
                         HasClub = true
 
-                    elseif card.Enhancement ~= mod.Enhancement.STONE then
+                    else
                         HasNoClub = true
                     end
 

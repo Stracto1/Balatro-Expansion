@@ -7,11 +7,13 @@ local EFFECT_CARD_OFFSET = Vector(0, -15)
 
 local SUIT_FLAG = 7 --111 00..
 local VALUE_FLAG = 120 --000 1111 00..
+local YORIK_VALUE_FLAG = 63 --111111 00..
+
 
 
 -- CHIPS and MULT amount is equal to balatro's
 
--- however for balance reasons the are at least 5x as tanky, I could've trimeed down both values but
+-- however for balance reasons the enemies are at least 5x as tanky, I could've trimeed down both values but
 -- in the end what makes Balatro fun is making BIG ASS NUMBERS so yeah
 
 
@@ -186,7 +188,7 @@ end
 
 ---@param Player EntityPlayer
 ---@param CardPointer integer
-local function TriggerCard(Player, CardPointer)
+local function TriggerCard(Player, CardPointer, CardIndex)
 
     --local NumEffects = 0 --counts how many effects got played
     local PIndex = Player:GetData().TruePlayerIndex
@@ -207,77 +209,18 @@ local function TriggerCard(Player, CardPointer)
         return
     end
 
-    local BaseChips = mod:GetActualCardValue(Card.Value)
+    --------------------------------------
+    -------RETRIGGER CALCULATION----------
+    --------------------------------------
 
-    if mod:JimboHasTrinket(Player, mod.Jokers.HIKER) then
-        Card.Upgrades = Card.Upgrades + 5
+    local TriggersLeft = 1
+    local TriggerCauses = {mod.EffectType.NULL} --used to rapresent the "Again!" effects
+
+    if Card.Seal == mod.Seals.RED then
+        TriggersLeft = TriggersLeft + 1
+        table.insert(TriggerCauses, 1, mod.EffectType.HAND)
     end
 
-    if Card.Enhancement == mod.Enhancement.BONUS then
-
-        BaseChips = BaseChips + 30
-
-    elseif Card.Enhancement == mod.Enhancement.STONE then
-        
-        BaseChips = 50
-    end
-
-    BaseChips = BaseChips + 1 * Card.Upgrades --HIKER EFFECT
-
-    IncreaseChips(PIndex, mod:GetActualCardValue(Card.Value), mod.EffectType.HAND, CardPointer)
-
-
-    if Card.Enhancement == mod.Enhancement.MULT then
-        
-        IncreaseMult(PIndex, 4, mod.EffectType.HAND, CardPointer)
-
-    elseif Card.Enhancement == mod.Enhancement.GLASS then
-
-        MultiplyMult(PIndex, 2, mod.EffectType.HAND, CardPointer)
-
-    elseif Card.Enhancement == mod.Enhancement.LUCKY then
-
-        local LuckyRNG = Player:GetTrinketRNG(mod.Jokers.LUCKY_CAT)
-
-        if mod:TryGamble(Player, LuckyRNG, 0.2) then
-
-            IncreaseMult(PIndex, 20, mod.EffectType.HAND, CardPointer)
-
-            for _, CatIndex in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.LUCKY_CAT, true)) do
-                IncreaseJokerProgress(PIndex, CatIndex, 0,25)
-
-                GeneralBalatroEffect(PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+0.25X", mod.EffectType.JOKER, CatIndex)
-            end
-        end
-
-        if mod:TryGamble(Player, LuckyRNG, 0.05) then
-            AddMoney(Player, 20, mod.EffectType.HAND, CardPointer)
-
-            for _, CatIndex in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.LUCKY_CAT, true)) do
-                IncreaseJokerProgress(PIndex, CatIndex, 0,25)
-
-                GeneralBalatroEffect(PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+0.25X", mod.EffectType.JOKER, CatIndex)
-            end
-        end
-    end
-
-
-    if Card.Edition == mod.Edition.FOIL then
-        
-        IncreaseChips(PIndex, 50, mod.EffectType.HAND, CardPointer)
-
-    elseif Card.Edition == mod.Edition.HOLOGRAPHIC then
-        
-        IncreaseMult(PIndex, 10, mod.EffectType.HAND, CardPointer)
-
-    elseif Card.Edition == mod.Edition.FOIL then
-        
-        MultiplyMult(PIndex, 1.5, mod.EffectType.HAND, CardPointer)
-    end
-
-    -------------ON TRIGGER JOKERS-------------
-    -------------------------------------------
-    
     for JokerIndex, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
 
         local Joker = Slot.Joker
@@ -301,71 +244,206 @@ local function TriggerCard(Player, CardPointer)
             goto SKIP_SLOT
         end
 
+        if Joker == mod.Jokers.HANG_CHAD then
+            
+            if 2^CardIndex == mod:GetBitMaskMin(mod.SelectionParams[PIndex].ScoringCards) then
+                TriggersLeft = TriggersLeft + 2
+                table.insert(TriggerCauses, 1, mod.EffectType.HAND_FROM_JOKER & JokerIndex)
+                table.insert(TriggerCauses, 1, mod.EffectType.HAND_FROM_JOKER & JokerIndex)
+            end
 
-        if Joker == mod.Jokers.EVENSTEVEN then
+        elseif Joker == mod.Jokers.HACK then
+
+            if Card.Value <= 5 and Card.Value ~= 1 then
+                TriggersLeft = TriggersLeft + 1
+                table.insert(TriggerCauses, 1, mod.EffectType.HAND_FROM_JOKER & JokerIndex)
+            end
+
+        elseif Joker == mod.Jokers.SOCK_BUSKIN then
+
+            if mod:IsValue(Player, Card, mod.Values.FACE) then
+                TriggersLeft = TriggersLeft + 1
+                table.insert(TriggerCauses, 1, mod.EffectType.HAND_FROM_JOKER & JokerIndex)
+            end
+
+        elseif Joker == mod.Jokers.SELTZER then
+
+            TriggersLeft = TriggersLeft + 1
+            table.insert(TriggerCauses, 1, mod.EffectType.HAND_FROM_JOKER & JokerIndex)
+
+        elseif Joker == mod.Jokers.DUSK then
+
+            if mod.Saved.Player[PIndex].HandsRemaining == 1 then --LAST HAND
+                TriggersLeft = TriggersLeft + 1
+                table.insert(TriggerCauses, 1, mod.EffectType.HAND_FROM_JOKER & JokerIndex)
+            end
+
+        end
+
+        ::SKIP_SLOT::
+    end
+
+
+    repeat
+        local BaseChips = mod:GetActualCardValue(Card.Value)
+
+        if mod:JimboHasTrinket(Player, mod.Jokers.HIKER) then
+            Card.Upgrades = Card.Upgrades + 5
+        end
+
+        if Card.Enhancement == mod.Enhancement.BONUS then
+
+            BaseChips = BaseChips + 30
+
+        elseif Card.Enhancement == mod.Enhancement.STONE then
+
+            BaseChips = 50
+        end
+
+        BaseChips = BaseChips + 1 * Card.Upgrades --HIKER EFFECT
+
+        IncreaseChips(PIndex, mod:GetActualCardValue(Card.Value), mod.EffectType.HAND, CardPointer)
+
+
+        if Card.Enhancement == mod.Enhancement.MULT then
+        
+        IncreaseMult(PIndex, 4, mod.EffectType.HAND, CardPointer)
+
+        elseif Card.Enhancement == mod.Enhancement.GLASS then
+
+        MultiplyMult(PIndex, 2, mod.EffectType.HAND, CardPointer)
+
+        elseif Card.Enhancement == mod.Enhancement.LUCKY then
+
+        local LuckyRNG = Player:GetTrinketRNG(mod.Jokers.LUCKY_CAT)
+
+        if mod:TryGamble(Player, LuckyRNG, 0.2) then
+
+            IncreaseMult(PIndex, 20, mod.EffectType.HAND, CardPointer)
+
+            for _, CatIndex in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.LUCKY_CAT, true)) do
+                IncreaseJokerProgress(PIndex, CatIndex, 0,25)
+
+                GeneralBalatroEffect(PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+0.25X", mod.EffectType.JOKER, CatIndex)
+            end
+        end
+
+        if mod:TryGamble(Player, LuckyRNG, 0.05) then
+            AddMoney(Player, 20, mod.EffectType.HAND, CardPointer)
+
+            for _, CatIndex in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.LUCKY_CAT, true)) do
+                IncreaseJokerProgress(PIndex, CatIndex, 0,25)
+
+                GeneralBalatroEffect(PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+0.25X", mod.EffectType.JOKER, CatIndex)
+            end
+        end
+        end
+
+
+        if Card.Edition == mod.Edition.FOIL then
+        
+        IncreaseChips(PIndex, 50, mod.EffectType.HAND, CardPointer)
+
+        elseif Card.Edition == mod.Edition.HOLOGRAPHIC then
+        
+        IncreaseMult(PIndex, 10, mod.EffectType.HAND, CardPointer)
+
+        elseif Card.Edition == mod.Edition.FOIL then
+        
+        MultiplyMult(PIndex, 1.5, mod.EffectType.HAND, CardPointer)
+        end
+
+        -------------ON TRIGGER JOKERS-------------
+        -------------------------------------------
+
+        for JokerIndex, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+
+            local Joker = Slot.Joker
+
+            local ProgressIndex = JokerIndex + 0
+            local Copied = false
+            if Joker == mod.Jokers.BLUEPRINT or Joker == mod.Jokers.BRAINSTORM then
+
+                Joker = mod.Saved.Player[PIndex].Inventory[mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex]]
+                Joker = Joker and Joker.Joker or 0
+
+                --print("should be copiyng: "..tostring(mod.Saved.Player[PIndex].Inventory[mod.Saved.Player[PIndex].Progress.Inventory[Index]].Joker))
+                --print("copy "..tostring(Joker).." at "..tostring(mod.Saved.Player[PIndex].Progress.Inventory[Index]))
+
+                ProgressIndex = mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex]
+
+                Copied = true
+            end
+
+            if Joker == 0 then
+                goto SKIP_SLOT
+            end
+
+
+            if Joker == mod.Jokers.EVENSTEVEN then
             
             if Card.Enhancement ~= mod.Enhancement.STONE
                and Card.Value % 2 == 0 and Card.Value < mod.Values.JACK then
                 IncreaseMult(PIndex, 4, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
-        elseif Joker == mod.Jokers.ODDTODD then
+            elseif Joker == mod.Jokers.ODDTODD then
             
             if Card.Enhancement ~= mod.Enhancement.STONE 
                and Card.Value % 2 == 1 and Card.Value < mod.Values.JACK then
                 IncreaseChips(PIndex, 31, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
-        elseif Joker == mod.Jokers.ONIX_AGATE then
+            elseif Joker == mod.Jokers.ONIX_AGATE then
             
             if mod:IsSuit(Player, Card, mod.Suits.Club) then
                 IncreaseMult(PIndex, 7, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
-        elseif Joker == mod.Jokers.ARROWHEAD then
+            elseif Joker == mod.Jokers.ARROWHEAD then
             
             if mod:IsSuit(Player, Card, mod.Suits.Spade) then
                 IncreaseChips(PIndex, 30, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
-        elseif Joker == mod.Jokers.BLOODSTONE then
+            elseif Joker == mod.Jokers.BLOODSTONE then
             
             if mod:IsSuit(Player, Card, mod.Suits.Heart)
                and mod:TryGamble(Player, Player:GetTrinketRNG(mod.Jokers.BLOODSTONE), 0.5) then
                 MultiplyMult(PIndex, 1.5, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
-        elseif Joker == mod.Jokers.ROUGH_GEM then
+            elseif Joker == mod.Jokers.ROUGH_GEM then
             
             if mod:IsSuit(Player, Card, mod.Suits.Diamond) then
                 AddMoney(Player, 1, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
-        elseif Joker == mod.Jokers.LUSTY_JOKER then
+            elseif Joker == mod.Jokers.LUSTY_JOKER then
             
             if mod:IsSuit(Player, Card, mod.Suits.Heart) then
                 IncreaseMult(PIndex, 3, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
-        elseif Joker == mod.Jokers.WRATHFUL_JOKER then
+            elseif Joker == mod.Jokers.WRATHFUL_JOKER then
             
             if mod:IsSuit(Player, Card, mod.Suits.Spade) then
                 IncreaseMult(PIndex, 3, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
-        elseif Joker == mod.Jokers.GREEDY_JOKER then
+            elseif Joker == mod.Jokers.GREEDY_JOKER then
             
             if mod:IsSuit(Player, Card, mod.Suits.Diamond) then
                 IncreaseMult(PIndex, 3, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
-        elseif Joker == mod.Jokers.GLUTTONOUS_JOKER then
+            elseif Joker == mod.Jokers.GLUTTONOUS_JOKER then
             
             if mod:IsSuit(Player, Card, mod.Suits.Club) then
                 IncreaseMult(PIndex, 3, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
-        elseif Joker == mod.Jokers._8_BALL then
+            elseif Joker == mod.Jokers._8_BALL then
             
             if Card.Value == 8 and Card.Enhancement ~= mod.Enhancement.STONE
                and mod:TryGamble(Player, Player:GetTrinketRNG(mod.Jokers._8_BALL), 0.25) then
@@ -409,7 +487,7 @@ local function TriggerCard(Player, CardPointer)
             end
 
 
-        elseif Joker == mod.Jokers.FIBONACCI then
+            elseif Joker == mod.Jokers.FIBONACCI then
             
             if Card.Value < mod.Values.JACK 
                and Card.Enhancement ~= mod.Enhancement.STONE
@@ -419,7 +497,7 @@ local function TriggerCard(Player, CardPointer)
             end
 
 
-        elseif Joker == mod.Jokers.SCARY_FACE then
+            elseif Joker == mod.Jokers.SCARY_FACE then
             
             if mod:IsValue(Player, Card, mod.Values.FACE) then
 
@@ -427,7 +505,7 @@ local function TriggerCard(Player, CardPointer)
             end
 
 
-        elseif Joker == mod.Jokers.SCHOLAR then
+            elseif Joker == mod.Jokers.SCHOLAR then
             
             if mod:IsValue(Player, Card, 1) then
 
@@ -436,14 +514,14 @@ local function TriggerCard(Player, CardPointer)
             end
 
 
-        elseif Joker == mod.Jokers.BUSINESS_CARD then
+            elseif Joker == mod.Jokers.BUSINESS_CARD then
             
             if mod:IsValue(Player, Card, mod.Values.FACE) and mod:TryGamble(Player, Player:GetTrinketRNG(mod.Jokers.BUSINESS_CARD), 0.5) then
 
                 AddMoney(Player, 2, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
-        elseif Joker == mod.Jokers.PHOTOGRAPH then
+            elseif Joker == mod.Jokers.PHOTOGRAPH then
 
             
             
@@ -466,14 +544,14 @@ local function TriggerCard(Player, CardPointer)
                 end
             end
 
-        elseif Joker == mod.Jokers.ANCIENT_JOKER then
+            elseif Joker == mod.Jokers.ANCIENT_JOKER then
             
             if mod:IsSuit(Player, Card, mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex]) then
 
                 MultiplyMult(PIndex, 1.5, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
-        elseif Joker == mod.Jokers.WALKIE_TALKIE then
+            elseif Joker == mod.Jokers.WALKIE_TALKIE then
             
             if mod:IsValue(Player, Card, 4) or mod:IsValue(Player, Card, 10) then
 
@@ -482,30 +560,32 @@ local function TriggerCard(Player, CardPointer)
             end
 
         
-        elseif Joker == mod.Jokers.GOLDEN_TICKET then
+            elseif Joker == mod.Jokers.GOLDEN_TICKET then
             
             if Card.Enhancement == mod.Enhancement.GOLDEN then
 
                 AddMoney(Player, 4, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
         
-        elseif Joker == mod.Jokers.SMILEY_FACE then
+            elseif Joker == mod.Jokers.SMILEY_FACE then
             
             if mod:IsValue(Player, Card, mod.Values.FACE) then
 
                 IncreaseMult(PIndex, 5, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
-        elseif Joker == mod.Jokers.WEE_JOKER then
+            elseif Joker == mod.Jokers.WEE_JOKER then
             
             if mod:IsValue(Player, Card, 2) then
 
-                IncreaseJokerProgress(PIndex, JokerIndex, 8)
+                if not Copied then
+                    IncreaseJokerProgress(PIndex, ProgressIndex, 8)
+                end
                 GeneralBalatroEffect(PIndex, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, "Upgrade!", mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
 
-        elseif Joker == mod.Jokers.IDOL then
+            elseif Joker == mod.Jokers.IDOL then
 
             local IdolPrigress = mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex]
             
@@ -516,7 +596,7 @@ local function TriggerCard(Player, CardPointer)
             end
 
 
-        elseif Joker == mod.Jokers.TRIBOULET then
+            elseif Joker == mod.Jokers.TRIBOULET then
 
             local IdolPrigress = mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex]
             
@@ -530,12 +610,29 @@ local function TriggerCard(Player, CardPointer)
 
 
         
+            end
+
+
+            ::SKIP_SLOT::
         end
 
 
-        ::SKIP_SLOT::
-    end
+        if Card.Seal == mod.Seals.GOLDEN then
 
+            AddMoney(Player, 1, mod.EffectType.HAND, CardPointer)
+        end
+
+        if TriggerCauses[TriggersLeft] == mod.EffectType.HAND then --red seal
+            GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Again!", mod.EffectType.HAND, CardPointer)
+        
+        elseif TriggerCauses[TriggersLeft] ~= mod.EffectType.NULL then --red seal
+            GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Again!", mod.EffectType.JOKER, TriggerCauses[TriggersLeft])
+        end
+
+        TriggersLeft = TriggersLeft - 1
+
+
+    until TriggersLeft <= 0
 
     --return NumEffects
 end
@@ -543,7 +640,7 @@ end
 
 
 ---@param Player EntityPlayer
-function mod:ScoreCards(Player)
+function mod:ScoreHand(Player)
 
     if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
         return
@@ -569,16 +666,16 @@ function mod:ScoreCards(Player)
 --------------------------------------------------
 
 
-    for i,Index in ipairs(mod.SelectionParams[PIndex].PlayedCards) do
+    for Index,Pointer in ipairs(mod.SelectionParams[PIndex].PlayedCards) do
 
         --print("played", i)
         
-        if mod.SelectionParams[PIndex].ScoringCards & 2^(i-1) ~= 0 then
+        if mod:PlayedCardIsScored(PIndex, Index) then
 
             --print("scored", i)
         
             --print("triggered", i)
-            TriggerCard(Player, Index)
+            TriggerCard(Player, Pointer, Index)
         end
     end
 
@@ -594,7 +691,292 @@ function mod:ScoreCards(Player)
 ------------------JOKER SCORING-------------------
 --------------------------------------------------
 
+    for JokerIndex, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
 
+        local Joker = Slot.Joker
+
+        local ProgressIndex = JokerIndex + 0
+        local Copied = false
+        if Joker == mod.Jokers.BLUEPRINT or Joker == mod.Jokers.BRAINSTORM then
+
+            Joker = mod.Saved.Player[PIndex].Inventory[mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex]]
+            Joker = Joker and Joker.Joker or 0
+
+            --print("should be copiyng: "..tostring(mod.Saved.Player[PIndex].Inventory[mod.Saved.Player[PIndex].Progress.Inventory[Index]].Joker))
+            --print("copy "..tostring(Joker).." at "..tostring(mod.Saved.Player[PIndex].Progress.Inventory[Index]))
+
+            ProgressIndex = mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex]
+
+            Copied = true
+        end
+
+        if Joker == 0 then
+            goto SKIP_SLOT
+        end
+
+        if Joker == mod.Jokers.JOKER then
+            
+            IncreaseMult(PIndex, 4, mod.EffectType.JOKER, JokerIndex)
+
+        elseif Joker == mod.Jokers.GROS_MICHAEL then
+            
+            IncreaseMult(PIndex, 15, mod.EffectType.JOKER, JokerIndex)
+
+        elseif Joker == mod.Jokers.CAVENDISH then
+            
+            MultiplyMult(PIndex, 1.5, mod.EffectType.JOKER, JokerIndex)
+
+        elseif Joker == mod.Jokers.MISPRINT then
+
+            IncreaseMult(PIndex, Player:GetTrinketRNG(mod.Jokers.MISPRINT):RandomInt(0,23), mod.EffectType.JOKER, JokerIndex)
+
+        elseif Joker == mod.Jokers.JOLLY_JOKER then
+
+            if CompatibleHands & mod.HandTypes.PAIR ~= 0 then
+                IncreaseMult(PIndex, 8, mod.EffectType.JOKER, JokerIndex)
+            end
+        elseif Joker == mod.Jokers.ZANY_JOKER then
+
+            if CompatibleHands & mod.HandTypes.THREE ~= 0 then
+                IncreaseMult(PIndex, 12, mod.EffectType.JOKER, JokerIndex)
+            end
+        elseif Joker == mod.Jokers.MAD_JOKER then
+
+            if CompatibleHands & mod.HandTypes.TWO_PAIR ~= 0 then
+                IncreaseMult(PIndex, 10, mod.EffectType.JOKER, JokerIndex)
+            end
+        elseif Joker == mod.Jokers.CRAZY_JOKER then
+
+            if CompatibleHands & mod.HandTypes.STRAIGHT ~= 0 then
+                IncreaseMult(PIndex, 12, mod.EffectType.JOKER, JokerIndex)
+            end
+
+        elseif Joker == mod.Jokers.DROLL_JOKER then
+
+            if CompatibleHands & mod.HandTypes.FLUSH ~= 0 then
+                IncreaseMult(PIndex, 10, mod.EffectType.JOKER, JokerIndex)
+            end
+
+        elseif Joker == mod.Jokers.SLY_JOKER then
+
+            if CompatibleHands & mod.HandTypes.PAIR ~= 0 then
+                IncreaseChips(PIndex, 80, mod.EffectType.JOKER, JokerIndex)
+            end
+        elseif Joker == mod.Jokers.WILY_JOKER then
+
+            if CompatibleHands & mod.HandTypes.THREE ~= 0 then
+                IncreaseChips(PIndex, 120, mod.EffectType.JOKER, JokerIndex)
+            end
+        elseif Joker == mod.Jokers.CLEVER_JOKER then
+
+            if CompatibleHands & mod.HandTypes.TWO_PAIR ~= 0 then
+                IncreaseChips(PIndex, 100, mod.EffectType.JOKER, JokerIndex)
+            end
+        elseif Joker == mod.Jokers.DEVIOUS_JOKER then
+
+            if CompatibleHands & mod.HandTypes.STRAIGHT ~= 0 then
+                IncreaseChips(PIndex, 120, mod.EffectType.JOKER, JokerIndex)
+            end
+
+        elseif Joker == mod.Jokers.CRAFTY_JOKER then
+
+            if CompatibleHands & mod.HandTypes.FLUSH ~= 0 then
+                IncreaseChips(PIndex, 100, mod.EffectType.JOKER, JokerIndex)
+            end
+
+        elseif Joker == mod.Jokers.HALF_JOKER then
+
+            if #mod.SelectionParams[PIndex].PlayedCards <= 3 then
+                IncreaseMult(PIndex, 20, mod.EffectType.JOKER, JokerIndex)
+            end
+
+        elseif Joker == mod.Jokers.BANNER then
+
+            if mod.Saved.Player[PIndex].DiscardsRemaining > 0 then
+                IncreaseChips(PIndex, 30 * mod.Saved.Player[PIndex].DiscardsRemaining, mod.EffectType.JOKER, JokerIndex)
+            end
+
+        elseif Joker == mod.Jokers.MYSTIC_SUMMIT then
+
+            if mod.Saved.Player[PIndex].DiscardsRemaining == 0 then
+                IncreaseMult(PIndex, 15, mod.EffectType.JOKER, JokerIndex)
+            end
+
+        elseif Joker == mod.Jokers.SUPERNOVA then
+
+            --PLACEHOLDER
+            if mod.Saved.Player[PIndex].DiscardsRemaining == 0 then
+                IncreaseMult(PIndex, 15, mod.EffectType.JOKER, JokerIndex)
+            end
+
+        elseif Joker == mod.Jokers.CARD_SHARP then
+
+            --PLACEHOLDER
+            if mod.Saved.Player[PIndex].DiscardsRemaining == 0 then
+                IncreaseMult(PIndex, 15, mod.EffectType.JOKER, JokerIndex)
+            end
+
+        elseif Joker == mod.Jokers.ACROBAT then
+
+            --PLACEHOLDER
+            if mod.Saved.Player[PIndex].HandsRemaining == 1 then
+                IncreaseMult(PIndex, 15, mod.EffectType.JOKER, JokerIndex)
+            end
+
+        elseif Joker == mod.Jokers.FLOWER_POT then
+
+            local HasSuit = 0
+
+            for i = mod.Suits.Spade, mod.Suits.Diamond do
+
+                for Index,Pointer in ipairs(mod.SelectionParams[PIndex].PlayedCards) do
+                    if mod:PlayedCardIsScored(PIndex, Index)
+                       and mod:IsSuit(Player, mod.Saved.Player[PIndex].FullDeck[Pointer], i) then
+
+                        HasSuit = i
+                        break
+                    end
+                end
+
+                if HasSuit ~= i then
+                    break
+                end
+            end
+
+            if HasSuit == mod.Suits.Diamond then --all the suits are held
+            
+                MultiplyMult(PIndex, 3, mod.EffectType.JOKER, JokerIndex)
+            end
+
+
+        elseif Joker == mod.Jokers.SEE_DOUBLE then
+
+            local HasClub = false
+            local HasNoClub = false
+            for Index, Pointer in ipairs(mod.SelectionParams[PIndex].PlayedCards) do
+                
+                if mod:PlayedCardIsScored(PIndex, Index) then
+                    local card = mod.Saved.Player[PIndex].FullDeck[Pointer]
+
+                    if card.Enhancement == mod.Enhancement.WILD then
+                        HasClub = true
+                        HasNoClub = true
+
+                    elseif mod:IsSuit(Player, card, mod.Suits.Club) then
+                        HasClub = true
+
+                    else
+                        HasNoClub = true
+                    end
+
+                    if HasClub and HasNoClub then
+                        break
+                    end
+                end
+            end
+
+            if HasClub and HasNoClub then
+
+                MultiplyMult(PIndex, 2, mod.EffectType.JOKER, JokerIndex)
+            end
+
+        elseif Joker == mod.Jokers.DUO then
+
+            if CompatibleHands & mod.HandTypes.PAIR ~= 0 then
+                MultiplyMult(PIndex, 2, mod.EffectType.JOKER, JokerIndex)
+            end
+        
+        elseif Joker == mod.Jokers.TRIO then
+
+            if CompatibleHands & mod.HandTypes.THREE ~= 0 then
+                MultiplyMult(PIndex, 3, mod.EffectType.JOKER, JokerIndex)
+            end
+
+        elseif Joker == mod.Jokers.FAMILY then
+
+            if CompatibleHands & mod.HandTypes.FOUR ~= 0 then
+                MultiplyMult(PIndex, 4, mod.EffectType.JOKER, JokerIndex)
+            end
+
+        elseif Joker == mod.Jokers.ORDER then
+
+            if CompatibleHands & mod.HandTypes.STRAIGHT ~= 0 then
+                MultiplyMult(PIndex, 3, mod.EffectType.JOKER, JokerIndex)
+            end
+
+        elseif Joker == mod.Jokers.TRIBE then
+
+            if CompatibleHands & mod.HandTypes.FLUSH ~= 0 then
+                MultiplyMult(PIndex, 2, mod.EffectType.JOKER, JokerIndex)
+            end
+
+        elseif Joker == mod.Jokers.DRIVER_LICENSE then
+
+            if mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] >= 16 then --counts the enhanced cards
+                MultiplyMult(PIndex, 3, mod.EffectType.JOKER, JokerIndex)
+            end
+
+        elseif Joker == mod.Jokers.YORICK then
+
+            local Mult = (mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] & ~YORIK_VALUE_FLAG)/(YORIK_VALUE_FLAG+1)
+
+            mod:IncreaseJimboStats(Player, 0, 0, Mult, false, false)
+        
+
+        elseif Joker == mod.Jokers.BULL 
+            or Joker == mod.Jokers.STONE_JOKER
+            or Joker == mod.Jokers.ICECREAM
+            or Joker == mod.Jokers.RUNNER
+            or Joker == mod.Jokers.BLUE_JOKER
+            or Joker == mod.Jokers.SQUARE_JOKER
+            or Joker == mod.Jokers.CASTLE
+            or Joker == mod.Jokers.WEE_JOKER then
+
+
+
+            
+            IncreaseChips(PIndex, mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex], mod.EffectType.JOKER, JokerIndex)
+
+        elseif Joker == mod.Jokers.FORTUNETELLER 
+            or Joker == mod.Jokers.ABSTRACT_JOKER
+            or Joker == mod.Jokers.POPCORN
+            or Joker == mod.Jokers.GREEN_JOKER
+            or Joker == mod.Jokers.RED_CARD
+            or Joker == mod.Jokers.SACRIFICIAL_DAGGER
+            or Joker == mod.Jokers.RIDE_BUS
+            or Joker == mod.Jokers.EROSION
+            or Joker == mod.Jokers.FLASH_CARD
+            or Joker == mod.Jokers.SPARE_TROUSERS
+            or Joker == mod.Jokers.SWASHBUCKLER
+            or Joker == mod.Jokers.BOOTSTRAP then
+
+
+            IncreaseMult(PIndex, mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex], mod.EffectType.JOKER, JokerIndex)
+
+        elseif Joker == mod.Jokers.JOKER_STENCIL 
+            or Joker == mod.Jokers.THROWBACK 
+            or Joker == mod.Jokers.RAMEN 
+            or Joker == mod.Jokers.MADNESS
+            or Joker == mod.Jokers.STEEL_JOKER
+            or Joker == mod.Jokers.LUCKY_CAT
+            or Joker == mod.Jokers.HOLOGRAM
+            or Joker == mod.Jokers.CONSTELLATION
+            or Joker == mod.Jokers.HIT_ROAD
+            or Joker == mod.Jokers.CAMPFIRE
+            or Joker == mod.Jokers.VAMPIRE
+            or Joker == mod.Jokers.OBELISK
+            or Joker == mod.Jokers.GLASS_JOKER
+            or Joker == mod.Jokers.CANIO then
+
+
+            MultiplyMult(PIndex, mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex], mod.EffectType.JOKER, JokerIndex)
+
+        end
+
+
+
+        ::SKIP_SLOT::
+    end
 
 
 
@@ -604,6 +986,45 @@ function mod:ScoreCards(Player)
 ----------------------------------------------------
 ------------------POST HAND STUFF-------------------
 ----------------------------------------------------
+
+
+    for JokerIndex, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+
+        local Joker = Slot.Joker
+
+        local ProgressIndex = JokerIndex + 0
+        local Copied = false
+        if Joker == mod.Jokers.BLUEPRINT or Joker == mod.Jokers.BRAINSTORM then
+
+            Joker = mod.Saved.Player[PIndex].Inventory[mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex]]
+            Joker = Joker and Joker.Joker or 0
+
+            --print("should be copiyng: "..tostring(mod.Saved.Player[PIndex].Inventory[mod.Saved.Player[PIndex].Progress.Inventory[Index]].Joker))
+            --print("copy "..tostring(Joker).." at "..tostring(mod.Saved.Player[PIndex].Progress.Inventory[Index]))
+
+            ProgressIndex = mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex]
+
+            Copied = true
+        end
+
+        if Joker == 0 then
+            goto SKIP_SLOT
+        end
+
+        if Joker == mod.Jokers.ICECREAM then
+            
+            if not Copied then
+                IncreaseJokerProgress(PIndex, ProgressIndex, -5)
+
+                GeneralBalatroEffect(PIndex, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, "-5", mod.EffectType.JOKER, ProgressIndex)
+
+            end
+        end
+
+
+        ::SKIP_SLOT::
+    end
+
 
     
     local CardsToDestroy = {}
@@ -636,7 +1057,7 @@ function mod:ScoreCards(Player)
         mod.AnimationIsPlaying = false
     end, IntervalTime(NumEffectPlayed), 1, true)
 end
-mod:AddCallback(mod.Callbalcks.HAND_PLAY, mod.ScoreCards)
+mod:AddCallback(mod.Callbalcks.HAND_PLAY, mod.ScoreHand)
 
 
 
