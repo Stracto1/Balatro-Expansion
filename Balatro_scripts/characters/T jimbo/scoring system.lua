@@ -1163,3 +1163,328 @@ local function CopyAdjustments(Player)
 end
 mod:AddCallback("INVENTORY_CHANGE", CopyAdjustments)
 
+
+
+--effects when a blind gets completed
+local function OnBlindClear(_,BlindType)
+
+    for _, Player in ipairs(PlayerManager.GetPlayers()) do
+
+        if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
+            local PIndex = Player:GetData().TruePlayerIndex
+
+            for i,v in pairs(mod.Saved.Player[PIndex].Progress.Blind) do
+
+                if type(v) == "table" then
+
+                    for j,_ in ipairs(mod.Saved.Player[PIndex].Progress.Blind[i]) do
+                        mod.Saved.Player[PIndex].Progress.Blind[i][j] = 0
+                    end
+                else
+                    mod.Saved.Player[PIndex].Progress.Blind[i] = 0 --resets the blind progress
+                end
+            end
+        end
+    end
+
+    for _, Player in ipairs(PlayerManager.GetPlayers()) do
+
+    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+        goto skip_player
+    end
+
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    local MimeNum = 0
+
+    local RandomSeed = Random()
+    if RandomSeed == 0 then RandomSeed = 1 end --would crash the game otherwise
+
+    --cycles between all the held jokers
+    for JokerIndex, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+
+        local Joker = Slot.Joker
+        
+        local ProgressIndex = JokerIndex
+        local Copied = false
+        if Joker == mod.Jokers.BLUEPRINT or Joker == mod.Jokers.BRAINSTORM then
+
+            Joker = mod.Saved.Player[PIndex].Inventory[mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex]]
+            Joker = Joker and Joker.Joker or 0
+
+            --print("should be copiyng: "..tostring(mod.Saved.Player[PIndex].Inventory[mod.Saved.Player[PIndex].Progress.Inventory[Index]].Joker))
+            --print("copy "..tostring(Joker).." at "..tostring(mod.Saved.Player[PIndex].Progress.Inventory[Index]))
+
+            ProgressIndex = mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex]
+
+            Copied = true
+        end
+
+        if Joker == 0 then --could save some time
+            goto SKIP_SLOT
+        end
+
+        if Joker == mod.Jokers.INVISIBLE_JOKER then
+
+            IncreaseJokerProgress(PIndex, ProgressIndex, 1)
+
+            local Progress = mod.Saved.Player[PIndex].Progress.Inventory[Index]
+
+            
+            if Progress < 2 then --still charging
+            
+                GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE,
+                                     tostring(Progress).."/2", mod.EffectType.JOKER, JokerIndex)
+
+            else --usable
+            
+                GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE,
+                                     "Active!", mod.EffectType.JOKER, JokerIndex)
+            end
+
+        elseif Joker == mod.Jokers.ROCKET then
+            --spawns this many coins
+
+            
+            --on boss beaten it upgrades
+            if BlindType & mod.BLINDS.BOSS ~= 0 then
+                IncreaseJokerProgress(PIndex, ProgressIndex, 2)
+
+                GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE,
+                                         "Upgrade!", mod.EffectType.JOKER, JokerIndex)
+            end
+
+
+
+        elseif Joker == mod.Jokers.CARTOMANCER then
+            local RandomTarot = Player:GetTrinketRNG(mod.Jokers.RIFF_RAFF):RandomInt(1,22)
+            Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
+                       RandomVector()*3, Player, RandomTarot, RandomSeed)
+
+            
+            mod:CreateBalatroEffect(mod.JokerFullPosition[Index],mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Tarot!",mod.Jokers.CARTOMANCER)
+
+        elseif Joker == mod.Jokers.EGG then
+
+            IncreaseJokerProgress(PIndex, ProgressIndex, 3)
+
+            GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE,
+                                 "Value Up!", mod.EffectType.JOKER, JokerIndex)
+
+        elseif Joker == mod.Jokers.POPCORN then
+
+            if Copied then
+                goto SKIP_SLOT
+            end
+
+            IncreaseJokerProgress(PIndex, ProgressIndex, -4)
+
+            if mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] <= 0 then
+                
+                mod.Saved.Player[PIndex].Inventory[ProgressIndex].Joker = 0
+                mod.Saved.Player[PIndex].Inventory[ProgressIndex].Edition = mod.Edition.BASE
+
+                GeneralBalatroEffect(PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE,
+                                     "Eaten!", mod.EffectType.JOKER, JokerIndex)
+
+                Isaac.RunCallback("INVENTORY_CHANGE", Player)
+            else
+                GeneralBalatroEffect(PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE,
+                                     "-4", mod.EffectType.JOKER, JokerIndex)
+            end
+
+        elseif Joker == mod.Jokers.GROS_MICHAEL then
+            if not Copied and mod:TryGamble(Player,Player:GetTrinketRNG(mod.Jokers.GROS_MICHAEL), 0.16) then
+                
+                mod.Saved.Player[PIndex].Inventory[JokerIndex].Joker = 0
+                mod.Saved.Player[PIndex].Inventory[JokerIndex].Edition = mod.Edition.BASE
+
+                mod.Saved.MichelDestroyed = true
+
+                GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Extinct!", mod.EffectType.JOKER, JokerIndex)
+                Isaac.RunCallback("INVENTORY_CHANGE", Player)
+            end
+
+        elseif Joker == mod.Jokers.CAVENDISH then
+            if not Copied and mod:TryGamble(Player, Player:GetTrinketRNG(mod.Jokers.CAVENDISH), 0.001) then --1/4000 chance
+                mod.Saved.Player[PIndex].Inventory[JokerIndex].Joker = 0
+                mod.Saved.Player[PIndex].Inventory[JokerIndex].Edition = mod.Edition.BASE
+
+                GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Extinct!", mod.EffectType.JOKER, JokerIndex)
+                Isaac.RunCallback("INVENTORY_CHANGE", Player)
+            end
+
+
+
+        
+        elseif Joker == mod.Jokers.GIFT_CARD then
+            
+            for i,JokerSlot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+
+                if JokerSlot.Joker ~= 0 then
+                    mod.Saved.Player[PIndex].Progress.GiftCardExtra[i] = mod.Saved.Player[PIndex].Progress.GiftCardExtra[i] or 0
+                    
+                    mod.Saved.Player[PIndex].Progress.GiftCardExtra[i] = mod.Saved.Player[PIndex].Progress.GiftCardExtra[i] + 1
+                end
+            end
+
+            mod:CreateBalatroEffect(mod.JokerFullPosition[Index], mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Value Up!",mod.Jokers.GIFT_CARD)
+
+
+            if mod:JimboHasTrinket(Player, mod.Jokers.SWASHBUCKLER) then
+                Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)
+            end
+
+        elseif Joker == mod.Jokers.TURTLE_BEAN then
+
+            if Copied then
+                goto SKIP_SLOT
+            end
+
+            IncreaseJokerProgress(PIndex, ProgressIndex, -1)
+
+            if mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] <= 0 then
+                
+                mod.Saved.Player[PIndex].Inventory[ProgressIndex].Joker = 0
+                mod.Saved.Player[PIndex].Inventory[ProgressIndex].Edition = mod.Edition.BASE
+
+                GeneralBalatroEffect(PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE,
+                                     "Eaten!", mod.EffectType.JOKER, JokerIndex)
+
+                Isaac.RunCallback("INVENTORY_CHANGE", Player)
+            else
+                GeneralBalatroEffect(PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE,
+                                     "-1", mod.EffectType.JOKER, JokerIndex)
+            end
+
+
+        elseif Joker == mod.Jokers.HIT_ROAD then -- 2 values need to be stored, so the first 3 bits are for the suit and the other say how many were discarded
+
+            mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = 1
+
+            GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Reset!", mod.EffectType.JOKER, JokerIndex)
+
+        end
+
+
+        ::SKIP_SLOT::
+    end --END JOKER FOR
+
+    --BLUE SEAL EFFECT
+
+    for CardIndex, Pointer in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
+        local card = mod.Saved.Player[PIndex].FullDeck[Pointer]
+        if card.Seal == mod.Seals.BLUE then
+
+            local Planet = mod.Planets.PLUTO + card.Value - 1
+
+            for i=0, MimeNum do
+
+                Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
+                           RandomVector()*2.5, Player, Planet, RandomSeed)
+            end
+
+            mod:CreateBalatroEffect(Player, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, "Planet!",mod.Seals.BLUE)
+        end
+    end
+
+
+    for _,index in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
+        if mod.Saved.Player[PIndex].FullDeck[index].Enhancement == mod.Enhancement.GOLDEN
+           and mod.Saved.Player[PIndex].FirstDeck and mod.Saved.Player[PIndex].Progress.Room.Shots < Game:GetPlayer(0):GetCustomCacheValue("hands") then
+            
+            for i=0, MimeNum * 3 do
+                Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
+                RandomVector() * 4, PlayerManager.FirstPlayerByType(mod.Characters.JimboType),
+                CoinSubType.COIN_PENNY, RandomSeed)
+            end
+            --Jimbo:AddCoins(3)
+        end
+    end
+
+
+
+
+    ::skip_player::
+
+    end --END PLAYER FOR
+
+end
+mod:AddCallback(mod.Callbalcks.BLIND_CLEAR, OnBlindClear)
+
+
+
+
+
+---@param Player EntityPlayer
+local function OnPackOpened(_,Player,Pack)
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
+        return
+    end
+
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    local RandomSeed = Random()
+    if RandomSeed == 0 then RandomSeed = 1 end --would crash the game otherwise
+
+    for Index, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+
+        local Joker = Slot.Joker
+
+        local ProgressIndex = Index
+        local Copied = false
+        if Joker == mod.Jokers.BLUEPRINT or Joker == mod.Jokers.BRAINSTORM then
+
+            Joker = mod.Saved.Player[PIndex].Inventory[mod.Saved.Player[PIndex].Progress.Inventory[Index]]
+            Joker = Joker and Joker.Joker or 0
+
+            --print("should be copiyng: "..tostring(mod.Saved.Player[PIndex].Inventory[mod.Saved.Player[PIndex].Progress.Inventory[Index]].Joker))
+            --print("copy "..tostring(Joker).." at "..tostring(mod.Saved.Player[PIndex].Progress.Inventory[Index]))
+
+            ProgressIndex = mod.Saved.Player[PIndex].Progress.Inventory[Index]
+
+            Copied = true
+        end
+
+        if Joker == mod.Jokers.HALLUCINATION then
+            local TrinketRNG = Player:GetTrinketRNG(mod.Jokers.HALLUCINATION)
+            if TrinketRNG:RandomFloat() < 0.5 then
+
+                local RandomTarot = mod:RandomTarot(TrinketRNG, false, false)
+
+                local Success = mod:TJimboAddConsumable(Player, RandomTarot, 0, true)
+
+                if Success then
+                    GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Activate!",mod.EffectType.JOKER, Index)
+                end
+            end
+        end
+    end
+
+end
+mod:AddCallback(mod.Callbalcks.PACK_OPEN, OnPackOpened)
+
+
+local function OnPackSkipped(_,Player,Pack)
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
+        return
+    end
+    
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    local RandomSeed = Random()
+    if RandomSeed == 0 then RandomSeed = 1 end --would crash the game otherwise
+
+    for Index, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+
+        local Joker = Slot.Joker
+        
+        if Joker == mod.Jokers.RED_CARD then
+            IncreaseJokerProgress(PIndex, Index, 3)
+
+            GeneralBalatroEffect(PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+3", mod.EffectType.JOKER, Index)
+        end
+    end
+end
+mod:AddCallback(mod.Callbalcks.PACK_SKIP, OnPackSkipped)
+

@@ -554,18 +554,6 @@ function mod:UpdateCurrentHandType(Player)
     mod.Saved.Player[PIndex].ChipsValue = mod.Saved.Player[PIndex].HandsStat[mod.SelectionParams[PIndex].HandType][mod.Stats.CHIPS]
 
 
-    --print("hand type: ",mod.SelectionParams[PIndex].HandType)
-    --[[
-    if mod.SelectionParams[PIndex].HandType == mod.HandTypes.FIVE then
-        mod.Saved.Player[PIndex].FiveUnlocked = true
-    elseif mod.SelectionParams[PIndex].HandType == 11 then
-        mod.Saved.Player[PIndex].FlushHouseUnlocked = true
-    elseif mod.SelectionParams[PIndex].HandType == 12 then
-        mod.Saved.Player[PIndex].FiveFlushUnlocked = true
-    end
-    ]]
-
-
 end
 mod:AddCallback(mod.Callbalcks.HAND_UPDATE, mod.UpdateCurrentHandType)
 
@@ -737,18 +725,22 @@ function mod:SetupForHandScoring(Player)
 
     mod.SelectionParams[PIndex].ScoringCards = mod:GetScoringCards(Player, mod.SelectionParams[PIndex].HandType)
 
+    mod.Saved.Player[PIndex].HandsUsed[mod.SelectionParams[PIndex].HandType] = mod.Saved.Player[PIndex].HandsUsed[mod.SelectionParams[PIndex].HandType] + 1
 
     local TIMER_INCREASE = 4
     local CurrentTimer = TIMER_INCREASE
 
     mod.SelectionParams[PIndex].PlayedCards = {}
-    for i,Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
+    for i = #mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND], 1, -1 do
         
-        if Selected then
+        local IsSelected = mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND][i]
+
+        if IsSelected then
             Isaac.CreateTimer(function ()
                 mod.SelectionParams[PIndex].PlayedCards[#mod.SelectionParams[PIndex].PlayedCards+1] = mod.Saved.Player[PIndex].CurrentHand[i] + 0
                 mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND][i] = false
 
+                table.remove(mod.Saved.Player[PIndex].CurrentHand, i)
                 --print(mod.SelectionParams[PIndex].PlayedCards[#mod.SelectionParams[PIndex].PlayedCards+1])
             end, CurrentTimer, 1, true)
 
@@ -756,15 +748,6 @@ function mod:SetupForHandScoring(Player)
         end
     end
 
-
-    --[[could lead to problems with save states after leaving during a hand scoring
-    for i = #mod.Saved.Player[PIndex].CurrentHand, 1, -1 do
-        
-        if mod:Contained(mod.SelectionParams[PIndex].PlayedCards, mod.Saved.Player[PIndex].CurrentHand[i]) then
-            
-            table.remove(mod.Saved.Player[PIndex].CurrentHand, i)
-        end
-    end]]
     
     mod.AnimationIsPlaying = true
 

@@ -1358,25 +1358,32 @@ end
 
 
 local JeditionChance = {0.02, 0.034, 0.037, 0.003}
-function mod:RandomJoker(Rng, Exeptions, PlaySound, ForcedRarity)
-    Exeptions = Exeptions or {}
-    local Trinket = {}
-    local Possibilities = {}
-    local HasShowman = false
+function mod:RandomJoker(Rng, PlaySound, ForcedRarity, AllowDuplicates, Amount)
+    
+    
+    Amount = Amount or 1
 
+    local Possibilities = {}
+    local Exeptions = {} --jokers to remove from the pool
+
+    local HasShowman = false
     for i, Player in ipairs(PlayerManager.GetPlayers()) do
         if mod:JimboHasTrinket(Player, mod.Jokers.SHOWMAN) then
             HasShowman = true
         end
     end
 
-    if not HasShowman then --add to exeptions jokers held and in the room
+    AllowDuplicates = AllowDuplicates or HasShowman
+
+    if not AllowDuplicates then --add to exeptions jokers held and in the room
     
         for i, Player in ipairs(PlayerManager.GetPlayers()) do
-            if Player:GetPlayerType() == mod.Characters.JimboType then
+            if Player:GetPlayerType() == mod.Characters.JimboType 
+            or Player:GetPlayerType() == mod.Characters.TaintedJimbo then
+
                 local PIndex = Player:GetData().TruePlayerIndex
 
-                for i, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+                for _, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
                     if Slot.Joker ~= 0 then
                         Exeptions[#Exeptions+1] = Slot.Joker
                     end
@@ -1407,22 +1414,11 @@ function mod:RandomJoker(Rng, Exeptions, PlaySound, ForcedRarity)
         end
     end
 
-    repeat
+    for _,v in ipairs(Exeptions) do
 
-        if not next(Possibilities) then
-            Trinket.Joker = mod.Jokers.JOKER --default trinket
-            break
-        end
+        Possibilities[mod:GetValueIndex(Possibilities, v, true)] = nil
+    end
 
-        Trinket.Joker = mod:GetRandom(Possibilities, Rng)
-
-        ---@diagnostic disable-next-line: param-type-mismatch
-        table.remove(Possibilities, mod:GetValueIndex(Possibilities, Trinket.Joker, true))
-
-    until not mod:Contained(Exeptions, Trinket.Joker) --basic criteria
-          and (Trinket.Joker ~= mod.Jokers.GROS_MICHAEL or not mod.Saved.MichelDestroyed) --if it's michel, check if it was destroyed
-          and (Trinket.Joker ~= mod.Jokers.CAVENDISH or mod.Saved.MichelDestroyed) --if it's cavendish do the same but opposite
-    
     local EdMult = 1
 
     if PlayerManager.AnyoneHasCollectible(mod.Vouchers.Hone) then
@@ -1432,40 +1428,79 @@ function mod:RandomJoker(Rng, Exeptions, PlaySound, ForcedRarity)
         EdMult = EdMult * 2
     end
 
-    local EdRoll = Rng:RandomFloat()
-    if EdRoll <= JeditionChance[mod.Edition.FOIL] * EdMult then --foil chance
-        Trinket.Edition = mod.Edition.FOIL
-        if PlaySound then
-            sfx:Play(mod.Sounds.FOIL)
+
+
+    local ReturnTable = {}
+
+    for i = 1, Amount do
+
+        ReturnTable[i] = {}
+
+        local Trinket = {}
+
+        repeat
+
+            if not next(Possibilities) then
+                Trinket.Joker = mod.Jokers.JOKER --default trinket
+                break
+            end
+
+            Trinket.Joker = mod:GetRandom(Possibilities, Rng)
+
+            ---@diagnostic disable-next-line: param-type-mismatch
+            table.remove(Possibilities, mod:GetValueIndex(Possibilities, Trinket.Joker, true))
+
+        until (Trinket.Joker ~= mod.Jokers.GROS_MICHAEL or not mod.Saved.MichelDestroyed) --if it's michel, check if it was destroyed
+              and (Trinket.Joker ~= mod.Jokers.CAVENDISH or mod.Saved.MichelDestroyed) --if it's cavendish do the same but opposite
+    
+    
+        local EdRoll = Rng:RandomFloat()
+        if EdRoll <= JeditionChance[mod.Edition.FOIL] * EdMult then --foil chance
+            Trinket.Edition = mod.Edition.FOIL
+            if PlaySound then
+                sfx:Play(mod.Sounds.FOIL)
+            end
+
+        elseif EdRoll <= JeditionChance[mod.Edition.HOLOGRAPHIC] * EdMult then --holo chance
+            Trinket.Edition = mod.Edition.HOLOGRAPHIC
+            if PlaySound then
+                sfx:Play(mod.Sounds.HOLO)
+            end
+
+        elseif EdRoll <= JeditionChance[mod.Edition.POLYCROME] * EdMult then --poly chance
+            Trinket.Edition = mod.Edition.POLYCROME
+            if PlaySound then
+                sfx:Play(mod.Sounds.POLY)
+            end
+
+        elseif EdRoll <= JeditionChance[mod.Edition.POLYCROME] * EdMult + JeditionChance[mod.Edition.NEGATIVE] then --negative chance
+            Trinket.Edition = mod.Edition.NEGATIVE
+            if PlaySound then
+                sfx:Play(mod.Sounds.NEGATIVE)
+            end
+
+        else
+            Trinket.Edition = mod.Edition.BASE
         end
 
-    elseif EdRoll <= JeditionChance[mod.Edition.HOLOGRAPHIC] * EdMult then --holo chance
-        Trinket.Edition = mod.Edition.HOLOGRAPHIC
-        if PlaySound then
-            sfx:Play(mod.Sounds.HOLO)
-        end
+        Trinket.Modifiers = 0
 
-    elseif EdRoll <= JeditionChance[mod.Edition.POLYCROME] * EdMult then --poly chance
-        Trinket.Edition = mod.Edition.POLYCROME
-        if PlaySound then
-            sfx:Play(mod.Sounds.POLY)
-        end
-
-    elseif EdRoll <= JeditionChance[mod.Edition.POLYCROME] * EdMult + JeditionChance[mod.Edition.NEGATIVE] then --negative chance
-        Trinket.Edition = mod.Edition.NEGATIVE
-        if PlaySound then
-            sfx:Play(mod.Sounds.NEGATIVE)
-        end
-
-    else
-        Trinket.Edition = mod.Edition.BASE
+        ReturnTable[i] = Trinket
     end
 
-    return Trinket
+    if Amount == 1 then
+        return ReturnTable[1]
+    else
+        return ReturnTable
+    end
 end
 
 
-function mod:RandomTarot(Rng, CanBeSoul, ExeptHeld, ExeptPack)
+function mod:RandomTarot(Rng, CanBeSoul, AllowDuplicates, Amount)
+
+    Amount = Amount or 1
+    local IsTaintedJimbo = PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo)
+    local PIndex
 
     local HasShowman = false
 
@@ -1473,6 +1508,392 @@ function mod:RandomTarot(Rng, CanBeSoul, ExeptHeld, ExeptPack)
         if mod:JimboHasTrinket(Player, mod.Jokers.SHOWMAN) then
             HasShowman = true
         end
+    end
+
+    AllowDuplicates = AllowDuplicates or HasShowman
+
+    local PossibleTarots = {}
+    local IsSoulAvailable = CanBeSoul
+
+    for i = Card.CARD_FOOL, Card.CARD_WORLD do
+        PossibleTarots[i] = i
+    end 
+
+    if IsTaintedJimbo then
+        PIndex = PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo):GetData().TruePlayerIndex
+    end
+
+
+    if not AllowDuplicates then
+        
+        -----removes from the pool planets held
+        if IsTaintedJimbo then
+            
+            for i,Slot in ipairs(mod.Saved.Player[PIndex].Consumables) do
+                
+                local Consumable = mod:FrameToSpecialCard(Slot.Card)
+                
+                if Consumable == mod.Spectrals.SOUL then
+                    IsSoulAvailable = false
+                else
+                    PossibleTarots[Consumable] = nil
+                end
+            end
+
+        else
+            for _,Player in ipairs(PlayerManager.GetPlayers()) do
+
+                PIndex = Player:GetData().TruePlayerIndex
+
+                for i = PillCardSlot.PRIMARY, PillCardSlot.QUATERNARY do
+
+                    local Consumable = Player:GetCard(i)
+
+                    if Consumable then
+
+                        if Consumable == mod.Spectrals.SOUL then
+                            IsSoulAvailable = false
+                        else
+                            PossibleTarots[Consumable] = nil
+                        end
+                    end
+                end
+            end
+        end
+
+        -----removes from the pool planets in any opened pack
+        for _,Player in ipairs(PlayerManager.GetPlayers()) do
+
+            PIndex = Player:GetData().TruePlayerIndex
+
+            for i,Option in ipairs(mod.SelectionParams[PIndex].PackOptions) do
+            
+                local Consumable = mod:FrameToSpecialCard(Option)
+
+                if Consumable == mod.Spectrals.SOUL then
+                    IsSoulAvailable = false
+                else
+                    PossibleTarots[Consumable] = nil
+                end
+            end
+        end
+
+        if not IsTaintedJimbo then
+            
+            for i, PlanetCard in ipairs(Isaac.FindByType(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, -1, true)) do
+
+                if PlanetCard.SubType == mod.Spectrals.SOUL then
+                    IsSoulAvailable = false
+                else
+                    PossibleTarots[PlanetCard.SubType] = nil
+                end
+            end
+
+        end
+    end
+
+    local ReturnTable = {}
+
+    for i=1, Amount do
+
+        if IsSoulAvailable and Rng:RandomFloat() < 0.003 then
+            ReturnTable[i] = mod.Spectrals.SOUL
+
+            IsSoulAvailable = AllowDuplicates
+        end
+
+        if not next(PossibleTarots) then
+            ReturnTable[i] = Card.CARD_FOOL
+        end
+
+        ReturnTable[i] = mod:GetRandom(PossibleTarots, Rng)
+
+        PossibleTarots[ReturnTable[i]] = nil
+    end
+
+    if Amount == 1 then
+        return ReturnTable[1]
+    else
+        return ReturnTable
+    end
+
+end
+
+
+function mod:RandomPlanet(Rng, CanBeHole, AllowDuplicates, Amount)
+
+    Amount = Amount or 1
+    local IsTaintedJimbo = PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo)
+    local PIndex
+
+    local HasShowman = false
+
+    for i, Player in ipairs(PlayerManager.GetPlayers()) do
+        if mod:JimboHasTrinket(Player, mod.Jokers.SHOWMAN) then
+            HasShowman = true
+        end
+    end
+
+    AllowDuplicates = AllowDuplicates or HasShowman
+
+    local PossiblePlanets = {}
+    local IsHoleAvailable = CanBeHole
+
+    for k,v in pairs(mod.Planets) do
+        PossiblePlanets[k] = v
+    end 
+
+    if IsTaintedJimbo then
+        PossiblePlanets.SUN = nil
+        PIndex = PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo):GetData().TruePlayerIndex
+    end
+
+
+    if not AllowDuplicates then
+        
+        -----removes from the pool planets held
+        if IsTaintedJimbo then
+            
+            for i,Slot in ipairs(mod.Saved.Player[PIndex].Consumables) do
+                
+                local Consumable = mod:FrameToSpecialCard(Slot.Card)
+                local Index = mod:GetValueIndex(PossiblePlanets, Consumable, true)
+
+                if Index then
+                    PossiblePlanets[Index] = nil
+                elseif Consumable == mod.Spectrals.BLACK_HOLE then
+                    IsHoleAvailable = false
+                end
+            end
+
+        else
+            for _,Player in ipairs(PlayerManager.GetPlayers()) do
+
+                PIndex = Player:GetData().TruePlayerIndex
+
+                for i = PillCardSlot.PRIMARY, PillCardSlot.QUATERNARY do
+
+                    local Consumable = Player:GetCard(i)
+
+                    if Consumable then
+
+                        local Index = mod:GetValueIndex(PossiblePlanets, Consumable, true)
+
+                        if Index then
+                            PossiblePlanets[Index] = nil
+                        elseif Consumable == mod.Spectrals.BLACK_HOLE then
+                            IsHoleAvailable = false
+                        end
+                    end
+                end
+            end
+        end
+
+        -----removes from the pool planets in any opened pack
+        for _,Player in ipairs(PlayerManager.GetPlayers()) do
+
+            PIndex = Player:GetData().TruePlayerIndex
+
+            for i,Option in ipairs(mod.SelectionParams[PIndex].PackOptions) do
+            
+                local Consumable = mod:FrameToSpecialCard(Option)
+                local Index = mod:GetValueIndex(PossiblePlanets, Consumable, true)
+                
+                if Index then
+                    PossiblePlanets[Index] = nil
+
+                elseif Consumable == mod.Spectrals.BLACK_HOLE then
+                    IsHoleAvailable = false
+                end
+            end
+        end
+
+        if not IsTaintedJimbo then
+            
+            for i, PlanetCard in ipairs(Isaac.FindByType(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, -1, true)) do
+
+                local Index = mod:GetValueIndex(PossiblePlanets, PlanetCard.SubType, true)
+
+                if Index then
+                    PossiblePlanets[Index] = nil
+
+                elseif PlanetCard.SubType == mod.Spectrals.BLACK_HOLE then
+                    IsHoleAvailable = false
+                end
+            end
+
+        end
+    end
+
+    local ReturnTable = {}
+
+    for i = 1, Amount do
+
+        if IsHoleAvailable and Rng:RandomFloat() < 0.003 then
+            ReturnTable[i] = mod.Spectrals.BLACK_HOLE
+            IsHoleAvailable = AllowDuplicates
+        end
+
+        if not next(PossiblePlanets) then
+            ReturnTable[i] = mod.Planets.PLUTO
+        end
+
+        ReturnTable[i] = mod:GetRandom(PossiblePlanets, Rng)
+
+        table.remove(PossiblePlanets, mod:GetValueIndex(PossiblePlanets, ReturnTable[i], true))
+    end
+
+    if Amount == 1 then
+        return ReturnTable[1]
+    else
+        return ReturnTable
+    end
+
+end
+
+
+
+function mod:RandomSpectral(Rng, CanBeHole, CanBeSoul, AllowDuplicates, Amount)
+
+    Amount = Amount or 1
+    local IsTaintedJimbo = PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo)
+    local PIndex
+
+    local HasShowman = false
+
+    for i, Player in ipairs(PlayerManager.GetPlayers()) do
+        if mod:JimboHasTrinket(Player, mod.Jokers.SHOWMAN) then
+            HasShowman = true
+        end
+    end
+
+    AllowDuplicates = AllowDuplicates or HasShowman
+
+    local PossibleSpectrals = {}
+    local IsHoleAvailable = CanBeHole
+    local IsSoulAvailable = CanBeSoul
+
+    for k,v in pairs(mod.Spectrals) do
+        PossibleSpectrals[k] = v
+    end 
+
+    PossibleSpectrals.SOUL = nil
+    PossibleSpectrals.BLACK_HOLE = nil
+
+    if IsTaintedJimbo then
+        PIndex = PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo):GetData().TruePlayerIndex
+    end
+
+
+    if not AllowDuplicates then
+        
+        -----removes from the pool planets held
+        if IsTaintedJimbo then
+            
+            for i,Slot in ipairs(mod.Saved.Player[PIndex].Consumables) do
+                
+                local Consumable = mod:FrameToSpecialCard(Slot.Card)
+                local Index = mod:GetValueIndex(PossibleSpectrals, Consumable, true)
+
+                if Index then
+                    PossibleSpectrals[Index] = nil
+                elseif Consumable == mod.Spectrals.SOUL then
+                    IsSoulAvailable = false
+                elseif Consumable == mod.Spectrals.BLACK_HOLE then
+                    IsHoleAvailable = false
+                end
+            end
+
+        else
+            for _,Player in ipairs(PlayerManager.GetPlayers()) do
+
+                PIndex = Player:GetData().TruePlayerIndex
+
+                for i = PillCardSlot.PRIMARY, PillCardSlot.QUATERNARY do
+
+                    local Consumable = Player:GetCard(i)
+
+                    if Consumable then
+
+                        local Index = mod:GetValueIndex(PossibleSpectrals, Consumable, true)
+
+                        if Index then
+                            PossibleSpectrals[Index] = nil
+                        elseif Consumable == mod.Spectrals.SOUL then
+                            IsSoulAvailable = false
+                        elseif Consumable == mod.Spectrals.BLACK_HOLE then
+                            IsHoleAvailable = false
+                        end
+                    end
+                end
+            end
+        end
+
+        -----removes from the pool planets in any opened pack
+        for _,Player in ipairs(PlayerManager.GetPlayers()) do
+
+            PIndex = Player:GetData().TruePlayerIndex
+
+            for i,Option in ipairs(mod.SelectionParams[PIndex].PackOptions) do
+            
+                local Consumable = mod:FrameToSpecialCard(Option)
+                local Index = mod:GetValueIndex(PossibleSpectrals, Consumable, true)
+                
+                if Index then
+                    PossibleSpectrals[Index] = nil
+
+                elseif Consumable == mod.Spectrals.SOUL then
+                    IsSoulAvailable = false
+                elseif Consumable == mod.Spectrals.BLACK_HOLE then
+                    IsHoleAvailable = false
+                end
+            end
+        end
+
+        if not IsTaintedJimbo then
+            
+            for i, PlanetCard in ipairs(Isaac.FindByType(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, -1, true)) do
+
+                local Index = mod:GetValueIndex(PossibleSpectrals, PlanetCard.SubType, true)
+
+                if Index then
+                    PossibleSpectrals[Index] = nil
+
+                elseif PlanetCard.SubType == mod.Spectrals.SOUL then
+                    IsSoulAvailable = false
+                elseif PlanetCard.SubType == mod.Spectrals.BLACK_HOLE then
+                    IsHoleAvailable = false
+                end
+            end
+
+        end
+    end
+
+    local ReturnTable = {}
+
+    for i=1, Amount do
+        
+        local SpecialRoll = Rng:RandomFloat()
+
+        if IsHoleAvailable and SpecialRoll <= 0.003 then
+            ReturnTable[i] = mod.Spectrals.BLACK_HOLE
+        elseif IsSoulAvailable and SpecialRoll >= 0.997 then
+            ReturnTable[i] = mod.Spectrals.SOUL
+        end
+
+        if not next(PossibleSpectrals) then
+            ReturnTable[i] = mod.Spectrals.FAMILIAR
+        end
+
+        ReturnTable[i] = mod:GetRandom(PossibleSpectrals, Rng)
+
+        table.remove(PossibleSpectrals, mod:GetValueIndex(PossibleSpectrals, ReturnTable[i], true))
+    end
+
+    if Amount == 1 then
+        return ReturnTable[1]
+    else
+        return ReturnTable
     end
 end
 
@@ -1609,6 +2030,15 @@ function mod:AddCardToDeck(Player, CardTable,Amount, PutInHand)
     if Amount <= 0 then
         return
     end
+
+    CardTable.Enhancement = CardTable.Enhancement or mod.Enhancement.NONE
+    CardTable.Edition = CardTable.Edition or mod.Edition.BASE
+    CardTable.Seal = CardTable.Seal or mod.Seals.NONE
+    CardTable.Modifiers = CardTable.Modifiers or 0
+
+
+
+
     local PIndex = Player:GetData().TruePlayerIndex
 
     for i=1, Amount do

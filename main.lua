@@ -805,9 +805,21 @@ Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FIVE] = Vector(35,3)
 Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FLUSH_HOUSE] = Vector(40,4)
 Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FIVE_FLUSH] = Vector(50,3)
 
-Balatro_Expansion.Saved.Player.FiveUnlocked = false
-Balatro_Expansion.Saved.Player.FlushHouseUnlocked = false
-Balatro_Expansion.Saved.Player.FiveFlushUnlocked = false
+Balatro_Expansion.Saved.Player.HandsUsed = {}
+Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.HIGH_CARD] = 0
+Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.PAIR] = 0
+Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.TWO_PAIR] = 0
+Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.THREE] = 0
+Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.STRAIGHT] = 0
+Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.FLUSH] = 0
+Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.FULL_HOUSE] = 0
+Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.FOUR] = 0
+Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.STRAIGHT_FLUSH] = 0
+Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.ROYAL_FLUSH] = 0
+Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.FIVE] = 0
+Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.FLUSH_HOUSE] = 0
+Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.FIVE_FLUSH] = 0
+
 
 --  VALUES SHARED BETWWEN JIMBO AND NORMALS
 

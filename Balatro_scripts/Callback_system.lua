@@ -125,11 +125,6 @@ function mod:OnGameStart(Continued)
         mod.Saved.HasDebt = false
         mod.Saved.MichelDestroyed = false
 
-        --secret hand types
-        mod.Saved.FiveUnlocked = false --five of a kind
-        mod.Saved.FlushHouseUnlocked = false --flush house
-        mod.Saved.FiveFlushUnlocked = false  --flush five
-
         mod.Saved.CardLevels = {}
         for i=1, 13 do
             mod.Saved.CardLevels[i] = 0
@@ -322,6 +317,7 @@ function mod:InitJimboValues(Player, Force)
             mod.Saved.Player[PIndex].Inventory[i] = {}
             mod.Saved.Player[PIndex].Inventory[i].Joker = 0
             mod.Saved.Player[PIndex].Inventory[i].Edition = mod.Edition.BASE
+            mod.Saved.Player[PIndex].Inventory[i].Modifiers = 0
         end
 
         mod.Saved.Player[PIndex].Progress = {} --values used for jokers
@@ -381,6 +377,21 @@ function mod:InitJimboValues(Player, Force)
                                               [mod.HandTypes.FIVE] = Vector(120, 12),
                                               [mod.HandTypes.FLUSH_HOUSE] = Vector(140, 14),
                                               [mod.HandTypes.FIVE_FLUSH] = Vector(160, 16)}
+
+        mod.Saved.Player.HandsUsed = {[mod.HandTypes.HIGH_CARD] = 0,
+                                      [mod.HandTypes.PAIR] = 0,
+                                      [mod.HandTypes.TWO_PAIR] = 0,
+                                      [mod.HandTypes.THREE] = 0,
+                                      [mod.HandTypes.STRAIGHT] = 0,
+                                      [mod.HandTypes.FLUSH] = 0,
+                                      [mod.HandTypes.FULL_HOUSE] = 0,
+                                      [mod.HandTypes.FOUR] = 0,
+                                      [mod.HandTypes.STRAIGHT_FLUSH] = 0,
+                                      [mod.HandTypes.ROYAL_FLUSH] = 0,
+                                      [mod.HandTypes.FIVE] = 0,
+                                      [mod.HandTypes.FLUSH_HOUSE] = 0,
+                                      [mod.HandTypes.FIVE_FLUSH] = 0}
+        
 
     end
     end

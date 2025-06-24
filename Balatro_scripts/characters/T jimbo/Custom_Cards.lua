@@ -124,13 +124,14 @@ local function TJimboUseTarot(card, Player, IsPack, UseFlags)
         end
 
         local CardRNG = Player:GetCardRNG(card)
-        for i=0, FreeSpaces-1 do
-            local Rplanet = CardRNG:RandomInt(mod.Planets.PLUTO, mod.Planets.ERIS)
+        
+            local Rplanets = mod:RandomPlanet(CardRNG, false, false, FreeSpaces)
 
-            mod:TJimboAddConsumable(Player, Rplanet, 0, true)
+        for i,Planet in ipairs(Rplanets) do
+            mod:TJimboAddConsumable(Player, Planet, 0, true)
             Isaac.CreateTimer(function ()
-                Player:AnimateCard(Rplanet)
-            end, 0 + i*15,1,true)
+                Player:AnimateCard(Planet)
+            end, 5 + i*15,1,true)
         end
         
     
@@ -149,21 +150,18 @@ local function TJimboUseTarot(card, Player, IsPack, UseFlags)
             return false
         end
 
-        local RandomTarots = {}
         local CardRNG = Player:GetCardRNG(card)
         for i=1, FreeSpaces do
             local Tarot
             repeat 
-                Tarot = CardRNG:RandomInt(1,22)
-            until Tarot ~= Card.CARD_EMPEROR and
-                  (not mod:Contained(RandomTarots, Tarot) or mod:JimboHasTrinket(Player, mod.Jokers.SHOWMAN))
-
-            RandomTarots[i] = Tarot
+                Tarot = mod:RandomTarot(CardRNG, false, false)
+            until Tarot ~= Card.CARD_EMPEROR
 
             mod:TJimboAddConsumable(Player, Tarot, 0, true)
+            
             Isaac.CreateTimer(function ()
                 Player:AnimateCard(Tarot)
-            end, 0 + (i-1)*15,1,true)
+            end, 5 + i*15,1,true)
 
         end
         
@@ -919,6 +917,7 @@ local function TJimboCardPacks(_,card, Player,_)
             RandomCard.Suit = PackRng:RandomInt(1, 4)
             RandomCard.Value = PackRng:RandomInt(1,13)
             RandomCard.Upgrades = 0
+            RandomCard.Modifiers = 0
 
             if PackRng:RandomFloat() < 0.4 then
                 RandomCard.Enhancement = PackRng:RandomInt(2,9) 
@@ -960,40 +959,7 @@ local function TJimboCardPacks(_,card, Player,_)
 
         local PackRng = Player:GetCardRNG(mod.Packs.ARCANA)
 
-        local RandomPack = {}
-        local Options = {}
-        for i=1,22 do --adds every tarot card to the pool
-            Options[#Options + 1] = i
-        end
-        if Player:HasCollectible(mod.Vouchers.Omen) then --adds the spectral cards to the possible outcomes
-            for i= mod.Spectrals.FAMILIAR, mod.Spectrals.CRYPTID do
-                Options[#Options + 1] = i
-            end
-        end
-
-        local Size = Player:HasCollectible(mod.Vouchers.Crystal) and 4 or 3 --very cool lua thingy
-
-        local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
-        if EditionRoll <= JumboChance then
-            Size = Size + 2
-        end
-
-        for i=1, Size, 1 do
-            local RandomCard
-            repeat
-                if PackRng:RandomFloat() < SoulChance then
-                    RandomCard = mod.Spectrals.SOUL
-                else
-                    RandomCard = mod:GetRandom(Options, PackRng) --chooses a random not reversed tarot (i'll prob regret using this)
-                end
-                RandomCard = mod:SpecialCardToFrame(RandomCard)
-                
-            until not mod:Contained(RandomPack, RandomCard)
-            
-            table.insert(RandomPack, RandomCard)
-        end
-        
-        mod.SelectionParams[PIndex].PackOptions = RandomPack
+        mod.SelectionParams[PIndex].PackOptions = mod:SpecialCardToFrame(mod:RandomTarot(PackRng, true, false, 3))
 
         mod.SelectionParams[PIndex].Frames = 0
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
@@ -1003,41 +969,10 @@ local function TJimboCardPacks(_,card, Player,_)
         Isaac.RunCallback("PACK_OPENED",Player,card)
 
         local PackRng = Player:GetCardRNG(mod.Packs.CELESTIAL)
-        local RandomPack = {}
+        --mod.SelectionParams[PIndex].PackOptions = {}
         
-        for i=1, 3, 1 do
-            local Rplanet
-            repeat  --certain hand types should remain hidden until used one time
-                local IsPlanetUnlocked = true
-                if PackRng:RandomFloat() < HoleChance then
-                    Rplanet = mod.Spectrals.BLACK_HOLE
-                else
-                    Rplanet = PackRng:RandomInt(mod.Planets.PLUTO,mod.Planets.ERIS) --chooses a random planet
-
-                    if Rplanet == mod.Planets.PLANET_X then
-                        if not mod.Saved.Player[PIndex].FiveUnlocked then
-                            IsPlanetUnlocked = false
-                        end
-                    elseif Rplanet == mod.Planets.CERES then
-                        if not mod.Saved.Player[PIndex].FlushHouseUnlocked then
-                            IsPlanetUnlocked = false
-                        end
-                    elseif Rplanet == mod.Planets.ERIS then
-                        if not mod.Saved.Player[PIndex].FiveFlushUnlocked then
-                            IsPlanetUnlocked = false
-                        end
-                    end
-                end
-                Rplanet = mod:SpecialCardToFrame(Rplanet)
-
-            until IsPlanetUnlocked and not mod:Contained(RandomPack, Rplanet)
-
-            RandomPack[i] = Rplanet
-        end            
+        mod.SelectionParams[PIndex].PackOptions = mod:SpecialCardToFrame(mod:RandomPlanet(PackRng, true, false, 3))
         
-        mod.SelectionParams[PIndex].PackOptions = RandomPack
-        mod.SelectionParams[PIndex].Frames = 0
-
         mod.SelectionParams[PIndex].Frames = 0
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
                                               mod.SelectionParams.Purposes.CelestialPack)
@@ -1046,33 +981,12 @@ local function TJimboCardPacks(_,card, Player,_)
         Isaac.RunCallback("PACK_OPENED",Player,card)
         
         local PackRng = Player:GetCardRNG(mod.Packs.SPECTRAL)
-        local RandomPack = {}
+        mod.SelectionParams[PIndex].PackOptions = {}
 
-        local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 3) or 2
+        local Size =  2
 
-        local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
-        if EditionRoll <= JumboChance then
-            Size = Size + 2
-        end
+        mod.SelectionParams[PIndex].PackOptions = mod:SpecialCardToFrame(mod:RandomSpectral(PackRng, true, true, false, Size))
 
-        for i=1, Size do
-            local RSpectral
-            repeat
-                local SuperRoll = PackRng:RandomFloat()
-                if SuperRoll <= SoulChance then
-                    RSpectral = mod.Spectrals.SOUL
-                elseif SuperRoll <= SoulChance + HoleChance then
-                    RSpectral = mod.Spectrals.BLACK_HOLE
-                else
-                    RSpectral = PackRng:RandomInt(mod.Spectrals.FAMILIAR,mod.Spectrals.CRYPTID) --chooses a random spectral card
-                end
-                RSpectral = mod:SpecialCardToFrame(RSpectral)
-
-            until not mod:Contained(RandomPack, RSpectral)
-
-            table.insert(RandomPack, RSpectral)
-        end
-        mod.SelectionParams[PIndex].PackOptions = RandomPack
 
         mod.SelectionParams[PIndex].Frames = 0
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
@@ -1081,7 +995,6 @@ local function TJimboCardPacks(_,card, Player,_)
     elseif card == mod.Packs.BUFFON then
         Isaac.RunCallback("PACK_OPENED",Player,card)
 
-        local RandomPack = {}
         local Jokers = {}
         for i,v in ipairs(Isaac.FindByType(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET)) do
             table.insert ( Jokers, v.SubType)
@@ -1089,19 +1002,9 @@ local function TJimboCardPacks(_,card, Player,_)
 
         local PackRng = Player:GetCardRNG(mod.Packs.BUFFON)
 
-        local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 3) or 2
+        local Size = 2
 
-        local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
-        if EditionRoll <= JumboChance then
-            Size = Size + 2
-        end
-
-        for i=1, Size, 1 do
-            RandomPack[i] = mod:RandomJoker(PackRng, Jokers, true)
-            table.insert(Jokers, RandomPack[i].Joker)
-        end
-
-        mod.SelectionParams[PIndex].PackOptions = RandomPack
+        mod.SelectionParams[PIndex].PackOptions = mod:RandomJoker(PackRng, true, false, false, Size)
 
         mod.SelectionParams[PIndex].Frames = 0
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,

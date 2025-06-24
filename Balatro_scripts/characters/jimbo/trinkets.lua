@@ -885,7 +885,7 @@ function mod:OnBlindClear(BlindType)
                                     mod.Sounds.ACTIVATE, "+"..tostring(MoneyAmmount).." $",mod.Jokers.GOLDEN_JOKER)
 
         elseif Joker == mod.Jokers.RIFF_RAFF then
-            local RandomJoker = mod:RandomJoker(Player:GetTrinketRNG(mod.Jokers.RIFF_RAFF), {}, true,"common")
+            local RandomJoker = mod:RandomJoker(Player:GetTrinketRNG(mod.Jokers.RIFF_RAFF), true, "common", false)
             
             mod:AddJoker(Player, RandomJoker.Joker, RandomJoker.Edition)
 
@@ -931,25 +931,28 @@ function mod:OnBlindClear(BlindType)
             
             mod:CreateBalatroEffect(mod.JokerFullPosition[Index],mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex]).."$",mod.Jokers.CLOUD_NINE)
         
-        elseif Joker == mod.Jokers.POPCORN and not Copied then
-            mod.Saved.Player[PIndex].Progress.Inventory[Index] = mod.Saved.Player[PIndex].Progress.Inventory[Index] - 0.2
-            if mod.Saved.Player[PIndex].Progress.Inventory[Index] <= 0.1 then --at 0 it self destructs
-                
-                mod.Saved.Player[PIndex].Inventory[Index].Joker = 0
-                mod.Saved.Player[PIndex].Inventory[Index].Edition = 0
-                mod:CreateBalatroEffect(mod.JokerFullPosition[Index], mod.EffectColors.RED, mod.Sounds.ACTIVATE, "Eaten")
+        elseif Joker == mod.Jokers.POPCORN then
 
-                Isaac.RunCallback("INVENTORY_CHANGE", Player)
-            else
-                
-                mod:CreateBalatroEffect(mod.JokerFullPosition[Index], mod.EffectColors.RED, mod.Sounds.ACTIVATE, "-0.2",mod.Jokers.POPCORN)
+            if not Copied then
+                mod.Saved.Player[PIndex].Progress.Inventory[Index] = mod.Saved.Player[PIndex].Progress.Inventory[Index] - 0.2
+                if mod.Saved.Player[PIndex].Progress.Inventory[Index] <= 0.1 then --at 0 it self destructs
+
+                    mod.Saved.Player[PIndex].Inventory[Index].Joker = 0
+                    mod.Saved.Player[PIndex].Inventory[Index].Edition = 0
+                    mod:CreateBalatroEffect(mod.JokerFullPosition[Index], mod.EffectColors.RED, mod.Sounds.ACTIVATE, "Eaten")
+
+                    Isaac.RunCallback("INVENTORY_CHANGE", Player)
+                else
+
+                    mod:CreateBalatroEffect(mod.JokerFullPosition[Index], mod.EffectColors.RED, mod.Sounds.ACTIVATE, "-0.2",mod.Jokers.POPCORN)
+                end
+
+                Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, false)
             end
 
-            Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, false)
+        elseif Joker == mod.Jokers.MADNESS then
 
-        elseif Joker == mod.Jokers.MADNESS and not Copied then
-
-            if BlindType ~= mod.BLINDS.BOSS then
+            if not Copied and BlindType ~= mod.BLINDS.BOSS then
 
                 
                 mod.Saved.Player[PIndex].Progress.Inventory[Index] = mod.Saved.Player[PIndex].Progress.Inventory[Index] + 0.1
@@ -969,12 +972,12 @@ function mod:OnBlindClear(BlindType)
 
                     Isaac.RunCallback("INVENTORY_CHANGE", Player)
                 end
+
+                Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, false)
             end
 
-            Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, false)
-
-        elseif Joker == mod.Jokers.GROS_MICHAEL and not Copied then
-            if mod:TryGamble(Player,Player:GetTrinketRNG(mod.Jokers.GROS_MICHAEL), 0.16) then
+        elseif Joker == mod.Jokers.GROS_MICHAEL then
+            if not Copied and mod:TryGamble(Player,Player:GetTrinketRNG(mod.Jokers.GROS_MICHAEL), 0.16) then
                 mod.Saved.Player[PIndex].Inventory[Index].Joker = 0
                 mod.Saved.Player[PIndex].Inventory[Index].Edition = 0
 
@@ -987,8 +990,8 @@ function mod:OnBlindClear(BlindType)
                 Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, false)
             end
 
-        elseif Joker == mod.Jokers.CAVENDISH and not Copied then
-            if mod:TryGamble(Player,Player:GetTrinketRNG(mod.Jokers.CAVENDISH), 0.00025) then --1/4000 chance
+        elseif Joker == mod.Jokers.CAVENDISH then
+            if not Copied and mod:TryGamble(Player,Player:GetTrinketRNG(mod.Jokers.CAVENDISH), 0.00025) then --1/4000 chance
                 mod.Saved.Player[PIndex].Inventory[Index].Joker = 0
                 mod.Saved.Player[PIndex].Inventory[Index].Edition = 0
 
@@ -999,30 +1002,33 @@ function mod:OnBlindClear(BlindType)
                 Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, false)
             end
 
-        elseif Joker == mod.Jokers.SACRIFICIAL_DAGGER and not Copied then
-            local RightIndex = Index
-            local RightJoker
-            repeat
-                RightIndex = RightIndex + 1
-                RightJoker = mod.Saved.Player[PIndex].Inventory[RightIndex].Joker
-            until not RightJoker or RightJoker ~= 0
+        elseif Joker == mod.Jokers.SACRIFICIAL_DAGGER then
+            
+            if not Copied then
+                local RightIndex = Index
+                local RightJoker
+                repeat
+                    RightIndex = RightIndex + 1
+                    RightJoker = mod.Saved.Player[PIndex].Inventory[RightIndex].Joker
+                until not RightJoker or RightJoker ~= 0
 
-            if RightJoker ~= 0 then
-                local RightSell = mod:GetJokerCost(RightJoker, mod.Saved.Player[PIndex].Inventory[RightIndex].Edition, RightIndex)
+                if RightJoker ~= 0 then
+                    local RightSell = mod:GetJokerCost(RightJoker, mod.Saved.Player[PIndex].Inventory[RightIndex].Edition, RightIndex)
 
-                mod:CreateBalatroEffect(mod.JokerFullPosition[Index], mod.EffectColors.RED, mod.Sounds.SLICE, 
-                "+"..tostring(0.08 * RightSell),mod.Jokers.SACRIFICIAL_DAGGER)
+                    mod:CreateBalatroEffect(mod.JokerFullPosition[Index], mod.EffectColors.RED, mod.Sounds.SLICE, 
+                    "+"..tostring(0.08 * RightSell),mod.Jokers.SACRIFICIAL_DAGGER)
 
-                mod.Saved.Player[PIndex].Progress.Inventory[Index] = mod.Saved.Player[PIndex].Progress.Inventory[Index] + RightSell * 0.08
+                    mod.Saved.Player[PIndex].Progress.Inventory[Index] = mod.Saved.Player[PIndex].Progress.Inventory[Index] + RightSell * 0.08
 
-                mod.Saved.Player[PIndex].Inventory[RightIndex].Joker = 0
-                mod.Saved.Player[PIndex].Inventory[RightIndex].Edition = 0
+                    mod.Saved.Player[PIndex].Inventory[RightIndex].Joker = 0
+                    mod.Saved.Player[PIndex].Inventory[RightIndex].Edition = 0
 
-                
 
-                Isaac.RunCallback("INVENTORY_CHANGE", Player)
 
-                Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)
+                    Isaac.RunCallback("INVENTORY_CHANGE", Player)
+
+                    Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)
+                end
             end
 
         elseif Joker == mod.Jokers.MIME then

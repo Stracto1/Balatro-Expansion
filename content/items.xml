@@ -116,7 +116,7 @@
     <trinket gfx="luchador_trinket.png" name="Luchador" description="Still undefeated!" customtags="!5 0 :0 ?uncommon balatro activate copy" achievement="PermaLocked"/>
     <trinket cache="damage" gfx="photograph_trinket.png" name="Photograph" description="Good old times..." customtags="!5 1 :0 ?common balatro multm copy" achievement="PermaLocked"/>
     <trinket gfx="gift_card_trinket.png" name="Gift Card" description="I think it's a Ps5!" customtags="!6 0 :0 ?uncommon balatro money" achievement="PermaLocked"/>
-    <trinket gfx="black_bean_trinket.png" name="Turtle Bean" description="Toot hazard" customtags="!6 3 :0 ?uncommon balatro value activate" achievement="PermaLocked"/>
+    <trinket gfx="black_bean_trinket.png" name="Turtle Bean" description="Toot hazard" customtags="!6 3 :5 ?uncommon balatro value activate" achievement="PermaLocked"/>
     <trinket cache="damage" gfx="erosion_trinket.png" name="Erosion" description="Slow and inevitable" customtags="!6 0 :0 ?uncommon balatro mult value copy" achievement="PermaLocked"/>
     <trinket gfx="reserved_parking_trinket.png" name="Reserved Parking" description="Like i care" customtags="!6 0 :0 ?common balatro money copy" achievement="PermaLocked"/>
 

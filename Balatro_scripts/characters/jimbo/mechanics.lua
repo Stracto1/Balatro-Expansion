@@ -367,7 +367,7 @@ function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rN
     if ReturnTable[1] == PickupVariant.PICKUP_TRINKET then
 
 
-        local RandomJoker = mod:RandomJoker(RollRNG, {}, true)
+        local RandomJoker = mod:RandomJoker(RollRNG, true, false, false)
 
         ReturnTable = {PickupVariant.PICKUP_TRINKET, RandomJoker.Joker ,false}
 
@@ -655,7 +655,7 @@ function mod:HandleNoHarmRoomsClear()
                 if PlayerManager.AnyoneHasCollectible(mod.Vouchers.Overstock) then
 
                     local ExtraTrinket = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET,
-                                                    Vector(840,320),Vector.Zero, PlayerManager.FirstPlayerByType(mod.Characters.JimboType), mod:RandomJoker(mod.Saved.GeneralRNG).Joker, Seed):ToPickup()
+                                                    Vector(840,320),Vector.Zero, PlayerManager.FirstPlayerByType(mod.Characters.JimboType), mod:RandomJoker(Game:GetPlayer(0):GetCollectibleRNG(mod.Vouchers.Overstock), true, false, false).Joker, Seed):ToPickup()
 
                     ---@diagnostic disable-next-line: need-check-nil
                     ExtraTrinket:MakeShopItem(-2) -- for whatever reason i can't make this turn into an joker with the usual callback, so i made mod:GreedJokerFix()
@@ -667,7 +667,7 @@ function mod:HandleNoHarmRoomsClear()
                 if PlayerManager.AnyoneHasCollectible(mod.Vouchers.OverstockPlus) then
 
                     local ExtraTrinket = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET,
-                                                    Vector(940,320),Vector.Zero, PlayerManager.FirstPlayerByType(mod.Characters.JimboType), mod:RandomJoker(mod.Saved.GeneralRNG).Joker, Seed):ToPickup()
+                                                    Vector(940,320),Vector.Zero, PlayerManager.FirstPlayerByType(mod.Characters.JimboType), mod:RandomJoker(Game:GetPlayer(0):GetCollectibleRNG(mod.Vouchers.OverstockPlus), true, false, false).Joker, Seed):ToPickup()
                     
                     ---@diagnostic disable-next-line: need-check-nil
                     ExtraTrinket:MakeShopItem(-2) -- for whatever reason i can't make this turn into an joker with the usual callback, so i made mod:GreedJokerFix()
@@ -756,7 +756,7 @@ function mod:OverstockGreedJokerFix(Pickup)
         end
 
         local ExtraTrinket = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET,
-                                                Pickup.Position,Vector.Zero, PlayerManager.FirstPlayerByType(mod.Characters.JimboType), mod:RandomJoker(mod.Saved.GeneralRNG).Joker, Pickup.InitSeed):ToPickup() or Pickup
+                                                Pickup.Position,Vector.Zero, PlayerManager.FirstPlayerByType(mod.Characters.JimboType), mod:RandomJoker(Game:GetPlayer(0):GetCollectibleRNG(mod.Vouchers.Overstock), true, false, false).Joker, Pickup.InitSeed):ToPickup() or Pickup
 
         ExtraTrinket:MakeShopItem(6) -- for whatever reason i can't make this turn into an joker with the usual callback, so i made mod:GreedJokerFix()
 
@@ -982,29 +982,7 @@ function mod:JimboTrinketPool(_, RNG)
     end
 
 
-    return mod:RandomJoker(RNG, {}, true).Joker
-
-    --[[
-    local RarityRoll = RNG:RandomFloat()
-    if RarityRoll < 0.70 then --common
-        local Joker
-        repeat
-            Joker = mod:GetRandom(mod.Trinkets.common, RNG)
-        until not mod:JimboHasTrinket(nil, Joker) --no duplicates
-        return Joker
-    elseif RarityRoll < 0.95 then --uncommon
-        local Joker
-        repeat
-            Joker = mod:GetRandom(mod.Trinkets.uncommon, RNG)
-        until not mod:JimboHasTrinket(nil, Joker)
-        return Joker
-    else --rare
-        local Joker
-        repeat
-            Joker = mod:GetRandom(mod.Trinkets.rare, RNG)
-        until not mod:JimboHasTrinket(nil, Joker)
-        return Joker
-    end]]
+    return mod:RandomJoker(RNG, true, false, false).Joker
 end
 mod:AddCallback(ModCallbacks.MC_GET_TRINKET, mod.JimboTrinketPool)
 

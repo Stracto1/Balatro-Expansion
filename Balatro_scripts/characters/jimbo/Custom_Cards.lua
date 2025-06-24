@@ -52,12 +52,8 @@ function mod:NewTarotEffects(card, Player, UseFlags)
 
             local CardRNG = Player:GetCardRNG(card)
             for i=1, 2 do
-                local Rplanet
-                if Player:GetPlayerType() == mod.Characters.JimboType then
-                    Rplanet = CardRNG:RandomInt(mod.Planets.PLUTO, mod.Planets.SUN)
-                elseif false then
-                    Rplanet = CardRNG:RandomInt(mod.Planets.PLUTO, mod.Planets.ERIS)
-                end
+
+                local Rplanet = mod:RandomPlanet(CardRNG, false, false)
 
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
                                RandomVector()*2, Player, Rplanet, RandomSeed)
@@ -72,16 +68,18 @@ function mod:NewTarotEffects(card, Player, UseFlags)
             IsTarot = true
         
         elseif card == Card.CARD_EMPEROR then
-            local RandomTarots = {}
+            
             local CardRNG = Player:GetCardRNG(card)
             for i=1, 2 do
+
+                local RandomTarot
+
                 repeat 
-                    RandomTarots[i] = CardRNG:RandomInt(1,22)
-                until RandomTarots[i] ~= Card.CARD_EMPEROR or mod:JimboHasTrinket(Player, mod.Jokers.SHOWMAN)
-            end
-            for _,Tarot in ipairs(RandomTarots) do
+                    RandomTarot = mod:RandomTarot(CardRNG, false, false)
+                until RandomTarot ~= Card.CARD_EMPEROR
+
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
-                           RandomVector()*3, Player, Tarot, RandomSeed)
+                           RandomVector()*3, Player, RandomTarot, RandomSeed)
             end
             IsTarot = true
         elseif card == Card.CARD_HIEROPHANT then
@@ -416,75 +414,41 @@ function mod:CardPacks(card, Player,_)
 
         local PackRng = Player:GetCardRNG(mod.Packs.CELESTIAL)
         local RandomPack = {}
-        if Player:GetPlayerType() == mod.Characters.JimboType then
-            
-            local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 4) or 3
-
-            local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
-            if EditionRoll <= JumboChance then
-                Size = Size + 2
-            end
-
-            for i=1, Size do
-                local Rplanet
-                repeat
-                    if PackRng:RandomFloat() < HoleChance then
-                        Rplanet = mod.Spectrals.BLACK_HOLE
-                    else
-                        Rplanet = PackRng:RandomInt(mod.Planets.PLUTO,mod.Planets.SUN) --chooses a random planet
-                    end
-                    Rplanet = mod:SpecialCardToFrame(Rplanet)
-
-                until not mod:Contained(RandomPack, Rplanet)
-                table.insert(RandomPack, Rplanet)
-            end
-            mod.SelectionParams[PIndex].PackOptions = RandomPack
-
-            mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
-            mod.SelectionParams.Purposes.CelestialPack)
-
-            if EditionRoll <= JumboChance then
         
-                if EditionRoll <= MegaChance then
-                    mod.SelectionParams[PIndex].Purpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.Purposes.MegaFlag
-                    mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!")
+        local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 4) or 3
+
+        local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
+        if EditionRoll <= JumboChance then
+            Size = Size + 2
+        end
+
+        for i=1, Size do
+            local Rplanet
+            repeat
+                if PackRng:RandomFloat() < HoleChance then
+                    Rplanet = mod.Spectrals.BLACK_HOLE
                 else
-                    mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!")
-                end 
-            end
+                    Rplanet = PackRng:RandomInt(mod.Planets.PLUTO,mod.Planets.SUN) --chooses a random planet
+                end
+                Rplanet = mod:SpecialCardToFrame(Rplanet)
 
-        elseif false then --TAINTED JIMBO
-            for i=1, 3, 1 do
-                local Rplanet
-                repeat  --certain hand types should remain hidden until used one time
-                    local IsPlanetUnlocked = true
-                    if PackRng:RandomFloat() < HoleChance then
-                        Rplanet = mod.Spectrals.BLACK_HOLE
-                    else
-                        Rplanet = PackRng:RandomInt(mod.Planets.PLUTO,mod.Planets.ERIS) --chooses a random planet
-
-                        if Rplanet == mod.Planets.PLANET_X then
-                            if not mod.Saved.Player[PIndex].FiveUnlocked then
-                                IsPlanetUnlocked = false
-                            end
-                        elseif Rplanet == mod.Planets.CERES then
-                            if not mod.Saved.Player[PIndex].FlushHouseUnlocked then
-                                IsPlanetUnlocked = false
-                            end
-                        elseif Rplanet == mod.Planets.ERIS then
-                            if not mod.Saved.Player[PIndex].FiveFlushUnlocked then
-                                IsPlanetUnlocked = false
-                            end
-                        end
-                    end
-                    Rplanet = mod:SpecialCardToFrame(Rplanet)
-
-                until IsPlanetUnlocked and not mod:Contained(RandomPack, Rplanet)
-
-                RandomPack[i] = Rplanet
-            end            
+            until not mod:Contained(RandomPack, Rplanet)
+            table.insert(RandomPack, Rplanet)
         end
         mod.SelectionParams[PIndex].PackOptions = RandomPack
+
+        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
+        mod.SelectionParams.Purposes.CelestialPack)
+
+        if EditionRoll <= JumboChance then
+    
+            if EditionRoll <= MegaChance then
+                mod.SelectionParams[PIndex].Purpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.Purposes.MegaFlag
+                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!")
+            else
+                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!")
+            end 
+        end
         
     elseif card == mod.Packs.SPECTRAL then
         Isaac.RunCallback("PACK_OPENED",Player,card)
@@ -534,12 +498,6 @@ function mod:CardPacks(card, Player,_)
     elseif card == mod.Packs.BUFFON then
         Isaac.RunCallback("PACK_OPENED",Player,card)
 
-        local RandomPack = {}
-        local Jokers = {}
-        for i,v in ipairs(Isaac.FindByType(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET)) do
-            table.insert ( Jokers, v.SubType)
-        end
-
         local PackRng = Player:GetCardRNG(mod.Packs.BUFFON)
 
         local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 3) or 2
@@ -549,12 +507,7 @@ function mod:CardPacks(card, Player,_)
             Size = Size + 2
         end
 
-        for i=1, Size, 1 do
-            RandomPack[i] = mod:RandomJoker(PackRng, Jokers, true)
-            table.insert(Jokers, RandomPack[i].Joker)
-        end
-
-        mod.SelectionParams[PIndex].PackOptions = RandomPack
+        mod.SelectionParams[PIndex].PackOptions = mod:RandomJoker(PackRng, true, false, false, Size)
 
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
                                               mod.SelectionParams.Purposes.BuffonPack)
@@ -712,7 +665,7 @@ function mod:SpectralCards(card, Player)
             end
             Player:AnimateSad() --no joker for you if no slot is empty :(   ]]
 
-            local RandomJoker = mod:RandomJoker(CardRNG, {}, true, "rare")
+            local RandomJoker = mod:RandomJoker(CardRNG, true, "rare", false)
             local Success = mod:AddJoker(Player, RandomJoker.Joker,RandomJoker.Edition)
 
             if not Success then
@@ -878,7 +831,7 @@ function mod:SpectralCards(card, Player)
             
         elseif card == mod.Spectrals.SOUL then
 
-            local Legendary = mod:RandomJoker(CardRNG, {}, true, "legendary")
+            local Legendary = mod:RandomJoker(CardRNG, true, "legendary", false)
             
             local Success = mod:AddJoker(Player, Legendary.Joker, Legendary.Edition)
             if not Success then
