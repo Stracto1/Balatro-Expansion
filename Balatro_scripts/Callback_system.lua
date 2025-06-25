@@ -11,17 +11,18 @@ Challenges.Balatro = Isaac.GetChallengeIdByName("Balatro")
 ---@param InitPlayer EntityPlayer
 local function PlayerIndexUpdate(InitPlayer)
 
-    local ControllersFound = {}
-    local TrueIndex = 0
+    --local ControllersFound = {}
+    --local TrueIndex = 1
 
     for _,Player in ipairs(PlayerManager.GetPlayers()) do
         local Data = Player:GetData()
         --print("index: ",Player:GetPlayerIndex())
-        Data.TruePlayerIndex = TrueIndex
-        if not mod:Contained(ControllersFound, Player.ControllerIndex) then
-            ControllersFound[#ControllersFound+1] = Player.ControllerIndex
-            TrueIndex = TrueIndex + 1
-        end
+        Data.TruePlayerIndex = Player:GetPlayerIndex() + 1 --needs to start from 1 or the json says no
+        
+        --if not mod:Contained(ControllersFound, Player.ControllerIndex) then
+        --    ControllersFound[#ControllersFound+1] = Player.ControllerIndex
+        --    TrueIndex = TrueIndex + 1
+        --end
     end
 
 end
@@ -46,8 +47,6 @@ function mod:OnGameStart(Continued)
                     PlayerIndexUpdate(Player)
                     PIndex = Player:GetData().TruePlayerIndex
                 end
-
-                print(PIndex, mod.Saved.Player[PIndex])
 
                 for _,Group in pairs(mod.Saved.Player[PIndex].InnateItems or {}) do
                     for _,Item in ipairs(Group) do
@@ -378,7 +377,7 @@ function mod:InitJimboValues(Player, Force)
                                               [mod.HandTypes.FLUSH_HOUSE] = Vector(140, 14),
                                               [mod.HandTypes.FIVE_FLUSH] = Vector(160, 16)}
 
-        mod.Saved.Player.HandsUsed = {[mod.HandTypes.HIGH_CARD] = 0,
+        mod.Saved.Player[PIndex].HandsUsed = {[mod.HandTypes.HIGH_CARD] = 0,
                                       [mod.HandTypes.PAIR] = 0,
                                       [mod.HandTypes.TWO_PAIR] = 0,
                                       [mod.HandTypes.THREE] = 0,

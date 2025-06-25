@@ -51,7 +51,7 @@ function mod:CreateBalatroEffect(Position, Colour, Sound, Text, EffectType)--Sou
     local IsEntity = EffectType == mod.EffectType.ENTITY
     local EffectSlot = Position
 
-    if Position.Position then --basically checks if it's an entity
+    if IsEntity then --basically checks if it's an entity
 
         EffectSlot = GetPtrHash(Position)
         IsEntity = true
@@ -62,8 +62,7 @@ function mod:CreateBalatroEffect(Position, Colour, Sound, Text, EffectType)--Sou
         --effetcts are separated between entities and inventory, where only one of each can be on screen at a time
 
         if EffectType == Params.Type
-           and Params.Type ~= mod.EffectType.ENTITY 
-           and Params.Type ~= mod.EffectType.NULL then --entities effects are delayed only if the same entity has more than one effect
+           and Params.Type ~= mod.EffectType.ENTITY then --entities effects are delayed only if the same entity has more than one effect
 
             StackedEffects = StackedEffects + 1
 
@@ -120,7 +119,7 @@ function mod:CreateBalatroEffect(Position, Colour, Sound, Text, EffectType)--Sou
         EffectParams[EffectSlot].Offset = Vector(0,20)
     else
         EffectParams[EffectSlot].Position = Position
-        EffectParams[EffectSlot].Offset = Vector(0,-10)
+        EffectParams[EffectSlot].Offset = Vector(0,-30)
 
         mod.Counters.Activated[Position] = 0
     end
@@ -143,7 +142,7 @@ end
 
 function mod:RenderEffect(_,_,_,_,_)
 
-    for _, Params in pairs(EffectParams) do
+    for Slot, Params in pairs(EffectParams) do
 
         --local Sprite = EffectAnimations[Params.Color]
         
@@ -155,11 +154,14 @@ function mod:RenderEffect(_,_,_,_,_)
 
         local RenderPos
         if Params.Type == mod.EffectType.ENTITY then
-            if Params.Position then
-                --here Params.Position is an EntityPtr
+
+            local Entity = Params.Position.Ref
+
+            if Entity:Exists() then
                 RenderPos = Isaac.WorldToScreen(Params.Position.Ref.Position) + Params.Offset
             else
-
+                EffectParams[Slot] = nil
+                return
             end
         else
             RenderPos = Params.Position + Params.Offset

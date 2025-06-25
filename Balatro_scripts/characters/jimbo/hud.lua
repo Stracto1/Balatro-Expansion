@@ -138,8 +138,6 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
                 RenderPos.Y = RenderPos.Y - 9*ScaleMult.Y
             end
 
-            mod.JokerFullPosition[i] = mod.JokerFullPosition[i] or RenderPos
-
             TrinketSprite:ReplaceSpritesheet(0, JokerConfig.GfxFileName, true)
             TrinketSprite:ReplaceSpritesheet(2, JokerConfig.GfxFileName, true)
 
@@ -168,6 +166,8 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
         end
 
         TrinketSprite:Render(RenderPos)
+
+        mod.JokerFullPosition[i] = RenderPos
     end
 
     if Isaac.GetFrameCount()% 2 == 0 then
@@ -176,10 +176,7 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
 
     if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.INVENTORY then
 
-        local RenderPos = BasePos + Vector(23*mod.SelectionParams[PIndex].Index , 0) * ScaleMult * PlayerRenderMult
-
-        
-        RenderPos.Y = RenderPos.Y - (mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams[PIndex].Index] and 9*ScaleMult.Y or 0)
+        local RenderPos = mod.JokerFullPosition[mod.SelectionParams[PIndex].Index]
 
         CardFrame:SetFrame(HUD_FRAME.Frame)
         CardFrame.Scale = ScaleMult
@@ -417,7 +414,7 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.HandBarRender)
 local ScaleMult = 0.5
 ---@param Player EntityPlayer
 function mod:JimboHandRender(Player, Offset)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.Saved.Player[0] then
+    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.Saved.Player[1] then
         return
     end
     local PIndex = Player:GetData().TruePlayerIndex

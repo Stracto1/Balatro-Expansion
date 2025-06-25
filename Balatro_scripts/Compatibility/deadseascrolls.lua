@@ -99,6 +99,15 @@ local ItemsConfig = Isaac.GetItemConfig()
 
 local itemData = {
     {
+        Id = Balatro_Expansion.Jokers.JOKER,
+        Gfx = ItemsConfig:GetTrinket(Balatro_Expansion.Jokers.JOKER).GfxFileName,
+        Type = "Trinket",
+        Name = "Joker",
+        UnlockMethod = "Unlocked by defeating Mom's Heart",
+        Description = "Gives 5 free beggar payouts. If gulped gives a speed up that scales with the amount of uses remaining",
+        Achievement = mod.Achievements.Trinkets[mod.Trinkets.TASTY_CANDY[1]]
+    },
+    {
         Id = Balatro_Expansion.Collectibles.HORSEY,
         Gfx = ItemsConfig:GetCollectible(Balatro_Expansion.Collectibles.HORSEY).GfxFileName,
         Type = "Collectible",
@@ -176,7 +185,7 @@ local itemData = {
         Type = "Collectible",
         Name = "Lollypop",
         UnlockMethod = "Unlocked by defeating ???",
-        Description = "Spawns a lollypop on the ground every 20 seconds spent in an uncleared room. Picking up the lollypops temporarely grants the Power pill effect",
+        Description = "Spawns a lollypop on the ground every 20 seconds spent in an uncleared room. Picking up these lollypops temporarely grants the Gamekid effect",
         Achievement = mod.Achievements.Items[mod.Collectibles.LOLLYPOP]
     },
     {
@@ -196,6 +205,15 @@ local itemData = {
         UnlockMethod = "Unlocked by defeating ???",
         Description = "Tears and lasers fired have a luck-based chance to become ace cards that deal damage equal to the product of the player's damage and tears stat",
         Achievement = mod.Achievements.Items[mod.Collectibles.POCKET_ACES]
+    },
+    {
+        Id = Balatro_Expansion.Trinkets.TASTY_CANDY,
+        Gfx = ItemsConfig:GetTrinket(Balatro_Expansion.Trinkets.TASTY_CANDY[mod.TastyCandyNum]).GfxFileName,
+        Type = "Trinket",
+        Name = "Tasty Candy",
+        UnlockMethod = "Unlocked by defeating Ultra Greedier",
+        Description = "Gives 5 free beggar payouts. If gulped gives a speed up that scales with the amount of uses remaining",
+        Achievement = mod.Achievements.Trinkets[mod.Trinkets.TASTY_CANDY[1]]
     },
     {
         Divider = true,

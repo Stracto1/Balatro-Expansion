@@ -3,7 +3,8 @@ local mod = Balatro_Expansion
 local Game = Game()
 local ItemsConfig = Isaac.GetItemConfig()
 
-local EFFECT_CARD_OFFSET = Vector(0, -15)
+local EFFECT_CARD_OFFSET = Vector(0, 0)
+local EFFECT_JOKER_OFFSET = Vector(0, 45)
 
 local SUIT_FLAG = 7 --111 00..
 local VALUE_FLAG = 120 --000 1111 00..
@@ -34,7 +35,7 @@ local function GeneralBalatroEffect(PIndex, Colour, Sound, Text, EffectType, Ind
             if EffectType == mod.EffectType.HAND then
                 Position = mod.LastCardFullPoss[Index] + EFFECT_CARD_OFFSET
             elseif EffectType == mod.EffectType.JOKER then
-                Position = mod.JokerFullPosition[Index]
+                Position = mod.JokerFullPosition[Index] + EFFECT_JOKER_OFFSET
             elseif EffectType == mod.EffectType.ENTITY then
                 Position = Index
             elseif EffectType ~= mod.EffectType.NULL then --HAND_FROM_JOKER
@@ -63,7 +64,7 @@ local function IncreaseChips(PIndex, Amount, EffectType, Index)
             if EffectType == mod.EffectType.HAND then
                 Position = mod.LastCardFullPoss[Index] + EFFECT_CARD_OFFSET
             elseif EffectType == mod.EffectType.JOKER then
-                Position = mod.JokerFullPosition[Index]
+                Position = mod.JokerFullPosition[Index] + EFFECT_JOKER_OFFSET
             elseif EffectType == mod.EffectType.ENTITY then
                 Position = Index
             elseif EffectType ~= mod.EffectType.NULL then --HAND_FROM_JOKER
@@ -93,7 +94,7 @@ local function IncreaseMult(PIndex, Amount, EffectType, Index)
             if EffectType == mod.EffectType.HAND then
                 Position = mod.LastCardFullPoss[Index] + EFFECT_CARD_OFFSET
             elseif EffectType == mod.EffectType.JOKER then
-                Position = mod.JokerFullPosition[Index]
+                Position = mod.JokerFullPosition[Index] + EFFECT_JOKER_OFFSET
             elseif EffectType == mod.EffectType.ENTITY then
                 Position = Index
             
@@ -123,7 +124,7 @@ local function MultiplyMult(PIndex, Amount, EffectType, Index)
             if EffectType == mod.EffectType.HAND then
                 Position = mod.LastCardFullPoss[Index] + EFFECT_CARD_OFFSET
             elseif EffectType == mod.EffectType.JOKER then
-                Position = mod.JokerFullPosition[Index]
+                Position = mod.JokerFullPosition[Index] + EFFECT_JOKER_OFFSET
             elseif EffectType == mod.EffectType.ENTITY then
                 Position = Index
             elseif EffectType ~= mod.EffectType.NULL then --HAND_FROM_JOKER
@@ -154,7 +155,7 @@ local function AddMoney(Player, Amount, EffectType, Index)
             if EffectType == mod.EffectType.HAND then
                 Position = mod.LastCardFullPoss[Index] + EFFECT_CARD_OFFSET
             elseif EffectType == mod.EffectType.JOKER then
-                Position = mod.JokerFullPosition[Index]
+                Position = mod.JokerFullPosition[Index] + EFFECT_JOKER_OFFSET
             elseif EffectType == mod.EffectType.ENTITY then
                 Position = Index
             elseif EffectType ~= mod.EffectType.NULL then --HAND_FROM_JOKER
@@ -1054,14 +1055,14 @@ function mod:ScoreHand(Player)
         NumEffectPlayed = 0
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.AIMING)
     
-        mod.AnimationIsPlaying = false
+        --mod.AnimationIsPlaying = false
     end, IntervalTime(NumEffectPlayed), 1, true)
 end
 mod:AddCallback(mod.Callbalcks.HAND_PLAY, mod.ScoreHand)
 
 
 
-local function CopyAdjustments(Player)
+local function CopyAdjustments(_,Player)
 
     --Player:AddCustomCacheTag("handsize", false)
     --Player:AddCustomCacheTag("discards", false)

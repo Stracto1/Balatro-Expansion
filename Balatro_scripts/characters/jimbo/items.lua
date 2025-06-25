@@ -171,7 +171,7 @@ function mod:RerollVoucher(Partial)
     if GlutOwner then
         GlutOwner:AddCoins(2)
         mod:CreateBalatroEffect(GlutOwner, mod.EffectColors.YELLOW,
-        mod.Sounds.MONEY, "+2 $")
+                                mod.Sounds.MONEY, "+2 $", mod.EffectType.ENTITY)
         return
     end
     
@@ -180,7 +180,7 @@ function mod:RerollVoucher(Partial)
     if SurplusOwner then
         Game:GetPlayer(0):AddCoins(1)
         mod:CreateBalatroEffect(SurplusOwner, mod.EffectColors.YELLOW,
-        mod.Sounds.MONEY, "+1 $")
+                                mod.Sounds.MONEY, "+1 $", mod.EffectType.ENTITY)
         return
     end
     
@@ -241,16 +241,16 @@ function mod:CardShotVouchers(Player,ShotCard,Evaluate)
 
         if Player:HasCollectible(PlanetariumToValue[ShotCard.Value]) then
             mod:IncreaseJimboStats(Player, 0,0,1.15, true, true)
-            mod:CreateBalatroEffect(Player, mod.EffectColors.RED, mod.Sounds.TIMESMULT, "X1.15")
+            mod:CreateBalatroEffect(Player, mod.EffectColors.RED, mod.Sounds.TIMESMULT, "X1.15", mod.EffectType.ENTITY)
             return
         end
 
-        for i=0,3 do
+        for i=PillCardSlot.PRIMARY, PillCardSlot.QUATERNARY do
             local card = Player:GetCard(i)
 
             if card - mod.Planets.PLUTO == ShotCard.Value - 1 then
                 mod:IncreaseJimboStats(Player, 0,0,1.15, true, true)
-                mod:CreateBalatroEffect(Player, mod.EffectColors.RED, mod.Sounds.TIMESMULT, "X1.15")
+                mod:CreateBalatroEffect(Player, mod.EffectColors.RED, mod.Sounds.TIMESMULT, "X1.15", mod.EffectType.ENTITY)
                 return
             end
         end

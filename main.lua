@@ -178,7 +178,8 @@ Balatro_Expansion.Trinkets.uncommon = {}
 Balatro_Expansion.Trinkets.rare = {}
 Balatro_Expansion.Trinkets.legendary = {}
 Balatro_Expansion.Trinkets.TASTY_CANDY = {}
-for i = 1, 5 do --puts every candy stages
+Balatro_Expansion.TastyCandyNum = 5
+for i = 1, 5 do --puts every candy stage
     Balatro_Expansion.Trinkets.TASTY_CANDY[i] = Balatro_Expansion.Jokers.PERKEO + i
 end
 
@@ -639,25 +640,25 @@ Balatro_Expansion.Saved.BlindBeingPlayed = Balatro_Expansion.BLINDS.CASHOUT
 
 -----------JIMBO-------------------
 Balatro_Expansion.Saved.Player = {}
-Balatro_Expansion.Saved.Player.FullDeck = {} --the full deck of cards used by jimbo
+--Balatro_Expansion.Saved.Player.FullDeck = {} --the full deck of cards used by jimbo
 do
 local index = 1
 for i = 1, 4 do --cycles between the suits
     for j = 1, 13 do --cycles for all the values
-        Balatro_Expansion.Saved.Player.FullDeck[index] = {}
-        Balatro_Expansion.Saved.Player.FullDeck[index].Suit = i --Spades - Hearts - clubs - diamonds
-        Balatro_Expansion.Saved.Player.FullDeck[index].Value = j
-        Balatro_Expansion.Saved.Player.FullDeck[index].Enhancement = Balatro_Expansion.Enhancement.NONE
-        Balatro_Expansion.Saved.Player.FullDeck[index].Seal = Balatro_Expansion.Seals.NONE
-        Balatro_Expansion.Saved.Player.FullDeck[index].Edition = Balatro_Expansion.Edition.BASE
-        Balatro_Expansion.Saved.Player.FullDeck[index].Upgrades = 0 --only used for the Hiker joker
+        --Balatro_Expansion.Saved.Player.FullDeck[index] = {}
+        --Balatro_Expansion.Saved.Player.FullDeck[index].Suit = i --Spades - Hearts - clubs - diamonds
+        --Balatro_Expansion.Saved.Player.FullDeck[index].Value = j
+        --Balatro_Expansion.Saved.Player.FullDeck[index].Enhancement = Balatro_Expansion.Enhancement.NONE
+        --Balatro_Expansion.Saved.Player.FullDeck[index].Seal = Balatro_Expansion.Seals.NONE
+        --Balatro_Expansion.Saved.Player.FullDeck[index].Edition = Balatro_Expansion.Edition.BASE
+        --Balatro_Expansion.Saved.Player.FullDeck[index].Upgrades = 0 --only used for the Hiker joker
         index = index +1
     end
 end
 end
-Balatro_Expansion.Saved.Player.DeckPointer = 6 --the card that is going to be picked next
-Balatro_Expansion.Saved.Player.CurrentHand = {5,4,3,2,1} --the indexes leding to the cards in FullDeck
-Balatro_Expansion.Saved.Player.LastShotIndex = 0
+--Balatro_Expansion.Saved.Player.DeckPointer = 6 --the card that is going to be picked next
+--Balatro_Expansion.Saved.Player.CurrentHand = {5,4,3,2,1} --the indexes leding to the cards in FullDeck
+--Balatro_Expansion.Saved.Player.LastShotIndex = 0
 
 Balatro_Expansion.Saved.MichelDestroyed = false
 
@@ -688,67 +689,67 @@ Balatro_Expansion.JokerProgress = {NOT_ACTIVE = 0, ACTIVE = 1}
 
 
 Balatro_Expansion.StatEnable = false --needed cause i hate my life
-Balatro_Expansion.Saved.Player.StatsToAdd = {}
+--Balatro_Expansion.Saved.Player.StatsToAdd = {}
 --basic stat ups that always apply 
-Balatro_Expansion.Saved.Player.StatsToAdd.Damage = 0
-Balatro_Expansion.Saved.Player.StatsToAdd.Tears = 1.5
-Balatro_Expansion.Saved.Player.StatsToAdd.Mult = 1
+--Balatro_Expansion.Saved.Player.StatsToAdd.Damage = 0
+--Balatro_Expansion.Saved.Player.StatsToAdd.Tears = 1.5
+--Balatro_Expansion.Saved.Player.StatsToAdd.Mult = 1
 --joker stat ups which need to be re-evaluated each time
-Balatro_Expansion.Saved.Player.StatsToAdd.JokerDamage = 0
-Balatro_Expansion.Saved.Player.StatsToAdd.JokerTears = 0
-Balatro_Expansion.Saved.Player.StatsToAdd.JokerMult = 1
+--Balatro_Expansion.Saved.Player.StatsToAdd.JokerDamage = 0
+--Balatro_Expansion.Saved.Player.StatsToAdd.JokerTears = 0
+--Balatro_Expansion.Saved.Player.StatsToAdd.JokerMult = 1
 Balatro_Expansion.JimboStartTears = 1.5
 
-Balatro_Expansion.Saved.Player.TrueDamageValue = 1 --used to surpass the usual 0.5 minimum damage cap (got this idea from isaacguru's Utility Commands)
-Balatro_Expansion.Saved.Player.TrueTearsValue = 2.5
+--Balatro_Expansion.Saved.Player.TrueDamageValue = 1 --used to surpass the usual 0.5 minimum damage cap (got this idea from isaacguru's Utility Commands)
+--Balatro_Expansion.Saved.Player.TrueTearsValue = 2.5
 
 --list keeping in memory every "invisible" item given by jokers and such 
-Balatro_Expansion.Saved.Player.InnateItems = {}
-Balatro_Expansion.Saved.Player.InnateItems.General = {}
-Balatro_Expansion.Saved.Player.InnateItems.Hack = {}
+--Balatro_Expansion.Saved.Player.InnateItems = {}
+--Balatro_Expansion.Saved.Player.InnateItems.General = {}
+--Balatro_Expansion.Saved.Player.InnateItems.Hack = {}
 
-Balatro_Expansion.Saved.Player.Progress = {} --values used for jokers and stuff
-Balatro_Expansion.Saved.Player.Progress.Inventory = {0,0,0} --never reset, changed in different ways basing on the joker
-Balatro_Expansion.Saved.Player.Progress.GiftCardExtra = {0,0,0}
+--Balatro_Expansion.Saved.Player.Progress = {} --values used for jokers and stuff
+--Balatro_Expansion.Saved.Player.Progress.Inventory = {0,0,0} --never reset, changed in different ways basing on the joker
+--Balatro_Expansion.Saved.Player.Progress.GiftCardExtra = {0,0,0}
 
-Balatro_Expansion.Saved.Player.ShowmanRemovedItems = {}
+--Balatro_Expansion.Saved.Player.ShowmanRemovedItems = {}
 
-Balatro_Expansion.Saved.Player.Progress.Blind = {} --reset every new blind
-Balatro_Expansion.Saved.Player.Progress.Blind.Shots = 0
+--Balatro_Expansion.Saved.Player.Progress.Blind = {} --reset every new blind
+--Balatro_Expansion.Saved.Player.Progress.Blind.Shots = 0
 
-Balatro_Expansion.Saved.Player.Progress.Room = {} --reset every new room
-Balatro_Expansion.Saved.Player.Progress.Room.SuitUsed = {}
-Balatro_Expansion.Saved.Player.Progress.Room.SuitUsed[Balatro_Expansion.Suits.Spade] = 0
-Balatro_Expansion.Saved.Player.Progress.Room.SuitUsed[Balatro_Expansion.Suits.Heart] = 0
-Balatro_Expansion.Saved.Player.Progress.Room.SuitUsed[Balatro_Expansion.Suits.Club] = 0
-Balatro_Expansion.Saved.Player.Progress.Room.SuitUsed[Balatro_Expansion.Suits.Diamond] = 0
-Balatro_Expansion.Saved.Player.Progress.Room.ValueUsed = {}
+--Balatro_Expansion.Saved.Player.Progress.Room = {} --reset every new room
+--Balatro_Expansion.Saved.Player.Progress.Room.SuitUsed = {}
+--Balatro_Expansion.Saved.Player.Progress.Room.SuitUsed[Balatro_Expansion.Suits.Spade] = 0
+--Balatro_Expansion.Saved.Player.Progress.Room.SuitUsed[Balatro_Expansion.Suits.Heart] = 0
+--Balatro_Expansion.Saved.Player.Progress.Room.SuitUsed[Balatro_Expansion.Suits.Club] = 0
+--Balatro_Expansion.Saved.Player.Progress.Room.SuitUsed[Balatro_Expansion.Suits.Diamond] = 0
+--Balatro_Expansion.Saved.Player.Progress.Room.ValueUsed = {}
 for Value =1, 14 do
-    Balatro_Expansion.Saved.Player.Progress.Room.ValueUsed[Value] = 0
+    --Balatro_Expansion.Saved.Player.Progress.Room.ValueUsed[Value] = 0
 end
-Balatro_Expansion.Saved.Player.Progress.Room.Shots = 0 --used to tell how many cards are already used
-Balatro_Expansion.Saved.Player.Progress.Room.ChampKills = 0
-Balatro_Expansion.Saved.Player.Progress.Room.KingsAtStart = 0
+--Balatro_Expansion.Saved.Player.Progress.Room.Shots = 0 --used to tell how many cards are already used
+--Balatro_Expansion.Saved.Player.Progress.Room.ChampKills = 0
+--Balatro_Expansion.Saved.Player.Progress.Room.KingsAtStart = 0
 
-Balatro_Expansion.Saved.Player.Progress.Floor = {}
-Balatro_Expansion.Saved.Player.Progress.Floor.CardsUsed = 0
+--Balatro_Expansion.Saved.Player.Progress.Floor = {}
+--Balatro_Expansion.Saved.Player.Progress.Floor.CardsUsed = 0
 Balatro_Expansion.Saved.FloorVouchers = {} --says which vouchers have already been spawned in a floor
 
 
-Balatro_Expansion.Saved.Player.LastCardUsed = nil --the last card a player used
-Balatro_Expansion.Saved.Player.EctoUses = 0 --how many times the Ectoplasm card got used in a run
-Balatro_Expansion.Saved.Player.NumActiveCostumes = 0
+--Balatro_Expansion.Saved.Player.LastCardUsed = nil --the last card a player used
+--Balatro_Expansion.Saved.Player.EctoUses = 0 --how many times the Ectoplasm card got used in a run
+--Balatro_Expansion.Saved.Player.NumActiveCostumes = 0
 
 
-Balatro_Expansion.Saved.Player.Inventory = {}
+--Balatro_Expansion.Saved.Player.Inventory = {}
 for i=1,3 do
-    Balatro_Expansion.Saved.Player.Inventory[i] = {}
-    Balatro_Expansion.Saved.Player.Inventory[i].Joker = 0
-    Balatro_Expansion.Saved.Player.Inventory[i].Edition = Balatro_Expansion.Edition.BASE
+    --Balatro_Expansion.Saved.Player.Inventory[i] = {}
+    --Balatro_Expansion.Saved.Player.Inventory[i].Joker = 0
+    --Balatro_Expansion.Saved.Player.Inventory[i].Edition = Balatro_Expansion.Edition.BASE
 end
 
 
-Balatro_Expansion.Saved.Player.FirstDeck = true
+--Balatro_Expansion.Saved.Player.FirstDeck = true
 
 Balatro_Expansion.Saved.CardLevels = {}
 for i=1, 13 do
@@ -756,38 +757,38 @@ for i=1, 13 do
 end
 
 
-Balatro_Expansion.Saved.Player.HandLevels = {}
-Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.HIGH_CARD] = 1
-Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.PAIR] = 1
-Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.TWO_PAIR] = 1
-Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.THREE] = 1
-Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.STRAIGHT] = 1
-Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.FLUSH] = 1
-Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.FULL_HOUSE] = 1
-Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.FOUR] = 1
-Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.STRAIGHT_FLUSH] = 1
-Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.ROYAL_FLUSH] = 1
-Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.FIVE] = 1
-Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.FLUSH_HOUSE] = 1
-Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.FIVE_FLUSH] = 1
+--Balatro_Expansion.Saved.Player.HandLevels = {}
+--Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.HIGH_CARD] = 1
+--Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.PAIR] = 1
+--Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.TWO_PAIR] = 1
+--Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.THREE] = 1
+--Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.STRAIGHT] = 1
+--Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.FLUSH] = 1
+--Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.FULL_HOUSE] = 1
+--Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.FOUR] = 1
+--Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.STRAIGHT_FLUSH] = 1
+--Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.ROYAL_FLUSH] = 1
+--Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.FIVE] = 1
+--Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.FLUSH_HOUSE] = 1
+--Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.FIVE_FLUSH] = 1
 
 Balatro_Expansion.Stats = {CHIPS = "X", MULT = "Y"}
 
-Balatro_Expansion.Saved.Player.HandsStat = {}
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.NONE] = Vector(0,0)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.HIGH_CARD] = Vector(5,1)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.PAIR] = Vector(10,2)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.TWO_PAIR] = Vector(20,2)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.THREE] = Vector(30,3)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.STRAIGHT] = Vector(30,4)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FLUSH] = Vector(35,4)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FULL_HOUSE] = Vector(40,4)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FOUR] = Vector(60,7)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.STRAIGHT_FLUSH] = Vector(100,8)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.ROYAL_FLUSH] = Vector(100,8)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FIVE] = Vector(120,12)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FLUSH_HOUSE] = Vector(120,14)
-Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FIVE_FLUSH] = Vector(120,16)
+--Balatro_Expansion.Saved.Player.HandsStat = {}
+--Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.NONE] = Vector(0,0)
+--Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.HIGH_CARD] = Vector(5,1)
+--Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.PAIR] = Vector(10,2)
+--Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.TWO_PAIR] = Vector(20,2)
+--Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.THREE] = Vector(30,3)
+--Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.STRAIGHT] = Vector(30,4)
+--Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FLUSH] = Vector(35,4)
+--Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FULL_HOUSE] = Vector(40,4)
+--Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FOUR] = Vector(60,7)
+--Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.STRAIGHT_FLUSH] = Vector(100,8)
+--Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.ROYAL_FLUSH] = Vector(100,8)
+--Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FIVE] = Vector(120,12)
+--Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FLUSH_HOUSE] = Vector(120,14)
+--Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FIVE_FLUSH] = Vector(120,16)
 
 
 Balatro_Expansion.HandUpgrades = {}
@@ -805,25 +806,25 @@ Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FIVE] = Vector(35,3)
 Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FLUSH_HOUSE] = Vector(40,4)
 Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FIVE_FLUSH] = Vector(50,3)
 
-Balatro_Expansion.Saved.Player.HandsUsed = {}
-Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.HIGH_CARD] = 0
-Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.PAIR] = 0
-Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.TWO_PAIR] = 0
-Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.THREE] = 0
-Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.STRAIGHT] = 0
-Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.FLUSH] = 0
-Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.FULL_HOUSE] = 0
-Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.FOUR] = 0
-Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.STRAIGHT_FLUSH] = 0
-Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.ROYAL_FLUSH] = 0
-Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.FIVE] = 0
-Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.FLUSH_HOUSE] = 0
-Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.FIVE_FLUSH] = 0
+--Balatro_Expansion.Saved.Player.HandsUsed = {}
+--Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.HIGH_CARD] = 0
+--Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.PAIR] = 0
+--Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.TWO_PAIR] = 0
+--Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.THREE] = 0
+--Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.STRAIGHT] = 0
+--Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.FLUSH] = 0
+--Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.FULL_HOUSE] = 0
+--Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.FOUR] = 0
+--Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.STRAIGHT_FLUSH] = 0
+--Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.ROYAL_FLUSH] = 0
+--Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.FIVE] = 0
+--Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.FLUSH_HOUSE] = 0
+--Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.FIVE_FLUSH] = 0
 
 
 --  VALUES SHARED BETWWEN JIMBO AND NORMALS
 
-Balatro_Expansion.Saved.Player.ComedicState = 0
+--Balatro_Expansion.Saved.Player.ComedicState = 0
 
 
 
@@ -947,7 +948,7 @@ Balatro_Expansion.Achievements = {
                                         },
                                     Trinkets = {
                                                 [Balatro_Expansion.Jokers.JOKER] = Isaac.GetAchievementIdByName("JokerTrinketUnlock"),
-                                                [Balatro_Expansion.Trinkets.TASTY_CANDY[1]] = Isaac.GetAchievementIdByName("JokerTrinketUnlock"),
+                                                [Balatro_Expansion.Trinkets.TASTY_CANDY[1]] = Isaac.GetAchievementIdByName("TastyCandyUnlock"),
                                         },
                                     Entities = {},
                                     Pickups = {}

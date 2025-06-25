@@ -173,6 +173,13 @@
     <trinket gfx="chicot_trinket.png" name="Chicot" description="Oh, mon Dieu! an accident" customtags="!20 1 :0 ?legendary balatro activate copy" achievement="PermaLocked"/>
     <trinket gfx="perkeo_trinket.png" name="Perkeo" description="Perchè no?" customtags="!20 1 :0 ?legendary balatro activate copy" achievement="PermaLocked"/>
     <!--KEEP THIS THE LAST TRINKET BEFORE TASTY CANDY-->
+    <!-- mayyybe i could've used a monkey paw-like system shared among players to memorise the candy stages but this is just so much easier-->
+    <!-- along with that monkey paw is flawed since it uses a single variable to store every single trinket's state, causing misallignments between them if abused-->
+    <trinket cache="speed" gfx="tasty_candy_1_trinket.png" name="Tasty Candy" description="nom" achievement="PermaLocked"/>
+    <trinket cache="speed" gfx="tasty_candy_2_trinket.png" name="Tasty Candy" description="nom nom" achievement="PermaLocked"/>
+    <trinket cache="speed" gfx="tasty_candy_3_trinket.png" name="Tasty Candy" description="nom nom nom" achievement="PermaLocked"/>
+    <trinket cache="speed" gfx="tasty_candy_4_trinket.png" name="Tasty Candy" description="nom nom nom nom" achievement="PermaLocked"/>
+    <trinket cache="speed" gfx="tasty_candy_5_trinket.png" name="Tasty Candy" description="nom nom nom nom nom" achievement="TastyCandyUnlock"/>
 
     <active id="0" name="The hand" chargetype="special" maxcharges="0" quality="2" craftquality="2" gfx="the_hand_active.png" description="Need a hand?"/>
     
@@ -225,12 +232,6 @@
     <familiar id="43" name="Baloon Puppy" cache="familiars" quality="2" craftquality="2" gfx="baloon_puppy_item.png" description="My dream buddy" achievement="BaloonPuppyUnlock" tags="offensive"/>
     <passive id="44" name="Pocket Aces" quality="3" craftquality="3" gfx="pocket_aces_item.png" description="A trick up my sleeve" achievement="PocketAcesUnlock" tags=""/>
 
-    <!-- mayyybe i could've used a monkey paw-like system shared among players to memorise the candy stages but this is just so much easier-->
-    <!-- along with that monkey paw is flawed since it uses a single variable to store every single trinket's state, causing misallignments between them if abused-->
-    <trinket gfx="tasty_candy_1_trinket.png" name="Tasty Candy" description="nom" achievement="PermaLocked"/>
-    <trinket gfx="tasty_candy_2_trinket.png" name="Tasty Candy" description="nom nom" achievement="PermaLocked"/>
-    <trinket gfx="tasty_candy_3_trinket.png" name="Tasty Candy" description="nom nom nom" achievement="PermaLocked"/>
-    <trinket gfx="tasty_candy_4_trinket.png" name="Tasty Candy" description="nom nom nom nom" achievement="PermaLocked"/>
-    <trinket gfx="tasty_candy_5_trinket.png" name="Tasty Candy" description="nom nom nom nom nom" achievement="TastyCandyUnlock"/>
+    
 
 </items>    

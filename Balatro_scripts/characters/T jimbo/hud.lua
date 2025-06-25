@@ -111,7 +111,7 @@ mod:AddCallback(ModCallbacks.MC_PRE_MINIMAP_RENDER, CancelMinimapHUD)
 --rendere the player's current hand below them
 ---@param Player EntityPlayer
 local function JimboHandRender(_,_,_,_,_,Player)
-    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo or not mod.Saved.Player[0] then
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo or not mod.Saved.Player[1] then
         return
     end
 
@@ -277,7 +277,7 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, JimboHandRender)
 local ScaleMult = 1
 ---@param Player EntityPlayer
 local function JimboPlayedHandRender(_,_,_,_,_,Player)
-    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo or not mod.Saved.Player[0] then
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo or not mod.Saved.Player[1] then
         return
     end
 

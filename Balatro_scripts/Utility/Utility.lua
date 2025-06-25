@@ -1294,7 +1294,7 @@ function mod:SellJoker(Player, Slot, Multiplier)
         Player:AddCoins(SellValue)
     end
 
-    mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..SellValue.."$")
+    mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..SellValue.."$", mod.EffectType.ENTITY)
 
 
     --Isaac.RunCallback("INVENTORY_CHANGE", Player)
@@ -1347,7 +1347,7 @@ function mod:SellConsumable(Player)
 
     local SellValue = mod:GetConsumableCost(mod:FrameToSpecialCard(CardToSell.Card), CardToSell.Edition, true)
 
-    mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..SellValue.."$")
+    mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..SellValue.."$", mod.EffectType.ENTITY)
     Player:AddCoins(SellValue)
 
     table.remove(PlayerConsumables, 1)
@@ -2972,7 +2972,7 @@ function mod:Select(Player)
 
             mod:AddCardToDeck(Player, SelectedCard, 1, true)
 
-            mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, nil, "Added!",mod.Packs.STANDARD)
+            mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Added!", mod.EffectType.ENTITY)
 
         elseif TruePurpose == mod.SelectionParams.Purposes.BuffonPack then
 
@@ -2999,7 +2999,7 @@ function mod:Select(Player)
 
             table.remove(mod.SelectionParams[PIndex].PackOptions, mod.SelectionParams[PIndex].Index)
             mod.SelectionParams[PIndex].OptionsNum = mod.SelectionParams[PIndex].OptionsNum - 1
-            mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "1 more!",mod.Vouchers.MagicTrick)
+            mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "1 more!",mod.EffectType.ENTITY)
             return
         end
         if mod.SelectionParams[PIndex].Purpose & mod.SelectionParams.Purposes.MegaFlag == mod.SelectionParams.Purposes.MegaFlag 

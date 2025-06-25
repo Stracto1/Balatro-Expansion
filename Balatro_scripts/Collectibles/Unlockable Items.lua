@@ -1949,6 +1949,25 @@ mod:AddCallback(ModCallbacks.MC_POST_FIRE_BRIMSTONE, PocketAcesTrigger)
 mod:AddCallback(ModCallbacks.MC_POST_FIRE_BRIMSTONE_BALL, PocketAcesTrigger)
 
 
+--idk if its normal to need this but oh well
+local function EvaluateOnCandySmelt(_,_,_, Player)
+
+    local HasCandy = false
+    for i = 1, mod.TastyCandyNum do
+        if Player:HasTrinket(mod.Trinkets.TASTY_CANDY[i]) then
+            HasCandy = true
+            break
+        end
+    end
+    if HasCandy then
+        Player:AddCacheFlags(CacheFlag.CACHE_SPEED, true)
+    end
+
+end
+mod:AddCallback(ModCallbacks.MC_USE_ITEM, EvaluateOnCandySmelt, CollectibleType.COLLECTIBLE_SMELTER)
+
+
+---@param Player EntityPlayer
 local function StatEvaluation(_,Player, Cache)
 
     if not mod.GameStarted then
@@ -1995,8 +2014,24 @@ local function StatEvaluation(_,Player, Cache)
     if Player:HasTrinket(mod.Jokers.JOKER) then
         if  Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
             
-            Player.Damage = Player.Damage + 1.2 * Player:GetTrinketMultiplier(mod.Jokers.JOKER)
+            Player.Damage = Player.Damage + 1 * Player:GetTrinketMultiplier(mod.Jokers.JOKER)
         end
+    end
+
+    if  Cache & CacheFlag.CACHE_SPEED == CacheFlag.CACHE_SPEED then
+
+        print("speed")
+        local Trinkets = Player:GetSmeltedTrinkets()
+
+
+        for i,Candy in ipairs(mod.Trinkets.TASTY_CANDY) do
+            local CandyAmounts = Trinkets[Candy]
+
+            local ExtraSpeed = (CandyAmounts.trinketAmount + CandyAmounts.goldenTrinketAmount) * 0.03 * i
+
+            Player.MoveSpeed = Player.MoveSpeed + ExtraSpeed
+        end
+
     end
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, StatEvaluation)

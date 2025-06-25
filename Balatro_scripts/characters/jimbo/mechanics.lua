@@ -256,7 +256,7 @@ function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rN
 
     local ReturnTable = {Variant, SubType, true} --basic return equal to not returning anything
 
-    local RollRNG = RNG(Game:GetRoom():GetSpawnSeed()) --tried using the rng from the callback but it gave the same results each time
+    local RollRNG = Game:GetPlayer(0):GetTrinketRNG(mod.Jokers.JOKER) --tried using the rng from the callback but it gave the same results each time
 
 
     if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType)
@@ -369,6 +369,7 @@ function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rN
 
         local RandomJoker = mod:RandomJoker(RollRNG, true, false, false)
 
+        print(RandomJoker.Joker)
         ReturnTable = {PickupVariant.PICKUP_TRINKET, RandomJoker.Joker ,false}
 
         mod.Saved.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(RandomJoker.Joker).Name] = RandomJoker.Edition
@@ -892,17 +893,17 @@ function mod:GiveRewards(BlindType)
                 if BlindType == mod.BLINDS.SMALL then
                     
                     Player:AddCoins(4)
-                    mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+4 $",0)
+                    mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+4 $", mod.EffectType.ENTITY)
                     --Isaac.RunCallback("BLIND_STARTED", mod.BLINDS.BIG)
 
                 elseif BlindType == mod.BLINDS.BIG then
                     Player:AddCoins(5)
-                    mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+5 $",0)
+                    mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+5 $", mod.EffectType.ENTITY)
                     --Isaac.RunCallback("BLIND_STARTED", mod.BLINDS.BOSS)
                     
                 elseif BlindType == mod.BLINDS.BOSS then
                     Player:AddCoins(6)
-                    mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+6 $",0)
+                    mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+6 $", mod.EffectType.ENTITY)
     
                 end
             end, 15,1, true)
@@ -927,7 +928,7 @@ function mod:GiveRewards(BlindType)
 
             --Balatro_Expansion:EffectConverter(8,0,Jimbo,4) a relic from old times
         end
-        mod:CreateBalatroEffect(Jimbo,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+"..tostring(Interests).." $",0)
+        mod:CreateBalatroEffect(Jimbo,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+"..tostring(Interests).." $", mod.EffectType.ENTITY)
     end, 30, 1, true)
 
 
@@ -981,8 +982,9 @@ function mod:JimboTrinketPool(_, RNG)
         return
     end
 
+    local Joker = mod:RandomJoker(RNG, true, false, false).Joker
 
-    return mod:RandomJoker(RNG, true, false, false).Joker
+    return Joker
 end
 mod:AddCallback(ModCallbacks.MC_GET_TRINKET, mod.JimboTrinketPool)
 
