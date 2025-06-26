@@ -5,8 +5,11 @@ local Game = Game()
 --local FirtsEffect = true --to prevent errors (was used for EntityEffects)
 
 local EffectAnimations = Sprite("gfx/ActivateAnimation.Anm2")
+EffectAnimations:SetFrame("Idle", 0)
 
-local AnimLength = EffectAnimations:GetAnimationData("idle"):GetLength()
+--local AnimLength = EffectAnimations:GetAnimationData("idle"):GetLength()
+local AnimLength = 27
+local MaxAnimFrames = 30
 
 local FIRST_EFFECT_POS = Vector(10,225)
 local EFFECT_SLOT_DISTANCE = Vector(23, 0)
@@ -42,11 +45,11 @@ local sfx = SFXManager()
 --(both sound and graphics can be turend off in MOD CONFIG MENU)
 --initially this system was based on EntityEffects but i had many problems regarding lighting and the screen=>world coordinate conversion
 
-local StackedEffects = 0
 --here Position colud be an entity, in that case 
 
-function mod:CreateBalatroEffect(Position, Colour, Sound, Text, EffectType)--Source, Offset, Volume)
+function mod:CreateBalatroEffect(Position, Colour, Sound, Text, EffectType, Speed)--Source, Offset, Volume)
 
+    Speed = Speed or 1
     EffectType = EffectType or mod.EffectType.NULL
     local IsEntity = EffectType == mod.EffectType.ENTITY
     local EffectSlot = Position
@@ -63,8 +66,6 @@ function mod:CreateBalatroEffect(Position, Colour, Sound, Text, EffectType)--Sou
 
         if EffectType == Params.Type
            and Params.Type ~= mod.EffectType.ENTITY then --entities effects are delayed only if the same entity has more than one effect
-
-            StackedEffects = StackedEffects + 1
 
             Isaac.CreateTimer(function()
                             mod:CreateBalatroEffect(Position, Colour, Sound, Text, EffectType)--Source, Offset, Volume)
@@ -124,7 +125,7 @@ function mod:CreateBalatroEffect(Position, Colour, Sound, Text, EffectType)--Sou
         mod.Counters.Activated[Position] = 0
     end
 
-
+    EffectParams[EffectSlot].Speed = Speed
     EffectParams[EffectSlot].Frames = 0
     EffectParams[EffectSlot].Color = Colour
     EffectParams[EffectSlot].Text = Text
@@ -134,12 +135,82 @@ function mod:CreateBalatroEffect(Position, Colour, Sound, Text, EffectType)--Sou
 
 
     if Sound then
-        sfx:Play(Sound, 1, 2, false, 0.95 + math.random()*0.1 + 0.05*StackedEffects)
+        sfx:Play(Sound, 1, 2, false, 0.95 + math.random()*0.1 + mod:Lerp(0, 2, (Speed-1)/2))
     end
     --print("created")
 end
 
 
+local function EffectFramesToScale(Frames)
+
+    return Vector.One * mod:Lerp(0, 1, Frames/AnimLength)
+end
+
+local function EffectFramesToAlpha(Frames)
+
+    return mod:ExponentLerp(1, 0, Frames/AnimLength, 4)
+end
+
+
+function mod:RenderEffect(_,_,_,_,_)
+
+    for Slot, Params in pairs(EffectParams) do
+
+        --local Sprite = EffectAnimations[Params.Color]
+        
+        --print(" Render frame: "..tostring(Params.Frames))
+        local Sprite = EffectAnimations
+
+        Sprite.Color = Params.Color
+        Sprite.Scale = EffectFramesToScale(Params.Frames)
+        Sprite.Color.A = EffectFramesToAlpha(Params.Frames)
+
+        local RenderPos
+        if Params.Type == mod.EffectType.ENTITY then
+
+            local Entity = Params.Position.Ref
+
+            if Entity:Exists() then
+                RenderPos = Isaac.WorldToScreen(Params.Position.Ref.Position) + Params.Offset
+            else
+                EffectParams[Slot] = nil
+                return
+            end
+        else
+            RenderPos = Params.Position + Params.Offset
+        end
+
+        Sprite.Rotation = Params.Rotation
+
+        Sprite:Render(RenderPos)
+        local TextWidthOff = mod.Fonts.Balatro:GetStringWidth(Params.Text) /2
+        local LineHeightOff = mod.Fonts.Balatro:GetBaselineHeight() / 2
+        if Params.Frames < AnimLength-2 then
+            mod.Fonts.Balatro:DrawString(Params.Text, RenderPos.X - TextWidthOff + 0.5, RenderPos.Y -LineHeightOff + 0.5, KColor(0.6,0.6,0.6,0.7),0,true) -- emulates little text shadow
+            mod.Fonts.Balatro:DrawString(Params.Text, RenderPos.X - TextWidthOff, RenderPos.Y - LineHeightOff, KColor(1,1,1,1),0,true)
+
+        end        
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.RenderEffect)
+
+
+function mod:Increaseframes()
+    for Slot, _ in pairs(EffectParams) do
+        if EffectParams[Slot].Frames < AnimLength then
+            EffectParams[Slot].Frames = math.min(EffectParams[Slot].Frames + EffectParams[Slot].Speed, MaxAnimFrames)
+        else
+            EffectParams[Slot] = nil
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_HUD_RENDER, mod.Increaseframes)
+
+
+
+
+
+--[[
 function mod:RenderEffect(_,_,_,_,_)
 
     for Slot, Params in pairs(EffectParams) do
@@ -208,7 +279,7 @@ function mod:PackParticleHelper(Player, _)
     end
 end
 mod:AddCallback("PACK_OPENED", mod.PackParticleHelper)
-
+]]
 
 
 ---@param Effect EntityEffect

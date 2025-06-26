@@ -59,7 +59,7 @@ local DECK_RENDERING_POSITION = Vector(110,15) --in screen coordinates
 local HAND_RENDERING_POSITION = Vector(40,30) --in screen coordinates
 local INVENTORY_RENDERING_POSITION = Vector(10,258)
 
-local INVENTORY_COOP_OFFSET = {[0]=Vector(0,0), [1]=Vector(-10,0)}
+local INVENTORY_COOP_OFFSET = {[0]=Vector(-10,0), [1]=Vector(0,0)}
 
 --local DECK_RENDERING_POSITION = Isaac.WorldToRenderPosition(Isaac.ScreenToWorld(Vector(760,745)))
 
@@ -102,7 +102,7 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
 
     HeartSprite.Offset = PIndex == 1 and Vector(-35,0) or Vector.Zero
 
-    local PlayerRenderMult = -2*(PIndex%2) + 1
+    local PlayerRenderMult = 2*(PIndex%2) - 1
 
     TrinketSprite.Scale = ScaleMult
 
@@ -110,7 +110,7 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
     if IsCoop then
         BasePos = HeartPosition + INVENTORY_COOP_OFFSET[PIndex%2]
 
-        if PIndex%2 == 0 then --adds heart offset
+        if PIndex%2 == 1 then --adds heart offset
             BasePos = BasePos + (Game:GetLevel():GetCurses()&LevelCurse.CURSE_OF_THE_UNKNOWN ~= 0 and Vector(15,0) or (math.min(12,Player:GetEffectiveMaxHearts())* Vector(5,0))) * PlayerRenderMult
         
         else --adds offset if player has an active

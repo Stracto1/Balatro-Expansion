@@ -175,11 +175,11 @@
     <!--KEEP THIS THE LAST TRINKET BEFORE TASTY CANDY-->
     <!-- mayyybe i could've used a monkey paw-like system shared among players to memorise the candy stages but this is just so much easier-->
     <!-- along with that monkey paw is flawed since it uses a single variable to store every single trinket's state, causing misallignments between them if abused-->
-    <trinket cache="speed" gfx="tasty_candy_1_trinket.png" name="Tasty Candy" description="nom" achievement="PermaLocked"/>
-    <trinket cache="speed" gfx="tasty_candy_2_trinket.png" name="Tasty Candy" description="nom nom" achievement="PermaLocked"/>
-    <trinket cache="speed" gfx="tasty_candy_3_trinket.png" name="Tasty Candy" description="nom nom nom" achievement="PermaLocked"/>
-    <trinket cache="speed" gfx="tasty_candy_4_trinket.png" name="Tasty Candy" description="nom nom nom nom" achievement="PermaLocked"/>
-    <trinket cache="speed" gfx="tasty_candy_5_trinket.png" name="Tasty Candy" description="nom nom nom nom nom" achievement="TastyCandyUnlock"/>
+    <trinket gfx="tasty_candy_1_trinket.png" name="Tasty Candy" description="nom" achievement="PermaLocked"/>
+    <trinket gfx="tasty_candy_2_trinket.png" name="Tasty Candy" description="nom nom" achievement="PermaLocked"/>
+    <trinket gfx="tasty_candy_3_trinket.png" name="Tasty Candy" description="nom nom nom" achievement="PermaLocked"/>
+    <trinket gfx="tasty_candy_4_trinket.png" name="Tasty Candy" description="nom nom nom nom" achievement="PermaLocked"/>
+    <trinket gfx="tasty_candy_5_trinket.png" name="Tasty Candy" description="nom nom nom nom nom" achievement="TastyCandyUnlock"/>
 
     <active id="0" name="The hand" chargetype="special" maxcharges="0" quality="2" craftquality="2" gfx="the_hand_active.png" description="Need a hand?"/>
     

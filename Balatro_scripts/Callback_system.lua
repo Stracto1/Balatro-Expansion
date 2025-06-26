@@ -31,30 +31,28 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, PlayerIndexUpdate)
 
 function mod:OnGameStart(Continued)
 
-    if Continued then
+    if Continued and mod:HasData()then
 
-        if mod:HasData() then
-            mod.Saved = json.decode(mod:LoadData()) --restores every saved progress from the last run
+        mod.Saved = json.decode(mod:LoadData()) --restores every saved progress from the last run
 
-            --mod.ItemManager:LoadData(mod.Saved.HiddenItemsData)
+        --mod.ItemManager:LoadData(mod.Saved.HiddenItemsData)
 
+        --also restores the invisible collectibles added previously
+        for _,Player in ipairs(PlayerManager.GetPlayers()) do
 
-            --also restores the invisible collectibles added previously
-            for _,Player in ipairs(PlayerManager.GetPlayers()) do
+            local PIndex = Player:GetData().TruePlayerIndex
+            if not PIndex then
+                PlayerIndexUpdate(Player)
+                PIndex = Player:GetData().TruePlayerIndex
+            end
 
-                local PIndex = Player:GetData().TruePlayerIndex
-                if not PIndex then
-                    PlayerIndexUpdate(Player)
-                    PIndex = Player:GetData().TruePlayerIndex
-                end
-
-                for _,Group in pairs(mod.Saved.Player[PIndex].InnateItems or {}) do
-                    for _,Item in ipairs(Group) do
-                        Player:AddInnateCollectible(Item)
-                    end
+            for _,Group in pairs(mod.Saved.Player[PIndex].InnateItems or {}) do
+                for _,Item in ipairs(Group) do
+                    Player:AddInnateCollectible(Item)
                 end
             end
         end
+        
     else
 
         mod.Saved.ShowmanRemovedItems = {}

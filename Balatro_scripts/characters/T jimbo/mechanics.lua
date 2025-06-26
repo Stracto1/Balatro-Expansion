@@ -573,6 +573,8 @@ function mod:ActivateCurrentHand(Player)
         return
     end
 
+    mod.AnimationIsPlaying = true
+
     local PIndex = Player:GetData().TruePlayerIndex
 
     local TargetPosition
@@ -677,6 +679,7 @@ function mod:ActivateCurrentHand(Player)
                                and (not Enemy:IsDead() or not Enemy:HasMortalDamage()) then
                                 
                                 AllDead = false
+                                break
                             end
                         end
 
@@ -790,6 +793,8 @@ function mod:SetupForNextHandPlay(Player)
     mod.Saved.Player[PIndex].MultValue = 0
 
     mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams.Purposes.HAND)
+
+    mod.AnimationIsPlaying = false
 end
 mod:AddPriorityCallback(mod.Callbalcks.POST_HAND_PLAY, CallbackPriority.LATE, mod.SetupForNextHandPlay)
 

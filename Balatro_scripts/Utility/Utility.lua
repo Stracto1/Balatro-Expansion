@@ -279,6 +279,11 @@ function mod:ExponentLerp(a, b, t, exp)
     return a + (b - a) * t^exp
 end
 
+function mod:SmootherLerp(a,b,t)
+
+    return a + (b - a) * (t^3 * (t*(6*t - 15) + 10))
+end
+
 
 function mod:VectorLerp(vec1, vec2, percent)
     percent = mod:Clamp(math.abs(percent), 1,0)

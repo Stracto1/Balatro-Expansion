@@ -20,9 +20,22 @@ local YORIK_VALUE_FLAG = 63 --111111 00..
 
 
 local NumEffectPlayed = 0 --used to dealy the effects accordingly (resets to 0 after everything is done)
+local CurrentInterval = 19
+
+local function ResetEffects()
+    NumEffectPlayed = 0
+    CurrentInterval = 19
+end
+
+local function NumEffectsToSpeed(NumEffects)
+    return mod:SmootherLerp(1, 3, math.min(NumEffects/75,1))
+end
 
 local function IntervalTime(NumEffects)
-    return 19 + 18*NumEffects
+    --return 19 + 18*NumEffects
+    CurrentInterval = CurrentInterval + math.floor(18*NumEffectsToSpeed(NumEffects))
+
+    return CurrentInterval
 end
 
 local function GeneralBalatroEffect(PIndex, Colour, Sound, Text, EffectType, Index)
@@ -44,7 +57,7 @@ local function GeneralBalatroEffect(PIndex, Colour, Sound, Text, EffectType, Ind
                 mod.Counters.Activated[EffectType] = 0
             end
 
-            mod:CreateBalatroEffect(Position, Colour, Sound, Text, EffectType)
+            mod:CreateBalatroEffect(Position, Colour, Sound, Text, EffectType, NumEffectsToSpeed(NumEffectPlayed))
         end
         
     end, IntervalTime(NumEffectPlayed),1,true)
@@ -73,7 +86,7 @@ local function IncreaseChips(PIndex, Amount, EffectType, Index)
                 mod.Counters.Activated[EffectType] = 0
             end
 
-            mod:CreateBalatroEffect(Position, mod.EffectColors.BLUE, mod.Sounds.CHIPS, "+"..tostring(Amount), EffectType)
+            mod:CreateBalatroEffect(Position, mod.EffectColors.BLUE, mod.Sounds.CHIPS, "+"..tostring(Amount), EffectType, NumEffectsToSpeed(NumEffectPlayed))
         end
         
     end, IntervalTime(NumEffectPlayed),1,true)
@@ -104,7 +117,7 @@ local function IncreaseMult(PIndex, Amount, EffectType, Index)
                 mod.Counters.Activated[EffectType] = 0
             end
 
-            mod:CreateBalatroEffect(Position, mod.EffectColors.RED, mod.Sounds.ADDMULT, "+"..tostring(Amount), EffectType)
+            mod:CreateBalatroEffect(Position, mod.EffectColors.RED, mod.Sounds.ADDMULT, "+"..tostring(Amount), EffectType, NumEffectsToSpeed(NumEffectPlayed))
         end
         
     end, IntervalTime(NumEffectPlayed),1,true)
@@ -133,7 +146,7 @@ local function MultiplyMult(PIndex, Amount, EffectType, Index)
                 mod.Counters.Activated[EffectType] = 0
             end
 
-            mod:CreateBalatroEffect(Position, mod.EffectColors.RED, mod.Sounds.TIMESMULT, "X"..tostring(Amount), EffectType)
+            mod:CreateBalatroEffect(Position, mod.EffectColors.RED, mod.Sounds.TIMESMULT, "X"..tostring(Amount), EffectType, NumEffectsToSpeed(NumEffectPlayed))
         end
         
     end, IntervalTime(NumEffectPlayed),1,true)
@@ -164,7 +177,7 @@ local function AddMoney(Player, Amount, EffectType, Index)
                 mod.Counters.Activated[EffectType] = 0
             end
 
-            mod:CreateBalatroEffect(Position, mod.EffectColors.YELLOW, mod.Sounds.TIMESMULT, "+"..tostring(Amount).."$", EffectType)
+            mod:CreateBalatroEffect(Position, mod.EffectColors.YELLOW, mod.Sounds.TIMESMULT, "+"..tostring(Amount).."$", EffectType, NumEffectsToSpeed(NumEffectPlayed))
         end
         
     end, IntervalTime(NumEffectPlayed),1,true)
@@ -1052,10 +1065,10 @@ function mod:ScoreHand(Player)
 --------------------------------------------
 
     Isaac.CreateTimer(function ()
-        NumEffectPlayed = 0
+        ResetEffects()
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.AIMING)
     
-        --mod.AnimationIsPlaying = false
+        mod.AnimationIsPlaying = false
     end, IntervalTime(NumEffectPlayed), 1, true)
 end
 mod:AddCallback(mod.Callbalcks.HAND_PLAY, mod.ScoreHand)
@@ -1229,7 +1242,7 @@ local function OnBlindClear(_,BlindType)
 
             IncreaseJokerProgress(PIndex, ProgressIndex, 1)
 
-            local Progress = mod.Saved.Player[PIndex].Progress.Inventory[Index]
+            local Progress = mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex]
 
             
             if Progress < 2 then --still charging
@@ -1263,7 +1276,7 @@ local function OnBlindClear(_,BlindType)
                        RandomVector()*3, Player, RandomTarot, RandomSeed)
 
             
-            mod:CreateBalatroEffect(mod.JokerFullPosition[Index],mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Tarot!",mod.Jokers.CARTOMANCER)
+            mod:CreateBalatroEffect(mod.JokerFullPosition[JokerIndex],mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Tarot!",mod.Jokers.CARTOMANCER)
 
         elseif Joker == mod.Jokers.EGG then
 
