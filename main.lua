@@ -188,9 +188,11 @@ Balatro_Expansion.INFINITE_HANDS = -1
 Balatro_Expansion.Callbalcks = {CARD_SHOT = "CARD_SHOT",
                                 CARD_HIT = "CARD_HIT",
                                 DISCARD = "HAND_DISCARD",
+                                CARD_DISCARD = "CARD_DISCARD",
                                 JOKER_SOLD = "JOKER_SOLD",
                                 BLIND_CLEAR = "BLIND_CLEARED",
                                 BLIND_START = "BLIND_STARTED",
+                                POST_BLIND_START = "POST_BLIND_STARTED",
                                 BLIND_SKIP = "BLIND_SKIPPED",
                                 PACK_OPEN = "PACK_OPENED",
                                 PACK_SKIP = "PACK_SKIPPED",
@@ -469,6 +471,7 @@ Balatro_Expansion.HandTypes.FIVE = 1 << 10
 Balatro_Expansion.HandTypes.FLUSH_HOUSE = 1 << 11
 Balatro_Expansion.HandTypes.FIVE_FLUSH = 1 << 12
 Balatro_Expansion.HandTypes.ROYAL_FLUSH = 1 << 13
+--Balatro_Expansion.HandTypes.NUM_HANDS = 12
 
 
 Balatro_Expansion.Tears = {}

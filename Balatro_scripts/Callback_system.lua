@@ -376,18 +376,18 @@ function mod:InitJimboValues(Player, Force)
                                               [mod.HandTypes.FIVE_FLUSH] = Vector(160, 16)}
 
         mod.Saved.Player[PIndex].HandsUsed = {[mod.HandTypes.HIGH_CARD] = 0,
-                                      [mod.HandTypes.PAIR] = 0,
-                                      [mod.HandTypes.TWO_PAIR] = 0,
-                                      [mod.HandTypes.THREE] = 0,
-                                      [mod.HandTypes.STRAIGHT] = 0,
-                                      [mod.HandTypes.FLUSH] = 0,
-                                      [mod.HandTypes.FULL_HOUSE] = 0,
-                                      [mod.HandTypes.FOUR] = 0,
-                                      [mod.HandTypes.STRAIGHT_FLUSH] = 0,
-                                      [mod.HandTypes.ROYAL_FLUSH] = 0,
-                                      [mod.HandTypes.FIVE] = 0,
-                                      [mod.HandTypes.FLUSH_HOUSE] = 0,
-                                      [mod.HandTypes.FIVE_FLUSH] = 0}
+                                              [mod.HandTypes.PAIR] = 0,
+                                              [mod.HandTypes.TWO_PAIR] = 0,
+                                              [mod.HandTypes.THREE] = 0,
+                                              [mod.HandTypes.STRAIGHT] = 0,
+                                              [mod.HandTypes.FLUSH] = 0,
+                                              [mod.HandTypes.FULL_HOUSE] = 0,
+                                              [mod.HandTypes.FOUR] = 0,
+                                              [mod.HandTypes.STRAIGHT_FLUSH] = 0,
+                                              [mod.HandTypes.ROYAL_FLUSH] = 0,
+                                              [mod.HandTypes.FIVE] = 0,
+                                              [mod.HandTypes.FLUSH_HOUSE] = 0,
+                                              [mod.HandTypes.FIVE_FLUSH] = 0}
         
 
     end

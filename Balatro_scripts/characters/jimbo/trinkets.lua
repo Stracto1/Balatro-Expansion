@@ -547,9 +547,25 @@ mod:AddCallback("CARD_HIT", mod.OnCardHit)
 
 function mod:OnHandDiscard(Player, AmountDiscarded)
 
+    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+        return
+    end
+
     local PIndex = Player:GetData().TruePlayerIndex
     local RandomSeed = Random()
     if RandomSeed == 0 then RandomSeed = 1 end --would crash the game otherwise
+
+    local DiscardedPointers = {}
+
+    for i = #mod.Saved.Player[PIndex].CurrentHand, 1, -1 do
+            
+        if mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND][i] then
+            DiscardedPointers[#DiscardedPointers+1] = mod.Saved.Player[PIndex].CurrentHand[i]
+        end
+    end
+
+    
+
     --cycles between all the held jokers
     for Index, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
 
@@ -945,13 +961,12 @@ function mod:OnBlindClear(BlindType)
 
             if not Copied and BlindType ~= mod.BLINDS.BOSS then
 
-                
                 mod.Saved.Player[PIndex].Progress.Inventory[Index] = mod.Saved.Player[PIndex].Progress.Inventory[Index] + 0.1
 
                 mod:CreateBalatroEffect(mod.JokerFullPosition[Index], mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+0.1X",mod.EffectType.JOKER)
             
                 local Removable = {}
-                for i, v in ipairs(mod.Saved.Player[PIndex].Inventory.Jokers) do
+                for i, v in ipairs(mod.Saved.Player[PIndex].Inventory) do
                     if i ~= Index and v.Joker ~= 0 then --any joker other than this one
                         table.insert(Removable, i)
                     end
@@ -1215,7 +1230,7 @@ function mod:OnPackOpened(Player,Pack)
                 local TrinketRNG = Player:GetTrinketRNG(mod.Jokers.HALLUCINATION)
             if TrinketRNG:RandomFloat() < 0.5 then
 
-                local RandomTarot = TrinketRNG:RandomInt(Card.CARD_FOOL, Card.CARD_WORLD)
+                local RandomTarot = mod:RandomTarot(TrinketRNG, false, false)
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
                            RandomVector()*3, Player, RandomTarot, RandomSeed)
 
@@ -1956,7 +1971,7 @@ function mod:OnNewRoomJokers()
                     end
                     
                     if next(ValidCards) then
-                        RandomCard = mod.Saved.Player[PIndex].FullDeck[RoomRNG:RandomInt(1,#ValidCards)]
+                        RandomCard = mod.Saved.Player[PIndex].FullDeck[mod:GetRandom(ValidCards, RoomRNG)]
                         Suit = RandomCard.Suit
                         Value = RandomCard.Value
                     else

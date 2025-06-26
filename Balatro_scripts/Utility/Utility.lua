@@ -2333,19 +2333,29 @@ function mod:RefillHand(Player)
     local PIndex = Player:GetData().TruePlayerIndex
     local DeckSize = #mod.Saved.Player[PIndex].FullDeck - 1
 
+    local DeckFinished = false
+    local Delay = 0
+
     for i = #mod.Saved.Player[PIndex].CurrentHand, Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) - 1 do
 
         if mod.Saved.Player[PIndex].DeckPointer > DeckSize then
             
-            return false
+            DeckFinished = true
+            break
         end
         
-        table.insert(mod.Saved.Player[PIndex].CurrentHand, mod.Saved.Player[PIndex].DeckPointer)
+        Isaac.CreateTimer(function ()
+            table.insert(mod.Saved.Player[PIndex].CurrentHand, mod.Saved.Player[PIndex].DeckPointer)
+            sfx:Play(mod.Sounds.SELECT)
 
-        mod.Saved.Player[PIndex].DeckPointer = mod.Saved.Player[PIndex].DeckPointer + 1
+            mod.Saved.Player[PIndex].DeckPointer = mod.Saved.Player[PIndex].DeckPointer + 1
+
+        end, Delay, 1, true)
+        
+        Delay = Delay + 4
     end
 
-    return true
+    return Delay, DeckFinished
 end
 
 
@@ -3385,10 +3395,7 @@ function mod:DiscardSelection(Player)
 
     local PIndex = Player:GetData().TruePlayerIndex
 
-    if mod.SelectionParams[PIndex].SelectionNum <= 0 then
-        print("choose something dog!")
-        return
-    end
+
 
     local CurrentMode = mod.SelectionParams[PIndex].Mode
     local CurrentPurpose = mod.SelectionParams[PIndex].Purpose
@@ -3400,15 +3407,34 @@ function mod:DiscardSelection(Player)
 
     if CurrentMode == mod.SelectionParams.Modes.HAND 
        and CurrentPurpose == mod.SelectionParams.Purposes.HAND then
+
+        if mod.SelectionParams[PIndex].SelectionNum <= 0 then
+            print("choose something dog!")
+            return
+        end
+
+        local CurrentDelay = Isaac.RunCallback(mod.Callbalcks.DISCARD, Player, mod.SelectionParams[PIndex].SelectionNum)
         
         for i = #mod.Saved.Player[PIndex].CurrentHand, 1, -1 do
             
             if HandSelectedCards[i] then
-                table.remove(mod.Saved.Player[PIndex].CurrentHand, i)
+
+                CurrentDelay = CurrentDelay + 2
+                CurrentDelay = Isaac.RunCallback(mod.Callbalcks.CARD_DISCARD, Player, mod.Saved.Player[PIndex].CurrentHand[i])
+
+                Isaac.CreateTimer(function ()
+                    
+                    table.remove(mod.Saved.Player[PIndex].CurrentHand, i)
+                    
+                    sfx:Play(mod.Sounds.DESELECT)
+                end, CurrentDelay, 1, true)
+                
             end
         end
 
-        mod:RefillHand(Player)
+        Isaac.CreateTimer(function ()
+            mod:RefillHand(Player)
+        end, CurrentDelay+2, 1, true)
     end
 
 

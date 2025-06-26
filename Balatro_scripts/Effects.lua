@@ -118,11 +118,10 @@ function mod:CreateBalatroEffect(Position, Colour, Sound, Text, EffectType, Spee
         
         EffectParams[EffectSlot].Position = EntityPtr(Position)
         EffectParams[EffectSlot].Offset = Vector(0,20)
+
     else
         EffectParams[EffectSlot].Position = Position
         EffectParams[EffectSlot].Offset = Vector(0,-30)
-
-        mod.Counters.Activated[Position] = 0
     end
 
     EffectParams[EffectSlot].Speed = Speed

@@ -780,7 +780,7 @@ function mod:SetupForNextHandPlay(Player)
 
     Player:AddCustomCacheTag(mod.CustomCache.HAND_SIZE, true)
     
-    local DeckFinished = mod:RefillHand(Player)
+    local Delay, DeckFinished = mod:RefillHand(Player)
 
 
     
@@ -794,6 +794,9 @@ function mod:SetupForNextHandPlay(Player)
 
     mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams.Purposes.HAND)
 
+    Isaac.CreateTimer(function ()
+        
+    end, Delay, )
     mod.AnimationIsPlaying = false
 end
 mod:AddPriorityCallback(mod.Callbalcks.POST_HAND_PLAY, CallbackPriority.LATE, mod.SetupForNextHandPlay)
@@ -882,8 +885,12 @@ local function OnBlindButtonPressed(_, VarData)
                                     TimerFixerVariable = TimerFixerVariable + 1
 
                                 elseif TimerFixerVariable == 1 then
-                                    Isaac.RunCallback(mod.Callbalcks.BLIND_START, VarData)
+                                    local Interval = Isaac.RunCallback(mod.Callbalcks.BLIND_START, VarData)
                                     TimerFixerVariable = 0
+
+                                    Isaac.CreateTimer(function ()
+                                        Isaac.RunCallback(mod.Callbalcks.POST_BLIND_START, VarData)
+                                    end, Interval, 1, true)
                                 end
 
                             end, 7, 2, true)
@@ -896,8 +903,12 @@ local function OnBlindButtonPressed(_, VarData)
                                     TimerFixerVariable = TimerFixerVariable + 1
 
                                 elseif TimerFixerVariable == 1 then
-                                    Isaac.RunCallback(mod.Callbalcks.BLIND_START, VarData)
+                                    local Interval = Isaac.RunCallback(mod.Callbalcks.BLIND_START, VarData)
                                     TimerFixerVariable = 0
+
+                                    Isaac.CreateTimer(function ()
+                                        Isaac.RunCallback(mod.Callbalcks.POST_BLIND_START, VarData)
+                                    end, Interval, 1, true)
                                 end
 
                             end, 7, 2, true)
@@ -910,9 +921,12 @@ local function OnBlindButtonPressed(_, VarData)
                                     TimerFixerVariable = TimerFixerVariable + 1
 
                                 elseif TimerFixerVariable == 1 then
-                                    Isaac.RunCallback(mod.Callbalcks.BLIND_START, VarData)
+                                    local Interval = Isaac.RunCallback(mod.Callbalcks.BLIND_START, VarData)
                                     TimerFixerVariable = 0
 
+                                    Isaac.CreateTimer(function ()
+                                        Isaac.RunCallback(mod.Callbalcks.POST_BLIND_START, VarData)
+                                    end, Interval, 1, true)
                                 end
 
                             end, 7, 2, true)
@@ -938,7 +952,7 @@ local function OnBlindStart(_, BlindData)
     end
 
 end
-mod:AddPriorityCallback(mod.Callbalcks.BLIND_START, CallbackPriority.IMPORTANT, OnBlindStart)
+mod:AddCallback(mod.Callbalcks.POST_BLIND_START, OnBlindStart)
 
 
 local function OnBlindSkip(_, BlindType)
