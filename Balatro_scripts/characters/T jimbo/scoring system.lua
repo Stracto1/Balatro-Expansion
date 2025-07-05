@@ -20,142 +20,126 @@ local YORIK_VALUE_FLAG = 63 --111111 00..
 
 
 local NumEffectPlayed = 0 --used to dealy the effects accordingly (resets to 0 after everything is done)
-local CurrentInterval = 17
+local CurrentInterval = 16
 
 local function ResetEffects(BaseInterval)
     NumEffectPlayed = 0
-    CurrentInterval = BaseInterval or 17
+    CurrentInterval = BaseInterval or 16
 end
 
 local function NumEffectsToSpeed(NumEffects)
     return mod:SmootherLerp(1, 3, math.min(NumEffects/75,1))
 end
 
-local function IntervalTime(NumEffects)
-    --return 19 + 18*NumEffects
-    CurrentInterval = CurrentInterval + math.ceil(16*NumEffectsToSpeed(NumEffects))
 
-    return CurrentInterval
+local function IncreaseInterval(Amount)
+
+    CurrentInterval = CurrentInterval + math.ceil(Amount/NumEffectsToSpeed(NumEffectPlayed))
 end
 
-local function GeneralBalatroEffect(PIndex, Colour, Sound, Text, EffectType, Index)
 
-        Isaac.CreateTimer(function ()
+local function IntervalTime(NumEffects, SpeedMult)
+
+    local OldInteval = CurrentInterval + 0
+
+    CurrentInterval = CurrentInterval + math.ceil(16/(NumEffectsToSpeed(NumEffects)*SpeedMult))
+
+    return OldInteval
+end
+
+local function GeneralBalatroEffect(Player, PIndex, Colour, Sound, Text, EffectType, Index, SpeedMult)
+
+    SpeedMult = SpeedMult or 1
+
+    Isaac.CreateTimer(function ()
         
         if EffectType then
-            local Position
 
-            if EffectType == mod.EffectType.HAND then
-                Position = mod.LastCardFullPoss[Index] + EFFECT_CARD_OFFSET
-            elseif EffectType == mod.EffectType.JOKER then
-                Position = mod.JokerFullPosition[Index] + EFFECT_JOKER_OFFSET
-            elseif EffectType == mod.EffectType.ENTITY then
-                Position = Index
-            elseif EffectType ~= mod.EffectType.NULL then --HAND_FROM_JOKER
-                
-                Position = mod.LastCardFullPoss[Index] + EFFECT_CARD_OFFSET
-                mod.Counters.Activated[EffectType] = 0
-            end
-
-            mod:CreateBalatroEffect(Position, Colour, Sound, Text, EffectType, NumEffectsToSpeed(NumEffectPlayed))
+            mod:CreateBalatroEffect(Index, Colour, Sound, Text, EffectType, Player, NumEffectsToSpeed(NumEffectPlayed) * SpeedMult)
         end
         
-    end, IntervalTime(NumEffectPlayed),1,true)
+    end, IntervalTime(NumEffectPlayed, SpeedMult),1,true)
 
     NumEffectPlayed = NumEffectPlayed + 1
 end
 
-local function IncreaseChips(PIndex, Amount, EffectType, Index)
+local function IncreaseChips(Player, PIndex, Amount, EffectType, Index, SpeedMult)
+
+    if Amount <= 0 then
+        return
+    end
+
+    SpeedMult = SpeedMult or 1
 
     Isaac.CreateTimer(function ()
 
         mod.Saved.Player[PIndex].ChipsValue = mod.Saved.Player[PIndex].ChipsValue + Amount
         
         if EffectType then
-            local Position
 
-            if EffectType == mod.EffectType.HAND then
-                Position = mod.LastCardFullPoss[Index] + EFFECT_CARD_OFFSET
-            elseif EffectType == mod.EffectType.JOKER then
-                Position = mod.JokerFullPosition[Index] + EFFECT_JOKER_OFFSET
-            elseif EffectType == mod.EffectType.ENTITY then
-                Position = Index
-            elseif EffectType ~= mod.EffectType.NULL then --HAND_FROM_JOKER
-                
-                Position = mod.LastCardFullPoss[Index] + EFFECT_CARD_OFFSET
-                mod.Counters.Activated[EffectType] = 0
-            end
-
-            mod:CreateBalatroEffect(Position, mod.EffectColors.BLUE, mod.Sounds.CHIPS, "+"..tostring(Amount), EffectType, NumEffectsToSpeed(NumEffectPlayed))
+            mod:CreateBalatroEffect(Index, mod.EffectColors.BLUE, mod.Sounds.CHIPS,
+                                    "+"..tostring(Amount), EffectType, Player, NumEffectsToSpeed(NumEffectPlayed) * SpeedMult)
         end
         
-    end, IntervalTime(NumEffectPlayed),1,true)
+    end, IntervalTime(NumEffectPlayed, SpeedMult),1,true)
 
     NumEffectPlayed = NumEffectPlayed + 1
 end
 
 
-local function IncreaseMult(PIndex, Amount, EffectType, Index)
+local function IncreaseMult(Player, PIndex, Amount, EffectType, Index, SpeedMult)
+
+    if Amount <= 0 then
+        return
+    end
+
+    SpeedMult = SpeedMult or 1
 
     Isaac.CreateTimer(function ()
 
         mod.Saved.Player[PIndex].MultValue = mod.Saved.Player[PIndex].MultValue + Amount
         
         if EffectType then
-            local Position
 
-            if EffectType == mod.EffectType.HAND then
-                Position = mod.LastCardFullPoss[Index] + EFFECT_CARD_OFFSET
-            elseif EffectType == mod.EffectType.JOKER then
-                Position = mod.JokerFullPosition[Index] + EFFECT_JOKER_OFFSET
-            elseif EffectType == mod.EffectType.ENTITY then
-                Position = Index
-            
-            elseif EffectType ~= mod.EffectType.NULL then --HAND_FROM_JOKER
-                
-                Position = mod.LastCardFullPoss[Index] + EFFECT_CARD_OFFSET
-                mod.Counters.Activated[EffectType] = 0
-            end
-
-            mod:CreateBalatroEffect(Position, mod.EffectColors.RED, mod.Sounds.ADDMULT, "+"..tostring(Amount), EffectType, NumEffectsToSpeed(NumEffectPlayed))
+            mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ADDMULT, "+"..tostring(Amount), EffectType, Player, NumEffectsToSpeed(NumEffectPlayed) * SpeedMult)
         end
         
-    end, IntervalTime(NumEffectPlayed),1,true)
+    end, IntervalTime(NumEffectPlayed, SpeedMult),1,true)
 
     NumEffectPlayed = NumEffectPlayed + 1
 end
 
-local function MultiplyMult(PIndex, Amount, EffectType, Index)
+local function MultiplyMult(Player, PIndex, Amount, EffectType, Index, SpeedMult)
+
+    print(Amount)
+    if Amount <= 1 then
+        return
+    end
+
+    SpeedMult = SpeedMult or 1
 
     Isaac.CreateTimer(function ()
 
         mod.Saved.Player[PIndex].MultValue = mod.Saved.Player[PIndex].MultValue * Amount
         
         if EffectType then
-            local Position
 
-            if EffectType == mod.EffectType.HAND then
-                Position = mod.LastCardFullPoss[Index] + EFFECT_CARD_OFFSET
-            elseif EffectType == mod.EffectType.JOKER then
-                Position = mod.JokerFullPosition[Index] + EFFECT_JOKER_OFFSET
-            elseif EffectType == mod.EffectType.ENTITY then
-                Position = Index
-            elseif EffectType ~= mod.EffectType.NULL then --HAND_FROM_JOKER
-                
-                Position = mod.LastCardFullPoss[Index] + EFFECT_CARD_OFFSET
-                mod.Counters.Activated[EffectType] = 0
-            end
-
-            mod:CreateBalatroEffect(Position, mod.EffectColors.RED, mod.Sounds.TIMESMULT, "X"..tostring(Amount), EffectType, NumEffectsToSpeed(NumEffectPlayed))
+            mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.TIMESMULT, "X"..tostring(Amount), EffectType, Player, NumEffectsToSpeed(NumEffectPlayed) * SpeedMult)
         end
         
-    end, IntervalTime(NumEffectPlayed),1,true)
+    end, IntervalTime(NumEffectPlayed, SpeedMult),1,true)
 
     NumEffectPlayed = NumEffectPlayed + 1
 end
 
 ---@param Player EntityPlayer
-local function AddMoney(Player, Amount, EffectType, Index)
+local function AddMoney(Player, Amount, EffectType, Index, SpeedMult)
+
+    if Amount <= 0 then
+        return
+    end
+
+    SpeedMult = SpeedMult or 1
 
     Isaac.CreateTimer(function ()
 
@@ -163,24 +147,11 @@ local function AddMoney(Player, Amount, EffectType, Index)
         Player:AddCoins(Amount)
         
         if EffectType then
-            local Position
 
-            if EffectType == mod.EffectType.HAND then
-                Position = mod.LastCardFullPoss[Index] + EFFECT_CARD_OFFSET
-            elseif EffectType == mod.EffectType.JOKER then
-                Position = mod.JokerFullPosition[Index] + EFFECT_JOKER_OFFSET
-            elseif EffectType == mod.EffectType.ENTITY then
-                Position = Index
-            elseif EffectType ~= mod.EffectType.NULL then --HAND_FROM_JOKER
-                
-                Position = mod.LastCardFullPoss[Index] + EFFECT_CARD_OFFSET
-                mod.Counters.Activated[EffectType] = 0
-            end
-
-            mod:CreateBalatroEffect(Position, mod.EffectColors.YELLOW, mod.Sounds.TIMESMULT, "+"..tostring(Amount).."$", EffectType, NumEffectsToSpeed(NumEffectPlayed))
+            mod:CreateBalatroEffect(Index, mod.EffectColors.YELLOW, mod.Sounds.TIMESMULT, "+"..tostring(Amount).."$", EffectType, Player, NumEffectsToSpeed(NumEffectPlayed) * SpeedMult)
         end
         
-    end, IntervalTime(NumEffectPlayed),1,true)
+    end, IntervalTime(NumEffectPlayed, SpeedMult),1,true)
 
     NumEffectPlayed = NumEffectPlayed + 1
 end
@@ -192,12 +163,36 @@ local function IncreaseJokerProgress(PIndex, JokerIndex, Amount, IncreaseEffects
 
         mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex] = mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex] + Amount
         
-    end, IntervalTime(NumEffectPlayed),1,true)
+    end, CurrentInterval,1,true)
 
     if IncreaseEffectsNum then
         NumEffectPlayed = NumEffectPlayed + 1
     end
 end
+
+
+local function AddCashoutString(Name, Money, Type)
+
+    if Money <= 0 then
+        return
+    end
+
+    --print(CurrentInterval)
+
+    Isaac.CreateTimer(function ()
+        
+        mod.ScreenStrings.CashOut[#mod.ScreenStrings.CashOut+1] = {Name = Name, String = tostring(Money).."$", StartFrame = Isaac.GetFrameCount(), Type = Type}
+
+    end, CurrentInterval, 1, true)
+
+
+    IncreaseInterval(52)
+
+end
+
+
+
+
 
 
 ---@param Player EntityPlayer
@@ -208,17 +203,9 @@ local function TriggerCard(Player, CardPointer, CardIndex)
     local PIndex = Player:GetData().TruePlayerIndex
     local Card = mod.Saved.Player[PIndex].FullDeck[CardPointer]
 
-    local HasPareidolia = mod:JimboHasTrinket(Player, mod.Jokers.PAREIDOLIA)
-    local HasShowman = mod:JimboHasTrinket(Player, mod.Jokers.SHOWMAN)
-
-    if mod.Saved.Player[PIndex].FullDeck[CardPointer].Modifiers & mod.Modifier.DEBUFFED ~= 0 then
+    if Card.Modifiers & mod.Modifier.DEBUFFED ~= 0 then
         
-        Isaac.CreateTimer(function ()
-            mod:CreateBalatroEffect(mod.LastCardFullPoss[CardPointer] + EFFECT_CARD_OFFSET, mod.EffectColors.PURPLE, SoundEffect.SOUND_BLOOD_LASER, "Debuffed!", mod.EffectType.HAND)
-    
-        end, IntervalTime(NumEffectPlayed),1,true)
-
-        NumEffectPlayed = NumEffectPlayed + 1
+        GeneralBalatroEffect(Player, PIndex, mod.EffectColors.PURPLE, mod.Sounds.CLOWN_HONK, "Debuffed!", mod.EffectType.HAND, CardPointer)
 
         return
     end
@@ -262,34 +249,34 @@ local function TriggerCard(Player, CardPointer, CardIndex)
             
             if 2^CardIndex == mod:GetBitMaskMin(mod.SelectionParams[PIndex].ScoringCards) then
                 TriggersLeft = TriggersLeft + 2
-                table.insert(TriggerCauses, 1, mod.EffectType.HAND_FROM_JOKER & JokerIndex)
-                table.insert(TriggerCauses, 1, mod.EffectType.HAND_FROM_JOKER & JokerIndex)
+                table.insert(TriggerCauses, 1, mod.EffectType.HAND_FROM_JOKER | JokerIndex)
+                table.insert(TriggerCauses, 1, mod.EffectType.HAND_FROM_JOKER | JokerIndex)
             end
 
         elseif Joker == mod.Jokers.HACK then
 
             if Card.Value <= 5 and Card.Value ~= 1 then
                 TriggersLeft = TriggersLeft + 1
-                table.insert(TriggerCauses, 1, mod.EffectType.HAND_FROM_JOKER & JokerIndex)
+                table.insert(TriggerCauses, 1, mod.EffectType.HAND_FROM_JOKER | JokerIndex)
             end
 
         elseif Joker == mod.Jokers.SOCK_BUSKIN then
 
             if mod:IsValue(Player, Card, mod.Values.FACE) then
                 TriggersLeft = TriggersLeft + 1
-                table.insert(TriggerCauses, 1, mod.EffectType.HAND_FROM_JOKER & JokerIndex)
+                table.insert(TriggerCauses, 1, mod.EffectType.HAND_FROM_JOKER | JokerIndex)
             end
 
         elseif Joker == mod.Jokers.SELTZER then
 
             TriggersLeft = TriggersLeft + 1
-            table.insert(TriggerCauses, 1, mod.EffectType.HAND_FROM_JOKER & JokerIndex)
+            table.insert(TriggerCauses, 1, mod.EffectType.HAND_FROM_JOKER | JokerIndex)
 
         elseif Joker == mod.Jokers.DUSK then
 
-            if mod.Saved.Player[PIndex].HandsRemaining == 1 then --LAST HAND
+            if mod.Saved.Player[PIndex].HandsRemaining == 0 then --LAST HAND
                 TriggersLeft = TriggersLeft + 1
-                table.insert(TriggerCauses, 1, mod.EffectType.HAND_FROM_JOKER & JokerIndex)
+                table.insert(TriggerCauses, 1, mod.EffectType.HAND_FROM_JOKER | JokerIndex)
             end
 
         end
@@ -316,16 +303,16 @@ local function TriggerCard(Player, CardPointer, CardIndex)
 
         BaseChips = BaseChips + 1 * Card.Upgrades --HIKER EFFECT
 
-        IncreaseChips(PIndex, mod:GetActualCardValue(Card.Value), mod.EffectType.HAND, CardPointer)
+        IncreaseChips(Player, PIndex, mod:GetActualCardValue(Card.Value), mod.EffectType.HAND, CardPointer)
 
 
         if Card.Enhancement == mod.Enhancement.MULT then
         
-        IncreaseMult(PIndex, 4, mod.EffectType.HAND, CardPointer)
+        IncreaseMult(Player, PIndex, 4, mod.EffectType.HAND, CardPointer)
 
         elseif Card.Enhancement == mod.Enhancement.GLASS then
 
-        MultiplyMult(PIndex, 2, mod.EffectType.HAND, CardPointer)
+        MultiplyMult(Player, PIndex, 2, mod.EffectType.HAND, CardPointer)
 
         elseif Card.Enhancement == mod.Enhancement.LUCKY then
 
@@ -333,12 +320,12 @@ local function TriggerCard(Player, CardPointer, CardIndex)
 
         if mod:TryGamble(Player, LuckyRNG, 0.2) then
 
-            IncreaseMult(PIndex, 20, mod.EffectType.HAND, CardPointer)
+            IncreaseMult(Player, PIndex, 20, mod.EffectType.HAND, CardPointer)
 
             for _, CatIndex in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.LUCKY_CAT, true)) do
                 IncreaseJokerProgress(PIndex, CatIndex, 0,25)
 
-                GeneralBalatroEffect(PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+0.25X", mod.EffectType.JOKER, CatIndex)
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+0.25X", mod.EffectType.JOKER, CatIndex)
             end
         end
 
@@ -348,7 +335,7 @@ local function TriggerCard(Player, CardPointer, CardIndex)
             for _, CatIndex in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.LUCKY_CAT, true)) do
                 IncreaseJokerProgress(PIndex, CatIndex, 0,25)
 
-                GeneralBalatroEffect(PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+0.25X", mod.EffectType.JOKER, CatIndex)
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+0.25X", mod.EffectType.JOKER, CatIndex)
             end
         end
         end
@@ -356,15 +343,15 @@ local function TriggerCard(Player, CardPointer, CardIndex)
 
         if Card.Edition == mod.Edition.FOIL then
         
-        IncreaseChips(PIndex, 50, mod.EffectType.HAND, CardPointer)
+        IncreaseChips(Player, PIndex, 50, mod.EffectType.HAND, CardPointer)
 
         elseif Card.Edition == mod.Edition.HOLOGRAPHIC then
         
-        IncreaseMult(PIndex, 10, mod.EffectType.HAND, CardPointer)
+        IncreaseMult(Player, PIndex, 10, mod.EffectType.HAND, CardPointer)
 
         elseif Card.Edition == mod.Edition.FOIL then
         
-        MultiplyMult(PIndex, 1.5, mod.EffectType.HAND, CardPointer)
+        MultiplyMult(Player, PIndex, 1.5, mod.EffectType.HAND, CardPointer)
         end
 
         -------------ON TRIGGER JOKERS-------------
@@ -398,33 +385,33 @@ local function TriggerCard(Player, CardPointer, CardIndex)
             
             if Card.Enhancement ~= mod.Enhancement.STONE
                and Card.Value % 2 == 0 and Card.Value < mod.Values.JACK then
-                IncreaseMult(PIndex, 4, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                IncreaseMult(Player, PIndex, 4, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
             elseif Joker == mod.Jokers.ODDTODD then
             
             if Card.Enhancement ~= mod.Enhancement.STONE 
                and Card.Value % 2 == 1 and Card.Value < mod.Values.JACK then
-                IncreaseChips(PIndex, 31, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                IncreaseChips(Player, PIndex, 31, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
             elseif Joker == mod.Jokers.ONIX_AGATE then
             
             if mod:IsSuit(Player, Card, mod.Suits.Club) then
-                IncreaseMult(PIndex, 7, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                IncreaseMult(Player, PIndex, 7, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
             elseif Joker == mod.Jokers.ARROWHEAD then
             
             if mod:IsSuit(Player, Card, mod.Suits.Spade) then
-                IncreaseChips(PIndex, 30, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                IncreaseChips(Player, PIndex, 30, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
             elseif Joker == mod.Jokers.BLOODSTONE then
             
             if mod:IsSuit(Player, Card, mod.Suits.Heart)
                and mod:TryGamble(Player, Player:GetTrinketRNG(mod.Jokers.BLOODSTONE), 0.5) then
-                MultiplyMult(PIndex, 1.5, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                MultiplyMult(Player, PIndex, 1.5, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
             elseif Joker == mod.Jokers.ROUGH_GEM then
@@ -436,69 +423,43 @@ local function TriggerCard(Player, CardPointer, CardIndex)
             elseif Joker == mod.Jokers.LUSTY_JOKER then
             
             if mod:IsSuit(Player, Card, mod.Suits.Heart) then
-                IncreaseMult(PIndex, 3, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                IncreaseMult(Player, PIndex, 3, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
             elseif Joker == mod.Jokers.WRATHFUL_JOKER then
             
             if mod:IsSuit(Player, Card, mod.Suits.Spade) then
-                IncreaseMult(PIndex, 3, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                IncreaseMult(Player, PIndex, 3, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
             elseif Joker == mod.Jokers.GREEDY_JOKER then
             
             if mod:IsSuit(Player, Card, mod.Suits.Diamond) then
-                IncreaseMult(PIndex, 3, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                IncreaseMult(Player, PIndex, 3, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
             elseif Joker == mod.Jokers.GLUTTONOUS_JOKER then
             
             if mod:IsSuit(Player, Card, mod.Suits.Club) then
-                IncreaseMult(PIndex, 3, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                IncreaseMult(Player, PIndex, 3, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
             elseif Joker == mod.Jokers._8_BALL then
             
-            if Card.Value == 8 and Card.Enhancement ~= mod.Enhancement.STONE
-               and mod:TryGamble(Player, Player:GetTrinketRNG(mod.Jokers._8_BALL), 0.25) then
-                
-                local EmptySlot 
-                for i,Slot in ipairs(mod.Saved.Player[PIndex].Consumables) do
-                    
-                    if Slot.Card == -1 then
-                        EmptySlot = i
-                        break
-                    end
-                end
+                local BallRNG = Player:GetTrinketRNG(mod.Jokers._8_BALL)
 
-                if EmptySlot then
+                if mod:IsValue(Player, Card, 8) and Card.Enhancement ~= mod.Enhancement.STONE
+                   and mod:TryGamble(Player, BallRNG, 0.25) then
 
-                    local PossibleTarots = {}
-                    
-                    for i = 1, 22 do --every tarot
+                    local RandomTarot = mod:RandomTarot(BallRNG, false, false)
 
-                        local HasCard = false
+                    local Success = mod:TJimboAddConsumable(Player, RandomTarot, 0, true)
 
-                        for _,Consumable in ipairs(mod.Saved.Player[PIndex].Consumables) do
-                            if Consumable.Card == i then
-                                HasCard = true
-                                break
-                            end
-                        end
-
-                        if not HasCard or HasShowman then
-                        
-                            PossibleTarots[i] = i
-                        end
+                    if Success then
+                        GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "+1 Tarot!", mod.EffectType.JOKER, JokerIndex)
                     end
 
-                    local RandomTarot = mod:GetRandom(PossibleTarots)
-
-                    mod.Saved.Player[PIndex].Consumables[EmptySlot].Card = mod:SpecialCardToFrame(RandomTarot())
-                    GeneralBalatroEffect(PIndex, mod.EffectColors, mod.Sounds.HAND_FROM_JOKER | JokerIndex, "+1 Tarot!", mod.EffectType.JOKER, JokerIndex)
-
                 end
-            end
 
 
             elseif Joker == mod.Jokers.FIBONACCI then
@@ -507,7 +468,7 @@ local function TriggerCard(Player, CardPointer, CardIndex)
                and Card.Enhancement ~= mod.Enhancement.STONE
                and mod:IsFibonacciNumber(Card.Value) then
 
-                IncreaseMult(PIndex, 8, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                IncreaseMult(Player, PIndex, 8, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
 
@@ -515,7 +476,7 @@ local function TriggerCard(Player, CardPointer, CardIndex)
             
             if mod:IsValue(Player, Card, mod.Values.FACE) then
 
-                IncreaseChips(PIndex, 30, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                IncreaseChips(Player, PIndex, 30, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
 
@@ -523,8 +484,8 @@ local function TriggerCard(Player, CardPointer, CardIndex)
             
             if mod:IsValue(Player, Card, 1) then
 
-                IncreaseMult(PIndex, 4, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
-                IncreaseChips(PIndex, 20, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                IncreaseMult(Player, PIndex, 4, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                IncreaseChips(Player, PIndex, 20, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
 
@@ -554,7 +515,7 @@ local function TriggerCard(Player, CardPointer, CardIndex)
                 end
 
                 if IsFirstFace then
-                    MultiplyMult(PIndex, 2, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                    MultiplyMult(Player, PIndex, 2, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
                 end
             end
 
@@ -562,15 +523,15 @@ local function TriggerCard(Player, CardPointer, CardIndex)
             
             if mod:IsSuit(Player, Card, mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex]) then
 
-                MultiplyMult(PIndex, 1.5, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                MultiplyMult(Player, PIndex, 1.5, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
             elseif Joker == mod.Jokers.WALKIE_TALKIE then
             
             if mod:IsValue(Player, Card, 4) or mod:IsValue(Player, Card, 10) then
 
-                IncreaseMult(PIndex, 4, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
-                IncreaseChips(PIndex, 10, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                IncreaseMult(Player, PIndex, 4, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                IncreaseChips(Player, PIndex, 10, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
         
@@ -585,7 +546,7 @@ local function TriggerCard(Player, CardPointer, CardIndex)
             
             if mod:IsValue(Player, Card, mod.Values.FACE) then
 
-                IncreaseMult(PIndex, 5, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                IncreaseMult(Player, PIndex, 5, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
             elseif Joker == mod.Jokers.WEE_JOKER then
@@ -595,7 +556,7 @@ local function TriggerCard(Player, CardPointer, CardIndex)
                 if not Copied then
                     IncreaseJokerProgress(PIndex, ProgressIndex, 8)
                 end
-                GeneralBalatroEffect(PIndex, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, "Upgrade!", mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, "Upgrade!", mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
 
@@ -606,7 +567,7 @@ local function TriggerCard(Player, CardPointer, CardIndex)
             if mod:IsValue(Player, Card, IdolPrigress & VALUE_FLAG)
                and mod:IsSuit(Player, Card, IdolPrigress & SUIT_FLAG) then
 
-                MultiplyMult(PIndex, 2, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                MultiplyMult(Player, PIndex, 2, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
 
@@ -617,7 +578,7 @@ local function TriggerCard(Player, CardPointer, CardIndex)
             if mod:IsValue(Player, Card, IdolPrigress & VALUE_FLAG)
                and mod:IsSuit(Player, Card, IdolPrigress & SUIT_FLAG) then
 
-                MultiplyMult(PIndex, 2, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                MultiplyMult(Player, PIndex, 2, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
             end
 
         
@@ -633,14 +594,14 @@ local function TriggerCard(Player, CardPointer, CardIndex)
 
         if Card.Seal == mod.Seals.GOLDEN then
 
-            AddMoney(Player, 1, mod.EffectType.HAND, CardPointer)
+            AddMoney(Player, 3, mod.EffectType.HAND, CardPointer)
         end
 
         if TriggerCauses[TriggersLeft] == mod.EffectType.HAND then --red seal
-            GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Again!", mod.EffectType.HAND, CardPointer)
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Again!", mod.EffectType.HAND, CardPointer)
         
-        elseif TriggerCauses[TriggersLeft] ~= mod.EffectType.NULL then --red seal
-            GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Again!", mod.EffectType.JOKER, TriggerCauses[TriggersLeft])
+        elseif TriggerCauses[TriggersLeft] ~= mod.EffectType.NULL then --any joker
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Again!", mod.EffectType.JOKER, TriggerCauses[TriggersLeft])
         end
 
         TriggersLeft = TriggersLeft - 1
@@ -649,6 +610,108 @@ local function TriggerCard(Player, CardPointer, CardIndex)
     until TriggersLeft <= 0
 
     --return NumEffects
+end
+
+
+local function HeldCardEffect(Player, CardPointer, CardIndex, LowestPointer)
+
+    local PIndex = Player:GetData().TruePlayerIndex
+    local Card = mod.Saved.Player[PIndex].FullDeck[CardPointer]
+
+    if Card.Modifiers & mod.Modifier.DEBUFFED ~= 0 then
+        
+        return
+    end
+
+
+
+    local TriggersLeft = 1
+    local TriggerCauses = {mod.EffectType.NULL}
+
+    if Card.Seal == mod.Seals.RED then
+        TriggersLeft = TriggersLeft + 1
+        table.insert(TriggerCauses, 1, mod.EffectType.HAND)
+    end
+
+    for _,MimeIndex in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.MIME)) do
+        
+        TriggersLeft = TriggersLeft + 1
+        table.insert(TriggerCauses, 1, mod.EffectType.HAND_FROM_JOKER | MimeIndex)
+    end
+
+    repeat
+
+        for JokerIndex, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+
+            local Joker = Slot.Joker
+
+            local ProgressIndex = JokerIndex + 0
+            local Copied = false
+            if Joker == mod.Jokers.BLUEPRINT or Joker == mod.Jokers.BRAINSTORM then
+
+                Joker = mod.Saved.Player[PIndex].Inventory[mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex]]
+                Joker = Joker and Joker.Joker or 0
+
+                --print("should be copiyng: "..tostring(mod.Saved.Player[PIndex].Inventory[mod.Saved.Player[PIndex].Progress.Inventory[Index]].Joker))
+                --print("copy "..tostring(Joker).." at "..tostring(mod.Saved.Player[PIndex].Progress.Inventory[Index]))
+
+                ProgressIndex = mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex]
+
+                Copied = true
+            end
+
+            if Joker == 0 then
+                goto SKIP_SLOT
+            end
+
+
+            if Joker == mod.Jokers.RAISED_FIST then
+
+                if CardPointer == LowestPointer then
+
+                    IncreaseMult(Player, PIndex, 2*mod:GetCardActualValue(Card.Value), mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                end
+
+
+            elseif Joker == mod.Jokers.SHOOT_MOON then
+
+                if mod:IsValue(Player, Card, mod.Values.QUEEN) then
+
+                    IncreaseMult(Player, PIndex, 13, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                end
+
+
+            elseif Joker == mod.Jokers.BARON then
+
+                if mod:IsValue(Player, Card, mod.Values.KING) then
+
+                    MultiplyMult(Player, PIndex, 1.5, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                end
+
+            elseif Joker == mod.Jokers.RESERVED_PARK then
+
+                if mod:IsValue(Player, Card, mod.Values.FACE) 
+                   and Player:GetTrinketRNG(mod.Jokers.RESERVED_PARK):RandomFloat() <= 0.5 then
+
+                    AddMoney(Player, 1, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                end
+            end
+
+
+
+            ::SKIP_SLOT::
+        end
+
+        if TriggerCauses[TriggersLeft] == mod.EffectType.HAND then --red seal
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Again!", mod.EffectType.HAND, CardPointer)
+        
+        elseif TriggerCauses[TriggersLeft] ~= mod.EffectType.NULL then --red seal
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Again!", mod.EffectType.JOKER, TriggerCauses[TriggersLeft])
+        end
+
+        TriggersLeft = TriggersLeft - 1
+
+    until TriggersLeft <= 0
 end
 
 
@@ -698,21 +761,19 @@ function mod:ScoreHand(Player)
 
         if Joker == mod.Jokers.RUNNER then
             
-            if CompatibleHands & mod.HandTypes.STRAIGHT ~= 0 then
+            if CompatibleHands & mod.HandFlags.STRAIGHT ~= 0 then
                 IncreaseJokerProgress(PIndex, ProgressIndex, 15)
 
-                GeneralBalatroEffect(PIndex, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, "+15", mod.EffectType.JOKER, ProgressIndex)
-
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, "+15", mod.EffectType.JOKER, ProgressIndex)
             end
 
         elseif Joker == mod.Jokers.SUPERPOSISION then
             
-            if CompatibleHands & mod.HandTypes.STRAIGHT ~= 0 then
-
-                local HasAce = false
+            if CompatibleHands & mod.HandFlags.STRAIGHT ~= 0 then
 
                 for i,Pointer in ipairs(mod.SelectionParams[PIndex].PlayedCards) do
 
+                    --searches for an ace
                     if mod:IsValue(Player, mod.Saved.Player[PIndex].FullDeck[Pointer], 1) then
 
                         local TarotRNG = Player:GetTrinketRNG(mod.Jokers.SUPERPOSISION)
@@ -722,12 +783,29 @@ function mod:ScoreHand(Player)
                         local Success = mod:TJimboAddConsumable(Player, RandomTarot, 0, true)
 
                         if Success then
-                            GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "+1 Tarot!", mod.EffectType.JOKER, JokerIndex)
+                            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "+1 Tarot!", mod.EffectType.JOKER, JokerIndex)
                         end
 
                         break
                     end
                 end
+            end
+
+        elseif Joker == mod.Jokers.SEANCE then
+            
+            if CompatibleHands & mod.HandFlags.STRAIGHT_FLUSH ~= 0 then
+
+                local SpectralRNG = Player:GetTrinketRNG(mod.Jokers.SEANCE)
+
+                local RandomSpectral = mod:RandomTarot(SpectralRNG, false, false)
+
+                local Success = mod:TJimboAddConsumable(Player, RandomSpectral, 0, true)
+
+                if Success then
+                    GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "+1 Spectral!", mod.EffectType.JOKER, JokerIndex)
+                end
+
+                break
             end
 
         elseif Joker == mod.Jokers.TO_DO_LIST then
@@ -754,7 +832,7 @@ function mod:ScoreHand(Player)
                         mod.Saved.Player[PIndex].FullDeck[Pointer].Enhancement = mod.Enhancement.NONE
                     end, CurrentInterval, 1, true)
 
-                    CurrentInterval = CurrentInterval + 2
+                    IncreaseInterval(6)
 
                     NumSucked = NumSucked + 1
 
@@ -764,15 +842,46 @@ function mod:ScoreHand(Player)
 
             if NumSucked > 0 then
                 IncreaseJokerProgress(PIndex, JokerIndex, 0.1*NumSucked)
-                GeneralBalatroEffect(PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "Upgrade!", mod.EffectType.JOKER, JokerIndex)
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "Upgrade!", mod.EffectType.JOKER, JokerIndex)
             end
+
+            Isaac.RunCallback(mod.Callbalcks.DECK_MODIFY, Player)
+
+        elseif Joker == mod.Jokers.MIDAS then
+
+            if Copied then
+                goto SKIP_SLOT
+            end
+        
+            for i,Pointer in ipairs(PlayedCards) do
+
+                if mod:IsValue(Player, mod.Saved.Player[PIndex].FullDeck[Pointer], mod.Values.FACE) then
+
+                    Isaac.CreateTimer(function ()
+                        mod.Saved.Player[PIndex].FullDeck[Pointer].Enhancement = mod.Enhancement.GOLDEN
+                    end, CurrentInterval, 1, true)
+
+                    IncreaseInterval(6)
+
+                    NumSucked = NumSucked + 1
+
+                    break
+                end
+            end
+
+            if NumSucked > 0 then
+                IncreaseJokerProgress(PIndex, JokerIndex, 0.1*NumSucked)
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "Golden!", mod.EffectType.JOKER, JokerIndex)
+            end
+
+            Isaac.RunCallback(mod.Callbalcks.DECK_MODIFY, Player)
 
         elseif Joker == mod.Jokers.SQUARE_JOKER then
             
             if #PlayedCards == 4 then
                 IncreaseJokerProgress(PIndex, ProgressIndex, 4)
 
-                GeneralBalatroEffect(PIndex, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, "+4", mod.EffectType.JOKER, ProgressIndex)
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, "+4", mod.EffectType.JOKER, ProgressIndex)
             end
 
         elseif Joker == mod.Jokers.GREEN_JOKER then
@@ -782,7 +891,7 @@ function mod:ScoreHand(Player)
             end
             
             IncreaseJokerProgress(PIndex, ProgressIndex, 4)
-            GeneralBalatroEffect(PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+1", mod.EffectType.JOKER, ProgressIndex)
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+1", mod.EffectType.JOKER, ProgressIndex)
 
 
         elseif Joker == mod.Jokers.RIDE_BUS then
@@ -805,11 +914,11 @@ function mod:ScoreHand(Player)
 
             if HasFace then
                 mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex] = 0
-                GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Reset!", mod.EffectType.JOKER, ProgressIndex)
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Reset!", mod.EffectType.JOKER, ProgressIndex)
 
             else
                 IncreaseJokerProgress(PIndex, ProgressIndex, 1)
-                GeneralBalatroEffect(PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+1", mod.EffectType.JOKER, ProgressIndex)
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+1", mod.EffectType.JOKER, ProgressIndex)
             end
 
         elseif Joker == mod.Jokers.OBELISK then
@@ -823,14 +932,40 @@ function mod:ScoreHand(Player)
             if mod.Saved.Player[PIndex].HandsUsed[HandType] >= TimesMostUsed then
                 
                 mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex] = 1
-                GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Reset!", mod.EffectType.JOKER, ProgressIndex)
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Reset!", mod.EffectType.JOKER, ProgressIndex)
 
             else
                 IncreaseJokerProgress(PIndex, ProgressIndex, 0.2)
-                GeneralBalatroEffect(PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+0.2Xs", mod.EffectType.JOKER, ProgressIndex)
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+0.2Xs", mod.EffectType.JOKER, ProgressIndex)
 
             end
 
+        elseif Joker == mod.Jokers.VAGABOND then
+            
+            if Player:GetNumCoins() <= 4 then
+
+                local TarotRNG = Player:GetTrinketRNG(mod.Jokers.SUPERPOSISION)
+
+                local RandomTarot = mod:RandomTarot(TarotRNG, false, false)
+
+                local Success = mod:TJimboAddConsumable(Player, RandomTarot, 0, true)
+
+                if Success then
+                    GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "+1 Tarot!", mod.EffectType.JOKER, JokerIndex)
+                end
+            end
+
+        elseif Joker == mod.Jokers.DNA then
+
+            if mod.Saved.Player[PIndex].HandsRemaining == Player:GetCustomCacheValue(mod.CustomCache.HAND_NUM) - 1
+               and #mod.SelectionParams[PIndex].PlayedCards == 1 then
+                
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Copied!", mod.EffectType.JOKER, JokerIndex)
+            
+                local CopyCard = mod.Saved.Player[PIndex].FullDeck[mod.SelectionParams[PIndex].PlayedCards[1]]
+
+                mod:AddCardToDeck(Player, CopyCard, 1, true)
+            end
         end
 
 
@@ -862,13 +997,36 @@ function mod:ScoreHand(Player)
 -----------------IN HAND EFFECTS------------------
 --------------------------------------------------
 
+    local LowestCardPointer = 0
 
+    do -----RAISED FIST-----
+    
+    local LowestValue = 15
+
+    for _,Pointer in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
+
+        if mod:GetActualCardValue(mod.Saved.Player[PIndex].FullDeck[Pointer].Value) <= LowestValue then
+
+            LowestValue = mod.Saved.Player[PIndex].FullDeck[Pointer].Value + 0
+            LowestCardPointer = Pointer
+        end
+    end
+
+    end
+
+    for Index,Pointer in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
+
+        HeldCardEffect(Player, Pointer, Index, LowestCardPointer)
+    end
 
 
 
 --------------------------------------------------
 ------------------JOKER SCORING-------------------
 --------------------------------------------------
+
+
+    local BaseballIndexes = mod:GetJimboJokerIndex(Player, mod.Jokers.BASEBALL)
 
     for JokerIndex, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
 
@@ -895,111 +1053,108 @@ function mod:ScoreHand(Player)
 
         if Joker == mod.Jokers.JOKER then
             
-            IncreaseMult(PIndex, 4, mod.EffectType.JOKER, JokerIndex)
+            IncreaseMult(Player, PIndex, 4, mod.EffectType.JOKER, JokerIndex)
 
         elseif Joker == mod.Jokers.GROS_MICHAEL then
             
-            IncreaseMult(PIndex, 15, mod.EffectType.JOKER, JokerIndex)
+            IncreaseMult(Player, PIndex, 15, mod.EffectType.JOKER, JokerIndex)
 
         elseif Joker == mod.Jokers.CAVENDISH then
             
-            MultiplyMult(PIndex, 1.5, mod.EffectType.JOKER, JokerIndex)
+            MultiplyMult(Player, PIndex, 1.5, mod.EffectType.JOKER, JokerIndex)
 
         elseif Joker == mod.Jokers.MISPRINT then
 
-            IncreaseMult(PIndex, Player:GetTrinketRNG(mod.Jokers.MISPRINT):RandomInt(0,23), mod.EffectType.JOKER, JokerIndex)
+            IncreaseMult(Player, PIndex, Player:GetTrinketRNG(mod.Jokers.MISPRINT):RandomInt(0,23), mod.EffectType.JOKER, JokerIndex)
 
         elseif Joker == mod.Jokers.JOLLY_JOKER then
 
-            if CompatibleHands & mod.HandTypes.PAIR ~= 0 then
-                IncreaseMult(PIndex, 8, mod.EffectType.JOKER, JokerIndex)
+            if CompatibleHands & mod.HandFlags.PAIR ~= 0 then
+                IncreaseMult(Player, PIndex, 8, mod.EffectType.JOKER, JokerIndex)
             end
         elseif Joker == mod.Jokers.ZANY_JOKER then
 
-            if CompatibleHands & mod.HandTypes.THREE ~= 0 then
-                IncreaseMult(PIndex, 12, mod.EffectType.JOKER, JokerIndex)
+            if CompatibleHands & mod.HandFlags.THREE ~= 0 then
+                IncreaseMult(Player, PIndex, 12, mod.EffectType.JOKER, JokerIndex)
             end
         elseif Joker == mod.Jokers.MAD_JOKER then
 
-            if CompatibleHands & mod.HandTypes.TWO_PAIR ~= 0 then
-                IncreaseMult(PIndex, 10, mod.EffectType.JOKER, JokerIndex)
+            if CompatibleHands & mod.HandFlags.TWO_PAIR ~= 0 then
+                IncreaseMult(Player, PIndex, 10, mod.EffectType.JOKER, JokerIndex)
             end
         elseif Joker == mod.Jokers.CRAZY_JOKER then
 
-            if CompatibleHands & mod.HandTypes.STRAIGHT ~= 0 then
-                IncreaseMult(PIndex, 12, mod.EffectType.JOKER, JokerIndex)
+            if CompatibleHands & mod.HandFlags.STRAIGHT ~= 0 then
+                IncreaseMult(Player, PIndex, 12, mod.EffectType.JOKER, JokerIndex)
             end
 
         elseif Joker == mod.Jokers.DROLL_JOKER then
 
-            if CompatibleHands & mod.HandTypes.FLUSH ~= 0 then
-                IncreaseMult(PIndex, 10, mod.EffectType.JOKER, JokerIndex)
+            if CompatibleHands & mod.HandFlags.FLUSH ~= 0 then
+                IncreaseMult(Player, PIndex, 10, mod.EffectType.JOKER, JokerIndex)
             end
 
         elseif Joker == mod.Jokers.SLY_JOKER then
 
-            if CompatibleHands & mod.HandTypes.PAIR ~= 0 then
-                IncreaseChips(PIndex, 80, mod.EffectType.JOKER, JokerIndex)
+            if CompatibleHands & mod.HandFlags.PAIR ~= 0 then
+                IncreaseChips(Player, PIndex, 80, mod.EffectType.JOKER, JokerIndex)
             end
         elseif Joker == mod.Jokers.WILY_JOKER then
 
-            if CompatibleHands & mod.HandTypes.THREE ~= 0 then
-                IncreaseChips(PIndex, 120, mod.EffectType.JOKER, JokerIndex)
+            if CompatibleHands & mod.HandFlags.THREE ~= 0 then
+                IncreaseChips(Player, PIndex, 120, mod.EffectType.JOKER, JokerIndex)
             end
         elseif Joker == mod.Jokers.CLEVER_JOKER then
 
-            if CompatibleHands & mod.HandTypes.TWO_PAIR ~= 0 then
-                IncreaseChips(PIndex, 100, mod.EffectType.JOKER, JokerIndex)
+            if CompatibleHands & mod.HandFlags.TWO_PAIR ~= 0 then
+                IncreaseChips(Player, PIndex, 100, mod.EffectType.JOKER, JokerIndex)
             end
         elseif Joker == mod.Jokers.DEVIOUS_JOKER then
 
-            if CompatibleHands & mod.HandTypes.STRAIGHT ~= 0 then
-                IncreaseChips(PIndex, 120, mod.EffectType.JOKER, JokerIndex)
+            if CompatibleHands & mod.HandFlags.STRAIGHT ~= 0 then
+                IncreaseChips(Player, PIndex, 120, mod.EffectType.JOKER, JokerIndex)
             end
 
         elseif Joker == mod.Jokers.CRAFTY_JOKER then
 
-            if CompatibleHands & mod.HandTypes.FLUSH ~= 0 then
-                IncreaseChips(PIndex, 100, mod.EffectType.JOKER, JokerIndex)
+            if CompatibleHands & mod.HandFlags.FLUSH ~= 0 then
+                IncreaseChips(Player, PIndex, 100, mod.EffectType.JOKER, JokerIndex)
             end
 
         elseif Joker == mod.Jokers.HALF_JOKER then
 
             if #mod.SelectionParams[PIndex].PlayedCards <= 3 then
-                IncreaseMult(PIndex, 20, mod.EffectType.JOKER, JokerIndex)
+                IncreaseMult(Player, PIndex, 20, mod.EffectType.JOKER, JokerIndex)
             end
 
         elseif Joker == mod.Jokers.BANNER then
 
             if mod.Saved.Player[PIndex].DiscardsRemaining > 0 then
-                IncreaseChips(PIndex, 30 * mod.Saved.Player[PIndex].DiscardsRemaining, mod.EffectType.JOKER, JokerIndex)
+                IncreaseChips(Player, PIndex, 30 * mod.Saved.Player[PIndex].DiscardsRemaining, mod.EffectType.JOKER, JokerIndex)
             end
 
         elseif Joker == mod.Jokers.MYSTIC_SUMMIT then
 
             if mod.Saved.Player[PIndex].DiscardsRemaining == 0 then
-                IncreaseMult(PIndex, 15, mod.EffectType.JOKER, JokerIndex)
+                IncreaseMult(Player, PIndex, 15, mod.EffectType.JOKER, JokerIndex)
             end
 
         elseif Joker == mod.Jokers.SUPERNOVA then
 
-            --PLACEHOLDER
-            if mod.Saved.Player[PIndex].DiscardsRemaining == 0 then
-                IncreaseMult(PIndex, 15, mod.EffectType.JOKER, JokerIndex)
-            end
+            IncreaseMult(Player, PIndex, mod.Saved.Player[PIndex].HandsUsed[HandType], mod.EffectType.JOKER, JokerIndex)
 
         elseif Joker == mod.Jokers.CARD_SHARP then
 
             --PLACEHOLDER
             if mod.Saved.Player[PIndex].DiscardsRemaining == 0 then
-                IncreaseMult(PIndex, 15, mod.EffectType.JOKER, JokerIndex)
+                IncreaseMult(Player, PIndex, 15, mod.EffectType.JOKER, JokerIndex)
             end
 
         elseif Joker == mod.Jokers.ACROBAT then
 
             --PLACEHOLDER
-            if mod.Saved.Player[PIndex].HandsRemaining == 1 then
-                IncreaseMult(PIndex, 15, mod.EffectType.JOKER, JokerIndex)
+            if mod.Saved.Player[PIndex].HandsRemaining == 0 then
+                IncreaseMult(Player, PIndex, 15, mod.EffectType.JOKER, JokerIndex)
             end
 
         elseif Joker == mod.Jokers.FLOWER_POT then
@@ -1024,7 +1179,7 @@ function mod:ScoreHand(Player)
 
             if HasSuit == mod.Suits.Diamond then --all the suits are held
             
-                MultiplyMult(PIndex, 3, mod.EffectType.JOKER, JokerIndex)
+                MultiplyMult(Player, PIndex, 3, mod.EffectType.JOKER, JokerIndex)
             end
 
 
@@ -1056,76 +1211,95 @@ function mod:ScoreHand(Player)
 
             if HasClub and HasNoClub then
 
-                MultiplyMult(PIndex, 2, mod.EffectType.JOKER, JokerIndex)
+                MultiplyMult(Player, PIndex, 2, mod.EffectType.JOKER, JokerIndex)
             end
 
         elseif Joker == mod.Jokers.DUO then
 
-            if CompatibleHands & mod.HandTypes.PAIR ~= 0 then
-                MultiplyMult(PIndex, 2, mod.EffectType.JOKER, JokerIndex)
+            if CompatibleHands & mod.HandFlags.PAIR ~= 0 then
+                MultiplyMult(Player, PIndex, 2, mod.EffectType.JOKER, JokerIndex)
             end
         
         elseif Joker == mod.Jokers.TRIO then
 
-            if CompatibleHands & mod.HandTypes.THREE ~= 0 then
-                MultiplyMult(PIndex, 3, mod.EffectType.JOKER, JokerIndex)
+            if CompatibleHands & mod.HandFlags.THREE ~= 0 then
+                MultiplyMult(Player, PIndex, 3, mod.EffectType.JOKER, JokerIndex)
             end
 
         elseif Joker == mod.Jokers.FAMILY then
 
-            if CompatibleHands & mod.HandTypes.FOUR ~= 0 then
-                MultiplyMult(PIndex, 4, mod.EffectType.JOKER, JokerIndex)
+            if CompatibleHands & mod.HandFlags.FOUR ~= 0 then
+                MultiplyMult(Player, PIndex, 4, mod.EffectType.JOKER, JokerIndex)
             end
 
         elseif Joker == mod.Jokers.ORDER then
 
-            if CompatibleHands & mod.HandTypes.STRAIGHT ~= 0 then
-                MultiplyMult(PIndex, 3, mod.EffectType.JOKER, JokerIndex)
+            if CompatibleHands & mod.HandFlags.STRAIGHT ~= 0 then
+                MultiplyMult(Player, PIndex, 3, mod.EffectType.JOKER, JokerIndex)
             end
 
         elseif Joker == mod.Jokers.TRIBE then
 
-            if CompatibleHands & mod.HandTypes.FLUSH ~= 0 then
-                MultiplyMult(PIndex, 2, mod.EffectType.JOKER, JokerIndex)
+            if CompatibleHands & mod.HandFlags.FLUSH ~= 0 then
+                MultiplyMult(Player, PIndex, 2, mod.EffectType.JOKER, JokerIndex)
             end
 
         elseif Joker == mod.Jokers.DRIVER_LICENSE then
 
             if mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] >= 16 then --counts the enhanced cards
-                MultiplyMult(PIndex, 3, mod.EffectType.JOKER, JokerIndex)
+                MultiplyMult(Player, PIndex, 3, mod.EffectType.JOKER, JokerIndex)
+            end
+
+        elseif Joker == mod.Jokers.BLACKBOARD then
+
+            local IsGood = true
+
+            for _,Pointer in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
+                
+                if not (mod:IsSuit(Player, mod.Saved.Player[PIndex].FullDeck[Pointer], mod.Suits.Spade)
+                        or mod:IsSuit(Player, mod.Saved.Player[PIndex].FullDeck[Pointer], mod.Suits.Club)) then
+                            
+                    IsGood = false
+                    break
+                end
+            end
+
+            if IsGood then
+                MultiplyMult(Player, PIndex, 3, mod.EffectType.JOKER, JokerIndex)
             end
 
         elseif Joker == mod.Jokers.YORICK then
 
-            local Mult = (mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] & ~YORIK_VALUE_FLAG)/(YORIK_VALUE_FLAG+1)
+            local Mult = 1 + (mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] // 23)
 
-            mod:IncreaseJimboStats(Player, 0, 0, Mult, false, false)
+            MultiplyMult(Player, PIndex, Mult, mod.EffectType.JOKER, JokerIndex)
 
         elseif Joker == mod.Jokers.CASTLE then
-            IncreaseChips(PIndex, (mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] & ~SUIT_FLAG)/SUIT_FLAG + 1, mod.EffectType.JOKER, JokerIndex)
+            IncreaseChips(Player, PIndex, (mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] & ~SUIT_FLAG)/SUIT_FLAG + 1, mod.EffectType.JOKER, JokerIndex)
 
         elseif Joker == mod.Jokers.LOYALTY_CARD then
             
             local Progress = mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex]
 
             if Progress == 0 then
-                MultiplyMult(PIndex, 4, mod.EffectType.JOKER, JokerIndex)
+                MultiplyMult(Player, PIndex, 4, mod.EffectType.JOKER, JokerIndex)
 
                 mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = 6
             end
 
         elseif Joker == mod.Jokers.BULL then
-            IncreaseChips(PIndex, Player:GetNumCoins()*2)
+            IncreaseChips(Player, PIndex, Player:GetNumCoins()*2)
 
         elseif Joker == mod.Jokers.BLUE_JOKER then
+
             local NumCards = #mod.Saved.Player[PIndex].FullDeck - mod.Saved.Player[PIndex].DeckPointer + 1
-            IncreaseChips(PIndex, NumCards*2, mod.EffectType.JOKER, JokerIndex)
+            IncreaseChips(Player, PIndex, NumCards*2, mod.EffectType.JOKER, JokerIndex)
 
         elseif Joker == mod.Jokers.BOOTSTRAP then
 
             local Mult = (Player:GetNumCoins()//5) * 2
 
-            IncreaseMult(PIndex, Mult, mod.EffectType.JOKER, JokerIndex)
+            IncreaseMult(Player, PIndex, Mult, mod.EffectType.JOKER, JokerIndex)
         
         elseif Joker == mod.Jokers.STONE_JOKER
             or Joker == mod.Jokers.ICECREAM
@@ -1133,7 +1307,7 @@ function mod:ScoreHand(Player)
             or Joker == mod.Jokers.SQUARE_JOKER
             or Joker == mod.Jokers.WEE_JOKER then
 
-            IncreaseChips(PIndex, mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex], mod.EffectType.JOKER, JokerIndex)
+            IncreaseChips(Player, PIndex, mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex], mod.EffectType.JOKER, JokerIndex)
 
         elseif Joker == mod.Jokers.FORTUNETELLER 
             or Joker == mod.Jokers.ABSTRACT_JOKER
@@ -1148,7 +1322,7 @@ function mod:ScoreHand(Player)
             or Joker == mod.Jokers.SWASHBUCKLER then
 
 
-            IncreaseMult(PIndex, mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex], mod.EffectType.JOKER, JokerIndex)
+            IncreaseMult(Player, PIndex, mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex], mod.EffectType.JOKER, JokerIndex)
 
         elseif Joker == mod.Jokers.JOKER_STENCIL 
             or Joker == mod.Jokers.THROWBACK 
@@ -1166,11 +1340,20 @@ function mod:ScoreHand(Player)
             or Joker == mod.Jokers.CANIO then
 
 
-            MultiplyMult(PIndex, mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex], mod.EffectType.JOKER, JokerIndex)
+            MultiplyMult(Player, PIndex, mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex], mod.EffectType.JOKER, JokerIndex)
 
         end
 
+        if mod:GetJokerRarity(Joker) == "uncommon" then
+            for _, BaseballIndex in ipairs(BaseballIndexes) do
 
+                Isaac.CreateTimer(function ()
+                    mod.Counters.Activated[BaseballIndex] = 0
+                end,CurrentInterval, 1, true)
+
+                MultiplyMult(Player, PIndex, 1.5, mod.EffectType.JOKER, JokerIndex)
+            end
+        end
 
         ::SKIP_SLOT::
     end
@@ -1209,7 +1392,7 @@ function mod:ScoreHand(Player)
             if not Copied then
                 IncreaseJokerProgress(PIndex, ProgressIndex, -5)
 
-                GeneralBalatroEffect(PIndex, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, "-5", mod.EffectType.JOKER, ProgressIndex)
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, "-5", mod.EffectType.JOKER, ProgressIndex)
 
             end
         elseif Joker == mod.Jokers.SELTZER then
@@ -1217,7 +1400,7 @@ function mod:ScoreHand(Player)
             if not Copied then
                 IncreaseJokerProgress(PIndex, ProgressIndex, -1)
 
-                GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "-1", mod.EffectType.JOKER, ProgressIndex)
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "-1", mod.EffectType.JOKER, ProgressIndex)
 
             end
 
@@ -1227,13 +1410,13 @@ function mod:ScoreHand(Player)
                 local Progress = mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex]
 
                 if Progress == 1 then
-                    GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Active!", mod.EffectType.JOKER, ProgressIndex)
+                    GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Active!", mod.EffectType.JOKER, ProgressIndex)
                 
                 elseif Progress == 6 then
-                    GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Reset!", mod.EffectType.JOKER, ProgressIndex)
+                    GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Reset!", mod.EffectType.JOKER, ProgressIndex)
                 
                 else
-                    GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, tostring(Progress).." Remaining!", mod.EffectType.JOKER, ProgressIndex)
+                    GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, tostring(Progress).." Remaining!", mod.EffectType.JOKER, ProgressIndex)
                 end
 
                 IncreaseJokerProgress(PIndex, ProgressIndex, -1)
@@ -1243,27 +1426,52 @@ function mod:ScoreHand(Player)
 
         ::SKIP_SLOT::
     end
-
-
     
     local CardsToDestroy = {}
 
-    for i,Index in ipairs(mod.SelectionParams[PIndex].PlayedCards) do
+    for i,Index in ipairs(PlayedCards) do
 
         if mod.Saved.Player[PIndex].FullDeck[Index].Enhancement == mod.Enhancement.GLASS then
-            
-            if mod:TryGamble(Player, Player:GetTrinketRNG(mod.Jokers.GLASS_JOKER), 0.25) then
-                
-                CardsToDestroy[#CardsToDestroy+1] = Index
-                
-            end
 
+            if mod:TryGamble(Player, Player:GetTrinketRNG(mod.Jokers.GLASS_JOKER), 0.25) then
+                CardsToDestroy[#CardsToDestroy+1] = Index
+            end
         end
     end
 
+    local SixthSense = mod:GetJimboJokerIndex(Player, mod.Jokers.SIXTH_SENSE)[1]
+    local DestroyedBySixth = false
 
-    mod:DestroyCards(Player, CardsToDestroy, true, true)
+    if SixthSense 
+      and #PlayedCards == 1 and mod.Saved.Player[PIndex].Fulldeck[PlayedCards[1]].Value == 6
+      and not mod:Contained(CardsToDestroy, PlayedCards[1]) then
 
+        DestroyedBySixth = true
+        CardsToDestroy[#CardsToDestroy+1] = PlayedCards[1]
+
+        --IncreaseInterval(3)
+    end
+
+    Isaac.CreateTimer(function ()
+        mod:DestroyCards(Player, CardsToDestroy, true, true)
+    end, CurrentInterval, 1, true)
+
+    if DestroyedBySixth then
+
+        Isaac.CreateTimer(function ()
+            
+            local SpectralRNG = Player:GetTrinketRNG(mod.Jokers.SIXTH_SENSE)
+
+            local RandomSpectral = mod:RandomTarot(SpectralRNG, false, false, false)
+
+            mod:TJimboAddConsumable(Player, RandomSpectral, 0, true)
+        end, CurrentInterval, 1, true)
+
+        GeneralBalatroEffect(Player, PIndex, mod.EffectColors.PURPLE, mod.Sounds.ACTIVATE, "Destroyed!", mod.EffectType.JOKER, SixthSense)
+    
+    elseif #CardsToDestroy > 0 then
+        IncreaseInterval(5)
+    end
 
 
 --------------RESET VALUES------------------
@@ -1272,8 +1480,8 @@ function mod:ScoreHand(Player)
     Isaac.CreateTimer(function ()
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.AIMING)
     
-        mod.AnimationIsPlaying = false
-    end, IntervalTime(NumEffectPlayed), 1, true)
+        --mod.AnimationIsPlaying = false
+    end, CurrentInterval, 1, true)
 end
 mod:AddCallback(mod.Callbalcks.HAND_PLAY, mod.ScoreHand)
 
@@ -1405,8 +1613,6 @@ local function OnBlindClear(_,BlindType)
 
     local PIndex = Player:GetData().TruePlayerIndex
 
-    local MimeNum = 0
-
     local RandomSeed = Random()
     if RandomSeed == 0 then RandomSeed = 1 end --would crash the game otherwise
 
@@ -1443,12 +1649,12 @@ local function OnBlindClear(_,BlindType)
             
             if Progress < 2 then --still charging
             
-                GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE,
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE,
                                      tostring(Progress).."/2", mod.EffectType.JOKER, JokerIndex)
 
             else --usable
             
-                GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE,
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE,
                                      "Active!", mod.EffectType.JOKER, JokerIndex)
             end
 
@@ -1460,7 +1666,7 @@ local function OnBlindClear(_,BlindType)
             if BlindType & mod.BLINDS.BOSS ~= 0 then
                 IncreaseJokerProgress(PIndex, ProgressIndex, 2)
 
-                GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE,
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE,
                                          "Upgrade!", mod.EffectType.JOKER, JokerIndex)
             end
 
@@ -1471,7 +1677,7 @@ local function OnBlindClear(_,BlindType)
 
             IncreaseJokerProgress(PIndex, ProgressIndex, 3)
 
-            GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE,
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE,
                                  "Value Up!", mod.EffectType.JOKER, JokerIndex)
 
         elseif Joker == mod.Jokers.POPCORN then
@@ -1487,12 +1693,12 @@ local function OnBlindClear(_,BlindType)
                 mod.Saved.Player[PIndex].Inventory[ProgressIndex].Joker = 0
                 mod.Saved.Player[PIndex].Inventory[ProgressIndex].Edition = mod.Edition.BASE
 
-                GeneralBalatroEffect(PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE,
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE,
                                      "Eaten!", mod.EffectType.JOKER, JokerIndex)
 
                 Isaac.RunCallback("INVENTORY_CHANGE", Player)
             else
-                GeneralBalatroEffect(PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE,
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE,
                                      "-4", mod.EffectType.JOKER, JokerIndex)
             end
 
@@ -1504,7 +1710,7 @@ local function OnBlindClear(_,BlindType)
 
                 mod.Saved.MichelDestroyed = true
 
-                GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Extinct!", mod.EffectType.JOKER, JokerIndex)
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Extinct!", mod.EffectType.JOKER, JokerIndex)
                 Isaac.RunCallback("INVENTORY_CHANGE", Player)
             end
 
@@ -1513,7 +1719,7 @@ local function OnBlindClear(_,BlindType)
                 mod.Saved.Player[PIndex].Inventory[JokerIndex].Joker = 0
                 mod.Saved.Player[PIndex].Inventory[JokerIndex].Edition = mod.Edition.BASE
 
-                GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Extinct!", mod.EffectType.JOKER, JokerIndex)
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Extinct!", mod.EffectType.JOKER, JokerIndex)
                 Isaac.RunCallback("INVENTORY_CHANGE", Player)
             end
 
@@ -1531,7 +1737,9 @@ local function OnBlindClear(_,BlindType)
                 end
             end
 
-            mod:CreateBalatroEffect(mod.JokerFullPosition[JokerIndex], mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Value Up!",mod.Jokers.GIFT_CARD)
+            GeneralBalatroEffect(Player, PIndex)
+
+            mod:CreateBalatroEffect(JokerIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Value Up!",mod.Jokers.GIFT_CARD)
 
 
             if mod:JimboHasTrinket(Player, mod.Jokers.SWASHBUCKLER) then
@@ -1551,12 +1759,12 @@ local function OnBlindClear(_,BlindType)
                 mod.Saved.Player[PIndex].Inventory[ProgressIndex].Joker = 0
                 mod.Saved.Player[PIndex].Inventory[ProgressIndex].Edition = mod.Edition.BASE
 
-                GeneralBalatroEffect(PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE,
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE,
                                      "Eaten!", mod.EffectType.JOKER, JokerIndex)
 
                 Isaac.RunCallback("INVENTORY_CHANGE", Player)
             else
-                GeneralBalatroEffect(PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE,
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE,
                                      "-1", mod.EffectType.JOKER, JokerIndex)
             end
 
@@ -1565,10 +1773,9 @@ local function OnBlindClear(_,BlindType)
 
             mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = 1
 
-            GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Reset!", mod.EffectType.JOKER, JokerIndex)
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Reset!", mod.EffectType.JOKER, JokerIndex)
 
-        elseif Joker == mod.Jokers.MIME then
-            MimeNum = MimeNum + 1
+
         
         elseif Joker == mod.Jokers.IDOL then -- 3 values need to be stored, so the first 3 bits are for the suit, the 4 for the value and the other say how many were discarded
 
@@ -1598,7 +1805,7 @@ local function OnBlindClear(_,BlindType)
             
             mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = (Suit + 8*Value)
 
-            GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, mod:CardValueToName(Value, false, true).." "..mod:CardSuitToName(Suit, false, true), mod.EffectType.JOKER, JokerIndex)
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, mod:CardValueToName(Value, false, true).." "..mod:CardSuitToName(Suit, false, true), mod.EffectType.JOKER, JokerIndex)
         
         elseif Joker == mod.Jokers.TO_DO_LIST then
 
@@ -1613,8 +1820,9 @@ local function OnBlindClear(_,BlindType)
                     if ((Hand == mod.HandTypes.FIVE
                        or Hand == mod.HandTypes.FIVE_FLUSH
                        or Hand == mod.HandTypes.FLUSH_HOUSE)
-                       and mod.Saved.Player[PIndex].HandsUsed == 0)
-                       or Hand == mod.HandTypes.ROYAL_FLUSH then
+                       and mod.Saved.Player[PIndex].HandsUsed[Hand] == 0)
+                       or Hand == mod.HandTypes.ROYAL_FLUSH
+                       or Hand == mod.HandTypes.NONE then
                         
                         IsUnlocked = false
                     end
@@ -1625,7 +1833,7 @@ local function OnBlindClear(_,BlindType)
 
                 mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = Player:GetTrinketRNG(mod.Jokers.TO_DO_LIST):RandomInt(1,#PossibleHands)
 
-                GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Change!", mod.EffectType.JOKER, JokerIndex)
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Change!", mod.EffectType.JOKER, JokerIndex)
             end
 
         elseif Joker == mod.Jokers.MAIL_REBATE then
@@ -1633,23 +1841,24 @@ local function OnBlindClear(_,BlindType)
             if not Copied then
                 mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = Player:GetTrinketRNG(mod.Jokers.MAIL_REBATE):RandomInt(1,mod.Values.KING)
                 
-                GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Change!", mod.EffectType.JOKER, JokerIndex)
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Change!", mod.EffectType.JOKER, JokerIndex)
             end
 
         elseif Joker == mod.Jokers.CASTLE then -- 2 values need to be stored, so the first 3 bits are for the suit and the other say how many were discarded
 
             if not Copied then
                 local Suit = mod.Saved.Player[PIndex].FullDeck[Player:GetTrinketRNG(mod.Jokers.CASTLE):RandomInt(1,#mod.Saved.Player[PIndex].FullDeck)].Suit
+                
                 mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = Suit + (mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] & ~SUIT_FLAG)
 
-                GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Change!", mod.EffectType.JOKER, JokerIndex)
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Change!", mod.EffectType.JOKER, JokerIndex)
             end
         elseif Joker == mod.Jokers.ANCIENT_JOKER then
 
             if not Copied then
                 mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = Player:GetTrinketRNG(mod.Jokers.ANCIENT_JOKER):RandomInt(mod.Suits.Spade,mod.Suits.Diamond)
 
-                GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Change!", mod.EffectType.JOKER, JokerIndex)
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Change!", mod.EffectType.JOKER, JokerIndex)
             end
         end
 
@@ -1657,38 +1866,58 @@ local function OnBlindClear(_,BlindType)
         ::SKIP_SLOT::
     end --END JOKER FOR
 
+
+
+    local TriggersLeft = 1
+    local TriggerCauses = {mod.EffectType.NULL}
+
+    for _,MimeIndex in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.MIME)) do
+        
+        TriggersLeft = TriggersLeft + 1
+        table.insert(TriggerCauses, 1, mod.EffectType.HAND_FROM_JOKER | MimeIndex)
+    end
+
+
     --BLUE SEAL EFFECT
 
     for CardIndex, Pointer in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
         local card = mod.Saved.Player[PIndex].FullDeck[Pointer]
-        if card.Seal == mod.Seals.BLUE then
 
-            local Planet = mod.Planets.PLUTO + math.log(mod.SelectionParams[PIndex].HandType, 2) - 1
+        for i = #TriggerCauses, 1, -1 do
 
-            for i=0, MimeNum do
+            if card.Seal == mod.Seals.BLUE then
 
-                mod:TJimboAddConsumable(Player, Planet, 0, true)
-            end
+                local Planet = mod.Planets.PLUTO + math.log(mod.SelectionParams[PIndex].HandType, 2) - 1
 
-            mod:CreateBalatroEffect(Player, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, "Planet!",mod.Seals.BLUE)
-        end
-    end
+                Isaac.CreateTimer(function ()
+                    local Success = mod:TJimboAddConsumable(Player, Planet, 0, true)
 
+                    if Success then
+                        mod:CreateBalatroEffect(Pointer, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, "Planet!", mod.EffectType.HAND)
+                    end
 
-    for _,index in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
-        if mod.Saved.Player[PIndex].FullDeck[index].Enhancement == mod.Enhancement.GOLDEN
-           and mod.Saved.Player[PIndex].FirstDeck and mod.Saved.Player[PIndex].Progress.Room.Shots < Game:GetPlayer(0):GetCustomCacheValue("hands") then
+                end, CurrentInterval, 1, true)
+
+                IncreaseInterval(8)
             
-            for i=0, MimeNum * 3 do
-                Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
-                RandomVector() * 4, PlayerManager.FirstPlayerByType(mod.Characters.JimboType),
-                CoinSubType.COIN_PENNY, RandomSeed)
+            elseif card.Seal == mod.Seals.RED then
+                table.insert(TriggerCauses, #TriggerCauses, mod.EffectType.HAND)
             end
-            --Jimbo:AddCoins(3)
+
+            if card.Enhancement == mod.Enhancement.GOLDEN then
+
+                AddMoney(Player, 3, mod.EffectType.HAND, Pointer)
+            end
+
+            if TriggerCauses[i] == mod.EffectType.HAND then --red seal
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Again!", mod.EffectType.HAND, Pointer)
+                table.remove(TriggerCauses, i)
+
+            elseif TriggerCauses[i] ~= mod.EffectType.NULL then --any joker
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Again!", mod.EffectType.JOKER, TriggerCauses[TriggersLeft])
+            end
         end
     end
-
-
 
 
     ::skip_player::
@@ -1746,7 +1975,7 @@ local function OnBlindStart(_,BlindType)
             local Success = mod:TJimboAddConsumable(Player, RandomTarot, 0, true)
 
             if Success then
-                GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "+1 Tarot!", mod.EffectType.JOKER, JokerIndex)
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "+1 Tarot!", mod.EffectType.JOKER, JokerIndex)
             end
 
 
@@ -1764,13 +1993,12 @@ local function OnBlindStart(_,BlindType)
                     end
                 end, CurrentInterval, 1, true)
 
-                CurrentInterval = CurrentInterval + 8
-
+                IncreaseInterval(12)
             end
 
-            GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jokers!", mod.EffectType.JOKER, JokerIndex)
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jokers!", mod.EffectType.JOKER, JokerIndex)
 
-        elseif Joker == mod.Jokers.STONE_JOKER then
+        elseif Joker == mod.Jokers.MARBLE_JOKER then
 
             local MarbleRNG = Player:GetTrinketRNG(mod.Jokers.MARBLE_JOKER)
 
@@ -1786,7 +2014,7 @@ local function OnBlindStart(_,BlindType)
 
             mod:AddCardToDeck(Player, StoneCard,1, false)
 
-            GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "+1 Stone!", mod.EffectType.JOKER, JokerIndex)
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "+1 Stone!", mod.EffectType.JOKER, JokerIndex)
 
         elseif Joker == mod.Jokers.SACRIFICIAL_DAGGER then
 
@@ -1805,7 +2033,7 @@ local function OnBlindStart(_,BlindType)
                 local RightSell = mod:GetJokerCost(RightJoker, mod.Saved.Player[PIndex].Inventory[RightIndex].Edition, RightIndex)
 
                 IncreaseJokerProgress(PIndex, JokerIndex, RightSell)
-                GeneralBalatroEffect(PIndex, mod.EffectColors.RED, mod.Sounds.SLICE, "+"..tostring(RightSell), mod.EffectType.JOKER, JokerIndex)
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.SLICE, "+"..tostring(RightSell), mod.EffectType.JOKER, JokerIndex)
 
                 mod.Saved.Player[PIndex].Inventory[RightIndex].Joker = 0
                 mod.Saved.Player[PIndex].Inventory[RightIndex].Edition = 0
@@ -1823,7 +2051,7 @@ local function OnBlindStart(_,BlindType)
                 
             IncreaseJokerProgress(PIndex, JokerIndex, 0.5)
 
-            GeneralBalatroEffect(PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+0.5 X", mod.EffectType.JOKER, JokerIndex)
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+0.5 X", mod.EffectType.JOKER, JokerIndex)
             
             local Removable = {}
             for i, v in ipairs(mod.Saved.Player[PIndex].Inventory) do
@@ -1853,7 +2081,7 @@ local function OnBlindStart(_,BlindType)
 
             mod:AddCardToDeck(Player, SealCard,1, false)
 
-            GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Added!", mod.EffectType.JOKER, JokerIndex)
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Added!", mod.EffectType.JOKER, JokerIndex)
         end
 
         ::SKIP_SLOT::
@@ -1869,6 +2097,155 @@ mod:AddCallback(mod.Callbalcks.BLIND_START, OnBlindStart)
 
 
 
+local function CashoutEvaluation(_, BlindBeaten)
+
+    local Player = PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo)
+
+    if not Player then
+        return
+    end
+
+    mod.ScreenStrings.CashOut = {}
+
+    mod.AnimationIsPlaying = true
+
+    ResetEffects(8)
+
+    local TotalGain = 0
+
+    local BlindMoney = 0
+
+    if BlindBeaten == mod.BLINDS.SMALL then
+        
+        BlindMoney = 3
+
+    elseif BlindBeaten == mod.BLINDS.BIG then
+        
+        BlindMoney = 4
+
+    elseif BlindBeaten & mod.BLINDS.BOSS ~= 0 then
+        
+        if BlindBeaten >= mod.BLINDS.BOSS_ACORN then
+            
+            BlindMoney = 8
+        else
+            BlindMoney = 5
+        end
+    end
+
+    AddCashoutString("Blind beaten", BlindMoney, BlindBeaten)
+    TotalGain = TotalGain + BlindMoney
+
+    AddCashoutString(". . . . . . . . . . . . . . . . . . .", BlindMoney, mod.StringTypes.General)
+
+    local PIndex = Player:GetData().TruePlayerIndex
+
+
+    AddCashoutString("Hands Remaining", mod.Saved.Player[PIndex].HandsRemaining, mod.StringTypes.Hand)
+    TotalGain = TotalGain + mod.Saved.Player[PIndex].HandsRemaining
+
+    
+    local Interests = Player:GetNumCoins() // 5
+    local MaxInterest = 5
+
+    if Player:HasCollectible(mod.Vouchers.MoneyTree) then
+        MaxInterest = 20
+
+    elseif Player:HasCollectible(mod.Vouchers.MoneySeed) then
+
+        MaxInterest = 10
+    end
+
+    Interests = math.min(Interests, MaxInterest)
+
+
+    AddCashoutString("Interests (max "..tostring(MaxInterest).."$)", Interests, mod.StringTypes.Interest)
+    TotalGain = TotalGain + Interests
+
+
+    --cycles between all the held jokers
+    for JokerIndex, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+
+        local Joker = Slot.Joker
+        
+        local ProgressIndex = JokerIndex
+        local Copied = false
+        if Joker == mod.Jokers.BLUEPRINT or Joker == mod.Jokers.BRAINSTORM then
+
+            Joker = mod.Saved.Player[PIndex].Inventory[mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex]]
+            Joker = Joker and Joker.Joker or 0
+
+            --print("should be copiyng: "..tostring(mod.Saved.Player[PIndex].Inventory[mod.Saved.Player[PIndex].Progress.Inventory[Index]].Joker))
+            --print("copy "..tostring(Joker).." at "..tostring(mod.Saved.Player[PIndex].Progress.Inventory[Index]))
+
+            ProgressIndex = mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex]
+
+            Copied = true
+        end
+
+        if Joker == 0 then --could save some time
+            goto SKIP_SLOT
+        end
+
+        if Joker == mod.Jokers.CLOUD_NINE then
+            
+            local Nines = mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex]
+
+            AddCashoutString("Cloud Nine", Nines, mod.StringTypes.Joker)
+            TotalGain = TotalGain + Nines
+
+        elseif Joker == mod.Jokers.DELAYED_GRATIFICATION then
+            
+            local Discards = mod.Saved.Player[PIndex].RemainingDiscards
+            if Discards == Player:GetCustomCacheValue(mod.CustomCache.DISCARD_NUM) then
+
+                AddCashoutString("Delayed Grat.", Discards*2, mod.StringTypes.Joker)
+                TotalGain = TotalGain + Discards*2
+            end
+
+
+        elseif Joker == mod.Jokers.ROCKET then
+
+            AddCashoutString("Rocket", mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex], mod.StringTypes.Joker)
+            TotalGain = TotalGain + mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex]
+
+        elseif Joker == mod.Jokers.GOLDEN_JOKER then
+
+            AddCashoutString("Golden Joker", 4, mod.StringTypes.Joker)
+            TotalGain = TotalGain + 4
+
+        elseif Joker == mod.Jokers.SATELLITE then
+
+            local UniquePlanets = 0
+
+            for _,HandType in pairs(mod.HandTypes) do
+
+                if mod.Saved.PlanetTypesUsed & (1 << HandType) ~= 0 then
+                    UniquePlanets = UniquePlanets + 1
+                end
+            end
+
+            AddCashoutString("Satellite", UniquePlanets, mod.StringTypes.Joker)
+            TotalGain = TotalGain + UniquePlanets
+
+        end
+
+        ::SKIP_SLOT::
+    end
+
+
+    AddCashoutString("Total", TotalGain, mod.StringTypes.General)
+
+
+    Isaac.CreateTimer(function ()
+        mod.AnimationIsPlaying = false
+        
+    end, CurrentInterval, 1, true)
+
+
+    return TotalGain
+end
+mod:AddCallback(mod.Callbalcks.CASHOUT_EVAL, CashoutEvaluation)
 
 
 ---@param Player EntityPlayer
@@ -1910,7 +2287,7 @@ local function OnPackOpened(_,Player,Pack)
                 local Success = mod:TJimboAddConsumable(Player, RandomTarot, 0, true)
 
                 if Success then
-                    GeneralBalatroEffect(PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "+1 Tarot!",mod.EffectType.JOKER, Index)
+                    GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "+1 Tarot!",mod.EffectType.JOKER, Index)
                 end
             end
         end
@@ -1937,7 +2314,7 @@ local function OnPackSkipped(_,Player,Pack)
         if Joker == mod.Jokers.RED_CARD then
             IncreaseJokerProgress(PIndex, Index, 3)
 
-            GeneralBalatroEffect(PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+3", mod.EffectType.JOKER, Index)
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+3", mod.EffectType.JOKER, Index)
         end
     end
 end
@@ -1951,144 +2328,28 @@ local function OnHandDiscard(_, Player, AmountDiscarded)
         return
     end
 
-    ResetEffects(5)
-
-    local PIndex = Player:GetData().TruePlayerIndex
-    local RandomSeed = Random()
-    if RandomSeed == 0 then RandomSeed = 1 end --would crash the game otherwise
-    --cycles between all the held jokers
-    for Index, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
-
-        local Joker = Slot.Joker
-        
-        local ProgressIndex = Index
-        local Copied = false
-        if Joker == mod.Jokers.BLUEPRINT or Joker == mod.Jokers.BRAINSTORM then
-
-            Joker = mod.Saved.Player[PIndex].Inventory[mod.Saved.Player[PIndex].Progress.Inventory[Index]]
-            Joker = Joker and Joker.Joker or 0
-
-            --print("should be copiyng: "..tostring(mod.Saved.Player[PIndex].Inventory[mod.Saved.Player[PIndex].Progress.Inventory[Index]].Joker))
-            --print("copy "..tostring(Joker).." at "..tostring(mod.Saved.Player[PIndex].Progress.Inventory[Index]))
-
-            ProgressIndex = mod.Saved.Player[PIndex].Progress.Inventory[Index]
-
-            Copied = true
-        end
-
-        if Joker == 0 then
-        elseif Joker == mod.Jokers.RAMEN and not Copied then
-
-            local LostMult = 0.01 * AmountDiscarded
-            mod.Saved.Player[PIndex].Progress.Inventory[Index] = mod.Saved.Player[PIndex].Progress.Inventory[Index] - LostMult
-        
-            if mod.Saved.Player[PIndex].Progress.Inventory[Index] <= 1 then --at 1 it self destructs
-
-                mod.Saved.Player[PIndex].Inventory[Index].Joker = 0
-                mod.Saved.Player[PIndex].Inventory[Index].Edition = 0
-                mod:CreateBalatroEffect(mod.JokerFullPosition[Index], mod.EffectColors.RED, mod.Sounds.ACTIVATE, "Eaten!",mod.EffectType.JOKER)
-
-                Isaac.RunCallback("INVENTORY_CHANGE", Player)
-            else
-                
-                mod:CreateBalatroEffect(mod.JokerFullPosition[Index], mod.EffectColors.RED, mod.Sounds.ACTIVATE, tostring(-LostMult).."X",mod.EffectType.JOKER)
-
-                Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)
-            end
-        
-        elseif Joker == mod.Jokers.GREEN_JOKER and not Copied then
-            local InitialProg = mod.Saved.Player[PIndex].Progress.Inventory[Index]
-            if InitialProg > 0 then
-                mod.Saved.Player[PIndex].Progress.Inventory[Index] = mod.Saved.Player[PIndex].Progress.Inventory[Index] - 0.16
-                if mod.Saved.Player[PIndex].Progress.Inventory[Index] < 0 then
-                    mod.Saved.Player[PIndex].Progress.Inventory[Index] = 0
-                end
-                
-                mod:CreateBalatroEffect(mod.JokerFullPosition[Index], mod.EffectColors.RED, mod.Sounds.ACTIVATE, "-0.16",mod.EffectType.JOKER)
-        
-                Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)
-            end
-
-        elseif Joker == mod.Jokers.MAIL_REBATE then
-
-            for i,Pointer in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
-                if mod.Saved.Player[PIndex].FullDeck[Pointer].Value == mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] then
-                    for i=1,2 do
-                        Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
-                                   RandomVector()*2.5, Player, CoinSubType.COIN_PENNY, 1)
-                    end
-                end
-            end
-
-        elseif Joker == mod.Jokers.CASTLE then -- 2 values need to be stored, so the first 3 bits are for the suit and the other say how many were discarded
-
-            for i,Pointer in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
-
-                if mod:IsSuit(Player,mod.Saved.Player[PIndex].FullDeck[Pointer], mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] & SUIT_FLAG) then
-                    
-                    mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] + 8
-
-                    mod:CreateBalatroEffect(mod.JokerFullPosition[Index], mod.EffectColors.BLUE, mod.Sounds.CHIPS, "+0.04",mod.EffectType.JOKER)
-                
-                    Player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY)
-                end
-            end
-
-        elseif Joker == mod.Jokers.DRUNKARD then
-
-            Game:SetDizzyAmount(math.max(Game:GetDizzyAmount()-0.05, 0))
-
-
-        elseif Joker == mod.Jokers.HIT_ROAD then
-
-            for i,Pointer in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
-
-                if mod.Saved.Player[PIndex].FullDeck[Pointer].Value == mod.Values.JACK 
-                   and mod.Saved.Player[PIndex].FullDeck[Pointer].Enahncement ~= mod.Enhancement.STONE then
-                    
-                    mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] + 0.2
-
-                    mod:CreateBalatroEffect(mod.JokerFullPosition[Index], mod.EffectColors.RED, mod.Sounds.TIMESMULT, "+0.2X",mod.EffectType.JOKER)
-                
-                    Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)
-                end
-            end
-        elseif Joker == mod.Jokers.YORICK then
-
-            local Discards = #mod.Saved.Player[PIndex].CurrentHand
-            local MissingDiscards = (mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] & YORIK_VALUE_FLAG) - Discards
-            local MultIncrease = 0
-
-            for i=MissingDiscards, 0, 23 do
-
-                MissingDiscards = i
-                MultIncrease = MultIncrease + 1
-            end
-
-            mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = -MissingDiscards + (mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] & ~YORIK_VALUE_FLAG) + (YORIK_VALUE_FLAG+1)*MultIncrease
-
-            if MultIncrease ~= 0 then
-                mod:CreateBalatroEffect(mod.JokerFullPosition[Index], mod.EffectColors.RED, mod.Sounds.TIMESMULT, "+"..tostring(0.2*MultIncrease).."X",mod.EffectType.JOKER)
-            end
-        end
-    end
+    ResetEffects(4)
 
     return CurrentInterval
-
 end
 mod:AddCallback(mod.Callbalcks.DISCARD, OnHandDiscard)
 
 
 
-local function OnCardDiscard(_, Player, CardDiscarded)
+local function OnCardDiscard(_, Player, PointerDiscarded, HandIndex, IsLastCard)
 
     if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
         return
     end
 
+    IncreaseInterval(4)
+
+
     local PIndex = Player:GetData().TruePlayerIndex
-    local RandomSeed = Random()
-    if RandomSeed == 0 then RandomSeed = 1 end --would crash the game otherwise
+
+    local CardDiscarded = mod.Saved.Player[PIndex].FullDeck[PointerDiscarded]
+
+
     --cycles between all the held jokers
     for Index, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
 
@@ -2110,100 +2371,129 @@ local function OnCardDiscard(_, Player, CardDiscarded)
         end
 
         if Joker == 0 then
-        elseif Joker == mod.Jokers.RAMEN then
+            goto SKIP_SLOT
+        end
 
-            local LostMult = 0.01 * AmountDiscarded
-            mod.Saved.Player[PIndex].Progress.Inventory[Index] = mod.Saved.Player[PIndex].Progress.Inventory[Index] - LostMult
-        
+        if Joker == mod.Jokers.RAMEN then
+
+            if Copied then
+                goto SKIP_SLOT
+            end
+
+            IncreaseJokerProgress(PIndex, Index, -0.01)
+
             if mod.Saved.Player[PIndex].Progress.Inventory[Index] <= 1 then --at 1 it self destructs
 
                 mod.Saved.Player[PIndex].Inventory[Index].Joker = 0
                 mod.Saved.Player[PIndex].Inventory[Index].Edition = 0
-                mod:CreateBalatroEffect(mod.JokerFullPosition[Index], mod.EffectColors.RED, mod.Sounds.ACTIVATE, "Eaten!",mod.EffectType.JOKER)
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.EAT, "Eaten!", mod.EffectType.JOKER, Index, 2)
 
                 Isaac.RunCallback("INVENTORY_CHANGE", Player)
             else
                 
-                mod:CreateBalatroEffect(mod.JokerFullPosition[Index], mod.EffectColors.RED, mod.Sounds.ACTIVATE, tostring(-LostMult).."X",mod.EffectType.JOKER)
-
-                Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.EAT, "-0.01X", mod.EffectType.JOKER, Index, 2)
             end
         
-        elseif Joker == mod.Jokers.GREEN_JOKER and not Copied then
-            local InitialProg = mod.Saved.Player[PIndex].Progress.Inventory[Index]
-            if InitialProg > 0 then
-                mod.Saved.Player[PIndex].Progress.Inventory[Index] = mod.Saved.Player[PIndex].Progress.Inventory[Index] - 0.16
-                if mod.Saved.Player[PIndex].Progress.Inventory[Index] < 0 then
-                    mod.Saved.Player[PIndex].Progress.Inventory[Index] = 0
-                end
-                
-                mod:CreateBalatroEffect(mod.JokerFullPosition[Index], mod.EffectColors.RED, mod.Sounds.ACTIVATE, "-0.16",mod.EffectType.JOKER)
-        
-                Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)
-            end
 
         elseif Joker == mod.Jokers.MAIL_REBATE then
 
-            for i,Pointer in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
-                if mod.Saved.Player[PIndex].FullDeck[Pointer].Value == mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] then
-                    for i=1,2 do
-                        Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
-                                   RandomVector()*2.5, Player, CoinSubType.COIN_PENNY, 1)
-                    end
-                end
+            if mod:IsValue(Player, CardDiscarded, mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex]) then
+                
+                AddMoney(Player, 5, mod.EffectType.JOKER, Index, 2)
+            end
+
+        elseif Joker == mod.Jokers.FACELESS then
+
+            if Copied then
+                goto SKIP_SLOT
+            end
+
+            if mod:IsValue(Player, CardDiscarded, mod.Values.FACE) then
+                
+                IncreaseJokerProgress(PIndex, ProgressIndex, 1)
             end
 
         elseif Joker == mod.Jokers.CASTLE then -- 2 values need to be stored, so the first 3 bits are for the suit and the other say how many were discarded
 
-            for i,Pointer in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
-
-                if mod:IsSuit(Player,mod.Saved.Player[PIndex].FullDeck[Pointer], mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] & SUIT_FLAG) then
-                    
-                    mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] + 8
-
-                    mod:CreateBalatroEffect(mod.JokerFullPosition[Index], mod.EffectColors.BLUE, mod.Sounds.CHIPS, "+0.04",mod.EffectType.JOKER)
-                
-                    Player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY)
-                end
+            if Copied then
+                goto SKIP_SLOT
             end
+        
+            if mod:IsSuit(Player, CardDiscarded, mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] & SUIT_FLAG) then
+                
+                IncreaseJokerProgress(PIndex, Index, 3 * (SUIT_FLAG+1))
 
-        elseif Joker == mod.Jokers.DRUNKARD then
-
-            Game:SetDizzyAmount(math.max(Game:GetDizzyAmount()-0.05, 0))
-
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.BLUE, mod.Sounds.CHIPS, "Upgrade!",mod.EffectType.JOKER, 2)
+            end
 
         elseif Joker == mod.Jokers.HIT_ROAD then
 
-            for i,Pointer in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
-
-                if mod.Saved.Player[PIndex].FullDeck[Pointer].Value == mod.Values.JACK 
-                   and mod.Saved.Player[PIndex].FullDeck[Pointer].Enahncement ~= mod.Enhancement.STONE then
-                    
-                    mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] + 0.2
-
-                    mod:CreateBalatroEffect(mod.JokerFullPosition[Index], mod.EffectColors.RED, mod.Sounds.TIMESMULT, "+0.2X",mod.EffectType.JOKER)
-                
-                    Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)
-                end
+            if Copied then
+                goto SKIP_SLOT
             end
+
+            if mod:IsValue(Player, CardDiscarded, mod.Values.JACK) then
+                
+                IncreaseJokerProgress(PIndex, Index, 0.5)
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+0.5X", mod.EffectType.JOKER, Index, 2)
+            end
+
+        elseif Joker == mod.Jokers.TRADING_CARD then
+
+            if Copied then
+                goto SKIP_SLOT
+            end
+
+            if mod.SelectionParams[PIndex].SelectionNum == 1
+               and mod.Saved.Player[PIndex].DiscardsRemaining == Player:GetCustomCacheValue(mod.CustomCache.DISCARD_NUM) - 1 then
+                
+                mod:CardRipEffect(CardDiscarded, mod.LastCardFullPoss[PointerDiscarded])
+                mod:DestroyCards(Player, {HandIndex})
+
+                AddMoney(Player, 3, mod.EffectType.JOKER, Index)
+            end
+
         elseif Joker == mod.Jokers.YORICK then
 
-            local Discards = #mod.Saved.Player[PIndex].CurrentHand
-            local MissingDiscards = (mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] & YORIK_VALUE_FLAG) - Discards
-            local MultIncrease = 0
-
-            for i=MissingDiscards, 0, 23 do
-
-                MissingDiscards = i
-                MultIncrease = MultIncrease + 1
+            if Copied then
+                goto SKIP_SLOT
             end
 
-            mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = -MissingDiscards + (mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] & ~YORIK_VALUE_FLAG) + (YORIK_VALUE_FLAG+1)*MultIncrease
+            IncreaseJokerProgress(PIndex, Index, 1)
+            
+            if mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] % 23 == 0 then
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "Upgrade!", mod.EffectType.JOKER, Index, 2)
+            end
+            
+        end
 
-            if MultIncrease ~= 0 then
-                mod:CreateBalatroEffect(mod.JokerFullPosition[Index], mod.EffectColors.RED, mod.Sounds.TIMESMULT, "+"..tostring(0.2*MultIncrease).."X",mod.EffectType.JOKER)
+
+        if not IsLastCard then
+            goto SKIP_SLOT
+        end
+            
+        if Joker == mod.Jokers.GREEN_JOKER then
+
+            if Copied or mod.Saved.Player[PIndex].Progress.Inventory[Index] <= 0 then
+                goto SKIP_SLOT
+            end
+
+            IncreaseJokerProgress(PIndex, Index, -1)
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors, mod.Sounds.ACTIVATE, "-1", mod.EffectType.JOKER, Index)
+        
+        elseif Joker == mod.Jokers.FACELESS then
+
+            if mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] >= 3 then
+                
+                AddMoney(Player, 5, mod.EffectType.JOKER, Index)
+            end
+
+            if not Copied then
+                mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = 0
             end
         end
+
+        ::SKIP_SLOT::
     end
 
     return CurrentInterval
@@ -2212,3 +2502,324 @@ end
 mod:AddCallback(mod.Callbalcks.CARD_DISCARD, OnCardDiscard)
 
 
+
+--effects when a joker gets sold
+---@param Player EntityPlayer
+local function OnJokerSold(_, Player,Joker,SlotSold)
+    --print("sold")
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
+        return
+    end
+
+    ResetEffects(8)
+
+    mod.AnimationIsPlaying = true
+
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    --NOT COPIABLE JOKERS
+
+    if Joker == mod.Jokers.INVISIBLE_JOKER then
+        if mod.Saved.Player[PIndex].Progress.Inventory[SlotSold] ~= 3 then
+            return
+        end
+        local ValidJokers = {}
+        for i, trinket in ipairs(mod.Saved.Player[PIndex].Inventory) do
+            --can only copy something other than itself and nothing
+            if trinket.Joker ~= 0 and i ~= SlotSold then
+                ValidJokers[#ValidJokers + 1] = i
+            end
+        end
+
+        if not next(ValidJokers) then --no need if player is poor
+            return
+        end
+
+        local RandomIndex = mod:GetRandom(ValidJokers, Player:GetTrinketRNG(mod.Jokers.INVISIBLE_JOKER))
+
+        local JokerCopied = mod.Saved.Player[PIndex].Inventory[RandomIndex].Joker
+        local EditionCopied = mod.Saved.Player[PIndex].Inventory[RandomIndex].Edition
+
+        if EditionCopied == mod.Edition.NEGATIVE then --removes negative from copied joker
+            EditionCopied = mod.Edition.BASE
+        end
+
+        mod:AddJoker(Player, JokerCopied, EditionCopied)
+
+        mod.Saved.Player[PIndex].Progress.Inventory[SlotSold] = mod.Saved.Player[PIndex].Progress.Inventory[RandomIndex]
+
+    end  
+
+    for _,Index in mod:GetJimboJokerIndex(Player, mod.Jokers.CAMPFIRE, true) do
+
+        IncreaseJokerProgress(PIndex, Index, 0.5)
+        GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+0.5X", mod.EffectType.JOKER, Index)
+    end
+    
+    --BP/BS CHACK
+    if Joker == mod.Jokers.BLUEPRINT then
+        Joker = mod.Saved.Player[PIndex].Inventory[SlotSold + 1] and mod.Saved.Player[PIndex].Inventory[SlotSold + 1] or 0
+
+    elseif Joker == mod.Jokers.BRAINSTORM then
+        Joker = mod.Saved.Player[PIndex].Inventory[1].Joker
+    end
+    
+    
+    if Joker == mod.Jokers.LUCHADOR then
+
+        if mod.Saved.BlindBeingPlayed & mod.BLINDS.BOSS ~= 0 then
+
+            mod.Saved.BlindBeingPlayed = mod.BLINDS.BOSS
+
+            mod:EvaluateBlindEffect()
+        end
+
+    elseif Joker == mod.Jokers.DIET_COLA then
+
+        --PLACEHOLDER maybe play the tag sfx
+
+        --Player:UseActiveItem(CollectibleType.COLLECTIBLE_DIPLOPIA, UseFlag.USE_NOANIM & UseFlag.USE_MIMIC)
+    end
+
+    Isaac.CreateTimer(function ()
+        mod.AnimationIsPlaying = false
+    end, CurrentInterval, 1, true)
+
+
+    Isaac.RunCallback("INVENTORY_CHANGE", Player)
+end
+mod:AddCallback(mod.Callbalcks.JOKER_SOLD, OnJokerSold)
+
+
+
+--effects when a joker gets sold
+---@param Player EntityPlayer
+local function OnConsumableSold(_, Player, Consumable)
+    --print("sold")
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
+        return
+    end
+
+    ResetEffects(6)
+
+    mod.AnimationIsPlaying = true
+
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    --NOT COPIABLE JOKERS
+
+    for _,Index in mod:GetJimboJokerIndex(Player, mod.Jokers.CAMPFIRE, true) do
+
+        IncreaseJokerProgress(PIndex, Index, 0.5)
+        GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+0.5X", mod.EffectType.JOKER, Index)
+    end
+
+    Isaac.CreateTimer(function ()
+        mod.AnimationIsPlaying = false
+    end, CurrentInterval, 1, true)
+    
+end
+mod:AddCallback(mod.Callbalcks.CONSUMABLE_SOLD, OnConsumableSold)
+
+
+
+
+local function OnConsumableUse(_, Player, Consumable)
+
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
+        return
+    end
+
+    ResetEffects(12)
+
+    local PIndex = Player:GetData().TruePlayerIndex
+    local RandomSeed = Random()
+    if RandomSeed == 0 then RandomSeed = 1 end --would crash the game otherwise
+
+    --cycles between all the held jokers
+    for Index, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+
+        local Joker = Slot.Joker
+        
+        local ProgressIndex = Index
+        local Copied = false
+        if Joker == mod.Jokers.BLUEPRINT or Joker == mod.Jokers.BRAINSTORM then
+
+            Joker = mod.Saved.Player[PIndex].Inventory[mod.Saved.Player[PIndex].Progress.Inventory[Index]]
+            Joker = Joker and Joker.Joker or 0
+
+            --print("should be copiyng: "..tostring(mod.Saved.Player[PIndex].Inventory[mod.Saved.Player[PIndex].Progress.Inventory[Index]].Joker))
+            --print("copy "..tostring(Joker).." at "..tostring(mod.Saved.Player[PIndex].Progress.Inventory[Index]))
+
+            ProgressIndex = mod.Saved.Player[PIndex].Progress.Inventory[Index]
+
+            Copied = true
+        end
+
+        if Joker == 0 then
+            goto SKIP_SLOT
+        end
+
+        if Joker == mod.Jokers.FORTUNETELLER then
+
+            if not Copied and Consumable <= Card.CARD_WORLD then
+
+                IncreaseJokerProgress(PIndex, Index, 1)
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+1", mod.EffectType.JOKER, Index)
+            end
+
+        elseif Joker == mod.Jokers.CONSTELLATION then
+
+            if not Copied
+               and Consumable >= mod.Planets.PLUTO and Consumable <= mod.Planets.SUN then
+
+                IncreaseJokerProgress(PIndex, Index, 0.1)
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "+0.1X", mod.EffectType.JOKER, Index)
+            end
+        end
+
+
+        ::SKIP_SLOT::
+    end
+
+    return CurrentInterval
+
+end
+mod:AddCallback(mod.Callbalcks.CONSUMABLE_USE, OnConsumableUse)
+
+
+---@param Player EntityPlayer
+local function OnDeckModify(_, Player, CardsAdded, CardsDestroyed)
+
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    CardsAdded = CardsAdded or 0
+    CardsDestroyed = CardsDestroyed or {}
+
+    for Index,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+
+        if Slot.Joker == mod.Jokers.STEEL_JOKER then
+
+            local NumSteel = 0
+
+            for _,card in ipairs(mod.Saved.Player[PIndex].FullDeck) do
+                
+                if card.Enhancement == mod.Enhancement.STEEL then
+                    NumSteel = NumSteel + 1
+                end
+            end
+
+            mod.Saved.Player[PIndex].Progress.Inventory[Index] = 1 + 0.2*NumSteel
+
+        elseif Slot.Joker == mod.Jokers.STONE_JOKER then
+
+            local NumStone = 0
+
+            for _,card in ipairs(mod.Saved.Player[PIndex].FullDeck) do
+                
+                if card.Enhancement == mod.Enhancement.STONE then
+                    NumStone = NumStone + 1
+                end
+            end
+
+            mod.Saved.Player[PIndex].Progress.Inventory[Index] = 25*NumStone
+
+        elseif Slot.Joker == mod.Jokers.CLOUD_NINE then
+            local Nines = 0
+            for _,card in ipairs(mod.Saved.Player[PIndex].FullDeck) do
+                if mod:IsValue(Player, card, 9) then
+                    Nines = Nines + 1
+                end
+            end
+
+            mod.Saved.Player[PIndex].Progress.Inventory[Index] = Nines
+
+        elseif Slot.Joker == mod.Jokers.HOLOGRAM then
+
+            if CardsAdded > 0 then
+
+                mod.Saved.Player[PIndex].Progress.Inventory[Index] = mod.Saved.Player[PIndex].Progress.Inventory[Index] + 0.25*CardsAdded
+
+                mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ACTIVATE,
+                "+0.25X",mod.EffectType.JOKER, Player)
+            end
+
+        elseif Slot.Joker == mod.Jokers.EROSION then
+            if CardsAdded ~= 0 then
+
+                mod.Saved.Player[PIndex].Progress.Inventory[Index] = mod.Saved.Player[PIndex].Progress.Inventory[Index] + math.max(0, 4 * (52 - #mod.Saved.Player[PIndex].FullDeck))
+            end
+
+        elseif Slot.Joker == mod.Jokers.DRIVER_LICENSE then
+
+            local Enahncements = 0
+            for _,card in ipairs(mod.Saved.Player[PIndex].FullDeck) do
+                if card.Enhancement ~= mod.Enhancement.NONE then
+                    Enahncements = Enahncements + 1
+                end
+            end
+
+            mod.Saved.Player[PIndex].Progress.Inventory[Index] = Enahncements >= 18 and 3 or 1
+
+        elseif Slot.Joker == mod.Jokers.GLASS_JOKER then
+
+            local GlassNum = 0
+
+            for _, card in ipairs(CardsDestroyed) do
+                mod.Saved.Player[PIndex].Progress.Inventory[Index] = mod.Saved.Player[PIndex].Progress.Inventory[Index] + 0.1
+                GlassNum = GlassNum + 1
+            end
+
+            if GlassNum ~= 0 then
+                mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.TIMESMULT,
+                "+"..tostring(0.1*GlassNum).."X",mod.EffectType.JOKER, Player)
+            end
+
+        elseif Slot.Joker == mod.Jokers.CANIO then
+  
+            local FaceNum = 0
+
+            for _, card in ipairs(CardsDestroyed) do
+                
+                if mod:IsValue(Player, card, mod.Values.FACE) then
+                    
+                    FaceNum = FaceNum + 1
+                end
+            end
+
+            if FaceNum ~= 0 then
+
+                IncreaseJokerProgress(PIndex, Index, FaceNum)
+
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "Upgrade!", mod.EffectType.JOKER, Index)
+            end
+        end
+    end
+
+    Player:EvaluateItems()
+end
+mod:AddCallback(mod.Callbalcks.DECK_MODIFY, OnDeckModify)
+
+
+
+
+
+function mod:EvaluateBlindEffect()
+
+    local BlindType = mod.Saved.BlindBeingPlayed
+
+    for i,Player in ipairs(PlayerManager.GetPlayers()) do
+        Player:AddCustomCacheTag(mod.CustomCache.HAND_NUM)
+        Player:AddCustomCacheTag(mod.CustomCache.DISCARD_NUM, true)
+    end
+    
+
+    if BlindType & mod.BLINDS.BOSS == 0 then
+        return
+    end
+
+
+
+
+
+end

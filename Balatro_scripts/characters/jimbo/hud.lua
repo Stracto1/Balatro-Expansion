@@ -167,7 +167,7 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
 
         TrinketSprite:Render(RenderPos)
 
-        mod.JokerFullPosition[i] = RenderPos
+        mod.JokerFullPosition[Slot.RenderIndex] = RenderPos
     end
 
     if Isaac.GetFrameCount()% 2 == 0 then
@@ -176,7 +176,9 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
 
     if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.INVENTORY then
 
-        local RenderPos = mod.JokerFullPosition[mod.SelectionParams[PIndex].Index]
+        local Slot = mod.Saved.Player[PIndex].Inventory[mod.SelectionParams[PIndex].Index]
+
+        local RenderPos = mod.JokerFullPosition[Slot.RenderIndex]
 
         CardFrame:SetFrame(HUD_FRAME.Frame)
         CardFrame.Scale = ScaleMult

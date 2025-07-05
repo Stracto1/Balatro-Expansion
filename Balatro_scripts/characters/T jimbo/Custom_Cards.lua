@@ -17,6 +17,7 @@ local JumboChance = 0.4 --0.4 originally
 local SoulChance = 0.003
 local HoleChance = 0.003
 
+local STANDARD_INTERVAL = 12
 
 local TarotMaxSelection = {[Card.CARD_MAGICIAN] = 2,
                            [Card.CARD_EMPRESS] = 2,
@@ -42,6 +43,65 @@ local SpectralMaxSelection = {[mod.Spectrals.AURA] = 1,
                               [mod.Spectrals.MEDIUM] = 1,
                               [mod.Spectrals.CRYPTID] = 1}
 
+--the name is kind of misleading
+local function ChangeSelectionParams(PIndex, NewParams)
+
+    local Interval = 0
+    local NumChanged = 0
+
+    local NumSelected = mod.SelectionParams[PIndex].SelectionNum - 1
+
+
+    for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
+            
+        if Selected then
+
+            NumChanged = NumChanged + 1
+
+            Interval = 16 * NumChanged
+            local Pointer = mod.Saved.Player[PIndex].CurrentHand[i]
+            local card = mod.Saved.Player[PIndex].FullDeck[Pointer]
+
+
+
+            --flips once
+            Isaac.CreateTimer(function ()
+
+                card.Modifiers = card.Modifiers & mod.Modifier.COVERED == 0 and (card.Modifiers | mod.Modifier.COVERED) or (card.Modifiers & ~mod.Modifier.COVERED)
+                
+                mod.LastCardFullPoss[Pointer].Y = mod.LastCardFullPoss[Pointer] - 8
+                --mod.Counters.SinceCardFlipped[Pointer] = 0
+
+            end, Interval, 1, true)
+
+
+            --while flipped (usually covered) changes the params
+            Isaac.CreateTimer(function ()
+
+                card.Value = NewParams.Value or card.Value
+                card.Suit = NewParams.Suit or card.Suit
+                card.Enhancement = NewParams.Enhancement or card.Enhancement
+                card.Seal = NewParams.Seal or card.Seal
+                card.Edition = NewParams.Edition or card.Edition
+                card.Modifiers = NewParams.Modifiers or card.Modifiers
+                
+            end, Interval + 16 * (NumSelected - NumChanged + 1) + 1, 1, true)
+
+
+            Interval = Interval + 20 + 16 * NumSelected
+
+            Isaac.CreateTimer(function ()
+
+                card.Modifiers = card.Modifiers & mod.Modifier.COVERED == 0 and (card.Modifiers | mod.Modifier.COVERED) or (card.Modifiers & ~mod.Modifier.COVERED)
+
+            end, Interval, 1, true)
+
+        end
+    end
+
+    return Interval
+end
+
 
 
 
@@ -54,8 +114,9 @@ local function TJimboUseTarot(card, Player, IsPack, UseFlags)
     
     ---local IsTarot = card >= Card.CARD_FOOL and card <= Card.CARD_WORLD
 
-    local RandomSeed = math.max(Random(),1)
     local SelectedCards = mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]
+
+    local AnimationInterval
 
     if TarotMaxSelection[card]
        and (not mod.Saved.EnableHand --is selection is impossible
@@ -63,23 +124,11 @@ local function TJimboUseTarot(card, Player, IsPack, UseFlags)
             or (card == Card.CARD_DEATH and mod.SelectionParams[PIndex].SelectionNum ~= 2))) then --if the wrong number of cards is selected
 
         sfx:Play(SoundEffect.SOUND_THUMBS_DOWN)
-        return false
+        return
     end
 
     local FreeSpaces = 0
 
-    if not IsPack then
-        local NumConsumables = #mod.Saved.Player[PIndex].Consumables
-        
-        --removes the card that just got used
-        mod.Saved.Player[PIndex].Consumables[NumConsumables].Card = -1
-        mod.Saved.Player[PIndex].Consumables[NumConsumables].Edition = mod.Edition.BASE
-
-        table.remove(mod.Saved.Player[PIndex].Consumables, 1)
-        table.insert(mod.Saved.Player[PIndex].Consumables, NumConsumables, {Card = -1, Edition = mod.Edition.BASE})
-        
-        
-    end
     if card == Card.CARD_HIGH_PRIESTESS or card == Card.CARD_EMPEROR or card == Card.CARD_FOOL then
         
         for _, slot in ipairs(mod.Saved.Player[PIndex].Consumables) do 
@@ -94,14 +143,17 @@ local function TJimboUseTarot(card, Player, IsPack, UseFlags)
 
         if mod.Saved.Player[PIndex].LastCardUsed then
 
-            if FreeSpaces == 0 then
-                return false
+            local Success mod:TJimboAddConsumable(Player, mod.Saved.Player[PIndex].LastCardUsed)
+
+            if not Success then
+                return
             end
 
-            mod:TJimboAddConsumable(Player, mod.Saved.Player[PIndex].LastCardUsed)
+            AnimationInterval = STANDARD_INTERVAL
+
             goto FINISH
         else
-            return false
+            return
         end
     end
     
@@ -109,49 +161,49 @@ local function TJimboUseTarot(card, Player, IsPack, UseFlags)
 
     if card == Card.CARD_MAGICIAN then
         
-        for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
-            
-            if Selected then
-                mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Enhancement = mod.Enhancement.LUCKY
-            end
-        end
+        AnimationInterval = ChangeSelectionParams(PIndex, {Enhancement = mod.Enhancement.LUCKY})
         
     elseif card == Card.CARD_HIGH_PRIESTESS then
 
 
         if FreeSpaces == 0 then
-            return false
+            return
         end
+
+        AnimationInterval = 4
 
         local CardRNG = Player:GetCardRNG(card)
         
-            local Rplanets = mod:RandomPlanet(CardRNG, false, false, FreeSpaces)
+        local Rplanets = mod:RandomPlanet(CardRNG, false, false, math.min(2, FreeSpaces))
 
         for i,Planet in ipairs(Rplanets) do
+
+            AnimationInterval = AnimationInterval + 16
             mod:TJimboAddConsumable(Player, Planet, 0, true)
+
             Isaac.CreateTimer(function ()
                 Player:AnimateCard(Planet)
-            end, 5 + i*15,1,true)
+            end, AnimationInterval,1,true)
         end
         
     
     elseif card == Card.CARD_EMPRESS then
 
-        for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
-            
-            if Selected then
-                mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Enhancement = mod.Enhancement.MULT
-            end
-        end
+        AnimationInterval = ChangeSelectionParams(PIndex, {Enhancement = mod.Enhancement.MULT})
     
     elseif card == Card.CARD_EMPEROR then
 
         if FreeSpaces == 0 then
-            return false
+            return
         end
 
+        AnimationInterval = 4
+
         local CardRNG = Player:GetCardRNG(card)
-        for i=1, FreeSpaces do
+        for i=1, math.min(2, FreeSpaces) do
+
+            AnimationInterval = AnimationInterval + 16
+
             local Tarot
             repeat 
                 Tarot = mod:RandomTarot(CardRNG, false, false)
@@ -161,46 +213,28 @@ local function TJimboUseTarot(card, Player, IsPack, UseFlags)
             
             Isaac.CreateTimer(function ()
                 Player:AnimateCard(Tarot)
-            end, 5 + i*15,1,true)
+            end, AnimationInterval,1,true)
 
         end
+
+        AnimationInterval = AnimationInterval + 8
         
 
     elseif card == Card.CARD_HIEROPHANT then
 
-        for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
-            
-            if Selected then
-                mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Enhancement = mod.Enhancement.BONUS
-            end
-        end
+        AnimationInterval = ChangeSelectionParams(PIndex, {Enhancement = mod.Enhancement.BONUS})
 
     elseif card == Card.CARD_LOVERS then
 
-        for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
-            
-            if Selected then
-                mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Enhancement = mod.Enhancement.WILD
-            end
-        end
+        AnimationInterval = ChangeSelectionParams(PIndex, {Enhancement = mod.Enhancement.WILD})
     
     elseif card == Card.CARD_CHARIOT then
 
-        for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
-            
-            if Selected then
-                mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Enhancement = mod.Enhancement.STEEL
-            end
-        end
+        AnimationInterval = ChangeSelectionParams(PIndex, {Enhancement = mod.Enhancement.STEEL})
 
     elseif card == Card.CARD_JUSTICE then
 
-        for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
-            
-            if Selected then
-                mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Enhancement = mod.Enhancement.GLASS
-            end
-        end
+        AnimationInterval = ChangeSelectionParams(PIndex, {Enhancement = mod.Enhancement.GLASS})
 
     elseif card == Card.CARD_HERMIT then
         local CoinsToAdd =  mod.Saved.HasDebt and 0 or math.min(Player:GetNumCoins(), 20)
@@ -208,7 +242,9 @@ local function TJimboUseTarot(card, Player, IsPack, UseFlags)
 
         Player:AddCoins(CoinsToAdd)
 
-        mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(CoinsToAdd).."$")
+        mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(CoinsToAdd).."$", mod.EffectType.ENTITY, Player)
+
+        AnimationInterval = STANDARD_INTERVAL
 
     elseif card == Card.CARD_WHEEL_OF_FORTUNE then
 
@@ -222,11 +258,11 @@ local function TJimboUseTarot(card, Player, IsPack, UseFlags)
         end
 
         if not next(BaseJokers) then
-            
-            return false
+            return
         end
 
-        if CardRNG:RandomFloat() < 0.25 and BaseJokers ~= {} then 
+        Isaac.CreateTimer(function ()
+            if CardRNG:RandomFloat() < 0.25 and BaseJokers ~= {} then 
             
             local RandIndex = mod:GetRandom(BaseJokers,CardRNG)
 
@@ -243,10 +279,13 @@ local function TJimboUseTarot(card, Player, IsPack, UseFlags)
                 mod.Saved.Player[PIndex].Inventory[RandIndex].Edition = mod.Edition.POLYCROME
             end
 
-            Isaac.RunCallback("INVENTORY_CHANGE", Player)
-        else
-            mod:CreateBalatroEffect(Player, mod.EffectColors.PURPLE, mod.Sounds.ACTIVATE, "Nope!")--PLACEHOLDER
-        end
+                Isaac.RunCallback("INVENTORY_CHANGE", Player)
+            else
+                mod:CreateBalatroEffect(Player, mod.EffectColors.PURPLE, mod.Sounds.ACTIVATE, "Nope!", mod.EffectType.ENTITY, Player)--PLACEHOLDER
+            end
+        end, 24, 1, true)
+
+        AnimationInterval = 28
 
 
     elseif card == Card.CARD_STRENGTH then
@@ -274,6 +313,8 @@ local function TJimboUseTarot(card, Player, IsPack, UseFlags)
 
         mod:DestroyCards(Player, selection, true, true)
 
+        AnimationInterval = STANDARD_INTERVAL
+
     elseif card == Card.CARD_DEATH then
 
         local FirstIndex
@@ -289,10 +330,7 @@ local function TJimboUseTarot(card, Player, IsPack, UseFlags)
             end
         end
 
-        for k,v in pairs(SecondCard) do
-            
-            mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[FirstIndex]][k] = v
-        end        
+        AnimationInterval = ChangeSelectionParams(PIndex, SecondCard)
 
     elseif card == Card.CARD_TEMPERANCE then
 
@@ -305,107 +343,48 @@ local function TJimboUseTarot(card, Player, IsPack, UseFlags)
         end
         Player:AddCoins(CoinsToGain)
 
-        mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(CoinsToGain).."$")
+        mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(CoinsToGain).."$", mod.EffectType.ENTITY, Player)
 
+        AnimationInterval = STANDARD_INTERVAL
 
     elseif card == Card.CARD_DEVIL then
 
-        
-
-        for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
-            
-            if Selected then
-                mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Enhancement = mod.Enhancement.GOLDEN
-            end
-        end
+        AnimationInterval = ChangeSelectionParams(PIndex, {Enhancement = mod.Enhancement.GOLDEN})
 
     elseif card == Card.CARD_TOWER then
 
-        
 
-        for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
-            
-            if Selected then
-                mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Enhancement = mod.Enhancement.STONE
-            end
-        end
+        AnimationInterval = ChangeSelectionParams(PIndex, {Enhancement = mod.Enhancement.STONE})
         
 
     elseif card == Card.CARD_STARS then
 
-        
-
-        for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
-            
-            if Selected then
-                mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Suit = mod.Suits.Diamond
-            end
-        end
+        AnimationInterval = ChangeSelectionParams(PIndex, {Suit = mod.Suits.Diamond})
 
     elseif card == Card.CARD_MOON then
         
-
-        for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
-            
-            if Selected then
-                mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Suit = mod.Suits.Club
-            end
-        end
+        AnimationInterval = ChangeSelectionParams(PIndex, {Suit = mod.Suits.Club})
         
     elseif card == Card.CARD_SUN then
         
-
-        for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
-            
-            if Selected then
-                mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Suit = mod.Suits.Heart
-            end
-        end
+        AnimationInterval = ChangeSelectionParams(PIndex, {Suit = mod.Suits.Heart})
         
     elseif card == Card.CARD_JUDGEMENT then
-
-        --[[
-        local EmptySlot
-        for i, Joker in ipairs(mod.Saved.Player[PIndex].Inventory.Jokers) do
-            if Joker == 0 then --needs an empty slot
-                EmptySlot = i
-                break
-            end
-        end
-
-        if EmptySlot then
-            
-            local RandomJoker = mod:RandomJoker(Player:GetCardRNG(Card.CARD_JUDGEMENT), {}, true)
-            mod.Saved.Player[PIndex].Inventory.Jokers[EmptySlot] = RandomJoker.Joker
-            mod.Saved.Player[PIndex].Inventory.Editions[EmptySlot] = RandomJoker.Edition
-
-            mod.Saved.Player[PIndex].Progress.Inventory[EmptySlot] = tonumber(ItemsConfig:GetTrinket(RandomJoker.Joker):GetCustomTags()[2]) --sets the base progress
-            
-            Isaac.RunCallback("INVENTORY_CHANGE", Player)
-        else
-            Player:AnimateSad()
-        end]]
 
         local RandomJoker = mod:RandomJoker(Player:GetCardRNG(Card.CARD_JUDGEMENT), {}, true)
 
         local Success = mod:AddJoker(Player, RandomJoker.Joker, RandomJoker.Edition)
 
         if not Success then
-            Player:AnimateSad()
+            return
+            --Player:AnimateSad()
         end
 
+        AnimationInterval = STANDARD_INTERVAL
 
     elseif card == Card.CARD_WORLD then
         
-
-        for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
-            
-            if Selected then
-                mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Suit = mod.Suits.Spade
-            end
-        end
-        
-
+        AnimationInterval = ChangeSelectionParams(PIndex, {Suit = mod.Suits.Spade})
     end
 
     
@@ -422,28 +401,46 @@ local function TJimboUseTarot(card, Player, IsPack, UseFlags)
     mod.SelectionParams[PIndex].SelectionNum = 0
     
 
-    return true
+    return AnimationInterval
 end
 --mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.TJimboUseTarot)
 
+local PLANET_FULL_INTERVAL = 44
+local PLANET_STEP = 12
 
 local function TJimboUsePlanet(card, Player, UseFlags)
 
     local PIndex = Player:GetData().TruePlayerIndex
-    local PlanetHandType = 1 << (card - mod.Planets.PLUTO + 1) --gets the equivalent handtype
+    local PlanetHandType = card - mod.Planets.PLUTO + 2 --gets the equivalent handtype
 
-    mod.Saved.PlanetTypesUsed = mod.Saved.PlanetTypesUsed | PlanetHandType
+    local AnimationInterval = PLANET_FULL_INTERVAL
 
-    mod.Saved.Player[PIndex].HandLevels[PlanetHandType] = mod.Saved.Player[PIndex].HandLevels[PlanetHandType] + 1
-    mod.Saved.Player[PIndex].HandsStat[PlanetHandType] = mod.Saved.Player[PIndex].HandsStat[PlanetHandType] + mod.HandUpgrades[PlanetHandType]
-    
-    if PlanetHandType == mod.HandTypes.STRAIGHT_FLUSH then
-        PlanetHandType = mod.HandTypes.ROYAL_FLUSH --upgrades both royal flush and straight flush
+    mod.Saved.PlanetTypesUsed = mod.Saved.PlanetTypesUsed | (1 << PlanetHandType)
+
+
+    Isaac.CreateTimer(function ()
+        mod.Saved.Player[PIndex].HandsStat[PlanetHandType].Chips = mod.Saved.Player[PIndex].HandsStat[PlanetHandType].Chips + mod.HandUpgrades[PlanetHandType].Chips
+    end, PLANET_STEP, 1, true)
+
+    Isaac.CreateTimer(function ()
+        mod.Saved.Player[PIndex].HandsStat[PlanetHandType].Mult = mod.Saved.Player[PIndex].HandsStat[PlanetHandType].Mult + mod.HandUpgrades[PlanetHandType].Mult
+    end, PLANET_STEP*2, 1, true)
+
+    Isaac.CreateTimer(function ()
         mod.Saved.Player[PIndex].HandLevels[PlanetHandType] = mod.Saved.Player[PIndex].HandLevels[PlanetHandType] + 1
-        mod.Saved.Player[PIndex].HandsStat[PlanetHandType] = mod.Saved.Player[PIndex].HandsStat[PlanetHandType] + mod.HandUpgrades[PlanetHandType]
+    end, PLANET_STEP*3, 1, true)
+
+
+    if PlanetHandType == mod.HandTypes.STRAIGHT_FLUSH then
+
+        --upgrades both royal flush and straight flush
+
+        mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.ROYAL_FLUSH] = mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.ROYAL_FLUSH] + 1
+        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.ROYAL_FLUSH].Mult = mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.ROYAL_FLUSH].Mult + mod.HandUpgrades[mod.HandTypes.ROYAL_FLUSH].Mult
+        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.ROYAL_FLUSH].Chips = mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.ROYAL_FLUSH].Chips + mod.HandUpgrades[mod.HandTypes.ROYAL_FLUSH].Chips
     end
 
-    return true
+    return AnimationInterval
 end
 --mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.PlanetCards)
 
@@ -459,16 +456,17 @@ local function TJimboUseSpectral(card, Player, UseFlags)
             or (card == Card.CARD_DEATH and mod.SelectionParams[PIndex].SelectionNum ~= 2)) then --if the wrong number of cards is selected
 
         sfx:Play(SoundEffect.SOUND_THUMBS_DOWN)
-        return false
+        return
     end
 
+    local AnimationInterval
 
     local CardRNG = Player:GetCardRNG(card)
 
     if card == mod.Spectrals.FAMILIAR then
 
         if Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) == 1 then
-            return false --if hand size can't be decreased, don't to anything
+            return --if hand size can't be decreased, don't to anything
         end
 
         local Valid = 0
@@ -478,7 +476,7 @@ local function TJimboUseSpectral(card, Player, UseFlags)
             end
         end
         if Valid == 0 then --if no cards are valid then cancel
-            return false
+            return
         end
         --removes a random card from the deck
         local RandomCard
@@ -502,11 +500,12 @@ local function TJimboUseSpectral(card, Player, UseFlags)
         end
         Isaac.RunCallback("DECK_SHIFT", Player)
 
+        AnimationInterval = STANDARD_INTERVAL
 
     elseif card == mod.Spectrals.GRIM then
 
         if Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) == 1 then
-            return false --if hand size can't be decreased, don't to anything
+            return --if hand size can't be decreased, don't to anything
         end
 
         local Valid = 0
@@ -516,7 +515,7 @@ local function TJimboUseSpectral(card, Player, UseFlags)
             end
         end
         if Valid == 0 then --if no cards are valid then cancel
-            return false
+            return
         end
 
         --removes a random card from the deck
@@ -541,10 +540,12 @@ local function TJimboUseSpectral(card, Player, UseFlags)
         end 
         Isaac.RunCallback("DECK_SHIFT", Player)
 
+        AnimationInterval = STANDARD_INTERVAL
+
     elseif card == mod.Spectrals.INCANTATION then
 
         if Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) == 1 then
-            return false --if hand size can't be decreased, don't to anything
+            return --if hand size can't be decreased, don't to anything
         end
 
         local Valid = 0
@@ -554,7 +555,7 @@ local function TJimboUseSpectral(card, Player, UseFlags)
             end
         end
         if Valid == 0 then --if no cards are valid then cancel
-            return false
+            return
         end
 
         ---removes a random card from the deck
@@ -579,6 +580,8 @@ local function TJimboUseSpectral(card, Player, UseFlags)
         end
         Isaac.RunCallback("DECK_SHIFT", Player)
 
+        AnimationInterval = STANDARD_INTERVAL
+
     elseif card == mod.Spectrals.TALISMAN then
         
         for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
@@ -586,8 +589,9 @@ local function TJimboUseSpectral(card, Player, UseFlags)
             if Selected then
                 mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Seal = mod.Seals.GOLDEN
             end
-        end
-        
+        end   
+        AnimationInterval = STANDARD_INTERVAL
+
     elseif card == mod.Spectrals.AURA then  
 
         for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
@@ -607,72 +611,68 @@ local function TJimboUseSpectral(card, Player, UseFlags)
                 break
             end
         end
+
+        AnimationInterval = STANDARD_INTERVAL
         
     elseif card == mod.Spectrals.WRAITH then
 
         mod.Saved.Other.HasDebt = false
         Player:AddCoins(-Player:GetNumCoins()) --makes him poor 
         
-        --[[
-        local RandomJoker = mod:RandomJoker(CardRNG, {}, true, "rare")
-
-        for i, Joker in ipairs(mod.Saved.Player[PIndex].Inventory.Jokers) do
-            if Joker == 0 then --the first empty slot
-                mod.Saved.Player[PIndex].Inventory.Jokers[i] = RandomJoker
-                mod.Saved.Player[PIndex].Inventory.Editions[i] = mod.Edition.BASE
-                Isaac.RunCallback("INVENTORY_CHANGE", Player)
-                return
-            end
-        end
-        Player:AnimateSad() --no joker for you if no slot is empty :(   ]]
-
         local RandomJoker = mod:RandomJoker(CardRNG, {}, true, "rare")
         local Success = mod:AddJoker(Player, RandomJoker.Joker,RandomJoker.Edition)
 
         if not Success then
-            return false
+            return
         end
+
+        AnimationInterval = STANDARD_INTERVAL
     
     elseif card == mod.Spectrals.SIGIL then
 
-        if Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) == 1 then
-            return false --if hand size can't be decreased, don't to anything
+        if not mod.Saved.EnableHand then
+            return --if hand size can't be decreased, don't to anything
         end
 
-        local RandomSuit = CardRNG:RandomInt(1,4)
-        for i,v in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
-            if mod.Saved.Player[PIndex].FullDeck[v] then
-                mod.Saved.Player[PIndex].FullDeck[v].Suit = RandomSuit
-            end
+        for i,_ in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
+        
+            mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND][i] = true
         end
+        mod.SelectionParams[PIndex].SelectionNum = #mod.Saved.Player[PIndex].CurrentHand
+
+        local RandomSuit = CardRNG:RandomInt(1,4)
+
+        AnimationInterval = ChangeSelectionParams(PIndex, {Suit = RandomSuit})
+
         Isaac.RunCallback("DECK_MODIFY", Player, 0)
 
     elseif card == mod.Spectrals.OUIJA then
 
-        if Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) == 1 then
-            return false --if hand size can't be decreased, don't to anything
+        if Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) == 1 or not mod.Saved.EnableHand then
+            return --if hand size can't be decreased, don't to anything
         end
 
         --every card is set to a random suit
         local RandomValue = CardRNG:RandomInt(1,13)
-        for i,v in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
-            if mod.Saved.Player[PIndex].FullDeck[v] then
-                mod.Saved.Player[PIndex].FullDeck[v].Value = RandomValue
-            end
+
+        for i,_ in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
+        
+            mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND][i] = true
         end
+        mod.SelectionParams[PIndex].SelectionNum = #mod.Saved.Player[PIndex].CurrentHand
+
+
+        AnimationInterval = ChangeSelectionParams(PIndex, {Value = RandomValue})
 
         mod.Saved.Player[PIndex].OuijaUses = mod.Saved.Player[PIndex].OuijaUses + 1
         
         Isaac.RunCallback("DECK_MODIFY", Player, 0)
-        Player:AddCustomCacheTag(mod.CustomCache.HAND_SIZE, true)
+        --Player:AddCustomCacheTag(mod.CustomCache.HAND_SIZE, true)
 
     elseif card == mod.Spectrals.ECTOPLASM then 
         if mod.Saved.Player[PIndex].HandSize == 1 then
-            return false --if hand size can't be decreased, don't to anything
+            return --if hand size can't be decreased, don't to anything
         end
-
-        mod.Saved.Player[PIndex].EctoUses = mod.Saved.Player[PIndex].EctoUses + 1 
-
 
         local BaseJokers = {}--jokers with an edition cannot be chosen 
         for i,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
@@ -683,24 +683,24 @@ local function TJimboUseSpectral(card, Player, UseFlags)
         if not next(BaseJokers) then
             Player:AnimateSad()
             return --if no joker can be chosen then don't do anything
-        end 
+        end
         
         local RandomSlot = mod:GetRandom(BaseJokers, CardRNG)
         mod.Saved.Player[PIndex].Inventory[RandomSlot].Edition = mod.Edition.NEGATIVE
-        --adds a slot since he got a negative joker
+
         --mod:AddJimboInventorySlots(Player, 1)
 
-        --mod:ChangeJimboHandSize(Player, -mod.Saved.Player[PIndex].EctoUses)
-        --mod:ChangeJimboHandSize(Player, -1)
-
+        mod.Saved.Player[PIndex].EctoUses = mod.Saved.Player[PIndex].EctoUses + 1 
         sfx:Play(mod.Sounds.NEGATIVE)
+
+        AnimationInterval = STANDARD_INTERVAL
         
         Isaac.RunCallback("INVENTORY_CHANGE", Player)
 
     elseif card == mod.Spectrals.IMMOLATE then
 
         if Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) == 1 then
-            return false --if hand size can't be decreased, don't to anything
+            return --if hand size can't be decreased, don't to anything
         end
 
         local RandomCards = {}
@@ -711,15 +711,17 @@ local function TJimboUseSpectral(card, Player, UseFlags)
             local Rcard = CardRNG:RandomInt(1,i+1)
 
             table.remove(RandomCards, Rcard)
-
         end
         
         mod:DestroyCards(Player, RandomCards, true)
+        mod.Counters.SinceSelect = 0
 
         Player:AddCoins(20)
 
         mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW, 
-                                    mod.Sounds.MONEY, "+20$",mod.Spectrals.IMMOLATE)
+                                    mod.Sounds.MONEY, "+20$",mod.Spectrals.IMMOLATE, mod.EffectType.ENTITY, Player)
+
+        AnimationInterval = STANDARD_INTERVAL
 
     elseif card == mod.Spectrals.ANKH then
         
@@ -731,7 +733,7 @@ local function TJimboUseSpectral(card, Player, UseFlags)
         end
         if not next(FilledSlots) then
 
-            return false
+            return
         end
 
         local Rslot = mod:GetRandom(FilledSlots, CardRNG)
@@ -750,6 +752,8 @@ local function TJimboUseSpectral(card, Player, UseFlags)
             mod:AddJoker(Player, CopyJoker, CopyEdition, false)
             mod.Saved.Player[PIndex].Progress.Inventory[i] = CopyProgress
         end
+
+        AnimationInterval = STANDARD_INTERVAL
                   
         --Isaac.RunCallback("JOKER_ADDED", Player, CopyJoker, CopyEdition)
         --Isaac.RunCallback("INVENTORY_CHANGE", Player)
@@ -762,6 +766,8 @@ local function TJimboUseSpectral(card, Player, UseFlags)
                 mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Seal = mod.Seals.RED
             end
         end
+
+        AnimationInterval = STANDARD_INTERVAL
     
     elseif card == mod.Spectrals.HEX then
 
@@ -789,6 +795,8 @@ local function TJimboUseSpectral(card, Player, UseFlags)
         sfx:Play(mod.Sounds.POLY)
 
         Isaac.RunCallback("INVENTORY_CHANGE", Player)
+
+        AnimationInterval = STANDARD_INTERVAL
         
     elseif card == mod.Spectrals.TRANCE then
 
@@ -798,6 +806,8 @@ local function TJimboUseSpectral(card, Player, UseFlags)
                 mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Seal = mod.Seals.BLUE
             end
         end
+        AnimationInterval = STANDARD_INTERVAL
+
  
     elseif card == mod.Spectrals.MEDIUM then
 
@@ -807,7 +817,7 @@ local function TJimboUseSpectral(card, Player, UseFlags)
                 mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Seal = mod.Seals.PURPLE
             end
         end
-
+        AnimationInterval = STANDARD_INTERVAL
 
     elseif card == mod.Spectrals.CRYPTID then
 
@@ -822,6 +832,7 @@ local function TJimboUseSpectral(card, Player, UseFlags)
                 break
             end
         end
+        AnimationInterval = STANDARD_INTERVAL
         
     elseif card == mod.Spectrals.SOUL then
 
@@ -829,13 +840,39 @@ local function TJimboUseSpectral(card, Player, UseFlags)
         
         local Success = mod:AddJoker(Player, Legendary.Joker, Legendary.Edition)
         if not Success then
-            return false
+            return
         end
+        AnimationInterval = STANDARD_INTERVAL
 
     elseif card == mod.Spectrals.BLACK_HOLE then
-        for i = 1, 13 do
-            mod.Saved.CardLevels[i] = mod.Saved.CardLevels[i] + 1
+
+        for _, Hand in ipairs(mod.HandTypes) do
+            mod.Saved.Player[PIndex].HandsStat[Hand].Chips = mod.Saved.Player[PIndex].HandsStat[Hand].Chips + mod.HandUpgrades[Hand].Chips
+            mod.Saved.Player[PIndex].HandsStat[Hand].Mult = mod.Saved.Player[PIndex].HandsStat[Hand].Mult + mod.HandUpgrades[Hand].Mult
+
+            mod.Saved.Player[PIndex].HandLevels[Hand] = mod.Saved.Player[PIndex].HandLevels[Hand] + 1
         end
+
+        mod.Saved.Player[PIndex].ChipsValue = "-"
+        mod.Saved.Player[PIndex].MultValue = "-"
+
+        AnimationInterval = PLANET_FULL_INTERVAL
+
+        Isaac.CreateTimer(function ()
+
+            mod.Saved.Player[PIndex].ChipsValue = "+"
+        end, PLANET_STEP, 1, true)
+
+        Isaac.CreateTimer(function ()
+
+            mod.Saved.Player[PIndex].MultValue = "+"
+        end, PLANET_STEP*2, 1, true)
+
+
+        Isaac.CreateTimer(function ()
+
+
+        end, PLANET_STEP*3, 1, true)
 
     end
 
@@ -853,7 +890,7 @@ local function TJimboUseSpectral(card, Player, UseFlags)
     mod.SelectionParams[PIndex].SelectionNum = 0
 
 
-    return true
+    return AnimationInterval
 end
 --mod:AddCallback(ModCallbacks.MC_USE_CARD, mod.SpectralCards)
 
@@ -862,9 +899,10 @@ end
 function mod:TJimboUseCard(card, Player, IsPack, UseFlags)
 
     if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
-        return false
+        return
     end
 
+    mod.AnimationIsPlaying = true
     local PIndex = Player:GetData().TruePlayerIndex
 
     UseFlags = UseFlags or 0
@@ -873,22 +911,65 @@ function mod:TJimboUseCard(card, Player, IsPack, UseFlags)
     local IsPlanet = card >= mod.Planets.PLUTO and card <= mod.Planets.ERIS
     local IsSpectral = card >= mod.Spectrals.FAMILIAR and card <= mod.Spectrals.SOUL
 
-    local Success
+    local RemoveBeforeUse = card == Card.CARD_EMPEROR or card == Card.CARD_HIGH_PRIESTESS
+
+    if not IsPack and RemoveBeforeUse then
+        local NumConsumables = #mod.Saved.Player[PIndex].Consumables
+        
+        --removes the card that just got used
+        mod.Saved.Player[PIndex].Consumables[NumConsumables].Card = -1
+        mod.Saved.Player[PIndex].Consumables[NumConsumables].Edition = mod.Edition.BASE
+
+        table.remove(mod.Saved.Player[PIndex].Consumables, NumConsumables)
+        table.insert(mod.Saved.Player[PIndex].Consumables, 1, {Card = -1, Edition = mod.Edition.BASE})
+
+    end
+
+    local CurrentInterval
     if IsTarot then
         
-        Success = TJimboUseTarot(card, Player, IsPack, UseFlags)
+        CurrentInterval = TJimboUseTarot(card, Player, IsPack, UseFlags)
 
     elseif IsPlanet then
         
-        Success = TJimboUsePlanet(card, Player, UseFlags)
+        CurrentInterval = TJimboUsePlanet(card, Player, UseFlags)
 
     elseif IsSpectral then
         
-        Success = TJimboUseSpectral(card, Player, UseFlags)
+        CurrentInterval = TJimboUseSpectral(card, Player, UseFlags)
     end
 
-    return Success
+    if CurrentInterval then
 
+
+        if not IsPack and not RemoveBeforeUse then
+            local NumConsumables = #mod.Saved.Player[PIndex].Consumables
+            
+            --removes the card that just got used
+            mod.Saved.Player[PIndex].Consumables[NumConsumables].Card = -1
+            mod.Saved.Player[PIndex].Consumables[NumConsumables].Edition = mod.Edition.BASE
+
+            table.remove(mod.Saved.Player[PIndex].Consumables, NumConsumables)
+            table.insert(mod.Saved.Player[PIndex].Consumables, 1, {Card = -1, Edition = mod.Edition.BASE})
+
+        end
+
+
+        Isaac.CreateTimer(function ()
+
+            CurrentInterval = Isaac.RunCallback(mod.Callbalcks.CONSUMABLE_USE, Player, card)
+
+            Isaac.CreateTimer(function ()
+                mod.AnimationIsPlaying = false
+            end, CurrentInterval, 1, true)
+
+        end, CurrentInterval, 1, true)
+
+    else
+        mod.AnimationIsPlaying = false
+    end
+
+    return CurrentInterval -- used as true/false
 end
 --mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.TJimboUseCard)
 

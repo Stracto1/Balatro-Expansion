@@ -152,7 +152,7 @@ function mod:RerollVoucher(Partial)
         return
     end
 
-    local DidSomething = false --needs to reroll a shop item to work
+    local DidSomething = false --needs to actually reroll a shop item to work
 
     for i,Pickup in ipairs(Isaac.FindByType(EntityType.ENTITY_PICKUP,-1,-1, true)) do
         if Pickup:ToPickup():IsShopItem() then
@@ -171,7 +171,7 @@ function mod:RerollVoucher(Partial)
     if GlutOwner then
         GlutOwner:AddCoins(2)
         mod:CreateBalatroEffect(GlutOwner, mod.EffectColors.YELLOW,
-                                mod.Sounds.MONEY, "+2 $", mod.EffectType.ENTITY)
+                                mod.Sounds.MONEY, "+2 $", mod.EffectType.ENTITY, GlutOwner)
         return
     end
     
@@ -180,7 +180,7 @@ function mod:RerollVoucher(Partial)
     if SurplusOwner then
         Game:GetPlayer(0):AddCoins(1)
         mod:CreateBalatroEffect(SurplusOwner, mod.EffectColors.YELLOW,
-                                mod.Sounds.MONEY, "+1 $", mod.EffectType.ENTITY)
+                                mod.Sounds.MONEY, "+1 $", mod.EffectType.ENTITY, SurplusOwner)
         return
     end
     
@@ -241,7 +241,7 @@ function mod:CardShotVouchers(Player,ShotCard,Evaluate)
 
         if Player:HasCollectible(PlanetariumToValue[ShotCard.Value]) then
             mod:IncreaseJimboStats(Player, 0,0,1.15, true, true)
-            mod:CreateBalatroEffect(Player, mod.EffectColors.RED, mod.Sounds.TIMESMULT, "X1.15", mod.EffectType.ENTITY)
+            mod:CreateBalatroEffect(Player, mod.EffectColors.RED, mod.Sounds.TIMESMULT, "X1.15", mod.EffectType.ENTITY, Player)
             return
         end
 
@@ -250,7 +250,7 @@ function mod:CardShotVouchers(Player,ShotCard,Evaluate)
 
             if card - mod.Planets.PLUTO == ShotCard.Value - 1 then
                 mod:IncreaseJimboStats(Player, 0,0,1.15, true, true)
-                mod:CreateBalatroEffect(Player, mod.EffectColors.RED, mod.Sounds.TIMESMULT, "X1.15", mod.EffectType.ENTITY)
+                mod:CreateBalatroEffect(Player, mod.EffectColors.RED, mod.Sounds.TIMESMULT, "X1.15", mod.EffectType.ENTITY, Player)
                 return
             end
         end

@@ -69,7 +69,7 @@
 
 
     <!--CARD ENTITIES-->
-        <!--PLANETS-->
+       
     <entity name="Arcana pack" anm2path="CardPack_Tarot.anm2" id="5" variant="300" subtype="2476"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
@@ -94,6 +94,34 @@
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
+
+
+
+    <entity name="Jumbo Arcana pack" anm2path="CardPack_Tarot.anm2" id="5" variant="300" subtype="2476"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+
+    <entity name="Jumbo Celestial pack" anm2path="CardPack_Planet.anm2" id="5" variant="300" subtype="2477"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+
+    <entity name="Jumbo Standard pack" anm2path="CardPack_Standard.anm2" id="5" variant="300" subtype="2478"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+
+    <entity name="Jumbo Buffon pack" anm2path="CardPack_Buffon.anm2" id="5" variant="300" subtype="2479"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+
+    <entity name="Jumbo Spectral pack" anm2path="CardPack_Spectral.anm2" id="5" variant="300" subtype="2480"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+
 
 
 
@@ -295,9 +323,11 @@
     </entity>
 
 
-    <entity anm2path="" id="1000" variant="2596" name="Pack Particle Helper" />
-    <entity anm2path="Particle.anm2" friction="1" id="1000" variant="2597" name="Pack Particle" />
-    <entity anm2path="" id="1000"  friction="0" variant="2598" name="Description Helper" />
+    <entity name="Pack Particle Helper" anm2path="" id="1000" variant="2596" />
+    <entity name="Pack Particle" anm2path="Particle.anm2" friction="1" id="1000" variant="2597" />
+    <entity name="Description Helper" anm2path="" id="1000"  friction="0" variant="2598" />
+    <entity name="Blind Cashout Bubble" anm2path="" id="1000"  friction="0" variant="2599" />
+
 
     <entity name="Pathfinder Slave" anm2path="" id="2743" variant="1" 
     	friction="0" collisionRadius="9" tags="noreroll" gridCollision="ground" shutdoors="false">

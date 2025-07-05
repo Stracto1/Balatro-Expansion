@@ -189,8 +189,12 @@ Balatro_Expansion.Callbalcks = {CARD_SHOT = "CARD_SHOT",
                                 CARD_HIT = "CARD_HIT",
                                 DISCARD = "HAND_DISCARD",
                                 CARD_DISCARD = "CARD_DISCARD",
+                                POST_DISCARD = "POST_HAND_DISCARD",
                                 JOKER_SOLD = "JOKER_SOLD",
+                                CONSUMABLE_SOLD = "CONSUMABLE_SOLD",
+                                CONSUMABLE_USE = "CONSUMABLE_USED",
                                 BLIND_CLEAR = "BLIND_CLEARED",
+                                CASHOUT_EVAL = "CASHOUT_EVALUATION",
                                 BLIND_START = "BLIND_STARTED",
                                 POST_BLIND_START = "POST_BLIND_STARTED",
                                 BLIND_SKIP = "BLIND_SKIPPED",
@@ -207,6 +211,14 @@ Balatro_Expansion.Callbalcks = {CARD_SHOT = "CARD_SHOT",
                                 HAND_UPDATE = "HAND_TYPE_UPDATE",
                                 BALATRO_PLATE_PRESSED = "BALATRO_PLATE_PRESSED",}
 
+
+Balatro_Expansion.ScreenStrings = {Warning = {}, --{Name, String, StartFrame, Type}
+                                   CashOut = {}} --{Name, String, StartFrame, Type}
+
+Balatro_Expansion.StringTypes = {Hand = -1,
+                                 General = -2,
+                                 Interest = -3,
+                                 Joker = -4}
 
 Balatro_Expansion.JokerTypes = {}
 Balatro_Expansion.JokerTypes.ECON = "money"
@@ -242,6 +254,8 @@ Balatro_Expansion.Effects.BANANA_PEEL = Isaac.GetEntityVariantByName("Banana Pee
 Balatro_Expansion.Effects.TOMATO = Isaac.GetEntityVariantByName("Thrown Tomato")
 Balatro_Expansion.Effects.ANVIL = Isaac.GetEntityVariantByName("Falling Anvil")
 Balatro_Expansion.Effects.UMBRELLA = Isaac.GetEntityVariantByName("Player Umbrella")
+Balatro_Expansion.Effects.CASHOUT_BUBBLE = Isaac.GetEntityVariantByName("Blind Cashout Bubble")
+
 
 Balatro_Expansion.Pickups = {}
 Balatro_Expansion.Pickups.LOLLYPOP = Isaac.GetEntityVariantByName("Base Lollypop")
@@ -311,6 +325,12 @@ Balatro_Expansion.EffectColors.BLUE = Color(49/255, 140/255, 238/255)
 Balatro_Expansion.EffectColors.YELLOW = Color(238/255, 186/255, 49/255)
 Balatro_Expansion.EffectColors.PURPLE = Color(238/255, 186/255, 49/255)
 
+Balatro_Expansion.EffectKColors = {}
+Balatro_Expansion.EffectKColors.RED = KColor(238/255, 49/255, 66/255, 1)
+Balatro_Expansion.EffectKColors.BLUE = KColor(49/255, 140/255, 238/255, 1)
+Balatro_Expansion.EffectKColors.YELLOW = KColor(238/255, 186/255, 49/255, 1)
+Balatro_Expansion.EffectKColors.PURPLE = KColor(238/255, 186/255, 49/255, 1)
+
 Balatro_Expansion.EffectType = {NULL = -1,
                                 JOKER = -2,
                                 HAND = -3,
@@ -324,6 +344,12 @@ Balatro_Expansion.Packs.CELESTIAL = Isaac.GetCardIdByName("Planet_Pack")
 Balatro_Expansion.Packs.BUFFON  =  Isaac.GetCardIdByName("Buffon_Pack")
 Balatro_Expansion.Packs.SPECTRAL =  Isaac.GetCardIdByName("Spectral_Pack")
 Balatro_Expansion.Packs.STANDARD = Isaac.GetCardIdByName("Standard_Pack")
+
+Balatro_Expansion.PackSubType = {}
+Balatro_Expansion.PackSubType.BASE =  Isaac.GetCardIdByName("Tarot_Pack")
+Balatro_Expansion.PackSubType.JUMBO = Isaac.GetCardIdByName("Planet_Pack")
+Balatro_Expansion.PackSubType.MEGA  =  Isaac.GetCardIdByName("Buffon_Pack")
+
 
 Balatro_Expansion.Planets = {}
 Balatro_Expansion.Planets.PLUTO =  Isaac.GetCardIdByName("Not_So_Planet_Pluto")
@@ -457,21 +483,39 @@ Balatro_Expansion.Rarities.rare = 3
 Balatro_Expansion.Rarities.legendary = 4
 
 Balatro_Expansion.HandTypes = {}
-Balatro_Expansion.HandTypes.NONE = 1 << 0
-Balatro_Expansion.HandTypes.HIGH_CARD = 1 << 1
-Balatro_Expansion.HandTypes.PAIR = 1 << 2
-Balatro_Expansion.HandTypes.TWO_PAIR = 1 << 3
-Balatro_Expansion.HandTypes.THREE = 1 << 4
-Balatro_Expansion.HandTypes.STRAIGHT = 1 << 5
-Balatro_Expansion.HandTypes.FLUSH = 1 << 6
-Balatro_Expansion.HandTypes.FULL_HOUSE = 1 << 7
-Balatro_Expansion.HandTypes.FOUR = 1 << 8
-Balatro_Expansion.HandTypes.STRAIGHT_FLUSH = 1 << 9
-Balatro_Expansion.HandTypes.FIVE = 1 << 10
-Balatro_Expansion.HandTypes.FLUSH_HOUSE = 1 << 11
-Balatro_Expansion.HandTypes.FIVE_FLUSH = 1 << 12
-Balatro_Expansion.HandTypes.ROYAL_FLUSH = 1 << 13
+Balatro_Expansion.HandTypes.NONE = 1
+Balatro_Expansion.HandTypes.HIGH_CARD = 2
+Balatro_Expansion.HandTypes.PAIR = 3
+Balatro_Expansion.HandTypes.TWO_PAIR = 4
+Balatro_Expansion.HandTypes.THREE = 5
+Balatro_Expansion.HandTypes.STRAIGHT = 6
+Balatro_Expansion.HandTypes.FLUSH = 7
+Balatro_Expansion.HandTypes.FULL_HOUSE = 8
+Balatro_Expansion.HandTypes.FOUR = 9
+Balatro_Expansion.HandTypes.STRAIGHT_FLUSH = 10
+Balatro_Expansion.HandTypes.FIVE = 11
+Balatro_Expansion.HandTypes.FLUSH_HOUSE = 12
+Balatro_Expansion.HandTypes.FIVE_FLUSH = 13
+Balatro_Expansion.HandTypes.ROYAL_FLUSH = 14
+
+Balatro_Expansion.HandFlags = {}
+Balatro_Expansion.HandFlags.NONE = 1 << 1
+Balatro_Expansion.HandFlags.HIGH_CARD = 1 << 2
+Balatro_Expansion.HandFlags.PAIR = 1 << 3
+Balatro_Expansion.HandFlags.TWO_PAIR = 1 << 4
+Balatro_Expansion.HandFlags.THREE = 1 << 5
+Balatro_Expansion.HandFlags.STRAIGHT = 1 << 6
+Balatro_Expansion.HandFlags.FLUSH = 1 << 7
+Balatro_Expansion.HandFlags.FULL_HOUSE = 1 << 8
+Balatro_Expansion.HandFlags.FOUR = 1 << 9
+Balatro_Expansion.HandFlags.STRAIGHT_FLUSH = 1 << 10
+Balatro_Expansion.HandFlags.FIVE = 1 << 11
+Balatro_Expansion.HandFlags.FLUSH_HOUSE = 1 << 12
+Balatro_Expansion.HandFlags.FIVE_FLUSH = 1 << 13
+Balatro_Expansion.HandFlags.ROYAL_FLUSH = 1 << 14
 --Balatro_Expansion.HandTypes.NUM_HANDS = 12
+
+Balatro_Expansion.Stats = {CHIPS = "X", MULT = "Y"}
 
 
 Balatro_Expansion.Tears = {}
@@ -498,8 +542,8 @@ Balatro_Expansion.AllCurses.THE_WALL = 1 << (Isaac.GetCurseIdByName("curse of th
 
 Balatro_Expansion.NormalCurses[1] = Balatro_Expansion.AllCurses.THE_WALL
 
-Balatro_Expansion.BLINDS = {CASHOUT = 4096, --used as a pressure plate vardata, not really a type of blind
-                            SKIP = 2048, --used as a flag along with another blind
+Balatro_Expansion.BLINDS = {CASHOUT = 4096, --not really a type of blind, used as a flag on top of the money gained
+                            SKIP = 8192, --used as a flag along with another blind
                             SMALL = 1,
                             BIG = 2,
                             BOSS = 4, --used as a flag along with a specific boss type
@@ -760,54 +804,21 @@ for i=1, 13 do
 end
 
 
---Balatro_Expansion.Saved.Player.HandLevels = {}
---Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.HIGH_CARD] = 1
---Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.PAIR] = 1
---Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.TWO_PAIR] = 1
---Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.THREE] = 1
---Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.STRAIGHT] = 1
---Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.FLUSH] = 1
---Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.FULL_HOUSE] = 1
---Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.FOUR] = 1
---Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.STRAIGHT_FLUSH] = 1
---Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.ROYAL_FLUSH] = 1
---Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.FIVE] = 1
---Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.FLUSH_HOUSE] = 1
---Balatro_Expansion.Saved.Player.HandLevels[Balatro_Expansion.HandTypes.FIVE_FLUSH] = 1
-
-Balatro_Expansion.Stats = {CHIPS = "X", MULT = "Y"}
-
---Balatro_Expansion.Saved.Player.HandsStat = {}
---Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.NONE] = Vector(0,0)
---Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.HIGH_CARD] = Vector(5,1)
---Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.PAIR] = Vector(10,2)
---Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.TWO_PAIR] = Vector(20,2)
---Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.THREE] = Vector(30,3)
---Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.STRAIGHT] = Vector(30,4)
---Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FLUSH] = Vector(35,4)
---Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FULL_HOUSE] = Vector(40,4)
---Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FOUR] = Vector(60,7)
---Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.STRAIGHT_FLUSH] = Vector(100,8)
---Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.ROYAL_FLUSH] = Vector(100,8)
---Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FIVE] = Vector(120,12)
---Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FLUSH_HOUSE] = Vector(120,14)
---Balatro_Expansion.Saved.Player.HandsStat[Balatro_Expansion.HandTypes.FIVE_FLUSH] = Vector(120,16)
-
 
 Balatro_Expansion.HandUpgrades = {}
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.HIGH_CARD] = Vector(10,1)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.PAIR] = Vector(15,1)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.TWO_PAIR] = Vector(20,1)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.THREE] = Vector(20,2)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.STRAIGHT] = Vector(30,3)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FLUSH] = Vector(15,2)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FULL_HOUSE] = Vector(25,2)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FOUR] = Vector(30,3)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.STRAIGHT_FLUSH] = Vector(40,4)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.ROYAL_FLUSH] = Vector(40,4)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FIVE] = Vector(35,3)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FLUSH_HOUSE] = Vector(40,4)
-Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FIVE_FLUSH] = Vector(50,3)
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.HIGH_CARD] = {Chips = 10, Mult = 1}
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.PAIR] = {Chips = 15, Mult = 1}
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.TWO_PAIR] = {Chips = 20, Mult = 1}
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.THREE] = {Chips = 20, Mult = 2}
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.STRAIGHT] = {Chips = 30, Mult = 3}
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FLUSH] = {Chips = 15, Mult = 2}
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FULL_HOUSE] = {Chips = 25, Mult = 2}
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FOUR] = {Chips = 30, Mult = 3}
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.STRAIGHT_FLUSH] = {Chips = 40, Mult = 4}
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.ROYAL_FLUSH] = {Chips = 40, Mult = 4}
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FIVE] = {Chips = 35, Mult = 3}
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FLUSH_HOUSE] ={Chips = 40, Mult = 4}
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.FIVE_FLUSH] = {Chips = 50, Mult = 3}
 
 --Balatro_Expansion.Saved.Player.HandsUsed = {}
 --Balatro_Expansion.Saved.Player.HandsUsed[Balatro_Expansion.HandTypes.HIGH_CARD] = 0
@@ -841,9 +852,10 @@ Balatro_Expansion.AnimationIsPlaying = false
 Balatro_Expansion.Counters = {}--table used for variuos counters increased every update (mainly used for animated HUD stuff)
 Balatro_Expansion.Counters.SinceShift = 0
 Balatro_Expansion.Counters.SinceSelect = 0
---Balatro_Expansion.Counters.SincePackOpen = 0
+Balatro_Expansion.Counters.SinceCardTriggered = {}
 Balatro_Expansion.Counters.SinceShoot = 0
 Balatro_Expansion.Counters.Activated = {}
+
 
 Balatro_Expansion.TearCardEnable = true --used in AddCardTearFlags()
 
@@ -852,6 +864,7 @@ Balatro_Expansion.Saved.Other.ShopEntered = false
 Balatro_Expansion.Saved.Other.TreasureEntered = false
 
 Balatro_Expansion.Saved.Other.Labyrinth = 1
+Balatro_Expansion.Saved.LastJokerRenderIndex = 0 --used to interpolate joker render positions
 
 Balatro_Expansion.Saved.ModConfig = {}
 Balatro_Expansion.Saved.ModConfig.EffectsAllowed = true
@@ -859,16 +872,16 @@ Balatro_Expansion.Saved.ModConfig.ExtraReadability = false
 
 
 Balatro_Expansion.SelectionParams = {}
-Balatro_Expansion.SelectionParams[0] = {}
-Balatro_Expansion.SelectionParams[0].Frames = 0 -- in update frames
-Balatro_Expansion.SelectionParams[0].SelectedCards = {false,false,false,false,false}
-Balatro_Expansion.SelectionParams[0].Index = 1
-Balatro_Expansion.SelectionParams[0].Mode = 0
-Balatro_Expansion.SelectionParams[0].Purpose = 0
-Balatro_Expansion.SelectionParams[0].PackOptions = {} --the options for the selection inside of a pack
-Balatro_Expansion.SelectionParams[0].OptionsNum = 0 --total amount of options
-Balatro_Expansion.SelectionParams[0].MaxSelectionNum = 0 --how many things you can choose at a time
-Balatro_Expansion.SelectionParams[0].SelectionNum = 0 --how many things you chose
+Balatro_Expansion.SelectionParams[1] = {}
+Balatro_Expansion.SelectionParams[1].Frames = 0 -- in update frames
+Balatro_Expansion.SelectionParams[1].SelectedCards = {false,false,false,false,false}
+Balatro_Expansion.SelectionParams[1].Index = 1
+Balatro_Expansion.SelectionParams[1].Mode = 0
+Balatro_Expansion.SelectionParams[1].Purpose = 0
+Balatro_Expansion.SelectionParams[1].PackOptions = {} --the options for the selection inside of a pack
+Balatro_Expansion.SelectionParams[1].OptionsNum = 0 --total amount of options
+Balatro_Expansion.SelectionParams[1].MaxSelectionNum = 0 --how many things you can choose at a time
+Balatro_Expansion.SelectionParams[1].SelectionNum = 0 --how many things you chose
 
 
 Balatro_Expansion.SelectionParams.Modes = {}

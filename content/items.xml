@@ -107,7 +107,7 @@
     <trinket cache="firedelay" gfx="square_joker_trinket.png" name="Square Joker" description="Nostalgia squared!" customtags="!4 0 :0 ?common balatro chips copy" achievement="PermaLocked"/>
     <trinket gfx="seance_trinket.png" name="Sèance" description="Feel their words" customtags="!6 0 :0 ?uncommon balatro activate copy" achievement="PermaLocked"/>
     <trinket cache="damage" gfx="vampire_trinket.png" name="Vampire" description="I AM DRATULA!" customtags="!7 1 :1 ?uncommon balatro multm value copy" achievement="PermaLocked"/>
-    <trinket  gfx="shortcut_trinket.png" name="Shortcut" description="Trust me, i know this place" customtags="!7 -1 :0 ?common balatro mult" achievement="PermaLocked"/>
+    <trinket  gfx="shortcut_trinket.png" name="Shortcut" description="Trust me, i know this place" customtags="!7 -1 :0 ?uncommon balatro mult" achievement="PermaLocked"/>
     <trinket gfx="hologram_trinket.png" name="Hologram" description="So futuristc" customtags="!7 1 :1 ?uncommon balatro multm value copy" achievement="PermaLocked"/>
 
     <trinket cache="damage" gfx="baron_trinket.png" name="Baron" description="Royal expectations" customtags="!8 1 :0 ?rare balatro multm copy" achievement="PermaLocked"/>

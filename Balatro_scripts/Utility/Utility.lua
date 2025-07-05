@@ -259,6 +259,7 @@ function mod:FloorHasShopOrTreasure()
     return Available
 end
 
+
 function mod:Lerp(a, b, t)
     t = mod:Clamp(math.abs(t), 1,0)
     return a + (b - a) * t
@@ -431,7 +432,7 @@ mod:AddCallback(ModCallbacks.MC_PRE_NEW_ROOM, ResetSpecialBossFight)
 --determines the corresponding poker hand basing on the hand given
 function mod:DeterminePokerHand(Player)
 
-    local ElegibleHandTypes = mod.HandTypes.NONE
+    local ElegibleHandTypes = mod.HandFlags.NONE
 
     local PIndex = Player:GetData().TruePlayerIndex
 
@@ -440,7 +441,9 @@ function mod:DeterminePokerHand(Player)
     if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
 
         for i,Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
+            --print(i)
             if Selected then
+                --print(i, "is selected")
                 table.insert(RealHand, mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]])
             end
         end
@@ -452,7 +455,7 @@ function mod:DeterminePokerHand(Player)
     end
 
     if #RealHand > 0 then --shoud never happen but you never know...
-        ElegibleHandTypes = ElegibleHandTypes + mod.HandTypes.HIGH_CARD
+        ElegibleHandTypes = ElegibleHandTypes + mod.HandFlags.HIGH_CARD
     else
         return ElegibleHandTypes --why bother if there's nothing
     end
@@ -474,16 +477,16 @@ function mod:DeterminePokerHand(Player)
 
     --general flush check
     if IsFlush then
-        ElegibleHandTypes = ElegibleHandTypes + mod.HandTypes.FLUSH
+        ElegibleHandTypes = ElegibleHandTypes + mod.HandFlags.FLUSH
     end
     --straight check
     if IsStraight then
-        ElegibleHandTypes = ElegibleHandTypes + mod.HandTypes.STRAIGHT
+        ElegibleHandTypes = ElegibleHandTypes + mod.HandFlags.STRAIGHT
         if IsRoyal then
-            ElegibleHandTypes = ElegibleHandTypes + mod.HandTypes.STRAIGHT_FLUSH
-            ElegibleHandTypes = ElegibleHandTypes + mod.HandTypes.ROYAL_FLUSH
+            ElegibleHandTypes = ElegibleHandTypes + mod.HandFlags.STRAIGHT_FLUSH
+            ElegibleHandTypes = ElegibleHandTypes + mod.HandFlags.ROYAL_FLUSH
         elseif IsFlush then
-            ElegibleHandTypes = ElegibleHandTypes + mod.HandTypes.ROYAL_FLUSH
+            ElegibleHandTypes = ElegibleHandTypes + mod.HandFlags.ROYAL_FLUSH
         end
     end
 
@@ -492,37 +495,37 @@ function mod:DeterminePokerHand(Player)
        return ElegibleHandTypes
     end
     --at least a pair
-    ElegibleHandTypes = ElegibleHandTypes + mod.HandTypes.PAIR
+    ElegibleHandTypes = ElegibleHandTypes + mod.HandFlags.PAIR
 
     if EqualCards < 3 then --not a three of a kind
         if EqualCards == 2.5 then --in that case makes sure if it's a two pair
-            ElegibleHandTypes = ElegibleHandTypes + mod.HandTypes.TWO_PAIR
+            ElegibleHandTypes = ElegibleHandTypes + mod.HandFlags.TWO_PAIR
         end
         return ElegibleHandTypes
     end
     --at least a three of a kind
-    ElegibleHandTypes = ElegibleHandTypes + mod.HandTypes.THREE
+    ElegibleHandTypes = ElegibleHandTypes + mod.HandFlags.THREE
 
     if EqualCards < 4 then
         if EqualCards == 3.5 then
             if IsFlush then
-                ElegibleHandTypes = ElegibleHandTypes + mod.HandTypes.FLUSH_HOUSE
+                ElegibleHandTypes = ElegibleHandTypes + mod.HandFlags.FLUSH_HOUSE
             end
-            ElegibleHandTypes = ElegibleHandTypes + mod.HandTypes.FULL_HOUSE
+            ElegibleHandTypes = ElegibleHandTypes + mod.HandFlags.FULL_HOUSE
         end
         return ElegibleHandTypes
     end
      --at least a four of a kind
-     ElegibleHandTypes = ElegibleHandTypes + mod.HandTypes.FOUR
+     ElegibleHandTypes = ElegibleHandTypes + mod.HandFlags.FOUR
 
     if EqualCards < 5 then 
         return ElegibleHandTypes
     end
     --a five of a kind
     if IsFlush then
-        ElegibleHandTypes = ElegibleHandTypes + mod.HandTypes.FIVE_FLUSH
+        ElegibleHandTypes = ElegibleHandTypes + mod.HandFlags.FIVE_FLUSH
     end
-    ElegibleHandTypes = ElegibleHandTypes + mod.HandTypes.FIVE
+    ElegibleHandTypes = ElegibleHandTypes + mod.HandFlags.FIVE
 
     --IN THE END THERE WILL BE A BITMASK CONTAINING ALL THE POSSIBLE HAND TYPES
     --THAT THE USED ONE CONTAINS, MAKING IT EASIER FOR JOKERS TO ACTIVATE CORRECTLY
@@ -654,15 +657,21 @@ function mod:GetCardValueRepetitions(Player, HandTable)
 end
 
 
+function mod:GetHandTypeFromFlag(HandFlag)
+
+    return math.log(mod:GetBitMaskMax(HandFlag), 2)
+end
+
+
 function mod:GetScoringCards(Player, HandType)
 
     local PIndex = Player:GetData().TruePlayerIndex
 
     local PlayerHand = {}
-    for i,Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
-        if Selected then
-            table.insert(PlayerHand, mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]])
-        end
+
+    for _,Pointer in ipairs(mod.SelectionParams[PIndex].PlayedCards) do
+
+        table.insert(PlayerHand, mod.Saved.Player[PIndex].FullDeck[Pointer])
     end
 
     if mod:JimboHasTrinket(Player, mod.Jokers.SPLASH) then
@@ -679,7 +688,7 @@ function mod:GetScoringCards(Player, HandType)
 
         for i,Card in ipairs(PlayerHand) do
 
-            
+
             if Card.Enhancement == mod.Enhancement.STONE then
             elseif Card.Value > MaxValue then
                 
@@ -849,8 +858,8 @@ function mod:GetScoringCards(Player, HandType)
 
         local StreakStart = 1
 
-        local ValueToKeepStreak = ValueTable[1] + 1
-        local StraightStreak = 1
+        local ValueToKeepStreak = ValueTable[1]
+        local StraightStreak = 0
 
         for i, CardValue in ipairs(ValueTable) do --cycles between all the cards in the used hand
 
@@ -873,12 +882,12 @@ function mod:GetScoringCards(Player, HandType)
 
                 ValueToKeepStreak = ValueToKeepStreak + 2
 
-            else --logically this can only happen once since at least 4/5 cards need to be compatible
+            elseif CardValue ~= ValueToKeepStreak - 1 then --logically this can only happen once since at least 4/5 cards need to be compatible
             
                 if StraightStreak < 4 then --reset and continue
                     StraightStreak = 1 
                     ValueToKeepStreak = CardValue + 1
-                    StreaksStart = i
+                    StreakStart = i
 
                 else --stop
                     break
@@ -948,8 +957,8 @@ function mod:GetScoringCards(Player, HandType)
 
         local StreakStart = 1
 
-        local ValueToKeepStreak = ValueTable[1] + 1
-        local StraightStreak = 1
+        local ValueToKeepStreak = ValueTable[1]
+        local StraightStreak = 0
 
         for i, CardValue in ipairs(ValueTable) do --cycles between all the cards in the used hand
 
@@ -972,12 +981,12 @@ function mod:GetScoringCards(Player, HandType)
 
                 ValueToKeepStreak = ValueToKeepStreak + 2
 
-            else --logically this can only happen once since at least 4/5 cards need to be compatible
+            elseif CardValue ~= ValueToKeepStreak - 1 then --logically this can only happen once since at least 4/5 cards need to be compatible
             
                 if StraightStreak < 4 then --reset and continue
                     StraightStreak = 1 
                     ValueToKeepStreak = CardValue + 1
-                    StreaksStart = i
+                    StreakStart = i
 
                 else --stop
                     break
@@ -993,7 +1002,7 @@ function mod:GetScoringCards(Player, HandType)
 
     else --any hand that requires 5 cards
 
-        return math.maxinteger ---every card scores
+        ReturnMask = math.maxinteger ---every card scores
     end
 
     for i,Card in ipairs(PlayerHand) do
@@ -1003,7 +1012,7 @@ function mod:GetScoringCards(Player, HandType)
         end
     end
 
-    print(ReturnMask)
+    --print(ReturnMask)
 
     return ReturnMask
 end
@@ -1192,10 +1201,10 @@ function mod:GetJokerInitialProgress(Joker, Tainted)
     local Config = ItemsConfig:GetTrinket(Joker)
     if Tainted then
 
-        return string.gsub(Config:GetCustomTags()[3],"%:","")
+        return tonumber(string.gsub(Config:GetCustomTags()[3],"%:",""), 10)
     else
 
-        return tonumber(Config:GetCustomTags()[2])
+        return tonumber(Config:GetCustomTags()[2], 10)
     end
 end
 
@@ -1299,7 +1308,7 @@ function mod:SellJoker(Player, Slot, Multiplier)
         Player:AddCoins(SellValue)
     end
 
-    mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..SellValue.."$", mod.EffectType.ENTITY)
+    mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..SellValue.."$", mod.EffectType.ENTITY, Player)
 
 
     --Isaac.RunCallback("INVENTORY_CHANGE", Player)
@@ -1340,7 +1349,7 @@ function mod:SellConsumable(Player)
     end
 
     local PIndex = Player:GetData().TruePlayerIndex
-    local NumConsumables = #mod.Saved.Player[PIndex].Consumables
+    --local NumConsumables = #mod.Saved.Player[PIndex].Consumables
     local CardToSell = mod.Saved.Player[PIndex].Consumables[1]
 
     if CardToSell == -1 then
@@ -1352,11 +1361,13 @@ function mod:SellConsumable(Player)
 
     local SellValue = mod:GetConsumableCost(mod:FrameToSpecialCard(CardToSell.Card), CardToSell.Edition, true)
 
-    mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..SellValue.."$", mod.EffectType.ENTITY)
+    mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..SellValue.."$", mod.EffectType.ENTITY, Player)
     Player:AddCoins(SellValue)
 
-    table.remove(PlayerConsumables, 1)
-    table.insert(PlayerConsumables, NumConsumables, {Card = -1, Edition = mod.Edition.BASE})
+    table.remove(PlayerConsumables)
+    table.insert(PlayerConsumables, 1, {Card = -1, Edition = mod.Edition.BASE})
+
+    Isaac.RunCallback(mod.Callbalcks.CONSUMABLE_SOLD, Player, CardToSell)
 
     return true
 end
@@ -1980,13 +1991,13 @@ function mod:AddJoker(Player, Joker, Edition, StopEval)
 
     mod.Saved.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Joker).Name] = Edition
 
-    return mod:JimboAddTrinket(Player, Joker, false, StopEval)
+    return mod:JimboAddTrinket(nil, Player, Joker, false, StopEval)
 end
 
 
 ---@param Player EntityPlayer
 ---@param StopEvaluation boolean this is only set when called in mod:AddJoker
-function mod:JimboAddTrinket(Player, Trinket, _, StopEvaluation)
+local function JimboAddTrinket(_, Player, Trinket, _, StopEvaluation)
 
     local IsTaintedJimbo = Player:GetPlayerType() == mod.Characters.TaintedJimbo
 
@@ -2001,10 +2012,15 @@ function mod:JimboAddTrinket(Player, Trinket, _, StopEvaluation)
 
     local JokerEdition = mod.Saved.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Trinket).Name] or mod.Edition.BASE 
 
-
-    local EmptySlot = mod:GetJimboJokerIndex(Player, 0,true)[1]
     
-    if not EmptySlot then
+    local EmptySlot = mod:GetJimboJokerIndex(Player, 0,true)[1]
+
+    if JokerEdition == mod.Edition.NEGATIVE then
+    
+        EmptySlot = EmptySlot or #mod.Saved.Player[PIndex].Inventory + 1
+
+    elseif not EmptySlot then
+
         Isaac.CreateTimer(function ()
             Player:AnimateSad()
         end,0,1,false)
@@ -2014,8 +2030,13 @@ function mod:JimboAddTrinket(Player, Trinket, _, StopEvaluation)
 
     mod.Counters.SinceSelect = 0
 
+    mod.Saved.LastJokerRenderIndex = mod.Saved.LastJokerRenderIndex + 1
+
     mod.Saved.Player[PIndex].Inventory[EmptySlot].Joker = Trinket
     mod.Saved.Player[PIndex].Inventory[EmptySlot].Edition = JokerEdition
+    mod.Saved.Player[PIndex].Inventory[EmptySlot].Modifiers = 0
+    mod.Saved.Player[PIndex].Inventory[EmptySlot].RenderIndex = mod.Saved.LastJokerRenderIndex
+
 
     mod.Saved.Player[PIndex].Progress.Inventory[EmptySlot] = mod:GetJokerInitialProgress(Trinket, IsTaintedJimbo)
 
@@ -2026,7 +2047,7 @@ function mod:JimboAddTrinket(Player, Trinket, _, StopEvaluation)
 
     return true
 end
-mod:AddPriorityCallback(ModCallbacks.MC_POST_TRIGGER_TRINKET_ADDED,CallbackPriority.IMPORTANT, mod.JimboAddTrinket)
+mod:AddPriorityCallback(ModCallbacks.MC_POST_TRIGGER_TRINKET_ADDED,CallbackPriority.IMPORTANT, JimboAddTrinket)
 
 
 
@@ -2041,9 +2062,6 @@ function mod:AddCardToDeck(Player, CardTable,Amount, PutInHand)
     CardTable.Seal = CardTable.Seal or mod.Seals.NONE
     CardTable.Modifiers = CardTable.Modifiers or 0
 
-
-
-
     local PIndex = Player:GetData().TruePlayerIndex
 
     for i=1, Amount do
@@ -2053,6 +2071,13 @@ function mod:AddCardToDeck(Player, CardTable,Amount, PutInHand)
     for i,_ in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
         mod.Saved.Player[PIndex].CurrentHand[i] = mod.Saved.Player[PIndex].CurrentHand[i] + Amount --fixes the jump made by table.insert
     end
+
+    for i,_ in ipairs(mod.SelectionParams[PIndex].PlayedCards or {}) do
+        mod.SelectionParams[PIndex].PlayedCards[i] = mod.SelectionParams[PIndex].PlayedCards[i] + Amount --fixes the jump made by table.insert
+    end
+
+
+
     mod.Saved.Player[PIndex].DeckPointer = mod.Saved.Player[PIndex].DeckPointer + 2 --fixes the jump made by table.insert
 
     if PutInHand then
@@ -2061,7 +2086,9 @@ function mod:AddCardToDeck(Player, CardTable,Amount, PutInHand)
         end
     end
 
-    mod.LastCardFullPoss = {} --hud does wierd stuff otherwise
+    if Player:GetPlayerType() == mod.Characters.JimboType then
+        mod.LastCardFullPoss = {} --hud does wierd stuff otherwise
+    end
 
     Isaac.RunCallback("DECK_MODIFY", Player, Amount)
 end
@@ -2099,12 +2126,24 @@ function mod:DestroyCards(Player, DeckIndexes, DoEffects, BlockSubstitution)
         
             ---@diagnostic disable-next-line: param-type-mismatch
             table.remove(mod.Saved.Player[PIndex].CurrentHand, mod:GetValueIndex(mod.Saved.Player[PIndex].CurrentHand, Index, true))
+        
+            for i,Pointer in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
+                if Pointer >= Index then
+                    mod.Saved.Player[PIndex].CurrentHand[i] = mod.Saved.Player[PIndex].CurrentHand[i] - 1 --fixes the gap made by table.remove
+                end
+            end
         end
 
         if IsTaintedJimbo
            and mod:Contained(mod.SelectionParams[PIndex].PlayedCards, Index) then
 
             table.remove(mod.SelectionParams[PIndex].PlayedCards, mod:GetValueIndex(mod.SelectionParams[PIndex].PlayedCards, Index, true))
+        
+            for i,Pointer in ipairs(mod.SelectionParams[PIndex].PlayedCards or {}) do
+                if Pointer >= Index then
+                    mod.SelectionParams[PIndex].PlayedCards[i] = mod.SelectionParams[PIndex].PlayedCards[i] - 1 --fixes the gap made by table.remove
+                end
+            end
         end
 
         table.remove(mod.Saved.Player[PIndex].FullDeck, Index)
@@ -2116,6 +2155,7 @@ function mod:DestroyCards(Player, DeckIndexes, DoEffects, BlockSubstitution)
 
     Isaac.RunCallback("DECK_MODIFY", Player, -#DeckIndexes, DestroyedParams)
 end
+
 
 
 function mod:CardRipEffect(CardParams, Position)
@@ -2345,10 +2385,15 @@ function mod:RefillHand(Player)
         end
         
         Isaac.CreateTimer(function ()
-            table.insert(mod.Saved.Player[PIndex].CurrentHand, mod.Saved.Player[PIndex].DeckPointer)
+
+            local NewPos = #mod.Saved.Player[PIndex].CurrentHand + 1
+
+            table.insert(mod.Saved.Player[PIndex].CurrentHand, NewPos, mod.Saved.Player[PIndex].DeckPointer)
             sfx:Play(mod.Sounds.SELECT)
 
             mod.Saved.Player[PIndex].DeckPointer = mod.Saved.Player[PIndex].DeckPointer + 1
+
+            mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND][NewPos] = false
 
         end, Delay, 1, true)
         
@@ -2439,7 +2484,7 @@ end
 
 function mod:GetBlindLevel(PlateVarData)
 
-    return math.min(PlateVarData & ~mod.BLINDS.SKIP, mod.BLINDS.BOSS)
+    return PlateVarData & mod.BLINDS.BOSS ~= 0 and mod.BLINDS.BOSS or PlateVarData & ~mod.BLINDS.SKIP
 end
 
 
@@ -2489,8 +2534,6 @@ function mod:PlaceBlindRoomsForReal()
     local BigDesc
     local ShopDesc
 
-    local tries = 0
-
     repeat
 
         local BigRoom
@@ -2503,14 +2546,14 @@ function mod:PlaceBlindRoomsForReal()
                                                         RoomType.ROOM_DEFAULT,
                                                         RoomShape.ROOMSHAPE_2x2,
                                                         -1, -1,
-                                                        7,
+                                                        4,
                                                         10,
                                                         0,
                                                         -1,-1)
 
 
             local Entries = BigRoom.Spawns
-            local IsHostile
+            local IsHostile = false
 
             for i = 0, Entries.Size-1 do
                 
@@ -2518,7 +2561,9 @@ function mod:PlaceBlindRoomsForReal()
 
                 local Config = EntityConfig.GetEntity(Entity.Type, Entity.Variant)
 
-                if Config and Config:CanShutDoors() then
+                if Config and Config:CanShutDoors() 
+                   and Entity.Type ~= EntityType.ENTITY_EFFECT
+                   and Entity.Type ~= 4500 then --i think it's the trigger pressure plate
                     
                     IsHostile = true
                     break
@@ -2540,12 +2585,8 @@ function mod:PlaceBlindRoomsForReal()
                 Isaac.DebugString("FAILED TO PLACE AT "..tostring(mod.Saved.BigBlindIndex))
             end
         end     
-        
-        tries = tries + 1
-    
+            
     until BigDesc
-
-    tries = 0
 
     repeat
 
@@ -2558,7 +2599,7 @@ function mod:PlaceBlindRoomsForReal()
                                                         RoomType.ROOM_DEFAULT,
                                                         RoomShape.ROOMSHAPE_1x1,
                                                         -1, -1,
-                                                        7,
+                                                        4,
                                                         10,
                                                         0,
                                                         -1,-1)
@@ -2572,8 +2613,11 @@ function mod:PlaceBlindRoomsForReal()
 
                 local Config = EntityConfig.GetEntity(Entity.Type, Entity.Variant)
 
-                if Config and Config:CanShutDoors() then
+                if Config and Config:CanShutDoors() 
+                   and Entity.Type ~= EntityType.ENTITY_EFFECT
+                   and Entity.Type ~= 4500 then -- i think it's the trigger pressure plate
                     
+                    print(Entity.Type, Entity.Variant, "is hostile")
                     IsHostile = true
                     break
                 end
@@ -2602,9 +2646,7 @@ function mod:PlaceBlindRoomsForReal()
 
     SmallDesc:AddRestrictedGridIndex(67)
 
-    tries = 0
-
-    local ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_3
+    local ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_2
 
     if PlayerManager.AnyoneHasCollectible(mod.Vouchers.OverstockPlus) then
         ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_3
@@ -2626,7 +2668,7 @@ function mod:PlaceBlindRoomsForReal()
 
         local PlaceSeed = PlaceRNG:RandomInt(MAX_SEED_VALUE) + 1
 
-        for i = 5, 168 do
+        for i = 6, 168 do
 
             ShopDesc = Level:TryPlaceRoom(ShopRoom, i, -1, PlaceSeed, true, true, true)
             
@@ -2642,7 +2684,6 @@ function mod:PlaceBlindRoomsForReal()
 
     until ShopDesc
 
- 
 end
 
 
@@ -2844,9 +2885,12 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
     
         --mod.SelectionParams[PIndex].SelectionNum = mod:GetValueRepetitions(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams[PIndex].Mode],)
     
+        --print(mod.SelectionParams[PIndex].OptionsNum)
         for i=1, mod.SelectionParams[PIndex].OptionsNum do
         
             mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND][i] = mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND][i] or false
+        
+            --print(i, mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND][i])
         end
     end
 end
@@ -2987,7 +3031,7 @@ function mod:Select(Player)
 
             mod:AddCardToDeck(Player, SelectedCard, 1, true)
 
-            mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Added!", mod.EffectType.ENTITY)
+            mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Added!", mod.EffectType.ENTITY, Player)
 
         elseif TruePurpose == mod.SelectionParams.Purposes.BuffonPack then
 
@@ -3014,7 +3058,7 @@ function mod:Select(Player)
 
             table.remove(mod.SelectionParams[PIndex].PackOptions, mod.SelectionParams[PIndex].Index)
             mod.SelectionParams[PIndex].OptionsNum = mod.SelectionParams[PIndex].OptionsNum - 1
-            mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "1 more!",mod.EffectType.ENTITY)
+            mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "1 more!",mod.EffectType.ENTITY, Player)
             return
         end
         if mod.SelectionParams[PIndex].Purpose & mod.SelectionParams.Purposes.MegaFlag == mod.SelectionParams.Purposes.MegaFlag 
@@ -3404,6 +3448,9 @@ function mod:DiscardSelection(Player)
     local PackSelectedCards = mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.PACK]
     local HandSelectedCards = mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]
 
+    local NumDiscarded = 0
+
+    local CurrentDelay = 0
 
     if CurrentMode == mod.SelectionParams.Modes.HAND 
        and CurrentPurpose == mod.SelectionParams.Purposes.HAND then
@@ -3413,23 +3460,39 @@ function mod:DiscardSelection(Player)
             return
         end
 
-        local CurrentDelay = Isaac.RunCallback(mod.Callbalcks.DISCARD, Player, mod.SelectionParams[PIndex].SelectionNum)
+        mod.AnimationIsPlaying = true
+
+        CurrentDelay = Isaac.RunCallback(mod.Callbalcks.DISCARD, Player, mod.SelectionParams[PIndex].SelectionNum)
         
-        for i = #mod.Saved.Player[PIndex].CurrentHand, 1, -1 do
+        local HandIndex = 1
+        local SelectionIndex = 1
+
+        while SelectionIndex <= #mod.Saved.Player[PIndex].CurrentHand do
             
-            if HandSelectedCards[i] then
+            if HandSelectedCards[SelectionIndex] then
 
-                CurrentDelay = CurrentDelay + 2
-                CurrentDelay = Isaac.RunCallback(mod.Callbalcks.CARD_DISCARD, Player, mod.Saved.Player[PIndex].CurrentHand[i])
+                NumDiscarded = NumDiscarded + 1
 
-                Isaac.CreateTimer(function ()
-                    
-                    table.remove(mod.Saved.Player[PIndex].CurrentHand, i)
-                    
-                    sfx:Play(mod.Sounds.DESELECT)
-                end, CurrentDelay, 1, true)
-                
+                CurrentDelay, GotDestroyed = Isaac.RunCallback(mod.Callbalcks.CARD_DISCARD, Player, mod.Saved.Player[PIndex].CurrentHand[SelectionIndex], 
+                                                 SelectionIndex, NumDiscarded == mod.SelectionParams[PIndex].SelectionNum)
+
+                local TrueHandIndex = HandIndex --otherwise the value gets modified in the timer itself
+
+                if not GotDestroyed then
+                    Isaac.CreateTimer(function ()
+
+                        table.remove(HandSelectedCards, TrueHandIndex)
+                        table.remove(mod.Saved.Player[PIndex].CurrentHand, TrueHandIndex)
+
+                        sfx:Play(mod.Sounds.DESELECT)
+                    end, CurrentDelay, 1, true)
+                end
+            
+            else
+                HandIndex = HandIndex + 1
             end
+
+            SelectionIndex = SelectionIndex + 1
         end
 
         Isaac.CreateTimer(function ()
@@ -3437,18 +3500,46 @@ function mod:DiscardSelection(Player)
         end, CurrentDelay+2, 1, true)
     end
 
+    Isaac.CreateTimer(function ()
+        for i,_ in ipairs(SelectedCards) do
+            SelectedCards[i] = false
+        end
 
-    for i,_ in ipairs(SelectedCards) do
-        SelectedCards[i] = false
-    end
+        for i,_ in ipairs(HandSelectedCards) do
+            HandSelectedCards[i] = false
+        end
+        mod.SelectionParams[PIndex].SelectionNum = 0
+        mod.Counters.SinceSelect = 0
 
-    for i,_ in ipairs(HandSelectedCards) do
-        HandSelectedCards[i] = false
-    end
-    mod.SelectionParams[PIndex].SelectionNum = 0
-    mod.Counters.SinceSelect = 0
-
+        mod.AnimationIsPlaying = false
+    end, CurrentDelay+1, 1, true)
 end
+
+
+function mod:CountersUpdate()
+
+    for i,v in pairs(mod.Counters) do
+        if type(v) == "table" then
+            for j,_ in pairs(v) do
+                mod.Counters[i][j] = mod.Counters[i][j] + 1
+            end
+        else
+            mod.Counters[i] = mod.Counters[i] + 1
+        end
+    end
+
+    for _,Player in ipairs(PlayerManager.GetPlayers()) do
+        local PIndex = Player:GetData().TruePlayerIndex
+
+        --print(PIndex, Player:GetPlayerType())
+        if mod.SelectionParams[PIndex].Mode ~= mod.SelectionParams.Modes.NONE then
+            mod.SelectionParams[PIndex].Frames = mod.SelectionParams[PIndex].Frames + 1
+        else
+            mod.SelectionParams[PIndex].Frames = mod.SelectionParams[PIndex].Frames - 1
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.CountersUpdate)
 
 -------TRASH--------
 --------------------

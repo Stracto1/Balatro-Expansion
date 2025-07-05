@@ -109,7 +109,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
 
             Player:AddCoins(CoinsToAdd)
 
-            mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(CoinsToAdd).."$")
+            mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(CoinsToAdd).."$", mod.EffectType.ENTITY, Player)
 
             IsTarot = true
         elseif card == Card.CARD_WHEEL_OF_FORTUNE then
@@ -147,7 +147,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
 
                 Isaac.RunCallback("INVENTORY_CHANGE", Player)
             else
-                mod:CreateBalatroEffect(Player, mod.EffectColors.PURPLE, mod.Sounds.ACTIVATE, "Nope!")--PLACEHOLDER
+                mod:CreateBalatroEffect(Player, mod.EffectColors.PURPLE, mod.Sounds.ACTIVATE, "Nope!", mod.EffectType.ENTITY, Player)--PLACEHOLDER
             end
 
             IsTarot = true
@@ -178,7 +178,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
             end
             Player:AddCoins(CoinsToGain)
 
-            mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(CoinsToGain).."$")
+            mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(CoinsToGain).."$", mod.EffectType.ENTITY, Player)
 
 
             IsTarot = true
@@ -277,7 +277,7 @@ function mod:PlanetCards(card, Player,_)
     mod.Saved.CardLevels[Hand] = mod.Saved.CardLevels[Hand] + 1
 
     --PLACEHOLDER
-    mod:CreateBalatroEffect(Player, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, mod:CardValueToName(Hand, false, true).." Up!")
+    mod:CreateBalatroEffect(Player, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, mod:CardValueToName(Hand, false, true).." Up!", mod.EffectType.ENTITY, Player)
 
 end
 mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.PlanetCards)
@@ -349,9 +349,9 @@ function mod:CardPacks(card, Player,_)
 
             if EditionRoll <= MegaChance then
                 mod.SelectionParams[PIndex].Purpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.Purposes.MegaFlag
-                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!")
+                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!", mod.EffectType.ENTITY, Player)
             else
-                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!")
+                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!", mod.EffectType.ENTITY, Player)
             end
         end
 
@@ -402,9 +402,9 @@ function mod:CardPacks(card, Player,_)
         
             if EditionRoll <= MegaChance then
                 mod.SelectionParams[PIndex].Purpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.Purposes.MegaFlag
-                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!")
+                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!", mod.EffectType.ENTITY, Player)
             else
-                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!")
+                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!", mod.EffectType.ENTITY, Player)
             end 
         end
 
@@ -444,9 +444,9 @@ function mod:CardPacks(card, Player,_)
     
             if EditionRoll <= MegaChance then
                 mod.SelectionParams[PIndex].Purpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.Purposes.MegaFlag
-                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!")
+                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!", mod.EffectType.ENTITY, Player)
             else
-                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!")
+                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!", mod.EffectType.ENTITY, Player)
             end 
         end
         
@@ -489,9 +489,9 @@ function mod:CardPacks(card, Player,_)
         
             if EditionRoll <= MegaChance then
                 mod.SelectionParams[PIndex].Purpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.Purposes.MegaFlag
-                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!")
+                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!", mod.EffectType.ENTITY, Player)
             else
-                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!")
+                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!", mod.EffectType.ENTITY, Player)
             end
         end
 
@@ -516,9 +516,9 @@ function mod:CardPacks(card, Player,_)
     
             if EditionRoll <= MegaChance then
                 mod.SelectionParams[PIndex].Purpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.Purposes.MegaFlag
-                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!")
+                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!", mod.EffectType.ENTITY, Player)
             else
-                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!")
+                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!", mod.EffectType.ENTITY, Player)
             end
         end
 
@@ -750,7 +750,7 @@ function mod:SpectralCards(card, Player)
             Player:AddCoins(5*NumDestroyed)
 
             mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW, 
-                                        mod.Sounds.MONEY, "+"..5*NumDestroyed.."$",mod.Spectrals.IMMOLATE)
+                                        mod.Sounds.MONEY, "+"..5*NumDestroyed.."$",mod.Spectrals.IMMOLATE, mod.EffectType.ENTITY, Player)
 
         elseif card == mod.Spectrals.ANKH then
             

@@ -31,9 +31,16 @@ local FIXED_HAND_RADIUS = 10
 ----FUTURE GLOBALS -----
 local AnteVoucher = mod.Vouchers.Grabber
 
-local ShopRoomIndex = 0
-local BossRoomIndex = 0
 -----------------------------------
+
+local PackVariantPicker = WeightedOutcomePicker()
+PackVariantPicker:AddOutcomeWeight(mod.Packs.ARCANA, 40)
+PackVariantPicker:AddOutcomeWeight(mod.Packs.CELESTIAL, 40)
+PackVariantPicker:AddOutcomeWeight(mod.Packs.STANDARD, 40)
+PackVariantPicker:AddOutcomeWeight(mod.Packs.BUFFON, 12)
+PackVariantPicker:AddOutcomeWeight(mod.Packs.SPECTRAL, 6)
+
+
 
 
 --setups variables for jimbo
@@ -109,6 +116,7 @@ function mod:TJimboAddConsumable(Player, card, Slot, StopAnimation)
     if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
         return
     end
+
     local PIndex = Player:GetData().TruePlayerIndex
 
     local Slot = Slot or 0
@@ -118,11 +126,14 @@ function mod:TJimboAddConsumable(Player, card, Slot, StopAnimation)
         
         Player:UseCard(card)
         
-        return false
+        goto FINISH
     end
 
     
-    for i, Consumable in ipairs(mod.Saved.Player[PIndex].Consumables) do
+    for i = #mod.Saved.Player[PIndex].Consumables, 1, -1 do
+
+        local Consumable = mod.Saved.Player[PIndex].Consumables[i]
+
         if Consumable.Card == -1 then
             EmptySlot = i
             break
@@ -142,9 +153,13 @@ function mod:TJimboAddConsumable(Player, card, Slot, StopAnimation)
 
     mod.Saved.Player[PIndex].Consumables[EmptySlot].Card = mod:SpecialCardToFrame(card)
 
-    return false
+    ::FINISH::
+
+    Player:SetCard(Slot, Card.CARD_NULL)
+
+    return true
 end
-mod:AddPriorityCallback(ModCallbacks.MC_PRE_PLAYER_ADD_CARD,CallbackPriority.IMPORTANT, mod.TJimboAddConsumable)
+mod:AddPriorityCallback(ModCallbacks.MC_POST_PLAYER_ADD_CARD,CallbackPriority.IMPORTANT, mod.TJimboAddConsumable)
 
 
 
@@ -176,11 +191,7 @@ local function JimboInputHandle(_, Player)
     
     -------------INPUT HANDLING-------------------
 
-    if mod.AnimationIsPlaying then
-        return
-    end
-
-        --confirms the curretn selection
+            --confirms the curretn selection
     if Input.IsActionTriggered(ButtonAction.ACTION_PILLCARD, Player.ControllerIndex) then
 
         mod:UseSelection(Player)
@@ -195,6 +206,11 @@ local function JimboInputHandle(_, Player)
         mod.Saved.Player[PIndex].DiscardsRemaining = mod.Saved.Player[PIndex].DiscardsRemaining - 1
 
         mod:DiscardSelection(Player)
+    end
+
+
+    if mod.AnimationIsPlaying then
+        return
     end
 
     --confirming/canceling 
@@ -366,7 +382,7 @@ local function JimboInputHandle(_, Player)
 
     if Input.IsActionTriggered(ButtonAction.ACTION_ITEM, Player.ControllerIndex) then
         
-        local CardToUse = mod:FrameToSpecialCard(mod.Saved.Player[PIndex].Consumables[1].Card)
+        local CardToUse = mod:FrameToSpecialCard(mod.Saved.Player[PIndex].Consumables[#mod.Saved.Player[PIndex].Consumables].Card)
         local Success = mod:TJimboUseCard(CardToUse, Player, false)
         --print(Success)
     end
@@ -457,7 +473,7 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, JimboInputHandle)
 
 
 
-local function SpawnAdditionalTargets()
+local function SetupRoom()
     if not PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then
         return
     end
@@ -467,6 +483,35 @@ local function SpawnAdditionalTargets()
     if Room:IsClear() then
         return
     end
+
+    ---remove all fires
+
+    for i,Entity in ipairs(Isaac.GetRoomEntities()) do
+
+        if Entity:IsEnemy() and not Entity:IsActiveEnemy() and not Entity:IsVulnerableEnemy() then
+            Entity:Kill()
+        end
+    end
+
+    --remove all poops
+
+    for i = 0, Room:GetGridSize() do
+
+        local Grid = Room:GetGridEntity(i)
+
+        --Grid = Grid and Grid:ToPoop() or Grid
+
+        if Grid and Grid:ToPoop() then
+            
+            Grid:Destroy()
+
+            if Grid:GetVariant() == GridPoopVariant.RED then
+                --Grid.ReviveTimer = -1
+            end
+
+        end
+    end
+
 
     local Width = Room:GetGridWidth()
     local Height = Room:GetGridHeight()
@@ -490,7 +535,7 @@ local function SpawnAdditionalTargets()
 
     
 end
-mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, SpawnAdditionalTargets)
+mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, SetupRoom)
 
 
 
@@ -540,18 +585,18 @@ function mod:UpdateCurrentHandType(Player)
             end
         end
 
-        local PlanetHandType = 1 << (Planet - mod.Planets.PLUTO + 1) --gets the equivalent handtype
+        local PlanetHandType = (Planet - mod.Planets.PLUTO + 2) --gets the equivalent handtype
 
         mod.SelectionParams[PIndex].HandType = PlanetHandType
 
     elseif mod.Saved.EnableHand then
         mod.SelectionParams[PIndex].PossibleHandTypes = mod:DeterminePokerHand(Player)
-        mod.SelectionParams[PIndex].HandType = mod:GetBitMaskMax(mod.SelectionParams[PIndex].PossibleHandTypes)
+        mod.SelectionParams[PIndex].HandType = mod:GetHandTypeFromFlag(mod.SelectionParams[PIndex].PossibleHandTypes)
     end
 
 
-    mod.Saved.Player[PIndex].MultValue = mod.Saved.Player[PIndex].HandsStat[mod.SelectionParams[PIndex].HandType][mod.Stats.MULT]
-    mod.Saved.Player[PIndex].ChipsValue = mod.Saved.Player[PIndex].HandsStat[mod.SelectionParams[PIndex].HandType][mod.Stats.CHIPS]
+    mod.Saved.Player[PIndex].MultValue = mod.Saved.Player[PIndex].HandsStat[mod.SelectionParams[PIndex].HandType].Mult
+    mod.Saved.Player[PIndex].ChipsValue = mod.Saved.Player[PIndex].HandsStat[mod.SelectionParams[PIndex].HandType].Chips
 
 
 end
@@ -602,7 +647,7 @@ function mod:ActivateCurrentHand(Player)
         print("idk cacati addosso")
     end
 
-    local RadiusMultiplier = mod.Saved.Player[PIndex].HandsStat[HandHype][mod.Stats.MULT]
+    local RadiusMultiplier = mod.Saved.Player[PIndex].HandsStat[HandHype].Mult
     local FullHandDamage = mod.Saved.Player[PIndex].ChipsValue * mod.Saved.Player[PIndex].MultValue
     local FullyDamagedEnemies = {}
 
@@ -632,9 +677,6 @@ function mod:ActivateCurrentHand(Player)
     Poof:SetColor(HAND_POOF_COLOR, -1, 100, false, false)
     --Poof:SetColor(Color.ProjectileHushBlue, -1, 1, false, false)
 
-
-
-
     for _,Enemy in ipairs(Isaac.GetRoomEntities()) do
 
         if Enemy:IsActiveEnemy() and not mod:Contained(FullyDamagedEnemies, GetPtrHash(Enemy)) then
@@ -657,8 +699,6 @@ function mod:ActivateCurrentHand(Player)
             --Poof:SetColor(Color.ProjectileHushBlue, -1, 1, false, false)
         end
     end
-
-    mod.Saved.Player[PIndex].HandsRemaining = mod.Saved.Player[PIndex].HandsRemaining - 1
 
     for i = #mod.Saved.Player[PIndex].CurrentHand, 1, -1 do
         
@@ -687,6 +727,7 @@ function mod:ActivateCurrentHand(Player)
 
                         if AllDead then
                             
+                            mod.AnimationIsPlaying = true
                             Isaac.RunCallback(mod.Callbalcks.BLIND_CLEAR, mod.Saved.BlindBeingPlayed)
 
                             return
@@ -726,7 +767,7 @@ function mod:SetupForHandScoring(Player)
 
     local PIndex = Player:GetData().TruePlayerIndex
 
-    mod.SelectionParams[PIndex].ScoringCards = mod:GetScoringCards(Player, mod.SelectionParams[PIndex].HandType)
+    mod.Saved.Player[PIndex].HandsRemaining = mod.Saved.Player[PIndex].HandsRemaining - 1
 
     mod.Saved.Player[PIndex].HandsUsed[mod.SelectionParams[PIndex].HandType] = mod.Saved.Player[PIndex].HandsUsed[mod.SelectionParams[PIndex].HandType] + 1
 
@@ -734,25 +775,41 @@ function mod:SetupForHandScoring(Player)
     local CurrentTimer = TIMER_INCREASE
 
     mod.SelectionParams[PIndex].PlayedCards = {}
-    for i = #mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND], 1, -1 do
+
+    local HandIndex = 1
+    local SelectionIndex = 1
+
+    while SelectionIndex <= #mod.Saved.Player[PIndex].CurrentHand do
         
-        local IsSelected = mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND][i]
+        local IsSelected = mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND][SelectionIndex]
 
         if IsSelected then
-            Isaac.CreateTimer(function ()
-                mod.SelectionParams[PIndex].PlayedCards[#mod.SelectionParams[PIndex].PlayedCards+1] = mod.Saved.Player[PIndex].CurrentHand[i] + 0
-                mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND][i] = false
 
-                table.remove(mod.Saved.Player[PIndex].CurrentHand, i)
-                --print(mod.SelectionParams[PIndex].PlayedCards[#mod.SelectionParams[PIndex].PlayedCards+1])
+            local TrueHandIndex = HandIndex --otherwise the value gets modified in the timer itself
+
+            Isaac.CreateTimer(function ()
+
+                mod.SelectionParams[PIndex].PlayedCards[#mod.SelectionParams[PIndex].PlayedCards+1] = mod.Saved.Player[PIndex].CurrentHand[TrueHandIndex] + 0
+
+                table.remove(mod.Saved.Player[PIndex].CurrentHand, TrueHandIndex)
+                table.remove(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND], TrueHandIndex)
+
             end, CurrentTimer, 1, true)
 
             CurrentTimer = CurrentTimer + TIMER_INCREASE
+        else
+            HandIndex = HandIndex + 1
         end
-    end
 
+        SelectionIndex = SelectionIndex + 1
+    end
     
     mod.AnimationIsPlaying = true
+
+    Isaac.CreateTimer(function ()
+        mod.SelectionParams[PIndex].ScoringCards = mod:GetScoringCards(Player, mod.SelectionParams[PIndex].HandType)
+        
+    end, CurrentTimer + 7, 1, true)
 
     Isaac.CreateTimer(function ()
         Isaac.RunCallback(mod.Callbalcks.HAND_PLAY, Player)
@@ -771,35 +828,41 @@ function mod:SetupForNextHandPlay(Player)
 
     local PIndex = Player:GetData().TruePlayerIndex
 
-
-    mod.SelectionParams[PIndex].PlayedCards = {}
     mod.SelectionParams[PIndex].ScoringCards = 0
-    mod.SelectionParams[PIndex].HandType = mod.HandTypes.NONE
-    mod.SelectionParams[PIndex].PossibleHandType = mod.HandTypes.NONE
-
-
-    Player:AddCustomCacheTag(mod.CustomCache.HAND_SIZE, true)
-    
-    local Delay, DeckFinished = mod:RefillHand(Player)
-
-
-    
-
-    --print("scoring: ", mod.SelectionParams[PIndex].ScoringCards)
-    mod.Counters.SinceSelect = 0
-    mod.AnimationIsPlaying = false
-
-    mod.Saved.Player[PIndex].ChipsValue = 0
-    mod.Saved.Player[PIndex].MultValue = 0
-
-    mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams.Purposes.HAND)
 
     Isaac.CreateTimer(function ()
+
+        mod.SelectionParams[PIndex].PlayedCards = {}
         
-    end, Delay, )
-    mod.AnimationIsPlaying = false
+        mod.SelectionParams[PIndex].HandType = mod.HandTypes.NONE
+        mod.SelectionParams[PIndex].PossibleHandType = mod.HandFlags.NONE
+
+
+        Player:AddCustomCacheTag(mod.CustomCache.HAND_SIZE, true)
+        
+        local Delay, DeckFinished = mod:RefillHand(Player)
+
+
+        --print("scoring: ", mod.SelectionParams[PIndex].ScoringCards)
+        mod.Counters.SinceSelect = 0
+        mod.AnimationIsPlaying = false
+
+        mod.Saved.Player[PIndex].ChipsValue = 0
+        mod.Saved.Player[PIndex].MultValue = 0
+
+        Isaac.CreateTimer(function ()
+
+            mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams.Purposes.HAND)
+        end, Delay, 1, true)
+        
+    end, 6, 1, true)
 end
 mod:AddPriorityCallback(mod.Callbalcks.POST_HAND_PLAY, CallbackPriority.LATE, mod.SetupForNextHandPlay)
+
+
+
+local LineBlue = KColor(mod.EffectKColors.BLUE.Red,mod.EffectKColors.BLUE.Green,mod.EffectKColors.BLUE.Blue,0.65)
+
 
 
 
@@ -812,23 +875,195 @@ local function MoveHandTarget(_,Effect)
         return
     end
 
-    Game:GetRoom():GetCamera():SetFocusPosition(Effect.Position)
+    Game:GetRoom():GetCamera():SetFocusPosition(Effect.Position + Effect.Velocity)
 
-    Effect:AddVelocity(Player:GetAimDirection()*6.25)
+    Effect:AddVelocity(Player:GetAimDirection()*3.25)
 
     local PIndex = Player:GetData().TruePlayerIndex
     local HandHype = mod.SelectionParams[PIndex].HandType
 
-    local RadiusMultiplier = mod.Saved.Player[PIndex].HandsStat[HandHype][mod.Stats.MULT]
+    local Radius = BASE_HAND_RADIUS *mod.Saved.Player[PIndex].HandsStat[HandHype].Mult
 
-    for _, Enemy in ipairs(Isaac.FindInRadius(Effect.Position, BASE_HAND_RADIUS * RadiusMultiplier, EntityPartition.ENEMY)) do
+    for _, Enemy in ipairs(Isaac.FindInRadius(Effect.Position, Radius, EntityPartition.ENEMY)) do
         
         Enemy:SetColor(Color(1.5,1.5,1.5,1, 0.1, 0.1, 0.1), 2, 100, true, false)
 
     end
-end
-mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, MoveHandTarget, EffectVariant.TARGET)
 
+    local TLClamp = Isaac.WorldToScreen(Game:GetRoom():GetTopLeftPos())
+    local BRClamp = Isaac.WorldToScreen(Game:GetRoom():GetBottomRightPos())
+
+    local NumSides = (Radius // 50) + 6 --number of actually drawn lines
+    local Step = 90 / NumSides
+
+    Radius = mod:CoolLerp(5, Radius, Effect.FrameCount / 20)
+     
+    local StartRotation = (Isaac.GetFrameCount()*1.5) % 360
+
+    local EffectPos = Isaac.WorldToScreen(Effect.Position)
+    local FirstPoint = Vector(0, Radius):Rotated(StartRotation)
+    local SecondPoint
+
+    for i=Step*4, 360, Step*4 do
+        
+        SecondPoint = FirstPoint:Rotated(Step)
+
+        Isaac.DrawLine((EffectPos + FirstPoint):Clamped(TLClamp.X, TLClamp.Y, BRClamp.X, BRClamp.Y), 
+                       (EffectPos + SecondPoint):Clamped(TLClamp.X, TLClamp.Y, BRClamp.X, BRClamp.Y),
+                       LineBlue, mod.EffectKColors.BLUE, 3)
+
+        FirstPoint = SecondPoint:Rotated(Step)
+
+
+        Isaac.DrawLine((EffectPos + FirstPoint):Clamped(TLClamp.X, TLClamp.Y, BRClamp.X, BRClamp.Y), 
+                       (EffectPos + SecondPoint):Clamped(TLClamp.X, TLClamp.Y, BRClamp.X, BRClamp.Y),
+                       LineBlue, mod.EffectKColors.BLUE, 3)
+
+        FirstPoint = FirstPoint:Rotated(Step*2)
+        SecondPoint = SecondPoint:Rotated(Step*2)
+    end
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_EFFECT_RENDER, MoveHandTarget, EffectVariant.TARGET)
+
+
+
+--changes the shop items to be in a specific pattern and rolls for the edition
+---@param Pickup EntityPickup
+---@param rNG RNG
+local function ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rNG)
+
+    local ReturnTable = {Variant, SubType, true} --basic return equal to not returning anything
+
+    local RollRNG = Game:GetPlayer(0):GetTrinketRNG(mod.Jokers.JOKER) --tried using the rng from the callback but it gave the same results each time
+
+
+    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType)
+       or not (ReqSubType == 0 or ReqVariant == 0) then
+
+        return
+    end
+
+    
+    if Game:GetRoom():GetType() == RoomType.ROOM_SHOP and Pickup:IsShopItem() then
+
+        if Pickup.ShopItemId <= 1 then --card pack
+            ReturnTable = {PickupVariant.PICKUP_TAROTCARD,mod:GetRandom(mod.Packs, mod.Saved.GeneralRNG),false}
+
+        elseif Pickup.ShopItemId == 2 then --voucher / joker if already bought
+            --ngl i'm really proud of the algorithm i wrote on this section
+
+            ---@type boolean | integer
+            local VoucherPresent = false
+            for i,v in ipairs(Isaac.FindByType(5, 100)) do
+                if v:ToPickup().ShopItemId == Pickup.ShopItemId then --if yes, the item voucher wasn't bought
+                    VoucherPresent = v.SubType
+                    break
+                end
+            end
+
+            if not Game:GetRoom():IsInitialized() then --if room is just being entered
+                --predicts the current voucher so it can exit the /repeat until/ statement
+                VoucherPresent = mod:GetRandom(mod.Saved.Pools.Vouchers, rNG, true)
+            end
+
+            if VoucherPresent then --voucher still here with us
+
+                local Rvoucher
+                repeat
+                    Rvoucher = mod:GetRandom(mod.Saved.Pools.Vouchers, rNG) --using this rng basically makes it un rerollable with mechines
+                    --PLEASE tell me if the RNG not advancing gets patched cause it'll break the voucher generation 
+
+                until not mod:Contained(mod.Saved.FloorVouchers, Rvoucher) --no dupes per floor
+                      or Rvoucher == VoucherPresent --if it's getting rerolled (kinda)
+
+                table.insert(mod.Saved.FloorVouchers, Rvoucher)
+
+                ReturnTable = {PickupVariant.PICKUP_COLLECTIBLE,Rvoucher, false}
+
+            else --replace with a joker if already bought instead
+
+                ReturnTable = {PickupVariant.PICKUP_TRINKET, 1, false}
+            end
+
+        elseif Pickup.ShopItemId == 3 then --basic shop item
+        
+            if Game:IsGreedMode() then
+                ReturnTable = {PickupVariant.PICKUP_COLLECTIBLE,
+                    ItemPool:GetCollectible(ItemPoolType.POOL_GREED_SHOP, true, RollRNG:GetSeed()), false}
+            else
+                ReturnTable = {PickupVariant.PICKUP_COLLECTIBLE,
+                    ItemPool:GetCollectible(ItemPoolType.POOL_SHOP, true, RollRNG:GetSeed()), false}
+
+            end
+            
+        
+        else
+            ReturnTable = {PickupVariant.PICKUP_TRINKET, 1 ,false}
+        end
+
+    elseif ReturnTable[1] ~= PickupVariant.PICKUP_COLLECTIBLE then
+
+        local PlanetChance = PlayerManager.GetNumCollectibles(mod.Vouchers.PlanetMerch) * 0.07 + PlayerManager.GetNumCollectibles(mod.Vouchers.PlanetTycoon) * 0.1
+        local TarotChance = PlayerManager.GetNumCollectibles(mod.Vouchers.TarotMerch) * 0.07 + PlayerManager.GetNumCollectibles(mod.Vouchers.TarotTycoon) * 0.1
+
+        TarotChance = TarotChance + 0.05*#mod:GetJimboJokerIndex(Game:GetPlayer(0),mod.Jokers.CARTOMANCER)
+
+
+        if TarotChance + PlanetChance > 1 then --if the sum of the chances is higher than 1 even it out
+            local Rapporto = PlanetChance / TarotChance
+
+            TarotChance = 1/(Rapporto+1)
+            PlanetChance = 1-PlanetChance
+        end
+
+
+        --MULTIPLAYER - PLACEHOLDER
+        --[[
+        for i,Player in ipairs(PlayerManager.GetPlayers()) do
+            if Player:GetPlayerType() == mod.Characters.JimboType then
+                for i=1, mod:GetValueRepetitions(mod.Saved.Player[PIndex].Inventory.Jokers, TrinketType.OOPS) do
+                    PlanetChance = PlanetChance * 2
+                    TarotChance = TarotChance * 2
+                end
+            end
+        end]]--
+        TarotChance = TarotChance + PlanetChance
+
+        local CardRoll = Game:GetPlayer(0):GetDropRNG():RandomFloat()
+
+        if CardRoll <= PlanetChance then
+            ReturnTable = {PickupVariant.PICKUP_TAROTCARD, Game:GetPlayer(0):GetDropRNG():RandomInt(mod.Planets.PLUTO, mod.Planets.SUN), false}
+
+        elseif CardRoll <= TarotChance then
+            ReturnTable = {PickupVariant.PICKUP_TAROTCARD, Game:GetPlayer(0):GetDropRNG():RandomInt(1, 22), false}
+
+        end
+
+    end
+
+    --if a trinket is selected, then roll for joker and edition
+    if ReturnTable[1] == PickupVariant.PICKUP_TRINKET then
+
+
+        local RandomJoker = mod:RandomJoker(RollRNG, true, false, false)
+
+        print(RandomJoker.Joker)
+        ReturnTable = {PickupVariant.PICKUP_TRINKET, RandomJoker.Joker ,false}
+
+        mod.Saved.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(RandomJoker.Joker).Name] = RandomJoker.Edition
+    
+    --reverse tarot become their non-reverse variant
+    elseif ReturnTable[1] == PickupVariant.PICKUP_TAROTCARD 
+           and ReturnTable[2] >= Card.CARD_REVERSE_FOOL and ReturnTable[2] <= Card.CARD_REVERSE_WORLD then
+
+        ReturnTable[2] = ReturnTable[2] - 55
+
+    end
+    
+    return ReturnTable
+end
+--mod:AddCallback(ModCallbacks.MC_POST_PICKUP_SELECTION, ShopItemChanger)
 
 
 ------------BLIND SYSTEM------------
@@ -842,25 +1077,26 @@ local function OnBlindButtonPressed(_, VarData)
 
     --the first timer activates frame-one for some reason...
     --so only do this on the second timer
-
-    if VarData == mod.BLINDS.CASHOUT then
-        
+    if VarData & mod.BLINDS.CASHOUT ~= 0 then
+        print("cash")
         for i,Player in ipairs(PlayerManager.GetPlayers()) do
 
             Player:AnimateTeleport(true)
         end
 
         Isaac.CreateTimer(function ()
-                                if TimerFixerVariable == 0 then
+                                if TimerFixerVariable == 1 then
                                     Game:StartRoomTransition(mod.Saved.ShopIndex, Direction.NO_DIRECTION, RoomTransitionAnim.PIXELATION)
-                                    TimerFixerVariable = TimerFixerVariable + 1
-
-                                elseif TimerFixerVariable == 1 then
+                                    
+                                elseif TimerFixerVariable == 2 then
                                     --Isaac.RunCallback(mod.Callbalcks.BLIND_START, VarData)
                                     TimerFixerVariable = 0
+                                    return
                                 end
 
-                            end, 7, 2, true)
+                                TimerFixerVariable = TimerFixerVariable + 1
+
+                            end, 7, 3, true)
 
 
     elseif VarData & mod.BLINDS.SKIP == mod.BLINDS.SKIP then
@@ -879,39 +1115,44 @@ local function OnBlindButtonPressed(_, VarData)
 
             Isaac.CreateTimer(function ()
                                 
-                                if TimerFixerVariable == 0 then
+                                --print(TimerFixerVariable)
+                                if TimerFixerVariable == 1 then
                                     Game:StartRoomTransition(mod.Saved.SmallBlindIndex, Direction.NO_DIRECTION, RoomTransitionAnim.PIXELATION)
 
-                                    TimerFixerVariable = TimerFixerVariable + 1
-
-                                elseif TimerFixerVariable == 1 then
+                                elseif TimerFixerVariable == 2 then
                                     local Interval = Isaac.RunCallback(mod.Callbalcks.BLIND_START, VarData)
-                                    TimerFixerVariable = 0
 
                                     Isaac.CreateTimer(function ()
                                         Isaac.RunCallback(mod.Callbalcks.POST_BLIND_START, VarData)
                                     end, Interval, 1, true)
+
+                                    TimerFixerVariable = 0
+                                    return
                                 end
 
-                            end, 7, 2, true)
+                                TimerFixerVariable = TimerFixerVariable + 1
+
+                            end, 7, 3, true)
 
         elseif VarData == mod.BLINDS.BIG then
 
             Isaac.CreateTimer(function ()
-                                if TimerFixerVariable == 0 then
+                                if TimerFixerVariable == 1 then
                                     Game:StartRoomTransition(mod.Saved.BigBlindIndex, Direction.NO_DIRECTION, RoomTransitionAnim.PIXELATION)
-                                    TimerFixerVariable = TimerFixerVariable + 1
 
-                                elseif TimerFixerVariable == 1 then
+                                elseif TimerFixerVariable == 2 then
                                     local Interval = Isaac.RunCallback(mod.Callbalcks.BLIND_START, VarData)
-                                    TimerFixerVariable = 0
 
                                     Isaac.CreateTimer(function ()
                                         Isaac.RunCallback(mod.Callbalcks.POST_BLIND_START, VarData)
                                     end, Interval, 1, true)
+
+                                    TimerFixerVariable = 0
+                                    return
                                 end
 
-                            end, 7, 2, true)
+                                TimerFixerVariable = TimerFixerVariable + 1
+                            end, 7, 3, true)
 
         else --BOSS BLIND
 
@@ -946,8 +1187,7 @@ local function OnBlindStart(_, BlindData)
         if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams.Purposes.HAND)
         
-            Player:AddCustomCacheTag(mod.CustomCache.DISCARD_NUM)
-            Player:AddCustomCacheTag(mod.CustomCache.HAND_NUM, true)
+            mod:EvaluateBlindEffect(BlindData)
         end
     end
 
@@ -1005,11 +1245,13 @@ local function OnBlindClear(_, BlindData)
     end
 
 
-    if mod:GetBlindLevel(BlindData) == mod.BLINDS.BOSS then
-        return
-    end
+    --if mod:GetBlindLevel(BlindData) == mod.BLINDS.BOSS then
+    --    return
+    --end
 
-    mod:SpawnBalatroPressurePlate(Room:GetCenterPos(), mod.BLINDS.CASHOUT)
+    local TotalGain = Isaac.RunCallback(mod.Callbalcks.CASHOUT_EVAL, BlindData)
+
+    mod:SpawnBalatroPressurePlate(Room:GetCenterPos(), mod.BLINDS.CASHOUT + TotalGain)
 end
 mod:AddPriorityCallback(mod.Callbalcks.BLIND_CLEAR, CallbackPriority.IMPORTANT, OnBlindClear)
 
@@ -1153,7 +1395,7 @@ function mod:TJimboInventorySizeCache(Player, Cache, Value)
 
     local PIndex = Player:GetData().TruePlayerIndex
 
-    Value = 3 --base starting point
+    Value = 5 --base starting point
 
     if Player:HasCollectible(mod.Vouchers.Antimatter) then
         Value = Value + 1
@@ -1284,11 +1526,9 @@ function mod:TJimboHandsCache(Player, Cache, Value)
         Value = Value + 1
     end
 
-    Value = Value - 1* #mod:GetJimboJokerIndex(Player, mod.Jokers.TROUBADOR)
-    
-    if mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR) then
-        Value = Value + 3
-    end
+    Value = Value - #mod:GetJimboJokerIndex(Player, mod.Jokers.TROUBADOR)
+
+    Value = Value + 3 * #mod:GetJimboJokerIndex(Player, mod.Jokers.BURGLAR)
 
     local PIndex = Player:GetData().TruePlayerIndex
 

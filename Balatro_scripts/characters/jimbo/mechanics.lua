@@ -180,32 +180,6 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.JimboInputHandle)
 
 
-function mod:CountersUpdate()
-
-    for i,v in pairs(mod.Counters) do
-        if type(v) == "table" then
-            for j,_ in pairs(v) do
-                mod.Counters[i][j] = mod.Counters[i][j] + 1
-            end
-        else
-            mod.Counters[i] = mod.Counters[i] + 1
-        end
-    end
-
-    for _,Player in ipairs(PlayerManager.GetPlayers()) do
-        local PIndex = Player:GetData().TruePlayerIndex
-
-        --print(PIndex, Player:GetPlayerType())
-        if mod.SelectionParams[PIndex].Mode ~= mod.SelectionParams.Modes.NONE then
-            mod.SelectionParams[PIndex].Frames = mod.SelectionParams[PIndex].Frames + 1
-        else
-            mod.SelectionParams[PIndex].Frames = mod.SelectionParams[PIndex].Frames - 1
-        end
-    end
-end
-mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.CountersUpdate)
-
-
 local CoinQuality = {[CoinSubType.COIN_PENNY] = 1, 
                     [CoinSubType.COIN_DOUBLEPACK] = 2, 
                     [CoinSubType.COIN_STICKYNICKEL] = 3, 
@@ -893,17 +867,17 @@ function mod:GiveRewards(BlindType)
                 if BlindType == mod.BLINDS.SMALL then
                     
                     Player:AddCoins(4)
-                    mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+4 $", mod.EffectType.ENTITY)
+                    mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+4 $", mod.EffectType.ENTITY, Player)
                     --Isaac.RunCallback("BLIND_STARTED", mod.BLINDS.BIG)
 
                 elseif BlindType == mod.BLINDS.BIG then
                     Player:AddCoins(5)
-                    mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+5 $", mod.EffectType.ENTITY)
+                    mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+5 $", mod.EffectType.ENTITY, Player)
                     --Isaac.RunCallback("BLIND_STARTED", mod.BLINDS.BOSS)
                     
                 elseif BlindType == mod.BLINDS.BOSS then
                     Player:AddCoins(6)
-                    mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+6 $", mod.EffectType.ENTITY)
+                    mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+6 $", mod.EffectType.ENTITY, Player)
     
                 end
             end, 15,1, true)
@@ -928,16 +902,14 @@ function mod:GiveRewards(BlindType)
 
             --Balatro_Expansion:EffectConverter(8,0,Jimbo,4) a relic from old times
         end
-        mod:CreateBalatroEffect(Jimbo,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+"..tostring(Interests).." $", mod.EffectType.ENTITY)
+        mod:CreateBalatroEffect(Jimbo,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+"..tostring(Interests).." $", mod.EffectType.ENTITY, Jimbo)
     end, 30, 1, true)
 
 
 end
 mod:AddPriorityCallback(mod.Callbalcks.BLIND_CLEAR,CallbackPriority.LATE, mod.GiveRewards)
 
-
----@param Player EntityPlayer
----@param StopEvaluation boolean this is only set when called in mod:AddJoker (Utility.lua)
+--[[
 local function JimboAddTrinket(Player, Trinket, _, StopEvaluation)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
@@ -960,8 +932,11 @@ local function JimboAddTrinket(Player, Trinket, _, StopEvaluation)
         return false
     end
 
+    mod.Saved.LastJokerRenderIndex = mod.Saved.LastJokerRenderIndex + 1
+
     mod.Saved.Player[PIndex].Inventory[EmptySlot].Joker = Trinket
     mod.Saved.Player[PIndex].Inventory[EmptySlot].Edition = JokerEdition
+    mod.Saved.Player[PIndex].Inventory[EmptySlot].RenderIndex = mod.Saved.LastJokerRenderIndex
 
     mod.Saved.Player[PIndex].Progress.Inventory[EmptySlot] = mod:GetJokerInitialProgress(Trinket)
 
@@ -974,7 +949,7 @@ local function JimboAddTrinket(Player, Trinket, _, StopEvaluation)
     return true
 end
 --mod:AddPriorityCallback(ModCallbacks.MC_POST_TRIGGER_TRINKET_ADDED,CallbackPriority.IMPORTANT, mod.JimboAddTrinket)
-
+]]
 
 ---@param RNG RNG 
 function mod:JimboTrinketPool(_, RNG)

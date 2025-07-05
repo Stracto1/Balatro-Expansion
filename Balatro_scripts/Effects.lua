@@ -11,9 +11,10 @@ EffectAnimations:SetFrame("Idle", 0)
 local AnimLength = 27
 local MaxAnimFrames = 30
 
-local FIRST_EFFECT_POS = Vector(10,225)
-local EFFECT_SLOT_DISTANCE = Vector(23, 0)
-local EffectsInterval = AnimLength + 5 --frames between 2 different effect on a same entity
+local EFFECT_CARD_OFFSET = Vector(0, 0)
+local EFFECT_JOKER_OFFSET = Vector(0, 15)
+
+local EffectsInterval = AnimLength + 3 --frames between 2 different effect on a same entity
 
 local PartVariant = Isaac.GetEntityVariantByName("Pack Particle")
 local PartHelpVariant = Isaac.GetEntityVariantByName("Pack Particle Helper")
@@ -44,37 +45,45 @@ local sfx = SFXManager()
 --These functions make the whole additional gfx system work 
 --(both sound and graphics can be turend off in MOD CONFIG MENU)
 --initially this system was based on EntityEffects but i had many problems regarding lighting and the screen=>world coordinate conversion
+--ima be completely honest this is probably the most unreadable shit i have ever written for this mod, good luck understanding
 
 --here Position colud be an entity, in that case 
 
-function mod:CreateBalatroEffect(Position, Colour, Sound, Text, EffectType, Speed)--Source, Offset, Volume)
+function mod:CreateBalatroEffect(Index, Colour, Sound, Text, EffectType, Player, Speed)--Source, Offset, Volume)
 
     Speed = Speed or 1
     EffectType = EffectType or mod.EffectType.NULL
+
     local IsEntity = EffectType == mod.EffectType.ENTITY
-    local EffectSlot = Position
+    local EffectSlot = EffectType
+    local PIndex = Player:GetData().TruePlayerIndex
+    local IsTaintedJimbo = Player:GetPlayerType() == mod.Characters.TaintedJimbo
 
     if IsEntity then --basically checks if it's an entity
 
-        EffectSlot = GetPtrHash(Position)
+        EffectSlot = GetPtrHash(Index)
         IsEntity = true
     end
 
-    for Position, Params in pairs(EffectParams) do
+    if not IsTaintedJimbo then --with normal jimbo the effetcs get delayed if put on top of one another
+        
+        for Type, Params in pairs(EffectParams) do
 
-        --effetcts are separated between entities and inventory, where only one of each can be on screen at a time
+            --effetcts are separated between entities and inventory, where only one of each can be on screen at a time
 
-        if EffectType == Params.Type
-           and Params.Type ~= mod.EffectType.ENTITY then --entities effects are delayed only if the same entity has more than one effect
+            if EffectType == Type 
+               and (Type == mod.EffectType.ENTITY and EffectSlot == GetPtrHash(Params.Position.Ref)
+                    or PIndex == Params.PIndex) then --entities effects are delayed only if the same entity has more than one effect
 
-            Isaac.CreateTimer(function()
-                            mod:CreateBalatroEffect(Position, Colour, Sound, Text, EffectType)--Source, Offset, Volume)
-                            end,  EffectsInterval - EffectParams[Position].Frames, 1, false)
+                print("posticipated")
+                Isaac.CreateTimer(function()
+                                mod:CreateBalatroEffect(Index, Colour, Sound, Text, EffectType, Player, Speed)--Source, Offset, Volume)
+                                end,  EffectsInterval - EffectParams[Index].Frames, 1, false)
 
-            return
+                return
+            end
         end
     end
-    StackedEffects = 0
 
     do --rounds the number to 2 decimals so it doesn't get too long
 
@@ -116,12 +125,35 @@ function mod:CreateBalatroEffect(Position, Colour, Sound, Text, EffectType, Spee
     EffectParams[EffectSlot] = {}
     if IsEntity then
         
-        EffectParams[EffectSlot].Position = EntityPtr(Position)
+        EffectParams[EffectSlot].Position = EntityPtr(Index)
         EffectParams[EffectSlot].Offset = Vector(0,20)
 
     else
-        EffectParams[EffectSlot].Position = Position
-        EffectParams[EffectSlot].Offset = Vector(0,-30)
+        if EffectType == mod.EffectType.HAND then
+            EffectParams[EffectSlot].Position = mod.LastCardFullPoss[Index]
+            EffectParams[EffectSlot].Offset = Vector(0,-30)
+
+            mod.Counters.SinceCardTriggered[Index] = 1
+
+        elseif EffectType == mod.EffectType.JOKER then
+
+            EffectParams[EffectSlot].Position = mod.JokerFullPosition[Index]
+            
+            if IsTaintedJimbo then
+                EffectParams[EffectSlot].Offset = EFFECT_JOKER_OFFSET
+            else
+                EffectParams[EffectSlot].Offset = Vector(0,-30)
+            end
+            
+            mod.Counters.Activated[Index] = 1
+
+        elseif EffectType ~= mod.EffectType.NULL then --HAND_FROM_JOKER
+            
+            EffectParams[EffectSlot].Position = mod.LastCardFullPoss[Index]
+            EffectParams[EffectSlot].Offset = Vector(0,-30)
+            mod.Counters.Activated[Index] = 1
+        end
+        
     end
 
     EffectParams[EffectSlot].Speed = Speed
@@ -129,9 +161,7 @@ function mod:CreateBalatroEffect(Position, Colour, Sound, Text, EffectType, Spee
     EffectParams[EffectSlot].Color = Colour
     EffectParams[EffectSlot].Text = Text
     EffectParams[EffectSlot].Rotation = math.random(90)
-    --EffectParams[EffectSlot].Source = Source
-    EffectParams[EffectSlot].Type = EffectType
-
+    EffectParams[EffectSlot].PIndex = PIndex
 
     if Sound then
         sfx:Play(Sound, 1, 2, false, 0.95 + math.random()*0.1 + mod:Lerp(0, 2, (Speed-1)/2))
@@ -165,7 +195,7 @@ function mod:RenderEffect(_,_,_,_,_)
         Sprite.Color.A = EffectFramesToAlpha(Params.Frames)
 
         local RenderPos
-        if Params.Type == mod.EffectType.ENTITY then
+        if Slot == mod.EffectType.ENTITY then
 
             local Entity = Params.Position.Ref
 
@@ -263,7 +293,7 @@ function mod:Increaseframes()
 end
 mod:AddCallback(ModCallbacks.MC_HUD_UPDATE, mod.Increaseframes)
 
-
+]]
 
 function mod:PackParticleHelper(Player, _)
 
@@ -278,7 +308,6 @@ function mod:PackParticleHelper(Player, _)
     end
 end
 mod:AddCallback("PACK_OPENED", mod.PackParticleHelper)
-]]
 
 
 ---@param Effect EntityEffect

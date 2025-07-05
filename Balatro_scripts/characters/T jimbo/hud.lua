@@ -13,10 +13,15 @@ local SellChargeSprite = Sprite("gfx/chargebar.anm2")
 local MultCounter = Sprite("gfx/ui/Mult Counter.anm2")
 local ChipsCounter = Sprite("gfx/ui/Chips Counter.anm2")
 
+local BlindChipsSprite = Sprite("gfx/ui/Blind Chips.anm2")
+
 
 
 local JactivateLength = TrinketSprite:GetAnimationData("Effect"):GetLength()
 local JidleLength = TrinketSprite:GetAnimationData("Idle"):GetLength()
+
+local TriggerAnimationLength = 30
+local TriggerCounterMult = 180 / TriggerAnimationLength
 
 MultCounter:SetFrame("Idle",0)
 ChipsCounter:SetFrame("Idle",0)
@@ -32,7 +37,7 @@ HUD_FRAME.Hand = 2
 HUD_FRAME.Confirm = 3
 HUD_FRAME.Skip = 4
 
-
+local CashoutBubbleSprite = Sprite("gfx/ui/cashout_bubble.anm2")
 local TrinketSprite = Sprite("gfx/005.350_trinket_custom.anm2")
 local CardFrame = Sprite("gfx/ui/CardSelection.anm2")
 CardFrame:SetAnimation("Frame")
@@ -42,6 +47,10 @@ local HAND_RENDERING_HEIGHT = 30 --in screen coordinates
 local ENHANCEMENTS_ANIMATIONS = {"Base","Mult","Bonus","Wild","Glass","Steel","Stone","Golden","Lucky"}
 
 local SCREEN_TO_WORLD_RATIO = 4 --idk why this is needed
+
+local BASE_BUBBLE_HEIGHT = 11
+local CASHOUT_STRING_X_OFFSET = -39
+local BALATRO_LINE_HEIGHT = mod.Fonts.Balatro:GetBaselineHeight()
 
 local CardHUDWidth = 13
 local PACK_CARD_DISTANCE = 10
@@ -96,16 +105,60 @@ local function CancelTrinketHUD(_,_,_,_,Player)
 end
 mod:AddPriorityCallback(ModCallbacks.MC_PRE_PLAYERHUD_TRINKET_RENDER, CallbackPriority.LATE, CancelTrinketHUD)
 
+--puts the map so far away it's basically impossible to see it
 local function CancelMinimapHUD()
 
-    Minimap.SetShakeOffset(Vector(200, -100))
-    Minimap.SetShakeDuration(2)
+    if PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then
+        Minimap.SetShakeOffset(Vector(200, -200))
+        Minimap.SetShakeDuration(2)
+    end
     return true
 end
 mod:AddCallback(ModCallbacks.MC_PRE_MINIMAP_RENDER, CancelMinimapHUD)
 
 
 
+
+---@param String string
+---@param Position Vector
+---@param StartFrame integer
+---@param Scale Vector
+---@param Kcolor KColor
+local function RenderBalatroStyle(String, Position, StartFrame, Scale, Kcolor, Sound)
+
+    local XPos = Position.X + 0
+    local FrameCount = (Isaac.GetFrameCount() - StartFrame)/2
+
+    local MaxFrameCount = string.len(String)
+
+    if FrameCount <= MaxFrameCount then
+        
+        if Sound then
+            
+            sfx:Play(Sound, 1, 2)
+        end
+    else
+        FrameCount = MaxFrameCount
+    end
+
+    for i = 1, FrameCount do
+        
+        local c = string.sub(String, i,i)
+
+        local WaveOffset = (((Isaac.GetFrameCount() + StartFrame) % 240) // 20 == i % 12) and -0.5 or 0  
+
+        mod.Fonts.Balatro:DrawStringScaled(c,
+                                           XPos,
+                                           Position.Y + WaveOffset,
+                                           Scale.X,
+                                           Scale.Y,
+                                           Kcolor)
+
+        XPos = XPos + mod.Fonts.Balatro:GetCharacterWidth(c)*Scale.X
+
+    end
+    
+end
 
 
 --rendere the player's current hand below them
@@ -117,9 +170,9 @@ local function JimboHandRender(_,_,_,_,_,Player)
 
     local PIndex = Player:GetData().TruePlayerIndex
 
-    local NumPlayed = #mod.SelectionParams[PIndex].PlayedCards
+    local NumCardsInHand = #mod.Saved.Player[PIndex].CurrentHand
 
-    local BaseRenderPos = Vector(Isaac.GetScreenWidth()/2 - 7 *(#mod.Saved.Player[PIndex].CurrentHand -1 -NumPlayed),
+    local BaseRenderPos = Vector(Isaac.GetScreenWidth()/2 - 7 *(NumCardsInHand -1),
                                  Isaac.GetScreenHeight() - HAND_RENDERING_HEIGHT)
 
     if mod.SelectionParams[PIndex].PackPurpose ~= mod.SelectionParams.Purposes.NONE then
@@ -129,8 +182,6 @@ local function JimboHandRender(_,_,_,_,_,Player)
 
     local TargetRenderPos = BaseRenderPos + Vector.Zero
     local RenderPos = {}
-
-
 
     for i, Pointer in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
         local Card = mod.Saved.Player[PIndex].FullDeck[Pointer]
@@ -156,10 +207,10 @@ local function JimboHandRender(_,_,_,_,_,Player)
 
         if not mod.Saved.EnableHand then --mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.NONE then
 
-            local TimeOffset = math.max(#mod.Saved.Player[PIndex].CurrentHand, Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE)) - i*0.75
+            local TimeOffset = math.max(NumCardsInHand, Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE)) - i*0.75
             local LerpTime = math.max(mod.Counters.SinceSelect/5 - TimeOffset, 0)
 
-            if LerpTime > 0 then
+            if LerpTime > 0 or Card.Modifiers & mod.Modifier.COVERED ~= 0 or Game:IsPaused() then
                 JimboCards.PlayingCards:SetFrame("Covered", 0)
             else
 
@@ -192,7 +243,7 @@ local function JimboHandRender(_,_,_,_,_,Player)
             RenderPos[Pointer] = Vector(mod:Lerp(mod.LastCardFullPoss[Pointer].X, TargetRenderPos.X, mod.Counters.SinceSelect/4)
                                         ,mod:Lerp(mod.LastCardFullPoss[Pointer].Y, TargetRenderPos.Y, mod.Counters.SinceSelect/1.25))
 
-            if Card.Modifiers & mod.Modifier.COVERED ~= 0 then
+            if Card.Modifiers & mod.Modifier.COVERED ~= 0 or Game:IsPaused() then
                 JimboCards.PlayingCards:SetFrame("Covered", 0)
             else
 
@@ -212,9 +263,24 @@ local function JimboHandRender(_,_,_,_,_,Player)
 
         end
         -------------------------------------------------------------
+        
+        local CardTriggerCounter = (mod.Counters.SinceCardTriggered[Pointer] or 0) * TriggerCounterMult
 
-        JimboCards.PlayingCards.Scale = Vector.One
+        JimboCards.PlayingCards.Scale = Vector.One * (1 + math.min(0.8, 2.5*(1 - math.abs(math.cos(math.rad(CardTriggerCounter)))^0.5)))
 
+        if CardTriggerCounter >= TriggerAnimationLength then
+            mod.Counters.SinceCardTriggered[Pointer] = nil
+        end
+
+        JimboCards.PlayingCards.Rotation = 10 * math.sin(math.rad(180*(RenderPos[Pointer].X-mod.LastCardFullPoss[Pointer].X)/math.max(1,TargetRenderPos.X-mod.LastCardFullPoss[Pointer].X)))
+
+        if mod.LastCardFullPoss[Pointer].X > TargetRenderPos.X then
+            JimboCards.PlayingCards.Rotation = -JimboCards.PlayingCards.Rotation
+        end
+
+        RenderPos[Pointer].Y = RenderPos[Pointer].Y + math.sin(math.rad(Isaac.GetFrameCount()*1.75+i*22))
+
+        
 
         JimboCards.PlayingCards:Render(RenderPos[Pointer])
 
@@ -227,7 +293,8 @@ local function JimboHandRender(_,_,_,_,_,Player)
     end
 
 
-    if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.HAND then
+    if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.HAND
+       and not mod.AnimationIsPlaying then
 
         TargetRenderPos = BaseRenderPos + Vector(14 * (mod.SelectionParams[PIndex].Index - 1), 0)
         if mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND][mod.SelectionParams[PIndex].Index] then --realised just now how big these tables are getting...
@@ -239,18 +306,24 @@ local function JimboHandRender(_,_,_,_,_,Player)
         local Card = mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[mod.SelectionParams[PIndex].Index]]
 
         if Card then
-            JimboCards.PlayingCards:SetFrame(ENHANCEMENTS_ANIMATIONS[Card.Enhancement], 4 * (Card.Value - 1) + Card.Suit-1) --sets the frame corresponding to the value and suit
-            --JimboCards.PlayingCards:PlayOverlay("Seals")
-            JimboCards.PlayingCards:SetOverlayFrame("Seals", Card.Seal)
-            
-            if Card.Edition ~= mod.Edition.BASE then
-                JimboCards.PlayingCards:SetCustomShader(mod.EditionShaders[Card.Edition])
+
+            if Card.Modifiers & mod.Modifier.COVERED ~= 0 or Game:IsPaused() then
+                JimboCards.PlayingCards:SetFrame("Covered", 0)
+            else
+                JimboCards.PlayingCards:SetFrame(ENHANCEMENTS_ANIMATIONS[Card.Enhancement], 4 * (Card.Value - 1) + Card.Suit-1) --sets the frame corresponding to the value and suit
+                --JimboCards.PlayingCards:PlayOverlay("Seals")
+                JimboCards.PlayingCards:SetOverlayFrame("Seals", Card.Seal)
+
+                if Card.Edition ~= mod.Edition.BASE then
+                    JimboCards.PlayingCards:SetCustomShader(mod.EditionShaders[Card.Edition])
+                end
+
+                JimboCards.PlayingCards.Scale = JimboCards.PlayingCards.Scale * 1.1
+                JimboCards.PlayingCards:Render(FramePosition)
             end
 
-            JimboCards.PlayingCards:Render(FramePosition)
 
-
-            CardFrame.Scale = Vector.One
+            CardFrame.Scale = Vector.One * 1.1
             CardFrame:SetFrame(HUD_FRAME.Frame)
             CardFrame:Render(FramePosition)
         end
@@ -335,7 +408,13 @@ local function JimboPlayedHandRender(_,_,_,_,_,Player)
         end
 
 
-        
+        local CardTriggerCounter = (mod.Counters.SinceCardTriggered[Pointer] or 0) * TriggerCounterMult
+
+        JimboCards.PlayingCards.Scale = Vector.One * (1 + math.min(0.8, 2.5*(1 - math.abs(math.cos(math.rad(CardTriggerCounter)))^0.5)))
+
+        if CardTriggerCounter >= TriggerAnimationLength then
+            mod.Counters.SinceCardTriggered[Pointer] = nil
+        end
 
         RenderPos[Pointer] = mod:Lerp(mod.LastCardFullPoss[Pointer], TargetRenderPos, mod.Counters.SinceSelect/4 - TimeOffset)
                                         
@@ -343,6 +422,12 @@ local function JimboPlayedHandRender(_,_,_,_,_,Player)
         if RenderPos[Pointer].X == TargetRenderPos.X and RenderPos[Pointer].Y == TargetRenderPos.Y then
             --print(Pointer, "played assigned")
             mod.LastCardFullPoss[Pointer] = TargetRenderPos + Vector.Zero
+        end
+
+        JimboCards.PlayingCards.Rotation = 10 * math.sin(math.rad(180*(RenderPos[Pointer].X-mod.LastCardFullPoss[Pointer].X)/math.max(1,TargetRenderPos.X-mod.LastCardFullPoss[Pointer].X)))
+
+        if mod.LastCardFullPoss[Pointer].X < TargetRenderPos.X then
+            JimboCards.PlayingCards.Rotation = -JimboCards.PlayingCards.Rotation
         end
     
         -------------------------------------------------------------
@@ -517,11 +602,10 @@ local function JimboInventoryHUD(_,_,_,_,_,Player)
     end
 
     --local IsCoop = Game:GetNumPlayers() > 1
-    local ScaleMult = Vector.One --smaller when in coop
     local PIndex = Player:GetData().TruePlayerIndex
 
     local NumJokers = 0
-    for i, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+    for _, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
         
         if Slot.Joker ~= 0 then
             NumJokers = NumJokers + 1
@@ -531,9 +615,8 @@ local function JimboInventoryHUD(_,_,_,_,_,Player)
         return
     end
 
-    --HeartSprite.Offset = PIndex == 1 and Vector(-35,0) or Vector.Zero
+    local RenderPos = {}
 
-    TrinketSprite.Scale = ScaleMult
 
     local JokerStep = JOKER_AREA_WIDTH / (NumJokers + 1)
 
@@ -560,45 +643,52 @@ local function JimboInventoryHUD(_,_,_,_,_,Player)
 
         if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.INVENTORY and
            mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.INVENTORY][i] then
-            TargetRenderPos.Y = TargetRenderPos.Y + 6*ScaleMult.Y
+            TargetRenderPos.Y = TargetRenderPos.Y + 6
         end
 
-        mod.JokerFullPosition[i] = mod.JokerFullPosition[i] or TargetRenderPos
+        mod.JokerFullPosition[Slot.RenderIndex] = mod.JokerFullPosition[Slot.RenderIndex] or TargetRenderPos
 
         TrinketSprite:ReplaceSpritesheet(0, JokerConfig.GfxFileName, true)
         TrinketSprite:ReplaceSpritesheet(2, JokerConfig.GfxFileName, true)
 
-        if mod.Counters.Activated[i] then
-            --print(mod.Counters.Activated[i], i)
 
-            TrinketSprite:SetFrame("Effect", mod.Counters.Activated[i])
+        if Isaac.GetFrameCount() % 2 == 0 then
+            InventoryFrame[i] = InventoryFrame[i] and (InventoryFrame[i] + 1 or 0)
 
-            if mod.Counters.Activated[i] == JactivateLength then --stops the animation
-                mod.Counters.Activated[i] = nil
-            end
-        else
-
-            if Isaac.GetFrameCount() % 2 == 0 then
-                InventoryFrame[i] = InventoryFrame[i] and (InventoryFrame[i] + 1 or 0)
-
-                InventoryFrame[i] = InventoryFrame[i] > JidleLength and 0 or InventoryFrame[i]
-            end
-
-            TrinketSprite:SetFrame("Idle", InventoryFrame[i])
-            --TrinketSprite:SetAnimation("Idle", false)
+            InventoryFrame[i] = InventoryFrame[i] > JidleLength and 0 or InventoryFrame[i]
         end
+
+
+        local CardTriggerCounter = (mod.Counters.Activated[i] or 0) * TriggerCounterMult
+
+        TrinketSprite.Scale = Vector.One * (1 + math.min(0.8, 2.5*(1 - math.abs(math.cos(math.rad(CardTriggerCounter)))^0.5)))
+
+        if CardTriggerCounter >= TriggerAnimationLength then
+            mod.Counters.Activated[i] = nil
+        end
+        
+
+        TrinketSprite:SetFrame("Idle", InventoryFrame[i])
+        --TrinketSprite:SetAnimation("Idle", false)
+        
 
         TrinketSprite:SetCustomShader(mod.EditionShaders[mod.Saved.Player[PIndex].Inventory[i].Edition])
         
-        local RenderPos = Vector(mod:ExponentLerp(mod.JokerFullPosition[i].X, TargetRenderPos.X, mod.Counters.SinceSelect/10, 0.5),
+        RenderPos[Slot.RenderIndex] = Vector(mod:ExponentLerp(mod.JokerFullPosition[Slot.RenderIndex].X, TargetRenderPos.X, mod.Counters.SinceSelect/8, 0.5),
                                  TargetRenderPos.Y)
 
-        if RenderPos.Y == TargetRenderPos.Y and RenderPos.X == TargetRenderPos.X then
-            mod.JokerFullPosition[i] = RenderPos
+        if RenderPos[Slot.RenderIndex].Y == TargetRenderPos.Y and RenderPos[Slot.RenderIndex].X == TargetRenderPos.X then
+            mod.JokerFullPosition[Slot.RenderIndex] = RenderPos[Slot.RenderIndex]
         end
 
+        ----WOBBLE--------
 
-        TrinketSprite:Render(RenderPos)
+        RenderPos[Slot.RenderIndex].Y = RenderPos[Slot.RenderIndex].Y + math.sin(math.rad(Isaac.GetFrameCount()*1.75+i*219))
+
+        TrinketSprite.Rotation = math.sin(math.rad(Isaac.GetFrameCount()*1.15+i*137)) * 3
+        -------------------
+        
+        TrinketSprite:Render(RenderPos[Slot.RenderIndex])
 
         ::SKIP_JOKER::
     end
@@ -609,15 +699,17 @@ local function JimboInventoryHUD(_,_,_,_,_,Player)
 
     if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.INVENTORY then
 
-        local RenderPos = mod.JokerFullPosition[mod.SelectionParams[PIndex].Index] + Vector(0, -8)
+        local Slot = mod.Saved.Player[PIndex].Inventory[mod.SelectionParams[PIndex].Index]
 
-        RenderPos.Y = RenderPos.Y + (mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.INVENTORY][mod.SelectionParams[PIndex].Index] and 6 or 0)
+        local FrameRenderPos = RenderPos[Slot.RenderIndex] + Vector(0.5, -8)
+
+        FrameRenderPos.Y = FrameRenderPos.Y + (mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.INVENTORY][mod.SelectionParams[PIndex].Index] and 6 or 0)
 
         CardFrame:SetFrame(HUD_FRAME.Frame)
-        CardFrame.Scale = ScaleMult
-        CardFrame:Render(RenderPos)
+        CardFrame.Scale = Vector.One
 
-        CardFrame:Render(RenderPos)
+        CardFrame:Render(FrameRenderPos)
+        --CardFrame:Render(FrameRenderPos)
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, JimboInventoryHUD)
@@ -762,11 +854,17 @@ local function JimboStatsHUD(_,offset,_,Position,_,Player)
         StatToShow[mod.Stats.CHIPS] = mod.Saved.Player[PIndex].ChipsValue
     end
 
-    local Log = StatToShow[mod.Stats.CHIPS] == 0 and 2 or math.floor(math.log(StatToShow[mod.Stats.CHIPS], 10)) 
+    local Log
+
+    if tonumber(StatToShow[mod.Stats.MULT]) == "fail" then --in case of black hole's animation
+        goto RENDER
+    end
+
+    Log = StatToShow[mod.Stats.CHIPS] == 0 and 2 or math.floor(math.log(StatToShow[mod.Stats.CHIPS], 10)) 
 
     if Log <= 2 then
 
-        ChipsString = tostring(mod:round(StatToShow[mod.Stats.CHIPS], 2 -Log))
+        ChipsString = tostring(mod:round(StatToShow[mod.Stats.CHIPS], 2 - Log))
 
     else
         ChipsString = tostring(mod:round(StatToShow[mod.Stats.CHIPS] /10^Log, 1)).." e"..tostring(Log)
@@ -783,6 +881,7 @@ local function JimboStatsHUD(_,offset,_,Position,_,Player)
         MultString = tostring(mod:round(StatToShow[mod.Stats.MULT] /10^Log, 1)).." e"..tostring(Log)
     end
    
+    ::RENDER::
 
     mod.Fonts.Balatro:DrawStringScaled(ChipsString, ChipsPos.X-6,ChipsPos.Y-3,0.5,0.5,KColor.White)
     mod.Fonts.Balatro:DrawStringScaled(MultString, MultPos.X-6,MultPos.Y-3,0.5,0.5,KColor.White)
@@ -797,3 +896,111 @@ local function JimboStatsHUD(_,offset,_,Position,_,Player)
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, JimboStatsHUD)
 
+
+---@param Effect EntityEffect
+local function CashoutBubbleRender(_,Effect, Offset)
+
+    local NumStrings = #mod.ScreenStrings.CashOut
+
+    if NumStrings <= 0 then
+        return
+    end
+
+    local PlatePos = Isaac.WorldToScreen(Effect.Position)
+    PlatePos.Y = PlatePos.Y + 2.5 * math.sin(Isaac.GetFrameCount()/20)
+
+
+    CashoutBubbleSprite:SetFrame("Bottom", 0)
+    CashoutBubbleSprite.Scale = Vector.One
+    CashoutBubbleSprite.Offset = Vector.Zero
+    CashoutBubbleSprite:Render(PlatePos)
+
+    local MiddleScale = 1 + math.min(NumStrings, 5) --maximum of 6 strings at a time
+
+    local TopPos = PlatePos - Vector(0, BASE_BUBBLE_HEIGHT * MiddleScale)
+
+    CashoutBubbleSprite:SetFrame("Top", 0)
+    CashoutBubbleSprite:Render(TopPos)
+
+    CashoutBubbleSprite:SetFrame("Middle", 0)
+    CashoutBubbleSprite.Scale = Vector(1, MiddleScale)
+    CashoutBubbleSprite.Offset = Vector(0, 36*(MiddleScale-1))
+    CashoutBubbleSprite:Render(PlatePos)
+    
+    local CurrentStringOffset = Vector(CASHOUT_STRING_X_OFFSET + 8, -31) --Vector(CASHOUT_STRING_X_OFFSET + 5, -36*(MiddleScale-3) - 10)
+
+    -------BLIND CLEAR-----------
+
+    local BlindString = mod.ScreenStrings.CashOut[1]
+
+    if BlindString then
+
+        BlindChipsSprite:SetFrame("Chips", BlindString.Type & mod.BLINDS.BOSS ~= 0 and (BlindString.Type+4)/8 or BlindString.Type - 1)
+        BlindChipsSprite:Render(TopPos + CurrentStringOffset)
+
+        CurrentStringOffset.X = CurrentStringOffset.X + 11
+
+        RenderBalatroStyle(BlindString.Name, TopPos + CurrentStringOffset, BlindString.StartFrame, Vector.One*0.5, KColor.White)
+
+
+        CurrentStringOffset.X = -CASHOUT_STRING_X_OFFSET - mod.Fonts.Balatro:GetStringWidth(BlindString.String)
+
+        CurrentStringOffset.Y = CurrentStringOffset.Y - BALATRO_LINE_HEIGHT/4
+
+        RenderBalatroStyle(BlindString.String, TopPos + CurrentStringOffset, BlindString.StartFrame + string.len(BlindString.Name)*2 + 40, Vector.One, mod.EffectKColors.YELLOW)
+
+        CurrentStringOffset.Y = CurrentStringOffset.Y + BALATRO_LINE_HEIGHT
+    end
+    --------DIVIDER----------
+
+    local DivideString = mod.ScreenStrings.CashOut[2]
+
+    if DivideString then
+        CurrentStringOffset.X = CASHOUT_STRING_X_OFFSET
+
+        RenderBalatroStyle(DivideString.Name, TopPos + CurrentStringOffset, DivideString.StartFrame, Vector.One*0.5, KColor.White)
+
+        CurrentStringOffset.Y = CurrentStringOffset.Y + BALATRO_LINE_HEIGHT
+    end
+    ----------------------------
+    ---------------------------
+
+    for i = math.max(3, NumStrings - 2), NumStrings do
+        
+        ScreenString = mod.ScreenStrings.CashOut[i]
+
+        local Color
+
+        if ScreenString.Type == mod.StringTypes.Hand then
+
+            Color = mod.EffectKColors.BLUE
+
+        elseif ScreenString.Type == mod.StringTypes.Interest 
+               or ScreenString.Type == mod.StringTypes.Joker then
+
+            Color = mod.EffectKColors.YELLOW
+
+        else
+            Color = KColor.White
+        end
+
+
+
+        CurrentStringOffset.X = CASHOUT_STRING_X_OFFSET
+
+        RenderBalatroStyle(ScreenString.Name, TopPos + CurrentStringOffset, ScreenString.StartFrame, Vector.One*0.5, Color)
+
+        ---MONEY AMOUNT
+
+        Color = mod.EffectKColors.YELLOW
+
+        CurrentStringOffset.X = -CASHOUT_STRING_X_OFFSET - mod.Fonts.Balatro:GetStringWidth(ScreenString.String) --+ DollarWidth
+
+        CurrentStringOffset.Y = CurrentStringOffset.Y - BALATRO_LINE_HEIGHT/4
+
+        RenderBalatroStyle(ScreenString.String, TopPos + CurrentStringOffset, ScreenString.StartFrame + string.len(ScreenString.Name)*2 + 40, Vector.One, Color)
+    
+        CurrentStringOffset.Y = CurrentStringOffset.Y + BALATRO_LINE_HEIGHT*1.75
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_EFFECT_RENDER, CashoutBubbleRender, mod.Effects.CASHOUT_BUBBLE)
