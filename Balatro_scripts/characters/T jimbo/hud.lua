@@ -6,6 +6,7 @@ local sfx = SFXManager()
 local JimboCards = {PlayingCards = Sprite("gfx/ui/PlayingCards.anm2"),
                     Pack_PlayingCards = Sprite("gfx/ui/PackPlayCards.anm2"),
                     SpecialCards = Sprite("gfx/ui/PackSpecialCards.anm2")}
+
 local DeckSprite = Sprite("gfx/ui/Deck Stages.anm2")
 local TrinketSprite = Sprite("gfx/005.350_trinket_custom.anm2")
 local SellChargeSprite = Sprite("gfx/chargebar.anm2")
@@ -158,6 +159,15 @@ local function RenderBalatroStyle(String, Position, StartFrame, Scale, Kcolor, S
 
     end
     
+end
+
+
+local function JokerWobbleEffect(OffestVar, VerticalBase)
+
+    return (VerticalBase or 0) + math.sin(math.rad(Isaac.GetFrameCount()*1.75+OffestVar*219)), 
+
+           math.sin(math.rad(Isaac.GetFrameCount()*1.15+OffestVar*137)) * 3
+
 end
 
 
@@ -489,7 +499,7 @@ local function JimboPackRender(_,_,_,_,_,Player)
     end
 
 
-    local TruePurpose = mod.SelectionParams[PIndex].PackPurpose & (~mod.SelectionParams.Purposes.MegaFlag) --removes it for pack checks
+    local TruePurpose = mod.SelectionParams[PIndex].PackPurpose & ~mod.SelectionParams.Purposes.MegaFlag --removes it for pack checks
     local PlayerPos = Isaac.WorldToScreen(Player.Position)
 
     local NumOptions = #mod.SelectionParams[PIndex].PackOptions
@@ -519,6 +529,7 @@ local function JimboPackRender(_,_,_,_,_,Player)
 
             --JimboCards.Pack_PlayingCards.Scale = Vector.One * mod:Lerp(CardScale[i], TargetScale, mod.Counters.SinceSelect)
 
+            CardScale[i] = 1
             WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams[PIndex].Frames*5+i*95))*1.5)
 
             JimboCards.Pack_PlayingCards:Render(mod:CoolVectorLerp(PlayerPos, RenderPos + WobblyEffect[i], mod.SelectionParams[PIndex].Frames/10))
@@ -533,6 +544,7 @@ local function JimboPackRender(_,_,_,_,_,Player)
             TrinketSprite:ReplaceSpritesheet(0, ItemsConfig:GetTrinket(card.Joker).GfxFileName, true)
             TrinketSprite:SetFrame("Idle", 0)
 
+            CardScale[i] = 1
             WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams[PIndex].Frames*5+i*95))*1.5)
 
             TrinketSprite:SetCustomShader(mod.EditionShaders[card.Edition])
@@ -572,13 +584,14 @@ local function JimboPackRender(_,_,_,_,_,Player)
 
     end--end PURPOSES
 
-    
 
     if mod.SelectionParams[PIndex].Mode ~= mod.SelectionParams.Modes.PACK then
         return
     end
 
     local Index = mod.SelectionParams[PIndex].Index
+
+    CardScale[Index] = CardScale[Index] or 1
 
     --renders the frame on the selected card
     RenderPos.X = BaseRenderPos.X + (Index - 1)*(PACK_CARD_DISTANCE + CardHUDWidth)
@@ -682,10 +695,8 @@ local function JimboInventoryHUD(_,_,_,_,_,Player)
         end
 
         ----WOBBLE--------
-
-        RenderPos[Slot.RenderIndex].Y = RenderPos[Slot.RenderIndex].Y + math.sin(math.rad(Isaac.GetFrameCount()*1.75+i*219))
-
-        TrinketSprite.Rotation = math.sin(math.rad(Isaac.GetFrameCount()*1.15+i*137)) * 3
+        
+        RenderPos[Slot.RenderIndex].Y, TrinketSprite.Rotation = JokerWobbleEffect(i, RenderPos[Slot.RenderIndex].Y)
         -------------------
         
         TrinketSprite:Render(RenderPos[Slot.RenderIndex])
@@ -1004,3 +1015,53 @@ local function CashoutBubbleRender(_,Effect, Offset)
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_EFFECT_RENDER, CashoutBubbleRender, mod.Effects.CASHOUT_BUBBLE)
+
+
+
+---@param Pickup EntityPickup
+local function CustomPickupSprites(_, Pickup)
+
+    if Game:GetRoom():GetType() ~= RoomType.ROOM_SHOP then
+        Pickup:Remove()
+        return
+    end
+
+    if Pickup.Variant ~= PickupVariant.PICKUP_TAROTCARD then
+        return
+    end
+
+
+    if mod:Contained(mod.Packs, Pickup.SubType) then
+
+        local PackSprite = Pickup:GetSprite()
+        
+        PackSprite:Load("gfx/ui/Booster Packs.anm2")
+
+        local PackAnimation = ItemsConfig:GetCard(Pickup.SubType).Name
+
+        --print(".."..PackAnimation.."..")
+
+        PackSprite:SetFrame(PackAnimation, math.random(PackSprite:GetAnimationData(PackAnimation):GetLength()) - 1)
+
+    else
+
+        local CardSprite = Pickup:GetSprite()
+        
+        CardSprite:Load("gfx/ui/PackSpecialCards.anm2")
+
+        JimboCards.SpecialCards:SetFrame("idle",  mod:SpecialCardToFrame(Pickup.SubType))
+
+    end
+    --Pickup.SpriteOffset.Y = -8
+end
+mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT, CustomPickupSprites)
+
+
+---@param Pickup EntityPickup
+local function PickupWobble(_, Pickup, Offset)
+
+    
+    Pickup.SpriteOffset.Y, Pickup.SpriteRotation = JokerWobbleEffect(Pickup.InitSeed % 10, -8)
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_PICKUP_RENDER, PickupWobble)

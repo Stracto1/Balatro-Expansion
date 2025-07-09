@@ -243,7 +243,7 @@ function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rN
     if Game:GetRoom():GetType() == RoomType.ROOM_SHOP and Pickup:IsShopItem() then
 
         if Pickup.ShopItemId <= 1 then --card pack
-            ReturnTable = {PickupVariant.PICKUP_TAROTCARD,mod:GetRandom(mod.Packs, mod.Saved.GeneralRNG),false}
+            ReturnTable = {PickupVariant.PICKUP_TAROTCARD, mod:RandomPack(RollRNG), false}
 
         elseif Pickup.ShopItemId == 2 then --voucher / joker if already bought
             --ngl i'm really proud of the algorithm i wrote on this section
@@ -1076,7 +1076,8 @@ function mod:JimboOnlyRedHearts(Player, Amount, HpType, _)
         if Amount > 0 then
     
             for i = 1, Amount do
-                local RPack = mod:GetRandom(mod.Packs, Player:GetDropRNG())
+                local RPack = mod:RandomPack(Player:GetDropRNG())
+
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
                            RandomVector()*2.5, nil, RPack, Player:GetDropRNG():GetSeed())
             end

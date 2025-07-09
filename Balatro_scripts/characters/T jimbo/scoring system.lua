@@ -193,8 +193,6 @@ end
 
 
 
-
-
 ---@param Player EntityPlayer
 ---@param CardPointer integer
 local function TriggerCard(Player, CardPointer, CardIndex)
@@ -205,7 +203,7 @@ local function TriggerCard(Player, CardPointer, CardIndex)
 
     if Card.Modifiers & mod.Modifier.DEBUFFED ~= 0 then
         
-        GeneralBalatroEffect(Player, PIndex, mod.EffectColors.PURPLE, mod.Sounds.CLOWN_HONK, "Debuffed!", mod.EffectType.HAND, CardPointer)
+        GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.CLOWN_HONK, "Debuffed!", mod.EffectType.HAND, CardPointer)
 
         return
     end
@@ -1598,7 +1596,177 @@ local function CopyAdjustments(_,Player)
         end
     end
 end
-mod:AddCallback("INVENTORY_CHANGE", CopyAdjustments)
+mod:AddCallback(mod.Callbalcks.INVENTORY_CHANGE, CopyAdjustments)
+
+
+
+--effects when a blind gets completed
+local function OnBlindStart(_,BlindType)
+
+    ResetEffects()
+
+    for _, Player in ipairs(PlayerManager.GetPlayers()) do
+
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
+        goto skip_player
+    end
+
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    local RandomSeed = Random()
+    if RandomSeed == 0 then RandomSeed = 1 end --would crash the game otherwise
+
+    --cycles between all the held jokers
+    for JokerIndex, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+
+        local Joker = Slot.Joker
+        
+        local ProgressIndex = JokerIndex
+        local Copied = false
+        if Joker == mod.Jokers.BLUEPRINT or Joker == mod.Jokers.BRAINSTORM then
+
+            Joker = mod.Saved.Player[PIndex].Inventory[mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex]]
+            Joker = Joker and Joker.Joker or 0
+
+            --print("should be copiyng: "..tostring(mod.Saved.Player[PIndex].Inventory[mod.Saved.Player[PIndex].Progress.Inventory[Index]].Joker))
+            --print("copy "..tostring(Joker).." at "..tostring(mod.Saved.Player[PIndex].Progress.Inventory[Index]))
+
+            ProgressIndex = mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex]
+
+            Copied = true
+        end
+
+        if Joker == 0 then --could save some time
+            goto SKIP_SLOT
+        end
+
+        if Joker == mod.Jokers.CARTOMANCER then
+            local TarotRNG = Player:GetTrinketRNG(mod.Jokers.CARTOMANCER)
+
+            local RandomTarot = mod:RandomTarot(TarotRNG, false, false)
+
+            local Success = mod:TJimboAddConsumable(Player, RandomTarot, 0, true)
+
+            if Success then
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "+1 Tarot!", mod.EffectType.JOKER, JokerIndex)
+            end
+
+
+        elseif Joker == mod.Jokers.RIFF_RAFF then
+            local RaffRNG = Player:GetTrinketRNG(mod.Jokers.RIFF_RAFF)
+            
+            local RandomJokers = mod:RandomJoker(RaffRNG, true, "common")
+
+            for i=1, 2 do
+                
+                Isaac.CreateTimer(function ()
+                    local Success = mod:TJimboAddConsumable(Player, RandomJokers[i], 0, true)
+                    if Success then
+                        mod.Counters.Activated[JokerIndex] = 0
+                    end
+                end, CurrentInterval, 1, true)
+
+                IncreaseInterval(12)
+            end
+
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jokers!", mod.EffectType.JOKER, JokerIndex)
+
+        elseif Joker == mod.Jokers.MARBLE_JOKER then
+
+            local MarbleRNG = Player:GetTrinketRNG(mod.Jokers.MARBLE_JOKER)
+
+            local StoneCard = {}
+
+            StoneCard.Suit = MarbleRNG:RandomInt(1, 4)
+            StoneCard.Value = MarbleRNG:RandomInt(1,13)
+
+            StoneCard.Enhancement = mod.Enhancement.STONE
+            StoneCard.Seal = mod.Seals.NONE
+            StoneCard.Edition = mod.Edition.BASE
+            StoneCard.Upgrades = 0
+
+            mod:AddCardToDeck(Player, StoneCard,1, false)
+
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "+1 Stone!", mod.EffectType.JOKER, JokerIndex)
+
+        elseif Joker == mod.Jokers.SACRIFICIAL_DAGGER then
+
+            if Copied then
+                goto SKIP_SLOT
+            end
+
+            local RightIndex = JokerIndex
+            local RightJoker
+            repeat
+                RightIndex = RightIndex + 1
+                RightJoker = mod.Saved.Player[PIndex].Inventory[RightIndex].Joker
+            until not RightJoker or RightJoker ~= 0
+
+            if RightJoker ~= 0 then
+                local RightSell = mod:GetJokerCost(RightJoker, mod.Saved.Player[PIndex].Inventory[RightIndex].Edition, RightIndex)
+
+                IncreaseJokerProgress(PIndex, JokerIndex, RightSell)
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.SLICE, "+"..tostring(RightSell), mod.EffectType.JOKER, JokerIndex)
+
+                mod.Saved.Player[PIndex].Inventory[RightIndex].Joker = 0
+                mod.Saved.Player[PIndex].Inventory[RightIndex].Edition = 0
+
+                Isaac.RunCallback("INVENTORY_CHANGE", Player)
+
+                Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)
+            end
+
+        elseif Joker == mod.Jokers.MADNESS then
+
+            if not Copied or BlindType & mod.BLINDS.BOSS ~= 0 then
+                goto SKIP_SLOT
+            end
+                
+            IncreaseJokerProgress(PIndex, JokerIndex, 0.5)
+
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+0.5 X", mod.EffectType.JOKER, JokerIndex)
+            
+            local Removable = {}
+            for i, v in ipairs(mod.Saved.Player[PIndex].Inventory) do
+                if i ~= JokerIndex and v.Joker ~= 0 then --any joker other than this one
+                    table.insert(Removable, i)
+                end
+            end
+            if next(Removable) then --if at leat one is present
+                local Rindex = mod:GetRandom(Removable, Player:GetTrinketRNG(mod.Jokers.MADNESS))
+                mod.Saved.Player[PIndex].Inventory[Rindex].Joker = 0
+                mod.Saved.Player[PIndex].Inventory[Rindex].Edition = 0
+
+                Isaac.RunCallback("INVENTORY_CHANGE", Player)
+            end
+
+        elseif Joker == mod.Jokers.CERTIFICATE then
+
+            local MarbleRNG = Player:GetTrinketRNG(mod.Jokers.CERTIFICATE)
+
+            local SealCard = {}
+
+            SealCard.Suit = MarbleRNG:RandomInt(1, 4)
+            SealCard.Value = MarbleRNG:RandomInt(1,13)
+
+            SealCard.Enhancement = mod.Enhancement.STONE
+            SealCard.Seal = MarbleRNG:RandomInt(mod.Seals.RED, mod.Seals.PURPLE)
+
+            mod:AddCardToDeck(Player, SealCard,1, false)
+
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Added!", mod.EffectType.JOKER, JokerIndex)
+        end
+
+        ::SKIP_SLOT::
+    end --END JOKER FOR
+
+    ::skip_player::
+
+    end --END PLAYER FOR
+
+    return CurrentInterval
+end
+mod:AddCallback(mod.Callbalcks.BLIND_START, OnBlindStart)
 
 
 
@@ -1929,8 +2097,8 @@ end
 mod:AddCallback(mod.Callbalcks.BLIND_CLEAR, OnBlindClear)
 
 
---effects when a blind gets completed
-local function OnBlindStart(_,BlindType)
+
+local function OnShopExit(_)
 
     for _, Player in ipairs(PlayerManager.GetPlayers()) do
 
@@ -1967,133 +2135,40 @@ local function OnBlindStart(_,BlindType)
             goto SKIP_SLOT
         end
 
-        if Joker == mod.Jokers.CARTOMANCER then
-            local TarotRNG = Player:GetTrinketRNG(mod.Jokers.CARTOMANCER)
+        if Joker == mod.Jokers.PERKEO then
 
-            local RandomTarot = mod:RandomTarot(TarotRNG, false, false)
-
-            local Success = mod:TJimboAddConsumable(Player, RandomTarot, 0, true)
-
-            if Success then
-                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "+1 Tarot!", mod.EffectType.JOKER, JokerIndex)
-            end
-
-
-        elseif Joker == mod.Jokers.RIFF_RAFF then
-            local RaffRNG = Player:GetTrinketRNG(mod.Jokers.RIFF_RAFF)
+            local PossibleConsumables = {}
             
-            local RandomJokers = mod:RandomJoker(RaffRNG, true, "common")
-
-            for i=1, 2 do
+            for i,Consumable in ipairs(mod.Saved.Player[PIndex].Consumables) do
                 
-                Isaac.CreateTimer(function ()
-                    local Success = mod:TJimboAddConsumable(Player, RandomJokers[i], 0, true)
-                    if Success then
-                        mod.Counters.Activated[JokerIndex] = 0
-                    end
-                end, CurrentInterval, 1, true)
-
-                IncreaseInterval(12)
-            end
-
-            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jokers!", mod.EffectType.JOKER, JokerIndex)
-
-        elseif Joker == mod.Jokers.MARBLE_JOKER then
-
-            local MarbleRNG = Player:GetTrinketRNG(mod.Jokers.MARBLE_JOKER)
-
-            local StoneCard = {}
-
-            StoneCard.Suit = MarbleRNG:RandomInt(1, 4)
-            StoneCard.Value = MarbleRNG:RandomInt(1,13)
-
-            StoneCard.Enhancement = mod.Enhancement.STONE
-            StoneCard.Seal = mod.Seals.NONE
-            StoneCard.Edition = mod.Edition.BASE
-            StoneCard.Upgrades = 0
-
-            mod:AddCardToDeck(Player, StoneCard,1, false)
-
-            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "+1 Stone!", mod.EffectType.JOKER, JokerIndex)
-
-        elseif Joker == mod.Jokers.SACRIFICIAL_DAGGER then
-
-            if Copied then
-                goto SKIP_SLOT
-            end
-
-            local RightIndex = JokerIndex
-            local RightJoker
-            repeat
-                RightIndex = RightIndex + 1
-                RightJoker = mod.Saved.Player[PIndex].Inventory[RightIndex].Joker
-            until not RightJoker or RightJoker ~= 0
-
-            if RightJoker ~= 0 then
-                local RightSell = mod:GetJokerCost(RightJoker, mod.Saved.Player[PIndex].Inventory[RightIndex].Edition, RightIndex)
-
-                IncreaseJokerProgress(PIndex, JokerIndex, RightSell)
-                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.SLICE, "+"..tostring(RightSell), mod.EffectType.JOKER, JokerIndex)
-
-                mod.Saved.Player[PIndex].Inventory[RightIndex].Joker = 0
-                mod.Saved.Player[PIndex].Inventory[RightIndex].Edition = 0
-
-                Isaac.RunCallback("INVENTORY_CHANGE", Player)
-
-                Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)
-            end
-
-        elseif Joker == mod.Jokers.MADNESS then
-
-            if not Copied or BlindType & mod.BLINDS.BOSS ~= 0 then
-                goto SKIP_SLOT
-            end
-                
-            IncreaseJokerProgress(PIndex, JokerIndex, 0.5)
-
-            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+0.5 X", mod.EffectType.JOKER, JokerIndex)
-            
-            local Removable = {}
-            for i, v in ipairs(mod.Saved.Player[PIndex].Inventory) do
-                if i ~= JokerIndex and v.Joker ~= 0 then --any joker other than this one
-                    table.insert(Removable, i)
+                if Consumable.Card ~= 0 then
+                    PossibleConsumables[#PossibleConsumables+1] = Consumable.Card
                 end
             end
-            if next(Removable) then --if at leat one is present
-                local Rindex = mod:GetRandom(Removable, Player:GetTrinketRNG(mod.Jokers.MADNESS))
-                mod.Saved.Player[PIndex].Inventory[Rindex].Joker = 0
-                mod.Saved.Player[PIndex].Inventory[Rindex].Edition = 0
 
-                Isaac.RunCallback("INVENTORY_CHANGE", Player)
+            if next(PossibleConsumables) then
+                
+                local RandomCard = mod:GetRandom(PossibleConsumables, Player:GetTrinketRNG(mod.Jokers.PERKEO))
+
+                mod:TJimboAddConsumable(Player, RandomCard, 0, false, mod.Edition.NEGATIVE)
+
             end
 
-        elseif Joker == mod.Jokers.CERTIFICATE then
 
-            local MarbleRNG = Player:GetTrinketRNG(mod.Jokers.CERTIFICATE)
 
-            local SealCard = {}
-
-            SealCard.Suit = MarbleRNG:RandomInt(1, 4)
-            SealCard.Value = MarbleRNG:RandomInt(1,13)
-
-            SealCard.Enhancement = mod.Enhancement.STONE
-            SealCard.Seal = MarbleRNG:RandomInt(mod.Seals.RED, mod.Seals.PURPLE)
-
-            mod:AddCardToDeck(Player, SealCard,1, false)
-
-            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Added!", mod.EffectType.JOKER, JokerIndex)
         end
 
+
         ::SKIP_SLOT::
-    end --END JOKER FOR
+    end
 
-    ::skip_player::
-
-    end --END PLAYER FOR
+        ::skip_player::
+    end
 
     return CurrentInterval
+
 end
-mod:AddCallback(mod.Callbalcks.BLIND_START, OnBlindStart)
+mod:AddCallback(mod.Callbalcks.SHOP_EXIT, OnShopExit)
 
 
 
@@ -2569,9 +2644,9 @@ local function OnJokerSold(_, Player,Joker,SlotSold)
 
         if mod.Saved.BlindBeingPlayed & mod.BLINDS.BOSS ~= 0 then
 
-            mod.Saved.BlindBeingPlayed = mod.BLINDS.BOSS
+            mod.Saved.BlindBeingPlayed = mod.BLINDS.BOSS --removes any special effetc
 
-            mod:EvaluateBlindEffect()
+            Isaac.RunCallback(mod.Callbalcks.BOSS_BLIND_EVAL, false)
         end
 
     elseif Joker == mod.Jokers.DIET_COLA then
@@ -2804,22 +2879,65 @@ mod:AddCallback(mod.Callbalcks.DECK_MODIFY, OnDeckModify)
 
 
 
-function mod:EvaluateBlindEffect()
+local function EvaluateBlindEffect(_, BlindStarted)
 
     local BlindType = mod.Saved.BlindBeingPlayed
 
+    local TJimbo
+    local PIndex
+
     for i,Player in ipairs(PlayerManager.GetPlayers()) do
-        Player:AddCustomCacheTag(mod.CustomCache.HAND_NUM)
-        Player:AddCustomCacheTag(mod.CustomCache.DISCARD_NUM, true)
+
+        if BlindStarted then
+            Player:AddCustomCacheTag(mod.CustomCache.HAND_NUM)
+            Player:AddCustomCacheTag(mod.CustomCache.DISCARD_NUM, true)
+        end
+
+        if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
+
+            if mod:JimboHasTrinket(Player, mod.Jokers.CHICOT) then
+            
+                mod.Saved.BlindBeingPlayed = mod.BLINDS.BOSS
+            end
+
+            TJimbo = Player
+            PIndex = Player:GetData().TruePlayerIndex
+
+            --clears the deck from all effects to then reapply what is needed
+            for Pointer, Card in ipairs(mod.Saved.Player[PIndex].FullDeck) do
+                
+                Card.Modifiers = 0 --no modifiers (not covered or debuffed)
+            end
+        end
     end
+
+    --initial
     
 
-    if BlindType & mod.BLINDS.BOSS == 0 then
+    if BlindType & mod.BLINDS.BOSS == 0  --if its not a boss
+       or BlindType & ~mod.BLINDS.BOSS == 0  --if its en effectless boss (chicot/luchador)
+       or not TJimbo then -- no TJimbo found
         return
     end
 
+    local PlayerDeck = mod.Saved.Player[PIndex].FullDeck
+
+
+    if BlindType == mod.BLINDS.BOSS_CLUB then
+        
+        for _,Card in ipairs(PlayerDeck) do
+
+            if mod:IsSuit(TJimbo, Card, mod.Suits.Club) then
+                
+                Card.Modifiers = mod.Modifier.DEBUFFED
+            end
+        end
+    end
 
 
 
 
 end
+mod:AddCallback(mod.Callbalcks.BOSS_BLIND_EVAL, EvaluateBlindEffect)
+
+

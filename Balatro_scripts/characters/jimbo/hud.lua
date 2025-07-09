@@ -764,3 +764,5 @@ function mod:DebtIndicator(_,_,_,_,Player)
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.DebtIndicator)
 
+
+

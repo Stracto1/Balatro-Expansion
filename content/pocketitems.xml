@@ -1,22 +1,24 @@
 <pocketitems>
     <!-- -PACKS- -->
-    <card type="object" name="Arcana pack" description="Tarots inside" hud="Tarot_Pack" pickup="2476" achievement="PermaLocked"/>
-    <card type="object" name="Celestial pack" description="Planets inside" hud="Planet_Pack" pickup="2477" achievement="PermaLocked"/>
-    <card type="object" name="Standard pack" description="Cards inside" hud="Standard_Pack" pickup="2478" achievement="PermaLocked"/>
-    <card type="object" name="Buffon pack" description="Jokers inside" hud="Buffon_Pack" pickup="2479" achievement="PermaLocked"/>
-    <card type="object" name="Spectral pack" description="Spectrals inside" hud="Spectral_Pack" pickup="2480" achievement="PermaLocked"/>
-    
-    <card type="object" name="Jumbo Arcana pack" description="Tarots inside" hud="Jumbo_Tarot_Pack" pickup="2476" achievement="PermaLocked"/>
-    <card type="object" name="Jumbo Celestial pack" description="Planets inside" hud="Jumbo_Planet_Pack" pickup="2477" achievement="PermaLocked"/>
-    <card type="object" name="Jumbo Standard pack" description="Cards inside" hud="Jumbo_Standard_Pack" pickup="2478" achievement="PermaLocked"/>
-    <card type="object" name="Jumbo Buffon pack" description="Jokers inside" hud="Jumbo_Buffon_Pack" pickup="2479" achievement="PermaLocked"/>
-    <card type="object" name="Jumbo Spectral pack" description="Spectrals inside" hud="Jumbo_Spectral_Pack" pickup="2480" achievement="PermaLocked"/>
-    
-    <card type="object" name="Mega Arcana pack" description="Tarots inside" hud="Mega_Tarot_Pack" pickup="2476" achievement="PermaLocked"/>
-    <card type="object" name="Mega Celestial pack" description="Planets inside" hud="Mega_Planet_Pack" pickup="2477" achievement="PermaLocked"/>
-    <card type="object" name="Mega Standard pack" description="Cards inside" hud="Mega_Standard_Pack" pickup="2478" achievement="PermaLocked"/>
-    <card type="object" name="Mega Buffon pack" description="Jokers inside" hud="Mega_Buffon_Pack" pickup="2479" achievement="PermaLocked"/>
-    <card type="object" name="Mega Spectral pack" description="Spectrals inside" hud="Mega_Spectral_Pack" pickup="2480" achievement="PermaLocked"/>
+    <card type="object" name="Arcana Pack" description="Tarots inside" hud="Tarot_Pack" pickup="2476" achievement="PermaLocked"/>
+    <card type="object" name="Jumbo Arcana Pack" description="Tarots inside" hud="Jumbo_Tarot_Pack" pickup="2477" achievement="PermaLocked"/>
+    <card type="object" name="Mega Arcana Pack" description="Tarots inside" hud="Mega_Tarot_Pack" pickup="2478" achievement="PermaLocked"/>
+
+    <card type="object" name="Celestial Pack" description="Planets inside" hud="Planet_Pack" pickup="2479" achievement="PermaLocked"/>
+    <card type="object" name="Jumbo Celestial Pack" description="Planets inside" hud="Jumbo_Planet_Pack" pickup="2480" achievement="PermaLocked"/>
+    <card type="object" name="Mega Celestial Pack" description="Planets inside" hud="Mega_Planet_Pack" pickup="2481" achievement="PermaLocked"/>
+
+    <card type="object" name="Standard Pack" description="Cards inside" hud="Standard_Pack" pickup="2482" achievement="PermaLocked"/>
+    <card type="object" name="Jumbo Standard Pack" description="Cards inside" hud="Jumbo_Standard_Pack" pickup="2483" achievement="PermaLocked"/>
+    <card type="object" name="Mega Standard Pack" description="Cards inside" hud="Mega_Standard_Pack" pickup="2484" achievement="PermaLocked"/>
+
+    <card type="object" name="Buffon Pack" description="Jokers inside" hud="Buffon_Pack" pickup="2485" achievement="PermaLocked"/>
+    <card type="object" name="Jumbo Buffon Pack" description="Jokers inside" hud="Jumbo_Buffon_Pack" pickup="2486" achievement="PermaLocked"/>
+    <card type="object" name="Mega Buffon Pack" description="Jokers inside" hud="Mega_Buffon_Pack" pickup="2487" achievement="PermaLocked"/>
+
+    <card type="object" name="Spectral Pack" description="Spectrals inside" hud="Spectral_Pack" pickup="2488" achievement="PermaLocked"/>
+    <card type="object" name="Jumbo Spectral Pack" description="Spectrals inside" hud="Jumbo_Spectral_Pack" pickup="2489" achievement="PermaLocked"/>
+    <card type="object" name="Mega Spectral Pack" description="Spectrals inside" hud="Mega_Spectral_Pack" pickup="2490" achievement="PermaLocked"/>
     
 
 

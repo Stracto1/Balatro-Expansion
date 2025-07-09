@@ -105,6 +105,7 @@ function mod:OnGameStart(Continued)
         mod.Saved.TarotsUsed = 0
         mod.Saved.PlanetTypesUsed = 0
         mod.Saved.BlindBeingPlayed = mod.BLINDS.SKIP
+        --mod.Saved.AnteVoucher = 0
 
         mod.Saved.ClearedRooms = 0
         mod.Saved.SmallCleared = false
@@ -149,6 +150,11 @@ function mod:OnGameStart(Continued)
 
     mod.GameStarted = true
 
+    local RNGPlayer = Game:GetPlayer(0)
+
+    mod.RNGs.SHOP = RNG(RNGPlayer:GetTrinketRNG(mod.Jokers.JOKER):GetSeed())
+    mod.RNGs.VOUCHERS = RNG(RNGPlayer:GetCollectibleRNG(mod.Vouchers.Blank):GetSeed())
+    mod.RNGs.LUCKY_CARD = RNG(RNGPlayer:GetTrinketRNG(mod.Jokers.LUCKY_CAT):GetSeed())
     
     for _, player in ipairs(PlayerManager.GetPlayers()) do  --evaluates again for the mod's trinkets since closing the game
                                                             --resets stuff
@@ -169,10 +175,7 @@ function mod:OnGameStart(Continued)
 
             Isaac.RunCallback("INVENTORY_CHANGE", player) --this evaluates everithing anyway
             --player:AddCacheFlags(CacheFlag.CACHE_ALL, true)
-
-        end
-
-        
+        end 
     end
 
 end

@@ -348,8 +348,9 @@ function mod:CardPacks(card, Player,_)
         if EditionRoll <= JumboChance then
 
             if EditionRoll <= MegaChance then
-                mod.SelectionParams[PIndex].Purpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.Purposes.MegaFlag
+                mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.PackPurposes.MegaFlag
                 mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!", mod.EffectType.ENTITY, Player)
+            
             else
                 mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!", mod.EffectType.ENTITY, Player)
             end
@@ -401,7 +402,7 @@ function mod:CardPacks(card, Player,_)
         if EditionRoll <= JumboChance then
         
             if EditionRoll <= MegaChance then
-                mod.SelectionParams[PIndex].Purpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.Purposes.MegaFlag
+                mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose + mod.SelectionParams.Purposes.MegaFlag
                 mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!", mod.EffectType.ENTITY, Player)
             else
                 mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!", mod.EffectType.ENTITY, Player)
@@ -443,7 +444,7 @@ function mod:CardPacks(card, Player,_)
         if EditionRoll <= JumboChance then
     
             if EditionRoll <= MegaChance then
-                mod.SelectionParams[PIndex].Purpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.Purposes.MegaFlag
+                mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose + mod.SelectionParams.Purposes.MegaFlag
                 mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!", mod.EffectType.ENTITY, Player)
             else
                 mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!", mod.EffectType.ENTITY, Player)
@@ -488,7 +489,7 @@ function mod:CardPacks(card, Player,_)
         if EditionRoll <= JumboChance then
         
             if EditionRoll <= MegaChance then
-                mod.SelectionParams[PIndex].Purpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.Purposes.MegaFlag
+                mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose + mod.SelectionParams.Purposes.MegaFlag
                 mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!", mod.EffectType.ENTITY, Player)
             else
                 mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!", mod.EffectType.ENTITY, Player)
@@ -515,7 +516,7 @@ function mod:CardPacks(card, Player,_)
         if EditionRoll <= JumboChance then
     
             if EditionRoll <= MegaChance then
-                mod.SelectionParams[PIndex].Purpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.Purposes.MegaFlag
+                mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose + mod.SelectionParams.Purposes.MegaFlag
                 mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!", mod.EffectType.ENTITY, Player)
             else
                 mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!", mod.EffectType.ENTITY, Player)

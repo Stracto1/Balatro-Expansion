@@ -194,7 +194,9 @@ Balatro_Expansion.Callbalcks = {CARD_SHOT = "CARD_SHOT",
                                 CONSUMABLE_SOLD = "CONSUMABLE_SOLD",
                                 CONSUMABLE_USE = "CONSUMABLE_USED",
                                 BLIND_CLEAR = "BLIND_CLEARED",
+                                SHOP_EXIT = "BALATRO_SHOP_END",
                                 CASHOUT_EVAL = "CASHOUT_EVALUATION",
+                                BOSS_BLIND_EVAL = "BOSS_BLIND_EFFECT_EVALUATION",
                                 BLIND_START = "BLIND_STARTED",
                                 POST_BLIND_START = "POST_BLIND_STARTED",
                                 BLIND_SKIP = "BLIND_SKIPPED",
@@ -266,8 +268,12 @@ Balatro_Expansion.Entities.PATH_SLAVE = Isaac.GetEntityVariantByName("Pathfinder
 --Balatro_Expansion.Entities.SHOP_MIMIC = Isaac.GetEntityVariantByName("Shop Mimic")
 
 Balatro_Expansion.Grids = {}
-Balatro_Expansion.Grids.PLATE_VARIANT = 146
-Balatro_Expansion.Grids.PLATE_PATH = "gfx/grid/grid_balatro_pressureplate.anm2"
+Balatro_Expansion.Grids.PlateVariant.BLIND = 146
+Balatro_Expansion.Grids.PlateVariant.CASHOUT = 147
+Balatro_Expansion.Grids.PlateVariant.REROLL = 148
+Balatro_Expansion.Grids.PlateVariant.SHOP_EXIT = 149
+
+Balatro_Expansion.Grids.PLATE_ANM2_PATH = "gfx/grid/grid_balatro_pressureplate.anm2"
 
 
 for i, Joker in pairs(Balatro_Expansion.Jokers) do
@@ -339,16 +345,26 @@ Balatro_Expansion.EffectType = {NULL = -1,
 
 
 Balatro_Expansion.Packs = {}
-Balatro_Expansion.Packs.ARCANA =  Isaac.GetCardIdByName("Tarot_Pack")
-Balatro_Expansion.Packs.CELESTIAL = Isaac.GetCardIdByName("Planet_Pack")
-Balatro_Expansion.Packs.BUFFON  =  Isaac.GetCardIdByName("Buffon_Pack")
-Balatro_Expansion.Packs.SPECTRAL =  Isaac.GetCardIdByName("Spectral_Pack")
-Balatro_Expansion.Packs.STANDARD = Isaac.GetCardIdByName("Standard_Pack")
+Balatro_Expansion.Packs.ARCANA =  Isaac.GetCardIdByName("Tarot_Pack") --base
+Balatro_Expansion.Packs.JUMBO_ARCANA =  Isaac.GetCardIdByName("Jumbo_Tarot_Pack")
+Balatro_Expansion.Packs.MEGA_ARCANA =  Isaac.GetCardIdByName("Mega_Tarot_Pack")
+Balatro_Expansion.Packs.CELESTIAL = Isaac.GetCardIdByName("Planet_Pack") --base
+Balatro_Expansion.Packs.JUMBO_CELESTIAL = Isaac.GetCardIdByName("Jumbo_Planet_Pack")
+Balatro_Expansion.Packs.MEGA_CELESTIAL = Isaac.GetCardIdByName("Mega_Planet_Pack")
+Balatro_Expansion.Packs.BUFFON  =  Isaac.GetCardIdByName("Buffon_Pack") --base
+Balatro_Expansion.Packs.JUMBO_BUFFON  =  Isaac.GetCardIdByName("Jumbo_Buffon_Pack")
+Balatro_Expansion.Packs.MEGA_BUFFON  =  Isaac.GetCardIdByName("Mega_Buffon_Pack")
+Balatro_Expansion.Packs.SPECTRAL =  Isaac.GetCardIdByName("Spectral_Pack") --base
+Balatro_Expansion.Packs.JUMBO_SPECTRAL =  Isaac.GetCardIdByName("Jumbo_Spectral_Pack")
+Balatro_Expansion.Packs.MEGA_SPECTRAL =  Isaac.GetCardIdByName("Mega_Spectral_Pack")
+Balatro_Expansion.Packs.STANDARD = Isaac.GetCardIdByName("Standard_Pack") --base
+Balatro_Expansion.Packs.JUMBO_STANDARD = Isaac.GetCardIdByName("Jumbo_Standard_Pack")
+Balatro_Expansion.Packs.MEGA_STANDARD = Isaac.GetCardIdByName("Mega_Standard_Pack")
 
-Balatro_Expansion.PackSubType = {}
-Balatro_Expansion.PackSubType.BASE =  Isaac.GetCardIdByName("Tarot_Pack")
-Balatro_Expansion.PackSubType.JUMBO = Isaac.GetCardIdByName("Planet_Pack")
-Balatro_Expansion.PackSubType.MEGA  =  Isaac.GetCardIdByName("Buffon_Pack")
+Balatro_Expansion.PackQuality = {} --these get summed to the base variants above to also specify the edition
+Balatro_Expansion.PackQuality.BASE =  0
+Balatro_Expansion.PackQuality.JUMBO = 1
+Balatro_Expansion.PackQuality.MEGA  =  2
 
 
 Balatro_Expansion.Planets = {}
@@ -542,8 +558,7 @@ Balatro_Expansion.AllCurses.THE_WALL = 1 << (Isaac.GetCurseIdByName("curse of th
 
 Balatro_Expansion.NormalCurses[1] = Balatro_Expansion.AllCurses.THE_WALL
 
-Balatro_Expansion.BLINDS = {CASHOUT = 4096, --not really a type of blind, used as a flag on top of the money gained
-                            SKIP = 8192, --used as a flag along with another blind
+Balatro_Expansion.BLINDS = {SKIP = 8192, --used as a flag along with another blind
                             SMALL = 1,
                             BIG = 2,
                             BOSS = 4, --used as a flag along with a specific boss type
@@ -610,6 +625,8 @@ Balatro_Expansion.Fonts.pftempest = Font("font/pftempestasevencondensed.fnt")
 local Game = Game()
 Balatro_Expansion.GameStarted = false
 --local HUD = Game:GetHUD()
+
+Balatro_Expansion.RNGs = {SHOP = RNG(), VOUCHERS = RNG(), LUCKY_CARD = RNG()}
 
 Balatro_Expansion.Saved = {} --every value that needs to be stored between game starts
 -------------------------------
@@ -683,6 +700,7 @@ Balatro_Expansion.Saved.GlassBroken = 0
 Balatro_Expansion.Saved.TarotsUsed = 0
 Balatro_Expansion.Saved.PlanetTypesUsed = 0
 Balatro_Expansion.Saved.BlindBeingPlayed = Balatro_Expansion.BLINDS.CASHOUT
+Balatro_Expansion.Saved.AnteVoucher = 0
 
 
 -----------JIMBO-------------------

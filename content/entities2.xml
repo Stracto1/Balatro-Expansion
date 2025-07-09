@@ -70,57 +70,72 @@
 
     <!--CARD ENTITIES-->
        
-    <entity name="Arcana pack" anm2path="CardPack_Tarot.anm2" id="5" variant="300" subtype="2476"
+    <entity name="Arcana Pack" anm2path="CardPack_Tarot.anm2" id="5" variant="300" subtype="2476"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
-
-    <entity name="Celestial pack" anm2path="CardPack_Planet.anm2" id="5" variant="300" subtype="2477"
+    <entity name="Jumbo Arcana Pack" anm2path="CardPack_Tarot.anm2" id="5" variant="300" subtype="2477"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
-
-    <entity name="Standard pack" anm2path="CardPack_Standard.anm2" id="5" variant="300" subtype="2478"
-    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
-        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
-    </entity>
-
-    <entity name="Buffon pack" anm2path="CardPack_Buffon.anm2" id="5" variant="300" subtype="2479"
-    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
-        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
-    </entity>
-
-    <entity name="Spectral pack" anm2path="CardPack_Spectral.anm2" id="5" variant="300" subtype="2480"
+    <entity name="Mega Arcana Pack" anm2path="CardPack_Tarot.anm2" id="5" variant="300" subtype="2478"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
 
-
-    <entity name="Jumbo Arcana pack" anm2path="CardPack_Tarot.anm2" id="5" variant="300" subtype="2476"
+    <entity name="Celestial Pack" anm2path="CardPack_Planet.anm2" id="5" variant="300" subtype="2479"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+    <entity name="Jumbo Celestial Pack" anm2path="CardPack_Planet.anm2" id="5" variant="300" subtype="2480"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+    <entity name="Mega Celestial Pack" anm2path="CardPack_Planet.anm2" id="5" variant="300" subtype="2481"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Jumbo Celestial pack" anm2path="CardPack_Planet.anm2" id="5" variant="300" subtype="2477"
+    <entity name="Standard Pack" anm2path="CardPack_Standard.anm2" id="5" variant="300" subtype="2482"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+    <entity name="Jumbo Standard Pack" anm2path="CardPack_Standard.anm2" id="5" variant="300" subtype="2483"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+    <entity name="Mega Standard Pack" anm2path="CardPack_Standard.anm2" id="5" variant="300" subtype="2484"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Jumbo Standard pack" anm2path="CardPack_Standard.anm2" id="5" variant="300" subtype="2478"
+    <entity name="Buffon Pack" anm2path="CardPack_Buffon.anm2" id="5" variant="300" subtype="2485"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+    <entity name="Jumbo Buffon Pack" anm2path="CardPack_Buffon.anm2" id="5" variant="300" subtype="2486"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+    <entity name="Mega Buffon Pack" anm2path="CardPack_Buffon.anm2" id="5" variant="300" subtype="2487"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Jumbo Buffon pack" anm2path="CardPack_Buffon.anm2" id="5" variant="300" subtype="2479"
+    <entity name="Spectral Pack" anm2path="CardPack_Spectral.anm2" id="5" variant="300" subtype="2488"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+    <entity name="Jumbo Spectral Pack" anm2path="CardPack_Spectral.anm2" id="5" variant="300" subtype="2489"
+    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
+        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
+    </entity>
+    <entity name="Mega Spectral Pack" anm2path="CardPack_Spectral.anm2" id="5" variant="300" subtype="2490"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Jumbo Spectral pack" anm2path="CardPack_Spectral.anm2" id="5" variant="300" subtype="2480"
-    	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
-        <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
-    </entity>
 
 
 

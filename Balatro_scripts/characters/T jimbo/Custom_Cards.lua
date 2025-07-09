@@ -143,7 +143,7 @@ local function TJimboUseTarot(card, Player, IsPack, UseFlags)
 
         if mod.Saved.Player[PIndex].LastCardUsed then
 
-            local Success mod:TJimboAddConsumable(Player, mod.Saved.Player[PIndex].LastCardUsed)
+            local Success = mod:TJimboAddConsumable(Player, mod.Saved.Player[PIndex].LastCardUsed)
 
             if not Success then
                 return
@@ -371,7 +371,7 @@ local function TJimboUseTarot(card, Player, IsPack, UseFlags)
         
     elseif card == Card.CARD_JUDGEMENT then
 
-        local RandomJoker = mod:RandomJoker(Player:GetCardRNG(Card.CARD_JUDGEMENT), {}, true)
+        local RandomJoker = mod:RandomJoker(Player:GetCardRNG(Card.CARD_JUDGEMENT), true)
 
         local Success = mod:AddJoker(Player, RandomJoker.Joker, RandomJoker.Edition)
 
@@ -896,7 +896,7 @@ end
 
 
 
-function mod:TJimboUseCard(card, Player, IsPack, UseFlags)
+function mod:TJimboUseCard(card, Player, IsFromPack, UseFlags)
 
     if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
         return
@@ -907,28 +907,32 @@ function mod:TJimboUseCard(card, Player, IsPack, UseFlags)
 
     UseFlags = UseFlags or 0
 
+    local RemoveBeforeUse = card == Card.CARD_EMPEROR or card == Card.CARD_HIGH_PRIESTESS
+
+    if not IsFromPack then
+
+        local NumConsumables = #mod.Saved.Player[PIndex].Consumables
+
+        if RemoveBeforeUse then    
+            
+            --removes the card that just got used
+            mod.Saved.Player[PIndex].Consumables[NumConsumables].Card = -1
+            mod.Saved.Player[PIndex].Consumables[NumConsumables].Edition = mod.Edition.BASE
+
+            table.remove(mod.Saved.Player[PIndex].Consumables, NumConsumables)
+            table.insert(mod.Saved.Player[PIndex].Consumables, 1, {Card = -1, Edition = mod.Edition.BASE})
+        end
+    end
+
     local IsTarot = card >= Card.CARD_FOOL and card <= Card.CARD_WORLD
     local IsPlanet = card >= mod.Planets.PLUTO and card <= mod.Planets.ERIS
     local IsSpectral = card >= mod.Spectrals.FAMILIAR and card <= mod.Spectrals.SOUL
 
-    local RemoveBeforeUse = card == Card.CARD_EMPEROR or card == Card.CARD_HIGH_PRIESTESS
-
-    if not IsPack and RemoveBeforeUse then
-        local NumConsumables = #mod.Saved.Player[PIndex].Consumables
-        
-        --removes the card that just got used
-        mod.Saved.Player[PIndex].Consumables[NumConsumables].Card = -1
-        mod.Saved.Player[PIndex].Consumables[NumConsumables].Edition = mod.Edition.BASE
-
-        table.remove(mod.Saved.Player[PIndex].Consumables, NumConsumables)
-        table.insert(mod.Saved.Player[PIndex].Consumables, 1, {Card = -1, Edition = mod.Edition.BASE})
-
-    end
-
     local CurrentInterval
+
     if IsTarot then
         
-        CurrentInterval = TJimboUseTarot(card, Player, IsPack, UseFlags)
+        CurrentInterval = TJimboUseTarot(card, Player, IsFromPack, UseFlags)
 
     elseif IsPlanet then
         
@@ -939,19 +943,29 @@ function mod:TJimboUseCard(card, Player, IsPack, UseFlags)
         CurrentInterval = TJimboUseSpectral(card, Player, UseFlags)
     end
 
-    if CurrentInterval then
+    if CurrentInterval then --equal to if the card got used (othetwise its false)
 
 
-        if not IsPack and not RemoveBeforeUse then
+        if not IsFromPack then
+
             local NumConsumables = #mod.Saved.Player[PIndex].Consumables
-            
-            --removes the card that just got used
-            mod.Saved.Player[PIndex].Consumables[NumConsumables].Card = -1
-            mod.Saved.Player[PIndex].Consumables[NumConsumables].Edition = mod.Edition.BASE
 
-            table.remove(mod.Saved.Player[PIndex].Consumables, NumConsumables)
-            table.insert(mod.Saved.Player[PIndex].Consumables, 1, {Card = -1, Edition = mod.Edition.BASE})
+            local UsedEdition = mod.Saved.Player[PIndex].Consumables[NumConsumables].Edition
 
+            if UsedEdition == mod.Edition.NEGATIVE then
+                --negative cards remove the slot they were in when used
+
+                mod.Saved.Player[PIndex].Consumables[NumConsumables] = nil
+
+            elseif not RemoveBeforeUse then
+                
+                --removes the card that just got used
+                mod.Saved.Player[PIndex].Consumables[NumConsumables].Card = -1
+                mod.Saved.Player[PIndex].Consumables[NumConsumables].Edition = mod.Edition.BASE
+
+                table.remove(mod.Saved.Player[PIndex].Consumables, NumConsumables)
+                table.insert(mod.Saved.Player[PIndex].Consumables, 1, {Card = -1, Edition = mod.Edition.BASE})
+            end
         end
 
 
@@ -985,13 +999,13 @@ local function TJimboCardPacks(_,card, Player,_)
 
     local PIndex = Player:GetData().TruePlayerIndex
 
-    if card == mod.Packs.STANDARD then
+    if card >= mod.Packs.STANDARD and card <= mod.Packs.MEGA_STANDARD then
         Isaac.RunCallback("PACK_OPENED",Player,card)
 
         local PackRng = Player:GetCardRNG(mod.Packs.STANDARD)
         local RandomPack = {}
 
-        local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 4) or 3
+        local Size = card == mod.Packs.STANDARD and 3 or 5
 
         for i=1, Size do
             local RandomCard = {}
@@ -1017,9 +1031,11 @@ local function TJimboCardPacks(_,card, Player,_)
             if EdRoll <= CardEditionChance.Foil then
                 RandomCard.Edition = mod.Edition.FOIL
                 sfx:Play(mod.Sounds.FOIL)
+
             elseif EdRoll <= CardEditionChance.Holo then
                 RandomCard.Edition = mod.Edition.HOLOGRAPHIC
                 sfx:Play(mod.Sounds.HOLO)
+
             elseif EdRoll <= CardEditionChance.Poly then
                 RandomCard.Edition = mod.Edition.POLYCROME
                 sfx:Play(mod.Sounds.POLY)
@@ -1032,39 +1048,62 @@ local function TJimboCardPacks(_,card, Player,_)
         mod.SelectionParams[PIndex].PackOptions = RandomPack
 
         mod.SelectionParams[PIndex].Frames = 0
+
+
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
                                               mod.SelectionParams.Purposes.StandardPack)
 
-    elseif card == mod.Packs.ARCANA then
+
+        if card == mod.Packs.MEGA_STANDARD then
+            mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose + mod.SelectionParams.Purposes.MegaFlag
+        end
+
+    elseif card >= mod.Packs.ARCANA and card <= mod.Packs.MEGA_ARCANA then
         Isaac.RunCallback("PACK_OPENED",Player,card)
 
         local PackRng = Player:GetCardRNG(mod.Packs.ARCANA)
 
-        mod.SelectionParams[PIndex].PackOptions = mod:SpecialCardToFrame(mod:RandomTarot(PackRng, true, false, 3))
+        local Size = card == mod.Packs.ARCANA and 3 or 5
+
+        for _,Tarot in ipairs(mod:RandomTarot(PackRng, true, false, Size)) do
+            
+            mod.SelectionParams[PIndex].PackOptions[#mod.SelectionParams[PIndex].PackOptions+1] = mod:SpecialCardToFrame(Tarot)
+        end
 
         mod.SelectionParams[PIndex].Frames = 0
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
-        mod.SelectionParams.Purposes.TarotPack)
+                                        mod.SelectionParams.Purposes.TarotPack)
 
-    elseif card == mod.Packs.CELESTIAL then
+        if card == mod.Packs.MEGA_ARCANA then
+            mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose + mod.SelectionParams.Purposes.MegaFlag
+            mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!", mod.EffectType.ENTITY, Player)
+        end
+
+    elseif card >= mod.Packs.CELESTIAL and card <= mod.Packs.MEGA_CELESTIAL then
         Isaac.RunCallback("PACK_OPENED",Player,card)
 
         local PackRng = Player:GetCardRNG(mod.Packs.CELESTIAL)
-        --mod.SelectionParams[PIndex].PackOptions = {}
         
-        mod.SelectionParams[PIndex].PackOptions = mod:SpecialCardToFrame(mod:RandomPlanet(PackRng, true, false, 3))
+        local Size = card == mod.Packs.CELESTIAL and 3 or 5
+        
+        mod.SelectionParams[PIndex].PackOptions = mod:SpecialCardToFrame(mod:RandomPlanet(PackRng, true, false, Size))
         
         mod.SelectionParams[PIndex].Frames = 0
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
                                               mod.SelectionParams.Purposes.CelestialPack)
+
+        if card == mod.Packs.MEGA_CELESTIAL then
+            mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose + mod.SelectionParams.Purposes.MegaFlag
+            mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!", mod.EffectType.ENTITY, Player)
+        end
         
-    elseif card == mod.Packs.SPECTRAL then
+    elseif card >= mod.Packs.SPECTRAL and card <= mod.Packs.MEGA_SPECTRAL then
         Isaac.RunCallback("PACK_OPENED",Player,card)
         
         local PackRng = Player:GetCardRNG(mod.Packs.SPECTRAL)
         mod.SelectionParams[PIndex].PackOptions = {}
 
-        local Size =  2
+        local Size = card == mod.Packs.SPECTRAL and 3 or 5
 
         mod.SelectionParams[PIndex].PackOptions = mod:SpecialCardToFrame(mod:RandomSpectral(PackRng, true, true, false, Size))
 
@@ -1072,8 +1111,13 @@ local function TJimboCardPacks(_,card, Player,_)
         mod.SelectionParams[PIndex].Frames = 0
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
                                               mod.SelectionParams.Purposes.SpectralPack)
+                        
+        if card == mod.Packs.MEGA_SPECTRAL then
+            mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose + mod.SelectionParams.Purposes.MegaFlag
+            mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!", mod.EffectType.ENTITY, Player)
+        end
 
-    elseif card == mod.Packs.BUFFON then
+    elseif card >= mod.Packs.BUFFON and card <= mod.Packs.MEGA_BUFFON then
         Isaac.RunCallback("PACK_OPENED",Player,card)
 
         local Jokers = {}
@@ -1083,13 +1127,18 @@ local function TJimboCardPacks(_,card, Player,_)
 
         local PackRng = Player:GetCardRNG(mod.Packs.BUFFON)
 
-        local Size = 2
+        local Size = card == mod.Packs.BUFFON and 3 or 5
 
         mod.SelectionParams[PIndex].PackOptions = mod:RandomJoker(PackRng, true, false, false, Size)
 
         mod.SelectionParams[PIndex].Frames = 0
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
                                               mod.SelectionParams.Purposes.BuffonPack)
+
+
+        if card == mod.Packs.MEGA_BUFFON then
+            mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose + mod.SelectionParams.Purposes.MegaFlag
+        end
 
     end
 end

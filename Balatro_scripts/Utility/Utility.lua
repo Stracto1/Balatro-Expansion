@@ -22,6 +22,20 @@ local EditionValue = {[mod.Edition.BASE] = 0,
                       [mod.Edition.NEGATIVE] = 5}
 
 
+local PackVariantPicker = WeightedOutcomePicker()
+PackVariantPicker:AddOutcomeWeight(mod.Packs.ARCANA, 40)
+PackVariantPicker:AddOutcomeWeight(mod.Packs.CELESTIAL, 40)
+PackVariantPicker:AddOutcomeWeight(mod.Packs.STANDARD, 40)
+PackVariantPicker:AddOutcomeWeight(mod.Packs.BUFFON, 12)
+PackVariantPicker:AddOutcomeWeight(mod.Packs.SPECTRAL, 6)
+
+local PackQualityPicker = WeightedOutcomePicker()
+PackQualityPicker:AddOutcomeWeight(mod.PackQuality.BASE, 8)
+PackQualityPicker:AddOutcomeWeight(mod.PackQuality.JUMBO, 4)
+PackQualityPicker:AddOutcomeWeight(mod.PackQuality.MEGA, 1)
+
+
+
 --rounds down to numDecimal of spaces
 function mod:round(num, numDecimalPlaces)
     local mult = 10^(numDecimalPlaces or 0)
@@ -1032,7 +1046,8 @@ function mod:GetActualCardValue(Value)
 end
 
 function mod:JimboHasTrinket(Player,Trinket)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+    if Player:GetPlayerType() ~= mod.Characters.JimboType
+       and Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
         return false
     end
     local PIndex = Player:GetData().TruePlayerIndex
@@ -1162,8 +1177,13 @@ end
 ---@param SellSlot integer?
 function mod:GetJokerCost(Joker, Edition, SellSlot, Player)
     --removes ! from the customtag (see items.xml)
+    local JokerConfig = ItemsConfig:GetTrinket(Joker)
 
-    local numstring = string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[1],"%!","")
+    if not JokerConfig:HasCustomTag("balatro") then
+        return JokerConfig.ShopPrice
+    end
+
+    local numstring = string.gsub(JokerConfig:GetCustomTags()[1],"%!","")
 
     local Cost = tonumber(numstring) + EditionValue[Edition]
 
@@ -1756,7 +1776,7 @@ function mod:RandomPlanet(Rng, CanBeHole, AllowDuplicates, Amount)
 
         ReturnTable[i] = mod:GetRandom(PossiblePlanets, Rng)
 
-        table.remove(PossiblePlanets, mod:GetValueIndex(PossiblePlanets, ReturnTable[i], true))
+        PossiblePlanets[mod:GetValueIndex(PossiblePlanets, ReturnTable[i], true)] = nil
     end
 
     if Amount == 1 then
@@ -1911,6 +1931,18 @@ function mod:RandomSpectral(Rng, CanBeHole, CanBeSoul, AllowDuplicates, Amount)
     else
         return ReturnTable
     end
+end
+
+
+function mod:RandomPack(Rng, RollQuality)
+
+    local Pack = PackVariantPicker:PickOutcome(Rng)
+
+    if RollQuality then
+        Pack = Pack + PackQualityPicker:PickOutcome(Rng)
+    end
+
+    return Pack
 end
 
 
@@ -2563,7 +2595,8 @@ function mod:PlaceBlindRoomsForReal()
 
                 if Config and Config:CanShutDoors() 
                    and Entity.Type ~= EntityType.ENTITY_EFFECT
-                   and Entity.Type ~= 4500 then --i think it's the trigger pressure plate
+                   and Entity.Type ~= 4500 --i think it's the trigger pressure plate
+                   and Entity.Type ~= EntityType.ENTITY_PICKUP then --why tf is this even needed
                     
                     IsHostile = true
                     break
@@ -2615,7 +2648,8 @@ function mod:PlaceBlindRoomsForReal()
 
                 if Config and Config:CanShutDoors() 
                    and Entity.Type ~= EntityType.ENTITY_EFFECT
-                   and Entity.Type ~= 4500 then -- i think it's the trigger pressure plate
+                   and Entity.Type ~= 4500  -- i think it's the trigger pressure plate
+                   and Entity.Type ~= EntityType.ENTITY_PICKUP then --why tf is this even needed
                     
                     print(Entity.Type, Entity.Variant, "is hostile")
                     IsHostile = true
@@ -2837,7 +2871,9 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
                     mod:FullDeckShuffle(Player)
                 end
             end
-            
+        else
+
+            mod.SelectionParams[PIndex].PackPurpose = NewPurpose
         end
 
     elseif NewMode == mod.SelectionParams.Modes.INVENTORY then
@@ -3065,7 +3101,7 @@ function mod:Select(Player)
            and mod.SelectionParams[PIndex].OptionsNum then
             
             mod.SelectionParams[PIndex].OptionsNum = mod.SelectionParams[PIndex].OptionsNum - 1
-            mod.SelectionParams[PIndex].Purpose = mod.SelectionParams[PIndex].Purpose - mod.SelectionParams.Purposes.MegaFlag
+            mod.SelectionParams[PIndex].Purpose = mod.SelectionParams[PIndex].Purpose & ~mod.SelectionParams.Purposes.MegaFlag
             table.remove(mod.SelectionParams[PIndex].PackOptions, mod.SelectionParams[PIndex].Index)
             return
         end
@@ -3377,39 +3413,75 @@ function mod:UseSelection(Player)
 
         local PackPurpose = mod.SelectionParams[PIndex].PackPurpose & ~mod.SelectionParams.Purposes.MegaFlag
 
+        local Interval = 4
+
         if PackPurpose == mod.SelectionParams.Purposes.TarotPack
            or PackPurpose == mod.SelectionParams.Purposes.SpectralPack
            or PackPurpose == mod.SelectionParams.Purposes.CelestialPack then
             
-            local Success = mod:TJimboUseCard(mod:FrameToSpecialCard(mod.SelectionParams[PIndex].PackOptions[PackIndex]), Player)
+            Interval = mod:TJimboUseCard(mod:FrameToSpecialCard(mod.SelectionParams[PIndex].PackOptions[PackIndex]), Player)
 
             --local Success = mod:TJimboUseCard(Card.CARD_MAGICIAN, Player, 0)
 
-            if not Success then
-                
-                --mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams[PIndex].PackPurpose)
+            if not Interval then
                 return
             end
-            if mod.SelectionParams[PIndex].Purpose & mod.SelectionParams.Purposes.MegaFlag == mod.SelectionParams.Purposes.MegaFlag then
+            
+            if mod.SelectionParams[PIndex].PackPurpose & mod.SelectionParams.Purposes.MegaFlag ~= 0 then
                 
-                mod.SelectionParams[PIndex].Purpose = mod.SelectionParams[PIndex].Purpose & ~mod.SelectionParams.Purposes.MegaFlag
+                mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose & ~mod.SelectionParams.Purposes.MegaFlag
                 
                 table.remove(mod.SelectionParams[PIndex].PackOptions, PackIndex)
                 goto FINISH
             end
-            
+
+        elseif PackPurpose == mod.SelectionParams.Purposes.StandardPack then
+
+            local SelectedCard = mod.SelectionParams[PIndex].PackOptions[mod.SelectionParams[PIndex].Index]
+
+            mod:AddCardToDeck(Player, SelectedCard, 1)
+
+            if mod.SelectionParams[PIndex].PackPurpose & mod.SelectionParams.Purposes.MegaFlag ~= 0 then
+                
+                mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose & ~mod.SelectionParams.Purposes.MegaFlag
+                
+                table.remove(mod.SelectionParams[PIndex].PackOptions, PackIndex)
+                goto FINISH
+            end
+
+        elseif PackPurpose == mod.SelectionParams.Purposes.BuffonPack then
+
+            local Joker = mod.SelectionParams[PIndex].PackOptions[mod.SelectionParams[PIndex].Index].Joker
+            local Edition = mod.SelectionParams[PIndex].PackOptions[mod.SelectionParams[PIndex].Index].Edition
+
+            local Success = mod:AddJoker(Player, Joker, Edition)
+
+            if not Success then
+                return
+            end
+
+            if mod.SelectionParams[PIndex].PackPurpose & mod.SelectionParams.Purposes.MegaFlag ~= 0 then
+                
+                mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose & ~mod.SelectionParams.Purposes.MegaFlag
+                
+                table.remove(mod.SelectionParams[PIndex].PackOptions, PackIndex)
+                goto FINISH
+            end
+        end
+
+        Isaac.CreateTimer(function ()
+            if Game:GetRoom():IsClear() then
+
+                mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.NONE)
+                mod.Saved.EnableHand = false
+            else
+                mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams.Purposes.HAND)
+                mod.Saved.EnableHand = true
+            end
+
             mod.SelectionParams[PIndex].PackOptions = {}
             mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams.Purposes.NONE
-        end
-
-        if Game:GetRoom():IsClear() and false then
-
-            mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.NONE)
-            mod.Saved.EnableHand = false
-        else
-            mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams.Purposes.HAND)
-            mod.Saved.EnableHand = true
-        end
+        end, Interval + 20, 1, true)
         
     end
 

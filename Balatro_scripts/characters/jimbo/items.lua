@@ -17,7 +17,9 @@ local sfx = SFXManager()
 --also prevents upgraded vouchers from being taken without having their normal version
 ---@param Player EntityPlayer
 function mod:VoucherPool(Type,_,_,_,_,Player)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType or not ItemsConfig:GetCollectible(Type):HasCustomTag("balatro") then
+    if Player:GetPlayerType() ~= mod.Characters.JimboType
+       and Player:GetPlayerType() ~= mod.Characters.TaintedJimbo
+        or not ItemsConfig:GetCollectible(Type):HasCustomTag("balatro") then
         return
     end
 
@@ -73,7 +75,9 @@ mod:AddCallback(ModCallbacks.MC_PRE_ADD_COLLECTIBLE, mod.VoucherPool)
 
 ---@param Player EntityPlayer
 function mod:VoucherPool2(Player, Type)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType or not ItemsConfig:GetCollectible(Type):HasCustomTag("balatro") then
+    if Player:GetPlayerType() ~= mod.Characters.JimboType
+       and Player:GetPlayerType() ~= mod.Characters.TaintedJimbo
+        or not ItemsConfig:GetCollectible(Type):HasCustomTag("balatro") then
         return
     end
 

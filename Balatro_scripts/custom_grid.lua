@@ -5,48 +5,52 @@ local Game = Game()
 local PlateState = {PRESSED = 3,
                     OFF = 0}
 
-local BALATRO_PLATE_SUFFIX = {[mod.BLINDS.CASHOUT] = "cashout",
-                              [mod.BLINDS.SKIP | mod.BLINDS.SMALL] = "skip",
-                              [mod.BLINDS.SKIP | mod.BLINDS.BIG] = "skip",
-                              [mod.BLINDS.SMALL] = "small",
-                              [mod.BLINDS.BIG] = "big",
-                              [mod.BLINDS.BOSS] = "big",
-                              [mod.BLINDS.BOSS_HOOK] = "hook",
-                              [mod.BLINDS.BOSS_OX] = "ox",
-                              [mod.BLINDS.BOSS_HOUSE] = "house",
-                              [mod.BLINDS.BOSS_WALL] = "wall",
-                              [mod.BLINDS.BOSS_WHEEL] = "wheel",
-                              [mod.BLINDS.BOSS_ARM] = "arm",
-                              [mod.BLINDS.BOSS_CLUB] = "club",
-                              [mod.BLINDS.BOSS_FISH] = "fish",
-                              [mod.BLINDS.BOSS_PSYCHIC] = "psychic",
-                              [mod.BLINDS.BOSS_GOAD] = "goad",
-                              [mod.BLINDS.BOSS_WATER] = "water",
-                              [mod.BLINDS.BOSS_WINDOW] = "window",
-                              [mod.BLINDS.BOSS_MANACLE] = "manacle",
-                              [mod.BLINDS.BOSS_EYE] = "eye",
-                              [mod.BLINDS.BOSS_MOUTH] = "dontremember",
-                              [mod.BLINDS.BOSS_PLANT] = "plant",
-                              [mod.BLINDS.BOSS_SERPENT] = "serpent",
-                              [mod.BLINDS.BOSS_PILLAR] = "pillar",
-                              [mod.BLINDS.BOSS_NEEDLE] = "needle",
-                              [mod.BLINDS.BOSS_HEAD] = "head",
-                              [mod.BLINDS.BOSS_TOOTH] = "tooth",
-                              [mod.BLINDS.BOSS_FLINT] = "flint",
-                              [mod.BLINDS.BOSS_MARK] = "small",
-                              [mod.BLINDS.BOSS_ACORN] = "acorn",
-                              [mod.BLINDS.BOSS_VESSEL] = "vessel",
-                              [mod.BLINDS.BOSS_BELL] = "bell",
-                              [mod.BLINDS.BOSS_HEART] = "heart",
-                              [mod.BLINDS.BOSS_LEAF] = "leaf"
+local BALATRO_PLATE_SUFFIX = {
+                              [mod.Grids.PlateVariant.BLIND] = {[mod.BLINDS.SKIP | mod.BLINDS.SMALL] = "skip",
+                                                                [mod.BLINDS.SKIP | mod.BLINDS.BIG] = "skip",
+                                                                [mod.BLINDS.SMALL] = "small",
+                                                                [mod.BLINDS.BIG] = "big",
+                                                                [mod.BLINDS.BOSS] = "big",
+                                                                [mod.BLINDS.BOSS_HOOK] = "hook",
+                                                                [mod.BLINDS.BOSS_OX] = "ox",
+                                                                [mod.BLINDS.BOSS_HOUSE] = "house",
+                                                                [mod.BLINDS.BOSS_WALL] = "wall",
+                                                                [mod.BLINDS.BOSS_WHEEL] = "wheel",
+                                                                [mod.BLINDS.BOSS_ARM] = "arm",
+                                                                [mod.BLINDS.BOSS_CLUB] = "club",
+                                                                [mod.BLINDS.BOSS_FISH] = "fish",
+                                                                [mod.BLINDS.BOSS_PSYCHIC] = "psychic",
+                                                                [mod.BLINDS.BOSS_GOAD] = "goad",
+                                                                [mod.BLINDS.BOSS_WATER] = "water",
+                                                                [mod.BLINDS.BOSS_WINDOW] = "window",
+                                                                [mod.BLINDS.BOSS_MANACLE] = "manacle",
+                                                                [mod.BLINDS.BOSS_EYE] = "eye",
+                                                                [mod.BLINDS.BOSS_MOUTH] = "dontremember",
+                                                                [mod.BLINDS.BOSS_PLANT] = "plant",
+                                                                [mod.BLINDS.BOSS_SERPENT] = "serpent",
+                                                                [mod.BLINDS.BOSS_PILLAR] = "pillar",
+                                                                [mod.BLINDS.BOSS_NEEDLE] = "needle",
+                                                                [mod.BLINDS.BOSS_HEAD] = "head",
+                                                                [mod.BLINDS.BOSS_TOOTH] = "tooth",
+                                                                [mod.BLINDS.BOSS_FLINT] = "flint",
+                                                                [mod.BLINDS.BOSS_MARK] = "small",
+                                                                [mod.BLINDS.BOSS_ACORN] = "acorn",
+                                                                [mod.BLINDS.BOSS_VESSEL] = "vessel",
+                                                                [mod.BLINDS.BOSS_BELL] = "bell",
+                                                                [mod.BLINDS.BOSS_HEART] = "heart",
+                                                                [mod.BLINDS.BOSS_LEAF] = "leaf"},
+                              [mod.Grids.PlateVariant.CASHOUT] = "cashout",
+                              [mod.Grids.PlateVariant.EXIT] = "shop_exit",
+                              [mod.Grids.PlateVariant.REROLL] = "reroll"
 }
 
 
 ---@param Plate GridEntityPressurePlate
 local function UpdateBalatroPlate(Init,Plate)
 
+    local Variant = Plate:GetVariant()
 
-    if Plate:GetVariant() ~= mod.Grids.PLATE_VARIANT then
+    if not mod:Conaitned(mod.Grids.PlateVariant, Variant) then
         return
     end
 
@@ -55,37 +59,43 @@ local function UpdateBalatroPlate(Init,Plate)
 
     if Init == true then
 
-        local SuffixIndex = Plate.VarData + 0
+        if Variant == mod.Grids.PlateVariant.BLINDS then
 
-        if SuffixIndex & mod.BLINDS.CASHOUT ~= 0 then
-            SuffixIndex = SuffixIndex & mod.BLINDS.CASHOUT
+            local SuffixIndex = Plate.VarData
+
+            Sprite:ReplaceSpritesheet(0, "gfx/grid/grid_balatro_pressureplate_"..BALATRO_PLATE_SUFFIX[Variant][SuffixIndex]..".png", true)
+
+        else
+            Sprite:ReplaceSpritesheet(0, "gfx/grid/grid_balatro_pressureplate_"..BALATRO_PLATE_SUFFIX[Variant]..".png", true)
         end
 
-        Sprite:ReplaceSpritesheet(0, "gfx/grid/grid_balatro_pressureplate_"..BALATRO_PLATE_SUFFIX[SuffixIndex]..".png", true)
     end
 
 
     local ShouldPlateBeAvailable = false
     
-    if Plate.VarData & mod.BLINDS.CASHOUT ~= 0 then
+    if Variant == mod.Grids.PlateVariant.CASHOUT then
 
         if Init == true then
             Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.CASHOUT_BUBBLE, Plate.Position, Vector.Zero, nil, 0, 1)
         end
         ShouldPlateBeAvailable = true
 
-    elseif Plate.VarData & mod.BLINDS.SMALL ~= 0 then
-        
-        ShouldPlateBeAvailable = not mod.Saved.SmallCleared
+    elseif Variant == mod.Grids.PlateVariant.BLINDS then
 
-    elseif Plate.VarData & mod.BLINDS.BIG ~= 0 then
+        if Plate.VarData & mod.BLINDS.SMALL ~= 0 then
 
-        ShouldPlateBeAvailable = mod.Saved.SmallCleared and not mod.Saved.BigCleared
+            ShouldPlateBeAvailable = not mod.Saved.SmallCleared
 
-    elseif Plate.VarData & mod.BLINDS.BOSS ~= 0 then
+        elseif Plate.VarData & mod.BLINDS.BIG ~= 0 then
 
-        ShouldPlateBeAvailable = mod.Saved.SmallCleared and mod.Saved.BigCleared
+            ShouldPlateBeAvailable = mod.Saved.SmallCleared and not mod.Saved.BigCleared
 
+        elseif Plate.VarData & mod.BLINDS.BOSS ~= 0 then
+
+            ShouldPlateBeAvailable = mod.Saved.SmallCleared and mod.Saved.BigCleared
+
+        end
     else
     
         ShouldPlateBeAvailable = true
@@ -121,7 +131,7 @@ local function UpdateBalatroPlate(Init,Plate)
 
         if AnyoneOnTop and Plate.State == PlateState.PRESSED then
 
-            Isaac.RunCallback(mod.Callbalcks.BALATRO_PLATE_PRESSED, Plate.VarData)
+            Isaac.RunCallback(mod.Callbalcks.BALATRO_PLATE_PRESSED, Variant, Plate.VarData)
         end
 
         Plate.NextGreedAnimation = tostring(Plate.State)
@@ -131,10 +141,10 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_GRID_ENTITY_PRESSUREPLATE_UPDATE, UpdateBalatroPlate)
 
 
-function mod:SpawnBalatroPressurePlate(Position, VarData)
+function mod:SpawnBalatroPressurePlate(Position, PlateVariant, VarData)
     VarData = VarData or 0
 
-    local Plate = Isaac.GridSpawn(GridEntityType.GRID_PRESSURE_PLATE, mod.Grids.PLATE_VARIANT, Game:GetRoom():FindFreeTilePosition(Position, -1))
+    local Plate = Isaac.GridSpawn(GridEntityType.GRID_PRESSURE_PLATE, PlateVariant, Game:GetRoom():FindFreeTilePosition(Position, -1))
 
     if Plate then
 
@@ -142,7 +152,7 @@ function mod:SpawnBalatroPressurePlate(Position, VarData)
 
         --Sprite:ReplaceSpritesheet(0, "gfx/grid/grid_balatro_pressureplate_"..BALATRO_PLATE_SUFFIX[VarData]..".png", true)
         
-        UpdateBalatroPlate(true,Plate:ToPressurePlate())
+        UpdateBalatroPlate(true, Plate:ToPressurePlate())
     else
         print("something went wrong in plate spawning!")
     end
@@ -166,7 +176,7 @@ function mod:ResetPlatesData()
 
     for i = 0, Room:GetGridSize() do
         local Plate = Room:GetGridEntity(i)
-        if Plate and Plate:GetType() == GridEntityType.GRID_PRESSURE_PLATE and Plate:GetVariant() == mod.Grids.PLATE_VARIANT then
+        if Plate and Plate:GetType() == GridEntityType.GRID_PRESSURE_PLATE and mod:Contained(mod.Grids.PlateVariant, Plate:GetVariant()) then
             
             UpdateBalatroPlate(true,Plate:ToPressurePlate())
             --Plate:GetSprite():ReplaceSpritesheet(0, "gfx/grid/grid_balatro_pressureplate_"..BALATRO_PLATE_SUFFIX[Plate.VarData]..".png", true)
@@ -176,55 +186,4 @@ function mod:ResetPlatesData()
 end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.ResetPlatesData)
 
-
-
-
---STATE = 3 IF PRESSED
----@param Plate GridEntityPressurePlate
-local function BalatroPostPlateUpdate(_, Plate)
-
-    if Plate:GetVariant() ~= mod.Grids.PLATE_VARIANT  then
-        return
-    end
-
-    
-    local PlateBlindLevel = mod:GetBlindLevel(Plate.VarData)
-
-    local ShouldPlateBeAvailable = false
-    
-    if PlateBlindLevel == mod.BLINDS.SMALL then
-        
-        ShouldPlateBeAvailable = not mod.Saved.SmallCleared
-
-    elseif PlateBlindLevel == mod.BLINDS.BIG then
-
-        ShouldPlateBeAvailable = mod.Saved.SmallCleared and not mod.Saved.BigCleared
-
-    elseif PlateBlindLevel == mod.BLINDS.BOSS then
-
-        ShouldPlateBeAvailable = mod.Saved.SmallCleared and mod.Saved.BigCleared
-
-    else --if PlateBlindLevel == mod.BLINDS.CASHOUT then
-    
-        ShouldPlateBeAvailable = true
-    end
-
-    ShouldPlateBeAvailable = ShouldPlateBeAvailable and mod.Saved.BlindBeingPlayed ~= PlateBlindLevel
-
-
-    local Sprite = Plate:GetSprite()
-
-    if ShouldPlateBeAvailable then
-        
-        Plate.State = PlateState.OFF
-        Sprite:Play("Off")
-
-    else
-        Plate.State = PlateState.PRESSED
-        Sprite:Play("Switched", false)
-    end
-
-end
----@diagnostic disable-next-line: undefined-field
---mod:AddCallback(ModCallbacks.MC_POST_GRID_ENTITY_PRESSUREPLATE_UPDATE, BalatroPostPlateUpdate)
 
