@@ -194,6 +194,7 @@ Balatro_Expansion.Callbalcks = {CARD_SHOT = "CARD_SHOT",
                                 CONSUMABLE_SOLD = "CONSUMABLE_SOLD",
                                 CONSUMABLE_USE = "CONSUMABLE_USED",
                                 BLIND_CLEAR = "BLIND_CLEARED",
+                                SHOP_REROLL = "BALATRO_SHOP_REROLL",
                                 SHOP_EXIT = "BALATRO_SHOP_END",
                                 CASHOUT_EVAL = "CASHOUT_EVALUATION",
                                 BOSS_BLIND_EVAL = "BOSS_BLIND_EFFECT_EVALUATION",
@@ -256,7 +257,15 @@ Balatro_Expansion.Effects.BANANA_PEEL = Isaac.GetEntityVariantByName("Banana Pee
 Balatro_Expansion.Effects.TOMATO = Isaac.GetEntityVariantByName("Thrown Tomato")
 Balatro_Expansion.Effects.ANVIL = Isaac.GetEntityVariantByName("Falling Anvil")
 Balatro_Expansion.Effects.UMBRELLA = Isaac.GetEntityVariantByName("Player Umbrella")
-Balatro_Expansion.Effects.CASHOUT_BUBBLE = Isaac.GetEntityVariantByName("Blind Cashout Bubble")
+
+Balatro_Expansion.Effects.DIALOG_BUBBLE = Isaac.GetEntityVariantByName("Blind Cashout Bubble")
+
+Balatro_Expansion.DIalogBubbleSubType = {CASHOUT = Isaac.GetEntitySubTypeByName("Blind Cashout Bubble"),
+                                         BOSS_BLIND = Isaac.GetEntitySubTypeByName("Boss Blind Bubble"),
+                                         --HREROLL_PRICE = Isaac.GetEntitySubTypeByName("Reroll Price Bubble"),
+                                         }
+
+
 
 
 Balatro_Expansion.Pickups = {}
@@ -268,10 +277,11 @@ Balatro_Expansion.Entities.PATH_SLAVE = Isaac.GetEntityVariantByName("Pathfinder
 --Balatro_Expansion.Entities.SHOP_MIMIC = Isaac.GetEntityVariantByName("Shop Mimic")
 
 Balatro_Expansion.Grids = {}
-Balatro_Expansion.Grids.PlateVariant.BLIND = 146
-Balatro_Expansion.Grids.PlateVariant.CASHOUT = 147
-Balatro_Expansion.Grids.PlateVariant.REROLL = 148
-Balatro_Expansion.Grids.PlateVariant.SHOP_EXIT = 149
+Balatro_Expansion.Grids.PlateVariant = {BLIND = 146,
+                                        CASHOUT = 147,
+                                        REROLL = 148,
+                                        SHOP_EXIT = 149}
+
 
 Balatro_Expansion.Grids.PLATE_ANM2_PATH = "gfx/grid/grid_balatro_pressureplate.anm2"
 
@@ -591,7 +601,30 @@ Balatro_Expansion.BLINDS = {SKIP = 8192, --used as a flag along with another bli
                             BOSS_VESSEL = 220,
                             BOSS_BELL = 228}
 
-
+Balatro_Expansion.SkipTags = {UNCOMMON = 0,
+                          RARE = 1,
+                          NEGATIVE = 2,
+                          FOIL = 3,
+                          HOLO = 4,
+                          POLYCHROME = 5,
+                          INVESTMENT = 6,
+                          VOUCHER = 7,
+                          BOSS = 8,
+                          STANDARD = 9,
+                          CHARM = 10,
+                          METEOR = 11,
+                          BUFFON = 12,
+                          HANDY = 13,
+                          GARBAGE = 14,
+                          ETHEREAL = 15,
+                          COUPON = 16,
+                          DOUBLE = 17,
+                          JUGGLE = 18,
+                          D6 = 19,
+                          TOP_UP = 20,
+                          SPEED = 21,
+                          ECONOMY = 22,
+                              ORBITAL = 1 << 15} --USED WITH A HAND FLAG 
 
 Balatro_Expansion.CustomCache = {}
 Balatro_Expansion.CustomCache.HAND_SIZE = "handsize"
@@ -701,6 +734,11 @@ Balatro_Expansion.Saved.TarotsUsed = 0
 Balatro_Expansion.Saved.PlanetTypesUsed = 0
 Balatro_Expansion.Saved.BlindBeingPlayed = Balatro_Expansion.BLINDS.CASHOUT
 Balatro_Expansion.Saved.AnteVoucher = 0
+Balatro_Expansion.Saved.NumShopRerolls = 0
+Balatro_Expansion.Saved.RerollStartingPrice = 0
+Balatro_Expansion.Saved.SkipTags = {}
+
+
 
 
 -----------JIMBO-------------------
@@ -789,9 +827,9 @@ Balatro_Expansion.JimboStartTears = 1.5
 --Balatro_Expansion.Saved.Player.Progress.Room.SuitUsed[Balatro_Expansion.Suits.Club] = 0
 --Balatro_Expansion.Saved.Player.Progress.Room.SuitUsed[Balatro_Expansion.Suits.Diamond] = 0
 --Balatro_Expansion.Saved.Player.Progress.Room.ValueUsed = {}
-for Value =1, 14 do
+--for Value =1, 14 do
     --Balatro_Expansion.Saved.Player.Progress.Room.ValueUsed[Value] = 0
-end
+--end
 --Balatro_Expansion.Saved.Player.Progress.Room.Shots = 0 --used to tell how many cards are already used
 --Balatro_Expansion.Saved.Player.Progress.Room.ChampKills = 0
 --Balatro_Expansion.Saved.Player.Progress.Room.KingsAtStart = 0
@@ -877,11 +915,10 @@ Balatro_Expansion.Counters.Activated = {}
 
 Balatro_Expansion.TearCardEnable = true --used in AddCardTearFlags()
 
-Balatro_Expansion.Saved.Other = {}
-Balatro_Expansion.Saved.Other.ShopEntered = false
-Balatro_Expansion.Saved.Other.TreasureEntered = false
+Balatro_Expansion.Saved.ShopEntered = false
+Balatro_Expansion.Saved.TreasureEntered = false
 
-Balatro_Expansion.Saved.Other.Labyrinth = 1
+Balatro_Expansion.Saved.Labyrinth = 1
 Balatro_Expansion.Saved.LastJokerRenderIndex = 0 --used to interpolate joker render positions
 
 Balatro_Expansion.Saved.ModConfig = {}

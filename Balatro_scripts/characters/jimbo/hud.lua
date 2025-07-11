@@ -742,7 +742,9 @@ end
 ---@param Player EntityPlayer
 function mod:DebtIndicator(_,_,_,_,Player)
 
-    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.Saved.Other.HasDebt then
+    if Player:GetPlayerType() ~= mod.Characters.JimboType
+       and Player:GetPlayerType() ~= mod.Characters.TaintedJimbo
+       or not mod.Saved.HasDebt then
         return
     end
 

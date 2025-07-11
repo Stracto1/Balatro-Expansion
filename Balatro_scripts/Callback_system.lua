@@ -105,7 +105,10 @@ function mod:OnGameStart(Continued)
         mod.Saved.TarotsUsed = 0
         mod.Saved.PlanetTypesUsed = 0
         mod.Saved.BlindBeingPlayed = mod.BLINDS.SKIP
-        --mod.Saved.AnteVoucher = 0
+        --mod.Saved.AnteVoucher = 0   cannot be set here cause GAME_STARTED happens after NEW_LEVEL
+        mod.Saved.NumShopRerolls = 0
+        mod.Saved.RerollStartingPrice = 0
+        mod.Saved.SkipTags = {}
 
         mod.Saved.ClearedRooms = 0
         mod.Saved.SmallCleared = false
@@ -140,9 +143,9 @@ function mod:OnGameStart(Continued)
         end
 
         if mod:Contained(Challenges, Game.Challenge) then
-            mod.Saved.Other.ShopEntered = true
+            mod.Saved.ShopEntered = true
         else
-            mod.Saved.Other.ShopEntered = false
+            mod.Saved.ShopEntered = false
         end
 
         mod.Saved.LastJokerRenderIndex = 0

@@ -40,7 +40,7 @@ local BALATRO_PLATE_SUFFIX = {
                                                                 [mod.BLINDS.BOSS_HEART] = "heart",
                                                                 [mod.BLINDS.BOSS_LEAF] = "leaf"},
                               [mod.Grids.PlateVariant.CASHOUT] = "cashout",
-                              [mod.Grids.PlateVariant.EXIT] = "shop_exit",
+                              [mod.Grids.PlateVariant.SHOP_EXIT] = "shop_exit",
                               [mod.Grids.PlateVariant.REROLL] = "reroll"
 }
 
@@ -50,7 +50,7 @@ local function UpdateBalatroPlate(Init,Plate)
 
     local Variant = Plate:GetVariant()
 
-    if not mod:Conaitned(mod.Grids.PlateVariant, Variant) then
+    if not mod:Contained(mod.Grids.PlateVariant, Variant) then
         return
     end
 
@@ -59,7 +59,7 @@ local function UpdateBalatroPlate(Init,Plate)
 
     if Init == true then
 
-        if Variant == mod.Grids.PlateVariant.BLINDS then
+        if Variant == mod.Grids.PlateVariant.BLIND then
 
             local SuffixIndex = Plate.VarData
 
@@ -77,11 +77,12 @@ local function UpdateBalatroPlate(Init,Plate)
     if Variant == mod.Grids.PlateVariant.CASHOUT then
 
         if Init == true then
-            Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.CASHOUT_BUBBLE, Plate.Position, Vector.Zero, nil, 0, 1)
+            Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.DIALOG_BUBBLE, Plate.Position,
+            Vector.Zero, nil, mod.DIalogBubbleSubType.CASHOUT, 1)
         end
         ShouldPlateBeAvailable = true
 
-    elseif Variant == mod.Grids.PlateVariant.BLINDS then
+    elseif Variant == mod.Grids.PlateVariant.BLIND then
 
         if Plate.VarData & mod.BLINDS.SMALL ~= 0 then
 
@@ -96,6 +97,8 @@ local function UpdateBalatroPlate(Init,Plate)
             ShouldPlateBeAvailable = mod.Saved.SmallCleared and mod.Saved.BigCleared
 
         end
+
+        ShouldPlateBeAvailable = ShouldPlateBeAvailable and Plate.VarData ~= mod.Saved.BlindBeingPlayed
     else
     
         ShouldPlateBeAvailable = true
@@ -104,7 +107,6 @@ local function UpdateBalatroPlate(Init,Plate)
     local AnyoneOnTop = Isaac.FindInRadius(Plate.Position, 10, EntityPartition.PLAYER)[1]
 
     ShouldPlateBeAvailable = ShouldPlateBeAvailable
-                             and Plate.VarData ~= mod.Saved.BlindBeingPlayed
                              and not mod.AnimationIsPlaying
                              and not AnyoneOnTop
 
@@ -131,7 +133,7 @@ local function UpdateBalatroPlate(Init,Plate)
 
         if AnyoneOnTop and Plate.State == PlateState.PRESSED then
 
-            Isaac.RunCallback(mod.Callbalcks.BALATRO_PLATE_PRESSED, Variant, Plate.VarData)
+            Isaac.RunCallback(mod.Callbalcks.BALATRO_PLATE_PRESSED, Plate)
         end
 
         Plate.NextGreedAnimation = tostring(Plate.State)

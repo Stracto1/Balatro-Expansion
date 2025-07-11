@@ -14,7 +14,7 @@ function mod:MoneyCounterFix(Player)
         return
     end
 
-    if not mod.Saved.Other.HasDebt then
+    if not mod.Saved.HasDebt then
         return
     end
 
@@ -28,7 +28,8 @@ function mod:MoneyCounterFix(Player)
     local TrueGain = -MoneyGained*2
 
     if CurrentCoins <= -TrueGain then --if the player gains more than its debt value
-        mod.Saved.Other.HasDebt = false
+        mod.Saved.HasDebt = false
+        print("set to false")
 
         local Difference = CurrentCoins + TrueGain
 
@@ -46,6 +47,8 @@ function mod:MoneyCounterFix(Player)
 
 end
 mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, mod.MoneyCounterFix, mod.Characters.JimboType)
+mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, mod.MoneyCounterFix, mod.Characters.TaintedJimbo)
+
 
 
 ---@param Player Entity
@@ -60,23 +63,9 @@ function mod:LimitShopping(Item,Player,_)
         return
     end
 
-    local NumCredit = 0
+    if mod.Saved.HasDebt then
 
-    for _,Player in ipairs(PlayerManager.GetPlayers()) do
-        if Player:GetPlayerType() == mod.Characters.JimboType then
-            NumCredit = NumCredit + #mod:GetJimboJokerIndex(Player, mod.Jokers.CREDIT_CARD)
-        end
-    end
-
-    if NumCredit == 0 then
-        return
-    end
-
-    local MaxShopDebt = 20*NumCredit
-
-    if mod.Saved.Other.HasDebt then
-
-        if Player:GetNumCoins() >= MaxShopDebt then
+        if not mod:PlayerCanAfford(Item.Price) then --surpasses the debt limit
             return true
         end
         
@@ -90,7 +79,7 @@ function mod:LimitShopping(Item,Player,_)
         Player:AddCoins(Difference*2)
         PastCoins = Difference
 
-        mod.Saved.Other.HasDebt = true
+        mod.Saved.HasDebt = true
         
     end
 end
@@ -106,7 +95,7 @@ function mod:NoGambleWithoutCredit(Slot,Player,_)
 ---@diagnostic disable-next-line: cast-local-type
     Player = Player:ToPlayer()
 
-    if not Player or (not mod.Saved.Other.HasDebt and Player:GetNumCoins() ~= 0) or Slot:GetState() ~= 1 then
+    if not Player or (not mod.Saved.HasDebt and Player:GetNumCoins() ~= 0) or Slot:GetState() ~= 1 then
         return
     end
 
@@ -114,8 +103,9 @@ function mod:NoGambleWithoutCredit(Slot,Player,_)
 
     for _,Player in ipairs(PlayerManager.GetPlayers()) do
 
-        if Player:GetPlayerType() == mod.Characters.JimboType then
-            HasCredit = mod:JimboHasTrinket(Player, mod.Jokers.CREDIT_CARD)
+        HasCredit = mod:JimboHasTrinket(Player, mod.Jokers.CREDIT_CARD)
+        if HasCredit then
+            break
         end
     end
 
@@ -129,7 +119,7 @@ function mod:NoGambleWithoutCredit(Slot,Player,_)
 
         PastCoins = Player:GetNumCoins() - 1
 
-        mod.Saved.Other.HasDebt = true
+        mod.Saved.HasDebt = true
 
     end
 
@@ -142,3 +132,36 @@ mod:AddCallback(ModCallbacks.MC_PRE_SLOT_COLLISION, mod.NoGambleWithoutCredit, S
 mod:AddCallback(ModCallbacks.MC_PRE_SLOT_COLLISION, mod.NoGambleWithoutCredit, SlotVariant.SHOP_RESTOCK_MACHINE)
 mod:AddCallback(ModCallbacks.MC_PRE_SLOT_COLLISION, mod.NoGambleWithoutCredit, SlotVariant.FORTUNE_TELLING_MACHINE)
 
+
+
+function mod:SpendMoney(Price)
+
+    local Player = Game:GetPlayer(0)
+    local Coins = Player:GetNumCoins()
+
+    local MaxShopDebt = 0
+
+    for _,Player in ipairs(PlayerManager.GetPlayers()) do
+        MaxShopDebt = MaxShopDebt + 20* #mod:GetJimboJokerIndex(Player, mod.Jokers.CREDIT_CARD)
+    end
+
+
+
+    if not mod.Saved.HasDebt and Coins >= Price 
+       or (mod.Saved.HasDebt and Coins + Price <= MaxShopDebt) then --remains in/out of debt after buying 
+
+        Player:AddCoins(Price)
+        PastCoins = Player:GetNumCoins()
+        return
+    end
+
+    --spends more then he has
+    
+    local Difference = Price - Coins
+
+    Player:AddCoins(Difference)
+    PastCoins = Player:GetNumCoins()
+
+    mod.Saved.HasDebt = true
+
+end

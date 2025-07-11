@@ -1425,7 +1425,7 @@ function mod:OnRoomClear(IsBoss, Hostile)
 
         if Joker == 0 then --could save some time
         elseif Joker == mod.Jokers.VAGABOND then
-            if Player:GetNumCoins() <= 2 or mod.Saved.Other.HasDebt then
+            if Player:GetNumCoins() <= 2 or mod.Saved.HasDebt then
                 local TrinketRNG = Player:GetTrinketRNG(mod.Jokers.VAGABOND)
 
                 local RandomTarot = TrinketRNG:RandomInt(Card.CARD_FOOL, Card.CARD_WORLD)
@@ -3152,7 +3152,7 @@ function mod:TearsJokers(Player, _)
         end
         if Joker == mod.Jokers.BULL then --this works with mod:OnUpdate() in TrinketCallbacks.lua
             
-            local Coins = mod.Saved.Other.HasDebt and 0 or Player:GetNumCoins()
+            local Coins = mod.Saved.HasDebt and 0 or Player:GetNumCoins()
 
             local Tears = Coins * 0.1
 
@@ -3737,7 +3737,7 @@ function mod:DamageJokers(Player,_)
             mod:IncreaseJimboStats(Player, 0, Damage, 1, false, false)
 
         elseif Joker == mod.Jokers.BOOTSTRAP then --this works with mod:OnUpdate() in TrinketCallbacks.lua
-            local Coins = mod.Saved.Other.HasDebt and 0 or Player:GetNumCoins()
+            local Coins = mod.Saved.HasDebt and 0 or Player:GetNumCoins()
 
             local Damage = (Coins//5) * 0.1
 

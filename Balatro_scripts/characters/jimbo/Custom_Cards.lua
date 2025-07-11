@@ -650,7 +650,7 @@ function mod:SpectralCards(card, Player)
             
         elseif card == mod.Spectrals.WRAITH then
 
-            mod.Saved.Other.HasDebt = false
+            mod.Saved.HasDebt = false
             Player:AddCoins(-Player:GetNumCoins()) --makes him poor 
             
             --[[

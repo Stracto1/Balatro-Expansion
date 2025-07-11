@@ -117,6 +117,15 @@ local function CancelMinimapHUD()
 end
 mod:AddCallback(ModCallbacks.MC_PRE_MINIMAP_RENDER, CancelMinimapHUD)
 
+--jimbo travel around with buttons, so no door needed
+local function CancelDoorRendering(_, Door)
+
+
+    return false
+end
+mod:AddCallback(ModCallbacks.MC_PRE_GRID_ENTITY_DOOR_RENDER, CancelDoorRendering)
+
+
 
 
 
@@ -911,6 +920,10 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, JimboStatsHUD)
 ---@param Effect EntityEffect
 local function CashoutBubbleRender(_,Effect, Offset)
 
+    if Effect.SubType ~= mod.DIalogBubbleSubType.CASHOUT then
+        return
+    end
+
     local NumStrings = #mod.ScreenStrings.CashOut
 
     if NumStrings <= 0 then
@@ -1014,7 +1027,7 @@ local function CashoutBubbleRender(_,Effect, Offset)
         CurrentStringOffset.Y = CurrentStringOffset.Y + BALATRO_LINE_HEIGHT*1.75
     end
 end
-mod:AddCallback(ModCallbacks.MC_POST_EFFECT_RENDER, CashoutBubbleRender, mod.Effects.CASHOUT_BUBBLE)
+mod:AddCallback(ModCallbacks.MC_POST_EFFECT_RENDER, CashoutBubbleRender, mod.Effects.DIALOG_BUBBLE)
 
 
 

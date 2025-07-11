@@ -27,13 +27,6 @@ local SCREEN_TO_WORLD_RATIO = 4
 local BASE_HAND_RADIUS = 30 --this gets increased by the handtype's base mult value (considering planet upgrades)
 
 
-local ShopItemTypes = {JOKER = 0, PLANET = 1, TAROT = 2}
-
-local ShopItemPicker = WeightedOutcomePicker()
-WeightedOutcomePicker():AddOutcomeWeight(ShopItemTypes.JOKER, 20)
-WeightedOutcomePicker():AddOutcomeWeight(ShopItemTypes.PLANET, 4)
-WeightedOutcomePicker():AddOutcomeWeight(ShopItemTypes.TAROT, 4)
-
 
 ----FUTURE GLOBALS -----
 
@@ -579,7 +572,8 @@ local function ShopItemChanger()
     local Room = Game:GetRoom()
 
     if not PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo)
-       or Room:GetType() ~= RoomType.ROOM_SHOP then
+       or Room:GetType() ~= RoomType.ROOM_SHOP
+       or not mod.GameStarted then
 
         return
     end
@@ -594,13 +588,33 @@ local function ShopItemChanger()
             end
         end
 
-        mod:SpawnBalatroPressurePlate(Room:GetGridPosition(62), mod.Grids.PlateVariant.SHOP_EXIT)
 
-        mod:SpawnBalatroPressurePlate(Room:GetGridPosition(92), mod.Grids.PlateVariant.REROLL, 0)
+        if PlayerManager.AnyoneHasCollectible(mod.Vouchers.RerollGlut) then
+            mod.Saved.RerollStartingPrice = 1
+        elseif PlayerManager.AnyoneHasCollectible(mod.Vouchers.RerollSurplus) then
+            mod.Saved.RerollStartingPrice = 3
+        else
+            mod.Saved.RerollStartingPrice = 5
+        end
+        
+        for i, Tag in ipairs(mod.Saved.SkipTags) do
+            
+            if Tag == mod.SkipTags.D6 then
+                
+                mod:UseSkipTag(i)
+                mod.Saved.RerollStartingPrice = 0
+
+                break --don't use more then one
+            end
+        end
+
+        mod:SpawnBalatroPressurePlate(Room:GetGridPosition(56), mod.Grids.PlateVariant.SHOP_EXIT, 0)
+
+        mod:SpawnBalatroPressurePlate(Room:GetGridPosition(48), mod.Grids.PlateVariant.REROLL, mod.Saved.RerollStartingPrice)
 
 
         local Voucher = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COLLECTIBLE, Room:GetGridPosition(95),
-                                   Vector.Zero, nil, mod.Saved.AnteVoucher, 1):ToPickup()
+                                   Vector.Zero, nil, mod.Saved.AnteVoucher, mod:RandomSeed(mod.RNGs.SHOP)):ToPickup()
 
 ---@diagnostic disable-next-line: need-check-nil
         Voucher:MakeShopItem(-2)
@@ -610,13 +624,36 @@ local function ShopItemChanger()
         for _,Entity in ipairs(Isaac.GetRoomEntities()) do
         
             if Entity.Type == EntityType.ENTITY_PICKUP
-               and Entity.Variant ~= PickupVariant.PICKUP_COLLECTIBLE then
+               or (Entity.Variant == PickupVariant.PICKUP_COLLECTIBLE
+                   and Entity.SubType ~= mod.Saved.AnteVoucher) then
 
                 Entity:Remove()
             end
         end
 
     end
+
+    local CouponTag = false
+
+    for i, Tag in ipairs(mod.Saved.SkipTags) do
+
+        if Tag == mod.SkipTags.VOUCHER then
+
+            mod:UseSkipTag(i)
+            
+            local Voucher = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COLLECTIBLE, Room:FindFreePickupSpawnPosition(Room:GetGridPosition(95),0, true),
+                                   Vector.Zero, nil, mod.Saved.AnteVoucher, mod:RandomSeed(mod.RNGs.SHOP)):ToPickup()
+
+            ---@diagnostic disable-next-line: need-check-nil
+            Voucher:MakeShopItem(-2)
+
+        elseif Tag == mod.SkipTags.COUPON and not CouponTag then
+
+            CouponTag = true
+            mod:UseSkipTag(i)
+        end
+    end
+
     
     local NumItems = 2
 
@@ -628,40 +665,22 @@ local function ShopItemChanger()
 
     for i=1, NumItems do
 
-        local Type = ShopItemPicker:PickOutcome(mod.RNGs.SHOP)
-
-        local Variant
-        local SubType
-
-        if Type == ShopItemTypes.JOKER then
-            Variant = PickupVariant.PICKUP_TRINKET
-
-            local Joker = mod:RandomJoker(mod.RNGs.SHOP, true)
-
-            SubType = Joker.Joker
-
-            mod.Saved.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Joker.Joker).Name] = Joker.Edition
-
-            
-        elseif Type == ShopItemTypes.TAROT then
-            Variant = PickupVariant.PICKUP_TAROTCARD
-
-            SubType = mod:RandomTarot(mod.RNGs.SHOP)
-
-        else --id Type == SHopItemTypes.PLANET
-            Variant = PickupVariant.PICKUP_TAROTCARD
-
-            SubType = mod:RandomPlanet(mod.RNGs.SHOP)
-        end
+        local Variant, SubType, TagActivated = mod:RandomShopItem(mod.RNGs.SHOP)
 
 
         local Grid = 66 - NumItems + i*2
 
         local Item = Game:Spawn(EntityType.ENTITY_PICKUP, Variant, Room:GetGridPosition(Grid),
-                                Vector.Zero, nil, SubType, 1):ToPickup()
+                                Vector.Zero, nil, SubType, mod:RandomSeed(mod.RNGs.SHOP)):ToPickup()
 
 ---@diagnostic disable-next-line: need-check-nil
         Item:MakeShopItem(-2)
+
+        if CouponTag or TagActivated then
+        ---@diagnostic disable-next-line: need-check-nil
+            Item.Price = PickupPrice.PRICE_FREE
+        end
+        --Item:GetData().CameFromSkipTag = TagActivated
     end
 
     for i=1, 2 do
@@ -670,10 +689,15 @@ local function ShopItemChanger()
         local Pack = mod:RandomPack(mod.RNGs.SHOP, true)
 
         local Booster =  Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Room:GetGridPosition(Grid),
-                   Vector.Zero, nil, Pack, 1):ToPickup()
+                   Vector.Zero, nil, Pack, mod:RandomSeed(mod.RNGs.SHOP)):ToPickup()
 
 ---@diagnostic disable-next-line: need-check-nil
         Booster:MakeShopItem(-2)
+
+        if CouponTag then
+        ---@diagnostic disable-next-line: need-check-nil
+            Booster.Price = PickupPrice.PRICE_FREE
+        end
     end
 
 end
@@ -687,6 +711,11 @@ local function SetItemPrices(_,Variant,SubType,ShopID,Price)
     end
 
     Level:GetCurrentRoomDesc().ShopItemDiscountIdx = -1 --no discounts ever
+
+    if Price == PickupPrice.PRICE_FREE then
+        return Price
+    end
+
 
     local Cost = 1
     if Variant == PickupVariant.PICKUP_COLLECTIBLE then
@@ -845,13 +874,13 @@ function mod:ActivateCurrentHand(Player)
     local Poof = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.POOF02, TargetPosition,
                             Vector.Zero, nil, 3, 1)
 
-    Poof.SpriteScale = Vector.One * 0.8 * RadiusMultiplier
+    Poof.SpriteScale = Vector.One * 0.5 * RadiusMultiplier
     Poof:SetColor(HAND_POOF_COLOR, -1, 100, false, false)
 
     local Poof = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.POOF02, TargetPosition,
                             Vector.Zero, nil, 4, 1)
 
-    Poof.SpriteScale = Vector.One * 0.8 * RadiusMultiplier
+    Poof.SpriteScale = Vector.One * 0.5 * RadiusMultiplier
     Poof:SetColor(HAND_POOF_COLOR, -1, 100, false, false)
     --Poof:SetColor(Color.ProjectileHushBlue, -1, 1, false, false)
 
@@ -1072,14 +1101,14 @@ local function MoveHandTarget(_,Effect)
     local BRClamp = Isaac.WorldToScreen(Game:GetRoom():GetBottomRightPos())
 
     local NumSides = (Radius // 50) + 6 --number of actually drawn lines
-    local Step = 90 / NumSides
+    local Step = math.floor(90 / NumSides)
 
     Radius = mod:CoolLerp(5, Radius, Effect.FrameCount / 20)
      
     local StartRotation = (Isaac.GetFrameCount()*1.5) % 360
 
     local EffectPos = Isaac.WorldToScreen(Effect.Position)
-    local FirstPoint = Vector(0, Radius):Rotated(StartRotation)
+    local FirstPoint = Isaac.WorldToScreenDistance(Vector(0, Radius)):Rotated(StartRotation)
     local SecondPoint
 
     for i=Step*4, 360, Step*4 do
@@ -1111,16 +1140,68 @@ mod:AddCallback(ModCallbacks.MC_POST_EFFECT_RENDER, MoveHandTarget, EffectVarian
 ------------BLIND SYSTEM------------
 ------------------------------------
 
+---@param Plate GridEntityPressurePlate
+local function OnBlindButtonPressed(_, Plate)
 
-local function OnBlindButtonPressed(_, Variant, VarData)
-
-    
-    mod.Saved.BlindBeingPlayed = VarData
+    local Variant = Plate:GetVariant()
+    local VarData = Plate.VarData
 
     --the first timer cycle activates frame-one for some reason...
     --so use TimerFixerVariable to adjust the timers
 
-    if Variant == mod.Grids.PlateVariant.CASHOUT then
+    if Variant == mod.Grids.PlateVariant.REROLL then
+
+        local Price = VarData
+
+        if mod:PlayerCanAfford(Price) then
+
+            local Player = PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo)
+
+            print("spent:", Price)
+            mod:SpendMoney(Price)
+            
+
+            mod.Saved.NumShopRerolls = mod.Saved.NumShopRerolls + 1
+
+            
+            
+
+            local NumClowns = #mod:GetJimboJokerIndex(Player, mod.Jokers.CHAOS_CLOWN, true)
+
+            if mod.Saved.NumShopRerolls < NumClowns then
+                
+                Plate.VarData = 0
+            else
+                Plate.VarData = mod.Saved.RerollStartingPrice + (mod.Saved.NumShopRerolls - NumClowns)
+            end
+            print("increased to:", Plate.VarData)
+
+            Isaac.RunCallback(mod.Callbalcks.SHOP_REROLL)
+
+            for i,ShopItem in ipairs(Isaac.GetRoomEntities()) do
+
+                ---@diagnostic disable-next-line: cast-local-type
+                ShopItem = ShopItem:ToPickup()
+
+                if ShopItem
+                   and (ShopItem.Variant == PickupVariant.PICKUP_TRINKET
+                        or ShopItem.Variant == PickupVariant.PICKUP_TAROTCARD
+                           and not mod:Contained(mod.Packs, ShopItem.SubType)) then --rerolls all cards and jokers (not booster packs)
+
+                    local Variant, SubType = mod:RandomShopItem(mod.RNGs.SHOP)
+                           
+                    ShopItem:Morph(EntityType.ENTITY_PICKUP, Variant, SubType, true, true)
+
+                end
+            end
+
+            sfx:Play(mod.Sounds.MONEY)
+        else
+            sfx:Play(SoundEffect.SOUND_THUMBS_DOWN)
+        end
+
+
+    elseif Variant == mod.Grids.PlateVariant.CASHOUT then
 
         for i,Player in ipairs(PlayerManager.GetPlayers()) do
 
@@ -1170,6 +1251,8 @@ local function OnBlindButtonPressed(_, Variant, VarData)
                             end, 7, 3, true)
 
     elseif Variant == mod.Grids.PlateVariant.BLIND then
+
+        mod.Saved.BlindBeingPlayed = VarData
 
         if VarData & mod.BLINDS.SKIP == mod.BLINDS.SKIP then
 

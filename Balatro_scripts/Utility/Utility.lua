@@ -35,6 +35,12 @@ PackQualityPicker:AddOutcomeWeight(mod.PackQuality.JUMBO, 4)
 PackQualityPicker:AddOutcomeWeight(mod.PackQuality.MEGA, 1)
 
 
+local ShopItemTypes = {JOKER = 0, PLANET = 1, TAROT = 2}
+local ShopItemPicker = WeightedOutcomePicker()
+WeightedOutcomePicker():AddOutcomeWeight(ShopItemTypes.JOKER, 20)
+WeightedOutcomePicker():AddOutcomeWeight(ShopItemTypes.PLANET, 4)
+WeightedOutcomePicker():AddOutcomeWeight(ShopItemTypes.TAROT, 4)
+
 
 --rounds down to numDecimal of spaces
 function mod:round(num, numDecimalPlaces)
@@ -232,7 +238,7 @@ function mod:FloorHasShopOrTreasure()
 
     local Level = Game:GetLevel()
     --[[
-    mod.Saved.Other.Labyrinth = 1
+    mod.Saved.Labyrinth = 1
     if Level:GetCurses() & LevelCurse.CURSE_OF_LABYRINTH == LevelCurse.CURSE_OF_LABYRINTH then
         mod.Saved.Player[PIndex].Labyrinth = 2
     end]]
@@ -436,6 +442,11 @@ end
 mod:AddCallback(ModCallbacks.MC_PRE_NEW_ROOM, ResetSpecialBossFight)
 
 
+---@param RNG RNG
+function mod:RandomSeed(RNG)
+
+    return RNG:RandomInt(MAX_SEED_VALUE) + 1
+end
 
 
 -------------JIMBO FUNCTIONS------------
@@ -1060,8 +1071,40 @@ function mod:JimboHasTrinket(Player,Trinket)
     return false
 end
 
+
+function mod:PlayerCanAfford(Price)
+
+    if Price <= 0 then
+        return true
+    end
+
+    local MaxDebt = 0
+    local Coins = Game:GetPlayer(0):GetNumCoins()
+
+    for i,Player in ipairs(PlayerManager:GetPlayers()) do
+        
+        MaxDebt = MaxDebt + 20 * #mod:GetJimboJokerIndex(Player, mod.Jokers.CREDIT_CARD, true)
+    end
+
+    if not mod.Saved.HasDebt then
+        return Coins >= Price or math.abs(Coins - Price) <= MaxDebt
+    end
+
+    return Coins + Price <= MaxDebt
+
+end
+
+
 function mod:GetJimboJokerIndex(Player, Joker, SkipCopy)
     local Indexes = {}
+
+    if Player:GetPlayerType() ~= mod.Characters.JimboType
+       and Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
+
+        return Indexes
+    end
+
+
     local PIndex = Player:GetData().TruePlayerIndex
 
     for i,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
@@ -1946,6 +1989,101 @@ function mod:RandomPack(Rng, RollQuality)
 end
 
 
+function mod:RandomShopItem(Rng)
+
+    local Variant
+    local SubType
+
+    local TagActivated
+    local ItemType
+    local JokerRarity --nil if randomly chosen
+
+
+    for i, Tag in ipairs(mod.Saved.SkipTags) do
+
+        if Tag == mod.SkipTags.UNCOMMON then
+
+            mod:UseSkipTag(i)
+            TagActivated = true
+            ItemType = ShopItemTypes.JOKER
+            JokerRarity = "uncommon"
+
+            goto RNG_PART
+
+        elseif Tag == mod.SkipTags.RARE then
+
+            mod:UseSkipTag(i)
+            TagActivated = true
+            ItemType = ShopItemTypes.JOKER
+            JokerRarity = "rare"
+
+            goto RNG_PART
+        end
+    end
+
+
+    ItemType = ShopItemPicker:PickOutcome(Rng)
+
+    ::RNG_PART::
+
+    if ItemType == ShopItemTypes.JOKER then
+        Variant = PickupVariant.PICKUP_TRINKET
+
+        local Joker = mod:RandomJoker(Rng, true, JokerRarity)
+
+        if Joker.Edition == mod.Edition.BASE then
+
+            for i, Tag in ipairs(mod.Saved.SkipTags) do
+
+                if Tag == mod.SkipTags.FOIL then
+                    mod:UseSkipTag(i)
+                    TagActivated = true
+                    Joker.Edition = mod.Edition.FOIL
+                    break
+
+                elseif Tag == mod.SkipTags.HOLO then
+                    mod:UseSkipTag(i)
+                    TagActivated = true
+                    Joker.Edition = mod.Edition.HOLOGRAPHIC
+                    break
+
+                elseif Tag == mod.SkipTags.POLYCHROME then
+                    mod:UseSkipTag(i)
+                    TagActivated = true
+                    Joker.Edition = mod.Edition.POLYCROME
+                    break
+
+                elseif Tag == mod.SkipTags.NEGATIVE then
+                    mod:UseSkipTag(i)
+                    TagActivated = true
+                    Joker.Edition = mod.Edition.NEGATIVE
+                    break
+                end
+            end
+        end
+
+        SubType = Joker.Joker
+
+        mod.Saved.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Joker.Joker).Name] = Joker.Edition
+
+    elseif ItemType == ShopItemTypes.TAROT then
+        Variant = PickupVariant.PICKUP_TAROTCARD
+
+        SubType = mod:RandomTarot(Rng)
+
+    else --if Type == SHopItemTypes.PLANET
+        Variant = PickupVariant.PICKUP_TAROTCARD
+
+        SubType = mod:RandomPlanet(Rng)
+    end
+
+    ::RETURN::
+
+    return Variant, SubType, TagActivated
+
+end
+
+
 function mod:CardValueToName(Value, IsEID, OnlyInitial)
 
     local String
@@ -2024,6 +2162,12 @@ function mod:AddJoker(Player, Joker, Edition, StopEval)
     mod.Saved.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Joker).Name] = Edition
 
     return mod:JimboAddTrinket(nil, Player, Joker, false, StopEval)
+end
+
+
+function mod:UseSkipTag(Pos)
+
+ --PLACEHOLDER, do effects and stuff
 end
 
 
@@ -2572,7 +2716,7 @@ function mod:PlaceBlindRoomsForReal()
 
         repeat
 
-            BigRoom = RoomConfigHolder.GetRandomRoom( RoomRNG:RandomInt(MAX_SEED_VALUE) + 1,
+            BigRoom = RoomConfigHolder.GetRandomRoom( mod:RandomSeed(RoomRNG),
                                                         true, 
                                                         Isaac.GetCurrentStageConfigId(),
                                                         RoomType.ROOM_DEFAULT,
@@ -2604,7 +2748,7 @@ function mod:PlaceBlindRoomsForReal()
             end
         until IsHostile
 
-        local PlaceSeed = PlaceRNG:RandomInt(MAX_SEED_VALUE) + 1
+        local PlaceSeed = mod:RandomSeed(PlaceRNG)
 
         for i = 3, 168 do
 
@@ -2626,7 +2770,7 @@ function mod:PlaceBlindRoomsForReal()
         local SmallRoom 
 
         repeat
-            SmallRoom = RoomConfigHolder.GetRandomRoom( RoomRNG:RandomInt(MAX_SEED_VALUE) + 1,
+            SmallRoom = RoomConfigHolder.GetRandomRoom( mod:RandomSeed(RoomRNG),
                                                         true, 
                                                         Isaac.GetCurrentStageConfigId(),
                                                         RoomType.ROOM_DEFAULT,
@@ -2661,7 +2805,7 @@ function mod:PlaceBlindRoomsForReal()
 
 
 
-        local PlaceSeed = PlaceRNG:RandomInt(MAX_SEED_VALUE) + 1
+        local PlaceSeed = mod:RandomSeed(PlaceRNG)
 
         for i = 0, 168 do
 
@@ -2690,8 +2834,8 @@ function mod:PlaceBlindRoomsForReal()
 
     repeat
 
-        local ShopRoom = RoomConfigHolder.GetRandomRoom(RoomRNG:RandomInt(MAX_SEED_VALUE) + 1,
-                                                        false, 
+        local ShopRoom = RoomConfigHolder.GetRandomRoom(mod:RandomSeed(RoomRNG),
+                                                        false,
                                                         StbType.SPECIAL_ROOMS,
                                                         RoomType.ROOM_SHOP,
                                                         RoomShape.NUM_ROOMSHAPES,
@@ -2700,7 +2844,7 @@ function mod:PlaceBlindRoomsForReal()
                                                         10,
                                                         0, ShopQuality, -1)
 
-        local PlaceSeed = PlaceRNG:RandomInt(MAX_SEED_VALUE) + 1
+        local PlaceSeed = mod:RandomSeed(PlaceRNG)
 
         for i = 6, 168 do
 

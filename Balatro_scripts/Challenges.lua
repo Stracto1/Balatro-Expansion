@@ -93,7 +93,7 @@ function mod:ChallengeRoomClear()
         end, 21, 1, true)
     
     elseif Wave == 11 then
-        mod.Saved.Other.ShopEntered = false
+        mod.Saved.ShopEntered = false
         local Player = Game:GetPlayer(0)
 
         local Interests = math.floor(Player:GetNumCoins()/5)
@@ -111,7 +111,7 @@ function mod:ChallengeRoomClear()
             end 
         end, 21, 1, true)
     elseif Wave == 12 then
-        mod.Saved.Other.ShopEntered = false
+        mod.Saved.ShopEntered = false
         local Player = Game:GetPlayer(0)
 
         local Interests = math.floor(Player:GetNumCoins()/5)
@@ -134,7 +134,7 @@ end
 
 function mod:ChallengeRoomEntrance()
     local Room =  Game:GetRoom()
-    if Room:GetType() == RoomType.ROOM_SHOP and not mod.Saved.Other.ShopEntered then
+    if Room:GetType() == RoomType.ROOM_SHOP and not mod.Saved.ShopEntered then
         Room:ShopRestockFull()
     elseif Room:GetType() == RoomType.ROOM_GREED_EXIT then
         --for some reason it's bugges and the trapdoor for the next floor won't spawn

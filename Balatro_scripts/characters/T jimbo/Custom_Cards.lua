@@ -616,7 +616,7 @@ local function TJimboUseSpectral(card, Player, UseFlags)
         
     elseif card == mod.Spectrals.WRAITH then
 
-        mod.Saved.Other.HasDebt = false
+        mod.Saved.HasDebt = false
         Player:AddCoins(-Player:GetNumCoins()) --makes him poor 
         
         local RandomJoker = mod:RandomJoker(CardRNG, {}, true, "rare")
@@ -1085,9 +1085,12 @@ local function TJimboCardPacks(_,card, Player,_)
         local PackRng = Player:GetCardRNG(mod.Packs.CELESTIAL)
         
         local Size = card == mod.Packs.CELESTIAL and 3 or 5
-        
-        mod.SelectionParams[PIndex].PackOptions = mod:SpecialCardToFrame(mod:RandomPlanet(PackRng, true, false, Size))
-        
+
+        for _,Planet in ipairs(mod:RandomPlanet(PackRng, true, false, Size)) do
+            
+            mod.SelectionParams[PIndex].PackOptions[#mod.SelectionParams[PIndex].PackOptions+1] = mod:SpecialCardToFrame(Planet)
+        end
+                
         mod.SelectionParams[PIndex].Frames = 0
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
                                               mod.SelectionParams.Purposes.CelestialPack)
@@ -1105,8 +1108,10 @@ local function TJimboCardPacks(_,card, Player,_)
 
         local Size = card == mod.Packs.SPECTRAL and 3 or 5
 
-        mod.SelectionParams[PIndex].PackOptions = mod:SpecialCardToFrame(mod:RandomSpectral(PackRng, true, true, false, Size))
-
+        for _,Specter in ipairs(mod:RandomSpectral(PackRng, true, true, false, Size)) do
+            
+            mod.SelectionParams[PIndex].PackOptions[#mod.SelectionParams[PIndex].PackOptions+1] = mod:SpecialCardToFrame(Specter)
+        end
 
         mod.SelectionParams[PIndex].Frames = 0
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,

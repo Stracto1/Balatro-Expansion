@@ -2100,6 +2100,9 @@ mod:AddCallback(mod.Callbalcks.BLIND_CLEAR, OnBlindClear)
 
 local function OnShopExit(_)
 
+    mod.Saved.NumShopRerolls = 0
+    mod.Saved.RerollStartingPrice = 0
+
     for _, Player in ipairs(PlayerManager.GetPlayers()) do
 
     if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
@@ -2153,9 +2156,6 @@ local function OnShopExit(_)
                 mod:TJimboAddConsumable(Player, RandomCard, 0, false, mod.Edition.NEGATIVE)
 
             end
-
-
-
         end
 
 
