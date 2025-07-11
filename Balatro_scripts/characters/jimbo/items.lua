@@ -275,7 +275,7 @@ function mod:DirectorVoucher(Item,Rng, Player, Flags,_,_)
 
     if Item == mod.Vouchers.Director then
 
-        if Player:GetNumCoins() >= 10 then
+        if mod:PlayerCanAfford(10) then
 
             --local Pool = Game:GetItemPool()
             --local Room = Game:GetRoom()
@@ -290,7 +290,7 @@ function mod:DirectorVoucher(Item,Rng, Player, Flags,_,_)
             end]]
 
             Player:UseActiveItem(CollectibleType.COLLECTIBLE_D6, UseFlag.USE_NOANIM) --easiest way to reroll
-            Player:AddCoins(-10)
+            mod:SpendMoney(10)
 
             sfx:Play(mod.Sounds.MONEY)
             return true

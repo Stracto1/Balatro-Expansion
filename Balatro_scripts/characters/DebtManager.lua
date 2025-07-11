@@ -29,7 +29,6 @@ function mod:MoneyCounterFix(Player)
 
     if CurrentCoins <= -TrueGain then --if the player gains more than its debt value
         mod.Saved.HasDebt = false
-        print("set to false")
 
         local Difference = CurrentCoins + TrueGain
 
@@ -147,8 +146,7 @@ function mod:SpendMoney(Price)
 
 
 
-    if not mod.Saved.HasDebt and Coins >= Price 
-       or (mod.Saved.HasDebt and Coins + Price <= MaxShopDebt) then --remains in/out of debt after buying 
+    if mod.Saved.HasDebt or Coins >= Price  then --remains in/out of debt after buying 
 
         Player:AddCoins(Price)
         PastCoins = Player:GetNumCoins()
