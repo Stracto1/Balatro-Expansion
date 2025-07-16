@@ -1,8 +1,8 @@
+---@diagnostic disable: need-check-nil, cast-local-type
 
 local mod = Balatro_Expansion
 
 local Game = Game()
-local Level = Game:GetLevel()
 local ItemsConfig = Isaac.GetItemConfig()
 local sfx = SFXManager()
 
@@ -198,12 +198,12 @@ local function JimboInputHandle(_, Player)
 
     elseif Input.IsActionTriggered(ButtonAction.ACTION_BOMB, Player.ControllerIndex) then
 
-        if mod.Saved.Player[PIndex].DiscardsRemaining <= 0 then
+        if mod.Saved.DiscardsRemaining <= 0 then
             print("not enough discards loser!")
             return
         end
 
-        mod.Saved.Player[PIndex].DiscardsRemaining = mod.Saved.Player[PIndex].DiscardsRemaining - 1
+        mod.Saved.DiscardsRemaining = mod.Saved.DiscardsRemaining - 1
 
         mod:DiscardSelection(Player)
     end
@@ -572,8 +572,7 @@ local function ShopItemChanger()
     local Room = Game:GetRoom()
 
     if not PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo)
-       or Room:GetType() ~= RoomType.ROOM_SHOP
-       or not mod.GameStarted then
+       or Room:GetType() ~= RoomType.ROOM_SHOP then
 
         return
     end
@@ -610,7 +609,7 @@ local function ShopItemChanger()
 
         mod:SpawnBalatroPressurePlate(Room:GetGridPosition(56), mod.Grids.PlateVariant.SHOP_EXIT, 0)
 
-        mod:SpawnBalatroPressurePlate(Room:GetGridPosition(48), mod.Grids.PlateVariant.REROLL, mod.Saved.RerollStartingPrice)
+        mod:SpawnBalatroPressurePlate(Room:GetGridPosition(48), mod.Grids.PlateVariant.REROLL, mod.Saved.RerollStartingPrice + 0)
 
 
         local Voucher = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COLLECTIBLE, Room:GetGridPosition(95),
@@ -618,7 +617,7 @@ local function ShopItemChanger()
 
 ---@diagnostic disable-next-line: need-check-nil
         Voucher:MakeShopItem(-2)
-    
+
     else --removes everything exept for the vouchers
 
         for _,Entity in ipairs(Isaac.GetRoomEntities()) do
@@ -710,7 +709,7 @@ local function SetItemPrices(_,Variant,SubType,ShopID,Price)
         return
     end
 
-    Level:GetCurrentRoomDesc().ShopItemDiscountIdx = -1 --no discounts ever
+    Game:GetLevel():GetCurrentRoomDesc().ShopItemDiscountIdx = -1 --no discounts ever
 
     if Price == PickupPrice.PRICE_FREE then
         return Price
@@ -802,8 +801,8 @@ function mod:UpdateCurrentHandType(Player)
     end
 
 
-    mod.Saved.Player[PIndex].MultValue = mod.Saved.Player[PIndex].HandsStat[mod.SelectionParams[PIndex].HandType].Mult
-    mod.Saved.Player[PIndex].ChipsValue = mod.Saved.Player[PIndex].HandsStat[mod.SelectionParams[PIndex].HandType].Chips
+    mod.Saved.MultValue = mod.Saved.HandsStat[mod.SelectionParams[PIndex].HandType].Mult
+    mod.Saved.ChipsValue = mod.Saved.HandsStat[mod.SelectionParams[PIndex].HandType].Chips
 
 
 end
@@ -850,62 +849,51 @@ function mod:ActivateCurrentHand(Player)
 
     local HandHype = mod.SelectionParams[PIndex].HandType
 
-    if HandHype == mod.HandTypes.HIGH_CARD then
-        print("idk cacati addosso")
-    end
+    local RadiusMultiplier = mod.Saved.HandsStat[HandHype].Mult
 
-    local RadiusMultiplier = mod.Saved.Player[PIndex].HandsStat[HandHype].Mult
-    local FullHandDamage = mod.Saved.Player[PIndex].ChipsValue * mod.Saved.Player[PIndex].MultValue
-    local FullyDamagedEnemies = {}
+    local FullHandDamage = mod.Saved.ChipsValue * mod.Saved.MultValue
+
+    
+    --enemies inside the radius shown take damage twice, others only once
 
     for _, Enemy in ipairs(Isaac.FindInRadius(TargetPosition, 
                                               BASE_HAND_RADIUS * RadiusMultiplier,
                                               EntityPartition.ENEMY)) do
+        if Enemy:IsActiveEnemy() then
+
+            if Enemy:IsVulnerableEnemy() then
+                Enemy:TakeDamage(FullHandDamage / 2,
+                                 DamageFlag.DAMAGE_IGNORE_ARMOR, EntityRef(Player), 0)
+
+            else --invulnerable enemies take damage only if inside the radius
+                Enemy:TakeDamage(FullHandDamage,
+                                 DamageFlag.DAMAGE_IGNORE_ARMOR, EntityRef(Player), 0)
+            end
+        end
+    end
+
+    local PoofScale = 0.5 * RadiusMultiplier
+
+    mod:TrueBloodPoof(TargetPosition, PoofScale, HAND_POOF_COLOR)
+
+
+    Isaac.CreateTimer(function ()
+        for _,Enemy in ipairs(Isaac.GetRoomEntities()) do
 
         if Enemy:IsActiveEnemy() and Enemy:IsVulnerableEnemy() then
-
-            Enemy:TakeDamage(FullHandDamage,
-                             DamageFlag.DAMAGE_IGNORE_ARMOR, EntityRef(Player), 0)
-
-            FullyDamagedEnemies[#FullyDamagedEnemies+1] = GetPtrHash(Enemy)
-        end
-    end
-
-    local Poof = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.POOF02, TargetPosition,
-                            Vector.Zero, nil, 3, 1)
-
-    Poof.SpriteScale = Vector.One * 0.5 * RadiusMultiplier
-    Poof:SetColor(HAND_POOF_COLOR, -1, 100, false, false)
-
-    local Poof = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.POOF02, TargetPosition,
-                            Vector.Zero, nil, 4, 1)
-
-    Poof.SpriteScale = Vector.One * 0.5 * RadiusMultiplier
-    Poof:SetColor(HAND_POOF_COLOR, -1, 100, false, false)
-    --Poof:SetColor(Color.ProjectileHushBlue, -1, 1, false, false)
-
-    for _,Enemy in ipairs(Isaac.GetRoomEntities()) do
-
-        if Enemy:IsActiveEnemy() and not mod:Contained(FullyDamagedEnemies, GetPtrHash(Enemy)) then
             
-            Enemy:TakeDamage(FullHandDamage / 2.5,
+            Enemy:TakeDamage(FullHandDamage / 2,
                              DamageFlag.DAMAGE_IGNORE_ARMOR, EntityRef(Player), 0)
 
+            local PoofScale = 0.035 * Enemy.Size
 
-            local Poof = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.POOF02, Enemy.Position,
-                                    Vector.Zero, nil, 3, 1)
+            mod:TrueBloodPoof(Enemy.Position, PoofScale, HAND_POOF_COLOR)
 
-            Poof.SpriteScale = Vector.One * 0.33
-            Poof:SetColor(HAND_POOF_COLOR, -1, 100, false, false)
-
-            local Poof = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.POOF02, Enemy.Position,
-                                    Vector.Zero, nil, 4, 1)
-
-            Poof.SpriteScale = Vector.One * 0.33
-            Poof:SetColor(HAND_POOF_COLOR, -1, 100, false, false)
-            --Poof:SetColor(Color.ProjectileHushBlue, -1, 1, false, false)
+            end
         end
-    end
+    end, 1, 1, true)
+
+    
 
     for i = #mod.Saved.Player[PIndex].CurrentHand, 1, -1 do
         
@@ -940,12 +928,15 @@ function mod:ActivateCurrentHand(Player)
                             return
                         end
 
-                        if mod.Saved.Player[PIndex].HandsRemaining <= 0 then
-                        
-                            if mod.Saved.BlindBeingPlayed >= mod.BLINDS.BOSS_ACORN then --special bosses give you unlimited hands 
+                        if mod.Saved.HandsRemaining <= 0 then
+
+                            --special bosses give you unlimited hands 
+                            if mod.Saved.IsSpecialBoss then 
                             
                                 Player:AddCustomCacheTag(mod.CustomCache.DISCARD_NUM)
                                 Player:AddCustomCacheTag(mod.CustomCache.HAND_NUM, true)
+
+                                mod.Saved.Player[PIndex].FirstDeck = false
                             else
                                 sfx:Play(SoundEffect.SOUND_BOSS2INTRO_ERRORBUZZ)
                                 Isaac.CreateTimer(function ()
@@ -974,9 +965,14 @@ function mod:SetupForHandScoring(Player)
 
     local PIndex = Player:GetData().TruePlayerIndex
 
-    mod.Saved.Player[PIndex].HandsRemaining = mod.Saved.Player[PIndex].HandsRemaining - 1
+    mod.Saved.HandsRemaining = mod.Saved.HandsRemaining - 1
 
-    mod.Saved.Player[PIndex].HandsUsed[mod.SelectionParams[PIndex].HandType] = mod.Saved.Player[PIndex].HandsUsed[mod.SelectionParams[PIndex].HandType] + 1
+    if mod.Saved.Player[PIndex].FirstDeck then
+        mod.Saved.HandsPlayed = mod.Saved.HandsPlayed + 1
+    end
+
+
+    mod.Saved.HandsTypeUsed[mod.SelectionParams[PIndex].HandType] = mod.Saved.HandsTypeUsed[mod.SelectionParams[PIndex].HandType] + 1
 
     local TIMER_INCREASE = 4
     local CurrentTimer = TIMER_INCREASE
@@ -1010,7 +1006,112 @@ function mod:SetupForHandScoring(Player)
 
         SelectionIndex = SelectionIndex + 1
     end
+
+
+    --I REALLY suggest you not to look at what's inside this if statement (ultra cheesy and unreadable code)
     
+    
+    if mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_HOOK then
+
+        if not next(mod.Saved.Player[PIndex].CurrentHand) then
+            --nothing to discard if hand is empty
+            goto SKIP_HOOK_BOSS
+        end
+
+        CurrentTimer = CurrentTimer + 4
+
+        Isaac.CreateTimer(function ()
+            
+            local PossibleIndexes = {}
+            for i=1, #mod.Saved.Player[PIndex].CurrentHand do
+
+                PossibleIndexes[i] = i
+            end
+
+            mod.SelectionParams[PIndex].SelectionNum = 0
+
+            for i=1, 2 do --get up to 2 random cards to discard
+                
+                if not next(PossibleIndexes) then
+                    break
+                end
+
+                local Random = mod.RNGs.LUCKY_CARD:RandomInt(1,#PossibleIndexes)
+                
+                mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND][PossibleIndexes[Random]] = true
+
+                table.remove(PossibleIndexes, Random)
+                mod.SelectionParams[PIndex].SelectionNum = mod.SelectionParams[PIndex].SelectionNum + 1
+            end
+
+        end, CurrentTimer, 1, true)
+
+
+        CurrentTimer = CurrentTimer + 8
+
+        --this is where the timers get funky
+        Isaac.CreateTimer(function ()
+
+            local NumDiscarded = 0
+
+            local HandSelectedCards = mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]
+
+
+            local ExtraInterval = Isaac.RunCallback(mod.Callbalcks.DISCARD, Player, 0) --needed to reset the CurrentInterval in scoring system.lua
+
+            for i = #mod.Saved.Player[PIndex].CurrentHand, 1, -1 do
+
+                if HandSelectedCards[i] then
+
+                    print(i, "is selected")
+
+                    NumDiscarded = NumDiscarded + 1
+
+                    local GotDestroyed
+
+                    ExtraInterval, GotDestroyed = Isaac.RunCallback(mod.Callbalcks.CARD_DISCARD, Player, mod.Saved.Player[PIndex].CurrentHand[SelectionIndex], 
+                                                 SelectionIndex, NumDiscarded == mod.SelectionParams[PIndex].SelectionNum)
+
+
+                    local IndexToDestroy = i
+
+                    if not GotDestroyed then
+                        Isaac.CreateTimer(function ()
+
+                            table.remove(HandSelectedCards, IndexToDestroy)
+                            table.remove(mod.Saved.Player[PIndex].CurrentHand, IndexToDestroy)
+
+                            print("removed", IndexToDestroy)
+
+                            sfx:Play(mod.Sounds.DESELECT)
+                        end, ExtraInterval, 1, true)
+                    end
+                end
+            end
+
+            --CurrentTimer = CurrentTimer + ExtraInterval
+
+            mod.AnimationIsPlaying = true
+
+            Isaac.CreateTimer(function ()
+                mod.SelectionParams[PIndex].ScoringCards = mod:GetScoringCards(Player, mod.SelectionParams[PIndex].HandType)
+
+            end, ExtraInterval + 7, 1, true)
+        
+            Isaac.CreateTimer(function ()
+                Isaac.RunCallback(mod.Callbalcks.HAND_PLAY, Player)
+            end, ExtraInterval + 10, 1, true)
+
+        end, CurrentTimer, 1, true)
+
+        print("second part done")
+
+        return
+    end
+
+    ::SKIP_HOOK_BOSS::
+    
+    --IF THIS GETS MODIFIED THEN ALSO MODIFY ITS REPLICA INSIDE ON HOOK BOSS
     mod.AnimationIsPlaying = true
 
     Isaac.CreateTimer(function ()
@@ -1047,15 +1148,15 @@ function mod:SetupForNextHandPlay(Player)
 
         Player:AddCustomCacheTag(mod.CustomCache.HAND_SIZE, true)
         
-        local Delay, DeckFinished = mod:RefillHand(Player)
+        local Delay, DeckFinished = mod:RefillHand(Player, true)
 
 
         --print("scoring: ", mod.SelectionParams[PIndex].ScoringCards)
         mod.Counters.SinceSelect = 0
         mod.AnimationIsPlaying = false
 
-        mod.Saved.Player[PIndex].ChipsValue = 0
-        mod.Saved.Player[PIndex].MultValue = 0
+        mod.Saved.ChipsValue = 0
+        mod.Saved.MultValue = 0
 
         Isaac.CreateTimer(function ()
 
@@ -1069,8 +1170,6 @@ mod:AddPriorityCallback(mod.Callbalcks.POST_HAND_PLAY, CallbackPriority.LATE, mo
 
 
 local LineBlue = KColor(mod.EffectKColors.BLUE.Red,mod.EffectKColors.BLUE.Green,mod.EffectKColors.BLUE.Blue,0.65)
-
-
 
 
 ---@param Effect EntityEffect
@@ -1089,7 +1188,7 @@ local function MoveHandTarget(_,Effect)
     local PIndex = Player:GetData().TruePlayerIndex
     local HandHype = mod.SelectionParams[PIndex].HandType
 
-    local Radius = BASE_HAND_RADIUS *mod.Saved.Player[PIndex].HandsStat[HandHype].Mult
+    local Radius = BASE_HAND_RADIUS *mod.Saved.HandsStat[HandHype].Mult
 
     for _, Enemy in ipairs(Isaac.FindInRadius(Effect.Position, Radius, EntityPartition.ENEMY)) do
         
@@ -1100,8 +1199,8 @@ local function MoveHandTarget(_,Effect)
     local TLClamp = Isaac.WorldToScreen(Game:GetRoom():GetTopLeftPos())
     local BRClamp = Isaac.WorldToScreen(Game:GetRoom():GetBottomRightPos())
 
-    local NumSides = (Radius // 50) + 6 --number of actually drawn lines
-    local Step = math.floor(90 / NumSides)
+    local NumSides = (Radius // 60)*2 + 6 --number of actually drawn lines
+    local Step = 90 / NumSides
 
     Radius = mod:CoolLerp(5, Radius, Effect.FrameCount / 20)
      
@@ -1111,7 +1210,7 @@ local function MoveHandTarget(_,Effect)
     local FirstPoint = Isaac.WorldToScreenDistance(Vector(0, Radius)):Rotated(StartRotation)
     local SecondPoint
 
-    for i=Step*4, 360, Step*4 do
+    for i=1, NumSides do --idk why having an odd amount of sides makes the circle not complete
         
         SecondPoint = FirstPoint:Rotated(Step)
 
@@ -1134,11 +1233,9 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_EFFECT_RENDER, MoveHandTarget, EffectVariant.TARGET)
 
 
-
-
-
 ------------BLIND SYSTEM------------
 ------------------------------------
+
 
 ---@param Plate GridEntityPressurePlate
 local function OnBlindButtonPressed(_, Plate)
@@ -1157,20 +1254,18 @@ local function OnBlindButtonPressed(_, Plate)
 
             local Player = PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo)
 
-            print("spent:", Price)
             mod:SpendMoney(Price)
             
 
             mod.Saved.NumShopRerolls = mod.Saved.NumShopRerolls + 1
 
-            
-            
 
             local NumClowns = #mod:GetJimboJokerIndex(Player, mod.Jokers.CHAOS_CLOWN, true)
 
             if mod.Saved.NumShopRerolls < NumClowns then
                 
                 Plate.VarData = 0
+
             else
                 Plate.VarData = mod.Saved.RerollStartingPrice + (mod.Saved.NumShopRerolls - NumClowns)
             end
@@ -1206,6 +1301,16 @@ local function OnBlindButtonPressed(_, Plate)
         for i,Player in ipairs(PlayerManager.GetPlayers()) do
 
             Player:AnimateTeleport(true)
+
+            if mod.Saved.Player[Player:GetData().TruePlayerIndex].FirstDeck then
+                mod.Saved.DiscardsWasted = mod.Saved.DiscardsWasted + mod.Saved.DiscardsRemaining
+            end
+
+            mod.Saved.Player[Player:GetData().TruePlayerIndex].FirstDeck = true
+
+            --restores hands and discards available
+            Player:AddCustomCacheTag(mod.CustomCache.DISCARD_NUM)
+            Player:AddCustomCacheTag(mod.CustomCache.HAND_NUM, true)
         end
 
         Isaac.CreateTimer(function ()
@@ -1235,7 +1340,7 @@ local function OnBlindButtonPressed(_, Plate)
         Isaac.CreateTimer(function ()
                                 if TimerFixerVariable == 1 then
 
-                                    Game:StartRoomTransition(Level:GetStartingRoomIndex(), Direction.NO_DIRECTION, RoomTransitionAnim.PIXELATION)
+                                    Game:StartRoomTransition(Game:GetLevel():GetStartingRoomIndex(), Direction.NO_DIRECTION, RoomTransitionAnim.PIXELATION)
                                     
                                     TimerFixerVariable = 0
 
@@ -1250,83 +1355,130 @@ local function OnBlindButtonPressed(_, Plate)
 
                             end, 7, 3, true)
 
+    elseif Variant == mod.Grids.PlateVariant.SMALL_BLIND_SKIP then
+
+        local Interval = mod:AddSkipTag(Plate.VarData)
+
+        Isaac.RunCallback(mod.Callbalcks.BLIND_SKIP, mod.BLINDS.SMALL, Plate.VarData) --throwback
+
+        mod.AnimationIsPlaying = true
+
+        Isaac.CreateTimer(function ()
+
+            mod.AnimationIsPlaying = false
+
+        end, Interval, 1, true)
+        
+
+    elseif Variant == mod.Grids.PlateVariant.BIG_BLIND_SKIP then
+    
+        local Interval = mod:AddSkipTag(Plate.VarData)
+
+        Isaac.RunCallback(mod.Callbalcks.BLIND_SKIP, mod.BLINDS.BIG) --throwback
+
+        mod.AnimationIsPlaying = true
+
+        Isaac.CreateTimer(function ()
+
+            mod.AnimationIsPlaying = false
+
+        end, Interval, 1, true)
+
     elseif Variant == mod.Grids.PlateVariant.BLIND then
 
         mod.Saved.BlindBeingPlayed = VarData
 
-        if VarData & mod.BLINDS.SKIP == mod.BLINDS.SKIP then
+        local InitialInterval = Isaac.RunCallback(mod.Callbalcks.BLIND_SELECTED, VarData)
 
-            Isaac.RunCallback(mod.Callbalcks.BLIND_SKIP, VarData)
-        
-        else
-            for i,Player in ipairs(PlayerManager.GetPlayers()) do
+        Isaac.CreateTimer(function ()
 
-                Player:AnimateTeleport(true)
-            end
+            if TimerFixerVariable == 0 then
+                TimerFixerVariable = TimerFixerVariable + 1
 
-            if VarData == mod.BLINDS.SMALL then
+            else
 
-            Isaac.CreateTimer(function ()
-                                
-                                --print(TimerFixerVariable)
-                                if TimerFixerVariable == 1 then
-                                    Game:StartRoomTransition(mod.Saved.SmallBlindIndex, Direction.NO_DIRECTION, RoomTransitionAnim.PIXELATION)
+                TimerFixerVariable = 0
 
-                                elseif TimerFixerVariable == 2 then
-                                    local Interval = Isaac.RunCallback(mod.Callbalcks.BLIND_START, VarData)
+                for i,Player in ipairs(PlayerManager.GetPlayers()) do
 
-                                    Isaac.CreateTimer(function ()
-                                        Isaac.RunCallback(mod.Callbalcks.POST_BLIND_START, VarData)
-                                    end, Interval, 1, true)
+                    Player:AnimateTeleport(true)
+                end
 
-                                    TimerFixerVariable = 0
-                                    return
-                                end
+                if VarData == mod.BLINDS.SMALL then
 
-                                TimerFixerVariable = TimerFixerVariable + 1
+                    local Iteration = 0
 
-                            end, 7, 3, true)
-
-            elseif VarData == mod.BLINDS.BIG then
-
-            Isaac.CreateTimer(function ()
-                                if TimerFixerVariable == 1 then
-                                    Game:StartRoomTransition(mod.Saved.BigBlindIndex, Direction.NO_DIRECTION, RoomTransitionAnim.PIXELATION)
-
-                                elseif TimerFixerVariable == 2 then
-                                    local Interval = Isaac.RunCallback(mod.Callbalcks.BLIND_START, VarData)
-
-                                    Isaac.CreateTimer(function ()
-                                        Isaac.RunCallback(mod.Callbalcks.POST_BLIND_START, VarData)
-                                    end, Interval, 1, true)
-
-                                    TimerFixerVariable = 0
-                                    return
-                                end
-
-                                TimerFixerVariable = TimerFixerVariable + 1
-                            end, 7, 3, true)
-
-            else --BOSS BLIND
-
-                Isaac.CreateTimer(function ()
-                                    if TimerFixerVariable == 0 then
-                                        Game:StartRoomTransition(mod.Saved.BossIndex, Direction.NO_DIRECTION, RoomTransitionAnim.PIXELATION)
-                                        TimerFixerVariable = TimerFixerVariable + 1
-
-                                    elseif TimerFixerVariable == 1 then
+                    Isaac.CreateTimer(function()
+                                    
+                                    Iteration = Iteration + 1
+                                    --print(TimerFixerVariable)
+                                    if Iteration == 1 then
+                                        Game:StartRoomTransition(mod.Saved.SmallBlindIndex, Direction.NO_DIRECTION, RoomTransitionAnim.PIXELATION)
+                                    
+                                    else --if Iteration == 2 then
                                         local Interval = Isaac.RunCallback(mod.Callbalcks.BLIND_START, VarData)
-                                        TimerFixerVariable = 0
-
+                                    
+                                        --yahoo! triple timer indentation
                                         Isaac.CreateTimer(function ()
                                             Isaac.RunCallback(mod.Callbalcks.POST_BLIND_START, VarData)
                                         end, Interval, 1, true)
+                                    
+                                        return
                                     end
+                                
+                    end, 8, 2, true)
+                
+                elseif VarData == mod.BLINDS.BIG then
 
-                                end, 7, 2, true)
+                    local Iteration = 0
+                
+                    Isaac.CreateTimer(function ()
+
+                                        Iteration = Iteration + 1
+                    
+                                        if Iteration == 1 then
+                                            Game:StartRoomTransition(mod.Saved.BigBlindIndex, Direction.NO_DIRECTION, RoomTransitionAnim.PIXELATION)
+                                        
+                                        else--if Iteration == 2 then
+                                            local Interval = Isaac.RunCallback(mod.Callbalcks.BLIND_START, VarData)
+                                        
+                                            Isaac.CreateTimer(function ()
+                                                Isaac.RunCallback(mod.Callbalcks.POST_BLIND_START, VarData)
+                                            end, Interval, 1, true)
+                                        
+                                            return
+                                        end
+                                    
+                                    end, 7, 2, true)
+                                
+                else --BOSS BLIND
+
+                    local Iteration = 0
+                
+                    Isaac.CreateTimer(function ()
+
+                                        Iteration = Iteration + 1
+
+                                        if Iteration == 1 then
+                                            Game:StartRoomTransition(mod.Saved.BossIndex, Direction.NO_DIRECTION, RoomTransitionAnim.PIXELATION)
+                                            TimerFixerVariable = TimerFixerVariable + 1
+                                        
+                                        else --if Iteration == 2 then
+                                            local Interval = Isaac.RunCallback(mod.Callbalcks.BLIND_START, VarData)
+                                            TimerFixerVariable = 0
+                                        
+                                            Isaac.CreateTimer(function ()
+                                                Isaac.RunCallback(mod.Callbalcks.POST_BLIND_START, VarData)
+                                            end, Interval, 1, true)
+                                        end
+                                    
+                                    end, 7, 2, true)
+                                
+                end
 
             end
-        end
+            
+        end, InitialInterval, 2, true)        
     end
 
     mod:ResetPlatesData()
@@ -1336,41 +1488,295 @@ mod:AddCallback(mod.Callbalcks.BALATRO_PLATE_PRESSED, OnBlindButtonPressed)
 
 local function OnBlindStart(_, BlindData)
 
-    for _,Player in ipairs(PlayerManager.GetPlayers()) do
-        
-        if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
+    mod.AnimationIsPlaying = true
 
-            mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams.Purposes.HAND)
+    local Interval = 8
+    local FirstJuggleIndex = 0
+
+    mod.Saved.NumJuggleUsed = 0
+
+    for i,Tag in ipairs(mod.Saved.SkipTags) do
         
-            Isaac.RunCallback(mod.Callbalcks.BOSS_BLIND_EVAL, true)
+        if Tag == mod.SkipTags.JUGGLE then
+
+            FirstJuggleIndex = FirstJuggleIndex or i
+            
+            mod.Saved.NumJuggleUsed = mod.Saved.NumJuggleUsed + 1
+
+            Isaac.CreateTimer(function ()
+                mod:UseSkipTag(FirstJuggleIndex)
+            end, Interval, 1, true)
+
+            Interval = Interval + 20
+        else
+            FirstJuggleIndex = 0
         end
     end
 
+
+    Isaac.CreateTimer(function ()
+
+        mod.AnimationIsPlaying = false
+    
+        for _,Player in ipairs(PlayerManager.GetPlayers()) do
+
+            if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
+
+                Player:AddCustomCacheTag(mod.CustomCache.HAND_SIZE, true)
+
+                --give modifiers to cards basing on the current blind (or remove its effect (chicot))
+                local Interval = Isaac.RunCallback(mod.Callbalcks.BOSS_BLIND_EVAL, true)
+
+
+                if mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_ACORN then
+            
+                    local PIndex = Player:GetData().TruePlayerIndex
+
+                    for i,_ in ipairs(mod.Saved.Player[PIndex].Inventory) do
+
+                        local Slot = mod.Saved.Player[PIndex].Inventory[i]
+                        
+                        Slot.Modifiers = Slot.Modifiers | mod.Modifier.COVERED
+
+                    end
+            
+                end
+
+
+                --Isaac.CreateTimer(function ()
+
+                    --also shuffles the deck in this case
+                    mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams.Purposes.HAND)
+
+                --end, Interval, 1, true)
+                
+            end
+        end
+
+    end, Interval, 1, true)
+
+    
+    return Interval + 8
+
 end
-mod:AddCallback(mod.Callbalcks.POST_BLIND_START, OnBlindStart)
+mod:AddCallback(mod.Callbalcks.BLIND_START, OnBlindStart)
+
+
+
+-----FUNCTION NEEDED FOR PACK SKIP TAGS-----
+---------------------------------------------
+
+local function SkipTagPackOpen(PackType)
+                         
+    local SomeoneIsSelecting = false
+
+    for i,Player in ipairs(PlayerManager.GetPlayers()) do
+
+        local PIndex = Player:GetData().TruePlayerIndex
+    
+        if mod.SelectionParams[PIndex].Mode ~= mod.SelectionParams.Modes.NONE then
+            SomeoneIsSelecting = true
+        
+            break
+        end
+    end
+
+    if SomeoneIsSelecting then
+
+        Isaac.CreateTimer(function ()
+            SkipTagPackOpen(PackType)
+        end, 1, 1, true)
+    else
+        PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo):AddCard(PackType)
+        mod:UseSkipTag(1)
+    end
+end
+
+--------------------------------------------
 
 
 local function OnBlindSkip(_, BlindType)
 
-    --BlindType = BlindType & ~mod.BLINDS.SKIP
-    local BlindLevel = mod:GetBlindLevel(BlindType)
+    mod.Saved.NumBlindsSkipped = mod.Saved.NumBlindsSkipped + 1
 
+    if BlindType == mod.BLINDS.SMALL then
 
-    if BlindLevel == mod.BLINDS.SMALL then
-        
         mod.Saved.SmallCleared = true
 
-    else
+    else --if BlindType == mod.BLINDS.BIG then
         mod.Saved.BigCleared = true
     end
-
 end
 mod:AddPriorityCallback(mod.Callbalcks.BLIND_SKIP, CallbackPriority.IMPORTANT, OnBlindSkip)
 
 
+
+local function OnTagAdded(_, TagAdded)
+
+    local Interval = 8
+
+    local T_Jimbo = PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo)
+
+    if not T_Jimbo then
+        
+        print("wtf why isn't Jimbo here")
+        return
+    end
+
+    local PIndex = T_Jimbo:GetData().TruePlayerIndex
+      
+    for i,Tag in ipairs(mod.Saved.SkipTags) do
+
+        
+        --TagAdded == Tag and
+        if Tag == mod.SkipTags.BOSS then
+
+            Interval = Interval + 20
+
+            Isaac.CreateTimer(function ()
+            
+                local BossPlate = Game:GetRoom():GetGridEntity(70):ToPressurePlate()
+
+                local WasSpecialBoss = BossPlate.VarData >= mod.BLINDS.BOSS_ACORN
+
+                mod.Saved.AnteBoss = mod:RandomBossBlind(mod.RNGs.BOSS_BLINDS, WasSpecialBoss)
+
+                BossPlate.VarData = mod.Saved.AnteBoss
+
+                mod:TrueBloodPoof(BossPlate.Position, 1, mod.EffectColors.PURPLE)
+
+                mod:UpdateBalatroPlate(BossPlate, true)
+
+                mod:UseSkipTag(1) --boss tags are used only when obtained, so they are always first
+
+            end, Interval, 1, true)
+
+
+        elseif Tag == mod.SkipTags.HANDY then
+
+            Interval = Interval + 20
+
+            Isaac.CreateTimer(function ()
+                local Money = mod.Saved.HandsPlayed
+
+                T_Jimbo:AddCoins(Money)
+
+                mod:CreateBalatroEffect(T_Jimbo, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(Money).."$",  mod.EffectType.ENTITY, T_Jimbo)
+                mod:UseSkipTag(1)
+            
+            end, Interval, 1, true)
+
+        elseif Tag == mod.SkipTags.GARBAGE then
+
+            Interval = Interval + 20
+
+            Isaac.CreateTimer(function ()
+                local Money = mod.Saved.DiscardsWasted
+
+                T_Jimbo:AddCoins(Money)
+
+                mod:CreateBalatroEffect(T_Jimbo, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(Money).."$",  mod.EffectType.ENTITY, T_Jimbo)
+                mod:UseSkipTag(1)
+                
+            end, Interval, 1, true)
+        elseif Tag == mod.SkipTags.SPEED then
+
+            Interval = Interval + 20
+
+            Isaac.CreateTimer(function ()
+                local Money = 5 * (mod.Saved.NumBlindsSkipped - 1) --doesn't consider the one just skipped
+
+                T_Jimbo:AddCoins(Money)
+
+                mod:CreateBalatroEffect(T_Jimbo, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(Money).."$",  mod.EffectType.ENTITY, T_Jimbo)
+                mod:UseSkipTag(1)
+                
+            end, Interval, 1, true)
+        elseif Tag == mod.SkipTags.ECONOMY then
+
+            Interval = Interval + 20
+
+            Isaac.CreateTimer(function ()
+                local Money = math.min(40, T_Jimbo:GetNumCoins())
+
+                T_Jimbo:AddCoins(Money)
+
+                mod:CreateBalatroEffect(T_Jimbo, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(Money).."$",  mod.EffectType.ENTITY, T_Jimbo)
+                mod:UseSkipTag(1)
+                
+            end, Interval, 1, true)
+        elseif Tag == mod.SkipTags.TOP_UP then
+
+            Interval = Interval + 20
+
+            Isaac.CreateTimer(function ()
+                for i = 1, 2 do
+
+                    for Index,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+
+                        if Slot.Joker == TrinketType.TRINKET_NULL then
+
+                            local CommonJoker = mod:RandomJoker(mod.RNGs.SKIP_TAGS, true, "common", false)
+
+                            mod.Saved.Player[PIndex].Inventory[Index].Joker = CommonJoker.Joker
+                            mod.Saved.Player[PIndex].Inventory[Index].Edition = CommonJoker.Edition
+
+                            break
+                        end
+                    end
+                end
+                mod:UseSkipTag(1)
+                
+            end, Interval, 1, true)
+
+        elseif Tag == mod.SkipTags.STANDARD then
+
+            SkipTagPackOpen(mod.Packs.MEGA_STANDARD)
+
+        elseif Tag == mod.SkipTags.CHARM then
+
+            SkipTagPackOpen(mod.Packs.MEGA_ARCANA)
+
+        elseif Tag == mod.SkipTags.BUFFON then
+
+            SkipTagPackOpen(mod.Packs.MEGA_BUFFON)
+
+        elseif Tag == mod.SkipTags.METEOR then
+
+            SkipTagPackOpen(mod.Packs.MEGA_CELESTIAL)
+
+        elseif Tag == mod.SkipTags.ETHEREAL then
+
+            SkipTagPackOpen(mod.Packs.SPECTRAL)
+
+        elseif Tag & mod.SkipTags.ORBITAL ~= 0 then
+
+            local HandType = Tag & ~mod.SkipTags.ORBITAL
+
+            local PlanetInterval = mod:PlanetUpgradeAnimation(HandType, 3, Interval)
+            
+            Interval = Interval + PlanetInterval
+        end
+
+        i = i + 1
+    end
+
+    return Interval --after this many frames do  AnimationIsPlaying = false
+end
+mod:AddCallback(mod.Callbalcks.POST_SKIP_TAG_ADDED, OnTagAdded)
+
+
+
+
 local function OnBlindClear(_, BlindData)
 
+    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then
+        return
+    end
+
     local Room = Game:GetRoom()
+
+    mod.Saved.BlindScalingFactor = 1
 
     for _,Player in ipairs(PlayerManager.GetPlayers()) do
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.NONE)
@@ -1399,10 +1805,15 @@ local function OnBlindClear(_, BlindData)
         ::SKIP_TILE::
     end
 
+    if BlindData == mod.BLINDS.SMALL then
+        mod.Saved.SmallCleared = true
 
-    --if mod:GetBlindLevel(BlindData) == mod.BLINDS.BOSS then
-    --    return
-    --end
+    elseif BlindData == mod.BLINDS.BIG then
+        mod.Saved.BigCleared = true
+
+    else --if BlindData & mod.BLINDS.BOSS ~= 0 then
+        mod.Saved.BossCleared = mod.BossProgress.CLEARED
+    end
 
     local TotalGain = Isaac.RunCallback(mod.Callbalcks.CASHOUT_EVAL, BlindData)
 
@@ -1417,12 +1828,23 @@ local function InitializeAnte()
         return
     end
 
+    if not mod.GameStarted then --wait a frame to let the variables get set up (see Callback System.lua)
+        
+        Isaac.CreateTimer(function ()
+            InitializeAnte()
+        end,0,1,true)
+
+        return
+    end
+
     mod.Saved.AnteLevel = mod.Saved.AnteLevel + 1
 
-    -------BOSS POOL MANAGER---------
-    ---------------------------------
+    -------BOSS / SKIP TAGS POOL MANAGER---------
+    ---------------------------------------------
     
     if mod.Saved.AnteLevel == 2 and mod.Saved.MaxAnteLevel ~= 2 then
+
+        -------BOSSES---------
 
         local InitialBossNum = #mod.Saved.Pools.BossBlinds
 
@@ -1434,6 +1856,21 @@ local function InitializeAnte()
         mod.Saved.Pools.BossBlinds[InitialBossNum+6] = mod.BLINDS.BOSS_WATER
         mod.Saved.Pools.BossBlinds[InitialBossNum+7] = mod.BLINDS.BOSS_MOUTH
         mod.Saved.Pools.BossBlinds[InitialBossNum+8] = mod.BLINDS.BOSS_NEEDLE
+
+
+        ---------TAGS---------
+        
+        local InitialTagsNum = #mod.Saved.Pools.SkipTags
+
+        mod.Saved.Pools.SkipTags[InitialTagsNum+1] = mod.SkipTags.NEGATIVE
+        mod.Saved.Pools.SkipTags[InitialTagsNum+2] = mod.SkipTags.STANDARD
+        mod.Saved.Pools.SkipTags[InitialTagsNum+3] = mod.SkipTags.METEOR
+        mod.Saved.Pools.SkipTags[InitialTagsNum+4] = mod.SkipTags.BUFFON
+        mod.Saved.Pools.SkipTags[InitialTagsNum+5] = mod.SkipTags.HANDY
+        mod.Saved.Pools.SkipTags[InitialTagsNum+6] = mod.SkipTags.GARBAGE
+        mod.Saved.Pools.SkipTags[InitialTagsNum+7] = mod.SkipTags.ETHEREAL
+        mod.Saved.Pools.SkipTags[InitialTagsNum+8] = mod.SkipTags.TOP_UP
+        mod.Saved.Pools.SkipTags[InitialTagsNum+8] = mod.SkipTags.ORBITAL
 
     elseif mod.Saved.AnteLevel == 3 and mod.Saved.MaxAnteLevel ~= 3 then
 
@@ -1466,12 +1903,27 @@ local function InitializeAnte()
                         or CurrentStage == LevelStage.STAGE8 -- home
 
 
-    mod:ChooseBossBlind(IsSpecialBoss)
+    mod.Saved.AnteBoss = mod:RandomBossBlind(mod.RNGs.BOSS_BLINDS, IsSpecialBoss)
+
+    if mod.Saved.AnteBoss == mod.BLINDS.BOSS_OX then
+        
+        local _
+        --saves the currently most used card
+        _,mod.Saved.BossBlindVarData = mod:GetMax(mod.Saved.HandsTypeUsed)
+
+    elseif mod.Saved.AnteBoss == mod.BLINDS.BOSS_PILLAR then
+        
+        --holds a table containing the pointers of cards used (also needs to be modifies on card add/removal)
+        mod.Saved.BossBlindVarData = {}
+
+    else
+        mod.Saved.BossBlindVarData = 0
+    end
 
 
     mod.Saved.AnteVoucher = mod:GetRandom(mod.Saved.Pools.Vouchers, mod.RNGs.VOUCHERS)
 
-    print("Voucher:",mod.Saved.AnteVoucher)
+    --print("Voucher:",mod.Saved.AnteVoucher)
 
     -------------CUSTOM PRESSURE PLATES-------------
     ------------------------------------------------
@@ -1494,9 +1946,11 @@ local function InitializeAnte()
     Plate.State = 3
     Plate:GetSprite():Play("Switched")
 
-    mod:SpawnBalatroPressurePlate(Room:GetGridPosition(79), mod.Grids.PlateVariant.BLIND, mod.BLINDS.SKIP | mod.BLINDS.SMALL)
 
-    Plate = mod:SpawnBalatroPressurePlate(Room:GetGridPosition(82), mod.Grids.PlateVariant.BLIND, mod.BLINDS.SKIP | mod.BLINDS.BIG)
+    mod:SpawnBalatroPressurePlate(Room:GetGridPosition(79), mod.Grids.PlateVariant.SMALL_BLIND_SKIP, mod:RandomSkipTag(mod.RNGs.SKIP_TAGS))
+
+
+    Plate = mod:SpawnBalatroPressurePlate(Room:GetGridPosition(82), mod.Grids.PlateVariant.BIG_BLIND_SKIP, mod:RandomSkipTag(mod.RNGs.SKIP_TAGS))
     Plate.State = 3
     Plate:GetSprite():Play("Switched")
 
@@ -1506,38 +1960,71 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, InitializeAnte)
 
 
+
+
 --all enemies' HP get scaled basing on how many antes have been cleared this run
----@param Enemy EntityNPC
-local function EnemyHPScaling(_,Enemy)
+local function EnemyHPScaling()
 
-    local ScalingFactor
-
-    if mod.Saved.AnteLevel <= 0 then
-
-        ScalingFactor = 1/(1 - mod.Saved.AnteLevel) --(0 --> 1 || -1 --> 0.5 and so on)
-    else
-        ScalingFactor = mod.Saved.AnteLevel + 0.5*mod:GetBlindLevel(mod.Saved.BlindBeingPlayed)
+    if Game:GetRoom():IsClear() then        
+        return
     end
 
-    if Enemy:IsActiveEnemy() then
-        
-        if Enemy:IsBoss() then
+    local EnemyMaxHP = mod:GetBlindScoreRequirement(mod.Saved.BlindBeingPlayed)
+
+    print("max score:", EnemyMaxHP)
+
+    local HighestEnemyHP
+
+    for _,Enemy in ipairs(Isaac.GetRoomEntities()) do
+
+        if Enemy:IsActiveEnemy() then
             
-            Enemy.MaxHitPoints = Enemy.MaxHitPoints * 5 * ScalingFactor^0.85
-            Enemy.HitPoints = Enemy.HitPoints * 5 * ScalingFactor^0.85
-
-            --print("Boss HP:", Enemy.MaxHitPoints)
-        else
-            Enemy.MaxHitPoints = Enemy.MaxHitPoints * 5 * ScalingFactor
-            Enemy.HitPoints = Enemy.HitPoints * 5 * ScalingFactor
-
-            --print("Enemy HP:", Enemy.MaxHitPoints)
+            HighestEnemyHP = HighestEnemyHP and math.max(Enemy.MaxHitPoints, HighestEnemyHP) or Enemy.MaxHitPoints
         end
+    end
 
+    --in the end the enemy with the highst HP will match the blind's required score
+    mod.Saved.BlindScalingFactor = EnemyMaxHP / HighestEnemyHP
+
+    for i,Enemy in ipairs(Isaac.GetRoomEntities()) do
+
+        if Enemy:IsActiveEnemy() then
+            
+            Enemy.MaxHitPoints = Enemy.MaxHitPoints * mod.Saved.BlindScalingFactor
+            Enemy.HitPoints = Enemy.HitPoints * mod.Saved.BlindScalingFactor
+
+            Enemy:GetData().AlreadyAnteScaled = true
+        end
     end
 
 end
-mod:AddCallback(ModCallbacks.MC_POST_NPC_INIT, EnemyHPScaling)
+mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, EnemyHPScaling)
+
+
+
+---@param Enemy EntityNPC
+local function SpawnedEnemyHPScaling(_,Enemy)
+
+    if Game:GetRoom():IsClear() then
+        Enemy:Remove()
+        return
+    end
+
+    local ScalingFactor = mod.Saved.BlindScalingFactor
+
+    while Enemy.SpawnerEntity do
+        
+        ScalingFactor = ScalingFactor / 2
+
+        Enemy = Enemy.SpawnerEntity
+
+    end
+
+    Enemy.MaxHitPoints = Enemy.MaxHitPoints * ScalingFactor
+    Enemy.HitPoints = Enemy.HitPoints * ScalingFactor
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_NPC_INIT, SpawnedEnemyHPScaling)
 
 
 
@@ -1600,6 +2087,8 @@ function mod:TJimboHandSizeCache(Player, Cache, Value)
     end
 
     Value = Value + #mod:GetJimboJokerIndex(Player, mod.Jokers.JUGGLER)
+
+    Value = Value + 3*mod.Saved.NumJuggleUsed
  
 
     Value = Value - mod.Saved.Player[PIndex].OuijaUses
@@ -1613,7 +2102,17 @@ function mod:TJimboHandSizeCache(Player, Cache, Value)
         Value = Value - 1
     end
 
-    Value = math.max(0, Value) --btw it's an instant loss if your hand size is 0
+
+    if Value <= 0 then
+        
+        Player:AnimateSad()
+
+        Isaac.CreateTimer(function ()
+            Player:Kill()
+        end,20, 1, true)
+
+        return
+    end
 
     --[[
     local SizeDifference = Value - #mod.Saved.Player[PIndex].CurrentHand
@@ -1651,8 +2150,7 @@ function mod:TJimboDiscardNumCache(Player, Cache, Value)
     Value = Value + #mod:GetJimboJokerIndex(Player, mod.Jokers.DRUNKARD)
 
 
-
-    if mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR) then
+    if mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_WATER then
         Value = 0
     end
 
@@ -1662,7 +2160,7 @@ function mod:TJimboDiscardNumCache(Player, Cache, Value)
 
     local PIndex = Player:GetData().TruePlayerIndex
 
-    mod.Saved.Player[PIndex].DiscardsRemaining = Value
+    mod.Saved.DiscardsRemaining = Value
 
     return Value
 end
@@ -1686,19 +2184,22 @@ function mod:TJimboHandsCache(Player, Cache, Value)
 
     Value = Value - #mod:GetJimboJokerIndex(Player, mod.Jokers.TROUBADOR)
 
-    Value = Value + 3 * #mod:GetJimboJokerIndex(Player, mod.Jokers.BURGLAR)
+    --local PIndex = Player:GetData().TruePlayerIndex
 
-    local PIndex = Player:GetData().TruePlayerIndex
+    if mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_NEEDLE then
+        Value = 1
+    end
 
 
     Value = math.max(Value, 1)
 
+    mod.Saved.HandsRemaining = Value
 
-    if mod.Saved.BlindBeingPlayed >=  mod.BLINDS.BOSS_ACORN then
-        Value = mod.INFINITE_HANDS
-    end
+    --if mod.Saved.IsSpecialBoss then
+    --    Value = mod.INFINITE_HANDS
+    --end
 
-    mod.Saved.Player[PIndex].HandsRemaining = Value
+    
 
     return Value
 end

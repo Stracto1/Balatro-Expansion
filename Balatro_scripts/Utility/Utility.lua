@@ -448,6 +448,24 @@ function mod:RandomSeed(RNG)
     return RNG:RandomInt(MAX_SEED_VALUE) + 1
 end
 
+--for some reason i had difficulty using EntotyNPC:MakeBloodPoof()'s extra arguments so made this
+function mod:TrueBloodPoof(Position, Scale, Color)
+
+
+    local Poof = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.POOF02, Position,
+                            Vector.Zero, nil, 3, 1)
+
+    Poof.SpriteScale = Vector.One * Scale
+    Poof:SetColor(Color, -1, 100, false, false)
+
+    local Poof = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.POOF02, Position,
+                            Vector.Zero, nil, 4, 1)
+
+    Poof.SpriteScale = Vector.One * Scale
+    Poof:SetColor(Color, -1, 100, false, false)
+
+end
+
 
 -------------JIMBO FUNCTIONS------------
 ---------------------------------------
@@ -2084,6 +2102,46 @@ function mod:RandomShopItem(Rng)
 end
 
 
+function mod:RandomSkipTag(Rng)
+
+    local Tag = mod:GetRandom(mod.Saved.Pools.SkipTags, Rng)
+
+    if Tag == mod.SkipTags.ORBITAL then
+        
+        Tag = Tag | mod:RandomHandType(mod.RNGs.SKIP_TAGS)
+    end
+
+    return Tag
+end
+
+
+function mod:RandomHandType(Rng)
+
+    local PossibleHands = {}
+
+    for _, Hand in pairs(mod.HandTypes) do
+        
+        local IsUnlocked = true
+
+        if ((Hand == mod.HandTypes.FIVE
+           or Hand == mod.HandTypes.FIVE_FLUSH
+           or Hand == mod.HandTypes.FLUSH_HOUSE)
+           and mod.Saved.HandsTypeUsed[Hand] == 0) --secret hands need to be unlocked
+           or Hand == mod.HandTypes.ROYAL_FLUSH --this hand type sucks ass
+           or Hand == mod.HandTypes.NONE then --scemo chi legge
+            
+            IsUnlocked = false
+        end
+
+        if IsUnlocked then
+            PossibleHands[#PossibleHands+1] = Hand
+        end
+    end
+
+    return mod:GetRandom(PossibleHands, Rng)
+end
+
+
 function mod:CardValueToName(Value, IsEID, OnlyInitial)
 
     local String
@@ -2154,20 +2212,45 @@ function mod:CardSuitToName(Suit, IsEID)
 
 end
 
-function mod:AddJoker(Player, Joker, Edition, StopEval)
-    --local PIndex = Player:GetData().TruePlayerIndex
 
-    Edition = Edition or mod.Edition.BASE
+function mod:AddSkipTag(TagAdded)
 
-    mod.Saved.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Joker).Name] = Edition
+    table.insert(mod.Saved.SkipTags, 1, TagAdded)
 
-    return mod:JimboAddTrinket(nil, Player, Joker, false, StopEval)
+    local Interval = 8
+
+    if TagAdded ~= mod.SkipTags.DOUBLE then
+        for i,Tag in ipairs(mod.Saved.SkipTags) do
+
+            if Tag == mod.SkipTags.DOUBLE then
+
+                --remove the first double tag found and duplicate the originally added one
+                Isaac.CreateTimer(function ()
+                    mod:UseSkipTag(i)
+                    mod:AddSkipTag(TagAdded)
+                end, Interval, 1, true)
+
+                Interval = Interval + 20
+
+            end
+        end
+    end
+
+    Isaac.CreateTimer(function ()
+        
+        Isaac.RunCallback(mod.Callbalcks.POST_SKIP_TAG_ADDED, TagAdded)
+
+    end, Interval, 1, true)
+
+    return Interval
 end
 
 
 function mod:UseSkipTag(Pos)
 
- --PLACEHOLDER, do effects and stuff
+    table.remove(mod.Saved.SkipTags, Pos)
+
+    sfx:Play(mod.Sounds.SLICE) --PLACEHOLDER
 end
 
 
@@ -2226,6 +2309,16 @@ end
 mod:AddPriorityCallback(ModCallbacks.MC_POST_TRIGGER_TRINKET_ADDED,CallbackPriority.IMPORTANT, JimboAddTrinket)
 
 
+function mod:AddJoker(Player, Joker, Edition, StopEval)
+    --local PIndex = Player:GetData().TruePlayerIndex
+
+    Edition = Edition or mod.Edition.BASE
+
+    mod.Saved.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Joker).Name] = Edition
+
+    return JimboAddTrinket(nil, Player, Joker, false, StopEval)
+end
+
 
 function mod:AddCardToDeck(Player, CardTable,Amount, PutInHand)
 
@@ -2237,6 +2330,8 @@ function mod:AddCardToDeck(Player, CardTable,Amount, PutInHand)
     CardTable.Edition = CardTable.Edition or mod.Edition.BASE
     CardTable.Seal = CardTable.Seal or mod.Seals.NONE
     CardTable.Modifiers = CardTable.Modifiers or 0
+
+    CardTable.Modifiers = CardTable.Modifiers | mod:GetCardModifiers(Player, CardTable)
 
     local PIndex = Player:GetData().TruePlayerIndex
 
@@ -2252,9 +2347,14 @@ function mod:AddCardToDeck(Player, CardTable,Amount, PutInHand)
         mod.SelectionParams[PIndex].PlayedCards[i] = mod.SelectionParams[PIndex].PlayedCards[i] + Amount --fixes the jump made by table.insert
     end
 
+    if mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_PILLAR then
+        for i,_ in ipairs(mod.Saved.BossBlindVarData) do
+            mod.Saved.BossBlindVarData[i] = mod.Saved.BossBlindVarData[i] + Amount --fixes the jump made by table.insert
+        end
+    end
 
+    mod.Saved.Player[PIndex].DeckPointer = mod.Saved.Player[PIndex].DeckPointer + Amount --fixes the jump made by table.insert
 
-    mod.Saved.Player[PIndex].DeckPointer = mod.Saved.Player[PIndex].DeckPointer + 2 --fixes the jump made by table.insert
 
     if PutInHand then
         for i=1, Amount do
@@ -2291,41 +2391,57 @@ function mod:DestroyCards(Player, DeckIndexes, DoEffects, BlockSubstitution)
 
     local DestroyedParams = {}
 
-    for _, Index in ipairs(DeckIndexes) do
-        local CardParams = mod.Saved.Player[PIndex].FullDeck[Index]
+    for _, DestroyedPointer in ipairs(DeckIndexes) do
+
+        local CardParams = mod.Saved.Player[PIndex].FullDeck[DestroyedPointer]
 
         DestroyedParams[#DestroyedParams+1] = CardParams
 
-        if mod:Contained(mod.Saved.Player[PIndex].CurrentHand, Index)
-           and (#mod.Saved.Player[PIndex].CurrentHand > Player:GetCustomCacheValue("handsize")
+        if mod:Contained(mod.Saved.Player[PIndex].CurrentHand, DestroyedPointer)
+           and (#mod.Saved.Player[PIndex].CurrentHand > Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE)
            or BlockSubstitution) then
         
+            --removes the pointer from the hand so it doesn't become the next card in the deck
             ---@diagnostic disable-next-line: param-type-mismatch
-            table.remove(mod.Saved.Player[PIndex].CurrentHand, mod:GetValueIndex(mod.Saved.Player[PIndex].CurrentHand, Index, true))
+            table.remove(mod.Saved.Player[PIndex].CurrentHand, mod:GetValueIndex(mod.Saved.Player[PIndex].CurrentHand, DestroyedPointer, true))
         
-            for i,Pointer in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
-                if Pointer >= Index then
-                    mod.Saved.Player[PIndex].CurrentHand[i] = mod.Saved.Player[PIndex].CurrentHand[i] - 1 --fixes the gap made by table.remove
-                end
+        end
+
+
+        for i,Pointer in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
+            if Pointer >= DestroyedPointer then
+                mod.Saved.Player[PIndex].CurrentHand[i] = mod.Saved.Player[PIndex].CurrentHand[i] - 1 --fixes the gap made by table.remove
             end
         end
 
-        if IsTaintedJimbo
-           and mod:Contained(mod.SelectionParams[PIndex].PlayedCards, Index) then
 
-            table.remove(mod.SelectionParams[PIndex].PlayedCards, mod:GetValueIndex(mod.SelectionParams[PIndex].PlayedCards, Index, true))
+        if IsTaintedJimbo
+           and mod:Contained(mod.SelectionParams[PIndex].PlayedCards, DestroyedPointer) then
+
+            table.remove(mod.SelectionParams[PIndex].PlayedCards, mod:GetValueIndex(mod.SelectionParams[PIndex].PlayedCards, DestroyedPointer, true))
         
             for i,Pointer in ipairs(mod.SelectionParams[PIndex].PlayedCards or {}) do
-                if Pointer >= Index then
+
+                if Pointer >= DestroyedPointer then
                     mod.SelectionParams[PIndex].PlayedCards[i] = mod.SelectionParams[PIndex].PlayedCards[i] - 1 --fixes the gap made by table.remove
                 end
             end
+
+            if mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_PILLAR then
+                
+                for i,Pointer in ipairs(mod.Saved.BossBlindVarData) do
+                    if Pointer >= DestroyedPointer then
+                        mod.SelectionParams[PIndex].PlayedCards[i] = mod.SelectionParams[PIndex].PlayedCards[i] - 1 --fixes the gap made by table.remove
+                    end
+                end
+
+            end
         end
 
-        table.remove(mod.Saved.Player[PIndex].FullDeck, Index)
+        table.remove(mod.Saved.Player[PIndex].FullDeck, DestroyedPointer)
         
         if DoEffects then
-            mod:CardRipEffect(CardParams, IsTaintedJimbo and Isaac.ScreenToWorld(mod.LastCardFullPoss[Index]) * SCREEN_TO_WORLD_RATIO or Player.Position)
+            mod:CardRipEffect(CardParams, IsTaintedJimbo and Isaac.ScreenToWorld(mod.LastCardFullPoss[DestroyedPointer]) * SCREEN_TO_WORLD_RATIO or Player.Position)
         end
     end
 
@@ -2521,6 +2637,64 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT, mod.NoBloodSplats, EffectVariant.BLOOD_SPLAT)
 
 
+
+--gets the hypothetical modifiers basing on card and current boss blind
+function mod:GetCardModifiers(Player, Card, Pointer)
+
+    local BlindType = mod.Saved.BlindBeingPlayed
+
+    local CardModifiers = 0
+
+    if BlindType == mod.BLINDS.BOSS_CLUB then
+
+        if mod:IsSuit(Player, Card, mod.Suits.Club) then
+            CardModifiers = mod.Modifier.DEBUFFED
+        end
+
+    elseif BlindType == mod.BLINDS.BOSS_GOAD then
+
+        if mod:IsSuit(Player, Card, mod.Suits.Spade) then
+            CardModifiers = mod.Modifier.DEBUFFED
+        end
+
+    elseif BlindType == mod.BLINDS.BOSS_HEAD then
+
+        if mod:IsSuit(Player, Card, mod.Suits.Heart) then
+            CardModifiers = mod.Modifier.DEBUFFED
+        end
+
+    elseif BlindType == mod.BLINDS.BOSS_WINDOW then
+
+        if mod:IsSuit(Player, Card, mod.Suits.Diamond) then
+            CardModifiers = mod.Modifier.DEBUFFED
+        end
+
+    elseif BlindType == mod.BLINDS.BOSS_PLANT then
+
+        if mod:IsValue(Player, Card, mod.Values.FACE) then
+            CardModifiers = mod.Modifier.DEBUFFED
+        end
+
+    elseif BlindType == mod.BLINDS.BOSS_MARK then
+
+        if mod:IsValue(Player, Card, mod.Values.FACE) then
+            CardModifiers = mod.Modifier.COVERED
+        end
+
+    elseif BlindType == mod.BLINDS.BOSS_PILLAR then
+
+        if mod:Contained(mod.Saved.BossBlindVarData, Pointer) then
+            CardModifiers = mod.Modifier.DEBUFFED
+        end
+
+    end
+
+
+    return CardModifiers
+end
+
+
+
 --shuffles the deck
 ---@param Player EntityPlayer
 function mod:FullDeckShuffle(Player)
@@ -2532,10 +2706,33 @@ function mod:FullDeckShuffle(Player)
 
     local PIndex = Player:GetData().TruePlayerIndex
     local PlayerRNG = Player:GetDropRNG()
+
+    
+
+
     mod.Saved.Player[PIndex].FullDeck = mod:Shuffle(mod.Saved.Player[PIndex].FullDeck, PlayerRNG)
 
     mod.Saved.Player[PIndex].DeckPointer = Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) + 1
+
     for i=1, Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) do
+
+        if mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_HOUSE then
+
+            local card = mod.Saved.Player[PIndex].DeckPointer[i]
+
+            card.Modifiers = card.Modifiers | mod.Modifier.COVERED
+
+        elseif mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_WHEEL then
+
+            if mod:TryGamble(Player, nil, 1/7) then
+                
+                local card = mod.Saved.Player[PIndex].DeckPointer[i]
+
+                card.Modifiers = card.Modifiers | mod.Modifier.COVERED
+            end
+        end
+
+
         mod.Saved.Player[PIndex].CurrentHand[i] = i
     end
 
@@ -2544,7 +2741,7 @@ function mod:FullDeckShuffle(Player)
 end
 
 
-function mod:RefillHand(Player)
+function mod:RefillHand(Player, CausedByHandPlay)
 
     local PIndex = Player:GetData().TruePlayerIndex
     local DeckSize = #mod.Saved.Player[PIndex].FullDeck - 1
@@ -2552,7 +2749,15 @@ function mod:RefillHand(Player)
     local DeckFinished = false
     local Delay = 0
 
-    for i = #mod.Saved.Player[PIndex].CurrentHand, Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) - 1 do
+
+    local CardsToGive = Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) - #mod.Saved.Player[PIndex].CurrentHand
+
+    if mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_SERPENT then
+
+        CardsToGive = 3
+    end
+
+    for i = 1, CardsToGive do
 
         if mod.Saved.Player[PIndex].DeckPointer > DeckSize then
             
@@ -2563,6 +2768,13 @@ function mod:RefillHand(Player)
         Isaac.CreateTimer(function ()
 
             local NewPos = #mod.Saved.Player[PIndex].CurrentHand + 1
+
+            if CausedByHandPlay and mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_FISH then
+                
+                local card = mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].DeckPointer]
+
+                card.Modifiers = card.Modifiers | mod.Modifier.COVERED
+            end
 
             table.insert(mod.Saved.Player[PIndex].CurrentHand, NewPos, mod.Saved.Player[PIndex].DeckPointer)
             sfx:Play(mod.Sounds.SELECT)
@@ -2580,7 +2792,7 @@ function mod:RefillHand(Player)
 end
 
 
-function mod:ChooseBossBlind(SpecialBoss)
+function mod:RandomBossBlind(Rng, SpecialBoss)
     
     --resets the pool in case it gets emptied
     if not next(mod.Saved.Pools.BossBlinds) then
@@ -2631,6 +2843,7 @@ function mod:ChooseBossBlind(SpecialBoss)
 
     end
 
+    --same here
     if not next(mod.Saved.Pools.SpecialBossBlinds) then
 
         mod.Saved.Pools.SpecialBossBlinds = { mod.BLINDS.BOSS_HEART,
@@ -2641,26 +2854,66 @@ function mod:ChooseBossBlind(SpecialBoss)
                                               }
     end
 
+    local ChosenBoss
+
     if SpecialBoss then
 
-        mod.Saved.AnteBoss = mod:GetRandom(mod.Saved.Pools.SpecialBossBlinds, RNG(Game:GetLevel():GetDungeonPlacementSeed()))
+        ChosenBoss = mod:GetRandom(mod.Saved.Pools.SpecialBossBlinds, Rng)
 
-        table.remove(mod.Saved.Pools.SpecialBossBlinds, mod:GetValueIndex(mod.Saved.Pools.SpecialBossBlinds, mod.Saved.AnteBoss, true))
+        table.remove(mod.Saved.Pools.SpecialBossBlinds, mod:GetValueIndex(mod.Saved.Pools.SpecialBossBlinds, ChosenBoss, true))
 
     else
 
-        mod.Saved.AnteBoss = mod:GetRandom(mod.Saved.Pools.BossBlinds, RNG(Game:GetLevel():GetDungeonPlacementSeed()))
+        ChosenBoss = mod:GetRandom(mod.Saved.Pools.BossBlinds, Rng)
 
-        table.remove(mod.Saved.Pools.BossBlinds, mod:GetValueIndex(mod.Saved.Pools.BossBlinds, mod.Saved.AnteBoss, true))
-
+        table.remove(mod.Saved.Pools.BossBlinds, mod:GetValueIndex(mod.Saved.Pools.BossBlinds, ChosenBoss, true))
+    
     end
 
+
+    return ChosenBoss
 end
 
 
 function mod:GetBlindLevel(PlateVarData)
 
     return PlateVarData & mod.BLINDS.BOSS ~= 0 and mod.BLINDS.BOSS or PlateVarData & ~mod.BLINDS.SKIP
+end
+
+
+local AnteScaling = {300, 1000, 3200, 9000, 25000, 60000, 110000, 200000} --equal to purple stake's requirements
+                  --{300, 900, 2600, 8000, 20000, 36000, 60000, 100000} --green stake
+local BlindScaling = {[mod.BLINDS.SMALL] = 1,
+                      [mod.BLINDS.BIG] = 1.5,
+                      [mod.BLINDS.BOSS] = 2,
+                      [mod.BLINDS.BOSS_NEEDLE] = 0.75, --usually it's 1 but since more enemies need to be hit so make it a bit lower
+                      [mod.BLINDS.BOSS_WALL] = 4,
+                      [mod.BLINDS.BOSS_VESSEL] = 6}
+
+
+function mod:GetBlindScoreRequirement(Blind)
+    Blind = Blind or mod.BLINDS.SMALL
+
+    local Score
+
+    if mod.Saved.AnteLevel <= 0 then
+
+        Score = 1/(1 - mod.Saved.AnteLevel) * 100 --(0 --> 100 || -1 --> 50 and so on)
+
+    elseif AnteScaling[mod.Saved.AnteLevel] then
+        Score = AnteScaling[mod.Saved.AnteLevel]
+
+    else --stole this bit directly from the game's original code (how tf do you even come up with this?)
+        local a, b, c, d, k = AnteScaling[8],1.6,mod.Saved.AnteLevel-8, 1 + 0.2*(mod.Saved.AnteLevel-8), 0.75
+        
+        Score = math.floor(a*(b+(k*c)^d)^c)
+        
+        Score = Score - Score%(10^math.floor(math.log(Score, 10)-1))
+    end
+
+    Score = Score * (BlindScaling[mod.Saved.BlindBeingPlayed] or BlindScaling[mod.BLINDS.BOSS])
+
+    return Score
 end
 
 
@@ -3376,6 +3629,7 @@ function mod:UseSelection(Player)
     local PackSelectedCards
     local HandSelectedCards
 
+
     if IsTaintedJimbo then
         SelectedCards = mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams[PIndex].Mode] or {}
         PackSelectedCards = mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.PACK]
@@ -3396,10 +3650,94 @@ function mod:UseSelection(Player)
 
         if mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.AIMING then
             
-
             mod:ActivateCurrentHand(Player)
             --Isaac.RunCallback(mod.Callbalcks.POST_HAND_PLAY, Player)
         end
+
+    elseif mod.SelectionParams[PIndex].PackPurpose ~= mod.SelectionParams.Purposes.NONE then
+        --THIS CAN ONLY HAPPEN FOR T.JIMBO
+        --packs for base Jimbo activate directly on selection
+
+        local PackIndex = mod:GetValueIndex(PackSelectedCards, true, true)
+
+        if not PackIndex then
+            return
+        end
+
+        local PackPurpose = mod.SelectionParams[PIndex].PackPurpose & ~mod.SelectionParams.Purposes.MegaFlag
+
+        local Interval = 4
+
+        if PackPurpose == mod.SelectionParams.Purposes.TarotPack
+           or PackPurpose == mod.SelectionParams.Purposes.SpectralPack
+           or PackPurpose == mod.SelectionParams.Purposes.CelestialPack then
+
+            print(mod:FrameToSpecialCard(mod.SelectionParams[PIndex].PackOptions[PackIndex]))
+            
+            Interval = mod:TJimboUseCard(mod:FrameToSpecialCard(mod.SelectionParams[PIndex].PackOptions[PackIndex]), Player)
+
+            --local Success = mod:TJimboUseCard(Card.CARD_MAGICIAN, Player, 0)
+
+            if not Interval then
+                return
+            end
+            
+            if mod.SelectionParams[PIndex].PackPurpose & mod.SelectionParams.Purposes.MegaFlag ~= 0 then
+                
+                mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose & ~mod.SelectionParams.Purposes.MegaFlag
+                
+                table.remove(mod.SelectionParams[PIndex].PackOptions, PackIndex)
+                goto FINISH
+            end
+
+        elseif PackPurpose == mod.SelectionParams.Purposes.StandardPack then
+
+            local SelectedCard = mod.SelectionParams[PIndex].PackOptions[mod.SelectionParams[PIndex].Index]
+
+            mod:AddCardToDeck(Player, SelectedCard, 1)
+
+            if mod.SelectionParams[PIndex].PackPurpose & mod.SelectionParams.Purposes.MegaFlag ~= 0 then
+                
+                mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose & ~mod.SelectionParams.Purposes.MegaFlag
+                
+                table.remove(mod.SelectionParams[PIndex].PackOptions, PackIndex)
+                goto FINISH
+            end
+
+        elseif PackPurpose == mod.SelectionParams.Purposes.BuffonPack then
+
+            local Joker = mod.SelectionParams[PIndex].PackOptions[mod.SelectionParams[PIndex].Index].Joker
+            local Edition = mod.SelectionParams[PIndex].PackOptions[mod.SelectionParams[PIndex].Index].Edition
+
+            local Success = mod:AddJoker(Player, Joker, Edition)
+
+            if not Success then
+                return
+            end
+
+            if mod.SelectionParams[PIndex].PackPurpose & mod.SelectionParams.Purposes.MegaFlag ~= 0 then
+                
+                mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose & ~mod.SelectionParams.Purposes.MegaFlag
+                
+                table.remove(mod.SelectionParams[PIndex].PackOptions, PackIndex)
+                goto FINISH
+            end
+        end
+
+        Isaac.CreateTimer(function ()
+            if Game:GetRoom():IsClear() then
+
+                mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.NONE)
+                mod.Saved.EnableHand = false
+            else
+                mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams.Purposes.HAND)
+                mod.Saved.EnableHand = true
+            end
+
+            mod.SelectionParams[PIndex].PackOptions = {}
+            mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams.Purposes.NONE
+        end, Interval + 20, 1, true)
+        
 
 
     elseif mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.HAND then
@@ -3545,88 +3883,7 @@ function mod:UseSelection(Player)
         end
 
 
-    elseif mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.PACK then
-        --THIS CAN ONLY HAPPEN FOR T.JIMBO
-        --packs for base Jimbo activate directly on selection
-
-        local PackIndex = mod:GetValueIndex(PackSelectedCards, true, true)
-
-        if not PackIndex then
-            return
-        end
-
-        local PackPurpose = mod.SelectionParams[PIndex].PackPurpose & ~mod.SelectionParams.Purposes.MegaFlag
-
-        local Interval = 4
-
-        if PackPurpose == mod.SelectionParams.Purposes.TarotPack
-           or PackPurpose == mod.SelectionParams.Purposes.SpectralPack
-           or PackPurpose == mod.SelectionParams.Purposes.CelestialPack then
-            
-            Interval = mod:TJimboUseCard(mod:FrameToSpecialCard(mod.SelectionParams[PIndex].PackOptions[PackIndex]), Player)
-
-            --local Success = mod:TJimboUseCard(Card.CARD_MAGICIAN, Player, 0)
-
-            if not Interval then
-                return
-            end
-            
-            if mod.SelectionParams[PIndex].PackPurpose & mod.SelectionParams.Purposes.MegaFlag ~= 0 then
-                
-                mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose & ~mod.SelectionParams.Purposes.MegaFlag
-                
-                table.remove(mod.SelectionParams[PIndex].PackOptions, PackIndex)
-                goto FINISH
-            end
-
-        elseif PackPurpose == mod.SelectionParams.Purposes.StandardPack then
-
-            local SelectedCard = mod.SelectionParams[PIndex].PackOptions[mod.SelectionParams[PIndex].Index]
-
-            mod:AddCardToDeck(Player, SelectedCard, 1)
-
-            if mod.SelectionParams[PIndex].PackPurpose & mod.SelectionParams.Purposes.MegaFlag ~= 0 then
-                
-                mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose & ~mod.SelectionParams.Purposes.MegaFlag
-                
-                table.remove(mod.SelectionParams[PIndex].PackOptions, PackIndex)
-                goto FINISH
-            end
-
-        elseif PackPurpose == mod.SelectionParams.Purposes.BuffonPack then
-
-            local Joker = mod.SelectionParams[PIndex].PackOptions[mod.SelectionParams[PIndex].Index].Joker
-            local Edition = mod.SelectionParams[PIndex].PackOptions[mod.SelectionParams[PIndex].Index].Edition
-
-            local Success = mod:AddJoker(Player, Joker, Edition)
-
-            if not Success then
-                return
-            end
-
-            if mod.SelectionParams[PIndex].PackPurpose & mod.SelectionParams.Purposes.MegaFlag ~= 0 then
-                
-                mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose & ~mod.SelectionParams.Purposes.MegaFlag
-                
-                table.remove(mod.SelectionParams[PIndex].PackOptions, PackIndex)
-                goto FINISH
-            end
-        end
-
-        Isaac.CreateTimer(function ()
-            if Game:GetRoom():IsClear() then
-
-                mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.NONE)
-                mod.Saved.EnableHand = false
-            else
-                mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams.Purposes.HAND)
-                mod.Saved.EnableHand = true
-            end
-
-            mod.SelectionParams[PIndex].PackOptions = {}
-            mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams.Purposes.NONE
-        end, Interval + 20, 1, true)
-        
+    
     end
 
     ::FINISH::
@@ -3689,6 +3946,8 @@ function mod:DiscardSelection(Player)
 
                 NumDiscarded = NumDiscarded + 1
 
+                local GotDestroyed
+                
                 CurrentDelay, GotDestroyed = Isaac.RunCallback(mod.Callbalcks.CARD_DISCARD, Player, mod.Saved.Player[PIndex].CurrentHand[SelectionIndex], 
                                                  SelectionIndex, NumDiscarded == mod.SelectionParams[PIndex].SelectionNum)
 
@@ -3756,6 +4015,157 @@ function mod:CountersUpdate()
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.CountersUpdate)
+
+
+local CardLayerID = {BODY = 1, VALUE_SUIT = 0, ENHANCEMENT = 2, SEAL = 3}
+
+local JimboCards = Sprite("gfx/ui/Card Body.anm2")
+
+function mod:RenderCard(Params, Position, Offset, Scale,Rotation, ForceCovered, Thin)
+
+    Offset = Offset or Vector.Zero
+    Scale = Scale or Vector.One
+    Rotation = Rotation or 0
+
+    if Thin then
+        JimboCards:SetAnimation("Thin")
+    else
+        JimboCards:SetAnimation("Base")
+    end
+
+    JimboCards.Scale = Scale
+    JimboCards.Rotation = Rotation
+
+    if Params.Modifiers & mod.Modifier.COVERED ~= 0 or ForceCovered then
+        JimboCards:SetLayerFrame(CardLayerID.BODY, 0)
+        JimboCards:RenderLayer(CardLayerID.BODY, Position)
+
+        return
+    end
+
+    JimboCards:SetCustomShader(mod.EditionShaders[Params.Edition])
+
+    JimboCards:SetLayerFrame(CardLayerID.BODY, Params.Enhancement)
+    JimboCards:RenderLayer(CardLayerID.BODY, Position)
+
+    if Params.Enhancement == mod.Enhancement.STONE then
+        return
+    end
+
+    JimboCards:SetLayerFrame(CardLayerID.VALUE_SUIT, 4* Params.Value + Params.Suit - 5)
+    JimboCards:RenderLayer(CardLayerID.VALUE_SUIT, Position + Offset*Scale)
+
+    JimboCards:SetLayerFrame(CardLayerID.ENHANCEMENT, Params.Enhancement)
+    JimboCards:RenderLayer(CardLayerID.ENHANCEMENT, Position)
+
+    JimboCards:SetLayerFrame(CardLayerID.SEAL, Params.Seal)
+    JimboCards:RenderLayer(CardLayerID.SEAL, Position)
+
+end
+
+
+local PLANET_STEP = 8
+
+function mod:PlanetUpgradeAnimation(HandType, LevelsGiven, BaseInterval)
+
+    local CurrentLevel = mod.Saved.HandLevels[HandType]
+
+    local HypotheticalLevel = CurrentLevel + LevelsGiven
+
+    --puts a cap to LevelsGained if it would make the level under 1
+    LevelsGiven = LevelsGiven + (math.max(1,HypotheticalLevel) - HypotheticalLevel)
+
+    if LevelsGiven == 0 then
+        return 0 --no animation frames were used
+    end
+
+
+    BaseInterval = BaseInterval or 0
+    local OldAnimationIsPlaying = mod.AnimationIsPlaying and true or false --to make sure that there's no upvalue
+
+    mod.AnimationIsPlaying = true
+
+    --shows the current stats
+    mod.Saved.MultValue = mod.Saved.HandsStat[HandType].Mult
+    mod.Saved.ChipsValue = mod.Saved.HandsStat[HandType].Chips
+
+    local Interval = BaseInterval + 12 --initial wait
+
+    local ExtraChips = mod.HandUpgrades[HandType].Chips * LevelsGiven
+    local ExtraMult = mod.HandUpgrades[HandType].Mult * LevelsGiven
+
+    local Sign = mod:GetSignString(ExtraChips) -- either "" or "+" basing on value
+
+    --increase chips
+    Isaac.CreateTimer(function ()
+
+        mod.Saved.HandsStat[HandType].Chips = mod.Saved.HandsStat[HandType].Chips + ExtraChips
+        
+        mod.Saved.ChipsValue = Sign..tostring(ExtraChips)
+        sfx:Play(SoundEffect.SOUND_PLOP)
+
+    end, Interval, 1, true)
+
+    Interval = Interval + 12 --for this many frames keeps the "+num" rendered
+
+    --set the value to the increased one
+    Isaac.CreateTimer(function ()
+
+        mod.Saved.ChipsValue = mod.Saved.HandsStat[HandType].Chips
+
+    end, Interval, 1, true)
+
+    Interval = Interval + 4
+
+
+
+    --increase mult
+    Isaac.CreateTimer(function ()
+        mod.Saved.HandsStat[HandType].Mult = mod.Saved.HandsStat[HandType].Mult + ExtraMult
+        
+        mod.Saved.MultValue = Sign..tostring(ExtraMult)
+        sfx:Play(SoundEffect.SOUND_PLOP)
+
+    end, Interval, 1, true)
+
+    Interval = Interval + 12 --for this many frames keeps the "+num" rendered
+
+    --set the value to the increased one
+    Isaac.CreateTimer(function ()
+    
+        mod.Saved.MultValue = mod.Saved.HandsStat[HandType].Mult
+
+    end, Interval, 1, true)
+
+    Interval = Interval + 4
+
+    --increase level itself
+    Isaac.CreateTimer(function ()
+
+        --can't go below 1
+        mod.Saved.HandLevels[HandType] = mod.Saved.HandLevels[HandType] + LevelsGiven
+    end, Interval, 1, true)
+
+    Interval = Interval + 8 --ending wait
+
+    Isaac.CreateTimer(function ()
+
+        mod.AnimationIsPlaying = OldAnimationIsPlaying --puts back the animation to where it was
+    end, Interval, 1, true)
+
+
+    if HandType == mod.HandTypes.STRAIGHT_FLUSH then
+
+        --upgrades both royal flush and straight flush (no need to put this into the timers since it is not shown)
+
+        mod.Saved.HandLevels[mod.HandTypes.ROYAL_FLUSH] = mod.Saved.HandLevels[mod.HandTypes.ROYAL_FLUSH] + LevelsGiven
+        mod.Saved.HandsStat[mod.HandTypes.ROYAL_FLUSH].Mult = mod.Saved.HandsStat[mod.HandTypes.ROYAL_FLUSH].Mult + ExtraMult
+        mod.Saved.HandsStat[mod.HandTypes.ROYAL_FLUSH].Chips = mod.Saved.HandsStat[mod.HandTypes.ROYAL_FLUSH].Chips + ExtraChips
+    end
+
+    return Interval - BaseInterval --how long the animation lasted
+end
+
 
 -------TRASH--------
 --------------------

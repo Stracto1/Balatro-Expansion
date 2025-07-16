@@ -96,6 +96,24 @@ function mod:OnGameStart(Continued)
                                               mod.BLINDS.BOSS_LEAF,
                                               }
 
+        mod.Saved.Pools.SkipTags = { mod.SkipTags.UNCOMMON,
+                                     mod.SkipTags.RARE,
+                                     mod.SkipTags.FOIL,
+                                     mod.SkipTags.HOLO,
+                                     mod.SkipTags.POLYCHROME,
+                                     mod.SkipTags.INVESTMENT,
+                                     mod.SkipTags.VOUCHER,
+                                     mod.SkipTags.BOSS,
+                                     mod.SkipTags.CHARM,
+                                     mod.SkipTags.COUPON,
+                                     mod.SkipTags.DOUBLE,
+                                     mod.SkipTags.JUGGLE,
+                                     mod.SkipTags.D6,
+                                     mod.SkipTags.SPEED,
+                                     mod.SkipTags.ECONOMY,}                                        
+                                     
+
+
 
         mod.Saved.FloorVouchers = {}
 
@@ -105,10 +123,69 @@ function mod:OnGameStart(Continued)
         mod.Saved.TarotsUsed = 0
         mod.Saved.PlanetTypesUsed = 0
         mod.Saved.BlindBeingPlayed = mod.BLINDS.SKIP
+        mod.Saved.BossBlindVarData = 0
         --mod.Saved.AnteVoucher = 0   cannot be set here cause GAME_STARTED happens after NEW_LEVEL
         mod.Saved.NumShopRerolls = 0
-        mod.Saved.RerollStartingPrice = 0
+        mod.Saved.RerollStartingPrice = 5
+        mod.Saved.NumBlindsSkipped = 0
+
         mod.Saved.SkipTags = {}
+
+        mod.Saved.HandsRemaining = 4
+        mod.Saved.DiscardsRemaining = 4
+
+        mod.Saved.HandsPlayed = 0
+        mod.Saved.DiscardsWasted = 0
+
+
+        mod.Saved.HandLevels = {[mod.HandTypes.NONE] = 1,
+                                [mod.HandTypes.HIGH_CARD] = 1,
+                                [mod.HandTypes.PAIR] = 1,
+                                [mod.HandTypes.TWO_PAIR] = 1,
+                                [mod.HandTypes.THREE] = 1,
+                                [mod.HandTypes.STRAIGHT] = 1,
+                                [mod.HandTypes.FLUSH] = 1,
+                                [mod.HandTypes.FULL_HOUSE] = 1,
+                                [mod.HandTypes.FOUR] = 1,
+                                [mod.HandTypes.STRAIGHT_FLUSH] = 1,
+                                [mod.HandTypes.ROYAL_FLUSH] = 1,
+                                [mod.HandTypes.FIVE] = 1,
+                                [mod.HandTypes.FLUSH_HOUSE] = 1,
+                                [mod.HandTypes.FIVE_FLUSH] = 1}
+        
+        mod.Saved.HandsStat = {[mod.HandTypes.NONE] =    {Chips = 0, Mult = 0},
+                               [mod.HandTypes.HIGH_CARD] = {Chips = 5, Mult = 1},
+                               [mod.HandTypes.PAIR] =    {Chips = 10, Mult = 2},
+                               [mod.HandTypes.TWO_PAIR] = {Chips = 20, Mult = 2},
+                               [mod.HandTypes.THREE] =   {Chips = 30, Mult = 3},
+                               [mod.HandTypes.STRAIGHT] = {Chips = 30, Mult = 4},
+                               [mod.HandTypes.FLUSH] =   {Chips = 35, Mult = 4},
+                               [mod.HandTypes.FULL_HOUSE] = {Chips = 40, Mult = 4},
+                               [mod.HandTypes.FOUR] =        {Chips = 60, Mult = 7},
+                               [mod.HandTypes.STRAIGHT_FLUSH] = {Chips = 100, Mult = 8},
+                               [mod.HandTypes.ROYAL_FLUSH] = {Chips = 100, Mult = 8},
+                               [mod.HandTypes.FIVE] = {Chips = 120, Mult = 12},
+                               [mod.HandTypes.FLUSH_HOUSE] = {Chips = 140, Mult = 14},
+                               [mod.HandTypes.FIVE_FLUSH] = {Chips = 160, Mult = 16}}
+
+        mod.Saved.HandsTypeUsed = {[mod.HandTypes.NONE] = 0,
+                                   [mod.HandTypes.HIGH_CARD] = 0,
+                                   [mod.HandTypes.PAIR] = 0,
+                                   [mod.HandTypes.TWO_PAIR] = 0,
+                                   [mod.HandTypes.THREE] = 0,
+                                   [mod.HandTypes.STRAIGHT] = 0,
+                                   [mod.HandTypes.FLUSH] = 0,
+                                   [mod.HandTypes.FULL_HOUSE] = 0,
+                                   [mod.HandTypes.FOUR] = 0,
+                                   [mod.HandTypes.STRAIGHT_FLUSH] = 0,
+                                   [mod.HandTypes.ROYAL_FLUSH] = 0,
+                                   [mod.HandTypes.FIVE] = 0,
+                                   [mod.HandTypes.FLUSH_HOUSE] = 0,
+                                   [mod.HandTypes.FIVE_FLUSH] = 0}
+
+
+        mod.Saved.MultValue = 0
+        mod.Saved.ChipsValue = 0
 
         mod.Saved.ClearedRooms = 0
         mod.Saved.SmallCleared = false
@@ -116,6 +193,7 @@ function mod:OnGameStart(Continued)
         mod.Saved.BossCleared = mod.BossProgress.NOT_CLEARED
         mod.Saved.AnteLevel = 0
         mod.Saved.MaxAnteLevel = 0
+        --mod.Saved.BlindScalingFactor = 1
         mod.Saved.AnteBoss = mod.BLINDS.BOSS
 
         --mod.Saved.SmallBlindIndex = 1
@@ -158,6 +236,8 @@ function mod:OnGameStart(Continued)
     mod.RNGs.SHOP = RNG(RNGPlayer:GetTrinketRNG(mod.Jokers.JOKER):GetSeed())
     mod.RNGs.VOUCHERS = RNG(RNGPlayer:GetCollectibleRNG(mod.Vouchers.Blank):GetSeed())
     mod.RNGs.LUCKY_CARD = RNG(RNGPlayer:GetTrinketRNG(mod.Jokers.LUCKY_CAT):GetSeed())
+    mod.RNGs.SKIP_TAGS = RNG(RNGPlayer:GetTrinketRNG(mod.Jokers.THROWBACK):GetSeed())
+    mod.RNGs.BOSS_BLINDS = RNG(RNGPlayer:GetTrinketRNG(mod.Jokers.LUCHADOR):GetSeed())
     
     for _, player in ipairs(PlayerManager.GetPlayers()) do  --evaluates again for the mod's trinkets since closing the game
                                                             --resets stuff
@@ -208,14 +288,10 @@ function mod:InitJimboValues(Player, Force)
         goto shared_values
     end
 
-    do
-    ---(T.)Jimbo Values -----
-
 
     mod.Saved.Player[PIndex].EctoUses = 0
     mod.Saved.Player[PIndex].OuijaUses = 0
 
-    -------------------------
 
     if PType == mod.Characters.JimboType then
 
@@ -231,6 +307,7 @@ function mod:InitJimboValues(Player, Force)
                 mod.Saved.Player[PIndex].FullDeck[index].Seal = mod.Seals.NONE
                 mod.Saved.Player[PIndex].FullDeck[index].Edition = mod.Edition.BASE
                 mod.Saved.Player[PIndex].FullDeck[index].Upgrades = 0 --only used for the Hiker joker
+                mod.Saved.Player[PIndex].FullDeck[index].Modifiers = 0
                 index = index +1
             end
         end
@@ -244,6 +321,7 @@ function mod:InitJimboValues(Player, Force)
             mod.Saved.Player[PIndex].Inventory[i] = {}
             mod.Saved.Player[PIndex].Inventory[i].Joker = 0
             mod.Saved.Player[PIndex].Inventory[i].Edition = mod.Edition.BASE
+            mod.Saved.Player[PIndex].Inventory[i].RenderIndex = i
         end
         
 
@@ -270,7 +348,6 @@ function mod:InitJimboValues(Player, Force)
 
         mod.Saved.Player[PIndex].Progress.Blind = {} --reset every new blind
         mod.Saved.Player[PIndex].Progress.Blind.Shots = 0
-        mod.Saved.Player[PIndex].Progress.Blind.
 
         mod.Saved.Player[PIndex].Progress.Room = {} --reset every new room
         mod.Saved.Player[PIndex].Progress.Room.SuitUsed = {}
@@ -322,6 +399,7 @@ function mod:InitJimboValues(Player, Force)
             mod.Saved.Player[PIndex].Inventory[i].Joker = 0
             mod.Saved.Player[PIndex].Inventory[i].Edition = mod.Edition.BASE
             mod.Saved.Player[PIndex].Inventory[i].Modifiers = 0
+            mod.Saved.Player[PIndex].Inventory[i].RenderIndex = i
         end
 
         mod.Saved.Player[PIndex].Progress = {} --values used for jokers
@@ -330,61 +408,8 @@ function mod:InitJimboValues(Player, Force)
 
         mod.Saved.Player[PIndex].Consumables = {{Card = -1, Edition = 0}, {Card = -1, Edition = 0}}
 
-        mod.Saved.Player[PIndex].MultValue = 0
-        mod.Saved.Player[PIndex].ChipsValue = 0
-
-
-        mod.Saved.Player[PIndex].HandsRemaining = 4
-        mod.Saved.Player[PIndex].DiscrdsRemaining = 4
-
-        mod.Saved.Player[PIndex].HandLevels = {[mod.HandTypes.NONE] = 1,
-                                               [mod.HandTypes.HIGH_CARD] = 1,
-                                               [mod.HandTypes.PAIR] = 1,
-                                               [mod.HandTypes.TWO_PAIR] = 1,
-                                               [mod.HandTypes.THREE] = 1,
-                                               [mod.HandTypes.STRAIGHT] = 1,
-                                               [mod.HandTypes.FLUSH] = 1,
-                                               [mod.HandTypes.FULL_HOUSE] = 1,
-                                               [mod.HandTypes.FOUR] = 1,
-                                               [mod.HandTypes.STRAIGHT_FLUSH] = 1,
-                                               [mod.HandTypes.ROYAL_FLUSH] = 1,
-                                               [mod.HandTypes.FIVE] = 1,
-                                               [mod.HandTypes.FLUSH_HOUSE] = 1,
-                                               [mod.HandTypes.FIVE_FLUSH] = 1}
-
-        
-        mod.Saved.Player[PIndex].HandsStat = {[mod.HandTypes.NONE] =    {Chips = 0, Mult = 0},
-                                              [mod.HandTypes.HIGH_CARD] = {Chips = 5, Mult = 1},
-                                              [mod.HandTypes.PAIR] =    {Chips = 10, Mult = 2},
-                                              [mod.HandTypes.TWO_PAIR] = {Chips = 20, Mult = 2},
-                                              [mod.HandTypes.THREE] =   {Chips = 30, Mult = 3},
-                                              [mod.HandTypes.STRAIGHT] = {Chips = 30, Mult = 4},
-                                              [mod.HandTypes.FLUSH] =   {Chips = 35, Mult = 4},
-                                              [mod.HandTypes.FULL_HOUSE] = {Chips = 40, Mult = 4},
-                                              [mod.HandTypes.FOUR] =        {Chips = 60, Mult = 7},
-                                              [mod.HandTypes.STRAIGHT_FLUSH] = {Chips = 100, Mult = 8},
-                                              [mod.HandTypes.ROYAL_FLUSH] = {Chips = 100, Mult = 8},
-                                              [mod.HandTypes.FIVE] = {Chips = 120, Mult = 12},
-                                              [mod.HandTypes.FLUSH_HOUSE] = {Chips = 140, Mult = 14},
-                                              [mod.HandTypes.FIVE_FLUSH] = {Chips = 160, Mult = 16}}
-
-        mod.Saved.Player[PIndex].HandsUsed = {[mod.HandTypes.NONE] = 0,
-                                              [mod.HandTypes.HIGH_CARD] = 0,
-                                              [mod.HandTypes.PAIR] = 0,
-                                              [mod.HandTypes.TWO_PAIR] = 0,
-                                              [mod.HandTypes.THREE] = 0,
-                                              [mod.HandTypes.STRAIGHT] = 0,
-                                              [mod.HandTypes.FLUSH] = 0,
-                                              [mod.HandTypes.FULL_HOUSE] = 0,
-                                              [mod.HandTypes.FOUR] = 0,
-                                              [mod.HandTypes.STRAIGHT_FLUSH] = 0,
-                                              [mod.HandTypes.ROYAL_FLUSH] = 0,
-                                              [mod.HandTypes.FIVE] = 0,
-                                              [mod.HandTypes.FLUSH_HOUSE] = 0,
-                                              [mod.HandTypes.FIVE_FLUSH] = 0}
-
     end
-    end
+    
 
     mod.Saved.Player[PIndex].FullDeck = mod:Shuffle(mod.Saved.Player[PIndex].FullDeck, Game:GetPlayer(0):GetDropRNG())
     

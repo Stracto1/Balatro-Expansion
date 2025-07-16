@@ -77,7 +77,7 @@
     <trinket cache="firedelay" gfx="banner_trinket.png" name="Banner" description="Be proud!" customtags="!5 0 :0 ?common balatro chips copy" achievement="PermaLocked"/>
     <trinket cache="damage" gfx="mystic_summit_trinket.png" name="Mystic Summit" description="May your fatigue be rewarded" customtags="!5 0 :0 ?common balatro mult copy" achievement="PermaLocked"/>
     <trinket gfx="marble_joker_trinket.png" name="Marble Joker" description="Silky smooth" customtags="!6 0 :0 ?uncommon balatro activate copy" achievement="PermaLocked"/>
-    <trinket gfx="8_ball_trinket.png" name="8 Ball" description="Feels magical" customtags="!5 0 :0 ?uncommon balatro activate copy" achievement="PermaLocked"/>
+    <trinket gfx="8_ball_trinket.png" name="8 Ball" description="Feels magical" customtags="!5 0 :0 ?common balatro activate copy" achievement="PermaLocked"/>
     <trinket gfx="dusk_trinket.png" name="Dusk" description="At last..." customtags="!5 0 :0 ?uncommon balatro activate copy" achievement="PermaLocked"/>
     <trinket cache="damage" gfx="raised_fist_trinket.png" name="Raised Fist" description="Follow him!" customtags="!5 0 :0 ?uncommon balatro mult value copy" achievement="PermaLocked"/>
     <trinket gfx="caos_the_clown_trinket.png" name="Chaos the Clown" description="Hacky discounts" customtags="!4 0 :0 ?uncommon balatro activate" achievement="PermaLocked"/>

@@ -6,9 +6,7 @@ local PlateState = {PRESSED = 3,
                     OFF = 0}
 
 local BALATRO_PLATE_SUFFIX = {
-                              [mod.Grids.PlateVariant.BLIND] = {[mod.BLINDS.SKIP | mod.BLINDS.SMALL] = "skip",
-                                                                [mod.BLINDS.SKIP | mod.BLINDS.BIG] = "skip",
-                                                                [mod.BLINDS.SMALL] = "small",
+                              [mod.Grids.PlateVariant.BLIND] = {[mod.BLINDS.SMALL] = "small",
                                                                 [mod.BLINDS.BIG] = "big",
                                                                 [mod.BLINDS.BOSS] = "big",
                                                                 [mod.BLINDS.BOSS_HOOK] = "hook",
@@ -41,12 +39,14 @@ local BALATRO_PLATE_SUFFIX = {
                                                                 [mod.BLINDS.BOSS_LEAF] = "leaf"},
                               [mod.Grids.PlateVariant.CASHOUT] = "cashout",
                               [mod.Grids.PlateVariant.SHOP_EXIT] = "shop_exit",
-                              [mod.Grids.PlateVariant.REROLL] = "reroll"
+                              [mod.Grids.PlateVariant.REROLL] = "reroll",
+                              [mod.Grids.PlateVariant.SMALL_BLIND_SKIP] = "skip",
+                              [mod.Grids.PlateVariant.BIG_BLIND_SKIP] = "skip",
 }
 
 
 ---@param Plate GridEntityPressurePlate
-local function UpdateBalatroPlate(Init,Plate)
+function mod:UpdateBalatroPlate(Plate,Init)
 
     local Variant = Plate:GetVariant()
 
@@ -99,6 +99,14 @@ local function UpdateBalatroPlate(Init,Plate)
         end
 
         ShouldPlateBeAvailable = ShouldPlateBeAvailable and Plate.VarData ~= mod.Saved.BlindBeingPlayed
+    
+    elseif Variant == mod.Grids.PlateVariant.SMALL_BLIND_SKIP then
+        
+        ShouldPlateBeAvailable = not mod.Saved.SmallCleared
+    
+    elseif Variant == mod.Grids.PlateVariant.BIG_BLIND_SKIP then
+            
+        ShouldPlateBeAvailable = mod.Saved.SmallCleared and not mod.Saved.BigCleared    
     else
     
         ShouldPlateBeAvailable = true
@@ -106,9 +114,23 @@ local function UpdateBalatroPlate(Init,Plate)
 
     local AnyoneOnTop = Isaac.FindInRadius(Plate.Position, 10, EntityPartition.PLAYER)[1]
 
+    local SomeoneIsSelecting = false
+
+    for i,Player in ipairs(PlayerManager.GetPlayers()) do
+        
+        local PIndex = Player:GetData().TruePlayerIndex
+
+        if mod.SelectionParams[PIndex].Mode ~= mod.SelectionParams.Modes.NONE then
+            SomeoneIsSelecting = true
+
+            break
+        end
+    end
+
     ShouldPlateBeAvailable = ShouldPlateBeAvailable
                              and not mod.AnimationIsPlaying
                              and not AnyoneOnTop
+                             and not SomeoneIsSelecting
 
 
     if ShouldPlateBeAvailable then
@@ -140,7 +162,7 @@ local function UpdateBalatroPlate(Init,Plate)
     end
 
 end
-mod:AddCallback(ModCallbacks.MC_POST_GRID_ENTITY_PRESSUREPLATE_UPDATE, UpdateBalatroPlate)
+mod:AddCallback(ModCallbacks.MC_POST_GRID_ENTITY_PRESSUREPLATE_UPDATE, mod.UpdateBalatroPlate)
 
 
 function mod:SpawnBalatroPressurePlate(Position, PlateVariant, VarData)
@@ -154,7 +176,7 @@ function mod:SpawnBalatroPressurePlate(Position, PlateVariant, VarData)
 
         --Sprite:ReplaceSpritesheet(0, "gfx/grid/grid_balatro_pressureplate_"..BALATRO_PLATE_SUFFIX[VarData]..".png", true)
         
-        UpdateBalatroPlate(true, Plate:ToPressurePlate())
+        mod:UpdateBalatroPlate(Plate:ToPressurePlate(), true)
     else
         print("something went wrong in plate spawning!")
     end
@@ -180,7 +202,7 @@ function mod:ResetPlatesData()
         local Plate = Room:GetGridEntity(i)
         if Plate and Plate:GetType() == GridEntityType.GRID_PRESSURE_PLATE and mod:Contained(mod.Grids.PlateVariant, Plate:GetVariant()) then
             
-            UpdateBalatroPlate(true,Plate:ToPressurePlate())
+            mod:UpdateBalatroPlate(Plate:ToPressurePlate(), true)
             --Plate:GetSprite():ReplaceSpritesheet(0, "gfx/grid/grid_balatro_pressureplate_"..BALATRO_PLATE_SUFFIX[Plate.VarData]..".png", true)
         end
     end

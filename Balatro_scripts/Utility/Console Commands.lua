@@ -43,3 +43,23 @@ local function SelectionCommand(_, Cmd, Params)
     end
 end
 mod:AddCallback(ModCallbacks.MC_EXECUTE_CMD, SelectionCommand)
+
+
+local function AddTagCommand(_, Cmd, Params)
+
+    --print(Cmd)
+    --print(Params)
+    if Cmd == "skiptag" then
+        
+        local TagKey = Params
+
+        local Tag = mod.SkipTags[TagKey]
+
+        if Tag then
+            mod:AddSkipTag(Tag)
+        else
+            print("Specified skip tag doesn't exist!")
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_EXECUTE_CMD, AddTagCommand)

@@ -75,7 +75,7 @@ function mod:CreateBalatroEffect(Index, Colour, Sound, Text, EffectType, Player,
                and (Type == mod.EffectType.ENTITY and EffectSlot == GetPtrHash(Params.Position.Ref)
                     or PIndex == Params.PIndex) then --entities effects are delayed only if the same entity has more than one effect
 
-                print("posticipated")
+                --print("posticipated")
                 Isaac.CreateTimer(function()
                                 mod:CreateBalatroEffect(Index, Colour, Sound, Text, EffectType, Player, Speed)--Source, Offset, Volume)
                                 end,  EffectsInterval - EffectParams[Index].Frames, 1, false)
@@ -128,34 +128,32 @@ function mod:CreateBalatroEffect(Index, Colour, Sound, Text, EffectType, Player,
         EffectParams[EffectSlot].Position = EntityPtr(Index)
         EffectParams[EffectSlot].Offset = Vector(0,20)
 
-    else
-        if EffectType == mod.EffectType.HAND then
-            EffectParams[EffectSlot].Position = mod.LastCardFullPoss[Index]
+    elseif EffectType == mod.EffectType.HAND then
+        EffectParams[EffectSlot].Position = mod.LastCardFullPoss[Index]
+        EffectParams[EffectSlot].Offset = Vector(0,-30)
+
+        mod.Counters.SinceCardTriggered[Index] = 1
+
+    elseif EffectType == mod.EffectType.JOKER then
+
+        EffectParams[EffectSlot].Position = mod.JokerFullPosition[Index]
+        
+        if IsTaintedJimbo then
+            EffectParams[EffectSlot].Offset = EFFECT_JOKER_OFFSET
+        else
             EffectParams[EffectSlot].Offset = Vector(0,-30)
-
-            mod.Counters.SinceCardTriggered[Index] = 1
-
-        elseif EffectType == mod.EffectType.JOKER then
-
-            EffectParams[EffectSlot].Position = mod.JokerFullPosition[Index]
-            
-            if IsTaintedJimbo then
-                EffectParams[EffectSlot].Offset = EFFECT_JOKER_OFFSET
-            else
-                EffectParams[EffectSlot].Offset = Vector(0,-30)
-            end
-            
-            mod.Counters.Activated[Index] = 1
-
-        elseif EffectType ~= mod.EffectType.NULL then --HAND_FROM_JOKER
-            
-            EffectParams[EffectSlot].Position = mod.LastCardFullPoss[Index]
-            EffectParams[EffectSlot].Offset = Vector(0,-30)
-            mod.Counters.Activated[Index] = 1
         end
         
+        mod.Counters.Activated[Index] = 1
+
+    elseif EffectType ~= mod.EffectType.NULL then --HAND_FROM_JOKER
+        
+        EffectParams[EffectSlot].Position = mod.LastCardFullPoss[Index]
+        EffectParams[EffectSlot].Offset = Vector(0,-30)
+        mod.Counters.Activated[Index] = 1
     end
 
+    EffectParams[EffectSlot].Type = EffectType
     EffectParams[EffectSlot].Speed = Speed
     EffectParams[EffectSlot].Frames = 0
     EffectParams[EffectSlot].Color = Colour
@@ -195,12 +193,13 @@ function mod:RenderEffect(_,_,_,_,_)
         Sprite.Color.A = EffectFramesToAlpha(Params.Frames)
 
         local RenderPos
-        if Slot == mod.EffectType.ENTITY then
+        if Params.Type == mod.EffectType.ENTITY then
 
+            --in this case Params.Position is an EntityRef
             local Entity = Params.Position.Ref
 
             if Entity:Exists() then
-                RenderPos = Isaac.WorldToScreen(Params.Position.Ref.Position) + Params.Offset
+                RenderPos = Isaac.WorldToScreen(Entity.Position) + Params.Offset
             else
                 EffectParams[Slot] = nil
                 return

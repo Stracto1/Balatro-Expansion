@@ -148,7 +148,7 @@ function mod:SpendMoney(Price)
 
     if mod.Saved.HasDebt or Coins >= Price  then --remains in/out of debt after buying 
 
-        Player:AddCoins(Price)
+        Player:AddCoins(-Price)
         PastCoins = Player:GetNumCoins()
         return
     end

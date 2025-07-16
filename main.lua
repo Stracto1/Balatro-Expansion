@@ -198,8 +198,10 @@ Balatro_Expansion.Callbalcks = {CARD_SHOT = "CARD_SHOT",
                                 SHOP_EXIT = "BALATRO_SHOP_END",
                                 CASHOUT_EVAL = "CASHOUT_EVALUATION",
                                 BOSS_BLIND_EVAL = "BOSS_BLIND_EFFECT_EVALUATION",
+                                BLIND_SELECTED = "BLIND_SELECTED",
                                 BLIND_START = "BLIND_STARTED",
                                 POST_BLIND_START = "POST_BLIND_STARTED",
+                                POST_SKIP_TAG_ADDED = "POST_SKIP_TAG_ADDED",
                                 BLIND_SKIP = "BLIND_SKIPPED",
                                 PACK_OPEN = "PACK_OPENED",
                                 PACK_SKIP = "PACK_SKIPPED",
@@ -280,7 +282,9 @@ Balatro_Expansion.Grids = {}
 Balatro_Expansion.Grids.PlateVariant = {BLIND = 146,
                                         CASHOUT = 147,
                                         REROLL = 148,
-                                        SHOP_EXIT = 149}
+                                        SHOP_EXIT = 149,
+                                        SMALL_BLIND_SKIP = 150,
+                                        BIG_BLIND_SKIP = 151}
 
 
 Balatro_Expansion.Grids.PLATE_ANM2_PATH = "gfx/grid/grid_balatro_pressureplate.anm2"
@@ -541,8 +545,6 @@ Balatro_Expansion.HandFlags.FIVE_FLUSH = 1 << 13
 Balatro_Expansion.HandFlags.ROYAL_FLUSH = 1 << 14
 --Balatro_Expansion.HandTypes.NUM_HANDS = 12
 
-Balatro_Expansion.Stats = {CHIPS = "X", MULT = "Y"}
-
 
 Balatro_Expansion.Tears = {}
 Balatro_Expansion.Tears.CARD_TEAR_VARIANT = Isaac.GetEntityVariantByName("Tear Card")   
@@ -568,7 +570,7 @@ Balatro_Expansion.AllCurses.THE_WALL = 1 << (Isaac.GetCurseIdByName("curse of th
 
 Balatro_Expansion.NormalCurses[1] = Balatro_Expansion.AllCurses.THE_WALL
 
-Balatro_Expansion.BLINDS = {SKIP = 8192, --used as a flag along with another blind
+Balatro_Expansion.BLINDS = {
                             SMALL = 1,
                             BIG = 2,
                             BOSS = 4, --used as a flag along with a specific boss type
@@ -602,29 +604,29 @@ Balatro_Expansion.BLINDS = {SKIP = 8192, --used as a flag along with another bli
                             BOSS_BELL = 228}
 
 Balatro_Expansion.SkipTags = {UNCOMMON = 0,
-                          RARE = 1,
-                          NEGATIVE = 2,
-                          FOIL = 3,
-                          HOLO = 4,
-                          POLYCHROME = 5,
-                          INVESTMENT = 6,
-                          VOUCHER = 7,
-                          BOSS = 8,
-                          STANDARD = 9,
-                          CHARM = 10,
-                          METEOR = 11,
-                          BUFFON = 12,
-                          HANDY = 13,
-                          GARBAGE = 14,
-                          ETHEREAL = 15,
-                          COUPON = 16,
-                          DOUBLE = 17,
-                          JUGGLE = 18,
-                          D6 = 19,
-                          TOP_UP = 20,
-                          SPEED = 21,
-                          ECONOMY = 22,
-                              ORBITAL = 1 << 15} --USED WITH A HAND FLAG 
+                              RARE = 1,
+                              NEGATIVE = 2,
+                              FOIL = 3,
+                              HOLO = 4,
+                              POLYCHROME = 5,
+                              INVESTMENT = 6,
+                              VOUCHER = 7,
+                              BOSS = 8,
+                              STANDARD = 9,
+                              CHARM = 10,
+                              METEOR = 11,
+                              BUFFON = 12,
+                              HANDY = 13,
+                              GARBAGE = 14,
+                              ETHEREAL = 15,
+                              COUPON = 16,
+                              DOUBLE = 17,
+                              JUGGLE = 18,
+                              D6 = 19,
+                              TOP_UP = 20,
+                              SPEED = 21,
+                              ECONOMY = 22,
+                              ORBITAL = 32} --USED WITH A HAND FLAG 
 
 Balatro_Expansion.CustomCache = {}
 Balatro_Expansion.CustomCache.HAND_SIZE = "handsize"
@@ -659,7 +661,7 @@ local Game = Game()
 Balatro_Expansion.GameStarted = false
 --local HUD = Game:GetHUD()
 
-Balatro_Expansion.RNGs = {SHOP = RNG(), VOUCHERS = RNG(), LUCKY_CARD = RNG()}
+Balatro_Expansion.RNGs = {SHOP = RNG(), VOUCHERS = RNG(), LUCKY_CARD = RNG(), BOSS_BLINDS = RNG(), SKIP_TAGS = RNG(),}
 
 Balatro_Expansion.Saved = {} --every value that needs to be stored between game starts
 -------------------------------
@@ -727,17 +729,93 @@ Balatro_Expansion.Saved.Pools.SpecialBossBlinds = { Balatro_Expansion.BLINDS.BOS
                                                     Balatro_Expansion.BLINDS.BOSS_LEAF,
                                                     }
 
+Balatro_Expansion.Saved.NumJuggleUsed = 0 --used to keep in memory the hand size change through multiple shuffles
+Balatro_Expansion.Saved.Pools.SkipTags = {  Balatro_Expansion.SkipTags.UNCOMMON,
+                                            Balatro_Expansion.SkipTags.RARE,
+                                            Balatro_Expansion.SkipTags.FOIL,
+                                            Balatro_Expansion.SkipTags.HOLO,
+                                            Balatro_Expansion.SkipTags.POLYCHROME,
+                                            Balatro_Expansion.SkipTags.INVESTMENT,
+                                            Balatro_Expansion.SkipTags.VOUCHER,
+                                            Balatro_Expansion.SkipTags.BOSS,
+                                            Balatro_Expansion.SkipTags.CHARM,
+                                            Balatro_Expansion.SkipTags.COUPON,
+                                            Balatro_Expansion.SkipTags.DOUBLE,
+                                            Balatro_Expansion.SkipTags.JUGGLE,
+                                            Balatro_Expansion.SkipTags.D6,
+                                            Balatro_Expansion.SkipTags.SPEED,
+                                            Balatro_Expansion.SkipTags.ECONOMY,                                            
+                                           }
+
 Balatro_Expansion.Saved.FloorSkippedSpecials = 0
 Balatro_Expansion.Saved.RunSkippedSpecials = 0
 Balatro_Expansion.Saved.GlassBroken = 0
 Balatro_Expansion.Saved.TarotsUsed = 0
 Balatro_Expansion.Saved.PlanetTypesUsed = 0
-Balatro_Expansion.Saved.BlindBeingPlayed = Balatro_Expansion.BLINDS.CASHOUT
+Balatro_Expansion.Saved.BlindBeingPlayed = 0
+Balatro_Expansion.Saved.BossBlindVarData = 0
+
+Balatro_Expansion.Saved.IsSpecialBoss = false 
 Balatro_Expansion.Saved.AnteVoucher = 0
 Balatro_Expansion.Saved.NumShopRerolls = 0
-Balatro_Expansion.Saved.RerollStartingPrice = 0
+Balatro_Expansion.Saved.RerollStartingPrice = 5
+Balatro_Expansion.Saved.NumBlindsSkipped = 0
+
 Balatro_Expansion.Saved.SkipTags = {}
 
+Balatro_Expansion.Saved.HandsRemaining = 4
+Balatro_Expansion.Saved.DiscardsRemaining = 4
+Balatro_Expansion.Saved.HandsUsed = 0
+Balatro_Expansion.Saved.DiscardsWasted = 0
+
+Balatro_Expansion.Saved.MultValue = 0
+Balatro_Expansion.Saved.ChipsValue = 0
+
+
+Balatro_Expansion.Saved.HandLevels = {[Balatro_Expansion.HandTypes.NONE] = 1,
+                                      [Balatro_Expansion.HandTypes.HIGH_CARD] = 1,
+                                      [Balatro_Expansion.HandTypes.PAIR] = 1,
+                                      [Balatro_Expansion.HandTypes.TWO_PAIR] = 1,
+                                      [Balatro_Expansion.HandTypes.THREE] = 1,
+                                      [Balatro_Expansion.HandTypes.STRAIGHT] = 1,
+                                      [Balatro_Expansion.HandTypes.FLUSH] = 1,
+                                      [Balatro_Expansion.HandTypes.FULL_HOUSE] = 1,
+                                      [Balatro_Expansion.HandTypes.FOUR] = 1,
+                                      [Balatro_Expansion.HandTypes.STRAIGHT_FLUSH] = 1,
+                                      [Balatro_Expansion.HandTypes.ROYAL_FLUSH] = 1,
+                                      [Balatro_Expansion.HandTypes.FIVE] = 1,
+                                      [Balatro_Expansion.HandTypes.FLUSH_HOUSE] = 1,
+                                      [Balatro_Expansion.HandTypes.FIVE_FLUSH] = 1}
+
+Balatro_Expansion.Saved.HandsStat = {[Balatro_Expansion.HandTypes.NONE] =    {Chips = 0, Mult = 0},
+                                     [Balatro_Expansion.HandTypes.HIGH_CARD] = {Chips = 5, Mult = 1},
+                                     [Balatro_Expansion.HandTypes.PAIR] =    {Chips = 10, Mult = 2},
+                                     [Balatro_Expansion.HandTypes.TWO_PAIR] = {Chips = 20, Mult = 2},
+                                     [Balatro_Expansion.HandTypes.THREE] =   {Chips = 30, Mult = 3},
+                                     [Balatro_Expansion.HandTypes.STRAIGHT] = {Chips = 30, Mult = 4},
+                                     [Balatro_Expansion.HandTypes.FLUSH] =   {Chips = 35, Mult = 4},
+                                     [Balatro_Expansion.HandTypes.FULL_HOUSE] = {Chips = 40, Mult = 4},
+                                     [Balatro_Expansion.HandTypes.FOUR] =        {Chips = 60, Mult = 7},
+                                     [Balatro_Expansion.HandTypes.STRAIGHT_FLUSH] = {Chips = 100, Mult = 8},
+                                     [Balatro_Expansion.HandTypes.ROYAL_FLUSH] = {Chips = 100, Mult = 8},
+                                     [Balatro_Expansion.HandTypes.FIVE] = {Chips = 120, Mult = 12},
+                                     [Balatro_Expansion.HandTypes.FLUSH_HOUSE] = {Chips = 140, Mult = 14},
+                                     [Balatro_Expansion.HandTypes.FIVE_FLUSH] = {Chips = 160, Mult = 16}}
+
+Balatro_Expansion.Saved.HandsTypeUsed = {[Balatro_Expansion.HandTypes.NONE] = 0,
+                                         [Balatro_Expansion.HandTypes.HIGH_CARD] = 0,
+                                         [Balatro_Expansion.HandTypes.PAIR] = 0,
+                                         [Balatro_Expansion.HandTypes.TWO_PAIR] = 0,
+                                         [Balatro_Expansion.HandTypes.THREE] = 0,
+                                         [Balatro_Expansion.HandTypes.STRAIGHT] = 0,
+                                         [Balatro_Expansion.HandTypes.FLUSH] = 0,
+                                         [Balatro_Expansion.HandTypes.FULL_HOUSE] = 0,
+                                         [Balatro_Expansion.HandTypes.FOUR] = 0,
+                                         [Balatro_Expansion.HandTypes.STRAIGHT_FLUSH] = 0,
+                                         [Balatro_Expansion.HandTypes.ROYAL_FLUSH] = 0,
+                                         [Balatro_Expansion.HandTypes.FIVE] = 0,
+                                         [Balatro_Expansion.HandTypes.FLUSH_HOUSE] = 0,
+                                         [Balatro_Expansion.HandTypes.FIVE_FLUSH] = 0}
 
 
 
@@ -776,6 +854,7 @@ Balatro_Expansion.Saved.BigCleared = false
 Balatro_Expansion.Saved.BossCleared = 0  --0 = no | 1 = partially | 2 = yes
 Balatro_Expansion.Saved.AnteLevel = 0
 Balatro_Expansion.Saved.MaxAnteLevel = 0 --used to add correctly bosses to the pool (getting hierogliph could trigger the addition more than once)
+Balatro_Expansion.Saved.BlindScalingFactor = 1 --factor that increases the enemies' HP
 Balatro_Expansion.Saved.AnteBoss = Balatro_Expansion.BLINDS.BOSS
 
 Balatro_Expansion.Saved.SmallBlindIndex = 6
@@ -853,6 +932,8 @@ end
 
 
 --Balatro_Expansion.Saved.Player.FirstDeck = true
+
+
 
 Balatro_Expansion.Saved.CardLevels = {}
 for i=1, 13 do
@@ -1029,8 +1110,8 @@ Balatro_Expansion.Achievements = {
 ----------------------------- gaw damn those were a lot of variables
 
 
---heyo dear mod developer college! Fell free to take any of the code written here
---but please make sure to give this mod credit when you take important/big chunks of code
+--heyo dear Balatro_Expansion developer college! Fell free to take any of the code written here
+--but please make sure to give this Balatro_Expansion credit when you take important/big chunks of code
 
 --also i don't know wether or not this thing is coded properly, so if you have an
 --optimisation idea write it in the comments of the steam page and i'll try to implement it (giving you credit obv)
@@ -1146,7 +1227,7 @@ include("Balatro_scripts.Collectibles.Unlockable Items")
 
 
 -------------------OPTIMISATION FUNCTOINS------------------------------------
---these functions limit the ammount of callbacks the game has to consider for this mod using REPENTOGON's custom tags,
+--these functions limit the ammount of callbacks the game has to consider for this Balatro_Expansion using REPENTOGON's custom tags,
 --i have no idea if this change is actually noticable or not, but i think it's pretty well done
 
 --to see the list of all the custom tags and how they work, see the items.xml file

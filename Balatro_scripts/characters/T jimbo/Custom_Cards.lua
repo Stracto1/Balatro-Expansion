@@ -410,37 +410,12 @@ local PLANET_STEP = 12
 
 local function TJimboUsePlanet(card, Player, UseFlags)
 
-    local PIndex = Player:GetData().TruePlayerIndex
     local PlanetHandType = card - mod.Planets.PLUTO + 2 --gets the equivalent handtype
-
-    local AnimationInterval = PLANET_FULL_INTERVAL
 
     mod.Saved.PlanetTypesUsed = mod.Saved.PlanetTypesUsed | (1 << PlanetHandType)
 
 
-    Isaac.CreateTimer(function ()
-        mod.Saved.Player[PIndex].HandsStat[PlanetHandType].Chips = mod.Saved.Player[PIndex].HandsStat[PlanetHandType].Chips + mod.HandUpgrades[PlanetHandType].Chips
-    end, PLANET_STEP, 1, true)
-
-    Isaac.CreateTimer(function ()
-        mod.Saved.Player[PIndex].HandsStat[PlanetHandType].Mult = mod.Saved.Player[PIndex].HandsStat[PlanetHandType].Mult + mod.HandUpgrades[PlanetHandType].Mult
-    end, PLANET_STEP*2, 1, true)
-
-    Isaac.CreateTimer(function ()
-        mod.Saved.Player[PIndex].HandLevels[PlanetHandType] = mod.Saved.Player[PIndex].HandLevels[PlanetHandType] + 1
-    end, PLANET_STEP*3, 1, true)
-
-
-    if PlanetHandType == mod.HandTypes.STRAIGHT_FLUSH then
-
-        --upgrades both royal flush and straight flush
-
-        mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.ROYAL_FLUSH] = mod.Saved.Player[PIndex].HandLevels[mod.HandTypes.ROYAL_FLUSH] + 1
-        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.ROYAL_FLUSH].Mult = mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.ROYAL_FLUSH].Mult + mod.HandUpgrades[mod.HandTypes.ROYAL_FLUSH].Mult
-        mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.ROYAL_FLUSH].Chips = mod.Saved.Player[PIndex].HandsStat[mod.HandTypes.ROYAL_FLUSH].Chips + mod.HandUpgrades[mod.HandTypes.ROYAL_FLUSH].Chips
-    end
-
-    return AnimationInterval
+    return mod:PlanetUpgradeAnimation(PlanetHandType, 1)
 end
 --mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.PlanetCards)
 
@@ -847,25 +822,25 @@ local function TJimboUseSpectral(card, Player, UseFlags)
     elseif card == mod.Spectrals.BLACK_HOLE then
 
         for _, Hand in ipairs(mod.HandTypes) do
-            mod.Saved.Player[PIndex].HandsStat[Hand].Chips = mod.Saved.Player[PIndex].HandsStat[Hand].Chips + mod.HandUpgrades[Hand].Chips
-            mod.Saved.Player[PIndex].HandsStat[Hand].Mult = mod.Saved.Player[PIndex].HandsStat[Hand].Mult + mod.HandUpgrades[Hand].Mult
+            mod.Saved.HandsStat[Hand].Chips = mod.Saved.HandsStat[Hand].Chips + mod.HandUpgrades[Hand].Chips
+            mod.Saved.HandsStat[Hand].Mult = mod.Saved.HandsStat[Hand].Mult + mod.HandUpgrades[Hand].Mult
 
-            mod.Saved.Player[PIndex].HandLevels[Hand] = mod.Saved.Player[PIndex].HandLevels[Hand] + 1
+            mod.Saved.HandLevels[Hand] = mod.Saved.HandLevels[Hand] + 1
         end
 
-        mod.Saved.Player[PIndex].ChipsValue = "-"
-        mod.Saved.Player[PIndex].MultValue = "-"
+        mod.Saved.ChipsValue = "-"
+        mod.Saved.MultValue = "-"
 
         AnimationInterval = PLANET_FULL_INTERVAL
 
         Isaac.CreateTimer(function ()
 
-            mod.Saved.Player[PIndex].ChipsValue = "+"
+            mod.Saved.ChipsValue = "+"
         end, PLANET_STEP, 1, true)
 
         Isaac.CreateTimer(function ()
 
-            mod.Saved.Player[PIndex].MultValue = "+"
+            mod.Saved.MultValue = "+"
         end, PLANET_STEP*2, 1, true)
 
 

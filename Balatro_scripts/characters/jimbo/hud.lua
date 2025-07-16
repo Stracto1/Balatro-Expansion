@@ -10,9 +10,8 @@ local JidleLength = TrinketSprite:GetAnimationData("Idle"):GetLength()
 
 local InventoryFrame = {0,0,0}
 
-local JimboCards = {PlayingCards = Sprite("gfx/ui/PlayingCards.anm2"),
-                    Pack_PlayingCards = Sprite("gfx/ui/PackPlayCards.anm2"),
-                    SpecialCards = Sprite("gfx/ui/PackSpecialCards.anm2")}
+local SpecialCards = Sprite("gfx/ui/PackSpecialCards.anm2")
+local JimboCards = Sprite("gfx/ui/Card Body.anm2")
 local DeckSprite = Sprite("gfx/ui/Deck Stages.anm2")
 
 local MultCounter = Sprite("gfx/ui/Mult Counter.anm2")
@@ -462,17 +461,15 @@ function mod:JimboHandRender(Player, Offset)
 
             -------------------------------------------------------------
 
-            JimboCards.PlayingCards:SetFrame(ENHANCEMENTS_ANIMATIONS[Card.Enhancement], 4 * (Card.Value - 1) + Card.Suit-1) --sets the frame corresponding to the value and suit
-            --JimboCards.PlayingCards:PlayOverlay("Seals")
-            JimboCards.PlayingCards:SetOverlayFrame("Seals", Card.Seal)
+            local Rotation = 0
+            local ValueOffset = Vector(-2,0)
+            local Scale = Vector.One*ScaleMult
+            local ForceCovered = false
+            local Thin = false
 
-            JimboCards.PlayingCards.Scale = Vector(ScaleMult,ScaleMult)
+            local RenderPos = PlayerScreenPos + TrueOffset[Pointer] + Offset
 
-            if Card.Edition ~= mod.Edition.BASE then
-                JimboCards.PlayingCards:SetCustomShader(mod.EditionShaders[Card.Edition])
-            end
-
-            JimboCards.PlayingCards:Render(PlayerScreenPos + TrueOffset[Pointer] + Offset)
+            mod:RenderCard(Card, RenderPos, ValueOffset, Scale,Rotation, ForceCovered, Thin)
         end
 
         RenderOff = Vector(RenderOff.X + 14*ScaleMult, BaseRenderOff.Y)
@@ -567,17 +564,17 @@ function mod:JimboPackRender(_,_,_,_,Player)
 
         for i,Card in ipairs(mod.SelectionParams[PIndex].PackOptions) do --for every option
 
-            JimboCards.Pack_PlayingCards:SetFrame(ENHANCEMENTS_ANIMATIONS[Card.Enhancement], 4 * (Card.Value - 1) + Card.Suit-1) --sets the frame corresponding to the value and suit
-            JimboCards.Pack_PlayingCards:SetOverlayFrame("Seals", Card.Seal)
-
-            if Card.Edition ~= mod.Edition.BASE then
-                JimboCards.Pack_PlayingCards:SetCustomShader(mod.EditionShaders[Card.Edition])
-            end
+            local Rotation = 0
+            local ValueOffset = Vector(-2,0)
+            local Scale = Vector.One*ScaleMult
+            local ForceCovered = false
+            local Thin = false
 
             WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams[PIndex].Frames*5+i*95))*1.5)
+            local RenderPos = mod:CoolVectorLerp(PlayerPos, RenderPos + WobblyEffect[i], mod.SelectionParams[PIndex].Frames/10)
 
-            JimboCards.Pack_PlayingCards:Render(mod:CoolVectorLerp(PlayerPos, RenderPos + WobblyEffect[i], mod.SelectionParams[PIndex].Frames/10))
-
+            mod:RenderCard(Card, RenderPos, ValueOffset, Scale,Rotation, ForceCovered, Thin)
+        
             RenderPos.X = RenderPos.X + PACK_CARD_DISTANCE + CardHUDWidth
         end--end FOR
 
@@ -603,13 +600,13 @@ function mod:JimboPackRender(_,_,_,_,Player)
         for i,Option in ipairs(mod.SelectionParams[PIndex].PackOptions) do
             
             if Option == 53 then --equivalent to the soul card
-                JimboCards.SpecialCards:SetFrame("Soul Stone",mod.SelectionParams[PIndex].Frames % 47) --sets the frame corresponding to the value and suit
+                SpecialCards:SetFrame("Soul Stone",mod.SelectionParams[PIndex].Frames % 47) --sets the frame corresponding to the value and suit
             else
-                JimboCards.SpecialCards:SetFrame("idle",  Option)
+                SpecialCards:SetFrame("idle",  Option)
             end
             WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams[PIndex].Frames*5+i*95))*1.5)
 
-            JimboCards.SpecialCards:Render(mod:CoolVectorLerp(PlayerPos, RenderPos+WobblyEffect[i], mod.SelectionParams[PIndex].Frames/10))
+            SpecialCards:Render(mod:CoolVectorLerp(PlayerPos, RenderPos+WobblyEffect[i], mod.SelectionParams[PIndex].Frames/10))
 
             RenderPos.X = RenderPos.X + PACK_CARD_DISTANCE + CardHUDWidth
 
