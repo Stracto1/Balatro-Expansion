@@ -1704,7 +1704,7 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
 
             if (mod.Saved.Player[PIndex].Progress.Room.Shots == Player:GetCustomCacheValue("hands")
                 and not mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR)) --with burglar you can play all your deck
-                or not mod.Saved.Player[PIndex].FirstDeck then
+                or not mod.Saved.Player[PIndex].FirstDeck then 
 
                 Player:AnimateSad()
             end
@@ -1716,7 +1716,6 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
 
                 Isaac.RunCallback("CARD_SHOT", Player, CardShot, true)
             end
-
         end
 
         mod.Saved.Player[PIndex].LastShotIndex = CardShot.Index

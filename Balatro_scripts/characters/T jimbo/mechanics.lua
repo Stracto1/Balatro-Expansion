@@ -1134,9 +1134,36 @@ function mod:SetupForNextHandPlay(Player)
         return
     end
 
+    local Interval = 8
+
     local PIndex = Player:GetData().TruePlayerIndex
 
     mod.SelectionParams[PIndex].ScoringCards = 0
+
+    if mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_BELL then
+        local BellRNG = Player:GetDropRNG()
+
+        Isaac.CreateTimer(function ()
+            mod.Saved.BossBlindVarData = BellRNG:RandomInt(mod.SelectionParams[PIndex].OptionsNum) + 1
+        end, Interval, 1, true)
+
+        Interval = Interval + 4
+
+    elseif mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_HEART then
+        local HeartRNG = Player:GetDropRNG()
+        local PIndex = Player:GetData().TruePlayerIndex
+
+        mod.Saved.BossBlindVarData = HeartRNG:RandomInt(#mod.Saved.Player[PIndex].Inventory) + 1
+        
+        Isaac.CreateTimer(function ()
+            
+            local DebuffedSlot = mod.Saved.Player[PIndex].Inventory[mod.Saved.BossBlindVarData]
+            DebuffedSlot.Modifiers = DebuffedSlot.Modifiers | mod.Modifier.DEBUFFED
+        end, Interval, 1, true)
+
+        Interval = Interval + 4
+    end
+
 
     Isaac.CreateTimer(function ()
 
@@ -1160,6 +1187,7 @@ function mod:SetupForNextHandPlay(Player)
 
         Isaac.CreateTimer(function ()
 
+            --print("switched hand ON")
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams.Purposes.HAND)
         end, Delay, 1, true)
         
@@ -1532,23 +1560,68 @@ local function OnBlindStart(_, BlindData)
             
                     local PIndex = Player:GetData().TruePlayerIndex
 
-                    for i,_ in ipairs(mod.Saved.Player[PIndex].Inventory) do
+                    local Inventory = mod.Saved.Player[PIndex].Inventory
 
-                        local Slot = mod.Saved.Player[PIndex].Inventory[i]
+                    for i,_ in ipairs(Inventory) do
+
+                        Interval = Interval + 1
+
+                        local Slot = Inventory[i]
                         
                         Slot.Modifiers = Slot.Modifiers | mod.Modifier.COVERED
-
                     end
-            
+
+                    Interval = Interval + 2
+
+                    local ShuffleRNG = Player:GetDropRNG()
+
+                    for i = #Inventory, 2 ,-1 do
+
+                        Interval = Interval + 2
+
+                        Isaac.CreateTimer(function ()
+
+                          local j = ShuffleRNG:RandomInt(i) + 1
+
+                          Inventory[i], Inventory[j] = Inventory[j], Inventory[i]
+
+                        end, Interval, 1, true)
+                    end
+                    
+                    Interval = Interval + 4
+
+                elseif mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_BELL then
+                    local BellRNG = Player:GetDropRNG()
+                    local PIndex = Player:GetData().TruePlayerIndex
+
+                    Isaac.CreateTimer(function ()
+                        mod.Saved.BossBlindVarData = BellRNG:RandomInt(mod.SelectionParams[PIndex].OptionsNum) + 1
+                    end, Interval, 1, true)
+
+                    Interval = Interval + 4
+                
+                elseif mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_HEART then
+                    local HeartRNG = Player:GetDropRNG()
+                    local PIndex = Player:GetData().TruePlayerIndex
+
+                    mod.Saved.BossBlindVarData = HeartRNG:RandomInt(#mod.Saved.Player[PIndex].Inventory) + 1
+                
+                    Isaac.CreateTimer(function ()
+
+                        local DebuffedSlot = mod.Saved.Player[PIndex].Inventory[mod.Saved.BossBlindVarData]
+                        DebuffedSlot.Modifiers = DebuffedSlot.Modifiers | mod.Modifier.DEBUFFED
+                    end, Interval, 1, true)
+
+                    Interval = Interval + 4
                 end
 
 
-                --Isaac.CreateTimer(function ()
+                Isaac.CreateTimer(function ()
 
                     --also shuffles the deck in this case
                     mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams.Purposes.HAND)
 
-                --end, Interval, 1, true)
+                end, Interval, 1, true)
                 
             end
         end
@@ -1778,7 +1851,16 @@ local function OnBlindClear(_, BlindData)
 
     mod.Saved.BlindScalingFactor = 1
 
+    
     for _,Player in ipairs(PlayerManager.GetPlayers()) do
+
+        local PIndex = Player:GetData().TruePlayerIndex
+
+        for i, _ in ipairs(mod.Saved.Player[PIndex].Inventory) do
+        
+            mod.Saved.Player[PIndex].Inventory[i].Modifiers = 0 --no modifiers (not covered or debuffed)
+        end
+
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.NONE)
     end
 

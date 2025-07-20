@@ -41,11 +41,13 @@ local TrinketSprite = Sprite("gfx/005.350_trinket_custom.anm2")
 local CardFrame = Sprite("gfx/ui/CardSelection.anm2")
 CardFrame:SetAnimation("Frame")
 
+--tells if the hud render is happening before or after the below shader
+local POST_SHADER_RENDER = false --TRUE --> position is fixed || false --> position is shifted with the shader
 
 local HAND_RENDERING_HEIGHT = 30 --in screen coordinates
-local ENHANCEMENTS_ANIMATIONS = {"Base","Mult","Bonus","Wild","Glass","Steel","Stone","Golden","Lucky"}
+--local ENHANCEMENTS_ANIMATIONS = {"Base","Mult","Bonus","Wild","Glass","Steel","Stone","Golden","Lucky"}
 
-local SCREEN_TO_WORLD_RATIO = 4 --idk why this is needed
+local SCREEN_TO_WORLD_RATIO = 4 --idk why this is needed but it is
 
 local BASE_BUBBLE_HEIGHT = 11
 local CASHOUT_STRING_X_OFFSET = -39
@@ -90,7 +92,6 @@ end
 mod:AddPriorityCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_ACTIVE_ITEM, CallbackPriority.LATE, CancelActiveHUD)
 
 
-
 local function CancelHeartsHUD(_,_,_,_,_,Player)
 
     if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
@@ -109,9 +110,6 @@ local function CancelTrinketHUD(_,_,_,_,Player)
     end
 end
 mod:AddPriorityCallback(ModCallbacks.MC_PRE_PLAYERHUD_TRINKET_RENDER, CallbackPriority.LATE, CancelTrinketHUD)
-
-
-
 
 
 --puts the map so far away it's basically impossible to see it
@@ -134,8 +132,66 @@ local function CancelDoorRendering(_, Door)
 end
 mod:AddCallback(ModCallbacks.MC_PRE_GRID_ENTITY_DOOR_RENDER, CancelDoorRendering)
 
+local OldCameraStyle
+local BaseRoomWidth = Isaac.WorldToScreenDistance(Vector(15 * 40, 0)).X
+local CameraOffset = Vector.Zero
+
+local function MoveCameraToRightBorder()
+
+    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then
+
+        Options.CameraStyle = OldCameraStyle or Options.CameraStyle
+        OldCameraStyle = nil
+
+        CameraOffset = Vector.Zero
+
+        return
+    end
+
+    OldCameraStyle = OldCameraStyle or Options.CameraStyle
+
+    Options.CameraStyle = CameraStyle.ACTIVE_CAM_OFF
+
+    local FreeRightSpace = (Isaac.GetScreenWidth() - BaseRoomWidth) / 2
+
+    CameraOffset = Isaac.WorldToScreenDistance(Vector(FreeRightSpace,0))/2
+
+    CameraOffset.X = math.ceil(CameraOffset.X)
+    CameraOffset.Y = math.ceil(CameraOffset.Y)
+
+    --local ScreenCenter = Vector(Isaac.GetScreenWidth()/2, Isaac.GetScreenHeight()/2)
+    --local CurrentCameraPos = Isaac.ScreenToWorld(ScreenCenter) * SCREEN_TO_WORLD_RATIO
+
+    
+    --Game:GetRoom():GetCamera():SnapToPosition(CurrentCameraPos + CameraOffset)
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_RENDER, MoveCameraToRightBorder)
+
+local TJIMBO_SHADER = "Right Border Shift"
+
+local function RightMoveShader(_,Name) --this shader makes the whole game shifted closer to the right screen border, this allows for larger HUDs on the left side
+    if Name == TJIMBO_SHADER then
+
+        local Params = {}
 
 
+        if PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then
+            Params.CameraOffset = {CameraOffset.X*2, CameraOffset.Y*2}
+        else
+            Params.CameraOffset = {0,0}
+        end
+
+        local HUD = Game:GetHUD()
+
+        HUD:SetVisible(true)
+        Game:GetHUD():Render()
+        HUD:SetVisible(false)
+
+        return Params
+    end
+end
+mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, RightMoveShader)
 
 
 ---@param String string
@@ -200,7 +256,9 @@ end
 --rendere the player's current hand below them
 ---@param Player EntityPlayer
 local function JimboHandRender(_,_,_,_,_,Player)
-    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo or not mod.Saved.Player[1] then
+
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo 
+       or not mod.GameStarted or Game:IsPaused() then
         return
     end
 
@@ -211,7 +269,7 @@ local function JimboHandRender(_,_,_,_,_,Player)
     local CardStep = CARD_AREA_WIDTH / (NumCardsInHand + 1)
 
     local BaseRenderPos = Vector((Isaac.GetScreenWidth() - CARD_AREA_WIDTH)/2 + CardStep,
-                                 Isaac.GetScreenHeight() - HAND_RENDERING_HEIGHT)
+                                 Isaac.GetScreenHeight() - HAND_RENDERING_HEIGHT) + CameraOffset
 
     if mod.SelectionParams[PIndex].PackPurpose ~= mod.SelectionParams.Purposes.NONE then
         
@@ -362,8 +420,18 @@ local function JimboHandRender(_,_,_,_,_,Player)
         end
 
     end
+    
+end
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, JimboHandRender)
 
-    ------DECK RENDERING----------
+
+local function JimboDeckRender(_,_,_,_,_,Player)
+
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo or not mod.Saved.Player[1] then
+        return
+    end
+
+    local PIndex = Player:GetData().TruePlayerIndex
 
     local CardsLeft = math.max((#mod.Saved.Player[PIndex].FullDeck - mod.Saved.Player[PIndex].DeckPointer)+1, 0)
 
@@ -373,9 +441,8 @@ local function JimboHandRender(_,_,_,_,_,Player)
 
     DeckSprite:Render(BRScreenWithOffset(DECK_RENDERING_POSITION))
     --DeckSprite:Render(PlayerScreenPos + Offset + BaseRenderOff - Vector(9.5,0))
-    
 end
-mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, JimboHandRender)
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, JimboDeckRender)
 
 
 
@@ -403,7 +470,7 @@ local function JimboPlayedHandRender(_,_,_,_,_,Player)
     local NumPlayed = #mod.SelectionParams[PIndex].PlayedCards
 
     local BaseRenderPos = Vector((Isaac.GetScreenWidth() -21*(NumPlayed - 1)), 
-                          Isaac.GetScreenHeight())/2
+                          Isaac.GetScreenHeight())/2 + CameraOffset
 
 
     local TargetRenderPos = BaseRenderPos + Vector.Zero
@@ -504,7 +571,6 @@ end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, JimboPlayedHandRender)
 
 
-
 local CardScale = {}
 --handles the charge bar when the player is selecting cards
 ---@param Player EntityPlayer
@@ -529,7 +595,7 @@ local function JimboPackRender(_,_,_,_,_,Player)
 
     --base point, increased while rendering 
     local BaseRenderPos = Vector(Isaac.GetScreenWidth() - CardHUDWidth * NumOptions - PACK_CARD_DISTANCE * (NumOptions - 1),
-                                 Isaac.GetScreenHeight() - HAND_RENDERING_HEIGHT - 30)
+                                 Isaac.GetScreenHeight() - HAND_RENDERING_HEIGHT - 30) + CameraOffset
 
     BaseRenderPos.X = BaseRenderPos.X/2 --centers the cards
 
@@ -544,19 +610,26 @@ local function JimboPackRender(_,_,_,_,_,Player)
         for i,Card in ipairs(mod.SelectionParams[PIndex].PackOptions) do --for every option
         
             local Rotation = 0
-            local Scale = Vector.One
             local ForceCovered = Game:IsPaused()
             local ValueOffset = Vector.Zero
             local IsThin = false
 
             --JimboCards.Pack_PlayingCards.Scale = Vector.One * mod:Lerp(CardScale[i], TargetScale, mod.Counters.SinceSelect)
 
-            CardScale[i] = 1
+            local TargetScale = mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.PACK][i] and 1.25 or 1
+            CardScale[i] = CardScale[i] or TargetScale + 0
+            
+            local LerpedScale = mod:Lerp(CardScale[i], TargetScale, mod.Counters.SinceSelect/5)
+
+            CardScale[i] = LerpedScale == TargetScale and TargetScale+0 or CardScale[i]
+
+            TrinketSprite.Scale = Vector.One * LerpedScale
+
             WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams[PIndex].Frames*5+i*95))*1.5)
 
             local RenderPos = mod:CoolVectorLerp(PlayerPos, RenderPos + WobblyEffect[i], mod.SelectionParams[PIndex].Frames/10)
 
-            mod:RenderCard(Card, RenderPos, ValueOffset, Scale, Rotation, ForceCovered, IsThin)
+            mod:RenderCard(Card, RenderPos, ValueOffset, LerpedScale, Rotation, ForceCovered, IsThin)
 
 
             RenderPos.X = RenderPos.X + PACK_CARD_DISTANCE + CardHUDWidth
@@ -573,7 +646,21 @@ local function JimboPackRender(_,_,_,_,_,Player)
             WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams[PIndex].Frames*5+i*95))*1.5)
 
             TrinketSprite:SetCustomShader(mod.EditionShaders[card.Edition])
-            TrinketSprite:Render(mod:CoolVectorLerp(PlayerPos, RenderPos + WobblyEffect[i], mod.SelectionParams[PIndex].Frames/10))
+
+
+            local TargetScale = mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.PACK][i] and 1.25 or 1
+            CardScale[i] = CardScale[i] or TargetScale + 0
+            
+            local LerpedScale = mod:Lerp(CardScale[i], TargetScale, mod.Counters.SinceSelect/5)
+
+            CardScale[i] = LerpedScale == TargetScale and TargetScale+0 or CardScale[i]
+
+            
+            TrinketSprite.Scale = Vector.One * LerpedScale
+
+            local RanderPos = mod:CoolVectorLerp(PlayerPos, RenderPos + WobblyEffect[i], mod.SelectionParams[PIndex].Frames/10)
+
+            TrinketSprite:Render(RenderPos)
 
             RenderPos.X = RenderPos.X + PACK_CARD_DISTANCE + CardHUDWidth
 
@@ -601,7 +688,10 @@ local function JimboPackRender(_,_,_,_,_,Player)
             CardScale[i] = LerpedScale == TargetScale and TargetScale+0 or CardScale[i]
 
             SpecialCardsSprite.Scale = Vector.One * LerpedScale
-            SpecialCardsSprite:Render(mod:CoolVectorLerp(PlayerPos, RenderPos+WobblyEffect[i], mod.SelectionParams[PIndex].Frames/25))
+
+            local ActualRenderPos = mod:CoolVectorLerp(PlayerPos, RenderPos+WobblyEffect[i], mod.SelectionParams[PIndex].Frames/25)
+
+            SpecialCardsSprite:Render(ActualRenderPos)
 
             RenderPos.X = RenderPos.X + PACK_CARD_DISTANCE + CardHUDWidth
 
@@ -636,6 +726,7 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, JimboPackRender)
 ---@param Player EntityPlayer
 local function JimboInventoryHUD(_,_,_,_,_,Player)
     if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
+        
         return
     end
 
@@ -659,7 +750,7 @@ local function JimboInventoryHUD(_,_,_,_,_,Player)
     local JokerStep = JOKER_AREA_WIDTH / (NumJokers + 1)
 
     local BasePos = Vector((Isaac.GetScreenWidth() - JOKER_AREA_WIDTH)/2, 
-                                    INVENTORY_RENDERING_HEIGHT) + Vector(0, -14)*Options.HUDOffset
+                                    INVENTORY_RENDERING_HEIGHT) + Vector(0, -14)*Options.HUDOffset + CameraOffset
 
     local TargetRenderPos = BasePos + Vector.Zero
 
@@ -778,7 +869,7 @@ local function JimboConsumableRender(_,_,_,_,_,Player)
     local BasePos = Vector((Isaac.GetScreenWidth() + CONSUMABLE_AREA_WIDTH)/2 + CONSUMABLE_CENTER_OFFSET, 
                                     INVENTORY_RENDERING_HEIGHT) + Vector(0, 14)*Options.HUDOffset
 
-    local TargetRenderPos = BasePos + Vector.Zero
+    local TargetRenderPos = BasePos
 
     --print(BasePos)
 
@@ -839,7 +930,7 @@ local function JimboChargeBarRender(_,_,_,_,_,Player)
 
         SellChargeSprite:SetFrame("Charging", Frame)
 
-        SellChargeSprite:Render(Isaac.WorldToScreen(Player.Position))
+        SellChargeSprite:Render(Isaac.WorldToScreen(Player.Position) + CameraOffset)
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, JimboChargeBarRender)
@@ -892,7 +983,7 @@ local function JimboStatsHUD(_,offset,_,Position,_,Player)
     local Log
 
     --in certain cases the value is a string (planet upgrade animations mostly)
-    if tonumber(StatToShow.Mult) == "fail" then 
+    if tonumber(StatToShow.Mult) == "fail" then
         goto RENDER
     end
 
@@ -923,7 +1014,6 @@ local function JimboStatsHUD(_,offset,_,Position,_,Player)
     mod.Fonts.Balatro:DrawStringScaled(MultString, MultPos.X-6,MultPos.Y-3,0.5,0.5,KColor.White)
 
 
-    
      --HAND TYPE TEXT RENDER--
     mod.Fonts.Balatro:DrawString(HAND_TYPE_NAMES[mod.SelectionParams[PIndex].HandType],100,25,KColor(1,1,1,1))
 
@@ -938,9 +1028,10 @@ local function SkipTagsHUD(_,offset,_,Position,_,Player)
         return
     end
 
-    local PIndex = Player:GetData().TruePlayerIndex
+    --local PIndex = Player:GetData().TruePlayerIndex
 
     local RenderPos = BRScreenWithOffset(DECK_RENDERING_POSITION)
+
     RenderPos.Y = RenderPos.Y - 15
 
     for i, Tag in ipairs(mod.Saved.SkipTags) do

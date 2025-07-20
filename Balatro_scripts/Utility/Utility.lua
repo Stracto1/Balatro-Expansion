@@ -2687,6 +2687,9 @@ function mod:GetCardModifiers(Player, Card, Pointer)
             CardModifiers = mod.Modifier.DEBUFFED
         end
 
+    elseif BlindType == mod.BLINDS.BOSS_LEAF then
+
+        CardModifiers = mod.Modifier.DEBUFFED --every card is debuffed
     end
 
 
@@ -3140,6 +3143,7 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
         mod.SelectionParams[PIndex].Frames = 0
     end
 
+
     if NewMode == mod.SelectionParams.Modes.NONE then
 
         for i,v in ipairs(Isaac.FindByType(1000, DescriptionHelperVariant, DescriptionHelperSubType)) do
@@ -3202,6 +3206,7 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
         Game:GetRoom():SetPauseTimer(225)
         Player:SetCanShoot(false)
     end
+
     
     if NewMode == mod.SelectionParams.Modes.HAND then
 
@@ -3216,9 +3221,17 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
         
         
         mod.SelectionParams[PIndex].OptionsNum = #mod.Saved.Player[PIndex].CurrentHand
+
+
         if NewPurpose == mod.SelectionParams.Purposes.HAND then
             mod.SelectionParams[PIndex].MaxSelectionNum = 5
             mod.SelectionParams[PIndex].HandType = mod.HandTypes.NONE
+
+            if IsTaintedJimbo 
+               and mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_BELL then
+
+                mod.SelectionParams[PIndex].SelectedCards[mod.Saved.BossBlindVarData] = true
+            end
 
         elseif NewPurpose >= mod.SelectionParams.Purposes.DEJA_VU then
             mod.SelectionParams[PIndex].MaxSelectionNum = 1
@@ -3309,23 +3322,39 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
     Game:Spawn(EntityType.ENTITY_EFFECT, DescriptionHelperVariant, Player.Position
                    ,Vector.Zero, nil, DescriptionHelperSubType, 1)
 
+    if IsTaintedJimbo then
+
+    
+        if mod.GameStarted
+           and NewMode ~= mod.SelectionParams.Modes.NONE then
+
+            local Params = mod.SelectionParams[PIndex]
+
+            Params.MaxSelectionNum = 5
+
+            local NewIndex = math.ceil((Params.Index * Params.OptionsNum) / #Params.SelectedCards[Params.Mode])
+
+            NewIndex = mod:Clamp(NewIndex, #Params.SelectedCards[NewMode], 1)
+
+            Params.Index = NewIndex
+            
+            --mod.SelectionParams[PIndex].SelectionNum = mod:GetValueRepetitions(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams[PIndex].Mode],)
+            
+            for i=1, Params.OptionsNum do
+
+                Params.SelectedCards[mod.SelectionParams.Modes.HAND][i] = Params.SelectedCards[mod.SelectionParams.Modes.HAND][i] or false
+            end
+
+        else
+
+            mod.SelectionParams[PIndex].Index = 1
+        end
+    end
+
+
     mod.SelectionParams[PIndex].Mode = NewMode
     mod.SelectionParams[PIndex].Purpose = NewPurpose
 
-    if IsTaintedJimbo then
-        mod.SelectionParams[PIndex].MaxSelectionNum = 5
-        mod.SelectionParams[PIndex].Index = mod:Clamp(mod.SelectionParams[PIndex].Index, mod.SelectionParams[PIndex].OptionsNum, 1)
-    
-        --mod.SelectionParams[PIndex].SelectionNum = mod:GetValueRepetitions(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams[PIndex].Mode],)
-    
-        --print(mod.SelectionParams[PIndex].OptionsNum)
-        for i=1, mod.SelectionParams[PIndex].OptionsNum do
-        
-            mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND][i] = mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND][i] or false
-        
-            --print(i, mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND][i])
-        end
-    end
 end
 
 
@@ -3386,7 +3415,17 @@ function mod:Select(Player)
 
                 sfx:Play(mod.Sounds.DESELECT)
 
-                SelectedCards[mod.SelectionParams[PIndex].Index] = false                    
+                SelectedCards[mod.SelectionParams[PIndex].Index] = false
+                
+
+                if IsTaintedJimbo
+                   and mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_BELL
+                   and mod.Saved.BossBlindVarData == mod.SelectionParams[PIndex].Index then
+                    
+                    SelectedCards[mod.SelectionParams[PIndex].Index] = true
+                end
+
+
                 mod.SelectionParams[PIndex].SelectionNum = mod.SelectionParams[PIndex].SelectionNum - 1
 
             --if it's not currently selected and it doesn't surpass the limit
@@ -4017,9 +4056,14 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.CountersUpdate)
 
 
-local CardLayerID = {BODY = 1, VALUE_SUIT = 0, ENHANCEMENT = 2, SEAL = 3}
+local CardLayerID = {BODY = 1, VALUE_SUIT = 0, ENHANCEMENT = 2, SEAL = 3, DEBUFF = 4}
 
 local JimboCards = Sprite("gfx/ui/Card Body.anm2")
+
+local JimboCardsLayers = {}
+for _,v in pairs(CardLayerID) do
+    JimboCardsLayers[v] = JimboCards:GetLayer(v)
+end
 
 function mod:RenderCard(Params, Position, Offset, Scale,Rotation, ForceCovered, Thin)
 
@@ -4036,6 +4080,8 @@ function mod:RenderCard(Params, Position, Offset, Scale,Rotation, ForceCovered, 
     JimboCards.Scale = Scale
     JimboCards.Rotation = Rotation
 
+    JimboCards:ClearCustomShader()
+
     if Params.Modifiers & mod.Modifier.COVERED ~= 0 or ForceCovered then
         JimboCards:SetLayerFrame(CardLayerID.BODY, 0)
         JimboCards:RenderLayer(CardLayerID.BODY, Position)
@@ -4043,23 +4089,30 @@ function mod:RenderCard(Params, Position, Offset, Scale,Rotation, ForceCovered, 
         return
     end
 
-    JimboCards:SetCustomShader(mod.EditionShaders[Params.Edition])
+    
+    JimboCardsLayers[CardLayerID.BODY]:SetCustomShader(mod.EditionShaders[Params.Edition])
+    JimboCardsLayers[CardLayerID.ENHANCEMENT]:SetCustomShader(mod.EditionShaders[Params.Edition])
+
 
     JimboCards:SetLayerFrame(CardLayerID.BODY, Params.Enhancement)
-    JimboCards:RenderLayer(CardLayerID.BODY, Position)
-
-    if Params.Enhancement == mod.Enhancement.STONE then
-        return
-    end
 
     JimboCards:SetLayerFrame(CardLayerID.VALUE_SUIT, 4* Params.Value + Params.Suit - 5)
-    JimboCards:RenderLayer(CardLayerID.VALUE_SUIT, Position + Offset*Scale)
+    JimboCardsLayers[CardLayerID.VALUE_SUIT]:SetPos(Offset*Scale)
 
     JimboCards:SetLayerFrame(CardLayerID.ENHANCEMENT, Params.Enhancement)
-    JimboCards:RenderLayer(CardLayerID.ENHANCEMENT, Position)
 
     JimboCards:SetLayerFrame(CardLayerID.SEAL, Params.Seal)
-    JimboCards:RenderLayer(CardLayerID.SEAL, Position)
+
+    JimboCards:Render(Position)
+    JimboCardsLayers[CardLayerID.BODY]:ClearCustomShader()
+
+
+    if Params.Modifiers & mod.Modifier.DEBUFFED ~= 0 then
+        --renders another copy of the card on top of the original (just like the original game!!)
+        JimboCards:SetCustomShader(mod.EditionShaders.DEBUFF)
+
+        JimboCards:Render(Position)
+    end
 
 end
 

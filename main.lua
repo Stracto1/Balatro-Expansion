@@ -501,7 +501,8 @@ Balatro_Expansion.EditionShaders ={ --sadly these don't work for the bigger card
     "shaders/Foil_effect",
     "shaders/Holographic_effect",
     "shaders/Polychrome_effect",
-    "shaders/Negative_effect"
+    "shaders/Negative_effect",
+    DEBUFF = "shaders/Debuff_modifier"
 }
 Balatro_Expansion.EditionShaders[Balatro_Expansion.Edition.BASE] = "shaders/Nothing" --prevents extra if statements on render
 

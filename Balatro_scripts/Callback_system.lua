@@ -430,6 +430,7 @@ function mod:InitJimboValues(Player, Force)
         
         mod.SelectionParams[PIndex].SelectedCards = {}
 
+        mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.NONE] = {}
         mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND] = {false,false,false,false,false}
         mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.PACK] = {false,false,false}
         mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.INVENTORY] = {false,false,false,false,false}
