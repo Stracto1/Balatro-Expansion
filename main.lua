@@ -1,5 +1,10 @@
+---@diagnostic disable: redundant-parameter
 
 Balatro_Expansion = RegisterMod("Balatro Expansion", 1)
+
+
+Balatro_Expansion.HOLD_THRESHOLD = 10 --if time is EQUAL OR HIGHER then it's probably holding
+
 
 local ItemsConfig = Isaac.GetItemConfig()
 
@@ -194,6 +199,7 @@ Balatro_Expansion.Callbalcks = {CARD_SHOT = "CARD_SHOT",
                                 CONSUMABLE_SOLD = "CONSUMABLE_SOLD",
                                 CONSUMABLE_USE = "CONSUMABLE_USED",
                                 BLIND_CLEAR = "BLIND_CLEARED",
+                                POST_BLIND_CLEAR = "POST_BLIND_CLEARED",
                                 SHOP_REROLL = "BALATRO_SHOP_REROLL",
                                 SHOP_EXIT = "BALATRO_SHOP_END",
                                 CASHOUT_EVAL = "CASHOUT_EVALUATION",
@@ -224,6 +230,9 @@ Balatro_Expansion.StringTypes = {Hand = -1,
                                  General = -2,
                                  Interest = -3,
                                  Joker = -4}
+
+Balatro_Expansion.HandOrderingModes = {Rank = 1,
+                                       Suit = 2}
 
 Balatro_Expansion.JokerTypes = {}
 Balatro_Expansion.JokerTypes.ECON = "money"
@@ -264,6 +273,7 @@ Balatro_Expansion.Effects.DIALOG_BUBBLE = Isaac.GetEntityVariantByName("Blind Ca
 
 Balatro_Expansion.DIalogBubbleSubType = {CASHOUT = Isaac.GetEntitySubTypeByName("Blind Cashout Bubble"),
                                          BOSS_BLIND = Isaac.GetEntitySubTypeByName("Boss Blind Bubble"),
+                                         SHOP_ITEM = Isaac.GetEntitySubTypeByName("Shop Item Bubble"),
                                          --HREROLL_PRICE = Isaac.GetEntitySubTypeByName("Reroll Price Bubble"),
                                          }
 
@@ -338,24 +348,28 @@ Balatro_Expansion.Sounds.CLOWN_HONK = Isaac.GetSoundIdByName("HONKSFX")
 Balatro_Expansion.Sounds.EAT = Isaac.GetSoundIdByName("EATSFX")
 
 
-
+Balatro_Expansion.BalatroColorBlack = Color(41/255, 51/255, 53/255, 1)
 Balatro_Expansion.EffectColors = {}
 Balatro_Expansion.EffectColors.RED = Color(238/255, 49/255, 66/255)
 Balatro_Expansion.EffectColors.BLUE = Color(49/255, 140/255, 238/255)
 Balatro_Expansion.EffectColors.YELLOW = Color(238/255, 186/255, 49/255)
 Balatro_Expansion.EffectColors.PURPLE = Color(238/255, 186/255, 49/255)
+Balatro_Expansion.EffectColors.GREEN = Color(55/255, 194/255, 14/255)
 
+Balatro_Expansion.BalatroKColorBlack = KColor(41/255, 51/255, 53/255, 1)
 Balatro_Expansion.EffectKColors = {}
 Balatro_Expansion.EffectKColors.RED = KColor(238/255, 49/255, 66/255, 1)
 Balatro_Expansion.EffectKColors.BLUE = KColor(49/255, 140/255, 238/255, 1)
 Balatro_Expansion.EffectKColors.YELLOW = KColor(238/255, 186/255, 49/255, 1)
-Balatro_Expansion.EffectKColors.PURPLE = KColor(238/255, 186/255, 49/255, 1)
+Balatro_Expansion.EffectKColors.PURPLE = KColor(238/255, 186/255, 49/255, 1)--PLACEHOLDER
+Balatro_Expansion.EffectKColors.GREEN = KColor(55/255, 194/255, 14/255, 1)
 
 Balatro_Expansion.EffectType = {NULL = -1,
                                 JOKER = -2,
                                 HAND = -3,
                                 ENTITY = -4,
                                 HAND_FROM_JOKER = 0}
+
 
 
 Balatro_Expansion.Packs = {}
@@ -375,7 +389,11 @@ Balatro_Expansion.Packs.STANDARD = Isaac.GetCardIdByName("Standard_Pack") --base
 Balatro_Expansion.Packs.JUMBO_STANDARD = Isaac.GetCardIdByName("Jumbo_Standard_Pack")
 Balatro_Expansion.Packs.MEGA_STANDARD = Isaac.GetCardIdByName("Mega_Standard_Pack")
 
-Balatro_Expansion.PackQuality = {} --these get summed to the base variants above to also specify the edition
+Balatro_Expansion.PackQualityModule = {BASE = Balatro_Expansion.Packs.ARCANA % 3,
+                                       JUMBO = Balatro_Expansion.Packs.JUMBO_ARCANA % 3,
+                                       MEGA = Balatro_Expansion.Packs.MEGA_ARCANA % 3}
+
+Balatro_Expansion.PackQuality = {} --these get summed to the base variants above to also specify the quality
 Balatro_Expansion.PackQuality.BASE =  0
 Balatro_Expansion.PackQuality.JUMBO = 1
 Balatro_Expansion.PackQuality.MEGA  =  2
@@ -571,7 +589,9 @@ Balatro_Expansion.AllCurses.THE_WALL = 1 << (Isaac.GetCurseIdByName("curse of th
 
 Balatro_Expansion.NormalCurses[1] = Balatro_Expansion.AllCurses.THE_WALL
 
-Balatro_Expansion.BLINDS = {
+Balatro_Expansion.BLINDS = {WAITING_CASHOUT = 8192,
+                            SHOP = 2048,
+                            NONE = 4096,
                             SMALL = 1,
                             BIG = 2,
                             BOSS = 4, --used as a flag along with a specific boss type
@@ -603,6 +623,7 @@ Balatro_Expansion.BLINDS = {
                             BOSS_HEART = 212,
                             BOSS_VESSEL = 220,
                             BOSS_BELL = 228}
+
 
 Balatro_Expansion.SkipTags = {UNCOMMON = 0,
                               RARE = 1,
@@ -637,21 +658,38 @@ Balatro_Expansion.CustomCache.INVENTORY_SIZE = "inventory"
 Balatro_Expansion.CustomCache.HAND_NUM = "hands"
 
 ---------------------------------
-Balatro_Expansion.LastCardFullPoss = {}
+Balatro_Expansion.CardFullPoss = {}
 Balatro_Expansion.JokerFullPosition = {} --used to save where a certain joker is when using T jimbo
 Balatro_Expansion.ConsumableFullPosition = {}
+Balatro_Expansion.PackOptionFullPosition = {}
 
+Balatro_Expansion.StringRenderingParams = {Swoosh = 1,
+                                           Wavy = 2,
+                                           Peaking = 4,
+                                           Wrap = 8,
+                                           Centered = 16,
+                                           Enlarge = 32,
+                                           RightAllinged = 64}
 
 Balatro_Expansion.Fonts = {}
 do
 
----@diagnostic disable-next-line: redundant-parameter
-local font, loaded = Font("mods/balatro_expansion/resources/font/Balatro_Font4.fnt")
-Balatro_Expansion.Fonts.Balatro = font
+local loaded
+Balatro_Expansion.Fonts.Balatro, loaded = Font("mods/balatro_expansion/resources/font/Balatro_Font4.fnt")
 
 if not loaded then
     Balatro_Expansion.Fonts.Balatro:Load("mods/balatro_expansion_3308293502/resources/font/Balatro_Font4.fnt")
 end
+
+
+Balatro_Expansion.Fonts.Balatro_Small, loaded = Font("mods/balatro_expansion/resources/font/Balatro_Font3.fnt")
+
+if not loaded then
+    Balatro_Expansion.Fonts.Balatro_Small:Load("mods/balatro_expansion_3308293502/resources/font/Balatro_Font3.fnt")
+end
+
+---print(Balatro_Expansion.Fonts.Balatro:GetLineHeight(), Balatro_Expansion.Fonts.Balatro:GetBaselineHeight())
+
 
 end
 ---@diagnostic disable-next-line: redundant-parameter
@@ -666,33 +704,9 @@ Balatro_Expansion.RNGs = {SHOP = RNG(), VOUCHERS = RNG(), LUCKY_CARD = RNG(), BO
 
 Balatro_Expansion.Saved = {} --every value that needs to be stored between game starts
 -------------------------------
---[[Balatro_Expansion.Saved.TrinketValues = {} --contains the "progress" for every trinket that needs it
--------------BASE VALUES------------- (changed on game start or when loading data)
-Balatro_Expansion.Saved.TrinketValues.LastMisprintDMG = 0
-Balatro_Expansion.Saved.TrinketValues.Fortune_Teller = 0
-Balatro_Expansion.Saved.TrinketValues.Stone_joker = 0
-Balatro_Expansion.Saved.TrinketValues.Ice_cream = 1
-Balatro_Expansion.Saved.TrinketValues.Popcorn = 2
-Balatro_Expansion.Saved.TrinketValues.Ramen = 1.3
-Balatro_Expansion.Saved.TrinketValues.Rocket = 3
-Balatro_Expansion.Saved.TrinketValues.Green_joker = 0
-Balatro_Expansion.Saved.TrinketValues.Red_card = 0
-Balatro_Expansion.Saved.TrinketValues.Blueprint = 0
-Balatro_Expansion.Saved.TrinketValues.Brainstorm = 0
-Balatro_Expansion.Saved.TrinketValues.Madness = 1
-Balatro_Expansion.Saved.TrinketValues.LastBPitem = 0
-Balatro_Expansion.Saved.TrinketValues.Flash_card = 0
-Balatro_Expansion.Saved.TrinketValues.Cloud_9 = 9
-Balatro_Expansion.Saved.TrinketValues.Loyalty_card = 6
-Balatro_Expansion.Saved.TrinketValues.Sacrificial_dagger = 0
-Balatro_Expansion.Saved.TrinketValues.Swashbuckler = 0
-Balatro_Expansion.Saved.TrinketValues.Egg = 3
-Balatro_Expansion.Saved.TrinketValues.Supernova = {}
-Balatro_Expansion.Saved.TrinketValues.MichaelDestroyed = false
-Balatro_Expansion.Saved.TrinketValues.GoldenMichelGone = false
-Balatro_Expansion.Saved.TrinketValues.FirstBrain = true
-Balatro_Expansion.Saved.TrinketValues.Dna = true
-]]
+--this right here is a relic of the first ever design this mod had (sucked so much ass ngl)
+--Balatro_Expansion.Saved.TrinketValues = {} --contains the "progress" for every trinket that needs it
+
 
 Balatro_Expansion.Saved.Pools = {}
 Balatro_Expansion.Saved.Pools.Vouchers = { Balatro_Expansion.Vouchers.Grabber,
@@ -753,8 +767,13 @@ Balatro_Expansion.Saved.RunSkippedSpecials = 0
 Balatro_Expansion.Saved.GlassBroken = 0
 Balatro_Expansion.Saved.TarotsUsed = 0
 Balatro_Expansion.Saved.PlanetTypesUsed = 0
-Balatro_Expansion.Saved.BlindBeingPlayed = 0
+Balatro_Expansion.Saved.BlindBeingPlayed = Balatro_Expansion.BLINDS.NONE
+Balatro_Expansion.Saved.CurrentBlindName = ""
+Balatro_Expansion.Saved.CurrentBlindReward = 0
+Balatro_Expansion.Saved.CurrentRound = 0
 Balatro_Expansion.Saved.BossBlindVarData = 0
+
+Balatro_Expansion.Saved.HandOrderingMode = Balatro_Expansion.HandOrderingModes.Rank
 
 Balatro_Expansion.Saved.IsSpecialBoss = false 
 Balatro_Expansion.Saved.AnteVoucher = 0
@@ -771,6 +790,10 @@ Balatro_Expansion.Saved.DiscardsWasted = 0
 
 Balatro_Expansion.Saved.MultValue = 0
 Balatro_Expansion.Saved.ChipsValue = 0
+Balatro_Expansion.Saved.TotalScore = 0
+
+Balatro_Expansion.Saved.HandType = 0
+Balatro_Expansion.Saved.PossibleHandTypes = 0
 
 
 Balatro_Expansion.Saved.HandLevels = {[Balatro_Expansion.HandTypes.NONE] = 1,
@@ -1026,6 +1049,7 @@ Balatro_Expansion.SelectionParams.Modes.NONE = 0
 Balatro_Expansion.SelectionParams.Modes.HAND = 1 --used fo T.jimbo to make the enum more clear
 Balatro_Expansion.SelectionParams.Modes.PACK = 2
 Balatro_Expansion.SelectionParams.Modes.INVENTORY = 3
+Balatro_Expansion.SelectionParams.Modes.CONSUMABLES = 4
 
 Balatro_Expansion.SelectionParams.Purposes = {}
 Balatro_Expansion.SelectionParams.Purposes.NONE = 0
@@ -1047,7 +1071,7 @@ Balatro_Expansion.SelectionParams.Purposes.WORLD = 13
 Balatro_Expansion.SelectionParams.Purposes.SUN = 14
 Balatro_Expansion.SelectionParams.Purposes.MOON = 15
 Balatro_Expansion.SelectionParams.Purposes.STARS = 16
-
+--these don't follow the rules above
 Balatro_Expansion.SelectionParams.Purposes.DEJA_VU = 17
 Balatro_Expansion.SelectionParams.Purposes.TALISMAN = 18
 Balatro_Expansion.SelectionParams.Purposes.TRANCE = 19

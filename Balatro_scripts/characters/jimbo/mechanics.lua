@@ -196,8 +196,7 @@ function mod:LessCoins(Pickup)
     end
 
     --try to remove if spawned by a player or if it's bigger than a penny 
-    if Pickup.SpawnerEntity and Pickup.SpawnerType == EntityType.ENTITY_PLAYER
-        then
+    if Pickup.SpawnerEntity and Pickup.SpawnerType == EntityType.ENTITY_PLAYER then
         return
     end
 
@@ -817,6 +816,10 @@ mod:AddPriorityCallback("TRUE_ROOM_CLEAR",CallbackPriority.LATE, mod.AddRoomsCle
 ---@param Player EntityPlayer
 function mod:OnDeckShift(Player)
 
+    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+        return
+    end
+
     local PIndex = Player:GetData().TruePlayerIndex
     --shuffle the deck if finished
     if not next(mod.Saved.Player[PIndex].CurrentHand) then
@@ -906,8 +909,9 @@ function mod:GiveRewards(BlindType)
     end, 30, 1, true)
 
 
+    print("rewards should be given")
 end
-mod:AddPriorityCallback(mod.Callbalcks.BLIND_CLEAR,CallbackPriority.LATE, mod.GiveRewards)
+mod:AddCallback(mod.Callbalcks.BLIND_CLEAR, mod.GiveRewards)
 
 --[[
 local function JimboAddTrinket(Player, Trinket, _, StopEvaluation)
@@ -1830,13 +1834,13 @@ mod:AddCallback(ModCallbacks.MC_PRE_TEAR_RENDER, mod.AdjustCardRotation, mod.Tea
 --[[
 function mod:ChangeCurrentHandType()
     
-    mod.SelectionParams[PIndex].PossibleHandTypes = mod:DeterminePokerHand()
-    mod.SelectionParams[PIndex].HandType = mod:GetMax(mod.SelectionParams[PIndex].PossibleHandTypes)
-    if mod.SelectionParams[PIndex].HandType == 10 then
+    mod.Saved.PossibleHandTypes = mod:DeterminePokerHand()
+    mod.Saved.HandType = mod:GetMax(mod.Saved.PossibleHandTypes)
+    if mod.Saved.HandType == 10 then
         mod.Saved.Player[PIndex].FiveUnlocked = true
-    elseif mod.SelectionParams[PIndex].HandType == 11 then
+    elseif mod.Saved.HandType == 11 then
         mod.Saved.Player[PIndex].FlushHouseUnlocked = true
-    elseif mod.SelectionParams[PIndex].HandType == 12 then
+    elseif mod.Saved.HandType == 12 then
         mod.Saved.Player[PIndex].FiveFlushUnlocked = true
     end
 
@@ -1847,9 +1851,9 @@ mod:AddCallback("HAND_TYPE_UPDATE", mod.ChangeCurrentHandType)
 function mod:ActivateHandEffect(Player)
     Isaac.RunCallback("HAND_TYPE_UPDATE") --updates a last time to be sure
 
-    --print(mod.SelectionParams[PIndex].HandType)
+    --print(mod.Saved.HandType)
     --print(mod.Saved.Player[PIndex].HandsStat[1])
-    local StatsToGain = mod.Saved.Player[PIndex].HandsStat[mod.SelectionParams[PIndex].HandType]
+    local StatsToGain = mod.Saved.Player[PIndex].HandsStat[mod.Saved.HandType]
 
     
     --local StatsToGain = mod:HandStatCalculatorA(Player)
@@ -1938,7 +1942,7 @@ function mod:JimboShootCardTear(Player,Direction)
     local CardShot = mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[mod.Saved.Player[PIndex].HandSize] ]
     CardShot.Index = mod.Saved.Player[PIndex].CurrentHand[mod.Saved.Player[PIndex].HandSize] --could be useful
 
-    LastCardFullPoss[CardShot.Index] = nil --needed to make the Hand HUD work properly
+    CardFullPoss[CardShot.Index] = nil --needed to make the Hand HUD work properly
 
     --considers the possible ammounts of tears fired
     local ShotParams = Player:GetMultiShotParams()

@@ -12,6 +12,8 @@
         luckmodifier="1"
         modcostume="110"
 
+        coins="4"
+
         
         portrait="playerportrait_jimbo.png"
         skinColor="0"
@@ -28,6 +30,7 @@
         modcostume="111"
         skinColor="0" 
         canShoot="false"
+        coins="4"
     />
     <!-- costume="104" haha le funny number-->
 </players>

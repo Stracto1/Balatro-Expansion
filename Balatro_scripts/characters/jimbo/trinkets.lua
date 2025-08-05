@@ -408,7 +408,7 @@ end
     end
 
     --increases the chips basing on the card value
-    local TearsToGet = (mod:GetActualCardValue(ShotCard.Value)/50 
+    local TearsToGet = (mod:GetValueScoring(ShotCard.Value)/50 
                         + mod.Saved.CardLevels[ShotCard.Value]*0.02
                         + ShotCard.Upgrades*0.02) * Triggers
     
@@ -571,7 +571,7 @@ function mod:OnHandDiscard(Player, AmountDiscarded)
 
     for i = #mod.Saved.Player[PIndex].CurrentHand, 1, -1 do
             
-        if mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND][i] then
+        if mod.SelectionParams[PIndex].SelectedCards[i] then
             DiscardedPointers[#DiscardedPointers+1] = mod.Saved.Player[PIndex].CurrentHand[i]
         end
     end
@@ -837,6 +837,7 @@ function mod:OnJokerSold(Player,Joker,SlotSold)
     Isaac.RunCallback("INVENTORY_CHANGE", Player)
 end
 mod:AddCallback("JOKER_SOLD", mod.OnJokerSold)
+
 
 
 --effects when a blind gets completed
@@ -1194,6 +1195,8 @@ function mod:OnBlindClear(BlindType)
                 mod:CreateBalatroEffect(Index,mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(PlanetsUsed).."$",mod.EffectType.JOKER, Player)
         
             end
+
+        
         end
     end --END JOKER FOR
 
@@ -1217,7 +1220,7 @@ function mod:OnBlindClear(BlindType)
 
     Player:EvaluateItems()
 
-
+    --GOLD CARD EFFECT
     for _,index in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
         if mod.Saved.Player[PIndex].FullDeck[index].Enhancement == mod.Enhancement.GOLDEN --PLACEHOLDER
            and mod.Saved.Player[PIndex].FirstDeck and mod.Saved.Player[PIndex].Progress.Room.Shots < Game:GetPlayer(0):GetCustomCacheValue("hands") then
@@ -1400,9 +1403,22 @@ function mod:OnRoomClear(IsBoss, Hostile)
 
     local PIndex = Player:GetData().TruePlayerIndex
 
-
     local RandomSeed = Random()
     if RandomSeed == 0 then RandomSeed = 1 end --would crash the game otherwise
+
+
+    --ADVANCE RNG
+    for JokerIndex, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+
+        if Slot.Joker == mod.Jokers.IDOL
+           or Slot.Joker == mod.Jokers.MAIL_REBATE
+           or Slot.Joker == mod.Jokers.CASTLE
+           or Slot.Joker == mod.Jokers.TO_DO_LIST
+           or Slot.Joker == mod.Jokers.ANCIENT_JOKER then
+            
+            Player:GetTrinketRNG(Slot.Joker):Next()
+        end
+    end
 
     for Index, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
 
@@ -1565,6 +1581,52 @@ function mod:OnRoomClear(IsBoss, Hostile)
             else
                 mod:CreateBalatroEffect(Index, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "-1",mod.EffectType.JOKER, Player)
             end
+
+        elseif Joker == mod.Jokers.TO_DO_LIST then
+
+            if not Copied then
+                mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = mod:GetJokerInitialProgress(Joker)
+
+                
+                mod:CreateBalatroEffect(Index, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Play "..mod:CardValueToName(mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex], false, true).."s",mod.EffectType.JOKER, Player)
+            end
+
+        elseif Joker == mod.Jokers.MAIL_REBATE then
+
+            if not Copied then
+                mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = mod:GetJokerInitialProgress(Joker)
+                
+                mod:CreateBalatroEffect(Index, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Discard "..mod:CardValueToName(mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex], false, true).."s",mod.EffectType.JOKER, Player)
+            end
+
+        elseif Joker == mod.Jokers.CASTLE then -- 2 values need to be stored, so the first 3 bits are for the suit and the other say how many were discarded
+
+            if not Copied then
+                local Suit = mod:GetJokerInitialProgress(Joker)
+                mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = Suit + (mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] & ~SUIT_FLAG)
+
+                mod:CreateBalatroEffect(Index, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Discard "..mod:CardSuitToName(Suit, false, true),mod.EffectType.JOKER, Player)
+            end
+
+        elseif Joker == mod.Jokers.IDOL then -- 3 values need to be stored, so the first 3 bits are for the suit, the 4 for the value and the other say how many were discarded
+
+            if not Copied then
+                
+                local Prog = mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex]
+                Prog = mod:GetJokerInitialProgress(Joker)
+
+                mod:CreateBalatroEffect(Index, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, mod:CardValueToName(Prog & ~SUIT_FLAG, false, true).." "..mod:CardSuitToName(Prog & ~VALUE_FLAG, false, true),mod.EffectType.JOKER, Player)
+            
+                Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)
+            end
+
+        elseif Joker == mod.Jokers.ANCIENT_JOKER then
+
+            if not Copied then
+                mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = mod:GetJokerInitialProgress(Joker)
+
+                mod:CreateBalatroEffect(Index, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Play "..mod:CardSuitToName(mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex]).."!",mod.EffectType.JOKER, Player)
+            end
         end
 
     end
@@ -1643,9 +1705,10 @@ function mod:OnNewRoomJokers()
             if Joker == mod.Jokers.SHORTCUT then
                 
                 if Game:GetLevel():GetCurrentRoomDesc().SafeGridIndex == mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] then
+                    
                     local GridPos = Isaac.GetFreeNearPosition(Room:GetCenterPos(),20)
 
-                    Isaac.GridSpawn(GridEntityType.GRID_TRAPDOOR, 0, GridPos, true)
+                    Isaac.GridSpawn(GridEntityType.GRID_STAIRS, 0, GridPos, true)
 
                     mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = -1
                 end
@@ -1901,31 +1964,7 @@ function mod:OnNewRoomJokers()
                     
                 end
 
-            elseif Joker == mod.Jokers.TO_DO_LIST then
-
-                if not Copied then
-                    mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = RoomRNG:RandomInt(1,mod.Values.KING)
-
-                    
-                    mod:CreateBalatroEffect(Index, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Play "..mod:CardValueToName(mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex], false, true).."s",mod.EffectType.JOKER, Player)
-                end
-
-            elseif Joker == mod.Jokers.MAIL_REBATE then
-
-                if not Copied then
-                    mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = RoomRNG:RandomInt(1,mod.Values.KING)
-                    
-                    mod:CreateBalatroEffect(Index, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Discard "..mod:CardValueToName(mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex], false, true).."s",mod.EffectType.JOKER, Player)
-                end
-
-            elseif Joker == mod.Jokers.CASTLE then -- 2 values need to be stored, so the first 3 bits are for the suit and the other say how many were discarded
-
-                if not Copied then
-                    local Suit = mod.Saved.Player[PIndex].FullDeck[RoomRNG:RandomInt(1,#mod.Saved.Player[PIndex].FullDeck)].Suit
-                    mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = Suit + (mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] & ~SUIT_FLAG)
-
-                    mod:CreateBalatroEffect(Index, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Discard "..mod:CardSuitToName(Suit, false, true),mod.EffectType.JOKER, Player)
-                end
+            
 
             elseif Joker == mod.Jokers.SEANCE then
 
@@ -1938,13 +1977,7 @@ function mod:OnNewRoomJokers()
                 
                 mod:CreateBalatroEffect(Index, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Spectral!",mod.EffectType.JOKER, Player)
 
-            elseif Joker == mod.Jokers.ANCIENT_JOKER then
-
-                if not Copied then
-                    mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = RoomRNG:RandomInt(mod.Suits.Spade,mod.Suits.Diamond)
-
-                    mod:CreateBalatroEffect(Index, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Play "..mod:CardSuitToName(mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex]).."!",mod.EffectType.JOKER, Player)
-                end
+            
 
             elseif Joker == mod.Jokers.SPARE_TROUSERS then
                 if HandType & mod.HandTypes.TWO_PAIR == mod.HandTypes.TWO_PAIR then
@@ -2005,36 +2038,7 @@ function mod:OnNewRoomJokers()
                     Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)
                 end
 
-            elseif Joker == mod.Jokers.IDOL then -- 3 values need to be stored, so the first 3 bits are for the suit, the 4 for the value and the other say how many were discarded
-
-                if not Copied then
-
-                    local ValidCards = {}
-                    local RandomCard = {}
-                    local Suit = 0
-                    local Value = 0
-
-                    for Pointer, card in ipairs(mod.Saved.Player[PIndex].FullDeck) do
-                        if card.Enhancement ~= mod.Enhancement.STONE then
-                            ValidCards[#ValidCards+1] = Pointer
-                        end
-                    end
-                    
-                    if next(ValidCards) then
-                        RandomCard = mod.Saved.Player[PIndex].FullDeck[mod:GetRandom(ValidCards, RoomRNG)]
-                        Suit = RandomCard.Suit
-                        Value = RandomCard.Value
-                    else
-                        Suit = mod.Suits.Spade
-                        Value = 1
-                    end
-                    
-                    mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = (Suit + 8*Value)
-
-                    mod:CreateBalatroEffect(Index, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, mod:CardValueToName(Value, false, true).." "..mod:CardSuitToName(Suit, false, true),mod.EffectType.JOKER, Player)
-                
-                    Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)
-                end
+            
 
             elseif Joker == mod.Jokers.SEE_DOUBLE then
                 local HasClub = false
@@ -2164,6 +2168,8 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.OnNewRoomJokers)
 
 
+
+
 function mod:OnNewLevelJokers()
 
     if not mod.GameStarted then
@@ -2222,12 +2228,21 @@ function mod:OnNewLevelJokers()
                 local Level = Game:GetLevel()
 
                 for _,Index in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.SHORTCUT, true)) do
-                    repeat
-                        local Seed = Random()
-                        if Seed == 0 then Seed = 1 end
 
-                        mod.Saved.Player[PIndex].Progress.Inventory[Index] = Level:GetRandomRoomIndex(false, Seed)  --ShortRNG:RandomInt(0, NumRooms-1)
-                    until Level:GetStartingRoomIndex() ~= mod.Saved.Player[PIndex].Progress.Inventory[Index]
+                    local RadnomIndex
+
+                    repeat
+                        mod:RandomSeed(Player:GetTrinketRNG(mod.Jokers.SHORTCUT))
+
+                        RadnomIndex = Level:GetRandomRoomIndex(false, Seed)  --ShortRNG:RandomInt(0, NumRooms-1)
+                    
+                        local ChosenRoom = Level:GetRoomByIdx(RadnomIndex)
+
+                    until Level:GetStartingRoomIndex() ~= RadnomIndex
+                          and ChosenRoom.Data.Type ~= RoomType.ROOM_BOSS
+                          and ChosenRoom.Data.Type ~= RoomType.ROOM_ULTRASECRET
+
+                    mod.Saved.Player[PIndex].Progress.Inventory[Index] = RadnomIndex
 
                     --print("chose: "..tostring(mod.Saved.Player[PIndex].Progress.Inventory[Index]))
                 end
@@ -2668,7 +2683,7 @@ function mod:JokerAdded(Player, Joker, Edition, Index)
             local Room = Game:GetRoom()
             local GridPos = Isaac.GetFreeNearPosition(Room:GetCenterPos(),20)
 
-            Isaac.GridSpawn(GridEntityType.GRID_TRAPDOOR, 0, GridPos, true)
+            Isaac.GridSpawn(GridEntityType.GRID_STAIRS, 1, GridPos, true)
 
             mod.Saved.Player[PIndex].Progress.Inventory[Index] = -1
         end
@@ -3628,7 +3643,7 @@ function mod:DamageJokers(Player,_)
 
             for i,v in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
 
-                MinValue = math.min(MinValue,  mod:GetActualCardValue(mod.Saved.Player[PIndex].FullDeck[v].Value)) 
+                MinValue = math.min(MinValue,  mod:GetValueScoring(mod.Saved.Player[PIndex].FullDeck[v].Value)) 
 
             end
 
@@ -5198,7 +5213,7 @@ function mod:OnTakeDamage(Player,Amount,Flags,Source,_)
         return
     end
 
-    local Enemy = Source.Entity:ToNPC() or Source.Entity.SpawnerEntity:ToNPC()
+    local Enemy = Source.Entity:ToNPC() or (Source.Entity.SpawnerEntity and Source.Entity.SpawnerEntity:ToNPC())
     
     if Enemy and Enemy:IsBoss() then
         for i = 1, #mod:GetJimboJokerIndex(Player, mod.Jokers.MATADOR) do

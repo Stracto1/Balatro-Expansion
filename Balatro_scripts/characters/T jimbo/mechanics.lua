@@ -7,6 +7,7 @@ local ItemsConfig = Isaac.GetItemConfig()
 local sfx = SFXManager()
 
 local TimerFixerVariable = 0
+local BlindGotCleared = false --prevents blind clear callback to be called multiple times in the same frame
 
 local HAND_POOF_COLOR = Color(1,1,1,1,0,0,0,0.27,0.59, 1.5,1) --0.95
 
@@ -42,7 +43,7 @@ function mod:JimboInit(player)
     if player:GetPlayerType() == mod.Characters.TaintedJimbo then
         local Data = player:GetData()
 
-        Data.ALThold = 0 --used to sell consumables
+        Data.ConfirmHoldTime = 0 --used to detect if it got held or pressed
 
         --player:SetPocketActiveItem(CollectibleType.COLLECTIBLE_THE_HAND,ActiveSlot.SLOT_POCKET)
         --ItemPool:RemoveCollectible(CollectibleType.COLLECTIBLE_THE_HAND)
@@ -138,6 +139,8 @@ function mod:TJimboAddConsumable(Player, card, Slot, StopAnimation, Edition)
     if Edition == mod.Edition.NEGATIVE then --puts the new negative as the first to be used
           
         EmptySlot = EmptySlot or #mod.Saved.Player[PIndex].Consumables + 1
+
+        mod.Saved.Player[PIndex].Consumables[EmptySlot] = {}
     end
 
     if not EmptySlot then
@@ -152,6 +155,7 @@ function mod:TJimboAddConsumable(Player, card, Slot, StopAnimation, Edition)
     end
 
     mod.Saved.Player[PIndex].Consumables[EmptySlot].Card = mod:SpecialCardToFrame(card)
+    mod.Saved.Player[PIndex].Consumables[EmptySlot].Edition = Edition
 
     ::FINISH::
 
@@ -179,7 +183,8 @@ local function JimboInputHandle(_, Player)
     if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo or not mod.GameStarted then
         return
     end
-    local PIndex = Player:GetData().TruePlayerIndex
+    local PlayerData = Player:GetData()
+    local PIndex = PlayerData.TruePlayerIndex
     local Params = mod.SelectionParams[PIndex]
 
     ----------------------------------------
@@ -191,21 +196,17 @@ local function JimboInputHandle(_, Player)
     
     -------------INPUT HANDLING-------------------
 
-            --confirms the curretn selection
+
+    --confirms the current selection
     if Input.IsActionTriggered(ButtonAction.ACTION_PILLCARD, Player.ControllerIndex) then
 
         mod:UseSelection(Player)
 
     elseif Input.IsActionTriggered(ButtonAction.ACTION_BOMB, Player.ControllerIndex) then
 
-        if mod.Saved.DiscardsRemaining <= 0 then
-            print("not enough discards loser!")
-            return
-        end
+    
+        local Success = mod:DiscardSelection(Player)
 
-        mod.Saved.DiscardsRemaining = mod.Saved.DiscardsRemaining - 1
-
-        mod:DiscardSelection(Player)
     end
 
 
@@ -213,94 +214,150 @@ local function JimboInputHandle(_, Player)
         return
     end
 
-    --confirming/canceling 
-    if Input.IsActionTriggered(ButtonAction.ACTION_MENUCONFIRM, Player.ControllerIndex)
-        and not Input.IsActionPressed(ButtonAction.ACTION_ITEM, Player.ControllerIndex) then--usually they share buttons
+    
+    if Input.IsActionPressed(ButtonAction.ACTION_MENUCONFIRM, Player.ControllerIndex) then
+        
+        --confirming/canceling 
 
-        mod:Select(Player)
+        --if Input.IsActionTriggered(ButtonAction.ACTION_MENUCONFIRM, Player.ControllerIndex) 
+        --   and not Input.IsActionPressed(ButtonAction.ACTION_ITEM, Player.ControllerIndex) then
+        --
+        --    mod:Select(Player)
+        --end
 
+        PlayerData.ConfirmHoldTime = PlayerData.ConfirmHoldTime + 1
+
+    else
+        if PlayerData.ConfirmHoldTime > 0 
+           and PlayerData.ConfirmHoldTime <= mod.HOLD_THRESHOLD then --button got released while pressing (not holding)
+
+            mod:Select(Player)
+        end
+
+        PlayerData.ConfirmHoldTime = 0
     end
 
-    --pressing left moving the selection
-    if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTLEFT, Player.ControllerIndex)
-       and Params.Index > 1 then
+
+    local MinHoldTime = 10
+    
+    if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTRIGHT, Player.ControllerIndex) then
+
 
         local Step = 0
 
         if Params.Mode == mod.SelectionParams.Modes.INVENTORY then
-            
-            local SlotsSkipped = 1
-
-            for i = Params.Index - 1, 1, -1 do
-                
-                if mod.Saved.Player[PIndex].Inventory[i].Joker ~= 0 then
-                    Step = -SlotsSkipped
-                    break
-                end
-
-                SlotsSkipped = SlotsSkipped + 1
-            end
-        else
-            Step = -1
-        end
-
-        -- holding SHIFT also makes you move the card itself 
-        if Params.Mode ~= mod.SelectionParams.Modes.PACK
-           and (Input.IsButtonPressed(Keyboard.KEY_LEFT_SHIFT, Player.ControllerIndex)
-           or Input.IsButtonPressed(Keyboard.KEY_RIGHT_SHIFT, Player.ControllerIndex)) then
-
-            Params.SelectedCards[Params.Mode][Params.Index], Params.SelectedCards[Params.Mode][Params.Index + Step] =
-            Params.SelectedCards[Params.Mode][Params.Index + Step], Params.SelectedCards[Params.Mode][Params.Index]
-
-            if Params.Mode == mod.SelectionParams.Modes.HAND then
-                
-                local PlayerHand = mod.Saved.Player[PIndex].CurrentHand
-                PlayerHand[Params.Index],  PlayerHand[Params.Index + Step] =
-                PlayerHand[Params.Index + Step],  PlayerHand[Params.Index]
-            else
-                
-                local PlayerInventory = mod.Saved.Player[PIndex].Inventory
-                PlayerInventory[Params.Index],  PlayerInventory[Params.Index + Step] =
-                PlayerInventory[Params.Index + Step],  PlayerInventory[Params.Index]
-            end
-
-            mod.Counters.SinceSelect = 0
-
-            Isaac.RunCallback(mod.Callbalcks.INVENTORY_CHANGE, Player)
-        end
-
-        Params.Index = Params.Index + Step
-    end
-
-    
-    if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTRIGHT, Player.ControllerIndex) then
-
-        if Params.Index < Params.OptionsNum then
-
-            local Step = 0
-
-            if Params.Mode == mod.SelectionParams.Modes.INVENTORY then
                 
                 local SlotsSkipped = 1
 
                 for i = Params.Index + 1, Params.OptionsNum do
+
+                    local Slot = mod.Saved.Player[PIndex].Inventory[i]
                     
                     --print(i, mod.Saved.Player[PIndex].Inventory[i].Joker)
-                    if mod.Saved.Player[PIndex].Inventory[i].Joker ~= 0 then
+                    if Slot and Slot.Joker ~= 0 then
                         Step = SlotsSkipped
                         break
                     end
 
                     SlotsSkipped = SlotsSkipped + 1
                 end
+
+        elseif Params.Mode == mod.SelectionParams.Modes.CONSUMABLES then
+                
+                local SlotsSkipped = 1
+
+                for i = Params.Index + 1, Params.OptionsNum do
+
+                    local Slot = mod.Saved.Player[PIndex].Consumables[i]
+                    
+                    --print(i, mod.Saved.Player[PIndex].Inventory[i].Joker)
+                    if Slot and Slot.Card ~= -1 then
+                        Step = SlotsSkipped
+                        break
+                    end
+
+                    SlotsSkipped = SlotsSkipped + 1
+                end
+
+        elseif Params.Mode == mod.SelectionParams.Modes.HAND then
+
+            if Params.Index == Params.OptionsNum then --last card in hand
+                Step = 0
             else
                 Step = 1
             end
 
-            --also holding ALT also makes you move the card itself 
-            if Params.Mode ~= mod.SelectionParams.Modes.PACK
-               and (Input.IsButtonPressed(Keyboard.KEY_LEFT_SHIFT, Player.ControllerIndex)
-               or Input.IsButtonPressed(Keyboard.KEY_RIGHT_SHIFT, Player.ControllerIndex)) then
+        elseif Params.Mode == mod.SelectionParams.Modes.PACK then
+
+                if Params.Index == #Params.PackOptions then --last card in hand
+                    Step = 0
+                else
+                    Step = 1
+                end
+        else
+            Step = 1
+        end
+
+
+        if Step == 0 then --can't move cause it's the last option
+            
+            if Params.Mode == mod.SelectionParams.Modes.INVENTORY then --only thing after the jokers are the consumables
+
+                local First
+            
+                for i = 1, #mod.Saved.Player[PIndex].Consumables do
+
+                    if mod.Saved.Player[PIndex].Consumables[i].Card ~= -1 then
+                        
+                        First = i
+                        break
+                    end
+                end
+            
+                if First then
+                    mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.CONSUMABLES, mod.SelectionParams.Purposes.NONE)
+                    
+                    Params.Index = First
+
+                else
+                    local First = 1
+
+                    for i = 1, #mod.Saved.Player[PIndex].Inventory do
+
+                        if mod.Saved.Player[PIndex].Inventory[i].Joker ~= 0 then
+
+                            First = i
+                            break
+                        end
+                    end
+
+                    Params.Index = First
+                end
+                
+            elseif Params.Mode == mod.SelectionParams.Modes.CONSUMABLES then
+
+                local First = 1
+
+                for i = 1, #mod.Saved.Player[PIndex].Consumables do
+
+                    if mod.Saved.Player[PIndex].Consumables[i].Card ~= -1 then
+                        
+                        First = i
+                        break
+                    end
+                end
+
+                Params.Index = First
+
+
+            else
+
+                Params.Index = 1
+            end
+        
+        --also holding ALT also makes you move the card itself 
+        elseif Params.Mode ~= mod.SelectionParams.Modes.PACK
+               and PlayerData.ConfirmHoldTime >= MinHoldTime then
 
                 Params.SelectedCards[Params.Mode][Params.Index], Params.SelectedCards[Params.Mode][Params.Index + Step] =
                 Params.SelectedCards[Params.Mode][Params.Index + Step], Params.SelectedCards[Params.Mode][Params.Index]
@@ -310,6 +367,12 @@ local function JimboInputHandle(_, Player)
                     local PlayerHand = mod.Saved.Player[PIndex].CurrentHand
                     PlayerHand[Params.Index],  PlayerHand[Params.Index + Step] = 
                     PlayerHand[Params.Index + Step],  PlayerHand[Params.Index]
+
+                elseif Params.Mode == mod.SelectionParams.Modes.CONSUMABLES then
+                    
+                    local PlayerConsumables = mod.Saved.Player[PIndex].Consumables
+                    PlayerConsumables[Params.Index],  PlayerConsumables[Params.Index + Step] = 
+                    PlayerConsumables[Params.Index + Step],  PlayerConsumables[Params.Index]
                 else
                     
                     local PlayerInventory = mod.Saved.Player[PIndex].Inventory
@@ -318,16 +381,169 @@ local function JimboInputHandle(_, Player)
                 end
 
                 mod.Counters.SinceSelect = 0
-            end
-
-            Params.Index = Params.Index + Step
-
         end
+
+        Params.Index = Params.Index + Step
+
+    
     end
 
+
+
+    if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTLEFT, Player.ControllerIndex) then
+
+
+        local Step = 0
+
+        if Params.Mode == mod.SelectionParams.Modes.INVENTORY then
+                
+            local SlotsSkipped = 1
+
+            for i = Params.Index - 1, 1, -1 do
+
+                local Slot = mod.Saved.Player[PIndex].Inventory[i]
+                
+                --print(i, mod.Saved.Player[PIndex].Inventory[i].Joker)
+                if Slot and Slot.Joker ~= 0 then
+                    Step = -SlotsSkipped
+                    break
+                end
+
+                SlotsSkipped = SlotsSkipped + 1
+            end
+
+        elseif Params.Mode == mod.SelectionParams.Modes.CONSUMABLES then
+                
+            local SlotsSkipped = 1
+
+            for i = Params.Index - 1, 1, -1 do
+
+                local Slot = mod.Saved.Player[PIndex].Consumables[i]
+                
+                --print(i, mod.Saved.Player[PIndex].Inventory[i].Joker)
+                if Slot and Slot.Card ~= -1 then
+                    Step = -SlotsSkipped
+                    break
+                end
+
+                SlotsSkipped = SlotsSkipped + 1
+            end
+
+        elseif Params.Mode == mod.SelectionParams.Modes.HAND then
+
+            if Params.Index == 1 then --last card in hand
+                Step = 0
+            else
+                Step = -1
+            end
+
+        elseif Params.Mode == mod.SelectionParams.Modes.PACK then
+
+            if Params.Index == 1 then --first card in hand
+                Step = 0
+            else
+                Step = -1
+            end
+
+        end
+
+
+        if Step == 0 then --can't move cause it's the first option
+            
+            if Params.Mode == mod.SelectionParams.Modes.CONSUMABLES then --only thing before consumables are the jokers
+
+                local Last
+
+                for i = #mod.Saved.Player[PIndex].Inventory, 1, -1  do
+
+                    if mod.Saved.Player[PIndex].Inventory[i].Joker ~= 0 then
+                        
+                        Last = i
+                        break
+                    end
+                end
+            
+                if Last then --if he has a joker, go to that seciton
+            
+                    mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.INVENTORY, mod.SelectionParams.Purposes.NONE)
+                
+                    Params.Index = Last
+
+                else --otherwise go to the last consumable
+
+                    Last = 1
+
+                    for i = #mod.Saved.Player[PIndex].Consumables, 1, -1 do
+
+                        if mod.Saved.Player[PIndex].Consumables[i].Card ~= -1 then
+
+                            Last = i
+                            break
+                        end
+                    end
+
+                    Params.Index = Last
+
+                end
+
+            elseif Params.Mode == mod.SelectionParams.Modes.INVENTORY then
+
+                local Last = 1
+
+                for i = #mod.Saved.Player[PIndex].Inventory, 1, -1 do
+
+                    if mod.Saved.Player[PIndex].Inventory[i].Joker ~= 0 then
+                        
+                        Last = i
+                        break
+                    end
+                end
+
+                Params.Index = Last
+
+
+            else
+                Params.Index = Params.OptionsNum
+            end
+        
+        --also holding ALT also makes you move the card itself 
+        elseif Params.Mode ~= mod.SelectionParams.Modes.PACK
+               and PlayerData.ConfirmHoldTime >= MinHoldTime then
+
+                Params.SelectedCards[Params.Mode][Params.Index], Params.SelectedCards[Params.Mode][Params.Index + Step] =
+                Params.SelectedCards[Params.Mode][Params.Index + Step], Params.SelectedCards[Params.Mode][Params.Index]
+
+                if Params.Mode == mod.SelectionParams.Modes.HAND then
+                    
+                    local PlayerHand = mod.Saved.Player[PIndex].CurrentHand
+                    PlayerHand[Params.Index],  PlayerHand[Params.Index + Step] = 
+                    PlayerHand[Params.Index + Step],  PlayerHand[Params.Index]
+
+
+                elseif Params.Mode == mod.SelectionParams.Modes.CONSUMABLES then
+                    
+                    local PlayerConsumables = mod.Saved.Player[PIndex].Consumables
+                    PlayerConsumables[Params.Index],  PlayerConsumables[Params.Index + Step] = 
+                    PlayerConsumables[Params.Index + Step],  PlayerConsumables[Params.Index]
+                else
+                    
+                    local PlayerInventory = mod.Saved.Player[PIndex].Inventory
+                    PlayerInventory[Params.Index],  PlayerInventory[Params.Index + Step] = 
+                    PlayerInventory[Params.Index + Step],  PlayerInventory[Params.Index]
+                end
+
+                mod.Counters.SinceSelect = 0
+        end
+
+        Params.Index = Params.Index + Step
+
+    
+    end
+
+
+
     --while opening a pack, pressing up moves to the card selection
-    if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTUP, Player.ControllerIndex)
-       and Params.Mode ~= mod.SelectionParams.Modes.INVENTORY then
+    if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTUP, Player.ControllerIndex) then
 
         local DestinationMode
         --local IsPackActive = Params.PackPurpose ~= mod.SelectionParams.Purposes.NONE
@@ -336,10 +552,37 @@ local function JimboInputHandle(_, Player)
         if CurrentMode == mod.SelectionParams.Modes.HAND
            or CurrentMode == mod.SelectionParams.Modes.NONE
            or not mod.Saved.EnableHand then
-            
-            DestinationMode = mod.SelectionParams.Modes.INVENTORY
 
-        else --if CurrentMode == mod.SelectionParams.Modes.PACK then
+            local First 
+
+            for i = 1, #mod.Saved.Player[PIndex].Inventory do
+                
+                if mod.Saved.Player[PIndex].Inventory[i].Joker ~= 0 then
+                    First = i
+                    break
+                end
+            end
+
+            if First then
+                DestinationMode = mod.SelectionParams.Modes.INVENTORY
+
+            else --try going to the consumables instead
+
+                for i = 1, #mod.Saved.Player[PIndex].Consumables do
+
+                    if mod.Saved.Player[PIndex].Consumables[i].Card ~= -1 then
+                        First = i
+                        break
+                    end
+                end
+
+                if First then
+                    DestinationMode = mod.SelectionParams.Modes.CONSUMABLES
+                end
+
+            end
+
+        elseif CurrentMode == mod.SelectionParams.Modes.PACK then
     
             DestinationMode = mod.SelectionParams.Modes.HAND
         end
@@ -351,14 +594,14 @@ local function JimboInputHandle(_, Player)
 
 
     --while opening a pack, pressing up moves to the pack selection
-    if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTDOWN, Player.ControllerIndex)
-       and Params.Mode ~= mod.SelectionParams.Modes.PACK then
+    if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTDOWN, Player.ControllerIndex) then
 
         local DestinationMode
         local IsPackActive = Params.PackPurpose ~= mod.SelectionParams.Purposes.NONE
         local CurrentMode = Params.Mode
 
-        if CurrentMode == mod.SelectionParams.Modes.INVENTORY then
+        if CurrentMode == mod.SelectionParams.Modes.INVENTORY
+           or CurrentMode == mod.SelectionParams.Modes.CONSUMABLES then
            
            
             if mod.Saved.EnableHand then
@@ -379,95 +622,28 @@ local function JimboInputHandle(_, Player)
 
     end
 
-
+--[[
     if Input.IsActionTriggered(ButtonAction.ACTION_ITEM, Player.ControllerIndex) then
         
         local CardToUse = mod:FrameToSpecialCard(mod.Saved.Player[PIndex].Consumables[#mod.Saved.Player[PIndex].Consumables].Card)
         local Success = mod:TJimboUseCard(CardToUse, Player, false)
         --print(Success)
-    end
+    end]]
 
+    
     if Input.IsActionTriggered(ButtonAction.ACTION_DROP, Player.ControllerIndex) then
 
-        local FirstCard
+        if mod.Saved.HandOrderingMode == mod.HandOrderingModes.Rank then
 
-        for i, Consumable in ipairs(mod.Saved.Player[PIndex].Consumables) do
-            
-            if Consumable.Card ~= -1 then
-                FirstCard = i
-                break
-            end
+            mod.Saved.HandOrderingMode = mod.HandOrderingModes.Suit
+        else
+            mod.Saved.HandOrderingMode = mod.HandOrderingModes.Rank
         end
 
-        if FirstCard then
-            local NumConsumables = #mod.Saved.Player[PIndex].Consumables
-            
-            table.insert(mod.Saved.Player[PIndex].Consumables, FirstCard, mod.Saved.Player[PIndex].Consumables[NumConsumables])
-            table.remove(mod.Saved.Player[PIndex].Consumables, NumConsumables + 1)
-
-            mod.Counters.SinceSelect = 0
-        end
+        mod:ReorderHand(Player)
     end
 
-    if Input.IsButtonPressed(Keyboard.KEY_LEFT_ALT, Player.ControllerIndex)
-       or Input.IsButtonPressed(Keyboard.KEY_RIGHT_ALT, Player.ControllerIndex) then
 
-        local Data = Player:GetData()
-        if Data.ALThold ~= 0
-           or Input.IsButtonTriggered(Keyboard.KEY_LEFT_ALT, Player.ControllerIndex)
-           or Input.IsButtonTriggered(Keyboard.KEY_RIGHT_ALT, Player.ControllerIndex) then
-            
-            Data.ALThold = Data.ALThold and Data.ALThold + 1 or 0
-        end
-
-        if Data.ALThold >= 75 then
-
-            local Success
-
-            if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.INVENTORY then
-                
-                local SelectedSlot = mod:GetValueIndex(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.INVENTORY], true, true) 
-
-                if SelectedSlot then
-                    Success = mod:SellJoker(Player, SelectedSlot)
-
-                    mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.INVENTORY][SelectedSlot] = false
-                
-                    local JokerSlot
-
-                    for i,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
-                        
-                        if Slot.Joker ~= 0 then
-                            JokerSlot = i
-                            break
-                        end
-                    end
-
-                    if JokerSlot then
-                        mod.SelectionParams[PIndex].Index = JokerSlot
-
-                    elseif mod.Saved.EnableHand then
-                        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams[PIndex].Purpose)
-                    else
-                        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.NONE)
-                    end
-                
-                else
-                    Success = false
-                end
-            else
-                Success = mod:SellConsumable(Player)
-            end
-
-            if not Success then
-                sfx:Play(SoundEffect.SOUND_THUMBS_DOWN)
-            end
-            Data.ALThold = 0
-        end
-    else
-        Player:GetData().ALThold = 0
-    end
-    
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, JimboInputHandle)
 
@@ -566,6 +742,53 @@ end
 mod:AddCallback(ModCallbacks.MC_NPC_PICK_TARGET, PreventTjimboTarget)
 
 
+
+function mod:SpawnShopItems(Rerolled)
+
+    local Room = Game:GetRoom()
+
+    if Rerolled then
+
+        --remove the old items to the spawn the new ones
+        
+        for _,Entity in ipairs(Isaac.GetRoomEntities()) do
+        
+            if Entity.Type == EntityType.ENTITY_PICKUP
+               and (Entity.Variant == PickupVariant.PICKUP_TRINKET
+                   or (Entity.Variant == PickupVariant.PICKUP_TAROTCARD
+                       and Entity.SubType < mod.Packs.ARCANA)) then
+
+                Entity:Remove()
+            end
+        end
+    end
+
+    local NumItems = 2
+
+    if PlayerManager.AnyoneHasCollectible(mod.Vouchers.OverstockPlus) then
+        NumItems = 4
+    elseif PlayerManager.AnyoneHasCollectible(mod.Vouchers.Overstock) then
+        NumItems = 3
+    end
+
+    for i=1, NumItems do
+
+        local Variant, SubType, TagActivated = mod:RandomShopItem(mod.RNGs.SHOP)
+
+
+        local Grid = 66 - NumItems + i*2
+
+        local Item = Game:Spawn(EntityType.ENTITY_PICKUP, Variant, Room:GetGridPosition(Grid),
+                                Vector.Zero, nil, SubType, mod:RandomSeed(mod.RNGs.SHOP)):ToPickup()
+
+        ---@diagnostic disable-next-line: need-check-nil
+        Item:MakeShopItem(-2)
+    end
+
+end
+
+
+
 --changes the shop items to be in a specific pattern
 local function ShopItemChanger()
 
@@ -623,8 +846,8 @@ local function ShopItemChanger()
         for _,Entity in ipairs(Isaac.GetRoomEntities()) do
         
             if Entity.Type == EntityType.ENTITY_PICKUP
-               or (Entity.Variant == PickupVariant.PICKUP_COLLECTIBLE
-                   and Entity.SubType ~= mod.Saved.AnteVoucher) then
+               and (Entity.Variant ~= PickupVariant.PICKUP_COLLECTIBLE
+                   or Entity.SubType == mod.Saved.AnteVoucher) then
 
                 Entity:Remove()
             end
@@ -653,34 +876,8 @@ local function ShopItemChanger()
         end
     end
 
-    
-    local NumItems = 2
 
-    if PlayerManager.AnyoneHasCollectible(mod.Vouchers.OverstockPlus) then
-        NumItems = 4
-    elseif PlayerManager.AnyoneHasCollectible(mod.Vouchers.Overstock) then
-        NumItems = 3
-    end
-
-    for i=1, NumItems do
-
-        local Variant, SubType, TagActivated = mod:RandomShopItem(mod.RNGs.SHOP)
-
-
-        local Grid = 66 - NumItems + i*2
-
-        local Item = Game:Spawn(EntityType.ENTITY_PICKUP, Variant, Room:GetGridPosition(Grid),
-                                Vector.Zero, nil, SubType, mod:RandomSeed(mod.RNGs.SHOP)):ToPickup()
-
----@diagnostic disable-next-line: need-check-nil
-        Item:MakeShopItem(-2)
-
-        if CouponTag or TagActivated then
-        ---@diagnostic disable-next-line: need-check-nil
-            Item.Price = PickupPrice.PRICE_FREE
-        end
-        --Item:GetData().CameFromSkipTag = TagActivated
-    end
+    mod:SpawnShopItems(false)
 
     for i=1, 2 do
         
@@ -725,8 +922,18 @@ local function SetItemPrices(_,Variant,SubType,ShopID,Price)
     
         Cost = mod:GetJokerCost(SubType, mod.Saved.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(SubType).Name] or 0)
 
-    else --prob stuff like booster packs
-        Cost = 5
+    elseif SubType >= mod.Packs.ARCANA and SubType <= mod.Packs.MEGA_SPECTRAL then
+
+
+        local QualityModule = SubType%3 
+
+        if QualityModule == mod.PackQualityModule.MEGA then
+            Cost = 8
+        elseif QualityModule == mod.PackQualityModule.JUMBO then
+            Cost = 6
+        else
+            Cost = 4
+        end
     end
 
     if Variant ~= PickupVariant.PICKUP_TRINKET then --these are already included in GetJokerCost()
@@ -793,17 +1000,16 @@ function mod:UpdateCurrentHandType(Player)
 
         local PlanetHandType = (Planet - mod.Planets.PLUTO + 2) --gets the equivalent handtype
 
-        mod.SelectionParams[PIndex].HandType = PlanetHandType
+        mod.Saved.HandType = PlanetHandType
 
     elseif mod.Saved.EnableHand then
-        mod.SelectionParams[PIndex].PossibleHandTypes = mod:DeterminePokerHand(Player)
-        mod.SelectionParams[PIndex].HandType = mod:GetHandTypeFromFlag(mod.SelectionParams[PIndex].PossibleHandTypes)
+        mod.Saved.PossibleHandTypes = mod:DeterminePokerHand(Player)
+        mod.Saved.HandType = mod:GetHandTypeFromFlag(mod.Saved.PossibleHandTypes)
     end
 
 
-    mod.Saved.MultValue = mod.Saved.HandsStat[mod.SelectionParams[PIndex].HandType].Mult
-    mod.Saved.ChipsValue = mod.Saved.HandsStat[mod.SelectionParams[PIndex].HandType].Chips
-
+    mod.Saved.MultValue = mod.Saved.HandsStat[mod.Saved.HandType].Mult
+    mod.Saved.ChipsValue = mod.Saved.HandsStat[mod.Saved.HandType].Chips
 
 end
 mod:AddCallback(mod.Callbalcks.HAND_UPDATE, mod.UpdateCurrentHandType)
@@ -847,22 +1053,22 @@ function mod:ActivateCurrentHand(Player)
     end
 
 
-    local HandHype = mod.SelectionParams[PIndex].HandType
+    local HandHype = mod.Saved.HandType
 
     local RadiusMultiplier = mod.Saved.HandsStat[HandHype].Mult
 
-    local FullHandDamage = mod.Saved.ChipsValue * mod.Saved.MultValue
+    local FullHandDamage = mod.Saved.TotalScore + 0
 
     
     --enemies inside the radius shown take damage twice, others only once
 
     for _, Enemy in ipairs(Isaac.FindInRadius(TargetPosition, 
-                                              BASE_HAND_RADIUS * RadiusMultiplier,
+                                              BASE_HAND_RADIUS * RadiusMultiplier + 5,
                                               EntityPartition.ENEMY)) do
         if Enemy:IsActiveEnemy() then
 
             if Enemy:IsVulnerableEnemy() then
-                Enemy:TakeDamage(FullHandDamage / 2,
+                Enemy:TakeDamage(math.ceil(FullHandDamage*0.3),
                                  DamageFlag.DAMAGE_IGNORE_ARMOR, EntityRef(Player), 0)
 
             else --invulnerable enemies take damage only if inside the radius
@@ -877,21 +1083,22 @@ function mod:ActivateCurrentHand(Player)
     mod:TrueBloodPoof(TargetPosition, PoofScale, HAND_POOF_COLOR)
 
 
+    --second damage tick
     Isaac.CreateTimer(function ()
         for _,Enemy in ipairs(Isaac.GetRoomEntities()) do
 
-        if Enemy:IsActiveEnemy() and Enemy:IsVulnerableEnemy() then
-            
-            Enemy:TakeDamage(FullHandDamage / 2,
-                             DamageFlag.DAMAGE_IGNORE_ARMOR, EntityRef(Player), 0)
+            if Enemy:IsActiveEnemy() and Enemy:IsVulnerableEnemy() then
 
-            local PoofScale = 0.035 * Enemy.Size
+                Enemy:TakeDamage(FullHandDamage*0.75,
+                                 DamageFlag.DAMAGE_IGNORE_ARMOR, EntityRef(Player), 0)
 
-            mod:TrueBloodPoof(Enemy.Position, PoofScale, HAND_POOF_COLOR)
+                local PoofScale = 0.035 * Enemy.Size
+
+                mod:TrueBloodPoof(Enemy.Position, PoofScale, HAND_POOF_COLOR)
 
             end
         end
-    end, 1, 1, true)
+    end, 2, 1, true)
 
     
 
@@ -905,55 +1112,92 @@ function mod:ActivateCurrentHand(Player)
 
     Isaac.CreateTimer(function ()
 
-                        --after playing the hand, checks if everyone is dead, in that case the blind is cleared
-                        local AllDead = true
+        local AnimLength = 8
 
-                        for _,Enemy in ipairs(Isaac.GetRoomEntities()) do
+        for i=1, AnimLength do
 
-                            if Enemy:IsActiveEnemy() and Enemy:IsVulnerableEnemy()
-                               and (not Enemy:IsDead() or not Enemy:HasMortalDamage()) then
-                                
-                                AllDead = false
-                                break
-                            end
-                        end
+            Isaac.CreateTimer(function ()
 
-                        --print(AllDead)
+                mod.Saved.TotalScore = math.floor(mod:Lerp(FullHandDamage, 0, i/AnimLength))
+            end, i, 1, true)
+        end
 
-                        if AllDead then
-                            
-                            mod.AnimationIsPlaying = true
-                            Isaac.RunCallback(mod.Callbalcks.BLIND_CLEAR, mod.Saved.BlindBeingPlayed)
+        if not BlindGotCleared then
 
-                            return
-                        end
+            print("room isn't cleared")
 
-                        if mod.Saved.HandsRemaining <= 0 then
-
-                            --special bosses give you unlimited hands 
-                            if mod.Saved.IsSpecialBoss then 
-                            
-                                Player:AddCustomCacheTag(mod.CustomCache.DISCARD_NUM)
-                                Player:AddCustomCacheTag(mod.CustomCache.HAND_NUM, true)
-
-                                mod.Saved.Player[PIndex].FirstDeck = false
-                            else
-                                sfx:Play(SoundEffect.SOUND_BOSS2INTRO_ERRORBUZZ)
-                                Isaac.CreateTimer(function ()
-                                                    Player:Kill()
-                                                end, 40, 1, true)
-
-                                return
-                            end
-                        
-                        end
-
-                        Isaac.RunCallback(mod.Callbalcks.POST_HAND_PLAY, Player)
-                    end, 10, 1, true)
+            Isaac.RunCallback(mod.Callbalcks.POST_HAND_PLAY, Player)
+        end
+    end, 10, 1, true)
 
 end
 --mod:AddCallback(mod.Callbalcks.POST_HAND_PLAY, mod.ActivateCurrentHand)
 
+
+local function ClearBlindOnEnemyDeath(_,NPC)
+
+    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) or BlindGotCleared then
+        return
+    end
+
+    --after playing the hand, checks if everyone is dead, in that case the blind is cleared
+    local AllDead = true
+
+    for _,Enemy in ipairs(Isaac.GetRoomEntities()) do
+
+        if Enemy:IsActiveEnemy() and Enemy:IsVulnerableEnemy()
+           and (not Enemy:IsDead() or not Enemy:HasMortalDamage()) then
+            
+            AllDead = false
+            break
+        end
+    end
+
+    --print(AllDead)
+
+    if AllDead then
+
+        BlindGotCleared = true
+
+        Isaac.CreateTimer(function ()
+            mod.AnimationIsPlaying = true
+            Isaac.RunCallback(mod.Callbalcks.BLIND_CLEAR, mod.Saved.BlindBeingPlayed)
+
+        end, 5, 1, true)
+
+        return
+    end
+
+    if mod.Saved.HandsRemaining <= 0 then
+
+        for i, Player in ipairs(PlayerManager.GetPlayers()) do
+
+            if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
+                --special bosses give you unlimited hands 
+
+                local PIndex = Player:GetData().TruePlayerIndex
+
+                if mod.Saved.IsSpecialBoss then 
+                
+                    Player:AddCustomCacheTag(mod.CustomCache.DISCARD_NUM)
+                    Player:AddCustomCacheTag(mod.CustomCache.HAND_NUM, true)
+
+                    mod.Saved.Player[PIndex].FirstDeck = false
+                else
+                    sfx:Play(SoundEffect.SOUND_BOSS2INTRO_ERRORBUZZ)
+                    Isaac.CreateTimer(function ()
+                                        Player:Kill()
+                                    end, 40, 1, true)
+
+                    return
+                end
+            end
+        end
+    
+    end
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_NPC_DEATH, ClearBlindOnEnemyDeath)
 
 
 ---@param Player EntityPlayer
@@ -972,7 +1216,7 @@ function mod:SetupForHandScoring(Player)
     end
 
 
-    mod.Saved.HandsTypeUsed[mod.SelectionParams[PIndex].HandType] = mod.Saved.HandsTypeUsed[mod.SelectionParams[PIndex].HandType] + 1
+    mod.Saved.HandsTypeUsed[mod.Saved.HandType] = mod.Saved.HandsTypeUsed[mod.Saved.HandType] + 1
 
     local TIMER_INCREASE = 4
     local CurrentTimer = TIMER_INCREASE
@@ -1008,7 +1252,7 @@ function mod:SetupForHandScoring(Player)
     end
 
 
-    --I REALLY suggest you not to look at what's inside this if statement (ultra cheesy and unreadable code)
+    --I REALLY suggest you not to look at what's inside this if statement (ultra unreadable code)
     
     
     if mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_HOOK then
@@ -1094,7 +1338,7 @@ function mod:SetupForHandScoring(Player)
             mod.AnimationIsPlaying = true
 
             Isaac.CreateTimer(function ()
-                mod.SelectionParams[PIndex].ScoringCards = mod:GetScoringCards(Player, mod.SelectionParams[PIndex].HandType)
+                mod.SelectionParams[PIndex].ScoringCards = mod:GetScoringCards(Player, mod.Saved.HandType)
 
             end, ExtraInterval + 7, 1, true)
         
@@ -1115,7 +1359,7 @@ function mod:SetupForHandScoring(Player)
     mod.AnimationIsPlaying = true
 
     Isaac.CreateTimer(function ()
-        mod.SelectionParams[PIndex].ScoringCards = mod:GetScoringCards(Player, mod.SelectionParams[PIndex].HandType)
+        mod.SelectionParams[PIndex].ScoringCards = mod:GetScoringCards(Player, mod.Saved.HandType)
         
     end, CurrentTimer + 7, 1, true)
 
@@ -1139,6 +1383,8 @@ function mod:SetupForNextHandPlay(Player)
     local PIndex = Player:GetData().TruePlayerIndex
 
     mod.SelectionParams[PIndex].ScoringCards = 0
+
+    mod.Saved.TotalScore = 0
 
     if mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_BELL then
         local BellRNG = Player:GetDropRNG()
@@ -1169,8 +1415,10 @@ function mod:SetupForNextHandPlay(Player)
 
         mod.SelectionParams[PIndex].PlayedCards = {}
         
-        mod.SelectionParams[PIndex].HandType = mod.HandTypes.NONE
+        mod.Saved.HandType = mod.HandTypes.NONE
         mod.SelectionParams[PIndex].PossibleHandType = mod.HandFlags.NONE
+
+        mod.SelectionParams[PIndex].ScoringCards = 0
 
 
         Player:AddCustomCacheTag(mod.CustomCache.HAND_SIZE, true)
@@ -1214,7 +1462,7 @@ local function MoveHandTarget(_,Effect)
     Effect:AddVelocity(Player:GetAimDirection()*3.25)
 
     local PIndex = Player:GetData().TruePlayerIndex
-    local HandHype = mod.SelectionParams[PIndex].HandType
+    local HandHype = mod.Saved.HandType
 
     local Radius = BASE_HAND_RADIUS *mod.Saved.HandsStat[HandHype].Mult
 
@@ -1271,8 +1519,7 @@ local function OnBlindButtonPressed(_, Plate)
     local Variant = Plate:GetVariant()
     local VarData = Plate.VarData
 
-    --the first timer cycle activates frame-one for some reason...
-    --so use TimerFixerVariable to adjust the timers
+    --apparently when buttons are pressed the timers activate frame one so I just put a second timer inside the first one
 
     if Variant == mod.Grids.PlateVariant.REROLL then
 
@@ -1297,26 +1544,11 @@ local function OnBlindButtonPressed(_, Plate)
             else
                 Plate.VarData = mod.Saved.RerollStartingPrice + (mod.Saved.NumShopRerolls - NumClowns)
             end
-            print("increased to:", Plate.VarData)
+            --print("increased to:", Plate.VarData)
 
             Isaac.RunCallback(mod.Callbalcks.SHOP_REROLL)
 
-            for i,ShopItem in ipairs(Isaac.GetRoomEntities()) do
-
-                ---@diagnostic disable-next-line: cast-local-type
-                ShopItem = ShopItem:ToPickup()
-
-                if ShopItem
-                   and (ShopItem.Variant == PickupVariant.PICKUP_TRINKET
-                        or ShopItem.Variant == PickupVariant.PICKUP_TAROTCARD
-                           and not mod:Contained(mod.Packs, ShopItem.SubType)) then --rerolls all cards and jokers (not booster packs)
-
-                    local Variant, SubType = mod:RandomShopItem(mod.RNGs.SHOP)
-                           
-                    ShopItem:Morph(EntityType.ENTITY_PICKUP, Variant, SubType, true, true)
-
-                end
-            end
+            mod:SpawnShopItems(true)
 
             sfx:Play(mod.Sounds.MONEY)
         else
@@ -1325,6 +1557,8 @@ local function OnBlindButtonPressed(_, Plate)
 
 
     elseif Variant == mod.Grids.PlateVariant.CASHOUT then
+
+        mod.Saved.BlindBeingPlayed = mod.BLINDS.SHOP
 
         for i,Player in ipairs(PlayerManager.GetPlayers()) do
 
@@ -1339,26 +1573,22 @@ local function OnBlindButtonPressed(_, Plate)
             --restores hands and discards available
             Player:AddCustomCacheTag(mod.CustomCache.DISCARD_NUM)
             Player:AddCustomCacheTag(mod.CustomCache.HAND_NUM, true)
+
+            Player:AddCoins(Plate.VarData)
         end
 
         Isaac.CreateTimer(function ()
-                                if TimerFixerVariable == 1 then
+            Isaac.CreateTimer(function ()
 
-                                    Game:StartRoomTransition(mod.Saved.ShopIndex, Direction.NO_DIRECTION, RoomTransitionAnim.PIXELATION)
-                                    
-                                    sfx:Play(mod.Sounds.MONEY)
+                Game:StartRoomTransition(mod.Saved.ShopIndex, Direction.NO_DIRECTION, RoomTransitionAnim.PIXELATION)
 
-                                elseif TimerFixerVariable == 2 then
-                                    --Isaac.RunCallback(mod.Callbalcks.BLIND_START, VarData)
-                                    TimerFixerVariable = 0
-                                    return
-                                end
-
-                                TimerFixerVariable = TimerFixerVariable + 1
-
-                            end, 7, 3, true)
+                sfx:Play(mod.Sounds.MONEY)
+            end, 7, 1, true)
+        end, 0, 1, true)
 
     elseif Variant == mod.Grids.PlateVariant.SHOP_EXIT then
+
+         mod.Saved.BlindBeingPlayed = mod.BLINDS.NONE
 
         for i,Player in ipairs(PlayerManager.GetPlayers()) do
 
@@ -1415,6 +1645,15 @@ local function OnBlindButtonPressed(_, Plate)
     elseif Variant == mod.Grids.PlateVariant.BLIND then
 
         mod.Saved.BlindBeingPlayed = VarData
+
+        local Lang = mod:GetEIDLanguage()
+
+        mod.Saved.CurrentBlindName = mod.Descriptions.BlindNames[mod.Saved.BlindBeingPlayed][Lang] or mod.Descriptions.BlindNames[mod.Saved.BlindBeingPlayed]["en_us"]
+
+        
+
+        mod.Saved.CurrentBlindReward = mod:GetBlindReward(mod.Saved.BlindBeingPlayed)
+        mod.Saved.CurrentRound = mod.Saved.CurrentRound + 1
 
         local InitialInterval = Isaac.RunCallback(mod.Callbalcks.BLIND_SELECTED, VarData)
 
@@ -1519,7 +1758,7 @@ local function OnBlindStart(_, BlindData)
     mod.AnimationIsPlaying = true
 
     local Interval = 8
-    local FirstJuggleIndex = 0
+    local JuggleIndex
 
     mod.Saved.NumJuggleUsed = 0
 
@@ -1527,17 +1766,18 @@ local function OnBlindStart(_, BlindData)
         
         if Tag == mod.SkipTags.JUGGLE then
 
-            FirstJuggleIndex = FirstJuggleIndex or i
+            JuggleIndex = i
             
             mod.Saved.NumJuggleUsed = mod.Saved.NumJuggleUsed + 1
 
             Isaac.CreateTimer(function ()
-                mod:UseSkipTag(FirstJuggleIndex)
+                mod:UseSkipTag(JuggleIndex)
+                print("juggle is used at", JuggleIndex )
             end, Interval, 1, true)
 
             Interval = Interval + 20
         else
-            FirstJuggleIndex = 0
+            JuggleIndex = 0
         end
     end
 
@@ -1618,9 +1858,9 @@ local function OnBlindStart(_, BlindData)
 
                 Isaac.CreateTimer(function ()
 
-                    --also shuffles the deck in this case
+                    --also shuffles the deck in this case (applying the house boss blind as well)
                     mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams.Purposes.HAND)
-
+                    
                 end, Interval, 1, true)
                 
             end
@@ -1707,22 +1947,24 @@ local function OnTagAdded(_, TagAdded)
             Interval = Interval + 20
 
             Isaac.CreateTimer(function ()
-            
-                local BossPlate = Game:GetRoom():GetGridEntity(70):ToPressurePlate()
+                Isaac.CreateTimer(function ()
+                
+                    local BossPlate = Game:GetRoom():GetGridEntity(70):ToPressurePlate()
 
-                local WasSpecialBoss = BossPlate.VarData >= mod.BLINDS.BOSS_ACORN
+                    local WasSpecialBoss = BossPlate.VarData >= mod.BLINDS.BOSS_ACORN
 
-                mod.Saved.AnteBoss = mod:RandomBossBlind(mod.RNGs.BOSS_BLINDS, WasSpecialBoss)
+                    mod.Saved.AnteBoss = mod:RandomBossBlind(mod.RNGs.BOSS_BLINDS, WasSpecialBoss)
 
-                BossPlate.VarData = mod.Saved.AnteBoss
+                    BossPlate.VarData = mod.Saved.AnteBoss
 
-                mod:TrueBloodPoof(BossPlate.Position, 1, mod.EffectColors.PURPLE)
+                    mod:TrueBloodPoof(BossPlate.Position, 1, mod.EffectColors.PURPLE)
 
-                mod:UpdateBalatroPlate(BossPlate, true)
+                    mod:UpdateBalatroPlate(BossPlate, true)
 
-                mod:UseSkipTag(1) --boss tags are used only when obtained, so they are always first
+                    mod:UseSkipTag(1) --boss tags are used only when obtained, so they are always first
 
-            end, Interval, 1, true)
+                end, Interval, 1, true)
+            end, 0, 1, true)
 
 
         elseif Tag == mod.SkipTags.HANDY then
@@ -1730,100 +1972,133 @@ local function OnTagAdded(_, TagAdded)
             Interval = Interval + 20
 
             Isaac.CreateTimer(function ()
-                local Money = mod.Saved.HandsPlayed
+                Isaac.CreateTimer(function ()
+                    local Money = mod.Saved.HandsPlayed
 
-                T_Jimbo:AddCoins(Money)
+                    T_Jimbo:AddCoins(Money)
 
-                mod:CreateBalatroEffect(T_Jimbo, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(Money).."$",  mod.EffectType.ENTITY, T_Jimbo)
-                mod:UseSkipTag(1)
-            
-            end, Interval, 1, true)
+                    mod:CreateBalatroEffect(T_Jimbo, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(Money).."$",  mod.EffectType.ENTITY, T_Jimbo)
+                    mod:UseSkipTag(1)
+                
+                end, Interval, 1, true)
+            end, 0, 1, true)
 
         elseif Tag == mod.SkipTags.GARBAGE then
 
             Interval = Interval + 20
 
             Isaac.CreateTimer(function ()
-                local Money = mod.Saved.DiscardsWasted
 
-                T_Jimbo:AddCoins(Money)
+                Isaac.CreateTimer(function ()
+                    local Money = mod.Saved.DiscardsWasted
 
-                mod:CreateBalatroEffect(T_Jimbo, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(Money).."$",  mod.EffectType.ENTITY, T_Jimbo)
-                mod:UseSkipTag(1)
-                
-            end, Interval, 1, true)
+                    T_Jimbo:AddCoins(Money)
+
+                    mod:CreateBalatroEffect(T_Jimbo, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(Money).."$",  mod.EffectType.ENTITY, T_Jimbo)
+                    mod:UseSkipTag(1)
+
+                end, Interval, 1, true)
+            end, 0, 1, true)
         elseif Tag == mod.SkipTags.SPEED then
 
             Interval = Interval + 20
 
             Isaac.CreateTimer(function ()
-                local Money = 5 * (mod.Saved.NumBlindsSkipped - 1) --doesn't consider the one just skipped
+                Isaac.CreateTimer(function ()
+                    local Money = 5 * (mod.Saved.NumBlindsSkipped - 1) --doesn't consider the one just skipped
 
-                T_Jimbo:AddCoins(Money)
+                    T_Jimbo:AddCoins(Money)
 
-                mod:CreateBalatroEffect(T_Jimbo, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(Money).."$",  mod.EffectType.ENTITY, T_Jimbo)
-                mod:UseSkipTag(1)
-                
-            end, Interval, 1, true)
+                    mod:CreateBalatroEffect(T_Jimbo, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(Money).."$",  mod.EffectType.ENTITY, T_Jimbo)
+                    mod:UseSkipTag(1)
+
+                end, Interval, 1, true)
+            end, 0, 1, true)
+            
         elseif Tag == mod.SkipTags.ECONOMY then
 
             Interval = Interval + 20
 
             Isaac.CreateTimer(function ()
-                local Money = math.min(40, T_Jimbo:GetNumCoins())
+                Isaac.CreateTimer(function ()
+                    local Money = math.min(40, T_Jimbo:GetNumCoins())
 
-                T_Jimbo:AddCoins(Money)
+                    T_Jimbo:AddCoins(Money)
 
-                mod:CreateBalatroEffect(T_Jimbo, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(Money).."$",  mod.EffectType.ENTITY, T_Jimbo)
-                mod:UseSkipTag(1)
-                
-            end, Interval, 1, true)
+                    mod:CreateBalatroEffect(T_Jimbo, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(Money).."$",  mod.EffectType.ENTITY, T_Jimbo)
+                    mod:UseSkipTag(1)
+
+                end, Interval, 1, true)
+            end, 0, 1, true)
         elseif Tag == mod.SkipTags.TOP_UP then
 
             Interval = Interval + 20
 
             Isaac.CreateTimer(function ()
-                for i = 1, 2 do
+                Isaac.CreateTimer(function ()
+                    for i = 1, 2 do
 
-                    for Index,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+                        for Index,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
 
-                        if Slot.Joker == TrinketType.TRINKET_NULL then
+                            if Slot.Joker == TrinketType.TRINKET_NULL then
 
-                            local CommonJoker = mod:RandomJoker(mod.RNGs.SKIP_TAGS, true, "common", false)
+                                local CommonJoker = mod:RandomJoker(mod.RNGs.SKIP_TAGS, true, "common", false)
 
-                            mod.Saved.Player[PIndex].Inventory[Index].Joker = CommonJoker.Joker
-                            mod.Saved.Player[PIndex].Inventory[Index].Edition = CommonJoker.Edition
+                                mod.Saved.Player[PIndex].Inventory[Index].Joker = CommonJoker.Joker
+                                mod.Saved.Player[PIndex].Inventory[Index].Edition = CommonJoker.Edition
 
-                            break
+                                break
+                            end
                         end
                     end
-                end
-                mod:UseSkipTag(1)
-                
-            end, Interval, 1, true)
+                    mod:UseSkipTag(1)
+
+                end, Interval, 1, true)
+            end, 0, 1, true)
 
         elseif Tag == mod.SkipTags.STANDARD then
 
-            SkipTagPackOpen(mod.Packs.MEGA_STANDARD)
+            Isaac.CreateTimer(function ()
+                Isaac.CreateTimer(function ()
+                    SkipTagPackOpen(mod.Packs.MEGA_STANDARD)
+                end, Interval, 1, true)
+            end, 0, 1, true)
 
         elseif Tag == mod.SkipTags.CHARM then
 
-            SkipTagPackOpen(mod.Packs.MEGA_ARCANA)
+            Isaac.CreateTimer(function ()
+                Isaac.CreateTimer(function ()
+                    SkipTagPackOpen(mod.Packs.MEGA_ARCANA)
+                end, Interval, 1, true)
+            end, 0, 1, true)
 
         elseif Tag == mod.SkipTags.BUFFON then
 
-            SkipTagPackOpen(mod.Packs.MEGA_BUFFON)
+            Isaac.CreateTimer(function ()
+                Isaac.CreateTimer(function ()
+                    SkipTagPackOpen(mod.Packs.MEGA_BUFFON)
+                end, Interval, 1, true)
+            end, 0, 1, true)
 
         elseif Tag == mod.SkipTags.METEOR then
 
-            SkipTagPackOpen(mod.Packs.MEGA_CELESTIAL)
+            Isaac.CreateTimer(function ()
+                Isaac.CreateTimer(function ()
+                    SkipTagPackOpen(mod.Packs.MEGA_CELESTIAL)
+                end, Interval, 1, true)
+            end, 0, 1, true)
 
         elseif Tag == mod.SkipTags.ETHEREAL then
 
-            SkipTagPackOpen(mod.Packs.SPECTRAL)
+            Isaac.CreateTimer(function ()
+                Isaac.CreateTimer(function ()
+                    SkipTagPackOpen(mod.Packs.SPECTRAL)
+                end, Interval, 1, true)
+            end, 0, 1, true)
 
         elseif Tag & mod.SkipTags.ORBITAL ~= 0 then
 
+            
             local HandType = Tag & ~mod.SkipTags.ORBITAL
 
             local PlanetInterval = mod:PlanetUpgradeAnimation(HandType, 3, Interval)
@@ -1847,9 +2122,18 @@ local function OnBlindClear(_, BlindData)
         return
     end
 
+    --print("blind cleared")
+
     local Room = Game:GetRoom()
 
     mod.Saved.BlindScalingFactor = 1
+
+    for _,Enemy in ipairs(Isaac.GetRoomEntities()) do
+
+        if Enemy:ToNPC() then
+            Enemy:Remove()
+        end
+    end
 
     
     for _,Player in ipairs(PlayerManager.GetPlayers()) do
@@ -1897,11 +2181,22 @@ local function OnBlindClear(_, BlindData)
         mod.Saved.BossCleared = mod.BossProgress.CLEARED
     end
 
-    local TotalGain = Isaac.RunCallback(mod.Callbalcks.CASHOUT_EVAL, BlindData)
+    local Interval = Isaac.RunCallback(mod.Callbalcks.POST_BLIND_CLEAR, BlindData)
 
-    mod:SpawnBalatroPressurePlate(Room:GetCenterPos(), mod.Grids.PlateVariant.CASHOUT, TotalGain)
+    Isaac.CreateTimer(function ()
+
+        BlindGotCleared = false
+
+        local TotalGain = Isaac.RunCallback(mod.Callbalcks.CASHOUT_EVAL, BlindData)
+
+        mod:SpawnBalatroPressurePlate(Room:GetCenterPos(), mod.Grids.PlateVariant.CASHOUT, TotalGain)
+        
+    end, Interval, 1, true)
+    
+
+    mod.Saved.BlindBeingPlayed = mod.BLINDS.WAITING_CASHOUT
 end
-mod:AddPriorityCallback(mod.Callbalcks.BLIND_CLEAR, CallbackPriority.IMPORTANT, OnBlindClear)
+mod:AddCallback(mod.Callbalcks.BLIND_CLEAR, OnBlindClear)
 
 
 
@@ -2047,7 +2342,7 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, InitializeAnte)
 --all enemies' HP get scaled basing on how many antes have been cleared this run
 local function EnemyHPScaling()
 
-    if Game:GetRoom():IsClear() then        
+    if Game:GetRoom():IsClear() or not PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then        
         return
     end
 
@@ -2084,26 +2379,31 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, EnemyHPScaling)
 
 
 
----@param Enemy EntityNPC
-local function SpawnedEnemyHPScaling(_,Enemy)
+---@param SpawnedEnemy EntityNPC
+local function SpawnedEnemyHPScaling(_,SpawnedEnemy)
+
+    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then
+        return
+    end
 
     if Game:GetRoom():IsClear() then
-        Enemy:Remove()
+        SpawnedEnemy:Remove()
         return
     end
 
     local ScalingFactor = mod.Saved.BlindScalingFactor
 
-    while Enemy.SpawnerEntity do
+    local Spawner = SpawnedEnemy.SpawnerEntity
+
+    while Spawner do
         
-        ScalingFactor = ScalingFactor / 2
+        ScalingFactor = ScalingFactor / 3
 
-        Enemy = Enemy.SpawnerEntity
-
+        Spawner = Spawner.SpawnerEntity
     end
 
-    Enemy.MaxHitPoints = Enemy.MaxHitPoints * ScalingFactor
-    Enemy.HitPoints = Enemy.HitPoints * ScalingFactor
+    SpawnedEnemy.MaxHitPoints = SpawnedEnemy.MaxHitPoints * ScalingFactor
+    SpawnedEnemy.HitPoints = SpawnedEnemy.HitPoints * ScalingFactor
 
 end
 mod:AddCallback(ModCallbacks.MC_POST_NPC_INIT, SpawnedEnemyHPScaling)

@@ -122,7 +122,10 @@ function mod:OnGameStart(Continued)
         mod.Saved.GlassBroken = 0
         mod.Saved.TarotsUsed = 0
         mod.Saved.PlanetTypesUsed = 0
-        mod.Saved.BlindBeingPlayed = mod.BLINDS.SKIP
+        mod.Saved.BlindBeingPlayed = mod.BLINDS.NONE
+        mod.Saved.CurrentBlindName = ""
+        mod.Saved.CurrentBlindReward = 0
+        mod.Saved.CurrentRound = 0
         mod.Saved.BossBlindVarData = 0
         --mod.Saved.AnteVoucher = 0   cannot be set here cause GAME_STARTED happens after NEW_LEVEL
         mod.Saved.NumShopRerolls = 0
@@ -186,6 +189,9 @@ function mod:OnGameStart(Continued)
 
         mod.Saved.MultValue = 0
         mod.Saved.ChipsValue = 0
+        mod.Saved.TotalScore = 0
+        mod.Saved.HandType = mod.HandTypes.NONE
+        mod.Saved.PossibleHandTypes = mod.HandTypes.NONE
 
         mod.Saved.ClearedRooms = 0
         mod.Saved.SmallCleared = false
@@ -211,7 +217,7 @@ function mod:OnGameStart(Continued)
 
         mod.ConsumableFullPosition = {}
         mod.JokerFullPosition = {}
-        mod.LastCardFullPoss = {}
+        mod.CardFullPoss = {}
         for k,_ in pairs(mod.Counters) do
             if type(mod.Counters[k]) == "table" then
                 mod.Counters[k] = {}
@@ -226,7 +232,7 @@ function mod:OnGameStart(Continued)
             mod.Saved.ShopEntered = false
         end
 
-        mod.Saved.LastJokerRenderIndex = 0
+        mod.Saved.LastJokerRenderIndex = 6
     end
 
     mod.GameStarted = true
@@ -322,8 +328,7 @@ function mod:InitJimboValues(Player, Force)
             mod.Saved.Player[PIndex].Inventory[i].Joker = 0
             mod.Saved.Player[PIndex].Inventory[i].Edition = mod.Edition.BASE
             mod.Saved.Player[PIndex].Inventory[i].RenderIndex = i
-        end
-        
+        end        
 
         mod.Saved.Player[PIndex].StatsToAdd = {}
         mod.Saved.Player[PIndex].StatsToAdd.Damage = 0
@@ -434,12 +439,12 @@ function mod:InitJimboValues(Player, Force)
         mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND] = {false,false,false,false,false}
         mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.PACK] = {false,false,false}
         mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.INVENTORY] = {false,false,false,false,false}
+        mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.CONSUMABLES] = {false,false}
 
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.NONE)
     
         mod.SelectionParams[PIndex].PackPurpose = 0
-        mod.SelectionParams[PIndex].HandType = mod.HandTypes.NONE
-        mod.SelectionParams[PIndex].PossibleHandTypes = mod.HandTypes.NONE
+        
         mod.SelectionParams[PIndex].PlayedCards = {} --contains the deck indexes of cards played from your hand
         mod.SelectionParams[PIndex].ScoringCards = 0
     else

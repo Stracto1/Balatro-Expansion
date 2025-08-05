@@ -72,6 +72,10 @@ function mod:LimitShopping(Item,Player,_)
         PastCoins = Player:GetNumCoins() - Item.Price
 
     elseif Item.Price > Player:GetNumCoins() then --costs more than the current non-debt coin value
+
+        if not mod:PlayerCanAfford(Item.Price) then --surpasses the debt limit
+            return
+        end
         
         local Difference = Item.Price - Player:GetNumCoins()
     
@@ -148,7 +152,11 @@ function mod:SpendMoney(Price)
 
     if mod.Saved.HasDebt or Coins >= Price  then --remains in/out of debt after buying 
 
-        Player:AddCoins(-Price)
+        if mod.Saved.HasDebt then
+            Player:AddCoins(Price)
+        else
+            Player:AddCoins(-Price)
+        end
         PastCoins = Player:GetNumCoins()
         return
     end

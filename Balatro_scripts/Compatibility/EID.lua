@@ -1,8 +1,3 @@
----@diagnostic disable: need-check-nil
-if not EID then
-    return
-end
-
 local mod = Balatro_Expansion
 local Game = Game()
 local ItemsConfig = Isaac.GetItemConfig()
@@ -12,10 +7,69 @@ local SUIT_FLAG = 7 --111 00..
 local VALUE_FLAG = 120 --000 1111 00..
 local YORIK_VALUE_FLAG = 63 --000 1111 00..
 
-local SupportedLanguages = {"en_us"}
+local EID_DescType = {NONE = 0,
+                      CARD = 1,
+                      JOKER = 2,
+                      CONSUMABLE = 3,
+                      BOOSTER = 4,
+                      VOUCHER = 5,
+                      SELECTION_FLAG = 64}
+
+local EID_DescAllingnment = {TOP = 1,
+                             BOTTOM = 2,
+                             LEFT = 4,
+                             RIGHT = 8,
+                             CENTER = 0}
 
 
-----------------------------------------------------------------
+local DescriptionHelperVariant = Isaac.GetEntityVariantByName("Description Helper")
+local DescriptionHelperSubType = Isaac.GetEntitySubTypeByName("Description Helper")
+EID:addEntity(1000, DescriptionHelperVariant, DescriptionHelperSubType, "", "")
+
+
+mod.Descriptions = {}
+
+mod.EIDSupportedLanguages = {"en_us"}
+
+
+for _, LanguageCode in ipairs(mod.EIDSupportedLanguages) do
+
+    local LangDescriptions = include("Balatro_scripts.Compatibility.EID translations."..LanguageCode)
+
+
+    for Type, v in pairs(LangDescriptions) do
+
+        mod.Descriptions[Type] = mod.Descriptions[Type] or {}
+        
+        for Variant ,Description in pairs(v) do
+
+            mod.Descriptions[Type][Variant] = mod.Descriptions[Type][Variant] or {}
+        
+            if type(Description) == "table" then
+
+                for SubType, String in pairs(Description) do
+
+                    mod.Descriptions[Type][Variant][SubType] = mod.Descriptions[Type][Variant][SubType] or {}
+
+                    mod.Descriptions[Type][Variant][SubType][LanguageCode] = String
+                end
+
+            else
+
+                mod.Descriptions[Type][Variant][LanguageCode] = Description
+            end
+        end
+    end
+end
+
+
+---@diagnostic disable: need-check-nil
+if not EID then
+    return
+end
+
+
+
 do
     local CoopMenu = Sprite("gfx/sprites/EID Icons.anm2")
 
@@ -30,40 +84,201 @@ EID:addColor("ColorGlass", KColor(0.85, 0.85, 1, 0.6))
 
 
 
---------------LIST OF ALL THE BASIC DESCRIPTIONS--------------------
+function mod:GetFilteredEIDString(EIDstr)
 
-local DescriptionHelperVariant = Isaac.GetEntityVariantByName("Description Helper")
-local DescriptionHelperSubType = Isaac.GetEntitySubTypeByName("Description Helper")
-EID:addEntity(1000, DescriptionHelperVariant, DescriptionHelperSubType,"Description Overview", "")
+    local FilteredStr = ""
+
+    EIDstr = EID:replaceShortMarkupStrings(EIDstr)
+	local textPartsTable = EID:filterColorMarkup(EIDstr, KColor.White)
+	for _, textPart in ipairs(textPartsTable) do
+
+		local PartialStr = EID:filterIconMarkup(textPart[1], false)
+
+		if PartialStr then -- prevent possible crash when strFiltered is nil
+
+            FilteredStr = FilteredStr..PartialStr
+		end
+	end
+
+    FilteredStr = string.gsub(FilteredStr, "#", " ")
+
+    return FilteredStr
+end
 
 
-local Descriptions = {}
+---Copied this from the EID api and modified it a bit to make it more helpful in this scenario (fyi the original function is called EID:renderString())
+---@param EIDstr string
+---@param position Vector
+---@param scale Vector
+---@param kcolor KColor
+-- -@return KColor
+function mod:RenderBalatroEIDString(EIDstr, position, Params, StartFrame, scale, kcolor, BoxWidth, Sound)
 
-for _, LanguageCode in ipairs(SupportedLanguages) do
+    local renderBulletPointIcon = false
 
-    Descriptions[LanguageCode] = include("Balatro_scripts.Compatibility.EID translations."..LanguageCode)
+    EID:loadFont("mods/balatro_expansion/resources/font/Balatro_Font4.fnt")
+
+	EIDstr = EID:replaceShortMarkupStrings(EIDstr)
+	local textPartsTable = EID:filterColorMarkup(EIDstr, kcolor)
+	local offsetX = 0
+	for _, textPart in ipairs(textPartsTable) do
+
+		local strFiltered, spriteTable = EID:filterIconMarkup(textPart[1], renderBulletPointIcon)
+		EID:renderInlineIcons(spriteTable, position.X + offsetX, position.Y)
+
+		if strFiltered then -- prevent possible crash when strFiltered is nil
+
+            mod:RenderBalatroStyle(strFiltered, position, Params, StartFrame, scale, textPart[2], BoxWidth, Sound)
+			--EID.font:DrawStringScaledUTF8(strFiltered, position.X + offsetX, position.Y, scale.X, scale.Y, textPart[2], 0, false)
+			if EID.CachingDescription then
+				table.insert(EID.CachedStrings[#EID.CachedStrings], {strFiltered, position.X + offsetX, position.Y, textPart[2], textPart[4], EID.Config["Transparency"]})
+			end
+
+			offsetX = offsetX + EID:getStrWidth(strFiltered) * scale.X
+            StartFrame = StartFrame + string.len(strFiltered)*2
+		end
+	end
+	--return textPartsTable[#textPartsTable][2]
+end
+
+
+
+local function GetProgressString(Joker, Value, Player)
+
+    local JokerConfig = ItemsConfig:GetTrinket(Joker)
+
+    local Lang = mod:GetEIDLanguage()
+
+    Player = Player or (PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo) or PlayerManager.FirstPlayerByType(mod.Characters.JimboType))
+
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    local String = ""
+
+    if JokerConfig:HasCustomTag("chips") then
+
+        if Joker == mod.Jokers.WALKIE_TALKIE then
+
+            String = " #!!! "..mod.Descriptions.Other.CompatibleTriggered[Lang]..tostring(Value)
+        
+        elseif Joker == mod.Jokers.CASTLE then
+
+            String = "#!!!"..mod.Descriptions.Other.SuitChosen[Lang]..mod:CardSuitToName(Value & SUIT_FLAG, true).."#!!! "..mod.Descriptions[Lang].Other.CompatibleDiscarded.." {{ColorChips}} "..tostring((Value & ~SUIT_FLAG)/8)
+        else
+            String = " #!!! "..mod.Descriptions.Other.Currently[Lang].."{{ColorChips}} +"..tostring(Value).."{{CR}}"
+        end
+    elseif JokerConfig:HasCustomTag("mult") then
+        String = " #!!! "..mod.Descriptions.Other.Currently[Lang].."{{ColorMult}} +"..tostring(Value).."{{CR}}"
+
+    elseif JokerConfig:HasCustomTag("multm") then
+
+        if Joker == mod.Jokers.LOYALTY_CARD then
+            if Value == 0 then
+                String = " #!!! "..mod.Descriptions.Other.Active[Lang]
+            else
+                String = " #!!! "..mod.Descriptions.Other.RoomsRemaining[Lang].."{{ColorYellorange}} "..tostring(Value).."{{CR}}"
+            end
+
+        elseif Joker == mod.Jokers.ANCIENT_JOKER then
+            
+            String = " #!!! "..mod.Descriptions.Other.SuitChosen[Lang]..mod:CardSuitToName(Value & SUIT_FLAG).."{{CR}}".."#!!! "..mod.Descriptions.Other.CompatibleTriggered[Lang]..tostring((Value & ~SUIT_FLAG)/8)
+        
+        elseif Joker == mod.Jokers.IDOL then
+            String = " #!!! "..mod.Descriptions.Other.CardChosen[Lang]..mod:CardValueToName((Value & VALUE_FLAG)/8, true).." of "..mod:CardSuitToName(Value & SUIT_FLAG, true).."#!!! "..mod.Descriptions.Other.CompatibleTriggered[Lang]..tostring((Value & ~(SUIT_FLAG|VALUE_FLAG))/128)
+        
+        elseif Joker == mod.Jokers.YORICK then
+
+            String = " #!!! "..mod.Descriptions.Other.Currently[Lang].."{{ColorMult}} X"..tostring(1+(Value & ~YORIK_VALUE_FLAG/(YORIK_VALUE_FLAG+1))*0.2).."{{CR}}#!!! "..mod.Descriptions.Other.DiscardsRemaining[Lang]..tostring(Value & YORIK_VALUE_FLAG)
+        else
+            String = " #!!! "..mod.Descriptions.Other.Currently[Lang].."{{ColorMult}} X"..tostring(Value).."{{CR}}"
+        end
+
+
+    elseif JokerConfig:HasCustomTag("money") then
+        
+        if Joker == mod.Jokers.TO_DO_LIST then
+
+            local Hand = mod.Descriptions.HandTypeName[Value][Lang] or mod.Descriptions.HandTypeName[Value]["en_us"]
+
+            String = " #!!! "..mod.Descriptions.Other.HandTypeChosen[Lang].."{{ColorYellorange}} "..Hand.."{{CR}}"
+        
+        elseif Joker == mod.Jokers.MAIL_REBATE then
+
+            String = " #!!! "..mod.Descriptions.Other.ValueChosen[Lang].."{{ColorYellorange}} "..mod:CardValueToName(Value).."{{CR}}"
+        
+        else
+            --String = " #!!! "..mod.Descriptions.Other.Currently[Lang].."{{ColorYellorange}} "..tostring(Value).."${{CR}}"
+        end
+    elseif JokerConfig:HasCustomTag("activate") then
+
+        if Joker == mod.Jokers.BLUEPRINT or Joker == mod.Jokers.BRAINSTORM then
+
+            if Value ~= 0 then
+                String = " #!!! "..mod.Descriptions.Other.Currently[Lang]..mod.Descriptions.Other.Compatible[Lang]
+            else
+                String = " #!!! "..mod.Descriptions.Other.Currently[Lang]..mod.Descriptions.Other.Incompatible[Lang]
+            end
+
+        elseif Joker == mod.Jokers.INVISIBLE_JOKER then
+
+            if Value == 3 then
+                String = " #!!! "..mod.Descriptions.Other.Ready[Lang]
+            else
+                String = " #!!! "..mod.Descriptions.Other.BlindsCleared[Lang].."{{ColorYellorange}}"..tostring(Value).."/3{{CR}}"
+            end
+
+        elseif Joker == mod.Jokers.DNA then
+            if Balatro_Expansion.Saved.Player[PIndex].Progress.Blind.Shots == 0 then
+                String = " #!!! "..mod.Descriptions.Other.Ready[Lang]
+
+            else
+                String = " #!!! "..mod.Descriptions.Other.NotReady[Lang]
+
+            end
+
+        elseif Joker == mod.Jokers.SIXTH_SENSE then
+            if Balatro_Expansion.Saved.Player[PIndex].Progress.Blind.Shots == 0 then
+                Description = Description.." #!!! "..mod.Descriptions.Other.Currently[Lang]..mod.Descriptions.Other.Ready[Lang]
+
+            else
+                String = " #!!! "..mod.Descriptions.Other.Currently[Lang]..mod.Descriptions.Other.NotReady[Lang]
+
+            end
+        elseif Joker == mod.Jokers.TURTLE_BEAN then
+
+            String = " #!!! "..mod.Descriptions.Other.Currently[Lang].." {{ColorCyan}}+"..tostring(Value).." "..mod.Descriptions.Other.HandSize[Lang].."{{CR}}"
+        elseif Joker == mod.Jokers.SELTZER then
+
+            String = " #!!! "..mod.Descriptions.Other.RoomsRemaining[Lang]..tostring(Value)
+        end
+    end
+
+    return String
+
 end
 
 
 
 
---uses a hacky entity to simulate the options being descripted, no idea if this is an optimal way or not
+
+
+--uses a hacky entity to simulate the options being described, no idea if this is an optimal way or not
 local function BalatroInventoryCondition(descObj)
+
     if descObj.ObjType == EntityType.ENTITY_EFFECT and descObj.ObjVariant == DescriptionHelperVariant and descObj.ObjSubType == DescriptionHelperSubType then
         if PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
             return true
         end
     end
 end
+
 local function BalatroInventoryCallback(descObj)
 
 
-    local Language = EID:getLanguage()
-    if not mod:Contained(SupportedLanguages, Language) then --defaults to english if the language is not supported
-        Language = "en_us"
-    end
+    local Lang = mod:GetEIDLanguage()
 
-    descObj.Name = Descriptions[Language].Other.Name --PLACEHOLDER
+
+    descObj.Name = mod.Descriptions.Other.Name[Lang] --PLACEHOLDER
 
 
     for _,Player in ipairs(PlayerManager.GetPlayers()) do
@@ -103,40 +318,39 @@ local function BalatroInventoryCallback(descObj)
                     EID:addIcon("CurrentCard", CardIcon[1], CardIcon[2], CardIcon[3], CardIcon[4], CardIcon[5], CardIcon[6], CardIcon[7])
 
                     Icon = "{{Shop}}"
-                    Name = Descriptions[Language].Other.SellJoker
-                    Description = "#{{CurrentCard}} "..Descriptions[Language].Other.SellsFor.." {{ColorYellow}}"..mod:GetJokerCost(SelectedCard, SelectedSlots, Player).."${{CR}}"
+                    Name = mod.Descriptions.Other.SellJoker[Lang]
+                    Description = "#{{CurrentCard}} "..mod.Descriptions.Other.SellsFor[Lang].." {{ColorYellow}}"..mod:GetJokerCost(SelectedCard, SelectedSlots, Player).."${{CR}}"
 
                 else --not selling anything and confirm button
 
                     Icon = ""
-                    Name = Descriptions[Language].Other.Exit
+                    Name = mod.Descriptions.Other.Exit[Lang]
                     Description = ""
                 end
                 goto FINISH
             end
 
-            SelectedCard = SelectedCard.Joker
 
-            if SelectedCard == 0 then --empty slot
+            if SelectedCard.Joker == 0 then --empty slot
 
                 Icon = ""
-                Name = "{{Blank}} "..Descriptions[Language].Other.Nothing
-                Description = Descriptions[Language].Other.EmptySlot
+                Name = "{{Blank}} "..mod.Descriptions.Other.Nothing[Lang]
+                Description = mod.Descriptions.Other.EmptySlot[Lang]
 
             else --slot with something
 
                 descObj.ObjType = 5
                 descObj.ObjVariant = 350
-                descObj.ObjSubType = SelectedCard
+                descObj.ObjSubType = SelectedCard.Joker
 
 
-                local Tstring = "5.350."..tostring(SelectedCard)
+                local Tstring = "5.350."..tostring(SelectedCard.Joker)
 
-                local CardIcon = EID:createItemIconObject("Trinket"..tostring(SelectedCard))
+                local CardIcon = EID:createItemIconObject("Trinket"..tostring(SelectedCard.Joker))
 
                 EID:addIcon("CurrentCard", CardIcon[1], CardIcon[2], CardIcon[3], CardIcon[4], CardIcon[5], CardIcon[6], CardIcon[7])
 
-                local Rarity = mod:GetJokerRarity(SelectedCard)
+                local Rarity = mod:GetJokerRarity(SelectedCard.Joker)
                 local RarityColor
                 if Rarity == "common" then
                     RarityColor = "{{ColorCyan}}"
@@ -149,120 +363,36 @@ local function BalatroInventoryCallback(descObj)
                 end
 
                 Icon = "{{CurrentCard}}"
-                Name = RarityColor..EID:getObjectName(5, 350, SelectedCard).."{{CR}}#{{Blank}}"
-                Description = Descriptions[Language].Jokers.Jimbo[SelectedCard] --EID:getDescriptionEntry("custom", Tstring)[3]
+                Name = RarityColor..EID:getObjectName(5, 350, SelectedCard.Joker).."{{CR}}#{{Blank}}"
+
+                Description = ""..mod.Descriptions.Jimbo.Jokers[SelectedCard.Joker][Lang] --EID:getDescriptionEntry("custom", Tstring)[3]
 
                 local Edition = mod.Saved.Player[PIndex].Inventory[mod.SelectionParams[PIndex].Index].Edition
 
-                local EditionDesc = Descriptions[Language].JokerEdition[Edition]
+                local EditionDesc = mod.Descriptions.JokerEdition[Edition][Lang]
 
                 Description = Description..EditionDesc
 
                 --PROGRESS--
 
-                local JokerConfig = ItemsConfig:GetTrinket(SelectedCard)
+                local JokerConfig = ItemsConfig:GetTrinket(SelectedCard.Joker)
+
                 if JokerConfig:HasCustomTag("Value") then
 
-                    local Value = Balatro_Expansion.Saved.Player[PIndex].Progress.Inventory[mod.SelectionParams[PIndex].Index]
-                    if JokerConfig:HasCustomTag("chips") then
-                        if SelectedCard == mod.Jokers.WALKIE_TALKIE then
+                    local Value = mod.Saved.Player[PIndex].Progress.Inventory[mod.SelectionParams[PIndex].Index]
+                    
 
-                            Description = Description.." #!!! "..Descriptions[Language].Other.CompatibleTriggered..tostring(Value)
-                        
-                        elseif SelectedCard == mod.Jokers.CASTLE then
-
-                            Description = Description.."#!!!"..Descriptions[Language].Other.SuitChosen..mod:CardSuitToName(Value & SUIT_FLAG, true).."#!!! "..Descriptions[Language].Other.CompatibleDiscarded.." {{ColorChips}} "..tostring((Value & ~SUIT_FLAG)/8)
-                        else
-                            Description = Description.." #!!! "..Descriptions[Language].Other.Currently.."{{ColorChips}} +"..tostring(Value).."{{CR}}"
-                        end
-                    elseif JokerConfig:HasCustomTag("mult") then
-                        Description = Description.." #!!! "..Descriptions[Language].Other.Currently.."{{ColorMult}} +"..tostring(Value).."{{CR}}"
-
-                    elseif JokerConfig:HasCustomTag("multm") then
-                        if SelectedCard == mod.Jokers.LOYALTY_CARD then
-                            if Value == 0 then
-                                Description = Description.." #!!! "..Descriptions[Language].Other.Active
-                            else
-                                Description = Description.." #!!! "..Descriptions[Language].Other.RoomsRemaining.."{{ColorYellorange}} "..tostring(Value).."{{CR}}"
-                            end
-
-                        elseif SelectedCard == mod.Jokers.ANCIENT_JOKER then
-                            
-                            Description = Description.." #!!! "..Descriptions[Language].Other.SuitChosen..mod:CardSuitToName(Value & SUIT_FLAG).."{{CR}}".."#!!! "..Descriptions[Language].Other.CompatibleTriggered..tostring((Value & ~SUIT_FLAG)/8)
-                        
-                        elseif SelectedCard == mod.Jokers.IDOL then
-                            Description = Description.." #!!! "..Descriptions[Language].Other.CardChosen..mod:CardValueToName(Value & VALUE_FLAG, true).." of "..mod:CardSuitToName(Value & SUIT_FLAG, true).."#!!! "..Descriptions[Language].Other.CompatibleTriggered..tostring((Value & ~(SUIT_FLAG|VALUE_FLAG))/128)
-                        
-                        elseif SelectedCard == mod.Jokers.YORICK then
-
-                            Description = Description.." #!!! "..Descriptions[Language].Other.Currently.."{{ColorMult}} X"..tostring(1+(Value & ~YORIK_VALUE_FLAG/(YORIK_VALUE_FLAG+1))*0.2).."{{CR}}#!!! "..Descriptions[Language].Other.DiscardsRemeining..tostring(Value & YORIK_VALUE_FLAG)
-                        else
-                            Description = Description.." #!!! "..Descriptions[Language].Other.Currently.."{{ColorMult}} X"..tostring(Value).."{{CR}}"
-                        end
-
-
-                    elseif JokerConfig:HasCustomTag("money") then
-                        
-                        if SelectedCard == mod.Jokers.TO_DO_LIST then
-
-                            Description = Description.." #!!! "..Descriptions[Language].Other.ValueChosen.."{{ColorYellorange}} "..tostring(Value).."{{CR}}"
-                        else
-                            Description = Description.." #!!! "..Descriptions[Language].Other.Currently.."{{ColorYellorange}} "..tostring(Value).."${{CR}}"
-                        end
-                    elseif JokerConfig:HasCustomTag("activate") then
-
-                        if SelectedCard == mod.Jokers.BLUEPRINT or SelectedCard == mod.Jokers.BRAINSTORM then
-
-                            if Value ~= 0 then
-                                Description = Description.." #!!! "..Descriptions[Language].Other.Currently..Descriptions[Language].Other.Compatible
-                            else
-                                Description = Description.." #!!! "..Descriptions[Language].Other.Currently..Descriptions[Language].Other.Incompatible
-                            end
-
-                        elseif SelectedCard == mod.Jokers.INVISIBLE_JOKER then
-
-                            if Value == 3 then
-                                Description = Description.." #!!! "..Descriptions[Language].Other.Ready
-                            else
-                                Description = Description.." #!!! "..Descriptions[Language].Other.BlindsCleared.."{{ColorYellorange}}"..tostring(Value).."/3{{CR}}"
-                            end
-
-                        elseif SelectedCard == mod.Jokers.DNA then
-                            if Balatro_Expansion.Saved.Player[PIndex].Progress.Blind.Shots == 0 then
-                                Description = Description.." #!!! "..Descriptions[Language].Other.Ready
-
-                            else
-                                Description = Description.." #!!! "..Descriptions[Language].Other.NotReady
-
-                            end
-
-                        elseif SelectedCard == mod.Jokers.SIXTH_SENSE then
-                            if Balatro_Expansion.Saved.Player[PIndex].Progress.Blind.Shots == 0 then
-                                Description = Description.." #!!! "..Descriptions[Language].Other.Currently..Descriptions[Language].Other.Ready
-
-                            else
-                                Description = Description.." #!!! "..Descriptions[Language].Other.Currently..Descriptions[Language].Other.NotReady
-
-                            end
-                        elseif SelectedCard == mod.Jokers.TURTLE_BEAN then
-
-                            Description = Description.." #!!! "..Descriptions[Language].Other.Currently.." {{ColorCyan}}+"..tostring(Value).." "..Descriptions[Language].Other.HandSize.."{{CR}}"
-                        elseif SelectedCard == mod.Jokers.SELTZER then
-
-                            Description = Description.." #!!! "..Descriptions[Language].Other.RoomsRemaining..tostring(Value)
-                        end
-                    end
+                    Description = Description..GetProgressString(SelectedCard.Joker, Value, Player)
 
                 end
 
                 --SELL VALUE--
 
-                if SelectedCard == mod.Jokers.EGG then
-                    Description = Description.." #{{Shop}}"..Descriptions[Language].Other.SellsFor.."{{ColorYellorange}}"..tostring(mod.Saved.Player[PIndex].Progress.Inventory[mod.SelectionParams[PIndex].Index]).."${{CR}}"
+                if SelectedCard.Joker == mod.Jokers.EGG then
+                    Description = Description.." #{{Shop}}"..mod.Descriptions.Other.SellsFor[Lang].."{{ColorYellorange}}"..tostring(mod.Saved.Player[PIndex].Progress.Inventory[mod.SelectionParams[PIndex].Index]).."${{CR}}"
 
                 else
-                    Description = Description.." #{{Shop}}"..Descriptions[Language].Other.SellsFor.."{{ColorYellorange}}"..tostring(mod:GetJokerCost(SelectedCard, mod.SelectionParams[PIndex].Index, Player)).."${{CR}}"
-
+                    Description = Description.." #{{Shop}}"..mod.Descriptions.Other.SellsFor[Lang].."{{ColorYellorange}}"..tostring(mod:GetJokerCost(SelectedCard.Joker, SelectedCard.Edition, mod.SelectionParams[PIndex].Index, Player)).."${{CR}}"
                 end
             end
 
@@ -274,8 +404,8 @@ local function BalatroInventoryCallback(descObj)
             if not SelectedCard then -- the skip option
 
                 Icon = ""
-                Name = Descriptions[Language].Other.SkipName.."#{{Blank}}"
-                Description = Descriptions[Language].Other.SkipDesc --wasn't able to find an api function for this
+                Name = mod.Descriptions.Other.SkipName[Lang].."#{{Blank}}"
+                Description = mod.Descriptions.Other.SkipDesc[Lang] --wasn't able to find an api function for this
 
                 goto FINISH
             end
@@ -308,10 +438,13 @@ local function BalatroInventoryCallback(descObj)
 
                 Icon = "{{CurrentCard}}"
                 Name = RarityColor..EID:getObjectName(5, 350, SelectedCard.Joker).."#{{Blank}}"
-                Description =""..EID:getDescriptionEntry("custom", Tstring)[3]
+
+                local BaseDesc = mod.Descriptions.Jimbo.Jokers[SelectedCard.Joker][Lang] or mod.Descriptions.Jimbo.Jokers[SelectedCard.Joker]["en_us"]
+
+                Description = BaseDesc..GetProgressString(SelectedCard.Joker, SelectedCard.Progress, Player)
 
 
-                local EditionDesc = Descriptions[Language].JokerEdition[SelectedCard.Edition] or Descriptions["en_us"].JokerEdition[SelectedCard.Edition]
+                local EditionDesc = mod.Descriptions.JokerEdition[SelectedCard.Edition][Lang] or mod.Descriptions.JokerEdition[SelectedCard.Edition]["en_us"]
 
                 Description = Description..EditionDesc
 
@@ -319,19 +452,20 @@ local function BalatroInventoryCallback(descObj)
 
                 Icon = "{{RedCard}}"
 
-                local CardName 
-                if SelectedCard.Enhancement == mod.Enhancement.STONE then
-                    CardName = Descriptions[Language].EhancementName[mod.Enhancement.STONE]
+                local CardName = mod:GetCardName(SelectedCard, true)
+                if SelectedCard.Enhancement ~= mod.Enhancement.STONE then
+                    CardName = mod.Descriptions.EnhancementName[mod.Enhancement.STONE][Lang]
 
-                else
-                    CardName = mod:CardValueToName(SelectedCard.Value, true).." of "..mod:CardSuitToName(SelectedCard.Suit, true)
-
-                    CardName = CardName.."{{ColorCyan}} "..Descriptions[Language].Other.LV..tostring(mod.Saved.CardLevels[SelectedCard.Value] + 1).."{{CR}}"
+                    CardName = CardName.."{{ColorCyan}} "..mod.Descriptions.Other.LV[Lang]..tostring(mod.Saved.CardLevels[SelectedCard.Value] + 1).."{{CR}}"
                 end
 
                 Name = CardName
 
-                local CardAttributes = Descriptions[Language].Enhancement[SelectedCard.Enhancement]..Descriptions[Language].Seal[SelectedCard.Seal]..Descriptions[Language].CardEdition[SelectedCard.Edition]
+                local EnhancementEffect = mod.Descriptions.Jimbo.Enhancement[SelectedCard.Enhancement][Lang] or mod.Descriptions.Jimbo.Enhancement[SelectedCard.Enhancement]["en_us"]
+                local SealEffect = mod.Descriptions.Seal[SelectedCard.Seal][Lang] --PLACEHOLDER
+                local EditionEffect = mod.Descriptions.CardEdition[SelectedCard.Edition][Lang] --PLACEHOLDER
+
+                local CardAttributes = EnhancementEffect..SealEffect..EditionEffect
 
                 Description = CardAttributes
 
@@ -347,14 +481,9 @@ local function BalatroInventoryCallback(descObj)
 
                 Icon = ""
                 Name = EID:getObjectName(5, 300, TrueCard).."#{{Blank}}"
-                if TrueCard <= Card.CARD_WORLD then
-                    Description = EID.descriptions[Language].cards[TrueCard][3] --wasn't able to find an api function for this
-                else
-                    local CardString = "5.300."..tostring(TrueCard)
 
-                    Description = EID:getDescriptionEntry("custom", CardString)[3]
-                end
 
+                Description = mod.Descriptions.Jimbo.Consumables[TrueCard][Lang] or mod.Descriptions.Consumables[TrueCard]["en_us"]
             end
 
         elseif Balatro_Expansion.SelectionParams[PIndex].Mode == Balatro_Expansion.SelectionParams.Modes.HAND then
@@ -365,27 +494,30 @@ local function BalatroInventoryCallback(descObj)
             if not SelectedCard then -- the skip option
 
                 Icon = ""
-                Name = Descriptions[Language].Other.ConfirmName.."#{{Blank}}"
-                Description = Descriptions[Language].Other.ConfirmDesc
+                Name = mod.Descriptions.Other.ConfirmName[Lang].."#{{Blank}}"
+                Description = mod.Descriptions.Other.ConfirmDesc[Lang]
 
                 goto FINISH
             end
 
             Icon = "{{RedCard}}"
 
-            local CardName
-            if SelectedCard.Enhancement == mod.Enhancement.STONE then
-                CardName = Descriptions[Language].EhancementName[mod.Enhancement.STONE]
+            local CardName = mod:GetCardName(SelectedCard, true)
 
-            else
-                CardName = mod:CardValueToName(SelectedCard.Value, true).." of "..mod:CardSuitToName(SelectedCard.Suit, true)
+            if SelectedCard.Enhancement ~= mod.Enhancement.STONE then
 
-                CardName = CardName.."{{ColorCyan}} "..Descriptions[Language].Other.LV..tostring(mod.Saved.CardLevels[SelectedCard.Value] + 1).."{{CR}}"
+                CardName = CardName.."{{ColorCyan}} "..mod.Descriptions.Other.LV[Lang]..tostring(mod.Saved.CardLevels[SelectedCard.Value] + 1).."{{CR}}"
             end
 
             Name = CardName
 
-            local CardAttributes = Descriptions[Language].Enhancement[SelectedCard.Enhancement]..Descriptions[Language].Seal[SelectedCard.Seal]..Descriptions[Language].CardEdition[SelectedCard.Edition]
+            local EnhancementEffect = mod.Descriptions.Jimbo.Enhancement[SelectedCard.Enhancement][Lang] or mod.Descriptions.Jimbo.Enhancement[SelectedCard.Enhancement]["en_us"]
+            local SealEffect = mod.Descriptions.Seal[SelectedCard.Seal][Lang] --PLACEHOLDER
+            local EditionEffect = mod.Descriptions.CardEdition[SelectedCard.Edition][Lang] --PLACEHOLDER
+
+            local CardAttributes = EnhancementEffect..SealEffect..EditionEffect
+
+
 
             Description = CardAttributes
 
@@ -416,16 +548,14 @@ end
 
 local function BalatroExtraDescCallback(descObj)
     
-    local Language = EID:getLanguage()
-    if not mod:Contained(SupportedLanguages, Language) then
-        Language = "en_us"
-    end
+    local Lang = mod:GetEIDLanguage()
+
 
     local BaseDesc = ""
 
     if descObj.ObjSubType <= Card.CARD_WORLD then
 
-        BaseDesc = Descriptions[Language].Tarot[descObj.ObjSubType] or Descriptions["en_us"].Tarot[descObj.ObjSubType]
+        --BaseDesc = mod.Descriptions.Jimbo.Consumables[descObj.ObjSubType][Lang] or mod.Descriptions.Jimbo.Consumables[descObj.ObjSubType]["en_us"]
 
 
         if descObj.ObjSubType == Card.CARD_FOOL then
@@ -436,46 +566,46 @@ local function BalatroExtraDescCallback(descObj)
             BaseDesc = BaseDesc..CardName
 
         elseif descObj.ObjSubType == Card.CARD_MAGICIAN then
-            BaseDesc = BaseDesc..Descriptions[Language].Enhancement[mod.Enhancement.LUCKY]
+            BaseDesc = BaseDesc..mod.Descriptions.Jimbo.Enhancement[mod.Enhancement.LUCKY][Lang]
         elseif descObj.ObjSubType== Card.CARD_LOVERS then
-            BaseDesc = BaseDesc..Descriptions[Language].Enhancement[mod.Enhancement.WILD] 
+            BaseDesc = BaseDesc..mod.Descriptions.Jimbo.Enhancement[mod.Enhancement.WILD][Lang]
         
         elseif descObj.ObjSubType== Card.CARD_DEVIL then
-            BaseDesc = BaseDesc..Descriptions[Language].Enhancement[mod.Enhancement.GOLDEN] 
+            BaseDesc = BaseDesc..mod.Descriptions.Jimbo.Enhancement[mod.Enhancement.GOLDEN][Lang] 
         
         elseif descObj.ObjSubType== Card.CARD_TOWER then
-            BaseDesc = BaseDesc..Descriptions[Language].Enhancement[mod.Enhancement.STONE]
+            BaseDesc = BaseDesc..mod.Descriptions.Jimbo.Enhancement[mod.Enhancement.STONE][Lang]
         
         elseif descObj.ObjSubType== Card.CARD_EMPRESS then
-            BaseDesc = BaseDesc..Descriptions[Language].Enhancement[mod.Enhancement.MULT]
+            BaseDesc = BaseDesc..mod.Descriptions.Jimbo.Enhancement[mod.Enhancement.MULT][Lang]
         
         elseif descObj.ObjSubType== Card.CARD_HIEROPHANT then
 
-            BaseDesc = BaseDesc..Descriptions[Language].Enhancement[mod.Enhancement.BONUS]
+            BaseDesc = BaseDesc..mod.Descriptions.Jimbo.Enhancement[mod.Enhancement.BONUS][Lang]
         elseif descObj.ObjSubType== Card.CARD_CHARIOT then
 
-            BaseDesc = BaseDesc..Descriptions[Language].Enhancement[mod.Enhancement.STEEL]
+            BaseDesc = BaseDesc..mod.Descriptions.Jimbo.Enhancement[mod.Enhancement.STEEL][Lang]
         elseif descObj.ObjSubType== Card.CARD_JUSTICE then
 
-            BaseDesc = BaseDesc..Descriptions[Language].Enhancement[mod.Enhancement.GLASS]
+            BaseDesc = BaseDesc..mod.Descriptions.Jimbo.Enhancement[mod.Enhancement.GLASS][Lang]
         end
     end
     
     if descObj.ObjSubType== mod.Spectrals.TALISMAN then
 
-        BaseDesc = BaseDesc..Descriptions[Language].Seal[mod.Seals.GOLDEN]
+        BaseDesc = BaseDesc..mod.Descriptions.Seal[mod.Seals.GOLDEN][Lang]
     elseif descObj.ObjSubType== mod.Spectrals.DEJA_VU then
 
-        BaseDesc = BaseDesc..Descriptions[Language].Seal[mod.Seals.RED]
+        BaseDesc = BaseDesc..mod.Descriptions.Seal[mod.Seals.RED][Lang]
     elseif descObj.ObjSubType== mod.Spectrals.TRANCE then
 
-        BaseDesc = BaseDesc..Descriptions[Language].Seal[mod.Seals.BLUE]
+        BaseDesc = BaseDesc..mod.Descriptions.Seal[mod.Seals.BLUE][Lang]
     elseif descObj.ObjSubType== mod.Spectrals.MEDIUM then
 
-        BaseDesc = BaseDesc..Descriptions[Language].Seal[mod.Seals.PURPLE]
+        BaseDesc = BaseDesc..mod.Descriptions.Seal[mod.Seals.PURPLE][Lang]
     elseif descObj.ObjSubType== mod.Spectrals.ECTOPLASM then
 
-        BaseDesc = BaseDesc..Descriptions[Language].JokerEdition[mod.Edition.NEGATIVE]
+        BaseDesc = BaseDesc..mod.Descriptions.JokerEdition[mod.Edition.NEGATIVE][Lang]
     end
 
 
@@ -498,16 +628,19 @@ end
 
 local function JimboGroundtrinketsCallback(descObj)
 
-    local Language = EID:getLanguage()
-    if not mod:Contained(SupportedLanguages, Language) then
-        Language = "en_us"
-    end
+    local Lang = mod:GetEIDLanguage()
 
-    descObj.Description = Descriptions[Language].Jokers.Jimbo[descObj.ObjSubType]
+
+    descObj.Description = mod.Descriptions.Jimbo.Jokers[descObj.ObjSubType][Lang] or mod.Descriptions.Jimbo.Jokers[descObj.ObjSubType]["en_us"]
+
+    descObj.Description = descObj.Description..GetProgressString(descObj.ObjSubType, mod:GetJokerInitialProgress(descObj.ObjSubType, false))
 
     return descObj
 end
 EID:addDescriptionModifier("Balatro Jimbo ground trinkets", JimboGroundtrinketsCondition, JimboGroundtrinketsCallback)
+
+
+
 
 
 local function BalatroOffsetCondition(descObj)
@@ -524,4 +657,508 @@ local function BalatroOffsetCallback(descObj)
     return descObj
 end
 
-EID:addDescriptionModifier("Balatro Descriptions Offset", BalatroOffsetCondition, BalatroOffsetCallback)
+EID:addDescriptionModifier("Balatro mod.Descriptions Offset", BalatroOffsetCondition, BalatroOffsetCallback)
+
+
+
+local EID_Bubble = Sprite("gfx/ui/Balatro_EID_desc_bubble.anm2")
+local EID_BUBBLE_BASE_SIZE = Vector(16, 30)
+
+local EID_BubbleLayers = {TOP_LEFT = 1,
+                          TOP = 2,
+                          TOP_RIGHT = 3,
+                          CENTER_LEFT = 4,
+                          CENTER = 0,
+                          CENTER_RIGHT = 5,
+                          BOTTOM_LEFT = 6,
+                          BOTTOM = 7,
+                          BOTTOM_RIGHT = 8}
+
+---@class Balatro_EID_Object
+---@field Type integer
+---@field SubType integer
+---@field Position Vector
+---@field Params table
+---@field Entity Entity?
+
+---@type Balatro_EID_Object
+local ObjectToDescribe = {Type = EID_DescType.NONE,
+                          SubType = 0,
+                          Entity = nil,
+                          Params = {},
+                          Position = Vector.Zero,
+                          Allignment = 0
+                          }
+
+
+--I hate myself for doing this
+local function TJimboDescriptionsCondition(descObj)
+
+    if PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then
+       --and descObj.ObjVariant == DescriptionHelperVariant
+       --and descObj.ObjSubType == DescriptionHelperSubType then
+
+        return true
+    end
+end
+
+local function TJimboDescriptionsCallback(descObj)
+
+
+    local Result = false
+    local T_Jimbo = PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo)
+
+    if not T_Jimbo then
+        goto FINISH
+    end
+
+    do
+
+    local PIndex = T_Jimbo:GetData().TruePlayerIndex
+
+    --first check if the selection has something to describe
+    local PlayerSelection = mod.SelectionParams[PIndex]
+
+    if descObj.ObjVariant ~= DescriptionHelperVariant and descObj.ObjSubType ~= DescriptionHelperSubType
+       or PlayerSelection.Mode == mod.SelectionParams.Modes.NONE then
+
+        goto ENTITY_CHECK
+    end
+
+
+    if T_Jimbo:GetData().ConfirmHoldTime < mod.HOLD_THRESHOLD then
+        goto FINISH
+    end
+
+    if PlayerSelection.Mode == mod.SelectionParams.Modes.HAND then
+        --only describable thing are the playing cards
+
+
+        Result = T_Jimbo:GetData().ConfirmHoldTime >= mod.HOLD_THRESHOLD
+
+        if Result then
+
+            local Pointer = mod.Saved.Player[PIndex].CurrentHand[PlayerSelection.Index]
+
+            local card = mod.Saved.Player[PIndex].FullDeck[Pointer]
+
+            ObjectToDescribe.Entity = nil
+            ObjectToDescribe.Params = card
+            ObjectToDescribe.Position = mod.CardFullPoss[Pointer] + Vector(0, -30)
+            ObjectToDescribe.Allignment = EID_DescAllingnment.BOTTOM
+
+            ObjectToDescribe.Type = EID_DescType.CARD
+            ObjectToDescribe.SubType = 0 --not really needed
+
+            goto FINISH
+        end
+
+    elseif PlayerSelection.Mode == mod.SelectionParams.Modes.CONSUMABLES then
+
+        Result = T_Jimbo:GetData().ConfirmHoldTime >= mod.HOLD_THRESHOLD
+
+        if Result then
+
+            local Consumable = mod.Saved.Player[PIndex].Consumables[PlayerSelection.Index]
+
+            ObjectToDescribe.Entity = nil
+            ObjectToDescribe.Params = Consumable
+            ObjectToDescribe.Position = mod.ConsumableFullPosition[PlayerSelection.Index] + Vector(0, -30)
+            ObjectToDescribe.Allignment = EID_DescAllingnment.TOP | EID_DescAllingnment.RIGHT
+
+            ObjectToDescribe.Type = EID_DescType.CONSUMABLE
+            ObjectToDescribe.SubType = mod:FrameToSpecialCard(Consumable.Card)
+
+
+            goto FINISH
+        end
+
+    elseif PlayerSelection.Mode == mod.SelectionParams.Modes.INVENTORY then
+
+        Result = T_Jimbo:GetData().ConfirmHoldTime >= mod.HOLD_THRESHOLD
+
+        if Result then
+
+            local Slot = mod.Saved.Player[PIndex].Inventory[PlayerSelection.Index]
+
+            ObjectToDescribe.Entity = nil
+            ObjectToDescribe.Params = Slot
+            ObjectToDescribe.Position = mod.JokerFullPosition[Slot.RenderIndex] + Vector(0, 30)
+            ObjectToDescribe.Allignment = EID_DescAllingnment.TOP
+
+            ObjectToDescribe.Type = EID_DescType.JOKER
+            ObjectToDescribe.SubType = Slot.Joker
+
+
+            goto FINISH
+        end
+
+    elseif PlayerSelection.Mode == mod.SelectionParams.Modes.PACK then
+
+        Result = true
+        ObjectToDescribe.Allignment = EID_DescAllingnment.BOTTOM
+
+        if PlayerSelection.PackPurpose == mod.SelectionParams.Purposes.BuffonPack then
+
+            local Slot = PlayerSelection.PackOptions[PlayerSelection.Index]
+
+            ObjectToDescribe.Entity = nil
+            ObjectToDescribe.Params = Slot
+            ObjectToDescribe.Position = mod.PackOptionFullPosition[PlayerSelection.Index] + Vector(0, -30)
+
+            ObjectToDescribe.Type = EID_DescType.JOKER
+            ObjectToDescribe.SubType = Slot.Joker
+        
+        elseif PlayerSelection.PackPurpose == mod.SelectionParams.Purposes.StandardPack then
+
+
+            local card = PlayerSelection.PackOptions[PlayerSelection.Index]
+
+            ObjectToDescribe.Entity = nil
+            ObjectToDescribe.Params = card
+            ObjectToDescribe.Position = mod.PackOptionFullPosition[PlayerSelection.Index] + Vector(0, -30)
+
+            ObjectToDescribe.Type = EID_DescType.CARD
+            ObjectToDescribe.SubType = 0 --not really needed
+        
+        else
+            local Consumable = PlayerSelection.PackOptions[PlayerSelection.Index]
+
+            ObjectToDescribe.Entity = nil
+            ObjectToDescribe.Params = {Edition = mod.Edition.BASE}
+            ObjectToDescribe.Position = mod.PackOptionFullPosition[PlayerSelection.Index] + Vector(0, -30)
+
+            ObjectToDescribe.Type = EID_DescType.CONSUMABLE
+            ObjectToDescribe.SubType = mod:FrameToSpecialCard(Consumable)
+        end
+
+        goto FINISH
+    end
+
+
+    ::ENTITY_CHECK::
+
+    if descObj.ObjType == EntityType.ENTITY_PICKUP then
+
+        ObjectToDescribe.Allignment = EID_DescAllingnment.TOP | EID_DescAllingnment.LEFT
+
+        if descObj.ObjVariant == PickupVariant.PICKUP_COLLECTIBLE then
+
+            if ItemsConfig:GetCollectible(descObj.ObjSubType):HasCustomTag("balatro") then
+
+
+                ObjectToDescribe.Entity = descObj.Entity
+                ObjectToDescribe.Params = {}
+
+                ObjectToDescribe.Position = EID:getTextPosition()
+
+
+                ObjectToDescribe.Type = EID_DescType.VOUCHER
+                ObjectToDescribe.SubType = descObj.ObjSubType --not really needed
+
+                Result = true 
+            end
+
+        elseif descObj.ObjVariant == PickupVariant.PICKUP_TAROTCARD then
+
+            if descObj.ObjSubType <= Card.CARD_WORLD 
+               or descObj.ObjSubType >= mod.Planets.PLUTO and descObj.ObjSubType <= mod.Spectrals.SOUL then
+                
+                ObjectToDescribe.Entity = descObj.Entity
+                ObjectToDescribe.Params = {Edition = mod.Edition.BASE}
+
+                ObjectToDescribe.Position = EID:getTextPosition()
+
+                --[[
+                if ObjectToDescribe.Entity then
+
+                    ObjectToDescribe.Position = Isaac.WorldToScreen(ObjectToDescribe.Entity.Position)
+
+                    if ObjectToDescribe.Position.Y >= Isaac.GetScreenHeight()/2 then
+                        
+                        ObjectToDescribe.Position = ObjectToDescribe.Position + Vector(0, -30)
+                    else
+                        ObjectToDescribe.Position = ObjectToDescribe.Position + Vector(0, 30)
+                    end
+                else
+                    ObjectToDescribe.Position = Isaac.WorldToScreen(T_Jimbo.Position)
+
+                    if ObjectToDescribe.Position.Y >= Isaac.GetScreenHeight()/2 then
+                        
+                        ObjectToDescribe.Position = ObjectToDescribe.Position + Vector(0, -45)
+                    else
+                        ObjectToDescribe.Position = ObjectToDescribe.Position + Vector(0, 30)
+                    end
+                end]]
+
+                ObjectToDescribe.Type = EID_DescType.CONSUMABLE
+                ObjectToDescribe.SubType = descObj.ObjSubType --not really needed
+
+                Result = true
+
+            elseif descObj.ObjSubType >= mod.Packs.ARCANA and descObj.ObjSubType <= mod.Packs.MEGA_SPECTRAL then
+                
+                ObjectToDescribe.Entity = descObj.Entity
+                ObjectToDescribe.Params = {}
+
+                ObjectToDescribe.Position = EID:getTextPosition()
+
+                --[[
+                if ObjectToDescribe.Entity then
+
+                    ObjectToDescribe.Position = Isaac.WorldToScreen(ObjectToDescribe.Entity.Position)
+
+                    if ObjectToDescribe.Position.Y >= Isaac.GetScreenHeight()/2 then
+                        
+                        ObjectToDescribe.Position = ObjectToDescribe.Position + Vector(0, -30)
+                    else
+                        ObjectToDescribe.Position = ObjectToDescribe.Position + Vector(0, 30)
+                    end
+                else
+                    ObjectToDescribe.Position = Isaac.WorldToScreen(T_Jimbo.Position)
+
+                    if ObjectToDescribe.Position.Y >= Isaac.GetScreenHeight()/2 then
+                        
+                        ObjectToDescribe.Position = ObjectToDescribe.Position + Vector(0, -45)
+                    else
+                        ObjectToDescribe.Position = ObjectToDescribe.Position + Vector(0, 30)
+                    end
+                end]]
+
+                ObjectToDescribe.Type = EID_DescType.BOOSTER
+                ObjectToDescribe.SubType = descObj.ObjSubType --not really needed
+
+                Result = true
+            end
+
+        elseif descObj.ObjVariant == PickupVariant.PICKUP_TRINKET then
+
+            if ItemsConfig:GetTrinket(descObj.ObjSubType):HasCustomTag("balatro") then
+
+                ObjectToDescribe.Entity = descObj.Entity
+                ObjectToDescribe.Params = {Edition = mod.Edition.BASE, Modifiers = 0}
+
+                ObjectToDescribe.Position = EID:getTextPosition()
+
+                --[[
+                if ObjectToDescribe.Entity then
+
+                    ObjectToDescribe.Position = Isaac.WorldToScreen(ObjectToDescribe.Entity.Position)
+
+                    if ObjectToDescribe.Position.Y >= Isaac.GetScreenHeight()/2 then
+                        
+                        ObjectToDescribe.Position = ObjectToDescribe.Position + Vector(0, -30)
+                    else
+                        ObjectToDescribe.Position = ObjectToDescribe.Position + Vector(0, 30)
+                    end
+                else
+                    ObjectToDescribe.Position = Isaac.WorldToScreen(T_Jimbo.Position)
+
+                    if ObjectToDescribe.Position.Y >= Isaac.GetScreenHeight()/2 then
+                        
+                        ObjectToDescribe.Position = ObjectToDescribe.Position + Vector(0, -45)
+                    else
+                        ObjectToDescribe.Position = ObjectToDescribe.Position + Vector(0, 30)
+                    end
+                end]]
+
+                ObjectToDescribe.Type = EID_DescType.JOKER
+                ObjectToDescribe.SubType = descObj.ObjSubType --not really needed
+
+                Result = true
+                return true
+            end
+        end
+    end
+
+
+    end
+
+    ::FINISH::
+
+    --print(Result)
+
+    if not Result then
+
+        ObjectToDescribe.Entity = nil
+        ObjectToDescribe.Params = {}
+
+        ObjectToDescribe.Position = Vector.Zero
+
+        ObjectToDescribe.Type = EID_DescType.NONE
+        ObjectToDescribe.SubType = 0 --not really needed
+
+        EID:alterTextPos(Vector(-1000, -1000)) --basically erases the description form existence (prob not the best way to do that)
+    end
+
+    
+    return descObj -- return the modified description object
+end
+EID:addDescriptionModifier("Tainted Jimbo Special descripions", TJimboDescriptionsCondition, TJimboDescriptionsCallback)
+
+
+
+local EID_Desc = {Name = "",
+                  Description = "",
+                  Extras = {Seal = mod.Seals.NONE,
+                            Edition = mod.Edition.BASE},
+                  NumLines = nil,
+                  FilteredName = nil,
+                  FilteredDescription = nil,}
+
+
+function mod:RenderObjectDescription()
+
+    if ObjectToDescribe.Type == EID_DescType.NONE then
+
+        --resets the cached values
+        EID_Desc.NumLines = nil 
+        EID_Desc.FilteredName = nil 
+        EID_Desc.FilteredDescription = nil
+
+        return
+    end
+
+    local Lang = mod:GetEIDLanguage()
+
+    EID_Bubble:SetFrame("Any", 0)
+
+    
+    if ObjectToDescribe.Type == EID_DescType.CARD then
+
+        EID_Bubble:SetFrame("Card", 0)
+
+        local card = ObjectToDescribe.Params
+
+        EID_Desc.Name = mod:GetCardName(card, true)
+
+
+        local TriggerDesc = ""
+        
+        if card.Enhancement ~= mod.Enhancement.STONE then
+        
+            TriggerDesc = TriggerDesc.."+ {{ColorChips}}"..tostring(mod:GetValueScoring(card.Value)).."{{CR}} Chips"
+        end
+
+        TriggerDesc = TriggerDesc..(mod.Descriptions.T_Jimbo.Enhancement[card.Enhancement][Lang] or mod.Descriptions.T_Jimbo.Enhancement[card.Enhancement]["en_us"])
+
+        --hiker upgrades
+        if card.Upgrades > 0 then
+            
+            TriggerDesc = TriggerDesc.."# + {{ColorChips}}"..tostring(5*card.Upgrades).."{{CR}} Extra Chips"
+        end
+
+        EID_Desc.Description = TriggerDesc
+
+        EID_Desc.Extras.Edition = card.Edition
+        EID_Desc.Extras.Seal = card.Seal
+
+    end
+
+
+
+
+    if not EID_Desc.FilteredName then
+        EID_Desc.FilteredName = mod:GetFilteredEIDString(EID_Desc.Name)
+    end
+
+    if not EID_Desc.FilteredDescription then
+        EID_Desc.FilteredDescription = mod:GetFilteredEIDString(EID_Desc.Description)
+    end
+
+
+
+    local BubbleScale = Vector.One
+
+    BubbleScale.X = mod.Fonts.Balatro:GetStringWidth(EID_Desc.FilteredName)
+
+    if ObjectToDescribe.Type == EID_DescType.CARD then
+
+        BubbleScale.X = BubbleScale.X / 2
+    end
+
+    BubbleScale.X = math.max(BubbleScale.X, 15)
+
+    if not EID_Desc.NumLines then
+        --aproximate the number of lines used in the first frame
+
+        local _, NumLines = string.gsub(EID_Desc.Description, "#", function ()
+                                                                    return false
+                                                                end)
+
+        --print("before:", NumLines)
+
+        NumLines = NumLines + math.max(1,
+                                       ((mod.Fonts.Balatro:GetStringWidth(EID_Desc.FilteredDescription)*0.5) // (BubbleScale.X + 5)) - NumLines)
+    
+        --print("after:", BubbleScale.X)
+
+        EID_Desc.NumLines = NumLines                                                        
+    end
+
+    BubbleScale.Y = (EID_Desc.NumLines * mod.Fonts.Balatro:GetLineHeight()*0.75) + 4
+
+    BubbleScale = BubbleScale/10
+
+    local RenderPos = ObjectToDescribe.Position + Vector.Zero
+    
+
+    if ObjectToDescribe.Allignment & EID_DescAllingnment.BOTTOM ~= 0 then
+        
+        RenderPos.Y = ObjectToDescribe.Position.Y - BubbleScale.Y*5 - EID_BUBBLE_BASE_SIZE.Y/2
+    end
+
+    if ObjectToDescribe.Allignment & EID_DescAllingnment.TOP ~= 0 then
+        
+        RenderPos.Y = ObjectToDescribe.Position.Y + BubbleScale.Y*5 + EID_BUBBLE_BASE_SIZE.Y/2
+    end
+
+    if ObjectToDescribe.Allignment & EID_DescAllingnment.RIGHT ~= 0 then
+        
+        RenderPos.X = ObjectToDescribe.Position.X - BubbleScale.X*5 - EID_BUBBLE_BASE_SIZE.X/2
+    end
+
+    if ObjectToDescribe.Allignment & EID_DescAllingnment.LEFT ~= 0 then
+        
+        RenderPos.X = ObjectToDescribe.Position.X - BubbleScale.X*5 - EID_BUBBLE_BASE_SIZE.X/2
+    end
+
+
+    local Y_BorderOffset = Vector(0,BubbleScale.Y*5)
+    local X_BorderOffset = Vector(BubbleScale.X*5,0)
+
+    EID_Bubble.Scale = BubbleScale
+
+
+    EID_Bubble:SetFrame(0)
+
+    EID_Bubble:RenderLayer(EID_BubbleLayers.CENTER, RenderPos)
+
+
+    EID_Bubble.Scale.X = 1
+
+    EID_Bubble:RenderLayer(EID_BubbleLayers.CENTER_LEFT, RenderPos - X_BorderOffset)
+    EID_Bubble:RenderLayer(EID_BubbleLayers.CENTER_RIGHT, RenderPos + X_BorderOffset)
+
+
+    EID_Bubble.Scale.X = BubbleScale.X
+    EID_Bubble.Scale.Y = 1
+
+    EID_Bubble:RenderLayer(EID_BubbleLayers.TOP, RenderPos - Y_BorderOffset)
+    EID_Bubble:RenderLayer(EID_BubbleLayers.BOTTOM, RenderPos + Y_BorderOffset)
+
+
+    EID_Bubble.Scale = Vector.One
+
+    EID_Bubble:RenderLayer(EID_BubbleLayers.TOP_LEFT, RenderPos - Y_BorderOffset - X_BorderOffset)
+    EID_Bubble:RenderLayer(EID_BubbleLayers.TOP_RIGHT, RenderPos - Y_BorderOffset + X_BorderOffset)
+    
+    EID_Bubble:RenderLayer(EID_BubbleLayers.BOTTOM_LEFT, RenderPos + Y_BorderOffset - X_BorderOffset)
+    EID_Bubble:RenderLayer(EID_BubbleLayers.BOTTOM_RIGHT, RenderPos + Y_BorderOffset + X_BorderOffset)
+
+
+
+end
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.RenderObjectDescription)
+
+

@@ -2,7 +2,6 @@
 local mod = Balatro_Expansion
 local Game = Game()
 
---local FirtsEffect = true --to prevent errors (was used for EntityEffects)
 
 local EffectAnimations = Sprite("gfx/ActivateAnimation.Anm2")
 EffectAnimations:SetFrame("Idle", 0)
@@ -13,6 +12,8 @@ local MaxAnimFrames = 30
 
 local EFFECT_CARD_OFFSET = Vector(0, 0)
 local EFFECT_JOKER_OFFSET = Vector(0, 15)
+
+local SCREEN_TO_WORLD_RATIO = 4
 
 local EffectsInterval = AnimLength + 3 --frames between 2 different effect on a same entity
 
@@ -47,7 +48,6 @@ local sfx = SFXManager()
 --initially this system was based on EntityEffects but i had many problems regarding lighting and the screen=>world coordinate conversion
 --ima be completely honest this is probably the most unreadable shit i have ever written for this mod, good luck understanding
 
---here Position colud be an entity, in that case 
 
 function mod:CreateBalatroEffect(Index, Colour, Sound, Text, EffectType, Player, Speed)--Source, Offset, Volume)
 
@@ -100,7 +100,7 @@ function mod:CreateBalatroEffect(Index, Colour, Sound, Text, EffectType, Player,
 
     if Number then
 
-        Text = tostring(mod:round(Number, 2)) --rounded number
+        Text = mod:RoundBalatroStyle(Number, 9) --rounded number
 
         if NumX == 0 then
             --something without X
@@ -108,7 +108,7 @@ function mod:CreateBalatroEffect(Index, Colour, Sound, Text, EffectType, Player,
             Text = mod:GetSignString(Number)..Text
         
         elseif Xpos ~= 1 then
-            --"+-num X"
+            --"+/-num X"
 
             Text = mod:GetSignString(Number)..Text.."X"
 
@@ -124,19 +124,27 @@ function mod:CreateBalatroEffect(Index, Colour, Sound, Text, EffectType, Player,
 
     EffectParams[EffectSlot] = {}
     if IsEntity then
-        
+
         EffectParams[EffectSlot].Position = EntityPtr(Index)
-        EffectParams[EffectSlot].Offset = Vector(0,20)
+
+        if Index:ToPlayer() and Player:GetPlayerType() == mod.Characters.TaintedJimbo then
+            
+            EffectParams[EffectSlot].Offset = Vector(30,20)
+        else
+            EffectParams[EffectSlot].Offset = Vector(0,20)
+        end
 
     elseif EffectType == mod.EffectType.HAND then
-        EffectParams[EffectSlot].Position = mod.LastCardFullPoss[Index]
+        EffectParams[EffectSlot].Position = mod.CardFullPoss[Index]
         EffectParams[EffectSlot].Offset = Vector(0,-30)
 
         mod.Counters.SinceCardTriggered[Index] = 1
 
     elseif EffectType == mod.EffectType.JOKER then
 
-        EffectParams[EffectSlot].Position = mod.JokerFullPosition[Index]
+        local Slot = mod.Saved.Player[PIndex].Inventory[Index]
+
+        EffectParams[EffectSlot].Position = mod.JokerFullPosition[Slot.RenderIndex]
         
         if IsTaintedJimbo then
             EffectParams[EffectSlot].Offset = EFFECT_JOKER_OFFSET
@@ -147,10 +155,16 @@ function mod:CreateBalatroEffect(Index, Colour, Sound, Text, EffectType, Player,
         mod.Counters.Activated[Index] = 1
 
     elseif EffectType ~= mod.EffectType.NULL then --HAND_FROM_JOKER
+    
+        local JokerIndex = EffectType --yup i created a monster
+    
+        local Slot = mod.Saved.Player[PIndex].Inventory[JokerIndex]
         
-        EffectParams[EffectSlot].Position = mod.LastCardFullPoss[Index]
+        EffectParams[EffectSlot].Position = mod.CardFullPoss[Index]
         EffectParams[EffectSlot].Offset = Vector(0,-30)
-        mod.Counters.Activated[Index] = 1
+
+        mod.Counters.Activated[Slot.RenderIndex] = 1 --joker
+        mod.Counters.SinceCardTriggered[Index] = 1 --card trigger
     end
 
     EffectParams[EffectSlot].Type = EffectType
@@ -196,9 +210,11 @@ function mod:RenderEffect(_,_,_,_,_)
         if Params.Type == mod.EffectType.ENTITY then
 
             --in this case Params.Position is an EntityRef
+            ---@type Entity
             local Entity = Params.Position.Ref
 
             if Entity:Exists() then
+
                 RenderPos = Isaac.WorldToScreen(Entity.Position) + Params.Offset
             else
                 EffectParams[Slot] = nil
@@ -211,6 +227,7 @@ function mod:RenderEffect(_,_,_,_,_)
         Sprite.Rotation = Params.Rotation
 
         Sprite:Render(RenderPos)
+
         local TextWidthOff = mod.Fonts.Balatro:GetStringWidth(Params.Text) /2
         local LineHeightOff = mod.Fonts.Balatro:GetBaselineHeight() / 2
         if Params.Frames < AnimLength-2 then
@@ -220,7 +237,7 @@ function mod:RenderEffect(_,_,_,_,_)
         end        
     end
 end
-mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.RenderEffect)
+mod:AddPriorityCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, CallbackPriority.LATE, mod.RenderEffect)
 
 
 function mod:Increaseframes()

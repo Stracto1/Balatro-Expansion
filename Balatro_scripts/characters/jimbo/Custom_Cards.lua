@@ -231,7 +231,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
                 Player:AnimateSad()
             end]]
 
-            local RandomJoker = mod:RandomJoker(Player:GetCardRNG(Card.CARD_JUDGEMENT), {}, true)
+            local RandomJoker = mod:RandomJoker(Player:GetCardRNG(Card.CARD_JUDGEMENT), true, nil)
 
             local Success = mod:AddJoker(Player, RandomJoker.Joker, RandomJoker.Edition)
 

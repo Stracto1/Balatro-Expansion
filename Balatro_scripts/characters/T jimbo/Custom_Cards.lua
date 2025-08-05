@@ -43,13 +43,15 @@ local SpectralMaxSelection = {[mod.Spectrals.AURA] = 1,
                               [mod.Spectrals.MEDIUM] = 1,
                               [mod.Spectrals.CRYPTID] = 1}
 
---the name is kind of misleading
-local function ChangeSelectionParams(PIndex, NewParams)
+--the name is kind of misleading (it changes the selected cards' enhancement and such)
+local function ChangeSelectionParams(PIndex, NewParams, SpecialOccasion)
 
     local Interval = 0
     local NumChanged = 0
 
     local NumSelected = mod.SelectionParams[PIndex].SelectionNum - 1
+
+    mod.AnimationIsPlaying = true
 
 
     for i, Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
@@ -69,24 +71,41 @@ local function ChangeSelectionParams(PIndex, NewParams)
 
                 card.Modifiers = card.Modifiers & mod.Modifier.COVERED == 0 and (card.Modifiers | mod.Modifier.COVERED) or (card.Modifiers & ~mod.Modifier.COVERED)
                 
-                mod.LastCardFullPoss[Pointer].Y = mod.LastCardFullPoss[Pointer] - 8
+                mod.CardFullPoss[Pointer].Y = mod.CardFullPoss[Pointer] - 8
                 --mod.Counters.SinceCardFlipped[Pointer] = 0
 
             end, Interval, 1, true)
 
 
             --while flipped (usually covered) changes the params
-            Isaac.CreateTimer(function ()
 
-                card.Value = NewParams.Value or card.Value
-                card.Suit = NewParams.Suit or card.Suit
-                card.Enhancement = NewParams.Enhancement or card.Enhancement
-                card.Seal = NewParams.Seal or card.Seal
-                card.Edition = NewParams.Edition or card.Edition
-                card.Modifiers = NewParams.Modifiers or card.Modifiers
+            if not SpecialOccasion then
+                Isaac.CreateTimer(function ()
+
+                    card.Value = NewParams.Value or card.Value
+                    card.Suit = NewParams.Suit or card.Suit
+                    card.Enhancement = NewParams.Enhancement or card.Enhancement
+                    card.Seal = NewParams.Seal or card.Seal
+                    card.Edition = NewParams.Edition or card.Edition
+                    card.Modifiers = NewParams.Modifiers or card.Modifiers
+
+                end, Interval + 16 * (NumSelected - NumChanged + 1) + 1, 1, true)
+
+            elseif SpecialOccasion == Card.CARD_STRENGTH then
                 
-            end, Interval + 16 * (NumSelected - NumChanged + 1) + 1, 1, true)
+                Isaac.CreateTimer(function ()
 
+                    local NewValue
+                    if card.Value == mod.Values.KING then
+                        NewValue = 1
+                    else
+                        NewValue = card.Value + 1
+                    end
+
+                    card.Value = NewParams.Value or card.Value
+
+                end, Interval + 16 * (NumSelected - NumChanged + 1) + 1, 1, true)
+            end
 
             Interval = Interval + 20 + 16 * NumSelected
 
@@ -103,9 +122,54 @@ local function ChangeSelectionParams(PIndex, NewParams)
 end
 
 
+function mod:PlayerIsAbleToUseCard(Player, Consumable)
+
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    local IsTarot = Consumable >= Card.CARD_FOOL and Consumable <= Card.CARD_WORLD
+    local IsPlanet = Consumable >= mod.Planets.PLUTO and Consumable <= mod.Planets.ERIS
+    local IsSpectral = Consumable >= mod.Spectrals.FAMILIAR and Consumable <= mod.Spectrals.SOUL
+
+    if IsPlanet then
+        return true
+
+    elseif IsTarot then
+
+        if Consumable == Card.CARD_FOOL then
+
+            return mod.Saved.Player[PIndex].LastCardUsed and mod.Saved.Player[PIndex].LastCardUsed ~= Card.CARD_FOOL
+
+        elseif TarotMaxSelection[Consumable]
+               and (not mod.Saved.EnableHand --is selection is impossible
+                    or (mod.SelectionParams[PIndex].SelectionNum > TarotMaxSelection[Consumable] or mod.SelectionParams[PIndex].SelectionNum <= 0
+                         or (Consumable == Card.CARD_DEATH and mod.SelectionParams[PIndex].SelectionNum ~= 2))) then --if the wrong number of cards is selected
+                   
+            return false
+        end
+
+        return true
+
+    elseif IsSpectral then
+
+        if SpectralMaxSelection[Consumable]
+           and not mod.Saved.EnableHand --if selection is impossible
+           and (mod.SelectionParams[PIndex].SelectionNum > SpectralMaxSelection[Consumable] 
+                or mod.SelectionParams[PIndex].SelectionNum <= 0) then
+                   
+            return false
+        end
+
+        return true
+
+    else --somehow got a different card 
+        return false
+    end
+end
 
 
---every tarot has a new effect when used by jimbo
+
+
+--every tarot has a new effect when used by T. jimbo
 ---@param Player EntityPlayer
 ---@param card Card
 local function TJimboUseTarot(card, Player, IsPack, UseFlags)
@@ -118,6 +182,7 @@ local function TJimboUseTarot(card, Player, IsPack, UseFlags)
 
     local AnimationInterval
 
+    --[[
     if TarotMaxSelection[card]
        and (not mod.Saved.EnableHand --is selection is impossible
        or (mod.SelectionParams[PIndex].SelectionNum > TarotMaxSelection[card] or mod.SelectionParams[PIndex].SelectionNum <= 0
@@ -125,7 +190,7 @@ local function TJimboUseTarot(card, Player, IsPack, UseFlags)
 
         sfx:Play(SoundEffect.SOUND_THUMBS_DOWN)
         return
-    end
+    end]]
 
     local FreeSpaces = 0
 
@@ -290,6 +355,9 @@ local function TJimboUseTarot(card, Player, IsPack, UseFlags)
 
     elseif card == Card.CARD_STRENGTH then
 
+
+        AnimationInterval = ChangeSelectionParams(PIndex, {}, Card.CARD_STRENGTH)
+
         for i,v in ipairs(SelectedCards) do
             if v then
                 if mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Value == mod.Values.KING then
@@ -338,7 +406,7 @@ local function TJimboUseTarot(card, Player, IsPack, UseFlags)
 
         for i ,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
             if Slot.Joker ~= 0 then
-                CoinsToGain = CoinsToGain + mod:GetJokerCost(Slot.Joker, i, Player)
+                CoinsToGain = CoinsToGain + mod:GetJokerCost(Slot.Joker, Slot.Edition, i, Player)
             end
         end
         Player:AddCoins(CoinsToGain)
@@ -425,6 +493,7 @@ local function TJimboUseSpectral(card, Player, UseFlags)
     
     local PIndex = Player:GetData().TruePlayerIndex
 
+    --[[
     if SpectralMaxSelection[card]
        and not mod.Saved.EnableHand --if selection is impossible
        and (mod.SelectionParams[PIndex].SelectionNum > SpectralMaxSelection[card] or mod.SelectionParams[PIndex].SelectionNum <= 0
@@ -432,7 +501,7 @@ local function TJimboUseSpectral(card, Player, UseFlags)
 
         sfx:Play(SoundEffect.SOUND_THUMBS_DOWN)
         return
-    end
+    end]]
 
     local AnimationInterval
 
@@ -877,7 +946,7 @@ function mod:TJimboUseCard(card, Player, IsFromPack, UseFlags)
         return
     end
 
-    mod.AnimationIsPlaying = true
+    
     local PIndex = Player:GetData().TruePlayerIndex
 
     UseFlags = UseFlags or 0
@@ -899,23 +968,32 @@ function mod:TJimboUseCard(card, Player, IsFromPack, UseFlags)
         end
     end
 
-    local IsTarot = card >= Card.CARD_FOOL and card <= Card.CARD_WORLD
-    local IsPlanet = card >= mod.Planets.PLUTO and card <= mod.Planets.ERIS
-    local IsSpectral = card >= mod.Spectrals.FAMILIAR and card <= mod.Spectrals.SOUL
-
     local CurrentInterval
 
-    if IsTarot then
-        
-        CurrentInterval = TJimboUseTarot(card, Player, IsFromPack, UseFlags)
+    if mod:PlayerIsAbleToUseCard(Player, card) then
 
-    elseif IsPlanet then
-        
-        CurrentInterval = TJimboUsePlanet(card, Player, UseFlags)
+        mod.AnimationIsPlaying = true
 
-    elseif IsSpectral then
-        
-        CurrentInterval = TJimboUseSpectral(card, Player, UseFlags)
+        local IsTarot = card >= Card.CARD_FOOL and card <= Card.CARD_WORLD
+        local IsPlanet = card >= mod.Planets.PLUTO and card <= mod.Planets.ERIS
+        local IsSpectral = card >= mod.Spectrals.FAMILIAR and card <= mod.Spectrals.SOUL
+
+
+        if IsTarot then
+
+            CurrentInterval = TJimboUseTarot(card, Player, IsFromPack, UseFlags)
+
+        elseif IsPlanet then
+
+            CurrentInterval = TJimboUsePlanet(card, Player, UseFlags)
+
+        elseif IsSpectral then
+
+            CurrentInterval = TJimboUseSpectral(card, Player, UseFlags)
+        end
+
+    else
+        sfx:Play(SoundEffect.SOUND_THUMBS_DOWN)
     end
 
     if CurrentInterval then --equal to if the card got used (othetwise its false)
@@ -948,14 +1026,13 @@ function mod:TJimboUseCard(card, Player, IsFromPack, UseFlags)
 
             CurrentInterval = Isaac.RunCallback(mod.Callbalcks.CONSUMABLE_USE, Player, card)
 
-            Isaac.CreateTimer(function ()
-                mod.AnimationIsPlaying = false
-            end, CurrentInterval, 1, true)
+            --Isaac.CreateTimer(function ()
+            --    mod.AnimationIsPlaying = false
+            --end, CurrentInterval, 1, true)
 
         end, CurrentInterval, 1, true)
 
-    else
-        mod.AnimationIsPlaying = false
+
     end
 
     return CurrentInterval -- used as true/false

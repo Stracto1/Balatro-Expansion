@@ -140,67 +140,67 @@
 
 
 
-    <entity name="Pluto" anm2path="Not_So_Planet_pluto.anm2" id="5" variant="300" subtype="2481"
+    <entity name="Pluto" anm2path="Not_So_Planet_pluto.anm2" id="5" variant="300" subtype="2491"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Mercury" anm2path="Planet_mercury.anm2" id="5" variant="300" subtype="2482"
+    <entity name="Mercury" anm2path="Planet_mercury.anm2" id="5" variant="300" subtype="2492"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Uranus" anm2path="Planet_uranus.anm2" id="5" variant="300" subtype="2483"
+    <entity name="Uranus" anm2path="Planet_uranus.anm2" id="5" variant="300" subtype="2493"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Venus" anm2path="Planet_venus.anm2" id="5" variant="300" subtype="2484"
+    <entity name="Venus" anm2path="Planet_venus.anm2" id="5" variant="300" subtype="2494"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Saturn" anm2path="Planet_saturn.anm2" id="5" variant="300" subtype="2485"
+    <entity name="Saturn" anm2path="Planet_saturn.anm2" id="5" variant="300" subtype="2495"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Jupiter" anm2path="Planet_jupiter.anm2" id="5" variant="300" subtype="2486"
+    <entity name="Jupiter" anm2path="Planet_jupiter.anm2" id="5" variant="300" subtype="2496"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Earth" anm2path="Planet_earth.anm2" id="5" variant="300" subtype="2487"
+    <entity name="Earth" anm2path="Planet_earth.anm2" id="5" variant="300" subtype="2497"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Mars" anm2path="Planet_mars.anm2" id="5" variant="300" subtype="2488"
+    <entity name="Mars" anm2path="Planet_mars.anm2" id="5" variant="300" subtype="2498"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Neptune" anm2path="Planet_neptune.anm2" id="5" variant="300" subtype="2489"
+    <entity name="Neptune" anm2path="Planet_neptune.anm2" id="5" variant="300" subtype="2499"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Planet X" anm2path="Planet_X.anm2" id="5" variant="300" subtype="2490"
+    <entity name="Planet X" anm2path="Planet_X.anm2" id="5" variant="300" subtype="2500"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Ceres" anm2path="Planet_ceres.anm2" id="5" variant="300" subtype="2491"
+    <entity name="Ceres" anm2path="Planet_ceres.anm2" id="5" variant="300" subtype="2501"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Eris" anm2path="Planet_eris.anm2" id="5" variant="300" subtype="2492"
+    <entity name="Eris" anm2path="Planet_eris.anm2" id="5" variant="300" subtype="2502"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Sun" anm2path="Planet_sun.anm2" id="5" variant="300" subtype="2493"
+    <entity name="Sun" anm2path="Planet_sun.anm2" id="5" variant="300" subtype="2503"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
@@ -208,92 +208,92 @@
 
     <!--SPECTRAL CARDS-->
 
-    <entity name="Familiar" anm2path="Spectral_familiar.anm2" id="5" variant="300" subtype="2494"
+    <entity name="Familiar" anm2path="Spectral_familiar.anm2" id="5" variant="300" subtype="2504"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Grim" anm2path="Spectral_grim.anm2" id="5" variant="300" subtype="2495"
+    <entity name="Grim" anm2path="Spectral_grim.anm2" id="5" variant="300" subtype="2505"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Incantation" anm2path="Spectral_incantation.anm2" id="5" variant="300" subtype="2496"
+    <entity name="Incantation" anm2path="Spectral_incantation.anm2" id="5" variant="300" subtype="2506"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Talisman" anm2path="Spectral_talisman.anm2" id="5" variant="300" subtype="2497"
+    <entity name="Talisman" anm2path="Spectral_talisman.anm2" id="5" variant="300" subtype="2507"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Aura" anm2path="Spectral_aura.anm2" id="5" variant="300" subtype="2498"
+    <entity name="Aura" anm2path="Spectral_aura.anm2" id="5" variant="300" subtype="2508"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Wraith" anm2path="Spectral_wraith.anm2" id="5" variant="300" subtype="2499"
+    <entity name="Wraith" anm2path="Spectral_wraith.anm2" id="5" variant="300" subtype="2509"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Sigil" anm2path="Spectral_sigil.anm2" id="5" variant="300" subtype="2500"
+    <entity name="Sigil" anm2path="Spectral_sigil.anm2" id="5" variant="300" subtype="2510"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Ouija" anm2path="Spectral_ouija.anm2" id="5" variant="300" subtype="2501"
+    <entity name="Ouija" anm2path="Spectral_ouija.anm2" id="5" variant="300" subtype="2511"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Ectoplasm" anm2path="Spectral_ectoplasm.anm2" id="5" variant="300" subtype="2502"
+    <entity name="Ectoplasm" anm2path="Spectral_ectoplasm.anm2" id="5" variant="300" subtype="2512"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Immolate" anm2path="Spectral_immolate.anm2" id="5" variant="300" subtype="2503"
+    <entity name="Immolate" anm2path="Spectral_immolate.anm2" id="5" variant="300" subtype="2513"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Ankh" anm2path="Spectral_ankh.anm2" id="5" variant="300" subtype="2504"
+    <entity name="Ankh" anm2path="Spectral_ankh.anm2" id="5" variant="300" subtype="2514"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Deja vu" anm2path="Spectral_deja_vu.anm2" id="5" variant="300" subtype="2505"
+    <entity name="Deja vu" anm2path="Spectral_deja_vu.anm2" id="5" variant="300" subtype="2515"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Hex" anm2path="Spectral_hex.anm2" id="5" variant="300" subtype="2506"
+    <entity name="Hex" anm2path="Spectral_hex.anm2" id="5" variant="300" subtype="2516"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Trance" anm2path="Spectral_trance.anm2" id="5" variant="300" subtype="2507"
+    <entity name="Trance" anm2path="Spectral_trance.anm2" id="5" variant="300" subtype="2517"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Medium" anm2path="Spectral_medium.anm2" id="5" variant="300" subtype="2508"
+    <entity name="Medium" anm2path="Spectral_medium.anm2" id="5" variant="300" subtype="2518"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Cryptid" anm2path="Spectral_cryptid.anm2" id="5" variant="300" subtype="2509"
+    <entity name="Cryptid" anm2path="Spectral_cryptid.anm2" id="5" variant="300" subtype="2519"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="Balck hole" anm2path="Spectral_black_hole.anm2" id="5" variant="300" subtype="2510"
+    <entity name="Balck hole" anm2path="Spectral_black_hole.anm2" id="5" variant="300" subtype="2520"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
 
-    <entity name="The Soul" anm2path="Spectral_soul.anm2" id="5" variant="300" subtype="2511"
+    <entity name="The Soul" anm2path="Spectral_soul.anm2" id="5" variant="300" subtype="2521"
     	collisionMass="3" collisionRadius="12" friction="1" numGridCollisionPoints="24" shadowSize="16">
         <preload-snd id="8" /> <!-- BOOK_PAGE_TURN_12 -->
     </entity>
@@ -323,6 +323,7 @@
     <entity name="Description Helper" anm2path="" id="1000"  friction="0" variant="2597" />
     <entity name="Blind Cashout Bubble" anm2path="" id="1000"  friction="0" variant="2598" subtype="1" /> <!--uses custom rendering -->
     <entity name="Boss Blind Bubble" anm2path="" id="1000"  friction="0" variant="2598" subtype="2" />  <!--uses custom rendering -->
+    <entity name="Shop Item Bubble" anm2path="" id="1000"  friction="0" variant="2598" subtype="3" />  <!--uses custom rendering -->
     <!-- <entity name="Reroll Price Bubble" anm2path="reroll_price_bubble.anm2" id="1000"  friction="0" variant="2598" subtype="3" /> -->
 
 

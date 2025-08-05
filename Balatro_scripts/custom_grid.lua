@@ -78,7 +78,7 @@ function mod:UpdateBalatroPlate(Plate,Init)
 
         if Init == true then
             Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.DIALOG_BUBBLE, Plate.Position,
-            Vector.Zero, nil, mod.DIalogBubbleSubType.CASHOUT, 1)
+            Vector.Zero, nil, mod.DIalogBubbleSubType.CASHOUT, mod.Saved.BlindBeingPlayed)
         end
         ShouldPlateBeAvailable = true
 

@@ -58,7 +58,7 @@ local DECK_RENDERING_POSITION = Vector(110,15) --in screen coordinates
 local HAND_RENDERING_POSITION = Vector(40,30) --in screen coordinates
 local INVENTORY_RENDERING_POSITION = Vector(10,258)
 
-local INVENTORY_COOP_OFFSET = {[0]=Vector(-10,0), [1]=Vector(0,0)}
+local INVENTORY_COOP_OFFSET = {[1]=Vector(-10,0), [0]=Vector(0,0)}
 
 --local DECK_RENDERING_POSITION = Isaac.WorldToRenderPosition(Isaac.ScreenToWorld(Vector(760,745)))
 
@@ -87,6 +87,7 @@ local function PreventErrors()
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, PreventErrors)
 
+
 --rendered the currently held jokers
 ---@param Player EntityPlayer
 ---@param HeartSprite Sprite
@@ -99,9 +100,9 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
     local ScaleMult = Vector.One *(IsCoop and 0.5 or 1) --smaller when in coop
     local PIndex = Player:GetData().TruePlayerIndex
 
-    HeartSprite.Offset = PIndex == 1 and Vector(-35,0) or Vector.Zero
+    HeartSprite.Offset = PIndex == 0 and Vector(-35,0) or Vector.Zero
 
-    local PlayerRenderMult = 2*(PIndex%2) - 1
+    local PlayerRenderMult = PIndex%2 == 0 and -1 or 1
 
     TrinketSprite.Scale = ScaleMult
 
@@ -109,7 +110,7 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
     if IsCoop then
         BasePos = HeartPosition + INVENTORY_COOP_OFFSET[PIndex%2]
 
-        if PIndex%2 == 1 then --adds heart offset
+        if PIndex%2 == 0 then --adds heart offset
             BasePos = BasePos + (Game:GetLevel():GetCurses()&LevelCurse.CURSE_OF_THE_UNKNOWN ~= 0 and Vector(15,0) or (math.min(12,Player:GetEffectiveMaxHearts())* Vector(5,0))) * PlayerRenderMult
         
         else --adds offset if player has an active
@@ -177,14 +178,24 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
 
         local Slot = mod.Saved.Player[PIndex].Inventory[mod.SelectionParams[PIndex].Index]
 
-        local RenderPos = mod.JokerFullPosition[Slot.RenderIndex]
+        local RenderPos
+
+        if Slot then
+
+            RenderPos = mod.JokerFullPosition[Slot.RenderIndex]
+        else
+            RenderPos = BasePos + Vector(23 * mod.SelectionParams[PIndex].Index , 0)
+        end
+
+        RenderPos.Y = RenderPos.Y - 8
+
 
         CardFrame:SetFrame(HUD_FRAME.Frame)
         CardFrame.Scale = ScaleMult
         CardFrame:Render(RenderPos)
 
         --last confirm option
-        RenderPos = BasePos + Vector(23 * (#mod.Saved.Player[PIndex].Inventory + 1), 0) * ScaleMult * PlayerRenderMult
+        RenderPos = BasePos + Vector(23 * (#mod.Saved.Player[PIndex].Inventory + 1), -8) * ScaleMult * PlayerRenderMult
         
         
         if mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.SELLING then
@@ -448,14 +459,14 @@ function mod:JimboHandRender(Player, Offset)
              --moves up selected cards
 
 
-            mod.LastCardFullPoss[Pointer] = mod.LastCardFullPoss[Pointer] or RenderOff --check nil
+            mod.CardFullPoss[Pointer] = mod.CardFullPoss[Pointer] or RenderOff --check nil
 
-            TrueOffset[Pointer] = Vector(mod:Lerp(mod.LastCardFullPoss[Pointer].X, RenderOff.X, mod.Counters.SinceShift/5)
-                               ,mod:Lerp(mod.LastCardFullPoss[Pointer].Y, RenderOff.Y, mod.Counters.SinceSelect/1.25))
+            TrueOffset[Pointer] = Vector(mod:Lerp(mod.CardFullPoss[Pointer].X, RenderOff.X, mod.Counters.SinceShift/5)
+                               ,mod:Lerp(mod.CardFullPoss[Pointer].Y, RenderOff.Y, mod.Counters.SinceSelect/1.25))
             
 
             if TrueOffset[Pointer].X == RenderOff.X and TrueOffset[Pointer].Y == RenderOff.Y then
-                mod.LastCardFullPoss[Pointer] = RenderOff + Vector.Zero
+                mod.CardFullPoss[Pointer] = RenderOff + Vector.Zero
             end
 
 
@@ -496,7 +507,7 @@ function mod:JimboHandRender(Player, Offset)
 
 
         --HAND TYPE TEXT RENDER--
-        --mod.Fonts.Balatro:DrawString(HAND_TYPE_NAMES[mod.SelectionParams[PIndex].HandType],DECK_RENDERING_POSITION.X + 50,DECK_RENDERING_POSITION.Y -100,KColor(1,1,1,1))
+        --mod.Fonts.Balatro:DrawString(HAND_TYPE_NAMES[mod.Saved.HandType],DECK_RENDERING_POSITION.X + 50,DECK_RENDERING_POSITION.Y -100,KColor(1,1,1,1))
 
         --[[allows mouse controls to be used as a way to select cards--
         local MousePosition = Isaac.WorldToScreen(Input.GetMousePosition(true))
@@ -614,7 +625,9 @@ function mod:JimboPackRender(_,_,_,_,Player)
 
     end--end PURPOSES
 
-    RenderPos.Y = RenderPos.Y - 8 --adjusts the difference in pivots
+    if TruePurpose == mod.SelectionParams.Purposes.BuffonPack then
+        RenderPos.Y = RenderPos.Y - 8 --adjusts the difference in pivots
+    end
     CardFrame.Scale = Vector.One
     CardFrame:SetFrame(HUD_FRAME.Skip)
     CardFrame:Render(RenderPos)
@@ -731,7 +744,7 @@ function mod:DiscardSwoosh(Player)
 
     for i,v in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
 
-        mod.LastCardFullPoss[v] = BaseRenderOff --does a cool swoosh effect
+        mod.CardFullPoss[v] = BaseRenderOff --does a cool swoosh effect
     end
 end
 
