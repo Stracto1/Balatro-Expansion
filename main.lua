@@ -663,13 +663,15 @@ Balatro_Expansion.JokerFullPosition = {} --used to save where a certain joker is
 Balatro_Expansion.ConsumableFullPosition = {}
 Balatro_Expansion.PackOptionFullPosition = {}
 
-Balatro_Expansion.StringRenderingParams = {Swoosh = 1,
-                                           Wavy = 2,
-                                           Peaking = 4,
-                                           Wrap = 8,
-                                           Centered = 16,
-                                           Enlarge = 32,
-                                           RightAllinged = 64}
+Balatro_Expansion.StringRenderingParams = {Swoosh = 1,--appears slowly (30 chars per second)
+                                           Wavy = 2, --sine wave 
+                                           Peaking = 4, --single letters peaking on top
+                                           Wrap = 8, --goes new line when needed (BoxWidth is necessary!)
+                                           Centered = 16, --centers the text
+                                           Enlarge = 32, --enlarges chars starting from the first (alligned with swoosh)
+                                           RightAllinged = 64, --allignaes to tthe right
+                                           EID = 128 --also includes wrap, but doesn't center the lines height wise
+                                           }
 
 Balatro_Expansion.Fonts = {}
 do

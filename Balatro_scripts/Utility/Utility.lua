@@ -2363,7 +2363,7 @@ function mod:CardSuitToName(Suit, IsEID)
         if IsEID then
             return "{{ColorYellorange}}Diamonds{{CR}}"
         end
-        return "Spades"
+        return "Diamonds"
     end
 
 end
@@ -2383,7 +2383,14 @@ function mod:GetCardName(Card, IsEID)
             Name = mod.Descriptions.BasicEnhancementName[mod.Enhancement.STONE][Lang] or mod.Descriptions.BasicEnhancementName[mod.Enhancement.STONE]["en_us"]
         end
     else
-        Name = mod:CardValueToName(Card.Value, IsEID).." of "..mod:CardSuitToName(Card.Suit, IsEID)
+        Name = mod:CardValueToName(Card.Value, IsEID)
+        
+        if IsEID then
+            Name = Name.."{{B_Black}} of "..mod:CardSuitToName(Card.Suit, IsEID)
+        else
+            Name = Name.." of "..mod:CardSuitToName(Card.Suit, IsEID)
+        end
+        
 
     end
 

@@ -76,10 +76,12 @@ do
     EID:addIcon("PlayerJimbo","Jimbo",0,16,16,-7,-6, CoopMenu)
 end
 
+EID:addColor("B_Black", mod.BalatroKColorBlack)
+
 EID:addColor("ColorMint", KColor(0.36, 0.87, 0.51, 1)) --taken from the Balatro Jokers mod
-EID:addColor("ColorYellorange", KColor(238/255, 186/255, 49/255, 1))
-EID:addColor("ColorChips", KColor(49/255, 140/255, 238/255, 1))
-EID:addColor("ColorMult", KColor(238/255, 49/255, 66/255, 1))
+EID:addColor("ColorYellorange", mod.EffectKColors.YELLOW)--KColor(238/255, 186/255, 49/255, 1))
+EID:addColor("ColorChips",  mod.EffectKColors.BLUE)--KColor(49/255, 140/255, 238/255, 1))
+EID:addColor("ColorMult", mod.EffectKColors.RED)-- KColor(238/255, 49/255, 66/255, 1))
 EID:addColor("ColorGlass", KColor(0.85, 0.85, 1, 0.6))
 
 
@@ -90,11 +92,13 @@ function mod:GetFilteredEIDString(EIDstr)
 
     EIDstr = EID:replaceShortMarkupStrings(EIDstr)
 	local textPartsTable = EID:filterColorMarkup(EIDstr, KColor.White)
-	for _, textPart in ipairs(textPartsTable) do
+	for i, textPart in ipairs(textPartsTable) do
 
 		local PartialStr = EID:filterIconMarkup(textPart[1], false)
 
 		if PartialStr then -- prevent possible crash when strFiltered is nil
+
+            --print(i, PartialStr)
 
             FilteredStr = FilteredStr..PartialStr
 		end
@@ -102,44 +106,162 @@ function mod:GetFilteredEIDString(EIDstr)
 
     FilteredStr = string.gsub(FilteredStr, "#", " ")
 
+    --print(FilteredStr)
+
     return FilteredStr
 end
 
 
----Copied this from the EID api and modified it a bit to make it more helpful in this scenario (fyi the original function is called EID:renderString())
----@param EIDstr string
----@param position Vector
----@param scale Vector
----@param kcolor KColor
--- -@return KColor
-function mod:RenderBalatroEIDString(EIDstr, position, Params, StartFrame, scale, kcolor, BoxWidth, Sound)
+---@return table ([[VALUE"X"]] = string)
+local function GetT_JimboJokerValues(Joker)
 
-    local renderBulletPointIcon = false
+    local JokerConfig = ItemsConfig:GetTrinket(Joker)
 
-    EID:loadFont("mods/balatro_expansion/resources/font/Balatro_Font4.fnt")
+    local Lang = mod:GetEIDLanguage()
 
-	EIDstr = EID:replaceShortMarkupStrings(EIDstr)
-	local textPartsTable = EID:filterColorMarkup(EIDstr, kcolor)
-	local offsetX = 0
-	for _, textPart in ipairs(textPartsTable) do
+    Player = Player or (PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo) or PlayerManager.FirstPlayerByType(mod.Characters.JimboType))
 
-		local strFiltered, spriteTable = EID:filterIconMarkup(textPart[1], renderBulletPointIcon)
-		EID:renderInlineIcons(spriteTable, position.X + offsetX, position.Y)
+    local PIndex = Player:GetData().TruePlayerIndex
 
-		if strFiltered then -- prevent possible crash when strFiltered is nil
+    local String = ""
 
-            mod:RenderBalatroStyle(strFiltered, position, Params, StartFrame, scale, textPart[2], BoxWidth, Sound)
-			--EID.font:DrawStringScaledUTF8(strFiltered, position.X + offsetX, position.Y, scale.X, scale.Y, textPart[2], 0, false)
-			if EID.CachingDescription then
-				table.insert(EID.CachedStrings[#EID.CachedStrings], {strFiltered, position.X + offsetX, position.Y, textPart[2], textPart[4], EID.Config["Transparency"]})
-			end
+    if JokerConfig:HasCustomTag("chips") then
 
-			offsetX = offsetX + EID:getStrWidth(strFiltered) * scale.X
-            StartFrame = StartFrame + string.len(strFiltered)*2
-		end
-	end
-	--return textPartsTable[#textPartsTable][2]
+        if Joker == mod.Jokers.WALKIE_TALKIE then
+
+            String = " #!!! "..mod.Descriptions.Other.CompatibleTriggered[Lang]..tostring(Value)
+        
+        elseif Joker == mod.Jokers.CASTLE then
+
+            String = "#!!!"..mod.Descriptions.Other.SuitChosen[Lang]..mod:CardSuitToName(Value & SUIT_FLAG, true).."#!!! "..mod.Descriptions[Lang].Other.CompatibleDiscarded.." {{ColorChips}} "..tostring((Value & ~SUIT_FLAG)/8)
+        else
+            String = " #!!! "..mod.Descriptions.Other.Currently[Lang].."{{ColorChips}} +"..tostring(Value).."{{CR}}"
+        end
+    elseif JokerConfig:HasCustomTag("mult") then
+        String = " #!!! "..mod.Descriptions.Other.Currently[Lang].."{{ColorMult}} +"..tostring(Value).."{{CR}}"
+
+    elseif JokerConfig:HasCustomTag("multm") then
+
+        if Joker == mod.Jokers.LOYALTY_CARD then
+            if Value == 0 then
+                String = " #!!! "..mod.Descriptions.Other.Active[Lang]
+            else
+                String = " #!!! "..mod.Descriptions.Other.RoomsRemaining[Lang].."{{ColorYellorange}} "..tostring(Value).."{{CR}}"
+            end
+
+        elseif Joker == mod.Jokers.ANCIENT_JOKER then
+            
+            String = " #!!! "..mod.Descriptions.Other.SuitChosen[Lang]..mod:CardSuitToName(Value & SUIT_FLAG).."{{CR}}".."#!!! "..mod.Descriptions.Other.CompatibleTriggered[Lang]..tostring((Value & ~SUIT_FLAG)/8)
+        
+        elseif Joker == mod.Jokers.IDOL then
+            String = " #!!! "..mod.Descriptions.Other.CardChosen[Lang]..mod:CardValueToName((Value & VALUE_FLAG)/8, true).." of "..mod:CardSuitToName(Value & SUIT_FLAG, true).."#!!! "..mod.Descriptions.Other.CompatibleTriggered[Lang]..tostring((Value & ~(SUIT_FLAG|VALUE_FLAG))/128)
+        
+        elseif Joker == mod.Jokers.YORICK then
+
+            String = " #!!! "..mod.Descriptions.Other.Currently[Lang].."{{ColorMult}} X"..tostring(1+(Value & ~YORIK_VALUE_FLAG/(YORIK_VALUE_FLAG+1))*0.2).."{{CR}}#!!! "..mod.Descriptions.Other.DiscardsRemaining[Lang]..tostring(Value & YORIK_VALUE_FLAG)
+        else
+            String = " #!!! "..mod.Descriptions.Other.Currently[Lang].."{{ColorMult}} X"..tostring(Value).."{{CR}}"
+        end
+
+
+    elseif JokerConfig:HasCustomTag("money") then
+        
+        if Joker == mod.Jokers.TO_DO_LIST then
+
+            local Hand = mod.Descriptions.HandTypeName[Value][Lang] or mod.Descriptions.HandTypeName[Value]["en_us"]
+
+            String = " #!!! "..mod.Descriptions.Other.HandTypeChosen[Lang].."{{ColorYellorange}} "..Hand.."{{CR}}"
+        
+        elseif Joker == mod.Jokers.MAIL_REBATE then
+
+            String = " #!!! "..mod.Descriptions.Other.ValueChosen[Lang].."{{ColorYellorange}} "..mod:CardValueToName(Value).."{{CR}}"
+        
+        else
+            --String = " #!!! "..mod.Descriptions.Other.Currently[Lang].."{{ColorYellorange}} "..tostring(Value).."${{CR}}"
+        end
+    elseif JokerConfig:HasCustomTag("activate") then
+
+        if Joker == mod.Jokers.BLUEPRINT or Joker == mod.Jokers.BRAINSTORM then
+
+            if Value ~= 0 then
+                String = " #!!! "..mod.Descriptions.Other.Currently[Lang]..mod.Descriptions.Other.Compatible[Lang]
+            else
+                String = " #!!! "..mod.Descriptions.Other.Currently[Lang]..mod.Descriptions.Other.Incompatible[Lang]
+            end
+
+        elseif Joker == mod.Jokers.INVISIBLE_JOKER then
+
+            if Value == 3 then
+                String = " #!!! "..mod.Descriptions.Other.Ready[Lang]
+            else
+                String = " #!!! "..mod.Descriptions.Other.BlindsCleared[Lang].."{{ColorYellorange}}"..tostring(Value).."/3{{CR}}"
+            end
+
+        elseif Joker == mod.Jokers.DNA then
+            if Balatro_Expansion.Saved.Player[PIndex].Progress.Blind.Shots == 0 then
+                String = " #!!! "..mod.Descriptions.Other.Ready[Lang]
+
+            else
+                String = " #!!! "..mod.Descriptions.Other.NotReady[Lang]
+
+            end
+
+        elseif Joker == mod.Jokers.SIXTH_SENSE then
+            if Balatro_Expansion.Saved.Player[PIndex].Progress.Blind.Shots == 0 then
+                Description = Description.." #!!! "..mod.Descriptions.Other.Currently[Lang]..mod.Descriptions.Other.Ready[Lang]
+
+            else
+                String = " #!!! "..mod.Descriptions.Other.Currently[Lang]..mod.Descriptions.Other.NotReady[Lang]
+
+            end
+        elseif Joker == mod.Jokers.TURTLE_BEAN then
+
+            String = " #!!! "..mod.Descriptions.Other.Currently[Lang].." {{ColorCyan}}+"..tostring(Value).." "..mod.Descriptions.Other.HandSize[Lang].."{{CR}}"
+        elseif Joker == mod.Jokers.SELTZER then
+
+            String = " #!!! "..mod.Descriptions.Other.RoomsRemaining[Lang]..tostring(Value)
+        end
+    end
+
+    return String
+
 end
+
+
+
+
+function mod:ReplaceBalatroMarkups(String, DescType, DescSubType)
+
+    local T_Jimbo = PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo)
+
+
+    String = string.gsub(String, "[[CHANCE]]", function ()
+        
+        local NumDice = #mod:GetJimboJokerIndex(T_Jimbo, mod.Jokers.OOPS_6)
+
+        return tostring(2^NumDice) --usually chance based things are 1/X chance so no problem in doing this
+    end)
+
+    if DescType == EID_DescType.JOKER then
+
+        if DescType & EID_DescType.SELECTION_FLAG == 0 then
+
+            local s = string.find(String, "#{{ColorGray}}", 1, true)
+            
+            String = string.sub(String, 1, s)
+        end
+
+        local Values = GetT_JimboJokerValues(DescSubType)
+        
+        String = string.gsub(String, "[[VALUE%d]]", function ()
+        
+            
+        end)
+    end
+
+end
+
+
 
 
 
@@ -679,7 +801,7 @@ local EID_BubbleLayers = {TOP_LEFT = 1,
 ---@field SubType integer
 ---@field Position Vector
 ---@field Params table
----@field Entity Entity?
+---@field Entity integer? --PtrHash of entity or selection index
 
 ---@type Balatro_EID_Object
 local ObjectToDescribe = {Type = EID_DescType.NONE,
@@ -689,6 +811,18 @@ local ObjectToDescribe = {Type = EID_DescType.NONE,
                           Position = Vector.Zero,
                           Allignment = 0
                           }
+
+local EID_Desc = {Name = "",
+                  Description = "",
+                  Extras = {Seal = mod.Seals.NONE,
+                            Edition = mod.Edition.BASE},
+                  NumLines = nil,
+                  FilteredName = nil,
+                  FilteredDescription = nil,}
+
+
+local EID_BubbleFrame = {Name = 1,
+                         Description = 0}
 
 
 --I hate myself for doing this
@@ -725,10 +859,28 @@ local function TJimboDescriptionsCallback(descObj)
         goto ENTITY_CHECK
     end
 
-
-    if T_Jimbo:GetData().ConfirmHoldTime < mod.HOLD_THRESHOLD then
+    if T_Jimbo:GetData().ConfirmHoldTime < mod.HOLD_THRESHOLD then --needs to hold to show text
         goto FINISH
     end
+
+    if ObjectToDescribe.Entity == PlayerSelection.Index then --caches the previous description to save time
+        
+        --only updates the position and goes straight to rendering
+        ObjectToDescribe.Position = mod.PackOptionFullPosition[PlayerSelection.Index] + Vector(0, -20)
+
+        ObjectToDescribe.Position.Y = ObjectToDescribe.Position.Y - ObjectToDescribe.Position.Y%0.5
+        ObjectToDescribe.Position.X = ObjectToDescribe.Position.X - ObjectToDescribe.Position.X%0.5
+    
+        --Result = true
+        return descObj
+    end
+
+    ObjectToDescribe.Entity = PlayerSelection.Index
+
+    EID_Desc.NumLines = nil
+    EID_Desc.FilteredName = nil
+    EID_Desc.FilteredDescription = nil
+    
 
     if PlayerSelection.Mode == mod.SelectionParams.Modes.HAND then
         --only describable thing are the playing cards
@@ -742,7 +894,6 @@ local function TJimboDescriptionsCallback(descObj)
 
             local card = mod.Saved.Player[PIndex].FullDeck[Pointer]
 
-            ObjectToDescribe.Entity = nil
             ObjectToDescribe.Params = card
             ObjectToDescribe.Position = mod.CardFullPoss[Pointer] + Vector(0, -30)
             ObjectToDescribe.Allignment = EID_DescAllingnment.BOTTOM
@@ -761,7 +912,6 @@ local function TJimboDescriptionsCallback(descObj)
 
             local Consumable = mod.Saved.Player[PIndex].Consumables[PlayerSelection.Index]
 
-            ObjectToDescribe.Entity = nil
             ObjectToDescribe.Params = Consumable
             ObjectToDescribe.Position = mod.ConsumableFullPosition[PlayerSelection.Index] + Vector(0, -30)
             ObjectToDescribe.Allignment = EID_DescAllingnment.TOP | EID_DescAllingnment.RIGHT
@@ -781,7 +931,6 @@ local function TJimboDescriptionsCallback(descObj)
 
             local Slot = mod.Saved.Player[PIndex].Inventory[PlayerSelection.Index]
 
-            ObjectToDescribe.Entity = nil
             ObjectToDescribe.Params = Slot
             ObjectToDescribe.Position = mod.JokerFullPosition[Slot.RenderIndex] + Vector(0, 30)
             ObjectToDescribe.Allignment = EID_DescAllingnment.TOP
@@ -802,7 +951,6 @@ local function TJimboDescriptionsCallback(descObj)
 
             local Slot = PlayerSelection.PackOptions[PlayerSelection.Index]
 
-            ObjectToDescribe.Entity = nil
             ObjectToDescribe.Params = Slot
             ObjectToDescribe.Position = mod.PackOptionFullPosition[PlayerSelection.Index] + Vector(0, -30)
 
@@ -814,9 +962,11 @@ local function TJimboDescriptionsCallback(descObj)
 
             local card = PlayerSelection.PackOptions[PlayerSelection.Index]
 
-            ObjectToDescribe.Entity = nil
             ObjectToDescribe.Params = card
-            ObjectToDescribe.Position = mod.PackOptionFullPosition[PlayerSelection.Index] + Vector(0, -30)
+            ObjectToDescribe.Position = mod.PackOptionFullPosition[PlayerSelection.Index] + Vector(0, -20)
+
+            ObjectToDescribe.Position.Y = ObjectToDescribe.Position.Y - ObjectToDescribe.Position.Y%0.5
+            ObjectToDescribe.Position.X = ObjectToDescribe.Position.X - ObjectToDescribe.Position.X%0.5
 
             ObjectToDescribe.Type = EID_DescType.CARD
             ObjectToDescribe.SubType = 0 --not really needed
@@ -824,7 +974,6 @@ local function TJimboDescriptionsCallback(descObj)
         else
             local Consumable = PlayerSelection.PackOptions[PlayerSelection.Index]
 
-            ObjectToDescribe.Entity = nil
             ObjectToDescribe.Params = {Edition = mod.Edition.BASE}
             ObjectToDescribe.Position = mod.PackOptionFullPosition[PlayerSelection.Index] + Vector(0, -30)
 
@@ -840,14 +989,27 @@ local function TJimboDescriptionsCallback(descObj)
 
     if descObj.ObjType == EntityType.ENTITY_PICKUP then
 
+        local NewHash = GetPtrHash(descObj.Entity)
+
+        if ObjectToDescribe.Entity == NewHash then --caches the previous variables to save time
+            
+            Result = true
+            return descObj
+        end
+
+        ObjectToDescribe.Entity = GetPtrHash(descObj.Entity)
+
+        EID_Desc.NumLines = nil
+        EID_Desc.FilteredName = nil
+        EID_Desc.FilteredDescription = nil
+
+
         ObjectToDescribe.Allignment = EID_DescAllingnment.TOP | EID_DescAllingnment.LEFT
 
         if descObj.ObjVariant == PickupVariant.PICKUP_COLLECTIBLE then
 
             if ItemsConfig:GetCollectible(descObj.ObjSubType):HasCustomTag("balatro") then
 
-
-                ObjectToDescribe.Entity = descObj.Entity
                 ObjectToDescribe.Params = {}
 
                 ObjectToDescribe.Position = EID:getTextPosition()
@@ -864,7 +1026,6 @@ local function TJimboDescriptionsCallback(descObj)
             if descObj.ObjSubType <= Card.CARD_WORLD 
                or descObj.ObjSubType >= mod.Planets.PLUTO and descObj.ObjSubType <= mod.Spectrals.SOUL then
                 
-                ObjectToDescribe.Entity = descObj.Entity
                 ObjectToDescribe.Params = {Edition = mod.Edition.BASE}
 
                 ObjectToDescribe.Position = EID:getTextPosition()
@@ -898,7 +1059,6 @@ local function TJimboDescriptionsCallback(descObj)
 
             elseif descObj.ObjSubType >= mod.Packs.ARCANA and descObj.ObjSubType <= mod.Packs.MEGA_SPECTRAL then
                 
-                ObjectToDescribe.Entity = descObj.Entity
                 ObjectToDescribe.Params = {}
 
                 ObjectToDescribe.Position = EID:getTextPosition()
@@ -933,10 +1093,12 @@ local function TJimboDescriptionsCallback(descObj)
 
         elseif descObj.ObjVariant == PickupVariant.PICKUP_TRINKET then
 
-            if ItemsConfig:GetTrinket(descObj.ObjSubType):HasCustomTag("balatro") then
+            local JokerConfig = ItemsConfig:GetTrinket(descObj.ObjSubType)
 
-                ObjectToDescribe.Entity = descObj.Entity
-                ObjectToDescribe.Params = {Edition = mod.Edition.BASE, Modifiers = 0}
+            if JokerConfig:HasCustomTag("balatro") then
+
+                ObjectToDescribe.Params = {Edition = mod.Saved.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][JokerConfig.Name],
+                                           Modifiers = 0}
 
                 ObjectToDescribe.Position = EID:getTextPosition()
 
@@ -974,11 +1136,53 @@ local function TJimboDescriptionsCallback(descObj)
 
     end
 
+
+
     ::FINISH::
 
-    --print(Result)
+    local Lang = mod:GetEIDLanguage()
+
+    --save the object's description and name
+    if ObjectToDescribe.Type == EID_DescType.CARD then
+
+        EID_Bubble:SetFrame("Card", 0)
+
+        local card = ObjectToDescribe.Params
+
+        EID_Desc.Name = mod:GetCardName(card, true)
+
+
+        local TriggerDesc = ""
+        
+        if card.Enhancement ~= mod.Enhancement.STONE then
+        
+            TriggerDesc = TriggerDesc.."+ {{ColorChips}}"..tostring(mod:GetValueScoring(card.Value)).."{{B_Black}}Chips"
+        end
+
+        TriggerDesc = TriggerDesc..(mod.Descriptions.T_Jimbo.Enhancement[card.Enhancement][Lang] or mod.Descriptions.T_Jimbo.Enhancement[card.Enhancement]["en_us"])
+
+        --hiker upgrades
+        if card.Upgrades > 0 then
+            
+            TriggerDesc = TriggerDesc.."# + {{ColorChips}}"..tostring(5*card.Upgrades).."{{B_Black}} Extra Chips"
+        end
+
+        EID_Desc.Description = TriggerDesc
+
+        EID_Desc.Extras.Edition = card.Edition
+        EID_Desc.Extras.Seal = card.Seal
+
+    end
+
+    EID_Desc.Description = mod:ReplaceBalatroMarkups(EID_Desc.Description, ObjectToDescribe.Type, ObjectToDescribe.SubType)
+
 
     if not Result then
+
+        EID_Desc.NumLines = nil
+        EID_Desc.FilteredName = nil
+        EID_Desc.FilteredDescription = nil
+
 
         ObjectToDescribe.Entity = nil
         ObjectToDescribe.Params = {}
@@ -989,22 +1193,16 @@ local function TJimboDescriptionsCallback(descObj)
         ObjectToDescribe.SubType = 0 --not really needed
 
         EID:alterTextPos(Vector(-1000, -1000)) --basically erases the description form existence (prob not the best way to do that)
+    
+        return descObj
     end
+
+    
 
     
     return descObj -- return the modified description object
 end
 EID:addDescriptionModifier("Tainted Jimbo Special descripions", TJimboDescriptionsCondition, TJimboDescriptionsCallback)
-
-
-
-local EID_Desc = {Name = "",
-                  Description = "",
-                  Extras = {Seal = mod.Seals.NONE,
-                            Edition = mod.Edition.BASE},
-                  NumLines = nil,
-                  FilteredName = nil,
-                  FilteredDescription = nil,}
 
 
 function mod:RenderObjectDescription()
@@ -1019,43 +1217,15 @@ function mod:RenderObjectDescription()
         return
     end
 
-    local Lang = mod:GetEIDLanguage()
-
     EID_Bubble:SetFrame("Any", 0)
 
     
-    if ObjectToDescribe.Type == EID_DescType.CARD then
+    if ObjectToDescribe.Type & EID_DescType.CARD ~= 0 then
 
         EID_Bubble:SetFrame("Card", 0)
-
-        local card = ObjectToDescribe.Params
-
-        EID_Desc.Name = mod:GetCardName(card, true)
-
-
-        local TriggerDesc = ""
-        
-        if card.Enhancement ~= mod.Enhancement.STONE then
-        
-            TriggerDesc = TriggerDesc.."+ {{ColorChips}}"..tostring(mod:GetValueScoring(card.Value)).."{{CR}} Chips"
-        end
-
-        TriggerDesc = TriggerDesc..(mod.Descriptions.T_Jimbo.Enhancement[card.Enhancement][Lang] or mod.Descriptions.T_Jimbo.Enhancement[card.Enhancement]["en_us"])
-
-        --hiker upgrades
-        if card.Upgrades > 0 then
-            
-            TriggerDesc = TriggerDesc.."# + {{ColorChips}}"..tostring(5*card.Upgrades).."{{CR}} Extra Chips"
-        end
-
-        EID_Desc.Description = TriggerDesc
-
-        EID_Desc.Extras.Edition = card.Edition
-        EID_Desc.Extras.Seal = card.Seal
-
     end
 
-
+    
 
 
     if not EID_Desc.FilteredName then
@@ -1070,33 +1240,28 @@ function mod:RenderObjectDescription()
 
     local BubbleScale = Vector.One
 
-    BubbleScale.X = mod.Fonts.Balatro:GetStringWidth(EID_Desc.FilteredName)
+    BubbleScale.X = mod.Fonts.Balatro:GetStringWidth(EID_Desc.FilteredName) + 24
 
-    if ObjectToDescribe.Type == EID_DescType.CARD then
+    if ObjectToDescribe.Type & EID_DescType.CARD ~= 0 then
 
         BubbleScale.X = BubbleScale.X / 2
     end
 
-    BubbleScale.X = math.max(BubbleScale.X, 15)
+    BubbleScale.X = math.max(BubbleScale.X, string.len(EID_Desc.Description) // 2)
+
+    local BoxWidth = BubbleScale.X + 0
 
     if not EID_Desc.NumLines then
-        --aproximate the number of lines used in the first frame
-
-        local _, NumLines = string.gsub(EID_Desc.Description, "#", function ()
-                                                                    return false
-                                                                end)
-
-        --print("before:", NumLines)
-
-        NumLines = NumLines + math.max(1,
-                                       ((mod.Fonts.Balatro:GetStringWidth(EID_Desc.FilteredDescription)*0.5) // (BubbleScale.X + 5)) - NumLines)
-    
-        --print("after:", BubbleScale.X)
-
-        EID_Desc.NumLines = NumLines                                                        
+        
+        local Params = mod.StringRenderingParams.EID
+        
+        EID_Desc.NumLines = mod:RenderBalatroStyle(EID_Desc.Description, Vector(-1000,-1000), Params, 0, Vector.One/2, mod.BalatroKColorBlack, BoxWidth)
     end
 
-    BubbleScale.Y = (EID_Desc.NumLines * mod.Fonts.Balatro:GetLineHeight()*0.75) + 4
+    local LineHeight = mod.Fonts.Balatro:GetLineHeight()
+    local _,NumLineForced = string.gsub(EID_Desc.Description, "#", "#")
+
+    BubbleScale.Y = math.ceil(((EID_Desc.NumLines-NumLineForced-1)*LineHeight + NumLineForced*LineHeight*1.5)/2 + 10)
 
     BubbleScale = BubbleScale/10
 
@@ -1107,17 +1272,14 @@ function mod:RenderObjectDescription()
         
         RenderPos.Y = ObjectToDescribe.Position.Y - BubbleScale.Y*5 - EID_BUBBLE_BASE_SIZE.Y/2
     end
-
     if ObjectToDescribe.Allignment & EID_DescAllingnment.TOP ~= 0 then
         
         RenderPos.Y = ObjectToDescribe.Position.Y + BubbleScale.Y*5 + EID_BUBBLE_BASE_SIZE.Y/2
     end
-
     if ObjectToDescribe.Allignment & EID_DescAllingnment.RIGHT ~= 0 then
         
         RenderPos.X = ObjectToDescribe.Position.X - BubbleScale.X*5 - EID_BUBBLE_BASE_SIZE.X/2
     end
-
     if ObjectToDescribe.Allignment & EID_DescAllingnment.LEFT ~= 0 then
         
         RenderPos.X = ObjectToDescribe.Position.X - BubbleScale.X*5 - EID_BUBBLE_BASE_SIZE.X/2
@@ -1134,7 +1296,7 @@ function mod:RenderObjectDescription()
 
     EID_Bubble:RenderLayer(EID_BubbleLayers.CENTER, RenderPos)
 
-
+    do
     EID_Bubble.Scale.X = 1
 
     EID_Bubble:RenderLayer(EID_BubbleLayers.CENTER_LEFT, RenderPos - X_BorderOffset)
@@ -1155,8 +1317,31 @@ function mod:RenderObjectDescription()
     
     EID_Bubble:RenderLayer(EID_BubbleLayers.BOTTOM_LEFT, RenderPos + Y_BorderOffset - X_BorderOffset)
     EID_Bubble:RenderLayer(EID_BubbleLayers.BOTTOM_RIGHT, RenderPos + Y_BorderOffset + X_BorderOffset)
+    end
+
+    EID_Bubble:SetFrame(EID_BubbleFrame.Name)
+
+    local NullFrame = EID_Bubble:GetNullFrame("String Position")
+
+    local NameScale = Vector.One * NullFrame:GetScale().Y*100
+
+    local NamePos = NullFrame:GetPos() + RenderPos - Y_BorderOffset
+
+    local Params = mod.StringRenderingParams.EID | mod.StringRenderingParams.Centered
+
+    mod:RenderBalatroStyle(EID_Desc.Name, NamePos, Params, 0, NameScale, mod.BalatroKColorBlack, BoxWidth)
 
 
+    EID_Bubble:SetFrame(EID_BubbleFrame.Description)
+
+    NullFrame = EID_Bubble:GetNullFrame("String Position")
+
+    local DescScale = Vector.One * NullFrame:GetScale().Y*100
+
+    local DescPos = RenderPos + NullFrame:GetPos()
+    DescPos.Y = DescPos.Y - BubbleScale.Y*5
+
+    EID_Desc.NumLines = mod:RenderBalatroStyle(EID_Desc.Description, DescPos, Params, 0, DescScale, mod.BalatroKColorBlack, BoxWidth)
 
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.RenderObjectDescription)

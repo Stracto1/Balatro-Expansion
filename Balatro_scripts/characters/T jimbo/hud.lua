@@ -1,4 +1,4 @@
----@diagnostic disable: need-check-nil
+---@diagnostic disable: need-check-nil, undefined-field
 local mod = Balatro_Expansion
 
 local Game = Game()
@@ -249,20 +249,177 @@ mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, RightMoveShader)
 ---@return integer --gives the number of lines that need to be rendered
 function mod:RenderBalatroStyle(String, Position, Params, StartFrame, Scale, Kcolor, BoxWidth, Sound)
 
+    if Params & mod.StringRenderingParams.EID ~= 0 then
+        --this part was taken from EID api's RenderString() to the get modified quite a lot in order to work
+        --all this cools stuff probably wouldn't be here if the api wasn't so good
+
+        local renderBulletPointIcon = false
+
+
+        local Offset = Vector.Zero
+        local NumLines = 1
+
+        local Lines = {[1] = {Offset = Vector.Zero}}
+
+	    String = EID:replaceShortMarkupStrings(String)
+	    local textPartsTable = EID:filterColorMarkup(String, Kcolor)
+
+	    for _, textPart in ipairs(textPartsTable) do
+
+	    	local strFiltered = EID:filterIconMarkup(textPart[1], renderBulletPointIcon)
+	    	--EID:renderInlineIcons(spriteTable, position.X + offsetX, position.Y)
+
+	    	if not strFiltered then -- prevent possible crash when strFiltered is nil
+                goto SKIP_PART
+            end
+
+            local RenderKcolor = textPart[2]
+            RenderKcolor.Alpha = 1 --always fully opaque
+
+            --subdivides the filtered string in words to make it go new line when needed
+            for Word in string.gmatch(strFiltered, "%g+") do
+
+                --local RenderPos = Vector(125,100) + offset
+
+                local s, e = string.find(Word, "#", 1, true)
+
+
+                local Before = Word --before the #
+                local After = "" --after the #
+
+                if s then --if an # is actually present
+
+                    Before = string.sub(Word, 1, s-1)
+                    After = string.sub(Word, e+1, string.len(Word))
+                end
+
+                Word = Before.." " --adds a space to delimit from other words
+                
+                local WordWidth = mod.Fonts.Balatro:GetStringWidth(Word)*Scale.X
+
+                if Offset.X + WordWidth > BoxWidth then --if it goes too far go to new line
+
+                    if Params & mod.StringRenderingParams.Centered ~= 0 then
+                        local TotalWidth = 0
+                        
+                        for _,Word in ipairs(Lines[NumLines]) do
+                        
+                            TotalWidth = TotalWidth + mod.Fonts.Balatro:GetStringWidth(Word.String)*Scale.X
+                        end
+
+                        Lines[NumLines].Offset.X = -TotalWidth/2
+                    end
+
+                    
+                    NumLines = NumLines + 1
+
+                    Lines[NumLines] = {Offset = Vector.Zero}
+
+                    Offset.X = 0
+                    Offset.Y = Offset.Y + mod.Fonts.Balatro:GetLineHeight()*Scale.Y
+                    StartFrame = StartFrame + string.len(Word)*2
+                end
+
+                Lines[NumLines][#Lines[NumLines]+1] = {String = Word,
+                                                       Position = Position + Offset,
+                                                       Kcolor = RenderKcolor}
+
+                Offset.X = Offset.X + WordWidth/2
+
+                if s then --puts the word after # in a new line and prints them
+
+                    if Params & mod.StringRenderingParams.Centered ~= 0 then
+                        local TotalWidth = 0
+                        
+                        for _,Word in ipairs(Lines[NumLines]) do
+                        
+                            TotalWidth = TotalWidth + mod.Fonts.Balatro:GetStringWidth(Word.String)*Scale.X
+                        end
+
+                        Lines[NumLines].Offset.X = -TotalWidth/2
+                    end
+
+                
+                    NumLines = NumLines + 1
+
+                    Lines[NumLines] = {Offset = Vector.Zero}
+
+                    Offset.X = 0
+                    Offset.Y = Offset.Y + mod.Fonts.Balatro:GetLineHeight()*Scale.Y*1.5
+                    StartFrame = StartFrame + string.len(Word)*2
+
+                    if string.len(After) > 0 then
+                        Word = After.." "
+                    else
+                        Word = After
+                    end
+
+                    Lines[NumLines][#Lines[NumLines]+1] = {String = Word,
+                                                           Position = Position + Offset, 
+                                                           Kcolor = RenderKcolor}
+                
+                    Offset.X = mod.Fonts.Balatro:GetStringWidth(Word)*Scale.X
+                else
+                    Offset.X = Offset.X + WordWidth/2
+                end
+            end
+
+
+            --EID.font:DrawStringScaledUTF8(strFiltered, position.X + offsetX, position.Y, scale.X, scale.Y, textPart[2], 0, false)
+	    	if EID.CachingDescription then
+	    		table.insert(EID.CachedStrings[#EID.CachedStrings], {strFiltered, Position.X, Position.Y, textPart[2], textPart[4], EID.Config["Transparency"]})
+	    	end
+
+            ::SKIP_PART::
+        end
+
+        --last line wouldn't be considered
+        if Params & mod.StringRenderingParams.Centered ~= 0 then
+            local TotalWidth = 0
+            
+            for _,Word in ipairs(Lines[NumLines]) do
+            
+                TotalWidth = TotalWidth + mod.Fonts.Balatro:GetStringWidth(Word.String)*Scale.X
+            end
+
+            Lines[NumLines].Offset.X = -TotalWidth/2
+        end
+
+
+        Params = Params & ~ (mod.StringRenderingParams.EID | mod.StringRenderingParams.Wrap | mod.StringRenderingParams.Centered)
+
+        for _,Line in ipairs(Lines) do
+            
+            for _,Word in ipairs(Line) do
+            
+                mod:RenderBalatroStyle(Word.String, Word.Position + Line.Offset, Params, StartFrame, Scale, Word.Kcolor, BoxWidth, Sound)
+            end
+        end
+
+
+        return NumLines
+    end
+
+
     if Params & mod.StringRenderingParams.Wrap ~= 0 then
 
         Params = Params & ~mod.StringRenderingParams.Wrap
         
         local Lines = {}
 
+        local Remainder = ""
+
         local CurrentSection = ""
         for Word in string.gmatch(String, "%g+") do
 
-            if mod.Fonts.Balatro:GetStringWidth(CurrentSection..Word)*Scale.X > BoxWidth then
+            local ShouldNewLine = mod.Fonts.Balatro:GetStringWidth(CurrentSection..Word)*Scale.X > BoxWidth
+
+            if ShouldNewLine then
                 
                 Lines[#Lines+1] = CurrentSection
 
                 CurrentSection = Word
+
                 --mod:RenderBalatroStyle(CurrentSection, Position, Params, StartFrame, Scale, Kcolor, Sound, BoxWidth)
 
                 --StartFrame = StartFrame + 2*string.len(CurrentSection)
@@ -277,27 +434,6 @@ function mod:RenderBalatroStyle(String, Position, Params, StartFrame, Scale, Kco
 
         Lines[#Lines+1] = CurrentSection
 
-        --[[
-        local ScaleModifier = 1
-
-        for i,Line in ipairs(Lines) do
-
-            print(i, BoxWidth / (mod.Fonts.Balatro:GetStringWidth(Line)*Scale.X), Line)
-
-            print(i, "modifier was", ScaleModifier)
-
-            ScaleModifier = math.min(ScaleModifier, math.min(BoxWidth / (mod.Fonts.Balatro:GetStringWidth(Line)*Scale.X), 1)) --adapts the scale to the box size if it's too big (only scaled DOWN)
-
-            print(i, "modifier is now:", ScaleModifier)
-        end
-
-        print(ScaleModifier)
-
-
-        Scale = Scale * ScaleModifier]]
-
-        Position.Y = Position.Y - mod.Fonts.Balatro:GetLineHeight()*0.75* Scale.Y*(#Lines - 1)
-
         for _,Line in ipairs(Lines) do
 
             mod:RenderBalatroStyle(Line, Position, Params, StartFrame, Scale, Kcolor, BoxWidth, Sound)
@@ -311,8 +447,6 @@ function mod:RenderBalatroStyle(String, Position, Params, StartFrame, Scale, Kco
     end
 
     local StringScaledWidth = mod.Fonts.Balatro:GetStringWidth(String) * Scale.X
-    local IsCentered = Params & mod.StringRenderingParams.Centered ~= 0
-
 
     BoxWidth = BoxWidth or mod.Fonts.Balatro:GetStringWidth(String)*Scale.X
 
