@@ -362,8 +362,13 @@ function mod:RenderBalatroStyle(String, Position, Params, StartFrame, Scale, Kco
                 else
                     Offset.X = Offset.X + WordWidth/2
                 end
+
+               
             end
 
+            --removes space from last word
+            local LastWord = Lines[NumLines][#Lines[NumLines]].Word
+            Lines[NumLines][#Lines[NumLines]].Word = string.sub(LastWord, 1, string.len(LastWord)-1)
 
             --EID.font:DrawStringScaledUTF8(strFiltered, position.X + offsetX, position.Y, scale.X, scale.Y, textPart[2], 0, false)
 	    	if EID.CachingDescription then

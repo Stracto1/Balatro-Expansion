@@ -751,6 +751,14 @@ function mod:ScoreHand(Player)
     if mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_PSYCHIC then
         
         if #PlayedCards < 5 then
+
+            local MatadorIndexes = mod:GetJimboJokerIndex(Player, mod.Jokers.MATADOR)
+
+            for _,Index in ipairs(MatadorIndexes) do
+                
+                AddMoney(Player, 8, mod.EffectType.JOKER, Index)
+            end
+
             Isaac.CreateTimer(function ()
 
                 Isaac.RunCallback(mod.Callbalcks.POST_HAND_PLAY, Player)
@@ -766,6 +774,15 @@ function mod:ScoreHand(Player)
         local HandFlag = 1 << HandType
 
         if mod.Saved.BossBlindVarData & HandFlag ~= 0 then --if hand got already played
+
+            local MatadorIndexes = mod:GetJimboJokerIndex(Player, mod.Jokers.MATADOR)
+
+            for _,Index in ipairs(MatadorIndexes) do
+                
+                AddMoney(Player, 8, mod.EffectType.JOKER, Index)
+            end
+        
+        
             Isaac.CreateTimer(function ()
 
                 Isaac.RunCallback(mod.Callbalcks.POST_HAND_PLAY, Player)
@@ -785,6 +802,15 @@ function mod:ScoreHand(Player)
 
         if mod.Saved.BossBlindVarData ~= 0  --if no hand was played yet
            and mod.Saved.BossBlindVarData & HandFlag == 0 then --if hand didn't get played
+           
+           local MatadorIndexes = mod:GetJimboJokerIndex(Player, mod.Jokers.MATADOR)
+
+            for _,Index in ipairs(MatadorIndexes) do
+                
+                AddMoney(Player, 8, mod.EffectType.JOKER, Index)
+            end
+           
+           
             Isaac.CreateTimer(function ()
 
                 Isaac.RunCallback(mod.Callbalcks.POST_HAND_PLAY, Player)
@@ -811,15 +837,31 @@ function mod:ScoreHand(Player)
 
     elseif mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_TOOTH then
 
+        local MatadorIndexes = mod:GetJimboJokerIndex(Player, mod.Jokers.MATADOR)
+
+        for _,Index in ipairs(MatadorIndexes) do
+            
+            AddMoney(Player, 8, mod.EffectType.JOKER, Index)
+        end
+
         for Pointer,Card in ipairs(PlayedCards) do
 
             AddMoney(Player, -1, mod.EffectType.HAND, Pointer, 2)
         end
 
     elseif mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_ARM then
+
+        if mod.Saved.HandLevels[HandType] ~= 1 then --only if the hand in question can be leveled down
+
+            local MatadorIndexes = mod:GetJimboJokerIndex(Player, mod.Jokers.MATADOR)
+
+            for _,Index in ipairs(MatadorIndexes) do
+
+                AddMoney(Player, 8, mod.EffectType.JOKER, Index)
+            end
+        end
         
         CurrentInterval = CurrentInterval + mod:PlanetUpgradeAnimation(HandType, -1, CurrentInterval)
-
     end
 
 
@@ -1240,9 +1282,16 @@ function mod:ScoreHand(Player)
 
         elseif Joker == mod.Jokers.CARD_SHARP then
 
-            --PLACEHOLDER
-            if mod.Saved.DiscardsRemaining == 0 then
-                IncreaseMult(Player, PIndex, 15, mod.EffectType.JOKER, JokerIndex)
+            local HandFlag = 1 << HandType
+
+            local PlayedHands = mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex]
+
+            local HandWasPlayed = PlayedHands & HandFlag ~= 0
+
+            if HandWasPlayed then
+                MultiplyMult(Player, PIndex, 3, mod.EffectType.JOKER, JokerIndex)
+            else
+                mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = PlayedHands | HandFlag
             end
 
         elseif Joker == mod.Jokers.ACROBAT then
@@ -1370,7 +1419,10 @@ function mod:ScoreHand(Player)
             MultiplyMult(Player, PIndex, Mult, mod.EffectType.JOKER, JokerIndex)
 
         elseif Joker == mod.Jokers.CASTLE then
-            IncreaseChips(Player, PIndex, (mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] & ~SUIT_FLAG)/SUIT_FLAG + 1, mod.EffectType.JOKER, JokerIndex)
+
+            local Chips = (mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] & ~SUIT_FLAG)/SUIT_FLAG + 1
+
+            IncreaseChips(Player, PIndex, Chips, mod.EffectType.JOKER, JokerIndex)
 
         elseif Joker == mod.Jokers.LOYALTY_CARD then
             
@@ -1537,6 +1589,20 @@ function mod:ScoreHand(Player)
                 end
 
                 IncreaseJokerProgress(Player, PIndex, ProgressIndex, -1)
+            end
+
+        elseif Joker == mod.Jokers.MATADOR then
+
+            for _,Pointer in ipairs(PlayedCards) do
+
+                local card = mod.Saved.Player[PIndex].FullDeck[Pointer]
+
+                if card.Modifiers & mod.Modifier.DEBUFFED then
+
+                    AddMoney(Player, 8, mod.EffectType.JOKER, JokerIndex)
+
+                    break
+                end
             end
         end
 
@@ -2164,7 +2230,7 @@ local function OnBlindClear(_,BlindType)
             end
 
         elseif Joker == mod.Jokers.GROS_MICHAEL then
-            if not Copied and mod:TryGamble(Player,Player:GetTrinketRNG(mod.Jokers.GROS_MICHAEL), 0.16) then
+            if not Copied and mod:TryGamble(Player,Player:GetTrinketRNG(mod.Jokers.GROS_MICHAEL), 1/6) then
                 
                 mod.Saved.Player[PIndex].Inventory[JokerIndex].Joker = 0
                 mod.Saved.Player[PIndex].Inventory[JokerIndex].Edition = mod.Edition.BASE
@@ -2306,6 +2372,41 @@ local function OnBlindClear(_,BlindType)
                 mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = Player:GetTrinketRNG(mod.Jokers.ANCIENT_JOKER):PhantomInt(mod.Suits.Diamond) + 1
 
                 GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Change!", mod.EffectType.JOKER, JokerIndex)
+            end
+        
+        elseif Joker == mod.Jokers.CARD_SHARP then
+
+            --progress contains as a bitflag the hand types played, this resets said hand at the end of round
+            mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = 0
+
+        elseif Joker ==  mod.Jokers.GIFT_CARD then
+
+            for JokerIndex, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+
+                if Slot.Joker ~= 0 then
+
+                    local Extra = mod.Saved.Player[PIndex].GiftCardExtra[JokerIndex]
+
+                    Extra = Extra or 0
+
+                    Extra = Extra + 1
+                else
+                    mod.Saved.Player[PIndex].GiftCardExtra[JokerIndex] = 0
+                end
+            end
+
+            for Index, Consumable in ipairs(mod.Saved.Player[PIndex].Consumables) do
+
+                if Consumable.Card ~= -1 then
+
+                    local Extra = mod.Saved.Player[PIndex].GiftCardConsumableExtra[Index]
+
+                    Extra = Extra or 0
+
+                    Extra = Extra + 1
+                else
+                    mod.Saved.Player[PIndex].GiftCardConsumableExtra[Index] = 0
+                end
             end
         end
 
@@ -3252,13 +3353,15 @@ local function OnDeckModify(_, Player, CardsAdded, CardsDestroyed)
             local GlassNum = 0
 
             for _, card in ipairs(CardsDestroyed) do
-                mod.Saved.Player[PIndex].Progress.Inventory[Index] = mod.Saved.Player[PIndex].Progress.Inventory[Index] + 0.1
-                GlassNum = GlassNum + 1
+                if card.Enhancement == mod.Enhancement.GLASS then
+                    mod.Saved.Player[PIndex].Progress.Inventory[Index] = mod.Saved.Player[PIndex].Progress.Inventory[Index] + 0.75
+                    GlassNum = GlassNum + 1
+                end
             end
 
             if GlassNum ~= 0 then
                 mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.TIMESMULT,
-                "+"..tostring(0.1*GlassNum).."X",mod.EffectType.JOKER, Player)
+                "X"..tostring(mod.Saved.Player[PIndex].Progress.Inventory[Index]),mod.EffectType.JOKER, Player)
             end
 
         elseif Slot.Joker == mod.Jokers.CANIO then
@@ -3283,6 +3386,67 @@ local function OnDeckModify(_, Player, CardsAdded, CardsDestroyed)
     Player:EvaluateItems()
 end
 mod:AddCallback(mod.Callbalcks.DECK_MODIFY, OnDeckModify)
+
+
+
+local function OnDeath(Player)
+
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
+        return
+    end
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    for Index, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+
+        local Joker = Slot.Joker
+
+        if Joker == mod.Jokers.MR_BONES then
+
+            local BlindSize = mod:GetBlindScoreRequirement(mod.Saved.BlindBeingPlayed)
+            
+            local EnemyMaxHP = BlindSize
+
+            for _,Enemy in ipairs(Isaac.GetRoomEntities()) do
+
+                if Enemy:IsActiveEnemy() and Enemy:IsVulnerableEnemy() then
+                    
+                    EnemyMaxHP = math.min(EnemyMaxHP, Enemy.HitPoints)
+                end
+            end
+
+            local Revive = EnemyMaxHP / BlindSize <= 0.75
+
+            if not Revive then
+                return
+            end
+
+            Player:Revive()
+
+            Game:GetRoom():MamaMegaExplosion(Player.Position)
+
+            Isaac.CreateTimer(function ()
+
+                for _,Enemy in ipairs(Isaac.GetRoomEntities()) do
+
+                    if Enemy:IsActiveEnemy() then
+
+                        Enemy:Kill()
+                    end
+                end
+            end, 8, 1, true)
+
+            mod.Saved.Player[PIndex].Inventory[Index].Joker = 0 --removes the trinket
+            mod.Saved.Player[PIndex].Inventory[Index].Edition = 0
+
+            Isaac.RunCallback(mod.Callbalcks.INVENTORY_CHANGE, Player)
+
+            mod:CreateBalatroEffect(Index, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Saved!",
+                                    mod.EffectType.JOKER, Player)
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_TRIGGER_PLAYER_DEATH, OnDeath)
+
 
 
 

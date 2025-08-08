@@ -410,6 +410,7 @@ function mod:InitJimboValues(Player, Force)
         mod.Saved.Player[PIndex].Progress = {} --values used for jokers
         mod.Saved.Player[PIndex].Progress.Inventory = {0,0,0,0,0} --never reset, changed in different ways basing on the joker
         mod.Saved.Player[PIndex].Progress.GiftCardExtra = {0,0,0,0,0}
+        mod.Saved.Player[PIndex].Progress.GiftCardConsumableExtra = {0,0}
 
         mod.Saved.Player[PIndex].Consumables = {{Card = -1, Edition = 0}, {Card = -1, Edition = 0}}
 

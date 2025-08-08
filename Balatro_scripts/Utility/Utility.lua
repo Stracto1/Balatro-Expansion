@@ -1536,6 +1536,8 @@ end
 
 function mod:GetConsumableCost(Consumable, Edition, SellSlot, Player)
 
+    local PIndex = Player:GetData().TruePlayerIndex
+
     local IsSpectral = Consumable >= mod.Spectrals.FAMILIAR and Consumable <= mod.Spectrals.SOUL
 
     local SellValue = ((IsSpectral and 4 or 3) + EditionValue[Edition])
@@ -1547,14 +1549,21 @@ function mod:GetConsumableCost(Consumable, Edition, SellSlot, Player)
         Discount = 0.75
     end
 
+
     local Cost = math.floor(SellValue * Discount)
 
     if SellSlot then
         Cost = math.floor(Cost/2)
+
+        local GiftExtra = mod.Saved.Player[PIndex].GiftCardConsumableExtra[SellSlot]
+
+        GiftExtra = GiftExtra or 0
+
+        Cost = Cost + GiftExtra
     end
 
-    return math.max(Cost, 1)
 
+    return math.max(Cost, 1)
 end
 
 ---@param Player EntityPlayer
@@ -2346,7 +2355,7 @@ function mod:CardSuitToName(Suit, IsEID)
 
     if Suit == mod.Suits.Spade then
         if IsEID then
-            return "{{ColorGray}}Spades{{CR}}"
+            return "{{ColorSpade}}Spades{{CR}}"
         end
         return "Spades"
     elseif Suit == mod.Suits.Heart then
