@@ -1171,25 +1171,20 @@ function mod:OnBlindClear(BlindType)
 
         elseif Joker == mod.Jokers.SATELLITE then
             
-            local PlanetsUsed = 0
+            local PlanetsUsed = mod.GetJokerInitialProgress(Joker, false)
 
-            for i=1, mod.Values.KING do
-                if mod.Saved.PlanetTypesUsed & (1<<i) ~= 0 then
-                    PlanetsUsed = PlanetsUsed + 1
+            for i=1, PlanetsUsed do
+                
+                local Seed = mod:RandomSeed(Player:GetTrinketRNG(mod.Jokers.SATELLITE))
 
-                    local Seed = Random()
-                    Seed = Seed==0 and 1 or Seed
-
-                    Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
-                               RandomVector()*3, Player, CoinSubType.COIN_PENNY, Seed)
-                end
+                Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
+                           RandomVector()*3, Player, CoinSubType.COIN_PENNY, Seed)
             end
+
             if PlanetsUsed ~= 0 then
                 mod:CreateBalatroEffect(Index,mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(PlanetsUsed).."$",mod.EffectType.JOKER, Player)
-        
             end
 
-        
         end
     end --END JOKER FOR
 
@@ -1478,7 +1473,7 @@ function mod:OnRoomClear(IsBoss, Hostile)
             end
 
         elseif Joker == mod.Jokers.ICECREAM and not Copied then
-            mod.Saved.Player[PIndex].Progress.Inventory[Index] = mod.Saved.Player[PIndex].Progress.Inventory[Index] - 0.16
+            mod.Saved.Player[PIndex].Progress.Inventory[Index] = mod.Saved.Player[PIndex].Progress.Inventory[Index] - 0.125
 
             if mod.Saved.Player[PIndex].Progress.Inventory[Index] <= 0.01 then --at 0 it self destructs
                 
@@ -2474,7 +2469,7 @@ function mod:CopyAdjustments(Player)
                 end
             end
 
-            local Mult = 1 + 0.75*EmptySlots
+            local Mult = 0.25 + 0.75*EmptySlots
 
             if Player:GetActiveItem() == CollectibleType.COLLECTIBLE_NULL then
                 Mult = Mult + 0.25
@@ -3169,20 +3164,11 @@ function mod:TearsJokers(Player, _)
         if Joker == 0 or not ItemsConfig:GetTrinket(Joker):HasCustomTag(mod.JokerTypes.CHIPS) then --could save some time
             goto skip_joker
         end
-        if Joker == mod.Jokers.BULL then --this works with mod:OnUpdate() in TrinketCallbacks.lua
+        if Joker == mod.Jokers.BULL then
             
             local Coins = mod.Saved.HasDebt and 0 or Player:GetNumCoins()
 
             local Tears = Coins * 0.1
-
-            if Tears ~= mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] then
-
-                local Difference = Tears - mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex]
-
-                
-                mod:CreateBalatroEffect(Index, mod.EffectColors.BLUE,mod.Sounds.CHIPS,
-                mod:GetSignString(Difference)..tostring(Difference),mod.EffectType.JOKER, Player)
-            end
  
             mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = Tears --only used to tell when to spawn an effect
 

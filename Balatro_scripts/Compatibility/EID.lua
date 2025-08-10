@@ -134,6 +134,270 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
 
     if Type == EID_DescType.JOKER then
 
+        local Joker = Subtype
+
+        local JokerConfig = ItemsConfig:GetTrinket(Joker)
+
+
+        local Progress
+        if Index then
+            Progress = mod.Saved.Player[PIndex].Progress.Inventory[Index]
+        end
+
+        if JokerConfig:HasCustomTag("chips") then
+
+            if Joker == mod.Jokers.CASTLE then
+
+                Progress = Progress or mod:GetJokerInitialProgress(Joker, true, T_Jimbo)
+
+                Values[1] = mod:CardSuitToName(Progress & SUIT_FLAG, true)
+            
+                Values[2] = tostring((Progress & ~SUIT_FLAG)/SUIT_FLAG + 1) --chips accumulated
+
+            elseif Joker == mod.Jokers.BLUE_JOKER then
+
+                Progress = mod:GetJokerInitialProgress(Joker, true, T_Jimbo)
+
+                Values[1] = tostring(Progress)
+
+            elseif Joker == mod.Jokers.BULL then
+
+                Progress = mod:GetJokerInitialProgress(Joker, true, T_Jimbo)
+            
+                Values[1] = tostring(T_Jimbo:GetNumCoins()*2)
+
+            else--[[if Joker == mod.Jokers.STONE_JOKER
+                   or Joker == mod.Jokers.ICECREAM
+                   or Joker == mod.Jokers.RUNNER
+                   or Joker == mod.Jokers.SQUARE_JOKER
+                   or Joker == mod.Jokers.WEE_JOKER then]]
+
+                Progress = Progress or mod:GetJokerInitialProgress(Joker, true, T_Jimbo)
+
+                Values[1] = tostring(mod:GetJokerInitialProgress())
+            end
+
+        elseif JokerConfig:HasCustomTag("mult") then
+
+            if Joker == mod.Jokers.BOOTSTRAP then
+
+                Progress = mod:GetJokerInitialProgress(Joker, true, T_Jimbo)
+
+                Values[1] = tostring(Progress)
+
+            else--[[if Joker == mod.Jokers.ABSTRACT_JOKER 
+               or Joker == mod.Jokers.RED_CARD
+               or Joker == mod.Jokers.FORTUNETELLER
+               or Joker == mod.Jokers.SACRIFICIAL_DAGGER
+               or Joker == mod.Jokers.FLASH_CARD
+               or Joker == mod.Jokers.SWASHBUCKLER
+               or Joker == mod.Jokers.RIDE_BUS
+               or Joker == mod.Jokers.SPARE_TROUSERS
+               or Joker == mod.Jokers.POPCORN then]]
+               
+                Progress = Progress or mod:GetJokerInitialProgress(Joker, true, T_Jimbo)
+
+                Values[1] = tostring(mod:GetJokerInitialProgress())
+            end
+
+        elseif JokerConfig:HasCustomTag("multm") then
+
+            if Joker == mod.Jokers.ANCIENT_JOKER then
+
+                local Suit = Progress or mod:GetJokerInitialProgress(Joker, true)
+
+                Values[1] = mod:CardSuitToName(Suit,true)
+            
+            elseif Joker == mod.Jokers.IDOL then
+
+                local card = Progress or mod:GetJokerInitialProgress(Joker, true)
+
+                Values[1] = mod:GetCardName(card, true)
+        
+            elseif Joker == mod.Jokers.YORICK then
+
+                Progress = Progress or mod:GetJokerInitialProgress(Joker, true, T_Jimbo)
+
+                Values[1] = tostring(1 + (Progress // 23)) --X mult
+                Values[2] = tostring(23 - (Progress % 23)) --discards before upgrade
+
+            elseif Joker == mod.Jokers.LOYALTY_CARD then
+
+                Progress = Progress or mod:GetJokerInitialProgress(Joker, false)
+
+                if Progress == 0 then
+                    
+                    Values[1] = mod:GetEIDString("Other", "Ready")
+
+                else
+                    Values[1] = tostring(Progress)..mod:GetEIDString("Other", "Remaining")
+
+                end
+
+
+            else --[[Joker == mod.Jokers.JOKER_STENCIL
+                   or Joker == mod.Jokers.LOYALTY_CARD
+                   or Joker == mod.Jokers.MADNESS
+                   or Joker == mod.Jokers.CONSTELLATION
+                   or Joker == mod.Jokers.VAMPIRE
+                   or Joker == mod.Jokers.HOLOGRAM
+                   or Joker == mod.Jokers.OBELISK
+                   or Joker == mod.Jokers.LUCKY_CAT
+                   or Joker == mod.Jokers.CAMPFIRE
+                   or Joker == mod.Jokers.THROWBACK
+                   or Joker == mod.Jokers.GLASS_JOKER
+                   or Joker == mod.Jokers.HIT_ROAD
+                   or Joker == mod.Jokers.DRIVER_LICENSE]]
+
+                Progress = Progress or mod:GetJokerInitialProgress(Joker, true, T_Jimbo)
+
+                Values[1] = tostring(mod:GetJokerInitialProgress())
+            end
+
+
+        elseif JokerConfig:HasCustomTag("money") then
+
+            if Joker == mod.Jokers.TO_DO_LIST then
+
+                Progress = Progress or mod:GetJokerInitialProgress(Joker, true)
+
+                local Hand = mod:GetEIDString("HandTypeName", Progress)
+
+                Values[1] = Hand
+
+            elseif Joker == mod.Jokers.SATELLITE then
+
+                Progress = mod:GetJokerInitialProgress(Joker, true)
+                    
+                Values[1] = tostring(Progress)
+                        
+            elseif Joker == mod.Jokers.MAIL_REBATE then
+
+                Progress = Progress or mod:GetJokerInitialProgress(Joker, true)
+
+                Values[1] = mod:CardValueToName(Progress, true)
+
+            elseif Joker == mod.Jokers.ROCKET then
+
+                Progress = Progress or mod:GetJokerInitialProgress(Joker, true)
+
+                Values[1] = tostring(Progress)
+            end
+        elseif JokerConfig:HasCustomTag("activate") then
+
+            if Joker == mod.Jokers.BLUEPRINT or Joker == mod.Jokers.BRAINSTORM then
+
+                if not Progress then
+                
+                    Values[1] = ""
+                elseif Progress ~= 0 then
+                    Values[1] = mod:GetEIDString("Other", "Compatible")
+                else
+                    Values[1] = mod:GetEIDString("Other", "Incompatible")
+                end
+
+            elseif Joker == mod.Jokers.INVISIBLE_JOKER then
+
+                Progress = Progress or mod:GetJokerInitialProgress(Joker, true)
+
+                if Progress == 2 then
+                    Values[1] = mod:GetEIDString("Other", "Ready")
+                else
+                    Values[1] = "{{ColorYellorange}}"..tostring(Progress).."/2{{ColorGray}}"..mod:GetEIDString("Other", "Rounds")
+                end
+
+                    
+                Values[2] = ""
+
+                for i,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+
+                    if Slot.Edition == mod.Edition.NEGATIVE then
+                        Values[2] = "#{{ColorGray}}("..mod:GetEIDString("Other","RemovesNeg")..")"
+                        break
+                    end
+                end
+
+            elseif Joker == mod.Jokers.DNA then
+
+                if not Progress then
+
+                    Values[1] = ""
+
+                elseif mod.Saved.HandsRemaining == T_Jimbo:GetCustomCacheValue(mod.CustomCache.HAND_NUM) - 1 then
+                    Values[1] = mod:GetEIDString("Other", "Ready")
+                else
+                    Values[1] = mod:GetEIDString("Other", "NotReady")
+                end
+
+            elseif Joker == mod.Jokers.SIXTH_SENSE then
+
+                if not Progress then
+
+                    Values[1] = ""
+
+                elseif mod.Saved.HandsRemaining == T_Jimbo:GetCustomCacheValue(mod.CustomCache.HAND_NUM) - 1 then
+                    Values[1] = mod:GetEIDString("Other", "Ready")
+                else
+                    Values[1] = mod:GetEIDString("Other", "NotReady")
+                end
+
+            
+            
+            else--[[ Joker == mod.Jokers.SELTZER 
+                   or Joker == mod.Jokers.TURTLE_BEAN then]]
+
+                Progress = Progress or mod:GetJokerInitialProgress(Joker, true)
+
+                Values[1] = mod:GetJokerInitialProgress(Joker, true)
+            end
+        end
+
+    elseif Type == EID_DescType.CONSUMABLE then
+
+        local card = Subtype
+        
+        if card == mod.Spectrals.ECTOPLASM then
+            
+            Values[1] = tostring(mod.Saved.Player[PIndex].EctoUses + 1)
+
+        elseif card == mod.Spectrals.ANKH then
+
+            Values[1] = ""
+
+            for i,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+
+                if Slot.Edition == mod.Edition.NEGATIVE then
+                    Values[1] = "#{{ColorGray}}("..mod:GetEIDString("Other","RemovesNeg")..")"
+                    break
+                end
+            end
+        end
+
+    end
+
+
+    --converts the normal indexes to what we need for string.gsub (this made it easier to write the stuff above)
+    for i,v in ipairs(Values) do
+
+        Values["[[VALUE"..tostring(i).."]]"] = v
+    end
+
+    return Values
+end
+
+
+
+---@return table ([[VALUE"X"]] = string)
+local function GetJimboDescriptionValues(Type, Subtype, Index)
+
+    local Jimbo = PlayerManager.FirstPlayerByType(mod.Characters.JimboType)
+
+    local PIndex = Jimbo:GetData().TruePlayerIndex
+
+    Values = {}
+
+    if Type == EID_DescType.JOKER then
+
         local Progress
         if Index then
             Progress = mod.Saved.Player[PIndex].Progress.Inventory[Index]
@@ -147,67 +411,96 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
 
             if Joker == mod.Jokers.CASTLE then
 
-                Values[1] = mod:CardSuitToName(mod:GetJokerInitialProgress(Joker, true), true)
-            
-                if Progress then
+                Progress = Progress or mod:GetJokerInitialProgress(Joker, false)
 
-                    Values[2] = (Progress & ~SUIT_FLAG)/SUIT_FLAG + 1 --chips accumulated
-                end
+                Values[1] = mod:CardSuitToName(Progress & SUIT_FLAG, true)
+            
+                Values[2] = tostring((Progress & ~SUIT_FLAG)/SUIT_FLAG + 1) --chips accumulated
 
             elseif Joker == mod.Jokers.BLUE_JOKER then
 
-            Values[1] = 2*(#mod.Saved.Player[PIndex].FullDeck - mod.Saved.Player[PIndex].DeckPointer + 1)
+                Values[1] = mod:GetJokerInitialProgress(Joker, false)
 
-            elseif Joker == mod.Jokers.BULL then
-
-            Values[1] = (T_Jimbo:GetNumCoins()*2)
-
-
-            elseif Joker == mod.Jokers.STONE_JOKER
+            else --[[if Joker == mod.Jokers.STONE_JOKER
                    or Joker == mod.Jokers.ICECREAM
                    or Joker == mod.Jokers.RUNNER
                    or Joker == mod.Jokers.SQUARE_JOKER
-                   or Joker == mod.Jokers.WEE_JOKER then
+                   or Joker == mod.Jokers.WEE_JOKER
+                   or Joker == mod.Jokers.BULL then]]
 
-                if Progress then
-                    Values[1] = tostring(Progress) --chips accumulated
-                end
+
+                Progress = Progress or mod:GetJokerInitialProgress(Joker, false)
+
+                Values[1] = tostring(Progress) --chips accumulated
             end
 
         elseif JokerConfig:HasCustomTag("mult") then
 
-            if Joker == mod.Jokers.ABSTRACT_JOKER 
-               or Joker == mod.Jokers.RED_CARD
-               or Joker == mod.Jokers.FORTUNETELLER
-               or Joker == mod.Jokers.SACRIFICIAL_DAGGER
-               or Joker == mod.Jokers.FLASH_CARD
-               or Joker == mod.Jokers.SWASHBUCKLER
-               or Joker == mod.Jokers.RIDE_BUS
-               or Joker == mod.Jokers.SPARE_TROUSERS then
+            if Joker == mod.Jokers.BOOTSTRAP then
+            
+               Values[1] = mod:GetJokerInitialProgress(Joker, false)
+
+            else
+                Progress = Progress or mod:GetJokerInitialProgress(Joker, false)
 
                 Values[1] = tostring(Progress)
-
-            elseif Joker == mod.Jokers.BOOTSTRAP then
-            
-               Values[1] = (T_Jimbo:GetNumCoins()//5) * 2
             end
 
         elseif JokerConfig:HasCustomTag("multm") then
 
             if Joker == mod.Jokers.ANCIENT_JOKER then
 
-                Values[1] = mod:CardSuitToName(mod:GetJokerInitialProgress(Joker, true),true)
+                Progress = Progress or mod:GetJokerInitialProgress(Joker, false)
+
+                Values[1] = mod:CardSuitToName(Progress,true)
             
             elseif Joker == mod.Jokers.IDOL then
-            Values[1] = mod:GetCardName(mod:GetJokerInitialProgress(Joker, true), true)
+
+                Progress = Progress or mod:GetJokerInitialProgress(Joker, false)
+
+                Values[1] = mod:GetCardName(Progress, true)
         
             elseif Joker == mod.Jokers.YORICK then
 
-                if Progress then
-                    Values[1] = tostring(23 - (Progress % 23))
+                Progress = Progress or mod:GetJokerInitialProgress(Joker, false)
+
+                Values[2] = tostring(23 - (Progress % 23))
+                Values[1] = tostring(1 + (Progress // 23))
+
+            elseif Joker == mod.Jokers.DRIVER_LICENSE then
+            
+                Progress = Progress or mod:GetJokerInitialProgress(Joker, false)
+
+                if Progress ~= 1 then --if it's giving mult
+                    
+                    Values[1] = mod:GetEIDString("Other", "Active")
+                else
+
+                    local Enahncements = 0
+                    for _,card in ipairs(mod.Saved.Player[PIndex].FullDeck) do
+                        if card.Enhancement ~= mod.Enhancement.NONE then
+                            Enahncements = Enahncements + 1
+                        end
+                    end
+
+                    Values[1] = "{{ColorYellorange}}"..tostring(Enahncements).."{{ColorGray}} Enhanced cards"
                 end
-            elseif Joker == mod.Jokers.JOKER_STENCIL
-                   or Joker == mod.Jokers.LOYALTY_CARD
+
+            elseif Joker == mod.Jokers.LOYALTY_CARD then
+
+                Progress = Progress or mod:GetJokerInitialProgress(Joker, false)
+
+                if Progress == 0 then
+                    
+                    Values[1] = mod:GetEIDString("Other", "Ready")
+
+                else
+                    Values[1] = tostring(Progress)..mod:GetEIDString("Other", "Remaining")
+
+                end
+
+            
+            else --[[Joker == mod.Jokers.JOKER_STENCIL
                    or Joker == mod.Jokers.MADNESS
                    or Joker == mod.Jokers.CONSTELLATION
                    or Joker == mod.Jokers.VAMPIRE
@@ -217,12 +510,12 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
                    or Joker == mod.Jokers.CAMPFIRE
                    or Joker == mod.Jokers.THROWBACK
                    or Joker == mod.Jokers.GLASS_JOKER
-                   or Joker == mod.Jokers.HIT_ROAD
-                   or Joker == mod.Jokers.DRIVER_LICENSE then
+                   or Joker == mod.Jokers.HIT_ROAD then]]
 
-                if Progress then
-                    Values[1] = tostring(Progress)
-                end
+
+                Progress = Progress or mod:GetJokerInitialProgress(Joker, false)
+
+                Values[1] = tostring(Progress)
             end
 
 
@@ -230,52 +523,52 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
 
             if Joker == mod.Jokers.TO_DO_LIST then
 
-                local Value = mod:GetJokerInitialProgress(T_Jimbo, Joker)
+                Progress = Progress or mod:GetJokerInitialProgress(Joker, false)
 
-                local Hand = mod:GetEIDString("HandTypeName", Value)
+                local Hand = mod:CardValueToName(Progress, true)
 
                 Values[1] = Hand
 
             elseif Joker == mod.Jokers.SATELLITE then
 
-                local Value = Progress
+                local PlanetsUsed = 0
 
-                local Money = 0
-
-                for i=1, mod.HandTypes.FIVE_FLUSH do
-
-                    if Value & 2^i ~= 0 then
-                        Money = Money + 1
+                for i=1, mod.Values.KING do
+                    if mod.Saved.PlanetTypesUsed & (1<<i) ~= 0 then
+                        PlanetsUsed = PlanetsUsed + 1
                     end
                 end
                 
-                Values[1] = tostring(Money)
+                Values[1] = tostring(PlanetsUsed)
         
             elseif Joker == mod.Jokers.MAIL_REBATE then
 
-            local Value = mod:GetJokerInitialProgress(T_Jimbo, Joker)
+                local Value = mod:GetJokerInitialProgress(Joker, false)
 
-            Values[1] = mod:CardValueToName(Value, true)
+                Values[1] = mod:CardValueToName(Value, true)
             end
         elseif JokerConfig:HasCustomTag("activate") then
 
             if Joker == mod.Jokers.BLUEPRINT or Joker == mod.Jokers.BRAINSTORM then
 
-            if Progress ~= 0 then
-                Values[1] = mod:GetEIDString("Other", "Compatible")
-            else
-                Values[1] = mod:GetEIDString("Other", "Incompatible")
-            end
+                if Progress then
+                    if Progress ~= 0 then
+                        Values[1] = mod:GetEIDString("Other", "Compatible")
+                    else
+                        Values[1] = mod:GetEIDString("Other", "Incompatible")
+                    end
+                end
 
             elseif Joker == mod.Jokers.INVISIBLE_JOKER then
 
-                if Progress then
-                    if Progress == 2 then
-                        Values[1] = mod:GetEIDString("Other", "Ready")
-                    else
-                        Values[1] = "{{ColorYellorange}}"..tostring(Progress).."/2{{ColorGray}}"..mod:GetEIDString("Other", "Rounds")
-                    end
+                if not Progress then
+                    Values[1] = ""
+                elseif Progress == 3 then
+                    Values[1] = mod:GetEIDString("Other", "Ready")
+                else
+                    Values[1] = "{{ColorYellorange}}"..tostring(Progress).."/3{{ColorGray}}"..mod:GetEIDString("Other", "Rounds")
                 end
+                
 
                 for i,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
 
@@ -287,35 +580,26 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
 
             elseif Joker == mod.Jokers.DNA then
 
-            if mod.Saved.HandsRemaining == T_Jimbo:GetCustomCacheValue(mod.CustomCache.HAND_NUM) - 1 then
-                Values[1] = mod:GetEIDString("Other", "Ready")
-            else
-                Values[1] = mod:GetEIDString("Other", "NotReady")
-            end
+                if mod.Saved.Player[PIndex].Progress.Room.Shots == 1 then
+                    Values[1] = mod:GetEIDString("Other", "Ready")
+                else
+                    Values[1] = mod:GetEIDString("Other", "NotReady")
+                end
 
             elseif Joker == mod.Jokers.SIXTH_SENSE then
 
-            if mod.Saved.HandsRemaining == T_Jimbo:GetCustomCacheValue(mod.CustomCache.HAND_NUM) - 1 then
-                Values[1] = mod:GetEIDString("Other", "Ready")
-            else
-                Values[1] = mod:GetEIDString("Other", "NotReady")
-            end
+                if mod.Saved.Player[PIndex].Progress.Room.Shots == 1 then
+                    Values[1] = mod:GetEIDString("Other", "Ready")
+                else
+                    Values[1] = mod:GetEIDString("Other", "NotReady")
+                end
 
-            elseif Joker == mod.Jokers.TURTLE_BEAN then
+            elseif Joker == mod.Jokers.TURTLE_BEAN 
+                   or Joker == mod.Jokers.SELTZER then
 
-            if Progress then
+                Progress = Progress or mod:GetJokerInitialProgress(Joker, false)
+                
                 Values[1] = tostring(Progress)
-            else
-                Values[1] = mod:GetJokerInitialProgress(Joker, true)
-            end
-            
-            elseif Joker == mod.Jokers.SELTZER then
-
-            if Progress then
-                Values[1] = tostring(Progress)
-            else
-                Values[1] = mod:GetJokerInitialProgress(Joker, true)
-            end
             end
         end
 
@@ -324,11 +608,7 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
 
         local card = Subtype
         
-        if card == mod.Spectrals.ECTOPLASM then
-            
-            Values[1] = tostring(mod.Saved.Player[PIndex].EctoUses + 1)
-
-        elseif card == mod.Spectrals.ANKH then
+        if card == mod.Spectrals.ANKH then
             for i,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
 
                 if Slot.Edition == mod.Edition.NEGATIVE then
@@ -356,7 +636,7 @@ end
 ---@param DescType integer
 ---@param DescSubType integer
 ---@param Index integer?
-function mod:ReplaceBalatroMarkups(String, DescType, DescSubType, Index)
+function mod:ReplaceBalatroMarkups(String, DescType, DescSubType, Tainted, Index)
 
     local T_Jimbo = PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo)
 
@@ -368,18 +648,38 @@ function mod:ReplaceBalatroMarkups(String, DescType, DescSubType, Index)
         return tostring(2^NumDice) --usually chance based things are 1/X chance so no problem in doing this
     end)
 
+    if Tainted then
 
-    if DescType & EID_DescType.JOKER ~= 0
-       and DescType & EID_DescType.SELECTION_FLAG == 0 then
+        --removes the custom values if it's a joker noy in the inventory
+        if DescType & EID_DescType.JOKER ~= 0
+           and DescType & EID_DescType.SELECTION_FLAG == 0 then
 
-        local s = string.find(String, "#{{ColorGray}}", 1, true)
-        
-        String = string.sub(String, 1, s)
+            local s = string.find(String, "#{{ColorGray}}", 1, true)
+
+            String = string.sub(String, 1, s)
+        end
+    else
+        --removes the custom values if it's a joker noy in the inventory
+        if DescType & EID_DescType.JOKER ~= 0
+           and DescType & EID_DescType.SELECTION_FLAG == 0 then
+
+            local s = string.find(String, "#{{Blank}} {{ColorGray}}", 1, true)
+
+            String = string.sub(String, 1, s)
+        end
+
     end
 
-    local Values = GetT_JimboDescriptionValues(DescType & ~EID_DescType.SELECTION_FLAG, DescSubType, Index)
+    local Values 
+    if Tainted then
+        Values = GetT_JimboDescriptionValues(DescType & ~EID_DescType.SELECTION_FLAG, DescSubType, Index)
+    else
+        Values = GetJimboDescriptionValues(DescType & ~EID_DescType.SELECTION_FLAG, DescSubType, Index)
+    end
 
     String = string.gsub(String, "[[VALUE%d]]", Values)
+
+    return String
 end
 
 
@@ -1380,7 +1680,7 @@ local function TJimboDescriptionsCallback(descObj)
         EID_Desc.Extras.Seal = mod.Seals.NONE
     end
 
-    EID_Desc.Description = mod:ReplaceBalatroMarkups(EID_Desc.Description, ObjectToDescribe.Type, ObjectToDescribe.SubType, PlayerSelection.Index)
+    EID_Desc.Description = mod:ReplaceBalatroMarkups(EID_Desc.Description, ObjectToDescribe.Type, ObjectToDescribe.SubType, true, PlayerSelection.Index)
 
 
     if not Result then

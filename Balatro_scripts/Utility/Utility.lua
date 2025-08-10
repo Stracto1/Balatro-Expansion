@@ -1316,109 +1316,327 @@ function mod:GetJokerRarity(Joker)
     return string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[4],"%?","")
 end
 
-function mod:GetJokerInitialProgress(Joker, Tainted)
+function mod:GetJokerInitialProgress(Joker, Tainted, Player)
 
     local Config = ItemsConfig:GetTrinket(Joker)
 
     local Prog
     if Tainted then
 
-        local T_Jimbo = PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo)
+        local T_Jimbo = Player or PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo)
         local PIndex = T_Jimbo:GetData().TruePlayerIndex
 
         local JokerRNG = T_Jimbo:GetTrinketRNG(Joker)
 
-        if Joker == mod.Jokers.IDOL then
+        if Config:HasCustomTag("chips") then
 
-            local ValidCards = {}
-            local RandomCard = {}
-            local Suit = 0
-            local Value = 0
+            if Joker == mod.Jokers.BULL then
 
-            for Pointer, card in ipairs(mod.Saved.Player[PIndex].FullDeck) do
-                if card.Enhancement ~= mod.Enhancement.STONE then
-                    ValidCards[#ValidCards+1] = Pointer
+                Prog = Game:GetPlayer(0):GetNumCoins()*2
+
+                if mod.Saved.HasDebt then
+                    Prog = 0
                 end
-            end
-            
-            if next(ValidCards) then
-                RandomCard = mod.Saved.Player[PIndex].FullDeck[mod:GetRandom(ValidCards, JokerRNG, true)]
-                Suit = RandomCard.Suit
-                Value = RandomCard.Value
-            else
-                Suit = mod.Suits.Spade
-                Value = 1
-            end
-            
-            Prog = Suit + 8*Value
-
-        elseif Joker == mod.Jokers.MAIL_REBATE then
-            
-            Prog = JokerRNG:PhantomInt(mod.Values.KING) + 1
-        elseif Joker == mod.Jokers.CASTLE then
-
-            Prog = mod.Saved.Player[PIndex].FullDeck[JokerRNG:PhantomInt(#mod.Saved.Player[PIndex].FullDeck)+1].Suit
+            elseif Joker == mod.Jokers.STONE_JOKER then 
         
-        elseif Joker == mod.Jokers.ANCIENT_JOKER then
-            Prog = JokerRNG:PhantomInt(mod.Suits.Diamond) + 1
+                local NumStone = 0
 
-        elseif Joker == mod.Jokers.TO_DO_LIST then
+                for i,card in ipairs(mod.Saved.Player[PIndex].FullDeck) do
 
-            Prog = mod:RandomHandType(JokerRNG, true)
+                    if card.Enhancement == mod.Enhancement.STONE then
+
+                        NumStone = NumStone + 1
+                    end
+                end
+
+                Prog = 25 * NumStone
+
+            elseif Joker == mod.Jokers.BLUE_JOKER then 
+
+                Prog = 2*(#mod.Saved.Player[PIndex].FullDeck - mod.Saved.Player[PIndex].DeckPointer + 1)
+
+            elseif Joker == mod.Jokers.CASTLE then
+
+                Prog = mod.Saved.Player[PIndex].FullDeck[JokerRNG:PhantomInt(#mod.Saved.Player[PIndex].FullDeck)+1].Suit
         
-        else
+            end
 
-            Prog = tonumber(string.gsub(Config:GetCustomTags()[3],"%:",""), 10)
+        elseif Config:HasCustomTag("mult") then
+
+            if Joker == mod.Jokers.BOOTSTRAP then
+
+                Prog = (Game:GetPlayer(0):GetNumCoins()//5) * 2
+
+                if mod.Saved.HasDebt then
+                    Prog = 0
+                end
+
+            elseif Joker == mod.Jokers.FORTUNETELLER then
+        
+                Prog = mod.Saved.TarotsUsed
+
+            elseif Joker == mod.Jokers.SWASHBUCKLER then
+
+                local TotalSell = 0
+                for JokerIndex, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+                    if Slot.Joker ~= 0 then
+                        TotalSell = TotalSell + mod:GetJokerCost(Slot.Joker, Slot.Edition, JokerIndex, Player)
+                    end
+                end
+
+                Prog = TotalSell
+            end
+
+        elseif Config:HasCustomTag("multm") then
+
+            if Joker == mod.Jokers.IDOL then
+
+                local ValidCards = {}
+                local RandomCard = {}
+                local Suit = 0
+                local Value = 0
+
+                for Pointer, card in ipairs(mod.Saved.Player[PIndex].FullDeck) do
+                    if card.Enhancement ~= mod.Enhancement.STONE then
+                        ValidCards[#ValidCards+1] = Pointer
+                    end
+                end
+
+                if next(ValidCards) then
+                    RandomCard = mod.Saved.Player[PIndex].FullDeck[mod:GetRandom(ValidCards, JokerRNG, true)]
+                    Suit = RandomCard.Suit
+                    Value = RandomCard.Value
+                else
+                    Suit = mod.Suits.Spade
+                    Value = 1
+                end
+
+                Prog = Suit + 8*Value
+
+            elseif Joker == mod.Jokers.ANCIENT_JOKER then
+                Prog = JokerRNG:PhantomInt(mod.Suits.Diamond) + 1
+
+            elseif Joker == mod.Jokers.JOKER_STENCIL then
+
+                local EmptySlots = 0
+                for i,v in ipairs(mod.Saved.Player[PIndex].Inventory) do
+                    if v.Joker == 0 or v.Joker == mod.Jokers.JOKER_STENCIL then
+                        EmptySlots = EmptySlots + 1
+                    end
+                end
+
+                Prog = EmptySlots
+
+            elseif Joker == mod.Jokers.DRIVER_LICENSE then
+
+                local Enahncements = 0
+                for _,card in ipairs(mod.Saved.Player[PIndex].FullDeck) do
+                    if card.Enhancement ~= mod.Enhancement.NONE then
+                        Enahncements = Enahncements + 1
+                    end
+                end
+
+                Prog = Enahncements
+
+            elseif Joker == mod.Jokers.THROWBACK then
+
+                Prog = 1 + mod.Saved.NumBlindsSkipped*0.25
+            end
+
+        elseif Config:HasCustomTag("money") then
+
+            if Joker == mod.Jokers.SATELLITE then
+
+                Prog = 0
+
+                for i=1, mod.HandTypes.FIVE_FLUSH do
+
+                    if mod.Saved.PlanetTypesUsed & (1 << i) ~= 0 then
+                        Prog = Prog + 1
+                    end
+                end
+            elseif Joker == mod.Jokers.MAIL_REBATE then
+            
+                Prog = JokerRNG:PhantomInt(mod.Values.KING) + 1
+
+            elseif Joker == mod.Jokers.TO_DO_LIST then
+
+                Prog = mod:RandomHandType(JokerRNG, true)
+            end
+
+        elseif Config:HasCustomTag("activate") then
+            
+
         end
+
+        Prog = Prog or tonumber(string.gsub(Config:GetCustomTags()[3],"%:",""), 10)
 
     else
 
-        local Jimbo = PlayerManager.FirstPlayerByType(mod.Characters.JimboType)
+        local Jimbo = Player or PlayerManager.FirstPlayerByType(mod.Characters.JimboType)
         local PIndex = Jimbo:GetData().TruePlayerIndex
 
         local JokerRNG = Jimbo:GetTrinketRNG(Joker)
 
-        if Joker == mod.Jokers.IDOL then
 
-            local ValidCards = {}
-            local RandomCard = {}
-            local Suit = 0
-            local Value = 0
+        if Config:HasCustomTag("chips") then
 
-            for Pointer, card in ipairs(mod.Saved.Player[PIndex].FullDeck) do
-                if card.Enhancement ~= mod.Enhancement.STONE then
-                    ValidCards[#ValidCards+1] = Pointer
+            if Joker == mod.Jokers.BULL then
+
+                Prog = Game:GetPlayer(0):GetNumCoins()*0.1
+
+                if mod.Saved.HasDebt then
+                    Prog = 0
                 end
-            end
-            
-            if next(ValidCards) then
-                RandomCard = mod.Saved.Player[PIndex].FullDeck[mod:GetRandom(ValidCards, JokerRNG, true)]
-                Suit = RandomCard.Suit
-                Value = RandomCard.Value
-            else
-                Suit = mod.Suits.Spade
-                Value = 1
-            end
-            
-            Prog = Suit + 8*Value
-
-        elseif Joker == mod.Jokers.MAIL_REBATE then
-            
-            Prog = JokerRNG:PhantomInt(mod.Values.KING) + 1
-        elseif Joker == mod.Jokers.CASTLE then
-
-            Prog = mod.Saved.Player[PIndex].FullDeck[JokerRNG:PhantomInt(#mod.Saved.Player[PIndex].FullDeck)+1].Suit
+            elseif Joker == mod.Jokers.STONE_JOKER then 
         
-        elseif Joker == mod.Jokers.ANCIENT_JOKER then
-            Prog = JokerRNG:PhantomInt(mod.Suits.Diamond) + 1
+                local StoneCards = 0
+                for i,card in ipairs(mod.Saved.Player[PIndex].FullDeck) do
+                    if card.Enhancement == mod.Enhancement.STONE then
+                        StoneCards = StoneCards + 1
+                    end
+                end
 
-        elseif Joker == mod.Jokers.TO_DO_LIST then
+                local Room = Game:GetRoom()
+                local NumRock = 0
 
-            Prog = mod:RandomHandType(JokerRNG, true)
-        else
+                for i = 0, Room:GetGridSize() do
+                    local Rock = Room:GetGridEntity(i)
+                    if Rock and Rock:GetType() == GridEntityType.GRID_ROCK and Rock:GetSaveState().State ~= 2 then
+                        NumRock = NumRock + 1
+                    end
+                end
 
-            Prog = tonumber(Config:GetCustomTags()[2], 10)
+                Prog = StoneCards * 1.25 + NumRock*0.05
+
+            elseif Joker == mod.Jokers.BLUE_JOKER then 
+
+                local NumCards = #mod.Saved.Player[PIndex].FullDeck - mod.Saved.Player[PIndex].DeckPointer + 1
+ 
+                Prog = NumCards * 0.1
+
+            elseif Joker == mod.Jokers.CASTLE then
+
+                Prog = mod.Saved.Player[PIndex].FullDeck[JokerRNG:PhantomInt(#mod.Saved.Player[PIndex].FullDeck)+1].Suit
+        
+            end
+
+        elseif Config:HasCustomTag("mult") then
+
+            if Joker == mod.Jokers.BOOTSTRAP then
+
+                Prog = (Game:GetPlayer(0):GetNumCoins()//5) * 0.1
+
+                if mod.Saved.HasDebt then
+                    Prog = 0
+                end
+
+            elseif Joker == mod.Jokers.FORTUNETELLER then
+        
+                Prog = mod.Saved.TarotsUsed * 0.03
+
+            elseif Joker == mod.Jokers.SWASHBUCKLER then
+
+                local TotalSell = 0
+                for JokerIndex, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+                    if Slot.Joker ~= 0 then
+                        TotalSell = TotalSell + mod:GetJokerCost(Slot.Joker, Slot.Edition, JokerIndex, Player)
+                    end
+                end
+
+                Prog = TotalSell * 0.05
+            end
+
+        elseif Config:HasCustomTag("multm") then
+
+            if Joker == mod.Jokers.IDOL then
+
+                local ValidCards = {}
+                local RandomCard = {}
+                local Suit = 0
+                local Value = 0
+
+                for Pointer, card in ipairs(mod.Saved.Player[PIndex].FullDeck) do
+                    if card.Enhancement ~= mod.Enhancement.STONE then
+                        ValidCards[#ValidCards+1] = Pointer
+                    end
+                end
+
+                if next(ValidCards) then
+                    RandomCard = mod.Saved.Player[PIndex].FullDeck[mod:GetRandom(ValidCards, JokerRNG, true)]
+                    Suit = RandomCard.Suit
+                    Value = RandomCard.Value
+                else
+                    Suit = mod.Suits.Spade
+                    Value = 1
+                end
+
+                Prog = Suit + 8*Value
+
+            elseif Joker == mod.Jokers.ANCIENT_JOKER then
+                Prog = JokerRNG:PhantomInt(mod.Suits.Diamond) + 1
+
+            elseif Joker == mod.Jokers.JOKER_STENCIL then
+
+                local EmptySlots = 0
+                for i,v in ipairs(mod.Saved.Player[PIndex].Inventory) do
+                    if v.Joker == 0 or v.Joker == mod.Jokers.JOKER_STENCIL then
+                        EmptySlots = EmptySlots + 1
+                    end
+                end
+
+                Prog = 0.25 + EmptySlots*0.75
+
+            elseif Joker == mod.Jokers.DRIVER_LICENSE then
+
+                local Is18 = Player:HasPlayerForm(PlayerForm.PLAYERFORM_ADULTHOOD) or Player:HasPlayerForm(PlayerForm.PLAYERFORM_MOM) or Player:HasPlayerForm(PlayerForm.PLAYERFORM_BOB)
+
+                if not Is18 then
+                    local Enahncements = 0
+                    for _,card in ipairs(mod.Saved.Player[PIndex].FullDeck) do
+                        if card.Enhancement ~= mod.Enhancement.NONE then
+                            Enahncements = Enahncements + 1
+                        end
+                    end
+
+                    Is18 = Enahncements >= 18
+                end
+
+                Prog = Is18 and 1.5 or 1
+
+            elseif Joker == mod.Jokers.THROWBACK then
+
+                Prog = 1 + mod.Saved.RunSkippedSpecials*0.05
+            end
+
+        elseif Config:HasCustomTag("money") then
+
+            if Joker == mod.Jokers.SATELLITE then
+
+                Prog = 0
+
+                for i=1, mod.Values.KING do
+
+                    if mod.Saved.PlanetTypesUsed & (1 << i) ~= 0 then
+                        Prog = Prog + 1
+                    end
+                end
+            elseif Joker == mod.Jokers.MAIL_REBATE then
+            
+                Prog = JokerRNG:PhantomInt(mod.Values.KING) + 1
+
+            elseif Joker == mod.Jokers.TO_DO_LIST then
+
+                Prog = mod:RandomHandType(JokerRNG, true)
+            end
+
+        elseif Config:HasCustomTag("activate") then
+            
+
         end
+        
+
+        Prog = Prog or tonumber(Config:GetCustomTags()[2], 10)
     end
 
     return Prog

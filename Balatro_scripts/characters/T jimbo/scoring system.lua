@@ -1435,16 +1435,26 @@ function mod:ScoreHand(Player)
             end
 
         elseif Joker == mod.Jokers.BULL then
-            IncreaseChips(Player, PIndex, Player:GetNumCoins()*2)
+            
+
+            local Chips = Player:GetNumCoins()*2
+
+            mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = Chips
+
+
+            IncreaseChips(Player, PIndex, Chips, mod.EffectType.JOKER, JokerIndex)
 
         elseif Joker == mod.Jokers.BLUE_JOKER then
 
             local NumCards = #mod.Saved.Player[PIndex].FullDeck - mod.Saved.Player[PIndex].DeckPointer + 1
+
             IncreaseChips(Player, PIndex, NumCards*2, mod.EffectType.JOKER, JokerIndex)
 
         elseif Joker == mod.Jokers.BOOTSTRAP then
 
             local Mult = (Player:GetNumCoins()//5) * 2
+
+            mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = Mult
 
             IncreaseMult(Player, PIndex, Mult, mod.EffectType.JOKER, JokerIndex)
         
@@ -1795,9 +1805,9 @@ local function CopyAdjustments(_,Player)
         elseif Joker == mod.Jokers.SWASHBUCKLER and not Copied then
         
             local TotalSell = 0
-            for Slot,Jok in ipairs(mod.Saved.Player[PIndex].Inventory) do
-                if Jok.Joker ~= 0 then
-                    TotalSell = TotalSell + mod:GetJokerCost(Jok.Joker, Jok.Edition, Slot, Player)
+            for JokerIndex, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+                if Slot.Joker ~= 0 and JokerIndex ~= Index then
+                    TotalSell = TotalSell + mod:GetJokerCost(Slot.Joker, Slot.Edition, JokerIndex, Player)
                 end
             end
 
@@ -2728,14 +2738,9 @@ local function CashoutEvaluation(_, BlindBeaten)
 
         elseif Joker == mod.Jokers.SATELLITE then
 
-            local UniquePlanets = 0
+            local UniquePlanets = mod:GetJokerInitialProgress(Joker, true)
 
-            for _,HandType in pairs(mod.HandTypes) do
-
-                if mod.Saved.PlanetTypesUsed & (1 << HandType) ~= 0 then
-                    UniquePlanets = UniquePlanets + 1
-                end
-            end
+            mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex] = UniquePlanets
 
             AddCashoutString("Satellite", UniquePlanets, mod.StringTypes.Joker)
             TotalGain = TotalGain + UniquePlanets
@@ -3220,9 +3225,12 @@ local function OnConsumableUse(_, Player, Consumable)
 
     ResetEffects(12)
 
+    if Consumable <= Card.CARD_WORLD then
+        mod.Saved.TarotsUsed = mod.Saved.TarotsUsed + 1
+    end
+
+
     local PIndex = Player:GetData().TruePlayerIndex
-    local RandomSeed = Random()
-    if RandomSeed == 0 then RandomSeed = 1 end --would crash the game otherwise
 
     --cycles between all the held jokers
     for Index, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
@@ -3252,7 +3260,8 @@ local function OnConsumableUse(_, Player, Consumable)
 
             if not Copied and Consumable <= Card.CARD_WORLD then
 
-                IncreaseJokerProgress(Player, PIndex, Index, 1, mod.EffectColors.RED, false)
+                mod.Saved.Player[PIndex].Progress.Inventory[Index] = mod.Saved.TarotsUsed
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "+"..tostring(mod.Saved.TarotsUsed), mod.EffectType.JOKER, Index)
             end
 
         elseif Joker == mod.Jokers.CONSTELLATION then
@@ -3261,6 +3270,8 @@ local function OnConsumableUse(_, Player, Consumable)
                and Consumable >= mod.Planets.PLUTO and Consumable <= mod.Planets.SUN then
 
                 IncreaseJokerProgress(Player, PIndex, ProgressIndex, 0.1, mod.EffectColors.YELLOW, false)
+                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "X"..tostring(mod.Saved.Player[PIndex].Progress.Inventory[Index]), mod.EffectType.JOKER, Index)
+
             end
         end
 
@@ -3346,7 +3357,7 @@ local function OnDeckModify(_, Player, CardsAdded, CardsDestroyed)
                 end
             end
 
-            mod.Saved.Player[PIndex].Progress.Inventory[Index] = Enahncements >= 18 and 3 or 1
+            mod.Saved.Player[PIndex].Progress.Inventory[Index] = Enahncements
 
         elseif Slot.Joker == mod.Jokers.GLASS_JOKER then
 

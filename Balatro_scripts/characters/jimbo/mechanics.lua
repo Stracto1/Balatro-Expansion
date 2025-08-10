@@ -1244,7 +1244,7 @@ function mod:JokerStatReset(Player, Cache)
                   Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY,
                   false, true, false)
 end
-mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.IMPORTANT, mod.JokerStatReset)
+--mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.IMPORTANT, mod.JokerStatReset)
 
 ---@param Player EntityPlayer
 ---@param Cache CacheFlag
