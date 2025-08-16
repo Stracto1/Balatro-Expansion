@@ -234,6 +234,10 @@ Balatro_Expansion.StringTypes = {Hand = -1,
 Balatro_Expansion.HandOrderingModes = {Rank = 1,
                                        Suit = 2}
 
+Balatro_Expansion.DeckPreviewModes = {OFF = 1,
+                                      PARTIAL = 2,
+                                      FULL = 3}
+
 Balatro_Expansion.JokerTypes = {}
 Balatro_Expansion.JokerTypes.ECON = "money"
 Balatro_Expansion.JokerTypes.MULT = "mult"
@@ -776,8 +780,9 @@ Balatro_Expansion.Saved.CurrentRound = 0
 Balatro_Expansion.Saved.BossBlindVarData = 0
 
 Balatro_Expansion.Saved.HandOrderingMode = Balatro_Expansion.HandOrderingModes.Rank
+Balatro_Expansion.Saved.DeckPreviewMode = Balatro_Expansion.DeckPreviewModes.OFF
 
-Balatro_Expansion.Saved.IsSpecialBoss = false 
+Balatro_Expansion.Saved.IsSpecialBoss = false
 Balatro_Expansion.Saved.AnteVoucher = 0
 Balatro_Expansion.Saved.NumShopRerolls = 0
 Balatro_Expansion.Saved.RerollStartingPrice = 5

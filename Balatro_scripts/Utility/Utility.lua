@@ -21,6 +21,12 @@ local EditionValue = {[mod.Edition.BASE] = 0,
                       [mod.Edition.POLYCROME] = 5,
                       [mod.Edition.NEGATIVE] = 5}
 
+local EditionSound = {[mod.Edition.BASE] = 0,
+                      [mod.Edition.FOIL] = mod.Sounds.FOIL,
+                      [mod.Edition.HOLOGRAPHIC] = mod.Sounds.HOLO,
+                      [mod.Edition.POLYCROME] = mod.Sounds.POLY,
+                      [mod.Edition.NEGATIVE] = mod.Sounds.NEGATIVE}
+
 
 local PackVariantPicker = WeightedOutcomePicker()
 PackVariantPicker:AddOutcomeWeight(mod.Packs.ARCANA, 40)
@@ -37,9 +43,16 @@ PackQualityPicker:AddOutcomeWeight(mod.PackQuality.MEGA, 1)
 
 local ShopItemTypes = {JOKER = 0, PLANET = 1, TAROT = 2}
 local ShopItemPicker = WeightedOutcomePicker()
-WeightedOutcomePicker():AddOutcomeWeight(ShopItemTypes.JOKER, 20)
-WeightedOutcomePicker():AddOutcomeWeight(ShopItemTypes.PLANET, 4)
-WeightedOutcomePicker():AddOutcomeWeight(ShopItemTypes.TAROT, 4)
+ShopItemPicker:AddOutcomeWeight(ShopItemTypes.JOKER, 20)
+ShopItemPicker:AddOutcomeWeight(ShopItemTypes.PLANET, 4)
+ShopItemPicker:AddOutcomeWeight(ShopItemTypes.TAROT, 4)
+
+
+local EditionPicker = WeightedOutcomePicker()
+EditionPicker:AddOutcomeFloat(mod.Edition.FOIL, 1)
+EditionPicker:AddOutcomeFloat(mod.Edition.HOLOGRAPHIC, 0.7)
+EditionPicker:AddOutcomeFloat(mod.Edition.POLYCROME, 0.3)
+local NEGATIVE_CHANCE = 0.003 --this is fixed regardless of vouchers
 
 
 --rounds down to numDecimal of spaces
@@ -1380,7 +1393,7 @@ function mod:GetJokerInitialProgress(Joker, Tainted, Player)
                 local TotalSell = 0
                 for JokerIndex, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
                     if Slot.Joker ~= 0 then
-                        TotalSell = TotalSell + mod:GetJokerCost(Slot.Joker, Slot.Edition, JokerIndex, Player)
+                        TotalSell = TotalSell + mod:GetJokerCost(Slot.Joker, Slot.Edition, JokerIndex, T_Jimbo)
                     end
                 end
 
@@ -1472,7 +1485,7 @@ function mod:GetJokerInitialProgress(Joker, Tainted, Player)
         Prog = Prog or tonumber(string.gsub(Config:GetCustomTags()[3],"%:",""), 10)
 
     else
-
+        ---@type EntityPlayer
         local Jimbo = Player or PlayerManager.FirstPlayerByType(mod.Characters.JimboType)
         local PIndex = Jimbo:GetData().TruePlayerIndex
 
@@ -1518,7 +1531,12 @@ function mod:GetJokerInitialProgress(Joker, Tainted, Player)
             elseif Joker == mod.Jokers.CASTLE then
 
                 Prog = mod.Saved.Player[PIndex].FullDeck[JokerRNG:PhantomInt(#mod.Saved.Player[PIndex].FullDeck)+1].Suit
-        
+    
+            elseif Joker == mod.Jokers.ODDTODD then
+
+                local ItemNum = Jimbo:GetCollectibleCount()
+
+                Prog = (ItemNum%2==1) and ItemNum*0.07 or 0
             end
 
         elseif Config:HasCustomTag("mult") then
@@ -1545,6 +1563,12 @@ function mod:GetJokerInitialProgress(Joker, Tainted, Player)
                 end
 
                 Prog = TotalSell * 0.05
+
+            elseif Joker == mod.Jokers.EVENSTEVEN then
+
+                local ItemNum = Jimbo:GetCollectibleCount()
+
+                Prog = (ItemNum%2==0) and ItemNum*0.02 or 0
             end
 
         elseif Config:HasCustomTag("multm") then
@@ -1773,7 +1797,7 @@ function mod:GetConsumableCost(Consumable, Edition, SellSlot, Player)
     if SellSlot then
         Cost = math.floor(Cost/2)
 
-        local GiftExtra = mod.Saved.Player[PIndex].GiftCardConsumableExtra[SellSlot]
+        local GiftExtra = mod.Saved.Player[PIndex].Progress.GiftCardConsumableExtra[SellSlot]
 
         GiftExtra = GiftExtra or 0
 
@@ -1799,7 +1823,7 @@ function mod:SellConsumable(Player, SlotToSell)
         return false
     end
 
-    local SellValue = mod:GetConsumableCost(mod:FrameToSpecialCard(CardToSell.Card), CardToSell.Edition, true)
+    local SellValue = mod:GetConsumableCost(mod:FrameToSpecialCard(CardToSell.Card), CardToSell.Edition, true, Player)
 
     mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..SellValue.."$", mod.EffectType.ENTITY, Player)
     Player:AddCoins(SellValue)
@@ -1813,7 +1837,6 @@ function mod:SellConsumable(Player, SlotToSell)
 end
 
 
-local JeditionChance = {0.02, 0.034, 0.037, 0.003}
 function mod:RandomJoker(Rng, PlaySound, ForcedRarity, AllowDuplicates, Amount)
     
     
@@ -1876,12 +1899,12 @@ function mod:RandomJoker(Rng, PlaySound, ForcedRarity, AllowDuplicates, Amount)
     end
 
     local EdMult = 1
-
-    if PlayerManager.AnyoneHasCollectible(mod.Vouchers.Hone) then
-        EdMult = EdMult * 2
-    end
+    
     if PlayerManager.AnyoneHasCollectible(mod.Vouchers.GlowUp) then
-        EdMult = EdMult * 2
+        EdMult = 4
+    
+    elseif PlayerManager.AnyoneHasCollectible(mod.Vouchers.Hone) then
+        EdMult = 2
     end
 
 
@@ -1904,39 +1927,32 @@ function mod:RandomJoker(Rng, PlaySound, ForcedRarity, AllowDuplicates, Amount)
             Trinket.Joker = mod:GetRandom(Possibilities, Rng)
 
             ---@diagnostic disable-next-line: param-type-mismatch
-            table.remove(Possibilities, mod:GetValueIndex(Possibilities, Trinket.Joker, true))
+            Possibilities[mod:GetValueIndex(Possibilities, Trinket.Joker)] = nil
 
         until (Trinket.Joker ~= mod.Jokers.GROS_MICHAEL or not mod.Saved.MichelDestroyed) --if it's michel, check if it was destroyed
               and (Trinket.Joker ~= mod.Jokers.CAVENDISH or mod.Saved.MichelDestroyed) --if it's cavendish do the same but opposite
     
     
-        local EdRoll = Rng:RandomFloat()
-        if EdRoll <= JeditionChance[mod.Edition.FOIL] * EdMult then --foil chance
-            Trinket.Edition = mod.Edition.FOIL
-            if PlaySound then
-                sfx:Play(mod.Sounds.FOIL)
-            end
+        Trinket.Edition = mod.Edition.BASE
 
-        elseif EdRoll <= JeditionChance[mod.Edition.HOLOGRAPHIC] * EdMult then --holo chance
-            Trinket.Edition = mod.Edition.HOLOGRAPHIC
-            if PlaySound then
-                sfx:Play(mod.Sounds.HOLO)
-            end
-
-        elseif EdRoll <= JeditionChance[mod.Edition.POLYCROME] * EdMult then --poly chance
-            Trinket.Edition = mod.Edition.POLYCROME
-            if PlaySound then
-                sfx:Play(mod.Sounds.POLY)
-            end
-
-        elseif EdRoll <= JeditionChance[mod.Edition.POLYCROME] * EdMult + JeditionChance[mod.Edition.NEGATIVE] then --negative chance
+        if Rng:RandomFloat() <= NEGATIVE_CHANCE then --negative chance (fixed)
+        
             Trinket.Edition = mod.Edition.NEGATIVE
             if PlaySound then
                 sfx:Play(mod.Sounds.NEGATIVE)
             end
-
         else
-            Trinket.Edition = mod.Edition.BASE
+
+            local EditionChance = 0.04*EdMult - NEGATIVE_CHANCE --chance to get a non-negative edition
+
+            if Rng:RandomFloat() <= EditionChance then
+                
+                Trinket.Edition = EditionPicker:PickOutcome(Rng)                
+            end
+        end
+
+        if PlaySound then
+            sfx:Play(EditionSound[Trinket.Edition])
         end
 
         Trinket.Modifiers = 0
@@ -1951,6 +1967,89 @@ function mod:RandomJoker(Rng, PlaySound, ForcedRarity, AllowDuplicates, Amount)
     else
         return ReturnTable
     end
+end
+
+---@param Rng RNG
+function mod:RandomPlayingCard(Rng, PlaySound, Rank, Suit, Enhancement, Seal, Edition)
+
+    local CardValue = Rank or Rng:RandomInt(1, mod.Values.KING)
+    local CardSuit = Suit or Rng:RandomInt(mod.Suits.Spade, mod.Suits.Diamond)
+
+    local CardEnh = mod.Enhancement.NONE
+
+    if Enhancement == -1 then --guarantee the enhancement
+        
+        CardEnh = Rng:RandomInt(mod.Enhancement.MULT, mod.Enhancement.LUCKY)
+
+    elseif Enhancement then --if it specifies something then use that
+
+        CardEnh = Enhancement
+
+    elseif Rng:RandomFloat() <= 0.4 then --base chance
+
+        CardEnh = Rng:RandomInt(mod.Enhancement.MULT, mod.Enhancement.LUCKY)
+    end
+
+
+    local CardSeal = mod.Seals.NONE
+
+    if Seal == -1 then --guarantee the seal
+        
+        CardSeal = Rng:RandomInt(mod.Seals.RED, mod.Seals.PURPLE)
+
+    elseif Seal then --if it specifies something then use that
+
+        CardSeal = Seal
+
+    elseif Rng:RandomFloat() <= 0.4 then --base chance
+
+        CardSeal = Rng:RandomInt(mod.Seals.RED, mod.Seals.PURPLE)
+    end
+
+
+    local CardEdition = mod.Edition.BASE
+
+    if Edition == -1 then --guarantee the seal
+        
+        CardEdition = EditionPicker:PickOutcome(Rng)
+
+    elseif Edition then --if it specifies something then use that
+
+        CardEdition = Edition
+    else
+
+        local ChanceMult = 1
+
+        if PlayerManager.AnyoneHasCollectible(mod.Vouchers.GlowUp) then
+            ChanceMult = 4
+
+        elseif PlayerManager.AnyoneHasCollectible(mod.Vouchers.Hone) then
+
+            ChanceMult = 2
+        end
+
+        local EdChance = 0.08 * ChanceMult
+        
+        if Rng:RandomFloat() <= EdChance then --base chance
+
+            CardEdition = EditionPicker:PickOutcome(Rng)
+        end
+    end
+
+    if PlaySound then
+        sfx:Play(EditionSound[CardEdition])
+    end
+
+
+    local card = {Value = CardValue,
+                  Suit = CardSuit,
+                  Enhancement = CardEnh,
+                  Seal = CardSeal,
+                  Edition = CardEdition,
+                  Modifiers = 0,
+                  Upgrades = 0}
+
+    return card
 end
 
 
@@ -2601,24 +2700,21 @@ function mod:GetCardName(Card, IsEID)
     
     if Card.Enhancement == mod.Enhancement.STONE then
 
-        local Lang = mod:GetEIDLanguage()
-
         if IsEID then
             
-            Name = mod.Descriptions.EnhancementName[mod.Enhancement.STONE][Lang] or mod.Descriptions.EnhancementName[mod.Enhancement.STONE]["en_us"]
+            
+            Name = mod:GetEIDString("EnhancementName", mod.Enhancement.STONE)
         else
-            Name = mod.Descriptions.BasicEnhancementName[mod.Enhancement.STONE][Lang] or mod.Descriptions.BasicEnhancementName[mod.Enhancement.STONE]["en_us"]
+            Name = mod:GetEIDString("BasicEnhancementName", mod.Enhancement.STONE)
         end
     else
         Name = mod:CardValueToName(Card.Value, IsEID)
         
         if IsEID then
-            Name = Name.."{{B_Black}} of "..mod:CardSuitToName(Card.Suit, IsEID)
+            Name = Name.."{{CR}} of "..mod:CardSuitToName(Card.Suit, IsEID)
         else
             Name = Name.." of "..mod:CardSuitToName(Card.Suit, IsEID)
         end
-        
-
     end
 
     return Name
@@ -3142,14 +3238,14 @@ function mod:FullDeckShuffle(Player)
 
     mod.Saved.Player[PIndex].FullDeck = mod:Shuffle(mod.Saved.Player[PIndex].FullDeck, PlayerRNG)
 
-    mod.Saved.Player[PIndex].DeckPointer = 1 + Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE)
+    mod.Saved.Player[PIndex].DeckPointer = 1
 
 
     for i=1, Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) do
 
         if mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_HOUSE then
 
-            local card = mod.Saved.Player[PIndex].DeckPointer[i]
+            local card = mod.Saved.Player[PIndex].FullDeck[i]
 
             card.Modifiers = card.Modifiers | mod.Modifier.COVERED
         end
@@ -3265,7 +3361,12 @@ function mod:ReorderHand(Player)
             local Card_A = mod.Saved.Player[PIndex].FullDeck[Pointer_A]
             local Card_B = mod.Saved.Player[PIndex].FullDeck[Pointer_B]
 
-            if Card_A.Value ~= Card_B.Value then 
+            if Card_A.Enhancement == mod.Enhancement.STONE then
+                return false
+            elseif Card_B.Enhancement == mod.Enhancement.STONE then
+                return true
+            
+            elseif Card_A.Value ~= Card_B.Value then 
                 --values need to be compared (has priority over suit)
                
                 return Card_A.Value == 1 --if A is an Ace then it always goes to the left (return true)
@@ -3292,17 +3393,25 @@ function mod:ReorderHand(Player)
             local Card_A = mod.Saved.Player[PIndex].FullDeck[Pointer_A]
             local Card_B = mod.Saved.Player[PIndex].FullDeck[Pointer_B]
 
-            if Card_A.Suit ~= Card_B.Suit then
+            if Card_A.Enhancement == mod.Enhancement.STONE then
+                return false
+            elseif Card_B.Enhancement == mod.Enhancement.STONE then
+                return true
+            
+            elseif Card_A.Suit ~= Card_B.Suit then
                 --suit need to be compared (has priority over value)
                
                 return Card_A.Suit < Card_B.Suit
 
-            else
+            elseif Card_A.Value ~= Card_B.Value then
                 --Values need to be compared (minor priority)
 
                 return Card_A.Value == 1 --if A is an Ace then it always goes to the left (return true)
                        or (Card_B.Value ~= 1 --same goes with B (returns false)
                           and Card_A.Value > Card_B.Value) --otherwise compare the values normally
+
+            else
+                return Index_A > Index_B
             end
 
         end)
@@ -3329,6 +3438,87 @@ function mod:ReorderHand(Player)
 
     mod.SelectionParams[PIndex].Index = mod:GetValueIndex(HandOrder, Index, true) --keeps the index on the same card 
 end
+
+
+function mod:GetCardTableOrder(Cards, OrderingMode)
+
+    local Table = {}
+
+    for i=1, #Cards do
+
+        Table[i] = i
+    end
+
+
+    if OrderingMode == mod.HandOrderingModes.Rank then
+
+        table.sort(Table, function (Index_A, Index_B)
+
+            local Card_A = Cards[Index_A]
+            local Card_B = Cards[Index_B]
+
+            if Card_A.Enhancement == mod.Enhancement.STONE then
+                return false
+            elseif Card_B.Enhancement == mod.Enhancement.STONE then
+                return true
+            
+            elseif Card_A.Value ~= Card_B.Value then 
+                --values need to be compared (has priority over suit)
+               
+                return Card_A.Value == 1 --if A is an Ace then it always goes to the left (return true)
+                       or (Card_B.Value ~= 1 --same goes with B (returns false)
+                          and Card_A.Value > Card_B.Value) --otherwise compare the values normally
+
+            else
+                --suits need to be compared (minor priority)
+
+                return Card_A.Suit < Card_B.Suit
+            end
+
+        end)
+
+
+    else --(this is suit based)
+
+
+        table.sort(Table, function (Index_A, Index_B)
+
+            local Card_A = Cards[Index_A]
+            local Card_B = Cards[Index_B]
+
+            if Card_A.Enhancement == mod.Enhancement.STONE then
+                return false
+            elseif Card_B.Enhancement == mod.Enhancement.STONE then
+                return true
+            
+            elseif Card_A.Suit ~= Card_B.Suit then
+                --suit need to be compared (has priority over value)
+               
+                return Card_A.Suit < Card_B.Suit
+
+
+            --Values need to be compared (minor priority)
+
+            elseif Card_A.Value ~= Card_B.Value then
+                
+
+                return Card_A.Value == 1 --if A is an Ace then it always goes to the left (return true)
+                       or (Card_B.Value ~= 1 --same goes with B (returns false)
+                          and Card_A.Value > Card_B.Value) --otherwise compare the values normally
+
+            else
+                return Index_A > Index_B
+            end
+
+        end)
+    
+    end
+
+
+    return Table
+end
+
+
 
 
 function mod:RandomBossBlind(Rng, SpecialBoss)
@@ -3425,7 +3615,7 @@ local AnteScaling = {300, 1000, 3200, 9000, 25000, 60000, 110000, 200000, 320000
 local BlindScaling = {[mod.BLINDS.SMALL] = 1,
                       [mod.BLINDS.BIG] = 1.5,
                       [mod.BLINDS.BOSS] = 2,
-                      [mod.BLINDS.BOSS_NEEDLE] = 0.75, --usually it's 1 but since more enemies need to be hit so make it a bit lower
+                      [mod.BLINDS.BOSS_NEEDLE] = 0.75, --usually it's 1 but more enemies need to be hit so make it a bit lower
                       [mod.BLINDS.BOSS_WALL] = 4,
                       [mod.BLINDS.BOSS_VESSEL] = 6} 
 
@@ -3707,41 +3897,43 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
         mod.SelectionParams[PIndex].Frames = 0
     end
 
-
+    --creates a dummy entity to rely on for selection descriptions
     if NewMode == mod.SelectionParams.Modes.NONE then
-
-        for i,v in ipairs(Isaac.FindByType(1000, DescriptionHelperVariant, DescriptionHelperSubType)) do
-            v:Remove()
-        end
-        
-
+    
         if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_STOP_WATCH) then
             music:PitchSlide(0.9)
         else
             music:PitchSlide(1)
         end
         music:VolumeSlide(1, 0.04)
-
-
+    
+        for i,v in ipairs(Isaac.FindByType(1000, DescriptionHelperVariant, DescriptionHelperSubType)) do
+            v:Remove()
+        end
+    
         mod.SelectionParams[PIndex].Index = 1
+    
+        if IsTaintedJimbo then
 
-        if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
-
+                
             mod.SelectionParams[PIndex].OptionsNum = #mod.Saved.Player[PIndex].CurrentHand
             mod.SelectionParams[PIndex].MaxSelectionNum = 5
 
             mod.SelectionParams[PIndex].PackOptions = {}
 
             if NewPurpose == mod.SelectionParams.Purposes.NONE then
+
                 mod.Saved.EnableHand = false
+                mod.Saved.Player[PIndex].DeckPointer = 1
 
             elseif NewPurpose == mod.SelectionParams.Purposes.AIMING then
 
                 local Target = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.TARGET, Player.Position, Vector.Zero, Player, 0, math.max(Random(), 1))
-                
+
                 Target.Parent = Player
                 Target.SortingLayer = SortingLayer.SORTING_BACKGROUND
             end
+            
         else
             mod.SelectionParams[PIndex].OptionsNum = 0
             mod.SelectionParams[PIndex].MaxSelectionNum = 0
@@ -3754,17 +3946,19 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
             Player:SetCanShoot(true)
 
             Game:GetRoom():SetPauseTimer(0)
-        end
 
+            
+        end
+    
         goto FINISH
 
     else
         local Effect = Game:Spawn(EntityType.ENTITY_EFFECT, DescriptionHelperVariant, Player.Position,
                                   Vector.Zero, nil, DescriptionHelperSubType, 1):ToEffect()
         Effect:FollowParent(Player)
-
-        print("spawnwd entity")
+        Effect:AddEntityFlags(EntityFlag.FLAG_PERSISTENT)
     end
+    
 
     if not IsTaintedJimbo then
         if mod.SelectionParams[PIndex].Mode ~= mod.SelectionParams.Modes.NONE
@@ -3926,7 +4120,7 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
 
                 for i = 1, #mod.Saved.Player[PIndex].Inventory do
 
-                    Slot = mod.Saved.Player[PIndex].Inventory[i]
+                    local Slot = mod.Saved.Player[PIndex].Inventory[i]
 
                     if Slot.Joker ~= 0 then
 
@@ -3939,7 +4133,7 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
 
                 for i = 1, #mod.Saved.Player[PIndex].Consumables do
 
-                    Slot = mod.Saved.Player[PIndex].Consumables[i]
+                    local Slot = mod.Saved.Player[PIndex].Consumables[i]
 
                     if Slot.Card ~= -1 then
 
@@ -3984,6 +4178,14 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
             --mod.SelectionParams[PIndex].SelectionNum = mod:GetValueRepetitions(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams[PIndex].Mode],)
         else
             mod.SelectionParams[PIndex].Index = 1
+        end
+
+        if OldMode == mod.SelectionParams.Modes.CONSUMABLES then
+            
+            for i,v in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.CONSUMABLES]) do
+
+                mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.CONSUMABLES][i] = false
+            end
         end
 
 
@@ -4354,6 +4556,40 @@ function mod:UseSelection(Player)
             --Isaac.RunCallback(mod.Callbalcks.POST_HAND_PLAY, Player)
         end
 
+    
+    elseif mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.INVENTORY then
+
+        if mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.SMELTER then
+
+            local SelectedSlot = mod:GetValueIndex(SelectedCards, true, true) --finds the first true
+
+            local Joker = mod.Saved.Player[PIndex].Inventory[SelectedSlot].Joker
+
+            if Joker == mod.Jokers.GOLDEN_JOKER then --or Joker == mod.Jokers.GOLDEN_TICKET then
+                for i=1, 2 do --gives money 2 golden pennies
+                    local Seed = Random()
+                    Seed = Seed==0 and 1 or Seed
+
+                    Game:Spawn(EntityType.ENTITY_PICKUP,PickupVariant.PICKUP_COIN,Player.Position,RandomVector()*2,Player,CoinSubType.COIN_GOLDEN,Seed)
+                end
+
+                mod:SellJoker(Player, SelectedSlot)
+            else
+                mod:SellJoker(Player, SelectedSlot, 2)
+            end
+        end
+
+    elseif mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.CONSUMABLES then
+
+        local SelectedSlot = mod:GetValueIndex(SelectedCards, true, true)
+
+        if SelectedSlot then
+
+            local CardToUse = mod:FrameToSpecialCard(mod.Saved.Player[PIndex].Consumables[SelectedSlot].Card)
+            
+            local Success = mod:TJimboUseCard(CardToUse, Player, false)
+        end
+
     elseif mod.SelectionParams[PIndex].PackPurpose ~= mod.SelectionParams.Purposes.NONE then
         --THIS CAN ONLY HAPPEN FOR T.JIMBO
         --packs for base Jimbo activate directly on selection
@@ -4568,38 +4804,6 @@ function mod:UseSelection(Player)
         --print(mod.SelectionParams[PIndex].MaxSelectionNum)
 
 
-    elseif mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.INVENTORY then
-
-        if mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.SMELTER then
-
-            local SelectedSlot = mod:GetValueIndex(SelectedCards, true, true) --finds the first true
-
-            local Joker = mod.Saved.Player[PIndex].Inventory[SelectedSlot].Joker
-
-            if Joker == mod.Jokers.GOLDEN_JOKER then --or Joker == mod.Jokers.GOLDEN_TICKET then
-                for i=1, 2 do --gives money 2 golden pennies
-                    local Seed = Random()
-                    Seed = Seed==0 and 1 or Seed
-
-                    Game:Spawn(EntityType.ENTITY_PICKUP,PickupVariant.PICKUP_COIN,Player.Position,RandomVector()*2,Player,CoinSubType.COIN_GOLDEN,Seed)
-                end
-
-                mod:SellJoker(Player, SelectedSlot)
-            else
-                mod:SellJoker(Player, SelectedSlot, 2)
-            end
-        end
-
-    elseif mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.CONSUMABLES then
-
-        local SelectedSlot = mod:GetValueIndex(SelectedCards, true, true)
-
-        if SelectedSlot then
-
-            local CardToUse = mod:FrameToSpecialCard(mod.Saved.Player[PIndex].Consumables[SelectedSlot].Card)
-            
-            local Success = mod:TJimboUseCard(CardToUse, Player, false)
-        end
     end
 
     ::FINISH::
@@ -4849,7 +5053,7 @@ for _,v in pairs(CardLayerID) do
     JimboCardsLayers[v] = JimboCards:GetLayer(v)
 end
 
-function mod:RenderCard(Params, Position, Offset, Scale,Rotation, ForceCovered, Thin)
+function mod:RenderCard(Params, Position, Offset, Scale, Rotation, ForceCovered, Thin)
 
     Offset = Offset or Vector.Zero
     Scale = Scale or Vector.One
@@ -4877,17 +5081,26 @@ function mod:RenderCard(Params, Position, Offset, Scale,Rotation, ForceCovered, 
     JimboCardsLayers[CardLayerID.BODY]:SetCustomShader(mod.EditionShaders[Params.Edition])
     JimboCardsLayers[CardLayerID.ENHANCEMENT]:SetCustomShader(mod.EditionShaders[Params.Edition])
 
+    if Params.Enhancement == mod.Enhancement.STONE then
+        
+        JimboCards:SetLayerFrame(CardLayerID.BODY, Params.Enhancement)
 
-    JimboCards:SetLayerFrame(CardLayerID.BODY, Params.Enhancement)
+        JimboCards:RenderLayer(CardLayerID.BODY, Position) --only renders the stone appearance
+        
+    else
+        JimboCards:SetLayerFrame(CardLayerID.BODY, Params.Enhancement)
 
-    JimboCards:SetLayerFrame(CardLayerID.VALUE_SUIT, 4* Params.Value + Params.Suit - 5)
-    JimboCardsLayers[CardLayerID.VALUE_SUIT]:SetPos(Offset*Scale)
+        JimboCards:SetLayerFrame(CardLayerID.VALUE_SUIT, 4* Params.Value + Params.Suit - 5)
+        JimboCardsLayers[CardLayerID.VALUE_SUIT]:SetPos(Offset*Scale)
 
-    JimboCards:SetLayerFrame(CardLayerID.ENHANCEMENT, Params.Enhancement)
+        JimboCards:SetLayerFrame(CardLayerID.ENHANCEMENT, Params.Enhancement)
 
-    JimboCards:SetLayerFrame(CardLayerID.SEAL, Params.Seal)
+        JimboCards:SetLayerFrame(CardLayerID.SEAL, Params.Seal)
 
-    JimboCards:Render(Position)
+        JimboCards:Render(Position)
+
+    end
+    
     JimboCardsLayers[CardLayerID.BODY]:ClearCustomShader()
 
 

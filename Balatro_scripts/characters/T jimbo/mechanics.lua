@@ -44,6 +44,7 @@ function mod:JimboInit(player)
         local Data = player:GetData()
 
         Data.ConfirmHoldTime = 0 --used to detect if it got held or pressed
+        Data.MapHoldTime = 0 --used to detect if it got held or pressed
 
         --player:SetPocketActiveItem(CollectibleType.COLLECTIBLE_THE_HAND,ActiveSlot.SLOT_POCKET)
         --ItemPool:RemoveCollectible(CollectibleType.COLLECTIBLE_THE_HAND)
@@ -53,6 +54,26 @@ function mod:JimboInit(player)
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, mod.JimboInit)
+
+
+
+local DescriptionHelperVariant = Isaac.GetEntityVariantByName("Description Helper")
+local DescriptionHelperSubType = Isaac.GetEntitySubTypeByName("Description Helper")
+
+local function CreateDescEntity()
+
+    for i, Player in ipairs(PlayerManager.GetPlayers()) do
+
+        if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
+            local Effect = Game:Spawn(EntityType.ENTITY_EFFECT, DescriptionHelperVariant, Player.Position,
+                                  Vector.Zero, nil, DescriptionHelperSubType, 1):ToEffect()
+            Effect:FollowParent(Player)
+            Effect:AddEntityFlags(EntityFlag.FLAG_PERSISTENT)
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, CreateDescEntity)
+
 
 
 --Adds the small/big blind rooms + saves the room index of shops and boss rooms
@@ -238,7 +259,7 @@ local function JimboInputHandle(_, Player)
     end
 
 
-    local MinHoldTime = 10
+    local MinHoldTime = 9
     
     if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTRIGHT, Player.ControllerIndex) then
 
@@ -378,6 +399,11 @@ local function JimboInputHandle(_, Player)
                     local PlayerInventory = mod.Saved.Player[PIndex].Inventory
                     PlayerInventory[Params.Index],  PlayerInventory[Params.Index + Step] = 
                     PlayerInventory[Params.Index + Step],  PlayerInventory[Params.Index]
+
+                    local JokerProgs = mod.Saved.Player[PIndex].Progress.Inventory
+                    JokerProgs[Params.Index],  JokerProgs[Params.Index + Step] = 
+                    JokerProgs[Params.Index + Step],  JokerProgs[Params.Index]
+
                 end
 
                 mod.Counters.SinceSelect = 0
@@ -530,6 +556,10 @@ local function JimboInputHandle(_, Player)
                     local PlayerInventory = mod.Saved.Player[PIndex].Inventory
                     PlayerInventory[Params.Index],  PlayerInventory[Params.Index + Step] = 
                     PlayerInventory[Params.Index + Step],  PlayerInventory[Params.Index]
+
+                    local JokerProgs = mod.Saved.Player[PIndex].Progress.Inventory
+                    JokerProgs[Params.Index],  JokerProgs[Params.Index + Step] = 
+                    JokerProgs[Params.Index + Step],  JokerProgs[Params.Index]
                 end
 
                 mod.Counters.SinceSelect = 0
@@ -641,6 +671,40 @@ local function JimboInputHandle(_, Player)
         end
 
         mod:ReorderHand(Player)
+    end
+
+    if Input.IsActionPressed(ButtonAction.ACTION_MAP, Player.ControllerIndex) then
+
+        if mod.Saved.DeckPreviewMode == mod.DeckPreviewModes.OFF then
+
+            mod.Saved.DeckPreviewMode = mod.DeckPreviewModes.PARTIAL
+        end
+
+        PlayerData.MapHoldTime = PlayerData.MapHoldTime + 1
+
+    elseif PlayerData.MapHoldTime ~= 0 then --button got released
+
+        if PlayerData.MapHoldTime >= mod.HOLD_THRESHOLD then --released form holding
+            
+            if mod.Saved.DeckPreviewMode == mod.DeckPreviewModes.PARTIAL then
+
+                mod.Saved.DeckPreviewMode = mod.DeckPreviewModes.OFF
+            end
+
+        else --realesed from pressing
+
+            if mod.Saved.DeckPreviewMode == mod.DeckPreviewModes.PARTIAL then
+
+                mod.Saved.DeckPreviewMode = mod.DeckPreviewModes.FULL
+
+            elseif mod.Saved.DeckPreviewMode == mod.DeckPreviewModes.FULL then
+
+                mod.Saved.DeckPreviewMode = mod.DeckPreviewModes.OFF
+            end
+        end
+
+
+        PlayerData.MapHoldTime = 0
     end
 
 
@@ -756,7 +820,7 @@ function mod:SpawnShopItems(Rerolled)
             if Entity.Type == EntityType.ENTITY_PICKUP
                and (Entity.Variant == PickupVariant.PICKUP_TRINKET
                    or (Entity.Variant == PickupVariant.PICKUP_TAROTCARD
-                       and Entity.SubType < mod.Packs.ARCANA)) then
+                       and not mod:Contained(mod.Packs, Entity.SubType))) then
 
                 Entity:Remove()
             end
@@ -2587,3 +2651,12 @@ function mod:TJimboHandsCache(Player, Cache, Value)
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.TJimboHandsCache, mod.CustomCache.HAND_NUM)
 
+
+--technically no money cap
+function mod:AlwaysMaxCoins(Player, CustomCache, _)
+    if PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then
+
+        return math.maxinteger
+    end
+end
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.AlwaysMaxCoins, "maxcoins")

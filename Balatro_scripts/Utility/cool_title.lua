@@ -68,7 +68,7 @@ function mod:Tast()
 
         local RenderPos = LastCardPos + (MousePos - LastCardPos)/4
 
-        Card.Rotation = (LastCardPos.X - RenderPos.X)*1.75
+        Card.Rotation = (RenderPos.X - LastCardPos.X)*1.75
 
         Card:Render(RenderPos)
         LastCardPos = RenderPos

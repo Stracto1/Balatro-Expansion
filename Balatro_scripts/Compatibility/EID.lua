@@ -152,7 +152,7 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
 
                 Values[1] = mod:CardSuitToName(Progress & SUIT_FLAG, true)
             
-                Values[2] = tostring((Progress & ~SUIT_FLAG)/SUIT_FLAG + 1) --chips accumulated
+                Values[2] = tostring((Progress & ~SUIT_FLAG)/(SUIT_FLAG + 1)) --chips accumulated
 
             elseif Joker == mod.Jokers.BLUE_JOKER then
 
@@ -174,7 +174,7 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
 
                 Progress = Progress or mod:GetJokerInitialProgress(Joker, true, T_Jimbo)
 
-                Values[1] = tostring(mod:GetJokerInitialProgress())
+                Values[1] = tostring(Progress)
             end
 
         elseif JokerConfig:HasCustomTag("mult") then
@@ -197,7 +197,7 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
                
                 Progress = Progress or mod:GetJokerInitialProgress(Joker, true, T_Jimbo)
 
-                Values[1] = tostring(mod:GetJokerInitialProgress())
+                Values[1] = tostring(Progress)
             end
 
         elseif JokerConfig:HasCustomTag("multm") then
@@ -251,7 +251,7 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
 
                 Progress = Progress or mod:GetJokerInitialProgress(Joker, true, T_Jimbo)
 
-                Values[1] = tostring(mod:GetJokerInitialProgress())
+                Values[1] = tostring(Progress)
             end
 
 
@@ -348,7 +348,7 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
 
                 Progress = Progress or mod:GetJokerInitialProgress(Joker, true)
 
-                Values[1] = mod:GetJokerInitialProgress(Joker, true)
+                Values[1] = Progress
             end
         end
 
@@ -370,6 +370,25 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
                     Values[1] = "#{{ColorGray}}("..mod:GetEIDString("Other","RemovesNeg")..")"
                     break
                 end
+            end
+        
+        elseif card == Card.CARD_FOOL then
+        
+            if not mod.Saved.Player[PIndex].LastCardUsed then
+                
+                Values[1] = "{{ColorMult}}"..mod:GetEIDString("Other","NONE").."{{CR}}"
+
+            elseif mod.Saved.Player[PIndex].LastCardUsed == Card.CARD_FOOL then
+
+                Values[1] = "{{ColorMult}}"..mod:GetEIDString("ComsumablesName", Card.CARD_FOOL).."{{CR}}"
+
+            elseif card <= Card.CARD_WORLD then
+
+                Values[1] = "{{ColorMint}}"..mod:GetEIDString("ComsumablesName", card).."{{CR}}"
+            else
+                local Config = ItemsConfig:GetCard(card)
+
+                Values[1] = Config.Name
             end
         end
 
@@ -415,11 +434,18 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
 
                 Values[1] = mod:CardSuitToName(Progress & SUIT_FLAG, true)
             
-                Values[2] = tostring((Progress & ~SUIT_FLAG)/SUIT_FLAG + 1) --chips accumulated
+                Values[2] = tostring((Progress & ~SUIT_FLAG)/(SUIT_FLAG + 1)) --chips accumulated
 
             elseif Joker == mod.Jokers.BLUE_JOKER then
 
                 Values[1] = mod:GetJokerInitialProgress(Joker, false)
+
+            elseif Joker == mod.Jokers.RUNNER then
+
+                Progress = Progress or mod:GetJokerInitialProgress(Joker, false)
+
+                Values[1] = Progress + Jimbo.MoveSpeed
+                
 
             else --[[if Joker == mod.Jokers.STONE_JOKER
                    or Joker == mod.Jokers.ICECREAM
@@ -495,11 +521,38 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
                     Values[1] = mod:GetEIDString("Other", "Ready")
 
                 else
-                    Values[1] = tostring(Progress)..mod:GetEIDString("Other", "Remaining")
+                    Values[1] = tostring(Progress).." "..mod:GetEIDString("Other", "Remaining")
 
                 end
 
-            
+            elseif Joker == mod.Jokers.ACROBAT then
+
+                local CardsRemaining = Jimbo:GetCustomCacheValue("hands") - mod.Saved.Player[PIndex].Progress.Room.Shots
+
+                if CardsRemaining <= 5 and CardsRemaining >= 0
+                   or Game:GetRoom():GetBossID() ~= 0 then
+
+                    Values[1] = mod:GetEIDString("Other", "Active")
+                else
+                    Values[1] = mod:GetEIDString("Other", "NotActive")
+                end
+
+            elseif Joker == mod.Jokers.FLOWER_POT
+                   or Joker == mod.Jokers.SEE_DOUBLE
+                   or Joker == mod.Jokers.DUO
+                   or Joker == mod.Jokers.TRIO
+                   or Joker == mod.Jokers.FAMILY
+                   or Joker == mod.Jokers.ORDER
+                   or Joker == mod.Jokers.TRIBE then
+
+                if Progress ~= 1 then
+                    
+                    Values[1] = mod:GetEIDString("Other", "Active")
+                else
+                    Values[1] = mod:GetEIDString("Other", "NotActive")
+                end
+
+
             else --[[Joker == mod.Jokers.JOKER_STENCIL
                    or Joker == mod.Jokers.MADNESS
                    or Joker == mod.Jokers.CONSTELLATION
@@ -594,6 +647,48 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
                     Values[1] = mod:GetEIDString("Other", "NotReady")
                 end
 
+            elseif Joker == mod.Jokers.DUSK then
+
+                local CardsRemaining = Jimbo:GetCustomCacheValue("hands") - mod.Saved.Player[PIndex].Progress.Room.Shots
+
+                if CardsRemaining <= 10 and CardsRemaining >= 0 then
+                    Values[1] = mod:GetEIDString("Other", "Active")
+                else
+                    Values[1] = mod:GetEIDString("Other", "NotActive")
+                end
+
+            elseif Joker == mod.Jokers.CERTIFICATE then
+
+                if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_PHD) then
+                    
+                    Values[1] = mod:GetEIDString("Synergies", Joker, CollectibleType.COLLECTIBLE_PHD)
+                else
+                    Values[1] = ""
+                end
+
+                if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_FALSE_PHD) then
+                    
+                    Values[2] = mod:GetEIDString("Synergies", Joker, CollectibleType.COLLECTIBLE_FALSE_PHD)
+                else
+                    Values[2] = ""
+                end
+
+            elseif Joker == mod.Jokers.MARBLE_JOKER then
+
+                if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_SMALL_ROCK) then
+                    
+                    Values[1] = mod:GetEIDString("Synergies", Joker, CollectibleType.COLLECTIBLE_SMALL_ROCK)
+                else
+                    Values[1] = ""
+                end
+
+                if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_ROCK_BOTTOM) then
+                    
+                    Values[2] = mod:GetEIDString("Synergies", Joker, CollectibleType.COLLECTIBLE_ROCK_BOTTOM)
+                else
+                    Values[2] = ""
+                end
+
             elseif Joker == mod.Jokers.TURTLE_BEAN 
                    or Joker == mod.Jokers.SELTZER then
 
@@ -607,8 +702,29 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
     elseif Type == EID_DescType.CONSUMABLE then
 
         local card = Subtype
+
+        if card == Card.CARD_FOOL then
         
-        if card == mod.Spectrals.ANKH then
+            if not mod.Saved.Player[PIndex].LastCardUsed then
+                
+                Values[1] = "{{ColorMult}}"..mod:GetEIDString("Other","NONE").."{{CR}}"
+
+            elseif mod.Saved.Player[PIndex].LastCardUsed == Card.CARD_FOOL then
+
+                Values[1] = "{{ColorMult}}"..mod:GetEIDString("ComsumablesName", Card.CARD_FOOL).."{{CR}}"
+
+            elseif card <= Card.CARD_WORLD then
+
+                Values[1] = "{{ColorMint}}"..mod:GetEIDString("ComsumablesName", card).."{{CR}}"
+            else
+                local Config = ItemsConfig:GetCard(card)
+
+                Values[1] = Config.Name
+            end
+
+
+
+        elseif card == mod.Spectrals.ANKH then
             for i,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
 
                 if Slot.Edition == mod.Edition.NEGATIVE then
@@ -641,7 +757,7 @@ function mod:ReplaceBalatroMarkups(String, DescType, DescSubType, Tainted, Index
     local T_Jimbo = PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo)
 
 
-    String = string.gsub(String, "[[CHANCE]]", function ()
+    String = string.gsub(String, "%[%[CHANCE%]%]", function ()
         
         local NumDice = #mod:GetJimboJokerIndex(T_Jimbo, mod.Jokers.OOPS_6)
 
@@ -649,26 +765,10 @@ function mod:ReplaceBalatroMarkups(String, DescType, DescSubType, Tainted, Index
     end)
 
     if Tainted then
-
-        --removes the custom values if it's a joker noy in the inventory
-        if DescType & EID_DescType.JOKER ~= 0
-           and DescType & EID_DescType.SELECTION_FLAG == 0 then
-
-            local s = string.find(String, "#{{ColorGray}}", 1, true)
-
-            String = string.sub(String, 1, s)
-        end
-    else
-        --removes the custom values if it's a joker noy in the inventory
-        if DescType & EID_DescType.JOKER ~= 0
-           and DescType & EID_DescType.SELECTION_FLAG == 0 then
-
-            local s = string.find(String, "#{{Blank}} {{ColorGray}}", 1, true)
-
-            String = string.sub(String, 1, s)
-        end
-
+        
+        String = String.gsub(String, "%{%{CR%}%}", "{{B_Black}}")
     end
+
 
     local Values 
     if Tainted then
@@ -677,130 +777,12 @@ function mod:ReplaceBalatroMarkups(String, DescType, DescSubType, Tainted, Index
         Values = GetJimboDescriptionValues(DescType & ~EID_DescType.SELECTION_FLAG, DescSubType, Index)
     end
 
-    String = string.gsub(String, "[[VALUE%d]]", Values)
+    String = string.gsub(String, "%[%[VALUE%d%]%]", Values)
+
+    String = string.gsub(String, "%.0","")
 
     return String
 end
-
-
-
-
-
-local function GetProgressString(Joker, Value, Player)
-
-    local JokerConfig = ItemsConfig:GetTrinket(Joker)
-
-    local Lang = mod:GetEIDLanguage()
-
-    Player = Player or PlayerManager.FirstPlayerByType(mod.Characters.JimboType)
-
-    local PIndex = Player:GetData().TruePlayerIndex
-
-    local String = ""
-
-    if JokerConfig:HasCustomTag("chips") then
-
-        if Joker == mod.Jokers.WALKIE_TALKIE then
-
-            String = " #!!! "..mod.Descriptions.Other.CompatibleTriggered[Lang]..tostring(Value)
-        
-        elseif Joker == mod.Jokers.CASTLE then
-
-            String = "#!!!"..mod.Descriptions.Other.SuitChosen[Lang]..mod:CardSuitToName(Value & SUIT_FLAG, true).."#!!! "..mod.Descriptions[Lang].Other.CompatibleDiscarded.." {{ColorChips}} "..tostring((Value & ~SUIT_FLAG)/8)
-        else
-            String = " #!!! "..mod.Descriptions.Other.Currently[Lang].."{{ColorChips}} +"..tostring(Value).."{{CR}}"
-        end
-    elseif JokerConfig:HasCustomTag("mult") then
-        String = " #!!! "..mod.Descriptions.Other.Currently[Lang].."{{ColorMult}} +"..tostring(Value).."{{CR}}"
-
-    elseif JokerConfig:HasCustomTag("multm") then
-
-        if Joker == mod.Jokers.LOYALTY_CARD then
-            if Value == 0 then
-                String = " #!!! "..mod.Descriptions.Other.Active[Lang]
-            else
-                String = " #!!! "..mod.Descriptions.Other.RoomsRemaining[Lang].."{{ColorYellorange}} "..tostring(Value).."{{CR}}"
-            end
-
-        elseif Joker == mod.Jokers.ANCIENT_JOKER then
-            
-            String = " #!!! "..mod.Descriptions.Other.SuitChosen[Lang]..mod:CardSuitToName(Value & SUIT_FLAG).."{{CR}}".."#!!! "..mod.Descriptions.Other.CompatibleTriggered[Lang]..tostring((Value & ~SUIT_FLAG)/8)
-        
-        elseif Joker == mod.Jokers.IDOL then
-            String = " #!!! "..mod.Descriptions.Other.CardChosen[Lang]..mod:CardValueToName((Value & VALUE_FLAG)/8, true).." of "..mod:CardSuitToName(Value & SUIT_FLAG, true).."#!!! "..mod.Descriptions.Other.CompatibleTriggered[Lang]..tostring((Value & ~(SUIT_FLAG|VALUE_FLAG))/128)
-        
-        elseif Joker == mod.Jokers.YORICK then
-
-            String = " #!!! "..mod.Descriptions.Other.Currently[Lang].."{{ColorMult}} X"..tostring((1+(Value//23))*0.25).."{{CR}}#!!! "..mod.Descriptions.Other.DiscardsRemaining[Lang]..tostring(23-(Value%23))
-        else
-            String = " #!!! "..mod.Descriptions.Other.Currently[Lang].."{{ColorMult}} X"..tostring(Value).."{{CR}}"
-        end
-
-
-    elseif JokerConfig:HasCustomTag("money") then
-        
-        if Joker == mod.Jokers.TO_DO_LIST then
-
-            local Hand = mod.Descriptions.HandTypeName[Value][Lang] or mod.Descriptions.HandTypeName[Value]["en_us"]
-
-            String = " #!!! "..mod.Descriptions.Other.HandTypeChosen[Lang].."{{ColorYellorange}} "..Hand.."{{CR}}"
-        
-        elseif Joker == mod.Jokers.MAIL_REBATE then
-
-            String = " #!!! "..mod.Descriptions.Other.ValueChosen[Lang].."{{ColorYellorange}} "..mod:CardValueToName(Value).."{{CR}}"
-        
-        else
-            --String = " #!!! "..mod.Descriptions.Other.Currently[Lang].."{{ColorYellorange}} "..tostring(Value).."${{CR}}"
-        end
-    elseif JokerConfig:HasCustomTag("activate") then
-
-        if Joker == mod.Jokers.BLUEPRINT or Joker == mod.Jokers.BRAINSTORM then
-
-            if Value ~= 0 then
-                String = " #!!! "..mod.Descriptions.Other.Currently[Lang]..mod.Descriptions.Other.Compatible[Lang]
-            else
-                String = " #!!! "..mod.Descriptions.Other.Currently[Lang]..mod.Descriptions.Other.Incompatible[Lang]
-            end
-
-        elseif Joker == mod.Jokers.INVISIBLE_JOKER then
-
-            if Value == 3 then
-                String = " #!!! "..mod.Descriptions.Other.Ready[Lang]
-            else
-                String = " #!!! "..mod.Descriptions.Other.BlindsCleared[Lang].."{{ColorYellorange}}"..tostring(Value).."/3{{CR}}"
-            end
-
-        elseif Joker == mod.Jokers.DNA then
-            if Balatro_Expansion.Saved.Player[PIndex].Progress.Blind.Shots == 0 then
-                String = " #!!! "..mod.Descriptions.Other.Ready[Lang]
-
-            else
-                String = " #!!! "..mod.Descriptions.Other.NotReady[Lang]
-
-            end
-
-        elseif Joker == mod.Jokers.SIXTH_SENSE then
-            if Balatro_Expansion.Saved.Player[PIndex].Progress.Blind.Shots == 0 then
-                Description = Description.." #!!! "..mod.Descriptions.Other.Currently[Lang]..mod.Descriptions.Other.Ready[Lang]
-
-            else
-                String = " #!!! "..mod.Descriptions.Other.Currently[Lang]..mod.Descriptions.Other.NotReady[Lang]
-
-            end
-        elseif Joker == mod.Jokers.TURTLE_BEAN then
-
-            String = " #!!! "..mod.Descriptions.Other.Currently[Lang].." {{ColorCyan}}+"..tostring(Value).." "..mod.Descriptions.Other.HandSize[Lang].."{{CR}}"
-        elseif Joker == mod.Jokers.SELTZER then
-
-            String = " #!!! "..mod.Descriptions.Other.RoomsRemaining[Lang]..tostring(Value)
-        end
-    end
-
-    return String
-
-end
-
-
 
 
 
@@ -840,9 +822,12 @@ local function BalatroInventoryCallback(descObj)
         local Description = ""
 
 
+        local SelectIndex = mod.SelectionParams[PIndex].Index
+
         if Balatro_Expansion.SelectionParams[PIndex].Mode == Balatro_Expansion.SelectionParams.Modes.INVENTORY then
 
-            SelectedCard = Balatro_Expansion.Saved.Player[PIndex].Inventory[mod.SelectionParams[PIndex].Index]
+            
+            SelectedCard = Balatro_Expansion.Saved.Player[PIndex].Inventory[SelectIndex]
 
             if not SelectedCard then --the extra confirm button
 
@@ -918,22 +903,13 @@ local function BalatroInventoryCallback(descObj)
 
                 --PROGRESS--
 
-                local JokerConfig = ItemsConfig:GetTrinket(SelectedCard.Joker)
-
-                if JokerConfig:HasCustomTag("Value") then
-
-                    local Value = mod.Saved.Player[PIndex].Progress.Inventory[mod.SelectionParams[PIndex].Index]
-                    
-
-                    Description = Description..GetProgressString(SelectedCard.Joker, Value, Player)
-
-                end
+                
+                Description = mod:ReplaceBalatroMarkups(Description, EID_DescType.JOKER, SelectedCard.Joker, true, SelectIndex)
 
                 --SELL VALUE--
 
                 if SelectedCard.Joker == mod.Jokers.EGG then
                     Description = Description.." #{{Shop}}"..mod.Descriptions.Other.SellsFor[Lang].."{{ColorYellorange}}"..tostring(mod.Saved.Player[PIndex].Progress.Inventory[mod.SelectionParams[PIndex].Index]).."${{CR}}"
-
                 else
                     Description = Description.." #{{Shop}}"..mod.Descriptions.Other.SellsFor[Lang].."{{ColorYellorange}}"..tostring(mod:GetJokerCost(SelectedCard.Joker, SelectedCard.Edition, mod.SelectionParams[PIndex].Index, Player)).."${{CR}}"
                 end
@@ -982,9 +958,9 @@ local function BalatroInventoryCallback(descObj)
                 Icon = "{{CurrentCard}}"
                 Name = RarityColor..EID:getObjectName(5, 350, SelectedCard.Joker).."#{{Blank}}"
 
-                local BaseDesc = mod.Descriptions.Jimbo.Jokers[SelectedCard.Joker][Lang] or mod.Descriptions.Jimbo.Jokers[SelectedCard.Joker]["en_us"]
+                local BaseDesc = mod:GetEIDString("Jimbo","Jokers",SelectedCard.Joker)
 
-                Description = BaseDesc..GetProgressString(SelectedCard.Joker, SelectedCard.Progress, Player)
+                Description = mod:ReplaceBalatroMarkups(BaseDesc, EID_DescType.JOKER, SelectedCard.Joker, true, SelectIndex)
 
 
                 local EditionDesc = mod.Descriptions.JokerEdition[SelectedCard.Edition][Lang] or mod.Descriptions.JokerEdition[SelectedCard.Edition]["en_us"]
@@ -996,17 +972,17 @@ local function BalatroInventoryCallback(descObj)
                 Icon = "{{RedCard}}"
 
                 local CardName = mod:GetCardName(SelectedCard, true)
+                
                 if SelectedCard.Enhancement ~= mod.Enhancement.STONE then
-                    CardName = mod.Descriptions.EnhancementName[mod.Enhancement.STONE][Lang]
-
+                    
                     CardName = CardName.."{{ColorCyan}} "..mod.Descriptions.Other.LV[Lang]..tostring(mod.Saved.CardLevels[SelectedCard.Value] + 1).."{{CR}}"
                 end
 
                 Name = CardName
 
-                local EnhancementEffect = mod.Descriptions.Jimbo.Enhancement[SelectedCard.Enhancement][Lang] or mod.Descriptions.Jimbo.Enhancement[SelectedCard.Enhancement]["en_us"]
-                local SealEffect = mod.Descriptions.Seal[SelectedCard.Seal][Lang] --PLACEHOLDER
-                local EditionEffect = mod.Descriptions.CardEdition[SelectedCard.Edition][Lang] --PLACEHOLDER
+                local EnhancementEffect = mod:GetEIDString("Jimbo", "Enhancement", SelectedCard.Enhancement)
+                local SealEffect = mod:GetEIDString("Jimbo", "Seal", SelectedCard.Seal)
+                local EditionEffect = mod:GetEIDString("Jimbo", "CardEdition", SelectedCard.Edition)
 
                 local CardAttributes = EnhancementEffect..SealEffect..EditionEffect
 
@@ -1174,9 +1150,9 @@ local function JimboGroundtrinketsCallback(descObj)
     local Lang = mod:GetEIDLanguage()
 
 
-    descObj.Description = mod.Descriptions.Jimbo.Jokers[descObj.ObjSubType][Lang] or mod.Descriptions.Jimbo.Jokers[descObj.ObjSubType]["en_us"]
+    descObj.Description = mod:GetEIDString("Jimbo", "Jokers", descObj.ObjSubType)
 
-    descObj.Description = descObj.Description..GetProgressString(descObj.ObjSubType, mod:GetJokerInitialProgress(descObj.ObjSubType, false))
+    descObj.Description = mod:ReplaceBalatroMarkups(descObj.Description, EID_DescType.JOKER, descObj.ObjSubType, false)
 
     return descObj
 end
@@ -1240,7 +1216,8 @@ local EID_Desc = {Name = "",
                             Edition = mod.Edition.BASE},
                   NumLines = nil,
                   FilteredName = nil,
-                  FilteredDescription = nil,}
+                  FilteredDescription = nil,
+                  StartFrame = 0}
 
 
 local EID_BubbleFrame = {Name = 1,
@@ -1251,6 +1228,7 @@ local EID_BubbleFrame = {Name = 1,
 local function TJimboDescriptionsCondition(descObj)
 
     if PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then
+
        --and descObj.ObjVariant == DescriptionHelperVariant
        --and descObj.ObjSubType == DescriptionHelperSubType then
 
@@ -1264,12 +1242,15 @@ local function TJimboDescriptionsCallback(descObj)
     local Result = false
     local T_Jimbo = PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo)
 
+    local PIndex 
+    local PlayerSelection
+
     if not T_Jimbo then
         goto FINISH
     end
 
-    local PIndex = T_Jimbo:GetData().TruePlayerIndex
-    local PlayerSelection = mod.SelectionParams[PIndex]
+    PIndex = T_Jimbo:GetData().TruePlayerIndex
+    PlayerSelection = mod.SelectionParams[PIndex]
 
     --first check if the selection has something to describe
     
@@ -1287,7 +1268,25 @@ local function TJimboDescriptionsCallback(descObj)
     if ObjectToDescribe.Entity == PlayerSelection.Index then --caches the previous description to save time
         
         --only updates the position and goes straight to rendering
-        ObjectToDescribe.Position = mod.PackOptionFullPosition[PlayerSelection.Index] + Vector(0, -20)
+        if PlayerSelection.Mode == mod.SelectionParams.Modes.PACK then
+            ObjectToDescribe.Position = mod.PackOptionFullPosition[PlayerSelection.Index] + Vector(0, -20)
+
+        elseif PlayerSelection.Mode == mod.SelectionParams.Modes.INVENTORY then
+
+            local Slot = mod.Saved.Player[PIndex].Inventory[PlayerSelection.Index]
+
+            ObjectToDescribe.Position = mod.JokerFullPosition[Slot.RenderIndex] + Vector(0, 20)
+
+        elseif PlayerSelection.Mode == mod.SelectionParams.Modes.CONSUMABLES then
+
+            ObjectToDescribe.Position = mod.ConsumableFullPosition[PlayerSelection.Index] + Vector(0, 25)
+
+        elseif PlayerSelection.Mode == mod.SelectionParams.Modes.HAND then
+
+            local Pointer = mod.Saved.Player[PIndex].CurrentHand[PlayerSelection.Index]
+
+            ObjectToDescribe.Position = mod.CardFullPoss[Pointer] + Vector(0, -20)
+        end
 
         ObjectToDescribe.Position.Y = ObjectToDescribe.Position.Y - ObjectToDescribe.Position.Y%0.5
         ObjectToDescribe.Position.X = ObjectToDescribe.Position.X - ObjectToDescribe.Position.X%0.5
@@ -1315,9 +1314,10 @@ local function TJimboDescriptionsCallback(descObj)
 
             local card = mod.Saved.Player[PIndex].FullDeck[Pointer]
 
-            ObjectToDescribe.Params = card
-            ObjectToDescribe.Position = mod.CardFullPoss[Pointer] + Vector(0, -30)
             ObjectToDescribe.Allignment = EID_DescAllingnment.BOTTOM
+
+            ObjectToDescribe.Params = card
+            ObjectToDescribe.Position = mod.CardFullPoss[Pointer] + Vector(0, -20)
 
             ObjectToDescribe.Type = EID_DescType.CARD
             ObjectToDescribe.SubType = 0 --not really needed
@@ -1334,8 +1334,9 @@ local function TJimboDescriptionsCallback(descObj)
             local Consumable = mod.Saved.Player[PIndex].Consumables[PlayerSelection.Index]
 
             ObjectToDescribe.Params = Consumable
-            ObjectToDescribe.Position = mod.ConsumableFullPosition[PlayerSelection.Index] + Vector(0, -30)
-            ObjectToDescribe.Allignment = EID_DescAllingnment.TOP | EID_DescAllingnment.RIGHT
+            ObjectToDescribe.Position = mod.ConsumableFullPosition[PlayerSelection.Index] + Vector(0, 25)
+
+            ObjectToDescribe.Allignment = EID_DescAllingnment.TOP
 
             ObjectToDescribe.Type = EID_DescType.CONSUMABLE
             ObjectToDescribe.SubType = mod:FrameToSpecialCard(Consumable.Card)
@@ -1354,7 +1355,8 @@ local function TJimboDescriptionsCallback(descObj)
 
             ObjectToDescribe.Params = Slot
             ObjectToDescribe.Params.Index = PlayerSelection.Index
-            ObjectToDescribe.Position = mod.JokerFullPosition[Slot.RenderIndex] + Vector(0, 30)
+            ObjectToDescribe.Position = mod.JokerFullPosition[Slot.RenderIndex] + Vector(0, 20)
+
             ObjectToDescribe.Allignment = EID_DescAllingnment.TOP
 
             ObjectToDescribe.Type = EID_DescType.JOKER
@@ -1387,9 +1389,6 @@ local function TJimboDescriptionsCallback(descObj)
             ObjectToDescribe.Params = card
             ObjectToDescribe.Position = mod.PackOptionFullPosition[PlayerSelection.Index] + Vector(0, -20)
 
-            ObjectToDescribe.Position.Y = ObjectToDescribe.Position.Y - ObjectToDescribe.Position.Y%0.5
-            ObjectToDescribe.Position.X = ObjectToDescribe.Position.X - ObjectToDescribe.Position.X%0.5
-
             ObjectToDescribe.Type = EID_DescType.CARD
             ObjectToDescribe.SubType = 0 --not really needed
         
@@ -1408,7 +1407,15 @@ local function TJimboDescriptionsCallback(descObj)
 
 
     if Result then
+
+        EID:removeTextPosModifier("T_Jimbo HUD")
+
         ObjectToDescribe.Type = ObjectToDescribe.Type | EID_DescType.SELECTION_FLAG
+
+        ObjectToDescribe.Position.Y = ObjectToDescribe.Position.Y - ObjectToDescribe.Position.Y%0.5
+        ObjectToDescribe.Position.X = ObjectToDescribe.Position.X - ObjectToDescribe.Position.X%0.5
+
+        EID_Desc.StartFrame = Isaac.GetFrameCount()
     end
 
 
@@ -1423,6 +1430,9 @@ local function TJimboDescriptionsCallback(descObj)
             Result = true
             return descObj
         end
+
+        EID_Desc.StartFrame = Isaac.GetFrameCount()
+
 
         ObjectToDescribe.Entity = GetPtrHash(descObj.Entity)
 
@@ -1439,8 +1449,6 @@ local function TJimboDescriptionsCallback(descObj)
 
                 ObjectToDescribe.Params = {}
 
-                ObjectToDescribe.Position = EID:getTextPosition()
-
 
                 ObjectToDescribe.Type = EID_DescType.VOUCHER
                 ObjectToDescribe.SubType = descObj.ObjSubType --not really needed
@@ -1454,8 +1462,6 @@ local function TJimboDescriptionsCallback(descObj)
                or descObj.ObjSubType >= mod.Planets.PLUTO and descObj.ObjSubType <= mod.Spectrals.SOUL then
                 
                 ObjectToDescribe.Params = {Edition = mod.Edition.BASE}
-
-                ObjectToDescribe.Position = EID:getTextPosition()
 
                 --[[
                 if ObjectToDescribe.Entity then
@@ -1527,7 +1533,7 @@ local function TJimboDescriptionsCallback(descObj)
                 ObjectToDescribe.Params = {Edition = mod.Saved.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][JokerConfig.Name],
                                            Modifiers = 0}
 
-                ObjectToDescribe.Position = EID:getTextPosition()
+                
 
                 --[[
                 if ObjectToDescribe.Entity then
@@ -1555,16 +1561,22 @@ local function TJimboDescriptionsCallback(descObj)
                 ObjectToDescribe.SubType = descObj.ObjSubType --not really needed
 
                 Result = true
-                return true
             end
+        end
+
+        if Result then
+            
+            EID:removeTextPosModifier("T_Jimbo HUD")
+
+            ObjectToDescribe.Position = EID:getTextPosition() + Vector(50,-20)
+
+            EID:addTextPosModifier("T_Jimbo HUD", Vector(-200,-100))
         end
     end
 
 
 
     ::FINISH::
-
-    local Lang = mod:GetEIDLanguage()
 
     --save the object's description and name
     if ObjectToDescribe.Type & EID_DescType.CARD ~= 0 then
@@ -1601,16 +1613,25 @@ local function TJimboDescriptionsCallback(descObj)
 
             if card.Enhancement ~= mod.Enhancement.STONE then
             
-                TriggerDesc = TriggerDesc.."{{ColorChips}}+"..tostring(mod:GetValueScoring(card.Value)).."{{B_Black}}Chips"
+                TriggerDesc = TriggerDesc.."{{ColorChips}}+"..tostring(mod:GetValueScoring(card.Value) + 5*card.Upgrades).."{{B_Black}}Chips"
             end
-
-            TriggerDesc = TriggerDesc..(mod.Descriptions.T_Jimbo.Enhancement[card.Enhancement][Lang] or mod.Descriptions.T_Jimbo.Enhancement[card.Enhancement]["en_us"])
 
             --hiker upgrades
-            if card.Upgrades > 0 then
+            --if card.Upgrades > 0 then
+            --    TriggerDesc = TriggerDesc.."#{{ColorChips}}+"..tostring(5*card.Upgrades).."{{B_Black}} Extra Chips"
+            --end
 
-                TriggerDesc = TriggerDesc.."#{{ColorChips}}+"..tostring(5*card.Upgrades).."{{B_Black}} Extra Chips"
+            TriggerDesc = TriggerDesc..mod:GetEIDString("T_Jimbo","Enhancement",card.Enhancement)
+
+            if card.Edition == mod.Edition.NEGATIVE then
+                
+                TriggerDesc = TriggerDesc..mod:GetEIDString("T_Jimbo","CardNEGATIVE")
+            else
+                TriggerDesc = TriggerDesc..mod:GetEIDString("T_Jimbo","Edition",card.Edition)
             end
+
+            TriggerDesc = TriggerDesc..mod:GetEIDString("T_Jimbo","Seal",card.Seal)
+
 
             EID_Desc.Description = TriggerDesc
 
@@ -1621,7 +1642,9 @@ local function TJimboDescriptionsCallback(descObj)
 
     elseif ObjectToDescribe.Type & EID_DescType.JOKER ~= 0 then
 
-        if ObjectToDescribe.Params.Modifiers & mod.Modifier.DEBUFFED ~= 0 then
+        local Slot = ObjectToDescribe.Params
+
+        if Slot.Modifiers & mod.Modifier.DEBUFFED ~= 0 then
 
             local Config = ItemsConfig:GetTrinket(ObjectToDescribe.SubType)
 
@@ -1633,7 +1656,7 @@ local function TJimboDescriptionsCallback(descObj)
             EID_Desc.Extras.Edition = mod.Edition.BASE
             EID_Desc.Extras.Seal = mod.Seals.NONE
 
-        elseif ObjectToDescribe.Params.Modifiers & mod.Modifier.COVERED ~= 0 then
+        elseif Slot.Modifiers & mod.Modifier.COVERED ~= 0 then
             
             EID_Desc.Name = "???"
 
@@ -1648,7 +1671,7 @@ local function TJimboDescriptionsCallback(descObj)
 
             EID_Desc.Name = Config.Name
 
-            EID_Desc.Description = mod:GetEIDString("T_Jimbo","Jokers",ObjectToDescribe.SubType)
+            EID_Desc.Description = mod:GetEIDString("T_Jimbo","Jokers", ObjectToDescribe.SubType)..mod:GetEIDString("T_Jimbo","Edition", Slot.Edition)
 
             EID_Desc.Extras.Enhancement = mod.Enhancement.NONE
             EID_Desc.Extras.Edition = ObjectToDescribe.Params.Edition
@@ -1657,9 +1680,17 @@ local function TJimboDescriptionsCallback(descObj)
 
     elseif ObjectToDescribe.Type & EID_DescType.CONSUMABLE ~= 0 then
 
-        local Config = ItemsConfig:GetCard(ObjectToDescribe.SubType)
 
-        EID_Desc.Name = Config.Name
+        if mod.Descriptions.ConsumablesName[ObjectToDescribe.SubType] then
+            
+            EID_Desc.Name = mod:GetEIDString("ConsumablesName", ObjectToDescribe.SubType)
+
+        else
+            local Config = ItemsConfig:GetCard(ObjectToDescribe.SubType)
+
+            EID_Desc.Name = Config.Name
+        end
+
 
         EID_Desc.Description = mod:GetEIDString("T_Jimbo","Consumables",ObjectToDescribe.SubType)
 
@@ -1678,9 +1709,24 @@ local function TJimboDescriptionsCallback(descObj)
         EID_Desc.Extras.Enhancement = mod.Enhancement.NONE
         EID_Desc.Extras.Edition = ObjectToDescribe.Params.Edition
         EID_Desc.Extras.Seal = mod.Seals.NONE
+
+    elseif ObjectToDescribe.Type & EID_DescType.BOOSTER ~= 0 then
+
+        local Config = ItemsConfig:GetCard(ObjectToDescribe.SubType)
+
+        EID_Desc.Name = Config.Name
+
+        EID_Desc.Description = mod:GetEIDString("T_Jimbo", "Boosters", ObjectToDescribe.SubType)
+
+        EID_Desc.Extras.Enhancement = mod.Enhancement.NONE
+        EID_Desc.Extras.Edition = ObjectToDescribe.Params.Edition
+        EID_Desc.Extras.Seal = mod.Seals.NONE
     end
 
     EID_Desc.Description = mod:ReplaceBalatroMarkups(EID_Desc.Description, ObjectToDescribe.Type, ObjectToDescribe.SubType, true, PlayerSelection.Index)
+
+    ObjectToDescribe.Position.Y = ObjectToDescribe.Position.Y - ObjectToDescribe.Position.Y%0.5
+    ObjectToDescribe.Position.X = ObjectToDescribe.Position.X - ObjectToDescribe.Position.X%0.5
 
 
     if not Result then
@@ -1775,21 +1821,39 @@ function mod:RenderObjectDescription()
     
 
     if ObjectToDescribe.Allignment & EID_DescAllingnment.BOTTOM ~= 0 then
+
+        local Offset = BubbleScale.Y*5 + EID_BUBBLE_BASE_SIZE.Y/2
         
-        RenderPos.Y = ObjectToDescribe.Position.Y - BubbleScale.Y*5 - EID_BUBBLE_BASE_SIZE.Y/2
+        RenderPos.Y = ObjectToDescribe.Position.Y - Offset
+
     end
     if ObjectToDescribe.Allignment & EID_DescAllingnment.TOP ~= 0 then
+
+        local Offset = BubbleScale.Y*5 + EID_BUBBLE_BASE_SIZE.Y/2
         
-        RenderPos.Y = ObjectToDescribe.Position.Y + BubbleScale.Y*5 + EID_BUBBLE_BASE_SIZE.Y/2
+        RenderPos.Y = ObjectToDescribe.Position.Y + Offset
     end
     if ObjectToDescribe.Allignment & EID_DescAllingnment.RIGHT ~= 0 then
+
+        local Offset = BubbleScale.X*5 + EID_BUBBLE_BASE_SIZE.X/2
         
-        RenderPos.X = ObjectToDescribe.Position.X - BubbleScale.X*5 - EID_BUBBLE_BASE_SIZE.X/2
+        RenderPos.X = ObjectToDescribe.Position.X - Offset
     end
     if ObjectToDescribe.Allignment & EID_DescAllingnment.LEFT ~= 0 then
         
-        RenderPos.X = ObjectToDescribe.Position.X - BubbleScale.X*5 - EID_BUBBLE_BASE_SIZE.X/2
+        local Offset = BubbleScale.X*5 + EID_BUBBLE_BASE_SIZE.X/2
+
+        RenderPos.X = ObjectToDescribe.Position.X + Offset
     end
+
+    --prevent the bubble form going off screen
+    local TL_Border = BubbleScale*5 + EID_BUBBLE_BASE_SIZE/2
+    local BR_Border = Vector(Isaac.GetScreenWidth(), Isaac.GetScreenHeight()) - (BubbleScale*5 + EID_BUBBLE_BASE_SIZE/2)
+
+    RenderPos:Clamp(TL_Border.X, TL_Border.Y, BR_Border.X, BR_Border.Y)
+
+
+
 
 
     local Y_BorderOffset = Vector(0,BubbleScale.Y*5)
@@ -1830,12 +1894,23 @@ function mod:RenderObjectDescription()
     local NullFrame = EID_Bubble:GetNullFrame("String Position")
 
     local NameScale = Vector.One * NullFrame:GetScale().Y*100
-
     local NamePos = NullFrame:GetPos() + RenderPos - Y_BorderOffset
 
     local Params = mod.StringRenderingParams.EID | mod.StringRenderingParams.Centered
+    local Kcolor 
 
-    mod:RenderBalatroStyle(EID_Desc.Name, NamePos, Params, 0, NameScale, mod.BalatroKColorBlack, BoxWidth)
+    if ObjectToDescribe.Type & EID_DescType.CARD == 0 then
+
+        Kcolor = KColor.White
+        
+        Params = Params | mod.StringRenderingParams.Swoosh
+    else
+        Kcolor = mod.BalatroKColorBlack
+    end
+
+    mod:RenderBalatroStyle(EID_Desc.Name, NamePos, Params, EID_Desc.StartFrame, NameScale, Kcolor, BoxWidth)
+
+
 
 
     EID_Bubble:SetFrame(EID_BubbleFrame.Description)

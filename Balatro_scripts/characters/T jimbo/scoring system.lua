@@ -155,14 +155,15 @@ end
 
 
 local function IncreaseJokerProgress(Player, PIndex, JokerIndex, Amount, EffectColor, ShowDifference, SpeedMult)
+    
+    SpeedMult = SpeedMult or 1
 
     Isaac.CreateTimer(function ()
 
         mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex] = mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex] + Amount
-                
+
         if EffectColor then
 
-            SpeedMult = SpeedMult or 1
             local Text
 
             if ShowDifference == true then
@@ -178,6 +179,7 @@ local function IncreaseJokerProgress(Player, PIndex, JokerIndex, Amount, EffectC
         end
         
     end, IntervalTime(NumEffectPlayed, SpeedMult),1,true)
+    
 
     if EffectColor then
         NumEffectPlayed = NumEffectPlayed + 1
@@ -1278,7 +1280,7 @@ function mod:ScoreHand(Player)
 
         elseif Joker == mod.Jokers.SUPERNOVA then
 
-            IncreaseMult(Player, PIndex, mod.Saved.HandsUsed[HandType], mod.EffectType.JOKER, JokerIndex)
+            IncreaseMult(Player, PIndex, mod.Saved.HandsTypeUsed[HandType], mod.EffectType.JOKER, JokerIndex)
 
         elseif Joker == mod.Jokers.CARD_SHARP then
 
@@ -1420,7 +1422,7 @@ function mod:ScoreHand(Player)
 
         elseif Joker == mod.Jokers.CASTLE then
 
-            local Chips = (mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] & ~SUIT_FLAG)/SUIT_FLAG + 1
+            local Chips = (mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] & ~SUIT_FLAG)/(SUIT_FLAG + 1)
 
             IncreaseChips(Player, PIndex, Chips, mod.EffectType.JOKER, JokerIndex)
 
@@ -2939,8 +2941,6 @@ local function OnCardDiscard(_, Player, PointerDiscarded, HandIndex, IsLastCard)
             if mod:IsSuit(Player, CardDiscarded, mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] & SUIT_FLAG) then
                 
                 IncreaseJokerProgress(Player, PIndex, Index, 3 * (SUIT_FLAG+1), mod.EffectColors.BLUE)
-
-                GeneralBalatroEffect(Player, PIndex, mod.EffectColors.BLUE, mod.Sounds.CHIPS, "Upgrade!", mod.EffectType.JOKER, 2)
             end
 
         elseif Joker == mod.Jokers.HIT_ROAD then
@@ -3400,7 +3400,7 @@ mod:AddCallback(mod.Callbalcks.DECK_MODIFY, OnDeckModify)
 
 
 
-local function OnDeath(Player)
+local function OnDeath(_, Player)
 
     if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
         return

@@ -576,15 +576,15 @@ function mod:JimboPackRender(_,_,_,_,Player)
         for i,Card in ipairs(mod.SelectionParams[PIndex].PackOptions) do --for every option
 
             local Rotation = 0
-            local ValueOffset = Vector(-2,0)
-            local Scale = Vector.One*ScaleMult
+            local ValueOffset = Vector(0,0)
+            local Scale = Vector.One
             local ForceCovered = false
             local Thin = false
 
             WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams[PIndex].Frames*5+i*95))*1.5)
-            local RenderPos = mod:CoolVectorLerp(PlayerPos, RenderPos + WobblyEffect[i], mod.SelectionParams[PIndex].Frames/10)
+            local ActualRenderPos = mod:CoolVectorLerp(PlayerPos, RenderPos + WobblyEffect[i], mod.SelectionParams[PIndex].Frames/10)
 
-            mod:RenderCard(Card, RenderPos, ValueOffset, Scale,Rotation, ForceCovered, Thin)
+            mod:RenderCard(Card, ActualRenderPos, ValueOffset, Scale,Rotation, ForceCovered, Thin)
         
             RenderPos.X = RenderPos.X + PACK_CARD_DISTANCE + CardHUDWidth
         end--end FOR

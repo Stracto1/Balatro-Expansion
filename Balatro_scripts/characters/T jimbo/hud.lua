@@ -46,7 +46,6 @@ HUD_FRAME.Skip = 4
 
 local LeftSideHUD = Sprite("gfx/ui/Balatro_left_side_HUD.anm2")
 LeftSideHUD:SetFrame("Idle", 0)
-LeftSideHUD:PlayOverlay("Strings", true)
 
 local LeftSideLayers = {Base = 0, Blind_Info = 1, General_Info = 2, Fixed_Color = 3, Lines = 4, Q_Button = 5, E_Button = 6}
 
@@ -90,9 +89,12 @@ local LeftSideStringParams = {[LeftSideStringFrames.ChooseNextBlind] = mod.Strin
 ]]
 
 
+local DeckPreviewHUD = Sprite("gfx/ui/Balatro_fulldeck_HUD.anm2")
+DeckPreviewHUD:SetFrame("Idle", 0)
+
+
 
 local CashoutBubbleSprite = Sprite("gfx/ui/cashout_bubble.anm2")
-local TrinketSprite = Sprite("gfx/005.350_trinket_custom.anm2")
 local CardFrame = Sprite("gfx/ui/CardSelection.anm2")
 CardFrame:SetAnimation("Frame")
 
@@ -198,7 +200,7 @@ local function MoveCameraToRightBorder()
 
     Options.CameraStyle = CameraStyle.ACTIVE_CAM_OFF
 
-    local FreeRightSpace = (Isaac.GetScreenWidth() - BaseRoomWidth) / 2
+    local FreeRightSpace = (Isaac.GetScreenWidth() - BaseRoomWidth) / 2 + 5
 
     CameraOffset = Isaac.WorldToScreenDistance(Vector(FreeRightSpace,0))/2
 
@@ -367,8 +369,9 @@ function mod:RenderBalatroStyle(String, Position, Params, StartFrame, Scale, Kco
             end
 
             --removes space from last word
-            local LastWord = Lines[NumLines][#Lines[NumLines]].Word
-            Lines[NumLines][#Lines[NumLines]].Word = string.sub(LastWord, 1, string.len(LastWord)-1)
+            --local LastWord = Lines[NumLines][#Lines[NumLines]].String
+--
+            --Lines[NumLines][#Lines[NumLines - 1]].String = string.sub(LastWord, 1, string.len(LastWord)-1)
 
             --EID.font:DrawStringScaledUTF8(strFiltered, position.X + offsetX, position.Y, scale.X, scale.Y, textPart[2], 0, false)
 	    	if EID.CachingDescription then
@@ -398,6 +401,8 @@ function mod:RenderBalatroStyle(String, Position, Params, StartFrame, Scale, Kco
             for _,Word in ipairs(Line) do
             
                 mod:RenderBalatroStyle(Word.String, Word.Position + Line.Offset, Params, StartFrame, Scale, Word.Kcolor, BoxWidth, Sound)
+            
+                StartFrame = StartFrame + 2*string.len(Word.String)
             end
         end
 
@@ -411,8 +416,6 @@ function mod:RenderBalatroStyle(String, Position, Params, StartFrame, Scale, Kco
         Params = Params & ~mod.StringRenderingParams.Wrap
         
         local Lines = {}
-
-        local Remainder = ""
 
         local CurrentSection = ""
         for Word in string.gmatch(String, "%g+") do
@@ -1662,6 +1665,7 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
             K_Color = mod.EffectKColors.YELLOW
             BoxWidth = NullFrame:GetScale().X * 100
             Params = mod.StringRenderingParams.Centered | mod.StringRenderingParams.Swoosh | mod.StringRenderingParams.Peaking
+            StartFrame = Isaac.GetFrameCount() - SinceBlindChange
 
             String = mod.Descriptions.T_Jimbo.LeftHUD.ShopSlogan[Lang] or mod.Descriptions.T_Jimbo.LeftHUD.ShopSlogan["en_us"]
 
@@ -1747,7 +1751,7 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
 
                 local OldScale = LastPortraiedSprite.Scale + Vector.Zero
 
-                local Frame 
+                local Frame
                 
                 for i = 0, LastPortraiedSprite:GetLayerCount()-1 do
                     
@@ -1757,18 +1761,26 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
                         break
                     end
                 end
-                local EnemyScale = Vector(Frame:GetWidth(), Frame:GetHeight())*Frame:GetScale()
 
-                LastPortraiedSprite.Scale = MaxScale / EnemyScale --adapts the sprite size to the icon's max size
+                --local EnemyScale = Vector(Frame:GetWidth(), Frame:GetHeight())*Frame:GetScale()
+                local EnemyScale = Vector(MaxHPEnemy.Size, MaxHPEnemy.Size) * 2.5
 
-                LastPortraiedEnemy.Color = Color.Default
+                if EnemyScale.X ~= 0 and EnemyScale.Y ~= 0 then
 
-                LastPortraiedSprite:Render(CenterPos)
+                    EnemyScale.X = math.min(EnemyScale.X, EnemyScale.Y)
+                    EnemyScale.Y = math.min(EnemyScale.X, EnemyScale.Y)
 
-                local sin = math.sin(Isaac.GetFrameCount()/12)^2
+                    LastPortraiedSprite.Scale = MaxScale / EnemyScale --adapts the sprite size to the icon's max size
 
-                LastPortraiedEnemy.Color = Color(1 + sin, 1,1,1, sin*0.2) --modifies R tint and R offset
+                    LastPortraiedEnemy.Color = Color.Default
 
+                    LastPortraiedSprite:Render(CenterPos)
+
+                    local sin = math.sin(Isaac.GetFrameCount()/12)^2
+
+                    LastPortraiedEnemy.Color = Color(1 + sin, 1,1,1, sin*0.2) --modifies R tint and R offset
+
+                end
 
                 LastPortraiedSprite.Scale = OldScale
             end
@@ -1926,7 +1938,7 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
 
             String = mod.Saved.CurrentBlindName
 
-            StartFrame = Isaac.GetFrameCount() - SinceBlindChange
+            StartFrame = Isaac.GetFrameCount() - SinceBlindChange - PreviousBlindDuration
 
             mod:RenderBalatroStyle(String, CenterPos, Params, StartFrame, Scale, K_Color, BoxWidth)
 
@@ -2261,6 +2273,8 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
         local ChosenIndex = mod:GetValueIndex(SelectedCards, true, true)
         local Slot = mod.Saved.Player[PIndex].Inventory[ChosenIndex]
 
+        E_ActionString = "Sell"
+
         if Slot then
 
             E_Layer:SetColor(mod.EffectColors.GREEN) --E is for selling a joker
@@ -2275,17 +2289,19 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
         local ChosenIndex = mod:GetValueIndex(SelectedCards, true, true)
         local Consumable = mod.Saved.Player[PIndex].Consumables[ChosenIndex]
 
+        Q_ActionString = "Use"
+
+        E_ActionString = "Sell"
 
         if Consumable then
 
-            if mod:PlayerIsAbleToUseCard(Player, Consumable) then
+            if mod:PlayerIsAbleToUseCard(Player, Consumable.Card) then
 
                 Q_Layer:SetColor(mod.EffectColors.RED) --Q is for card use
             else
                 Q_Layer:SetColor(DefaultColor)
             end
 
-            Q_ActionString = "Use"
 
             E_Layer:SetColor(mod.EffectColors.GREEN) --E is for selling a consumable
 
@@ -2483,6 +2499,310 @@ end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, TJimbosLeftSideHUD)
 
 
+local DeckOverviewPos = Vector(1000, 0)
+
+local function TJimboDeckPreview(_,offset,_,Position,_,Player)
+
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
+        return
+    end
+
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    local TargetPos
+
+    if mod.Saved.DeckPreviewMode == mod.DeckPreviewModes.OFF then
+        
+        TargetPos = Vector(Isaac.GetScreenWidth() + 100, 50)
+
+    elseif mod.Saved.DeckPreviewMode == mod.DeckPreviewModes.PARTIAL then
+        
+        TargetPos = Vector(Isaac.GetScreenWidth() - 70, 50)
+
+    else
+        TargetPos = Vector(Isaac.GetScreenWidth()/2 - 115, 50)
+    end
+
+    local HUD_Pos
+
+    if not mod.GameStarted then
+        
+        HUD_Pos = TargetPos
+    else
+        HUD_Pos = DeckOverviewPos + (TargetPos - DeckOverviewPos)/12
+    end
+
+    DeckOverviewPos = HUD_Pos
+
+
+    DeckPreviewHUD:Render(HUD_Pos)
+
+
+    if mod.Saved.DeckPreviewMode == mod.DeckPreviewModes.OFF then
+        return
+    end
+
+
+    local Deck = mod.Saved.Player[PIndex].FullDeck
+    local DeckOrder = mod:GetCardTableOrder(Deck, mod.HandOrderingModes.Suit)
+    
+    --a way to organise the cards
+    local Pointers = {[mod.Suits.Spade] = {},
+                   [mod.Suits.Heart] = {},
+                   [mod.Suits.Club] = {},
+                   [mod.Suits.Diamond] = {}}
+
+    for _,Pointer in ipairs(DeckOrder) do
+
+        local Card = mod.Saved.Player[PIndex].FullDeck[Pointer]
+
+        Pointers[Card.Suit][#Pointers[Card.Suit] + 1] = Pointer
+    end
+
+    local CoveredSeen = false
+
+    --only counts the ramaining cards (didn't want to create the full deck option cause its not as useful)
+    local CardCount = {Total = 0,
+                       Stone = 0, --separate counter for stone cards
+                       [mod.Suits.Spade] = {},
+                       [mod.Suits.Heart] = {},
+                       [mod.Suits.Club] = {},
+                       [mod.Suits.Diamond] = {}}
+
+    local TotalSuitCount = {[mod.Suits.Spade] = 0,
+                            [mod.Suits.Heart] = 0,
+                            [mod.Suits.Club] = 0,
+                            [mod.Suits.Diamond] = 0}
+
+    local TotalRankCount = {[1] = 0,
+                            [2] = 0,
+                            [3] = 0,
+                            [4] = 0,
+                            [5] = 0,
+                            [6] = 0,
+                            [7] = 0,
+                            [8] = 0,
+                            [9] = 0,
+                            [10] = 0,
+                            [mod.Values.JACK] = 0,
+                            [mod.Values.QUEEN] = 0,
+                            [mod.Values.KING] = 0}
+
+    --count the remaining cards in the deck
+    for Pointer, Card in ipairs(Deck) do
+
+        if Pointer < mod.Saved.Player[PIndex].DeckPointer then --card is alredy in hand/used
+
+            if Card.Modifiers & mod.Modifier.COVERED ~= 0 then --player can't know what the card is so count it anyway
+                CoveredSeen = true
+            else
+                goto CONTINUE --go to the next card
+            end
+        end
+
+        CardCount.Total = CardCount.Total + 1
+
+        if Card.Enhancement == mod.Enhancement.STONE then
+            CardCount.Stone = CardCount.Stone + 1
+        
+        else
+            TotalSuitCount[Card.Suit] = TotalSuitCount[Card.Suit] + 1
+            TotalRankCount[Card.Value] = TotalRankCount[Card.Value] + 1
+
+            CardCount[Card.Suit][Card.Value] = CardCount[Card.Suit][Card.Value] or 0
+            CardCount[Card.Suit][Card.Value] = CardCount[Card.Suit][Card.Value] + 1
+        end
+        
+        ::CONTINUE::
+    end
+
+
+
+    DeckPreviewHUD:SetFrame(0)
+    local TotalCountPos = DeckPreviewHUD:GetNullFrame("Suit Positions"):GetPos() + HUD_Pos
+
+
+    local String
+    local RenderPos
+    local Params = mod.StringRenderingParams.Centered
+    local Scale = Vector.One/2
+    local Kcolor 
+    local Width
+
+    if CoveredSeen then
+        Kcolor = mod.EffectKColors.YELLOW
+    else
+        Kcolor = KColor.White
+    end
+    
+    ------TOTAL SUIT--------
+
+    RenderPos = TotalCountPos + Vector.Zero
+
+    for Suit=1, mod.Suits.Diamond do
+
+        DeckPreviewHUD:SetFrame(Suit)
+        local Frame = DeckPreviewHUD:GetNullFrame("Suit Positions")
+
+        RenderPos.X = HUD_Pos.X + Frame:GetPos().X
+        Width = Frame:GetScale().X * 100
+
+        if TotalSuitCount[Suit] == 0 then
+            Kcolor.Alpha = 0.5
+        else
+            Kcolor.Alpha = 1
+        end
+
+        String = tostring(TotalSuitCount[Suit])
+
+        mod:RenderBalatroStyle(String, RenderPos, Params, 0, Scale, Kcolor, Width)
+    end
+
+
+    ------TOTAL RANK--------
+
+    RenderPos = TotalCountPos + Vector.Zero
+
+    for Rank=1, mod.Values.KING do
+
+        DeckPreviewHUD:SetFrame(Rank)
+        local Frame = DeckPreviewHUD:GetNullFrame("Rank Positions")
+
+        RenderPos.Y = HUD_Pos.Y + Frame:GetPos().Y
+        Width = Frame:GetScale().X * 100
+
+        if TotalRankCount[Rank] == 0 then
+            Kcolor.Alpha = 0.5
+        else
+            Kcolor.Alpha = 1
+        end
+
+
+        String = tostring(TotalRankCount[Rank])
+
+        mod:RenderBalatroStyle(String, RenderPos, Params, 0, Scale, Kcolor, Width)
+    end
+
+    -------TOTAL SUIT|RANK--------
+
+    for Suit=1, mod.Suits.Diamond do
+
+        DeckPreviewHUD:SetFrame(Suit)
+        local Frame = DeckPreviewHUD:GetNullFrame("Suit Positions")
+
+        RenderPos.X = HUD_Pos.X + Frame:GetPos().X
+
+        for Rank=1, mod.Values.KING do
+
+            DeckPreviewHUD:SetFrame(Rank)
+            local Frame = DeckPreviewHUD:GetNullFrame("Rank Positions")
+
+            RenderPos.Y = HUD_Pos.Y + Frame:GetPos().Y
+            Width = Frame:GetScale().X * 100
+
+            CardCount[Suit][Rank] = CardCount[Suit][Rank] or 0
+
+            if CardCount[Suit][Rank] <= 0 then
+                Kcolor.Alpha = 0.5
+            else
+                Kcolor.Alpha = 1
+            end
+
+            String = tostring(CardCount[Suit][Rank])
+
+            mod:RenderBalatroStyle(String, RenderPos, Params, 0, Scale, Kcolor, Width)
+        end
+    end
+
+    Kcolor.Alpha = 1 --these mf upvalues raaaahh
+
+
+
+    if mod.Saved.DeckPreviewMode ~= mod.DeckPreviewModes.FULL then
+        return
+    end
+    
+
+    local MousePos = Isaac.WorldToScreen(Input.GetMousePosition(true))
+
+    local HoveredCard
+    local HoveredPos
+
+    --renders the cards in the deck
+    for Suit = 1, mod.Suits.Diamond do
+
+        local SuitNum = TotalSuitCount[Suit]
+
+        DeckPreviewHUD:SetFrame(Suit)
+        local Layer = DeckPreviewHUD:GetNullFrame("Card Positions")
+
+        local Width = Layer:GetScale().X * 100
+
+        local RenderPos = Layer:GetPos() + HUD_Pos
+        RenderPos.X = RenderPos.X - Width/2
+
+        local CardStep = Width/(SuitNum + 1)
+
+        local ValueOffset = Vector.Zero
+        local Thin = false
+
+        ValueOffset.X = math.min(CardStep - 13, 0)
+
+        if ValueOffset.X < -2.5 then
+
+            ValueOffset.X = ValueOffset.X + 1
+            
+            Thin = true
+
+            ValueOffset.X = math.max(ValueOffset.X, -3.5)
+        end
+
+        for _, Pointer in ipairs(Pointers[Suit]) do
+
+            if Pointer < mod.Saved.Player[PIndex].DeckPointer then
+                goto CONTINUE
+            end
+
+            local Card = Deck[Pointer]
+
+            RenderPos.X = RenderPos.X + CardStep
+
+
+            local MouseDistance = MousePos - RenderPos
+
+            MouseDistance.X = math.abs(MouseDistance.X)
+            MouseDistance.Y = math.abs(MouseDistance.Y)
+
+            if MouseDistance.X <= 9 and MouseDistance.Y <= 11 then
+                
+                HoveredCard = Card
+                HoveredPos = RenderPos + Vector.Zero
+            end
+
+
+            local Scale = Vector.One
+            local Rotation = 0
+            local ForceCovered = false
+            
+
+            mod:RenderCard(Card, RenderPos, ValueOffset, Scale, Rotation, ForceCovered, Thin)
+
+            ::CONTINUE::
+        end
+    end
+
+    if HoveredCard then
+        
+
+        mod:RenderCard(HoveredCard, HoveredPos, Vector.Zero, Vector.One*1.1, 0, false, false)
+
+    end
+
+end
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, TJimboDeckPreview)
+
+
+
 
 function mod:GetBLindChipFrame(Blind)
 
@@ -2639,9 +2959,10 @@ local function CustomPickupSprites(_, Pickup)
 
         local CardSprite = Pickup:GetSprite()
         
-        CardSprite:Load("gfx/ui/PackSpecialCards.anm2")
+        CardSprite:Load("gfx/ui/PackSpecialCards.anm2", true)
 
-        SpecialCardsSprite:SetFrame("idle",  mod:SpecialCardToFrame(Pickup.SubType))
+
+        CardSprite:SetFrame("idle",  mod:SpecialCardToFrame(Pickup.SubType))
 
     end
     --Pickup.SpriteOffset.Y = -8
@@ -2680,12 +3001,17 @@ local function Counters()
 
     if mod.Saved.BlindBeingPlayed == LastBlindType then
         SinceBlindChange = SinceBlindChange + 1
-    else
+
+    elseif LastBlindType then
+
         PreviousBlindDuration = SinceBlindChange + 0
         PreviousBlindType = LastBlindType + 0
         
         SinceBlindChange = 0
         LastBlindType = mod.Saved.BlindBeingPlayed + 0
+
+    else 
+        LastBlindType = mod.BLINDS.NONE
     end 
 
 
@@ -2731,4 +3057,16 @@ local function Counters()
 
 end
 mod:AddCallback(ModCallbacks.MC_PRE_RENDER, Counters)
+
+
+
+local function ResetPreviousBlind()
+
+    PreviousBlindType = nil
+---@diagnostic disable-next-line: cast-local-type
+    LastBlindType = nil
+    SinceBlindChange = 0
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, ResetPreviousBlind)
 

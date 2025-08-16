@@ -296,65 +296,39 @@ function mod:CardPacks(card, Player,_)
         Isaac.RunCallback("PACK_OPENED",Player,card)
 
         local PackRng = Player:GetCardRNG(mod.Packs.STANDARD)
-        local RandomPack = {}
 
         local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 4) or 3
 
-        local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
-        if EditionRoll <= JumboChance then
-            Size = Size + 2
+        if Player:HasCollectible(mod.Vouchers.Illusion) then
+            
+            local EditionRoll = PackRng:RandomFloat()
+
+            if EditionRoll <= JumboChance then
+                Size = Size + 2
+            end
+
+            if EditionRoll <= JumboChance then
+
+                if EditionRoll <= MegaChance then
+                    mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.PackPurposes.MegaFlag
+                    mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!", mod.EffectType.ENTITY, Player)
+                
+                else
+                    mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!", mod.EffectType.ENTITY, Player)
+                end
+            end
+
         end
+
+        mod.SelectionParams[PIndex].PackOptions = {}
 
         for i=1, Size do
-            local RandomCard = {}
-            RandomCard.Suit = PackRng:RandomInt(1, 4)
-            RandomCard.Value = PackRng:RandomInt(1,13)
-            RandomCard.Upgrades = 0
-
-            if PackRng:RandomFloat() < 0.4 then
-                RandomCard.Enhancement = PackRng:RandomInt(2,9) 
-            else
-                RandomCard.Enhancement = mod.Enhancement.NONE --no :(
-            end
-
-            if PackRng:RandomFloat() < 0.2 then
-                RandomCard.Seal = PackRng:RandomInt(1,4)
-                sfx:Play(mod.Sounds.SEAL)
-            else
-                RandomCard.Seal = mod.Seals.NONE --no :(
-            end
-
-            local EdRoll = PackRng:RandomFloat()
-            if EdRoll <= CardEditionChance.Foil then
-                RandomCard.Edition = mod.Edition.FOIL
-                sfx:Play(mod.Sounds.FOIL)
-            elseif EdRoll <= CardEditionChance.Holo then
-                RandomCard.Edition = mod.Edition.HOLOGRAPHIC
-                sfx:Play(mod.Sounds.HOLO)
-            elseif EdRoll <= CardEditionChance.Poly then
-                RandomCard.Edition = mod.Edition.POLYCROME
-                sfx:Play(mod.Sounds.POLY)
-            else
-                RandomCard.Edition = mod.Edition.BASE --no :(
-            end
-
-            RandomPack[i] = RandomCard
+            
+            mod.SelectionParams[PIndex].PackOptions[i] = mod:RandomPlayingCard(PackRng, true)
         end
-        mod.SelectionParams[PIndex].PackOptions = RandomPack
 
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
                                               mod.SelectionParams.Purposes.StandardPack)
-
-        if EditionRoll <= JumboChance then
-
-            if EditionRoll <= MegaChance then
-                mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.PackPurposes.MegaFlag
-                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!", mod.EffectType.ENTITY, Player)
-            
-            else
-                mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!", mod.EffectType.ENTITY, Player)
-            end
-        end
 
     elseif card == mod.Packs.ARCANA then
         Isaac.RunCallback("PACK_OPENED",Player,card)

@@ -753,8 +753,11 @@ function mod:AddRoomsCleared(IsBoss, Hostile)
     if not Game:IsGreedMode() then
         for i,Player in ipairs(PlayerManager.GetPlayers()) do
             if Player:GetPlayerType() == mod.Characters.JimboType then
-                ---@diagnostic disable-next-line: param-type-mismatch
-                mod:StatReset(Player, true, true, true, false, true)
+
+                if not Player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT) then
+                    ---@diagnostic disable-next-line: param-type-mismatch
+                    mod:StatReset(Player, true, true, true, false, true)
+                end
 
                 if Hostile then
                     mod:FullDeckShuffle(Player)
@@ -781,14 +784,14 @@ function mod:AddRoomsCleared(IsBoss, Hostile)
     end
 
 
-    if IsBoss and mod.Saved.BossCleared ~= 2
+    if IsBoss and mod.Saved.BossCleared ~= mod.BossProgress.CLEARED
        and (Game:GetLevel():GetStage() ~= LevelStage.STAGE7 or Game:GetRoom():GetDeliriumDistance() == 0) then
 
         
         if Game:GetLevel():GetCurses() & LevelCurse.CURSE_OF_LABYRINTH == LevelCurse.CURSE_OF_LABYRINTH
            and mod.Saved.BossCleared == 0 then
 
-            mod.Saved.BossCleared = 1 --basically serves as a "third state" symbolising that 1 of 2 bossrooms were completed
+            mod.Saved.BossCleared = 1 --basically serves as an "in between state" symbolising that 1 of 2 bossrooms were completed
         else
             Isaac.RunCallback("BLIND_CLEARED", mod.BLINDS.BOSS)
             mod.Saved.BossCleared = 2 -- all bosses completed
@@ -855,12 +858,17 @@ function mod:GiveRewards(BlindType)
 
     local ToTheMoonNum = 0
 
-
-
-
     --gives coins basing on the blind cleared and finds jimbo
     for _,Player in ipairs(PlayerManager:GetPlayers()) do
         if Player:GetPlayerType() == mod.Characters.JimboType then
+
+            if (not Game:IsGreedMode() 
+               and Player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT))
+               or (BlindType == mod.BLINDS.BOSS and Game:IsGreedMode())
+                then
+            
+                mod:StatReset(Player, true, true, true, false, true)
+            end
 
             ToTheMoonNum = ToTheMoonNum + #mod:GetJimboJokerIndex(Player, mod.Jokers.TO_THE_MOON)
 
@@ -909,51 +917,13 @@ function mod:GiveRewards(BlindType)
     end, 30, 1, true)
 
 
+    
+
+
     print("rewards should be given")
 end
 mod:AddCallback(mod.Callbalcks.BLIND_CLEAR, mod.GiveRewards)
 
---[[
-local function JimboAddTrinket(Player, Trinket, _, StopEvaluation)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType then
-        return
-    end
-
-    local PIndex = Player:GetData().TruePlayerIndex
-        
-    Player:TryRemoveTrinket(Trinket) -- a custom table is used instead since he needs to hold many of them
-
-    local JokerEdition = mod.Saved.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Trinket).Name] or mod.Edition.BASE 
-
-
-    local EmptySlot = mod:GetJimboJokerIndex(Player, 0,true)[1]
-    
-    if not EmptySlot then
-        Isaac.CreateTimer(function ()
-            Player:AnimateSad()
-        end,0,1,false)
-        
-        return false
-    end
-
-    mod.Saved.LastJokerRenderIndex = mod.Saved.LastJokerRenderIndex + 1
-
-    mod.Saved.Player[PIndex].Inventory[EmptySlot].Joker = Trinket
-    mod.Saved.Player[PIndex].Inventory[EmptySlot].Edition = JokerEdition
-    mod.Saved.Player[PIndex].Inventory[EmptySlot].RenderIndex = mod.Saved.LastJokerRenderIndex
-
-    mod.Saved.Player[PIndex].Progress.Inventory[EmptySlot] = mod:GetJokerInitialProgress(Trinket)
-
-
-    if not StopEvaluation then
-        Isaac.RunCallback("JOKER_ADDED", Player, Trinket, JokerEdition, EmptySlot)
-        Isaac.RunCallback("INVENTORY_CHANGE", Player)
-    end
-
-    return true
-end
---mod:AddPriorityCallback(ModCallbacks.MC_POST_TRIGGER_TRINKET_ADDED,CallbackPriority.IMPORTANT, mod.JimboAddTrinket)
-]]
 
 ---@param RNG RNG 
 function mod:JimboTrinketPool(_, RNG)
@@ -1144,7 +1114,6 @@ mod:AddCallback(ModCallbacks.MC_FAMILIAR_INIT, mod.JimboBlueFliesSpiders, Famili
 mod:AddCallback(ModCallbacks.MC_FAMILIAR_INIT, mod.JimboBlueFliesSpiders, FamiliarVariant.BLUE_SPIDER)
 
 
---shuffles the deck
 ---@param Player EntityPlayer
 function mod:JimboRoomClear(Player)
 
@@ -1168,7 +1137,7 @@ function mod:JimboRoomClear(Player)
 
         
         --as the button is first pressed, reset stats and deck
-        if IsFirstWave then
+        if IsFirstWave and not Player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT) then
             for i,Player in ipairs(PlayerManager.GetPlayers()) do
                 if Player:GetPlayerType() == mod.Characters.JimboType then
                     ---@diagnostic disable-next-line: param-type-mismatch
@@ -1244,7 +1213,7 @@ function mod:JokerStatReset(Player, Cache)
                   Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY,
                   false, true, false)
 end
---mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.IMPORTANT, mod.JokerStatReset)
+mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.IMPORTANT, mod.JokerStatReset)
 
 ---@param Player EntityPlayer
 ---@param Cache CacheFlag
@@ -1382,7 +1351,12 @@ end
 
 function mod:AlwaysMaxCoins(Player, CustomCache, _)
     if PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
-        return 999
+
+        if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_DEEP_POCKETS) then
+            return 9999
+        else
+            return 999
+        end
     end
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.AlwaysMaxCoins, "maxcoins")
@@ -1460,7 +1434,7 @@ function mod:HandSizeCache(Player, Cache, Value)
 
     Value = Value + 2*#mod:GetJimboJokerIndex(Player, mod.Jokers.TROUBADOR)
 
-    Value = Value - 3*#mod:GetJimboJokerIndex(Player, mod.Jokers.STUNTMAN, true)
+    Value = Value - 2*#mod:GetJimboJokerIndex(Player, mod.Jokers.STUNTMAN, true)
 
     for _, Index in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.TURTLE_BEAN)) do
         Value = Value + mod.Saved.Player[PIndex].Progress.Inventory[Index]

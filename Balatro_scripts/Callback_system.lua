@@ -37,6 +37,10 @@ function mod:OnGameStart(Continued)
 
         --mod.ItemManager:LoadData(mod.Saved.HiddenItemsData)
 
+
+        mod.Saved.HandOrderingMode = mod.HandOrderingModes.Rank
+        mod.Saved.DeckPreviewMode = mod.DeckPreviewModes.OFF
+
         --also restores the invisible collectibles added previously
         for _,Player in ipairs(PlayerManager.GetPlayers()) do
 
@@ -54,6 +58,9 @@ function mod:OnGameStart(Continued)
         end
         
     else
+
+        mod.Saved.HandOrderingMode = mod.HandOrderingModes.Rank
+        mod.Saved.DeckPreviewMode = mod.DeckPreviewModes.OFF
 
         mod.Saved.ShowmanRemovedItems = {}
         mod.HpEnable = false
@@ -366,7 +373,7 @@ function mod:InitJimboValues(Player, Force)
         end
         mod.Saved.Player[PIndex].Progress.Room.Shots = 0
         mod.Saved.Player[PIndex].Progress.Room.ChampKills = 0
-        mod.Saved.Player[PIndex].Progress.Room.KingsAtStart = 0
+        --mod.Saved.Player[PIndex].Progress.Room.KingsAtStart = 0
 
 
         mod.Saved.Player[PIndex].Progress.Floor = {}
