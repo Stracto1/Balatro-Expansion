@@ -673,7 +673,6 @@ function mod:FamiliarCollision(Familiar, Collider,_)
                     end
                 end
             else
-                --no idea tf the editor is doing
 ---@diagnostic disable-next-line: param-type-mismatch
                 Familiar:AddVelocity(Collider.Velocity/3) 
             end

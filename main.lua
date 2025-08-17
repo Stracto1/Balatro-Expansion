@@ -177,14 +177,15 @@ Balatro_Expansion.Jokers.PERKEO = Isaac.GetTrinketIdByName("Perkeo")
 end
 
 
-Balatro_Expansion.Trinkets = {} --rarities used for spawn weight and stuff
-Balatro_Expansion.Trinkets.common = {} 
+Balatro_Expansion.Trinkets = {} 
+Balatro_Expansion.Trinkets.common = {} --rarities used for spawn weight and stuff
 Balatro_Expansion.Trinkets.uncommon = {}
 Balatro_Expansion.Trinkets.rare = {}
 Balatro_Expansion.Trinkets.legendary = {}
+
 Balatro_Expansion.Trinkets.TASTY_CANDY = {}
 Balatro_Expansion.TastyCandyNum = 5
-for i = 1, 5 do --puts every candy stage
+for i = 1, Balatro_Expansion.TastyCandyNum do --puts every candy stage
     Balatro_Expansion.Trinkets.TASTY_CANDY[i] = Balatro_Expansion.Jokers.PERKEO + i
 end
 
