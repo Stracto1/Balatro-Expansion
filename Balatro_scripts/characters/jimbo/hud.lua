@@ -63,11 +63,12 @@ local INVENTORY_COOP_OFFSET = {[1]=Vector(-10,0), [0]=Vector(0,0)}
 --local DECK_RENDERING_POSITION = Isaac.WorldToRenderPosition(Isaac.ScreenToWorld(Vector(760,745)))
 
 local HUD_FRAME = {}
-HUD_FRAME.Frame = 0
-HUD_FRAME.Dollar = 1
-HUD_FRAME.Hand = 2
-HUD_FRAME.Confirm = 3
-HUD_FRAME.Skip = 4
+HUD_FRAME.CardFrame = 0
+HUD_FRAME.JokerFrame = 1
+HUD_FRAME.Dollar = 2
+HUD_FRAME.Hand = 3
+HUD_FRAME.Confirm = 4
+HUD_FRAME.Skip = 5
 
 local CardHUDWidth = 13
 local PACK_CARD_DISTANCE = 10
@@ -290,12 +291,15 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
     local BossProgress
     local ProgressString
 
+    local SmallIsCleared = mod.Saved.SmallCleared == mod.BlindProgress.DEFEATED
+    local BigIsCleared = mod.Saved.BigCleared == mod.BlindProgress.DEFEATED
+    local BossIsCleared = mod.Saved.BossCleared == mod.BossProgress.CLEARED
 
     ---SMALL BLIND
     local Color = KColor.White
     local DarkColor = KColor(0.7,0.7,0.7,1)
 
-    if not mod.Saved.SmallCleared then
+    if not SmallIsCleared then
         Color = KColor(238/255, 186/255, 49/255, 1)
         DarkColor = KColor(166/255,130/255,34/255,1)
 
@@ -318,9 +322,9 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
     Color = KColor.White
     DarkColor = KColor(0.7,0.7,0.7,1)
 
-    if mod.Saved.SmallCleared then
+    if SmallIsCleared then
     
-        if mod.Saved.BigCleared then
+        if BigIsCleared then
             BigProgress = mod.Saved.BigBlind
         else
             Color = KColor(238/255, 186/255, 49/255, 1)
@@ -347,13 +351,13 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
         Color = KColor.White
         DarkColor = KColor(0.7,0.7,0.7,1)
 
-        if mod.Saved.SmallCleared and mod.Saved.BigCleared and mod.Saved.BossCleared ~= 2 then
+        if SmallIsCleared and BigIsCleared and not BossIsCleared then
             Color = KColor(238/255, 186/255, 49/255, 1)
             DarkColor = KColor(166/255,130/255,34/255,1)
         end
 
         BossProgress = "Not Cleared"
-        if mod.Saved.BossCleared == 2 then
+        if BossIsCleared then
             RenderPos.X = RenderPos.X + 13
             BossProgress = "Cleared"
         end

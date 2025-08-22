@@ -318,6 +318,14 @@ function mod:SmootherLerp(a,b,t)
     return a + (b - a) * (t^3 * (t*(6*t - 15) + 10))
 end
 
+function mod:FixScreenPosition(V)
+
+    V.X = V.X - V.X%0.5
+    V.Y = V.Y - V.Y%0.5
+
+    return V
+end
+
 
 function mod:VectorLerp(vec1, vec2, percent)
     percent = mod:Clamp(math.abs(percent), 1,0)
@@ -517,10 +525,8 @@ function mod:RoundBalatroStyle(Value, MaxFigures)
         
         ValueString = string.gsub(Value, "%.0", "")
     end
-
     
     return ValueString
-    
 end
 
 
@@ -1115,7 +1121,6 @@ end
 function mod:PlayedCardIsScored(PIndex, Index) 
     return mod.SelectionParams[PIndex].ScoringCards & 2^(Index-1) ~= 0
 end
-
 
 function mod:GetValueScoring(Value)
     if Value >=10 then
@@ -1829,7 +1834,7 @@ function mod:SellConsumable(Player, SlotToSell)
     Player:AddCoins(SellValue)
 
     mod.Saved.Player[PIndex].Consumables[SlotToSell].Card = -1
-    mod.Saved.Player[PIndex].Consumables[SlotToSell].Edition = mod.Editios.NONE
+    mod.Saved.Player[PIndex].Consumables[SlotToSell].Edition = mod.Edition.NONE
 
     Isaac.RunCallback(mod.Callbalcks.CONSUMABLE_SOLD, Player, CardToSell)
 
@@ -2606,9 +2611,9 @@ function mod:RandomHandType(Rng, Phantom)
         local IsUnlocked = true
 
         if ((Hand == mod.HandTypes.FIVE
-           or Hand == mod.HandTypes.FIVE_FLUSH
-           or Hand == mod.HandTypes.FLUSH_HOUSE)
-           and mod.Saved.HandsTypeUsed[Hand] == 0) --secret hands need to be unlocked
+             or Hand == mod.HandTypes.FIVE_FLUSH
+             or Hand == mod.HandTypes.FLUSH_HOUSE)
+             and mod.Saved.HandsTypeUsed[Hand] == 0) --secret hands need to be unlocked
            or Hand == mod.HandTypes.ROYAL_FLUSH --this hand type sucks ass
            or Hand == mod.HandTypes.NONE then --scemo chi legge
             
@@ -2819,7 +2824,7 @@ local function JimboAddTrinket(_, Player, Trinket, _, StopEvaluation)
         Isaac.RunCallback("INVENTORY_CHANGE", Player)
     end
 
-    return true
+    return true, EmptySlot
 end
 mod:AddPriorityCallback(ModCallbacks.MC_POST_TRIGGER_TRINKET_ADDED,CallbackPriority.IMPORTANT, JimboAddTrinket)
 
@@ -3643,7 +3648,7 @@ function mod:GetBlindScoreRequirement(Blind)
         Score = Score - Score%(10^math.floor(math.log(Score, 10)-1))
     end
 
-    Score = Score * (BlindScaling[mod.Saved.BlindBeingPlayed] or BlindScaling[mod.BLINDS.BOSS])
+    Score = Score * (BlindScaling[Blind] or BlindScaling[mod.BLINDS.BOSS])
 
     return Score
 end
@@ -3747,7 +3752,8 @@ function mod:PlaceBlindRoomsForReal()
                 if Config and Config:CanShutDoors() 
                    and Entity.Type ~= EntityType.ENTITY_EFFECT
                    and Entity.Type ~= 4500 --i think it's the trigger pressure plate
-                   and Entity.Type ~= EntityType.ENTITY_PICKUP then --why tf is this even needed
+                   and Entity.Type ~= EntityType.ENTITY_PICKUP --why tf is this even needed
+                   and Entity.Type ~= 246 then 
                     
                     IsHostile = true
                     break
@@ -3800,7 +3806,8 @@ function mod:PlaceBlindRoomsForReal()
                 if Config and Config:CanShutDoors() 
                    and Entity.Type ~= EntityType.ENTITY_EFFECT
                    and Entity.Type ~= 4500  -- i think it's the trigger pressure plate
-                   and Entity.Type ~= EntityType.ENTITY_PICKUP then --why tf is this even needed
+                   and Entity.Type ~= EntityType.ENTITY_PICKUP 
+                   and Entity.Type ~= 246 then --why tf is this even needed
                     
                     print(Entity.Type, Entity.Variant, "is hostile")
                     IsHostile = true
@@ -4587,7 +4594,35 @@ function mod:UseSelection(Player)
 
             local CardToUse = mod:FrameToSpecialCard(mod.Saved.Player[PIndex].Consumables[SelectedSlot].Card)
             
+            local RemoveBeforeUse = CardToUse == Card.CARD_EMPEROR or CardToUse == Card.CARD_HIGH_PRIESTESS
+
+            if RemoveBeforeUse then    
+
+                --removes the card that just got used
+                mod.Saved.Player[PIndex].Consumables[SelectedSlot].Card = -1
+                mod.Saved.Player[PIndex].Consumables[SelectedSlot].Edition = mod.Edition.BASE
+            end
+
+
             local Success = mod:TJimboUseCard(CardToUse, Player, false)
+
+            if Success then
+
+                local UsedEdition = mod.Saved.Player[PIndex].Consumables[SelectedSlot].Edition
+
+                if UsedEdition == mod.Edition.NEGATIVE then
+                    --negative cards remove the slot they were in when used
+
+                    table.remove(mod.Saved.Player[PIndex].Consumables, SelectedSlot)
+
+                elseif not RemoveBeforeUse then
+
+                    --removes the card that just got used
+                    mod.Saved.Player[PIndex].Consumables[SelectedSlot].Card = -1
+                    mod.Saved.Player[PIndex].Consumables[SelectedSlot].Edition = mod.Edition.BASE
+                end
+            end
+            
         end
 
     elseif mod.SelectionParams[PIndex].PackPurpose ~= mod.SelectionParams.Purposes.NONE then
@@ -5081,25 +5116,18 @@ function mod:RenderCard(Params, Position, Offset, Scale, Rotation, ForceCovered,
     JimboCardsLayers[CardLayerID.BODY]:SetCustomShader(mod.EditionShaders[Params.Edition])
     JimboCardsLayers[CardLayerID.ENHANCEMENT]:SetCustomShader(mod.EditionShaders[Params.Edition])
 
-    if Params.Enhancement == mod.Enhancement.STONE then
-        
-        JimboCards:SetLayerFrame(CardLayerID.BODY, Params.Enhancement)
 
-        JimboCards:RenderLayer(CardLayerID.BODY, Position) --only renders the stone appearance
-        
-    else
-        JimboCards:SetLayerFrame(CardLayerID.BODY, Params.Enhancement)
+    JimboCards:SetLayerFrame(CardLayerID.BODY, Params.Enhancement)
 
-        JimboCards:SetLayerFrame(CardLayerID.VALUE_SUIT, 4* Params.Value + Params.Suit - 5)
-        JimboCardsLayers[CardLayerID.VALUE_SUIT]:SetPos(Offset*Scale)
+    JimboCards:SetLayerFrame(CardLayerID.VALUE_SUIT, 4* Params.Value + Params.Suit - 5)
+    JimboCardsLayers[CardLayerID.VALUE_SUIT]:SetPos(Offset*Scale)
 
-        JimboCards:SetLayerFrame(CardLayerID.ENHANCEMENT, Params.Enhancement)
+    JimboCards:SetLayerFrame(CardLayerID.ENHANCEMENT, Params.Enhancement)
 
-        JimboCards:SetLayerFrame(CardLayerID.SEAL, Params.Seal)
+    JimboCards:SetLayerFrame(CardLayerID.SEAL, Params.Seal)
 
-        JimboCards:Render(Position)
+    JimboCards:Render(Position)
 
-    end
     
     JimboCardsLayers[CardLayerID.BODY]:ClearCustomShader()
 

@@ -263,6 +263,8 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
 
                 local Hand = mod:GetEIDString("HandTypeName", Progress)
 
+                print(Hand)
+
                 Values[1] = Hand
 
             elseif Joker == mod.Jokers.SATELLITE then
@@ -373,23 +375,41 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
             end
         
         elseif card == Card.CARD_FOOL then
+
+            local LastUsed = mod.Saved.Player[PIndex].LastCardUsed
         
-            if not mod.Saved.Player[PIndex].LastCardUsed then
+            if not LastUsed then
                 
-                Values[1] = "{{ColorMult}}"..mod:GetEIDString("Other","NONE").."{{CR}}"
+                Values[1] = "{{ColorMult}}"..mod:GetEIDString("Other","NONE").."{{B_Black}}"
 
-            elseif mod.Saved.Player[PIndex].LastCardUsed == Card.CARD_FOOL then
+            elseif LastUsed == Card.CARD_FOOL then
 
-                Values[1] = "{{ColorMult}}"..mod:GetEIDString("ComsumablesName", Card.CARD_FOOL).."{{CR}}"
+                Values[1] = "{{ColorMult}}"..mod:GetEIDString("CossumablesName", Card.CARD_FOOL).."{{B_Black}}"
 
-            elseif card <= Card.CARD_WORLD then
+            elseif LastUsed <= Card.CARD_WORLD then
 
-                Values[1] = "{{ColorMint}}"..mod:GetEIDString("ComsumablesName", card).."{{CR}}"
+                Values[1] = "{{ColorMint}}"..mod:GetEIDString("ConsumablesName", LastUsed).."{{B_Black}}"
             else
                 local Config = ItemsConfig:GetCard(card)
 
                 Values[1] = Config.Name
             end
+
+
+        elseif card == Card.CARD_TEMPERANCE then
+
+            local TOtalSell = 0
+
+            for i,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+                
+                if Slot.Joker ~= 0 then
+                    
+                    TOtalSell = TOtalSell + mod:GetJokerCost(Slot.Joker, Slot.Edition, i, T_Jimbo)
+                end
+            end
+
+            Values[1] = "{{ColorYellow}}"..tostring(math.min(50, TOtalSell)).."{{B_Black}}"
+
         end
 
     end
@@ -766,7 +786,7 @@ function mod:ReplaceBalatroMarkups(String, DescType, DescSubType, Tainted, Index
 
     if Tainted then
         
-        String = String.gsub(String, "%{%{CR%}%}", "{{B_Black}}")
+        String = String.gsub(String, "%{%{CR%}%}", "%{%{B_Black%}%}")
     end
 
 
@@ -1222,6 +1242,27 @@ local EID_Desc = {Name = "",
 
 local EID_BubbleFrame = {Name = 1,
                          Description = 0}
+
+local function ResetDescription()
+
+    EID_Desc.NumLines = nil
+    EID_Desc.FilteredName = nil
+    EID_Desc.FilteredDescription = nil
+
+
+    ObjectToDescribe.Entity = nil
+    ObjectToDescribe.Params = {}
+
+    ObjectToDescribe.Position = Vector.Zero
+
+    ObjectToDescribe.Type = EID_DescType.NONE
+    ObjectToDescribe.SubType = 0 --not really needed
+
+    EID:alterTextPos(Vector(-1000, -1000)) --basically erases the description form existence (prob not the best way to do that)
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, ResetDescription)
+
 
 
 --I hate myself for doing this
@@ -1731,21 +1772,8 @@ local function TJimboDescriptionsCallback(descObj)
 
     if not Result then
 
-        EID_Desc.NumLines = nil
-        EID_Desc.FilteredName = nil
-        EID_Desc.FilteredDescription = nil
+        ResetDescription()
 
-
-        ObjectToDescribe.Entity = nil
-        ObjectToDescribe.Params = {}
-
-        ObjectToDescribe.Position = Vector.Zero
-
-        ObjectToDescribe.Type = EID_DescType.NONE
-        ObjectToDescribe.SubType = 0 --not really needed
-
-        EID:alterTextPos(Vector(-1000, -1000)) --basically erases the description form existence (prob not the best way to do that)
-    
         return descObj
     end
 

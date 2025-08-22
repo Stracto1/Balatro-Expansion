@@ -10,13 +10,15 @@ Descriptions.Other.Name = "Inventory Helper"
 Descriptions.Other.LV = "LV." --abbreviation of LEVEL
 
 Descriptions.Other.ConfirmName = "{{ColorSilver}}Confirm{{CR}}"
-Descriptions.Other.ConfirmDesc = "Confirm the current card selection as is"
+Descriptions.Other.ConfirmDesc = "Confirm the current card selection"
 
 Descriptions.Other.SkipName = "{{ColorSilver}}Skip{{CR}}"
 Descriptions.Other.SkipDesc = "Skip the remaining pack options"
 
 Descriptions.Other.SellJoker = "Sell the selected joker"
 Descriptions.Other.SellsFor = "Sells for" --sells for x amount of money
+Descriptions.Other.FREE = "FREE"
+
 
 Descriptions.Other.Exit = "Exit overview"
 
@@ -603,19 +605,19 @@ Descriptions.ConsumablesName[Card.CARD_WORLD] ="The World"
 -------------####PLANETS####------------
 -----------------------------------------
 
-Descriptions.Jimbo.Consumables[mod.Planets.PLUTO] = "{{PlayerJimbo}} {{ColorYellorange}}Aces{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}}"
-Descriptions.Jimbo.Consumables[mod.Planets.MERCURY] = "{{PlayerJimbo}} {{ColorYellorange}}2s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}}"
-Descriptions.Jimbo.Consumables[mod.Planets.URANUS] = "{{PlayerJimbo}} {{ColorYellorange}}3s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}}"
-Descriptions.Jimbo.Consumables[mod.Planets.VENUS] = "{{PlayerJimbo}} {{ColorYellorange}}4s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}}"
-Descriptions.Jimbo.Consumables[mod.Planets.SATURN] = "{{PlayerJimbo}} {{ColorYellorange}}5s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}}"
-Descriptions.Jimbo.Consumables[mod.Planets.JUPITER] = "{{PlayerJimbo}} {{ColorYellorange}}6s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}}"
-Descriptions.Jimbo.Consumables[mod.Planets.EARTH] = "{{PlayerJimbo}} {{ColorYellorange}}7s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}}"
-Descriptions.Jimbo.Consumables[mod.Planets.MARS] = "{{PlayerJimbo}} {{ColorYellorange}}8s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}}"
-Descriptions.Jimbo.Consumables[mod.Planets.NEPTUNE] = "{{PlayerJimbo}} {{ColorYellorange}}9s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}}"
-Descriptions.Jimbo.Consumables[mod.Planets.PLANET_X] = "{{PlayerJimbo}} {{ColorYellorange}}10s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}}"
-Descriptions.Jimbo.Consumables[mod.Planets.CERES] = "{{PlayerJimbo}} {{ColorYellorange}}Jacks{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}}"
-Descriptions.Jimbo.Consumables[mod.Planets.ERIS] = "{{PlayerJimbo}} {{ColorYellorange}}Queens{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}}"
-Descriptions.Jimbo.Consumables[mod.Planets.SUN] = "{{PlayerJimbo}} {{ColorYellorange}}Kings{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}}"
+Descriptions.Jimbo.Consumables[mod.Planets.PLUTO] = "{{PlayerJimbo}} {{ColorYellorange}}Aces{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}} when scored"
+Descriptions.Jimbo.Consumables[mod.Planets.MERCURY] = "{{PlayerJimbo}} {{ColorYellorange}}2s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}} when scored"
+Descriptions.Jimbo.Consumables[mod.Planets.URANUS] = "{{PlayerJimbo}} {{ColorYellorange}}3s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}} when scored"
+Descriptions.Jimbo.Consumables[mod.Planets.VENUS] = "{{PlayerJimbo}} {{ColorYellorange}}4s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}} when scored"
+Descriptions.Jimbo.Consumables[mod.Planets.SATURN] = "{{PlayerJimbo}} {{ColorYellorange}}5s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}} when scored"
+Descriptions.Jimbo.Consumables[mod.Planets.JUPITER] = "{{PlayerJimbo}} {{ColorYellorange}}6s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}} when scored"
+Descriptions.Jimbo.Consumables[mod.Planets.EARTH] = "{{PlayerJimbo}} {{ColorYellorange}}7s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}} when scored"
+Descriptions.Jimbo.Consumables[mod.Planets.MARS] = "{{PlayerJimbo}} {{ColorYellorange}}8s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}} when scored"
+Descriptions.Jimbo.Consumables[mod.Planets.NEPTUNE] = "{{PlayerJimbo}} {{ColorYellorange}}9s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}} when scored"
+Descriptions.Jimbo.Consumables[mod.Planets.PLANET_X] = "{{PlayerJimbo}} {{ColorYellorange}}10s{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}} when scored"
+Descriptions.Jimbo.Consumables[mod.Planets.CERES] = "{{PlayerJimbo}} {{ColorYellorange}}Jacks{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}} when scored"
+Descriptions.Jimbo.Consumables[mod.Planets.ERIS] = "{{PlayerJimbo}} {{ColorYellorange}}Queens{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}} when scored"
+Descriptions.Jimbo.Consumables[mod.Planets.SUN] = "{{PlayerJimbo}} {{ColorYellorange}}Kings{{CR}} triggered give an additional {{ColorChips}}+0.02 Tears{{CR}} and {{ColorMult}}+0.02 Damage{{CR}} when scored"
 
 
 Descriptions.T_Jimbo.Consumables[mod.Planets.PLUTO] = "Level up {{ColorYellorange}}High card#{{ColorMult}}+1{{B_Black}} Mult#{{ColorChips}}+10{{B_Black}} Chips"
@@ -748,9 +750,9 @@ Descriptions.BlindNames = {[Balatro_Expansion.BLINDS.SMALL] = "Small blind",
                             }
 
 
-Descriptions.BossEffects = {[mod.BLINDS.SMALL] = "",
-                            [mod.BLINDS.BIG] = "",
-                            [mod.BLINDS.BOSS] = "",
+Descriptions.BossEffects = {[mod.BLINDS.SMALL] = "No additional effect",
+                            [mod.BLINDS.BIG] = "No additional effect",
+                            [mod.BLINDS.BOSS] = "No additional effect",
                             [mod.BLINDS.BOSS_ACORN] = "Covers and shuffles all Jokers",
                             [mod.BLINDS.BOSS_ARM] = "Decreases level of hand played",
                             [mod.BLINDS.BOSS_BELL] = "Forces one card to be selected",
@@ -781,12 +783,13 @@ Descriptions.BossEffects = {[mod.BLINDS.SMALL] = "",
                         }
     
 
--------------------------------------
---------------T_JIMBO----------------
--------------------------------------
+------------------------------------------
+--------------T_JIMBO HUDs----------------
+------------------------------------------
 
 Descriptions.T_Jimbo.LeftHUD = {ShopSlogan = "Improve your run!",
                                 ChooseNextBlind = "Choose your next blind",
+                                Reward = "Reward:", --try to keep this one short pls
                                 Hands = "Hands",
                                 Discards = "Discards",
                                 Ante = "Ante",
@@ -800,7 +803,18 @@ Descriptions.T_Jimbo.LeftHUD = {ShopSlogan = "Improve your run!",
                             } 
 
 
-
+Descriptions.T_Jimbo.RunInfo = {Hands = "Hands", --as in poker hands
+                                Deck = "Deck",
+                                Blinds = "Blinds",
+                                LVL = "lvl.", --again, abbreviation of level
+                                Current = "Current",
+                                Defeated = "Defeated",
+                                Skip = "Skip", --the verb to skip
+                                Skipped = "SKIPPED",
+                                Or = "or", --as in defeat OR skip
+                                DamageRequirement = "Score Requirement:",
+                                AtLeast = "Score at least"
+                            }
 
 ----------------------------------------
 -------------####VOUCHERS####------------

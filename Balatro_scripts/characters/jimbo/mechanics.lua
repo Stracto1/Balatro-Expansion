@@ -555,9 +555,10 @@ mod:AddCallback(ModCallbacks.MC_PRE_LEVEL_PLACE_ROOM, mod.FloorModifier)
 --calculates how big the blinds are 
 function mod:CalculateBlinds()
 
-    mod.Saved.SmallCleared = false
-    mod.Saved.BigCleared = false
-    mod.Saved.BossCleared = 0
+    mod.Saved.SmallCleared = mod.BlindProgress.NOT_CLEARED
+    mod.Saved.BigCleared = mod.BlindProgress.NOT_CLEARED
+    mod.Saved.BossCleared = mod.BossProgress.NOT_CLEARED
+
     mod.Saved.ClearedRooms = 0
 
     if Game:IsGreedMode() then
@@ -798,16 +799,18 @@ function mod:AddRoomsCleared(IsBoss, Hostile)
         end
     else
         mod.Saved.ClearedRooms = mod.Saved.ClearedRooms + 1
-        if not mod.Saved.SmallCleared then
+
+        if mod.Saved.SmallCleared ~= mod.BlindProgress.DEFEATED then
+
             if mod.Saved.ClearedRooms == mod.Saved.SmallBlind then
                 Isaac.RunCallback("BLIND_CLEARED", mod.BLINDS.SMALL)
-                mod.Saved.SmallCleared = true
+                mod.Saved.SmallCleared = mod.BlindProgress.DEFEATED
                 mod.Saved.ClearedRooms = 0
             end
         
-        elseif mod.Saved.ClearedRooms == mod.Saved.BigBlind and not mod.Saved.BigCleared then
+        elseif mod.Saved.ClearedRooms == mod.Saved.BigBlind and mod.Saved.BigCleared ~= mod.BlindProgress.DEFEATED then
             Isaac.RunCallback("BLIND_CLEARED", mod.BLINDS.BIG)
-            mod.Saved.BigCleared = true
+            mod.Saved.BigCleared = mod.BlindProgress.DEFEATED
             mod.Saved.ClearedRooms = 0
         end
     end
@@ -1511,6 +1514,9 @@ function mod:HandsCache(Player, Cache, Value)
     end
     if Player:HasCollectible(mod.Vouchers.NachoTong) then
         Value = Value + 5
+    end
+    if Player:HasCollectible(mod.Vouchers.Hieroglyph) then
+        Value = Value - 5
     end
 
     Value = Value - 5* #mod:GetJimboJokerIndex(Player, mod.Jokers.TROUBADOR)

@@ -2626,14 +2626,14 @@ function mod:OnDeath(Player)
 
         if Joker == mod.Jokers.MR_BONES then
             local Revive = false
-            if mod.Saved.BossCleared == 2 then --on boss cleared revive anyways
+            if mod.Saved.BossCleared == mod.BossProgress.CLEARED then --on boss cleared revive anyways
                 Revive = true
 
-            elseif mod.Saved.BigCleared then --if big is cleared then you need to be fighting boss to revive
+            elseif mod.Saved.BigCleared == mod.BlindProgress.DEFEATED then --if big is cleared then you need to be fighting boss to revive
                 if Game:GetRoom():GetBossID() ~= 0 then
                     Revive = true
                 end
-            elseif mod.Saved.SmallCleared then
+            elseif mod.Saved.SmallCleared == mod.BlindProgress.DEFEATED then
                 local BlindProgress  = mod.Saved.ClearedRooms
                 if BlindProgress >= mod.Saved.BigBlind / 2 then
                     Revive = true

@@ -40,8 +40,30 @@ local BALATRO_PLATE_SUFFIX = {
                               [mod.Grids.PlateVariant.CASHOUT] = "cashout",
                               [mod.Grids.PlateVariant.SHOP_EXIT] = "shop_exit",
                               [mod.Grids.PlateVariant.REROLL] = "reroll",
-                              [mod.Grids.PlateVariant.SMALL_BLIND_SKIP] = "skip",
-                              [mod.Grids.PlateVariant.BIG_BLIND_SKIP] = "skip",
+                              [mod.Grids.PlateVariant.SMALL_BLIND_SKIP] = {[mod.SkipTags.BOSS] = "boss",
+                                                                           [mod.SkipTags.BUFFON] = "buffon",
+                                                                           [mod.SkipTags.CHARM] = "charm",
+                                                                           [mod.SkipTags.COUPON] = "coupon",
+                                                                           [mod.SkipTags.D6] = "D6",
+                                                                           [mod.SkipTags.DOUBLE] = "double",
+                                                                           [mod.SkipTags.ECONOMY] = "economy",
+                                                                           [mod.SkipTags.ETHEREAL] = "ethereal",
+                                                                           [mod.SkipTags.FOIL] = "foil",
+                                                                           [mod.SkipTags.GARBAGE] = "garbage",
+                                                                           [mod.SkipTags.HANDY] = "handy",
+                                                                           [mod.SkipTags.HOLO] = "holo",
+                                                                           [mod.SkipTags.POLYCHROME] = "polychrome",
+                                                                           [mod.SkipTags.INVESTMENT] = "investment",
+                                                                           [mod.SkipTags.JUGGLE] = "juggle",
+                                                                           [mod.SkipTags.METEOR] = "meteor",
+                                                                           [mod.SkipTags.NEGATIVE] = "negative",
+                                                                           [mod.SkipTags.ORBITAL] = "orbital",
+                                                                           [mod.SkipTags.RARE] = "rare",
+                                                                           [mod.SkipTags.SPEED] = "speed",
+                                                                           [mod.SkipTags.STANDARD] = "standard",
+                                                                           [mod.SkipTags.TOP_UP] = "topup",
+                                                                           [mod.SkipTags.UNCOMMON] = "uncommon",
+                                                                           [mod.SkipTags.VOUCHER] = "voucher",},
 }
 
 
@@ -65,8 +87,33 @@ function mod:UpdateBalatroPlate(Plate,Init)
 
             Sprite:ReplaceSpritesheet(0, "gfx/grid/grid_balatro_pressureplate_"..BALATRO_PLATE_SUFFIX[Variant][SuffixIndex]..".png", true)
 
+        elseif Variant == mod.Grids.PlateVariant.BIG_BLIND_SKIP
+               or Variant == mod.Grids.PlateVariant.SMALL_BLIND_SKIP then
+
+            local SuffixVariant = mod.Grids.PlateVariant.SMALL_BLIND_SKIP
+            local SuffixIndex = Plate.VarData
+
+            Sprite:ReplaceSpritesheet(0, "gfx/grid/grid_balatro_pressureplate_tag_"..BALATRO_PLATE_SUFFIX[SuffixVariant][SuffixIndex]..".png", true)
         else
             Sprite:ReplaceSpritesheet(0, "gfx/grid/grid_balatro_pressureplate_"..BALATRO_PLATE_SUFFIX[Variant]..".png", true)
+        end
+
+        if Variant == mod.Grids.PlateVariant.CASHOUT then
+
+            Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.DIALOG_BUBBLE, Plate.Position,
+                       Vector.Zero, nil, mod.DialogBubbleSubType.CASHOUT, mod.Saved.BlindBeingPlayed)
+
+        elseif Variant == mod.Grids.PlateVariant.REROLL then
+
+            Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.DIALOG_BUBBLE, Plate.Position,
+                       Vector.Zero, nil, mod.DialogBubbleSubType.REROLL_PRICE, mod.Saved.BlindBeingPlayed)
+
+
+        elseif Variant == mod.Grids.PlateVariant.BLIND then
+
+            Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.DIALOG_BUBBLE, Plate.Position,       
+                       Vector.Zero, nil, mod.DialogBubbleSubType.BLIND_INFO, Plate.VarData)
+
         end
 
     end
@@ -76,25 +123,23 @@ function mod:UpdateBalatroPlate(Plate,Init)
     
     if Variant == mod.Grids.PlateVariant.CASHOUT then
 
-        if Init == true then
-            Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.DIALOG_BUBBLE, Plate.Position,
-            Vector.Zero, nil, mod.DIalogBubbleSubType.CASHOUT, mod.Saved.BlindBeingPlayed)
-        end
         ShouldPlateBeAvailable = true
 
     elseif Variant == mod.Grids.PlateVariant.BLIND then
 
         if Plate.VarData & mod.BLINDS.SMALL ~= 0 then
 
-            ShouldPlateBeAvailable = not mod.Saved.SmallCleared
+            ShouldPlateBeAvailable = mod.Saved.SmallCleared == mod.BlindProgress.NOT_CLEARED
 
         elseif Plate.VarData & mod.BLINDS.BIG ~= 0 then
 
-            ShouldPlateBeAvailable = mod.Saved.SmallCleared and not mod.Saved.BigCleared
+            ShouldPlateBeAvailable = mod.Saved.SmallCleared ~= mod.BlindProgress.NOT_CLEARED 
+                                     and mod.Saved.BigCleared == mod.BlindProgress.NOT_CLEARED
 
         elseif Plate.VarData & mod.BLINDS.BOSS ~= 0 then
 
-            ShouldPlateBeAvailable = mod.Saved.SmallCleared and mod.Saved.BigCleared
+            ShouldPlateBeAvailable = mod.Saved.SmallCleared ~= mod.BlindProgress.NOT_CLEARED 
+                                     and mod.Saved.BigCleared ~= mod.BlindProgress.NOT_CLEARED 
 
         end
 
@@ -102,11 +147,12 @@ function mod:UpdateBalatroPlate(Plate,Init)
     
     elseif Variant == mod.Grids.PlateVariant.SMALL_BLIND_SKIP then
         
-        ShouldPlateBeAvailable = not mod.Saved.SmallCleared
+        ShouldPlateBeAvailable = mod.Saved.SmallCleared == mod.BlindProgress.NOT_CLEARED
     
     elseif Variant == mod.Grids.PlateVariant.BIG_BLIND_SKIP then
             
-        ShouldPlateBeAvailable = mod.Saved.SmallCleared and not mod.Saved.BigCleared    
+        ShouldPlateBeAvailable = mod.Saved.SmallCleared ~= mod.BlindProgress.NOT_CLEARED 
+                                 and mod.Saved.BigCleared == mod.BlindProgress.NOT_CLEARED
     else
     
         ShouldPlateBeAvailable = true
@@ -168,7 +214,7 @@ mod:AddCallback(ModCallbacks.MC_POST_GRID_ENTITY_PRESSUREPLATE_UPDATE, mod.Updat
 function mod:SpawnBalatroPressurePlate(Position, PlateVariant, VarData)
     VarData = VarData or 0
 
-    local Plate = Isaac.GridSpawn(GridEntityType.GRID_PRESSURE_PLATE, PlateVariant, Game:GetRoom():FindFreeTilePosition(Position, -1))
+    local Plate = Isaac.GridSpawn(GridEntityType.GRID_PRESSURE_PLATE, PlateVariant, Game:GetRoom():FindFreeTilePosition(Position, 10000))
 
     if Plate then
 
@@ -179,6 +225,9 @@ function mod:SpawnBalatroPressurePlate(Position, PlateVariant, VarData)
         mod:UpdateBalatroPlate(Plate:ToPressurePlate(), true)
     else
         print("something went wrong in plate spawning!")
+
+        --just try again and pray i guess
+        return mod:SpawnBalatroPressurePlate(Position, PlateVariant, VarData)
     end
 
     return Plate

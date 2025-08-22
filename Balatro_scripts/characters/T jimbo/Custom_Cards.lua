@@ -141,6 +141,24 @@ function mod:PlayerIsAbleToUseCard(Player, Consumable)
 
             return mod.Saved.Player[PIndex].LastCardUsed and mod.Saved.Player[PIndex].LastCardUsed ~= Card.CARD_FOOL
 
+        
+        elseif Consumable == Card.CARD_JUDGEMENT then
+
+            return #mod:GetJimboJokerIndex(Player, 0) > 0 --if at least 1 slot is empty
+
+
+        elseif Consumable == Card.CARD_WHEEL_OF_FORTUNE
+               or Consumable == Card.CARD_TEMPERANCE then
+
+            for i,v in ipairs(mod.Saved.Player[PIndex].Inventory) do
+
+                if v.Joker ~= 0 then
+                    return true
+                end
+            end
+
+            return false
+
         elseif TarotMaxSelection[Consumable]
                and (not mod.Saved.EnableHand --is selection is impossible
                     or (mod.SelectionParams[PIndex].SelectionNum > TarotMaxSelection[Consumable] or mod.SelectionParams[PIndex].SelectionNum <= 0
@@ -153,10 +171,17 @@ function mod:PlayerIsAbleToUseCard(Player, Consumable)
 
     elseif IsSpectral then
 
-        if SpectralMaxSelection[Consumable]
-           and not mod.Saved.EnableHand --if selection is impossible
-           and (mod.SelectionParams[PIndex].SelectionNum > SpectralMaxSelection[Consumable] 
-                or mod.SelectionParams[PIndex].SelectionNum <= 0) then
+
+        if Consumable == mod.Spectrals.WRAITH then
+
+            return #mod.GetJimboJokerIndex(Player, 0) > 0 --if at least 1 slot is empty
+
+
+
+        elseif SpectralMaxSelection[Consumable]
+               and not mod.Saved.EnableHand --if selection is impossible
+               and (mod.SelectionParams[PIndex].SelectionNum > SpectralMaxSelection[Consumable] 
+                    or mod.SelectionParams[PIndex].SelectionNum <= 0) then
                    
             return false
         end
@@ -208,7 +233,7 @@ local function TJimboUseTarot(card, Player, IsPack, UseFlags)
     if card == Card.CARD_FOOL then
 
 
-        if mod.Saved.Player[PIndex].LastCardUsed then
+        if mod.Saved.Player[PIndex].LastCardUsed and mod.Saved.Player[PIndex].LastCardUsed ~= Card.CARD_FOOL then
 
             local Success = mod:TJimboAddConsumable(Player, mod.Saved.Player[PIndex].LastCardUsed)
 
@@ -484,6 +509,8 @@ local function TJimboUsePlanet(card, Player, UseFlags)
 
     mod.Saved.PlanetTypesUsed = mod.Saved.PlanetTypesUsed | (1 << PlanetHandType)
 
+    
+    mod.Saved.Player[Player:GetData().TruePlayerIndex].LastCardUsed = card
 
     return mod:PlanetUpgradeAnimation(PlanetHandType, 1)
 end
@@ -789,20 +816,26 @@ local function TJimboUseSpectral(card, Player, UseFlags)
 
         
         for i, _ in ipairs(mod.Saved.Player[PIndex].Inventory) do
-            mod.Saved.Player[PIndex].Inventory[i].Joker = 0
-            mod.Saved.Player[PIndex].Inventory[i].Edition = 0
+
+            if i ~= Rslot then
+
+                local Joker = mod.Saved.Player[PIndex].Inventory[i].Joker + 0
+
+                mod.Saved.Player[PIndex].Inventory[i].Joker = 0
+                mod.Saved.Player[PIndex].Inventory[i].Edition = 0
+
+                Isaac.RunCallback(mod.Callbalcks.JOKER_REMOVED, Player, Joker)
+            end
         end
 
-        for i=1,2 do
 
-            mod:AddJoker(Player, CopyJoker, CopyEdition, false)
-            mod.Saved.Player[PIndex].Progress.Inventory[i] = CopyProgress
-        end
+        local Success, JokerIndex = mod:AddJoker(Player, CopyJoker, CopyEdition, false)
+        mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex] = CopyProgress
 
         AnimationInterval = STANDARD_INTERVAL
                   
         --Isaac.RunCallback("JOKER_ADDED", Player, CopyJoker, CopyEdition)
-        --Isaac.RunCallback("INVENTORY_CHANGE", Player)
+        Isaac.RunCallback("INVENTORY_CHANGE", Player)
             
     elseif card == mod.Spectrals.DEJA_VU then
 
@@ -831,8 +864,13 @@ local function TJimboUseSpectral(card, Player, UseFlags)
         local Rslot = mod:GetRandom(FilledSlots, CardRNG)
         for i, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
             if i ~= Rslot then
+
+                local Joker = mod.Saved.Player[PIndex].Inventory[i].Joker + 0
+
                 mod.Saved.Player[PIndex].Inventory[i].Joker = 0
                 mod.Saved.Player[PIndex].Inventory[i].Edition = 0
+
+                Isaac.RunCallback(mod.Callbalcks.JOKER_REMOVED, Player, Joker)
             else
                 mod.Saved.Player[PIndex].Inventory[i].Edition = mod.Edition.POLYCROME
             end
@@ -953,22 +991,6 @@ function mod:TJimboUseCard(card, Player, IsFromPack, UseFlags)
 
     UseFlags = UseFlags or 0
 
-    local RemoveBeforeUse = card == Card.CARD_EMPEROR or card == Card.CARD_HIGH_PRIESTESS
-
-    if not IsFromPack then
-
-        local NumConsumables = #mod.Saved.Player[PIndex].Consumables
-
-        if RemoveBeforeUse then    
-            
-            --removes the card that just got used
-            mod.Saved.Player[PIndex].Consumables[NumConsumables].Card = -1
-            mod.Saved.Player[PIndex].Consumables[NumConsumables].Edition = mod.Edition.BASE
-
-            table.remove(mod.Saved.Player[PIndex].Consumables, NumConsumables)
-            table.insert(mod.Saved.Player[PIndex].Consumables, 1, {Card = -1, Edition = mod.Edition.BASE})
-        end
-    end
 
     local CurrentInterval
 
@@ -999,29 +1021,6 @@ function mod:TJimboUseCard(card, Player, IsFromPack, UseFlags)
     end
 
     if CurrentInterval then --equal to if the card got used (othetwise its false)
-
-
-        if not IsFromPack then
-
-            local NumConsumables = #mod.Saved.Player[PIndex].Consumables
-
-            local UsedEdition = mod.Saved.Player[PIndex].Consumables[NumConsumables].Edition
-
-            if UsedEdition == mod.Edition.NEGATIVE then
-                --negative cards remove the slot they were in when used
-
-                mod.Saved.Player[PIndex].Consumables[NumConsumables] = nil
-
-            elseif not RemoveBeforeUse then
-                
-                --removes the card that just got used
-                mod.Saved.Player[PIndex].Consumables[NumConsumables].Card = -1
-                mod.Saved.Player[PIndex].Consumables[NumConsumables].Edition = mod.Edition.BASE
-
-                table.remove(mod.Saved.Player[PIndex].Consumables, NumConsumables)
-                table.insert(mod.Saved.Player[PIndex].Consumables, 1, {Card = -1, Edition = mod.Edition.BASE})
-            end
-        end
 
         if mod.Saved.EnableHand then
 

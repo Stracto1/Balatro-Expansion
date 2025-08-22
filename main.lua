@@ -197,6 +197,7 @@ Balatro_Expansion.Callbalcks = {CARD_SHOT = "CARD_SHOT",
                                 CARD_DISCARD = "CARD_DISCARD",
                                 POST_DISCARD = "POST_HAND_DISCARD",
                                 JOKER_SOLD = "JOKER_SOLD",
+                                JOKER_REMOVED = "JOKER_REMOVED",
                                 CONSUMABLE_SOLD = "CONSUMABLE_SOLD",
                                 CONSUMABLE_USE = "CONSUMABLE_USED",
                                 BLIND_CLEAR = "BLIND_CLEARED",
@@ -235,9 +236,11 @@ Balatro_Expansion.StringTypes = {Hand = -1,
 Balatro_Expansion.HandOrderingModes = {Rank = 1,
                                        Suit = 2}
 
-Balatro_Expansion.DeckPreviewModes = {OFF = 1,
-                                      PARTIAL = 2,
-                                      FULL = 3}
+Balatro_Expansion.RunInfoModes = {OFF = 1,
+                                  PARTIAL_DECK = 2,
+                                  FULL_DECK = 3,
+                                  BLINDS = 4,
+                                  POKER_HANDS = 5}
 
 Balatro_Expansion.JokerTypes = {}
 Balatro_Expansion.JokerTypes.ECON = "money"
@@ -276,10 +279,9 @@ Balatro_Expansion.Effects.UMBRELLA = Isaac.GetEntityVariantByName("Player Umbrel
 
 Balatro_Expansion.Effects.DIALOG_BUBBLE = Isaac.GetEntityVariantByName("Blind Cashout Bubble")
 
-Balatro_Expansion.DIalogBubbleSubType = {CASHOUT = Isaac.GetEntitySubTypeByName("Blind Cashout Bubble"),
-                                         BOSS_BLIND = Isaac.GetEntitySubTypeByName("Boss Blind Bubble"),
-                                         SHOP_ITEM = Isaac.GetEntitySubTypeByName("Shop Item Bubble"),
-                                         --HREROLL_PRICE = Isaac.GetEntitySubTypeByName("Reroll Price Bubble"),
+Balatro_Expansion.DialogBubbleSubType = {CASHOUT = Isaac.GetEntitySubTypeByName("Blind Cashout Bubble"),
+                                         BLIND_INFO = Isaac.GetEntitySubTypeByName("Blind Info Bubble"),
+                                         REROLL_PRICE = Isaac.GetEntitySubTypeByName("Reroll Price Bubble"),
                                          }
 
 
@@ -781,7 +783,7 @@ Balatro_Expansion.Saved.CurrentRound = 0
 Balatro_Expansion.Saved.BossBlindVarData = 0
 
 Balatro_Expansion.Saved.HandOrderingMode = Balatro_Expansion.HandOrderingModes.Rank
-Balatro_Expansion.Saved.DeckPreviewMode = Balatro_Expansion.DeckPreviewModes.OFF
+Balatro_Expansion.Saved.RunInfoMode = Balatro_Expansion.RunInfoModes.OFF
 
 Balatro_Expansion.Saved.IsSpecialBoss = false
 Balatro_Expansion.Saved.AnteVoucher = 0
@@ -888,11 +890,19 @@ Balatro_Expansion.Saved.AnteLevel = 0
 Balatro_Expansion.Saved.MaxAnteLevel = 0 --used to add correctly bosses to the pool (getting hierogliph could trigger the addition more than once)
 Balatro_Expansion.Saved.BlindScalingFactor = 1 --factor that increases the enemies' HP
 Balatro_Expansion.Saved.AnteBoss = Balatro_Expansion.BLINDS.BOSS
+Balatro_Expansion.Saved.SmallSkipTag = 0
+Balatro_Expansion.Saved.BigSkipTag = 0
+
 
 Balatro_Expansion.Saved.SmallBlindIndex = 6
 Balatro_Expansion.Saved.BigBlindIndex = 1
 Balatro_Expansion.Saved.ShopIndex = 1
 Balatro_Expansion.Saved.BossIndex = 1
+
+
+Balatro_Expansion.BlindProgress = {NOT_CLEARED = 0,
+                                   SKIPPED = 1,
+                                   DEFEATED = 2}
 
 Balatro_Expansion.BossProgress = {NOT_CLEARED = 0,
                                   PARTIAL = 1,

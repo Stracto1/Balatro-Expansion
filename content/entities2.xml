@@ -321,28 +321,28 @@
     <entity name="Pack Particle Helper" anm2path="" id="1000" variant="2595" />
     <entity name="Pack Particle" anm2path="Particle.anm2" friction="1" id="1000" variant="2596" />
     <entity name="Description Helper" anm2path="" id="1000"  friction="0" variant="2597" />
-    <entity name="Blind Cashout Bubble" anm2path="" id="1000"  friction="0" variant="2598" subtype="1" /> <!--uses custom rendering -->
-    <entity name="Boss Blind Bubble" anm2path="" id="1000"  friction="0" variant="2598" subtype="2" />  <!--uses custom rendering -->
-    <entity name="Shop Item Bubble" anm2path="" id="1000"  friction="0" variant="2598" subtype="3" />  <!--uses custom rendering -->
+    <entity name="Blind Cashout Bubble" anm2path="" id="1000"  friction="0" variant="2599" subtype="1" /> <!--uses custom rendering -->
+    <entity name="Blind Info Bubble" anm2path="" id="1000"  friction="0" variant="2599" subtype="2" />  <!--uses custom rendering -->
+    <entity name="Reroll Price Bubble" anm2path="" id="1000"  friction="0" variant="2599" subtype="3" />  <!--uses custom rendering -->
     <!-- <entity name="Reroll Price Bubble" anm2path="reroll_price_bubble.anm2" id="1000"  friction="0" variant="2598" subtype="3" /> -->
 
 
-    <entity name="Crayon Powder" anm2path="crayon_powder.anm2" id="1000" variant="2599" 
+    <entity name="Crayon Powder" anm2path="crayon_powder.anm2" id="1000" variant="2600" 
     	friction="1" collisionRadius="3"  collisionRadiusXMulti="3"> 
     </entity>
 
-    <entity name="Banana Peel" anm2path="banana_peel_familiar.anm2" id="1000" variant="2600" 
+    <entity name="Banana Peel" anm2path="banana_peel_familiar.anm2" id="1000" variant="2601" 
     	friction="1" collisionRadius="9">
     </entity>
 
-    <entity name="Thrown Tomato" anm2path="thrown_tomato_effect.anm2" id="1000" variant="2601" 
+    <entity name="Thrown Tomato" anm2path="thrown_tomato_effect.anm2" id="1000" variant="2602" 
     	friction="1" collisionRadius="9">
     </entity>
 
-    <entity name="Falling Anvil" anm2path="falling_anvil_effect.anm2" id="1000" variant="2602" 
+    <entity name="Falling Anvil" anm2path="falling_anvil_effect.anm2" id="1000" variant="2603" 
     	friction="1" collisionRadius="11" gridCollision="walls">
     </entity>
-    <entity name="Player Umbrella" anm2path="player_umbrella_effect.anm2" id="1000" variant="2603" 
+    <entity name="Player Umbrella" anm2path="player_umbrella_effect.anm2" id="1000" variant="2604" 
     	friction="1" collisionRadius="11" collisionRadiusXMulti="1.75" collisionRadiusXMulti="1.1">
     </entity>
 
@@ -351,7 +351,7 @@
 
     <entity name="Pathfinder Slave" anm2path="" id="2743" variant="1"
     	friction="0" collisionRadius="9" tags="noreroll" gridCollision="ground" shutdoors="false">
-    </entity> <!-- cannot be id 1000 cause i need its pathfinder -->
+    </entity> <!-- cannot be id 1000 cause I need its pathfinder object-->
 
     
     <entity anm2path="lollypop_1_pickup.anm2" baseHP="0" boss="0" champion="0" collisionDamage="0" collisionMass="3" collisionRadius="12" friction="1" id="5" name="Base Lollypop" numGridCollisionPoints="24" shadowSize="14" stageHP="0" variant="2036" subtype="1">

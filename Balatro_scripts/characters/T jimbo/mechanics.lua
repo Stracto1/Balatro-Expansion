@@ -69,10 +69,12 @@ local function CreateDescEntity()
                                   Vector.Zero, nil, DescriptionHelperSubType, 1):ToEffect()
             Effect:FollowParent(Player)
             Effect:AddEntityFlags(EntityFlag.FLAG_PERSISTENT)
+
+            print("spawned")
         end
     end
 end
-mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, CreateDescEntity)
+--mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, CreateDescEntity)
 
 
 
@@ -208,6 +210,9 @@ local function JimboInputHandle(_, Player)
     local PIndex = PlayerData.TruePlayerIndex
     local Params = mod.SelectionParams[PIndex]
 
+    local IsInfoMenuActive = mod.Saved.RunInfoMode ~= mod.RunInfoModes.OFF
+                             and mod.Saved.RunInfoMode ~= mod.RunInfoModes.PARTIAL_DECK
+
     ----------------------------------------
 
     --local Data = Player:GetData()
@@ -217,21 +222,101 @@ local function JimboInputHandle(_, Player)
     
     -------------INPUT HANDLING-------------------
 
+    if not IsInfoMenuActive then
+        --confirms the current selection
+        if Input.IsActionTriggered(ButtonAction.ACTION_PILLCARD, Player.ControllerIndex) then
 
-    --confirms the current selection
-    if Input.IsActionTriggered(ButtonAction.ACTION_PILLCARD, Player.ControllerIndex) then
+            mod:UseSelection(Player)
 
-        mod:UseSelection(Player)
+        elseif Input.IsActionTriggered(ButtonAction.ACTION_BOMB, Player.ControllerIndex) then
 
-    elseif Input.IsActionTriggered(ButtonAction.ACTION_BOMB, Player.ControllerIndex) then
-
-    
-        local Success = mod:DiscardSelection(Player)
-
+        
+            local Success = mod:DiscardSelection(Player)
+        end
     end
 
 
     if mod.AnimationIsPlaying then
+        return
+    end
+
+
+    if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTRIGHT, Player.ControllerIndex) then
+
+        if mod.Saved.RunInfoMode == mod.RunInfoModes.POKER_HANDS then
+
+            mod.Saved.RunInfoMode = mod.RunInfoModes.FULL_DECK
+
+        elseif mod.Saved.RunInfoMode == mod.RunInfoModes.FULL_DECK then
+
+            mod.Saved.RunInfoMode = mod.RunInfoModes.BLINDS
+
+        elseif mod.Saved.RunInfoMode == mod.RunInfoModes.BLINDS then
+
+            mod.Saved.RunInfoMode = mod.RunInfoModes.POKER_HANDS
+
+        end
+    end
+
+    if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTLEFT, Player.ControllerIndex) then
+
+        if mod.Saved.RunInfoMode == mod.RunInfoModes.POKER_HANDS then
+
+            mod.Saved.RunInfoMode = mod.RunInfoModes.BLINDS
+
+        elseif mod.Saved.RunInfoMode == mod.RunInfoModes.FULL_DECK then
+
+            mod.Saved.RunInfoMode = mod.RunInfoModes.POKER_HANDS
+
+        elseif mod.Saved.RunInfoMode == mod.RunInfoModes.BLINDS then
+
+            mod.Saved.RunInfoMode = mod.RunInfoModes.FULL_DECK
+
+        end
+    end
+
+
+    if Input.IsActionPressed(ButtonAction.ACTION_MAP, Player.ControllerIndex) then
+
+        if mod.Saved.RunInfoMode == mod.RunInfoModes.OFF then
+
+            mod.Saved.RunInfoMode = mod.RunInfoModes.PARTIAL_DECK
+        end
+
+        PlayerData.MapHoldTime = PlayerData.MapHoldTime + 1
+
+    elseif PlayerData.MapHoldTime ~= 0 then --button got released
+
+        if PlayerData.MapHoldTime >= mod.HOLD_THRESHOLD then --released form holding
+            
+            if mod.Saved.RunInfoMode == mod.RunInfoModes.PARTIAL_DECK then
+
+                mod.Saved.RunInfoMode = mod.RunInfoModes.OFF
+            end
+
+        else --realesed from pressing
+
+            if mod.Saved.RunInfoMode == mod.RunInfoModes.PARTIAL_DECK then
+
+                mod.Saved.RunInfoMode = mod.RunInfoModes.FULL_DECK
+
+            else --if mod.Saved.RunInfoMode ~= mod.RunInfoModes.OFF then
+
+                mod.Saved.RunInfoMode = mod.RunInfoModes.OFF
+            end
+        end
+
+
+        PlayerData.MapHoldTime = 0
+    end
+
+
+    --checks again in case it changed during input reading above
+    IsInfoMenuActive = mod.Saved.RunInfoMode ~= mod.RunInfoModes.OFF
+                       and mod.Saved.RunInfoMode ~= mod.RunInfoModes.PARTIAL_DECK
+
+    
+    if IsInfoMenuActive then
         return
     end
 
@@ -262,7 +347,6 @@ local function JimboInputHandle(_, Player)
     local MinHoldTime = 9
     
     if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTRIGHT, Player.ControllerIndex) then
-
 
         local Step = 0
 
@@ -411,7 +495,6 @@ local function JimboInputHandle(_, Player)
 
         Params.Index = Params.Index + Step
 
-    
     end
 
 
@@ -567,7 +650,7 @@ local function JimboInputHandle(_, Player)
 
         Params.Index = Params.Index + Step
 
-    
+        ::END_INPUT::
     end
 
 
@@ -672,41 +755,6 @@ local function JimboInputHandle(_, Player)
 
         mod:ReorderHand(Player)
     end
-
-    if Input.IsActionPressed(ButtonAction.ACTION_MAP, Player.ControllerIndex) then
-
-        if mod.Saved.DeckPreviewMode == mod.DeckPreviewModes.OFF then
-
-            mod.Saved.DeckPreviewMode = mod.DeckPreviewModes.PARTIAL
-        end
-
-        PlayerData.MapHoldTime = PlayerData.MapHoldTime + 1
-
-    elseif PlayerData.MapHoldTime ~= 0 then --button got released
-
-        if PlayerData.MapHoldTime >= mod.HOLD_THRESHOLD then --released form holding
-            
-            if mod.Saved.DeckPreviewMode == mod.DeckPreviewModes.PARTIAL then
-
-                mod.Saved.DeckPreviewMode = mod.DeckPreviewModes.OFF
-            end
-
-        else --realesed from pressing
-
-            if mod.Saved.DeckPreviewMode == mod.DeckPreviewModes.PARTIAL then
-
-                mod.Saved.DeckPreviewMode = mod.DeckPreviewModes.FULL
-
-            elseif mod.Saved.DeckPreviewMode == mod.DeckPreviewModes.FULL then
-
-                mod.Saved.DeckPreviewMode = mod.DeckPreviewModes.OFF
-            end
-        end
-
-
-        PlayerData.MapHoldTime = 0
-    end
-
 
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, JimboInputHandle)
@@ -837,20 +885,30 @@ function mod:SpawnShopItems(Rerolled)
 
     for i=1, NumItems do
 
-        local Variant, SubType, TagActivated = mod:RandomShopItem(mod.RNGs.SHOP)
-
+        local Variant, SubType, TagActivated, Item
 
         local Grid = 66 - NumItems + i*2
 
-        local Item = Game:Spawn(EntityType.ENTITY_PICKUP, Variant, Room:GetGridPosition(Grid),
+        local ItemPos = Room:GetGridPosition(Grid)
+
+        if not Rerolled --the removed items still appear in FindInRadius even if updated
+           and Isaac.FindInRadius(ItemPos, 10, EntityPartition.PICKUP)[1] then
+
+            goto SKIP_ITEM
+        end
+
+        Variant, SubType, TagActivated = mod:RandomShopItem(mod.RNGs.SHOP)
+
+        Item = Game:Spawn(EntityType.ENTITY_PICKUP, Variant, ItemPos,
                                 Vector.Zero, nil, SubType, mod:RandomSeed(mod.RNGs.SHOP)):ToPickup()
 
         ---@diagnostic disable-next-line: need-check-nil
         Item:MakeShopItem(-2)
+
+        ::SKIP_ITEM::
     end
 
 end
-
 
 
 --changes the shop items to be in a specific pattern
@@ -894,9 +952,41 @@ local function ShopItemChanger()
             end
         end
 
+        local OnSpawnPrice
+
+        for _, Player in ipairs(PlayerManager.GetPlayers()) do
+            
+            if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
+                
+                local PIndex = Player:GetData().TruePlayerIndex
+
+                for i, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+                    
+                    if Slot.Joker == mod.Jokers.CHAOS_CLOWN then
+                    
+                        if mod.Saved.Player[PIndex].Progress.Inventory[i] == 1 then
+                            
+                            mod.Saved.Player[PIndex].Progress.Inventory[i] = 0
+
+                            OnSpawnPrice = 0
+
+                            break
+                        end
+                    end
+                end
+
+                if OnSpawnPrice then
+                    break
+                end
+            end
+        end
+
+        OnSpawnPrice = OnSpawnPrice or (mod.Saved.RerollStartingPrice + 0)
+
+
         mod:SpawnBalatroPressurePlate(Room:GetGridPosition(56), mod.Grids.PlateVariant.SHOP_EXIT, 0)
 
-        mod:SpawnBalatroPressurePlate(Room:GetGridPosition(48), mod.Grids.PlateVariant.REROLL, mod.Saved.RerollStartingPrice + 0)
+        mod:SpawnBalatroPressurePlate(Room:GetGridPosition(48), mod.Grids.PlateVariant.REROLL, OnSpawnPrice)
 
 
         local Voucher = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COLLECTIBLE, Room:GetGridPosition(95),
@@ -905,13 +995,12 @@ local function ShopItemChanger()
 ---@diagnostic disable-next-line: need-check-nil
         Voucher:MakeShopItem(-2)
 
-    else --removes everything exept for the vouchers
-
+    else --removes everything exept for the booster packs
         for _,Entity in ipairs(Isaac.GetRoomEntities()) do
         
             if Entity.Type == EntityType.ENTITY_PICKUP
-               and (Entity.Variant ~= PickupVariant.PICKUP_COLLECTIBLE
-                   or Entity.SubType == mod.Saved.AnteVoucher) then
+               and (Entity.Variant ~= PickupVariant.PICKUP_TAROTCARD
+                    or mod:Contained(mod.Packs, Entity.SubType)) then
 
                 Entity:Remove()
             end
@@ -962,6 +1051,54 @@ local function ShopItemChanger()
 
 end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, ShopItemChanger)
+
+
+--moves the shop items when an overstock item is redeemed to only get the needed amount of new items
+local function MoveShopItems(_, Item,_,_,_, Player)
+
+    local OldItemNum --number of shop items before the voucher is redeemed
+
+    if Item == mod.Vouchers.Overstock then
+        
+        OldItemNum = 2
+
+    elseif Item == mod.Vouchers.OverstockPlus then
+        
+        OldItemNum = 3
+
+    else
+        return
+    end
+
+    local NewItemsNum = OldItemNum + 1 --number of shop items after the voucher is redeemed
+
+
+    local NumItemsFound = 0
+
+    for i = 1, OldItemNum do
+
+        local ShopItemPos = Game:GetRoom():GetGridPosition(66 - OldItemNum + i*2)
+
+        local ShopItem = Isaac.FindInRadius(ShopItemPos, 10)[1]
+
+        if ShopItem then
+
+            NumItemsFound = NumItemsFound + 1
+
+            local NewItemPos = Game:GetRoom():GetGridPosition(66 - NewItemsNum + NumItemsFound*2)
+
+            ShopItem.Position = NewItemPos
+            ShopItem.TargetPosition = NewItemPos --makes the shop item snap to the new positin
+        
+        end
+
+    end
+
+    mod:SpawnShopItems(false)
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE, MoveShopItems)
+
 
 
 local function SetItemPrices(_,Variant,SubType,ShopID,Price)
@@ -1043,6 +1180,63 @@ end
 mod:AddCallback(ModCallbacks.MC_GET_SHOP_ITEM_PRICE, SetItemPrices)
 
 
+function mod:UpdateRerollPrice(RerollPlate)
+
+    if not RerollPlate then
+        
+        for i = 0, Game:GetRoom():GetGridSize() do
+
+            local GridEntity = Game:GetRoom():GetGridEntity(i)
+
+            if GridEntity:GetType() == GridEntityType.GRID_PRESSURE_PLATE
+               and GridEntity:GetVariant() == mod.Grids.PlateVariant.REROLL then
+
+                RerollPlate = GridEntity
+
+                break --only 1 per room usually
+            end
+        end
+
+    end
+
+
+    local OldPrice = RerollPlate.VarData + 0
+    local NewPrice
+
+    local NumClowns = 0
+
+    for _, Player in ipairs(PlayerManager.GetPlayers()) do
+            
+        if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
+            
+            local PIndex = Player:GetData().TruePlayerIndex
+
+            for i, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+                
+                if Slot.Joker == mod.Jokers.CHAOS_CLOWN then
+                
+                    NumClowns = NumClowns + 1
+
+                    if mod.Saved.Player[PIndex].Progress.Inventory[i] == 1 then
+                        
+                        if not NewPrice and OldPrice ~= 0 then --only the first time deactivates a chaos clown
+                            
+                            mod.Saved.Player[PIndex].Progress.Inventory[i] = 0
+                        end
+
+                        NewPrice = 0
+                    end
+                end
+            end
+        end
+    end
+
+
+    NewPrice = NewPrice or (mod.Saved.RerollStartingPrice + (mod.Saved.NumShopRerolls - NumClowns))
+    
+
+    RerollPlate.VarData = NewPrice
+end
 
 
 ----------HANDS SYSTEM----------
@@ -1132,7 +1326,7 @@ function mod:ActivateCurrentHand(Player)
         if Enemy:IsActiveEnemy() then
 
             if Enemy:IsVulnerableEnemy() then
-                Enemy:TakeDamage(math.ceil(FullHandDamage*0.3),
+                Enemy:TakeDamage(math.ceil(FullHandDamage*0.25),
                                  DamageFlag.DAMAGE_IGNORE_ARMOR, EntityRef(Player), 0)
 
             else --invulnerable enemies take damage only if inside the radius
@@ -1188,7 +1382,7 @@ function mod:ActivateCurrentHand(Player)
 
         if not BlindGotCleared then
 
-            print("room isn't cleared")
+            --print("room isn't cleared")
 
             Isaac.RunCallback(mod.Callbalcks.POST_HAND_PLAY, Player)
         end
@@ -1275,12 +1469,15 @@ function mod:SetupForHandScoring(Player)
 
     mod.Saved.HandsRemaining = mod.Saved.HandsRemaining - 1
 
-    if mod.Saved.Player[PIndex].FirstDeck then
-        mod.Saved.HandsPlayed = mod.Saved.HandsPlayed + 1
-    end
+    mod.Saved.HandsPlayed = mod.Saved.HandsPlayed + 1
 
 
     mod.Saved.HandsTypeUsed[mod.Saved.HandType] = mod.Saved.HandsTypeUsed[mod.Saved.HandType] + 1
+
+    if mod.Saved.HandType == mod.HandTypes.ROYAL_FLUSH then
+        
+        mod.Saved.HandsTypeUsed[mod.HandTypes.STRAIGHT_FLUSH] = mod.Saved.HandsTypeUsed[mod.HandTypes.STRAIGHT_FLUSH] + 1
+    end
 
     local TIMER_INCREASE = 4
     local CurrentTimer = TIMER_INCREASE
@@ -1499,8 +1696,10 @@ function mod:SetupForNextHandPlay(Player)
 
         Isaac.CreateTimer(function ()
 
-            --print("switched hand ON")
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams.Purposes.HAND)
+        
+            print("switched hand ON")
+
         end, Delay, 1, true)
         
     end, 6, 1, true)
@@ -1598,16 +1797,8 @@ local function OnBlindButtonPressed(_, Plate)
 
             mod.Saved.NumShopRerolls = mod.Saved.NumShopRerolls + 1
 
+            mod:UpdateRerollPrice(Plate)
 
-            local NumClowns = #mod:GetJimboJokerIndex(Player, mod.Jokers.CHAOS_CLOWN, true)
-
-            if mod.Saved.NumShopRerolls < NumClowns then
-                
-                Plate.VarData = 0
-
-            else
-                Plate.VarData = mod.Saved.RerollStartingPrice + (mod.Saved.NumShopRerolls - NumClowns)
-            end
             --print("increased to:", Plate.VarData)
 
             Isaac.RunCallback(mod.Callbalcks.SHOP_REROLL)
@@ -1978,10 +2169,10 @@ local function OnBlindSkip(_, BlindType)
 
     if BlindType == mod.BLINDS.SMALL then
 
-        mod.Saved.SmallCleared = true
+        mod.Saved.SmallCleared = mod.BlindProgress.SKIPPED
 
     else --if BlindType == mod.BLINDS.BIG then
-        mod.Saved.BigCleared = true
+        mod.Saved.BigCleared = mod.BlindProgress.SKIPPED
     end
 end
 mod:AddPriorityCallback(mod.Callbalcks.BLIND_SKIP, CallbackPriority.IMPORTANT, OnBlindSkip)
@@ -2220,26 +2411,72 @@ local function OnBlindClear(_, BlindData)
             goto SKIP_TILE
         end
 
+        local RoomCenter = Room:GetCenterPos()
+
+        local Timer = 3 + (GridEntity.Position - RoomCenter):Length() // 20
+
+        Isaac.CreateTimer(function ()
+            
+        
+
         if GridEntity:IsBreakableRock() then
-            GridEntity:Destroy()
+
+            local CurrentBackdrop = Room:GetBackdropType()
+
+            local CanBePot = CurrentBackdrop == BackdropType.BASEMENT 
+                          or CurrentBackdrop == BackdropType.CELLAR 
+                          or CurrentBackdrop == BackdropType.BURNT_BASEMENT
+
+            local CanBeSkull = CurrentBackdrop == BackdropType.DANK_DEPTHS 
+                            or CurrentBackdrop == BackdropType.DEPTHS 
+                            or CurrentBackdrop == BackdropType.NECROPOLIS
+
+            
+
+            if GridEntity:GetType() == GridEntityType.GRID_ROCK_ALT
+               and (CanBePot or CanBeSkull) then 
+            
+
+                Room:RemoveGridEntityImmediate(i, 0, true) --prevents spiders/hosts to spawn after the room was alredy cleared
+
+
+                if CanBePot then 
+
+                    --make the pot breaking sound
+                    
+                    if math.random() > 0.5 then
+                        sfx:Play(SoundEffect.SOUND_POT_BREAK)
+                    else
+                        sfx:Play(SoundEffect.SOUND_POT_BREAK_2)
+                    end
+                else
+                    --generic sound
+                    sfx:Play(SoundEffect.SOUND_ROCK_CRUMBLE)
+
+                end
+            else
+                GridEntity:Destroy()
+            end
 
         else
             local Pit = GridEntity:ToPit()
 
             if Pit then
 
-                Pit:MakeBridge()
+                Pit:MakeBridge(nil)
             end
         end
+
+        end, Timer, 1, true)
 
         ::SKIP_TILE::
     end
 
     if BlindData == mod.BLINDS.SMALL then
-        mod.Saved.SmallCleared = true
+        mod.Saved.SmallCleared = mod.BlindProgress.DEFEATED
 
     elseif BlindData == mod.BLINDS.BIG then
-        mod.Saved.BigCleared = true
+        mod.Saved.BigCleared = mod.BlindProgress.DEFEATED
 
     else --if BlindData & mod.BLINDS.BOSS ~= 0 then
         mod.Saved.BossCleared = mod.BossProgress.CLEARED
@@ -2364,13 +2601,16 @@ local function InitializeAnte()
 
     mod.Saved.AnteVoucher = mod:GetRandom(mod.Saved.Pools.Vouchers, mod.RNGs.VOUCHERS)
 
+    mod.Saved.SmallSkipTag = mod:RandomSkipTag(mod.RNGs.SKIP_TAGS)
+    mod.Saved.BigSkipTag = mod:RandomSkipTag(mod.RNGs.SKIP_TAGS)
+
     --print("Voucher:",mod.Saved.AnteVoucher)
 
     -------------CUSTOM PRESSURE PLATES-------------
     ------------------------------------------------
     
-    mod.Saved.SmallCleared = false
-    mod.Saved.BigCleared = false
+    mod.Saved.SmallCleared = mod.BlindProgress.NOT_CLEARED
+    mod.Saved.BigCleared = mod.BlindProgress.NOT_CLEARED
     mod.Saved.BossCleared = mod.BossProgress.NOT_CLEARED
     
 
@@ -2388,10 +2628,10 @@ local function InitializeAnte()
     Plate:GetSprite():Play("Switched")
 
 
-    mod:SpawnBalatroPressurePlate(Room:GetGridPosition(79), mod.Grids.PlateVariant.SMALL_BLIND_SKIP, mod:RandomSkipTag(mod.RNGs.SKIP_TAGS))
+    mod:SpawnBalatroPressurePlate(Room:GetGridPosition(79), mod.Grids.PlateVariant.SMALL_BLIND_SKIP, mod.Saved.SmallSkipTag)
 
 
-    Plate = mod:SpawnBalatroPressurePlate(Room:GetGridPosition(82), mod.Grids.PlateVariant.BIG_BLIND_SKIP, mod:RandomSkipTag(mod.RNGs.SKIP_TAGS))
+    Plate = mod:SpawnBalatroPressurePlate(Room:GetGridPosition(82), mod.Grids.PlateVariant.BIG_BLIND_SKIP, mod.Saved.BigSkipTag)
     Plate.State = 3
     Plate:GetSprite():Play("Switched")
 
@@ -2418,7 +2658,7 @@ local function EnemyHPScaling()
 
     for _,Enemy in ipairs(Isaac.GetRoomEntities()) do
 
-        if Enemy:IsActiveEnemy() then
+        if Enemy:IsActiveEnemy() and Enemy:IsVulnerableEnemy() then
             
             HighestEnemyHP = HighestEnemyHP and math.max(Enemy.MaxHitPoints, HighestEnemyHP) or Enemy.MaxHitPoints
         end
@@ -2427,9 +2667,9 @@ local function EnemyHPScaling()
     --in the end the enemy with the highst HP will match the blind's required score
     mod.Saved.BlindScalingFactor = EnemyMaxHP / HighestEnemyHP
 
-    for i,Enemy in ipairs(Isaac.GetRoomEntities()) do
+    for _,Enemy in ipairs(Isaac.GetRoomEntities()) do
 
-        if Enemy:IsActiveEnemy() then
+        if Enemy:IsActiveEnemy() and Enemy:IsVulnerableEnemy() then
             
             Enemy.MaxHitPoints = Enemy.MaxHitPoints * mod.Saved.BlindScalingFactor
             Enemy.HitPoints = Enemy.HitPoints * mod.Saved.BlindScalingFactor
@@ -2560,13 +2800,17 @@ function mod:TJimboHandSizeCache(Player, Cache, Value)
         return
     end
 
-    --[[
-    local SizeDifference = Value - #mod.Saved.Player[PIndex].CurrentHand
+    local NumCardsInHand = #mod.Saved.Player[PIndex].CurrentHand
+    local SizeDifference = Value - NumCardsInHand
+    print(SizeDifference)
 
-    if SizeDifference > 0 then
-        mod:ChangeJimboHandSize(Player, SizeDifference)
+    if SizeDifference > 0 
+       and NumCardsInHand ~= 0 then
+
+        Isaac.CreateTimer(function () --wait a frame so that the cache value gets returned
+            mod:RefillHand(Player, false)
+        end, 0, 1, true)
     end
-    ]]
 
     return Value
 end
@@ -2575,7 +2819,9 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.TJimboHandSizeCache, 
 
 ---@param Player EntityPlayer
 function mod:TJimboDiscardNumCache(Player, Cache, Value)
-    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo or not mod.GameStarted then
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo 
+       or not mod.GameStarted
+       or not Game:GetRoom():IsClear() then
         return
     end
 
@@ -2615,7 +2861,10 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.TJimboDiscardNumCache
 
 ---@param Player EntityPlayer
 function mod:TJimboHandsCache(Player, Cache, Value)
-    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo or not mod.GameStarted then
+
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo 
+       or not mod.GameStarted
+       or not Game:GetRoom():IsClear() then --jokers cannot change hand num during a round
         return
     end
 
@@ -2627,6 +2876,10 @@ function mod:TJimboHandsCache(Player, Cache, Value)
     if Player:HasCollectible(mod.Vouchers.NachoTong) then
         Value = Value + 1
     end
+    if Player:HasCollectible(mod.Vouchers.Hieroglyph) then
+        Value = Value - 1
+    end
+
 
     Value = Value - #mod:GetJimboJokerIndex(Player, mod.Jokers.TROUBADOR)
 
@@ -2646,7 +2899,6 @@ function mod:TJimboHandsCache(Player, Cache, Value)
     --end
 
     
-
     return Value
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.TJimboHandsCache, mod.CustomCache.HAND_NUM)

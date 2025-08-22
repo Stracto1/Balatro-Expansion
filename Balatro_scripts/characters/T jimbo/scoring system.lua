@@ -742,7 +742,16 @@ function mod:ScoreHand(Player)
     local PIndex = Player:GetData().TruePlayerIndex
     
 
-    local HandType = mod.Saved.HandType
+    local HandType
+
+    if mod.Saved.HandType == mod.HandTypes.ROYAL_FLUSH then
+        
+        HandType = mod.HandTypes.STRAIGHT_FLUSH
+    else
+        HandType = mod.Saved.HandType
+    end
+
+
     local CompatibleHands = mod.Saved.PossibleHandTypes
     local PlayedCards = mod.SelectionParams[PIndex].PlayedCards
 
@@ -1280,7 +1289,9 @@ function mod:ScoreHand(Player)
 
         elseif Joker == mod.Jokers.SUPERNOVA then
 
-            IncreaseMult(Player, PIndex, mod.Saved.HandsTypeUsed[HandType], mod.EffectType.JOKER, JokerIndex)
+            local PokerUses = mod.Saved.HandsTypeUsed[HandType]
+
+            IncreaseMult(Player, PIndex, PokerUses, mod.EffectType.JOKER, JokerIndex)
 
         elseif Joker == mod.Jokers.CARD_SHARP then
 
@@ -1822,6 +1833,9 @@ local function CopyAdjustments(_,Player)
     end
 end
 mod:AddCallback(mod.Callbalcks.INVENTORY_CHANGE, CopyAdjustments)
+
+
+
 
 
 --effects when a blind gets completed
@@ -2609,6 +2623,10 @@ local function OnShopExit(_)
                 mod:TJimboAddConsumable(Player, RandomCard, 0, false, mod.Edition.NEGATIVE)
 
             end
+
+        elseif Joker == mod.Jokers.CHAOS_CLOWN then
+
+            mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = 1 --makes its free reroll available
         end
 
 
@@ -2641,7 +2659,7 @@ local function CashoutEvaluation(_, BlindBeaten)
 
     local TotalGain = 0
 
-    local BlindMoney = mod.GetBlindReward(BlindBeaten)
+    local BlindMoney = mod:GetBlindReward(BlindBeaten)
 
 
     AddCashoutString("Blind beaten", BlindMoney, BlindBeaten)
@@ -2676,13 +2694,15 @@ local function CashoutEvaluation(_, BlindBeaten)
 
     for i, Tag in ipairs(mod.Saved.SkipTags) do
         
-        if Tag == mod.SkipTags.INVESTMENT then
+        if Tag == mod.SkipTags.INVESTMENT and (BlindBeaten & mod.BLINDS.BOSS ~= 0) then
             
             Isaac.CreateTimer(function ()
-                mod:UseTag(i)
+                mod:UseSkipTag(i)
             end, CurrentInterval, 1, true)
 
             AddCashoutString("Invenstment", 25, mod.StringTypes.Interest)
+
+            TotalGain = TotalGain + Interests
         end
     end
 
@@ -3041,6 +3061,10 @@ local function OnJokerAdded(_, Player, Joker, Edition, EmptySlot)
     elseif Joker == mod.Jokers.MERRY_ANDY then
         
         mod.Saved.DiscardsRemaining = mod.Saved.DiscardsRemaining + 2
+
+    elseif Joker == mod.Jokers.CHAOS_CLOWN then
+
+        mod:UpdateRerollPrice()
     end  
 
     
@@ -3101,7 +3125,10 @@ local function OnJokerSold(_, Player,Joker,SlotSold)
         mod:AddJoker(Player, JokerCopied, EditionCopied)
 
         mod.Saved.Player[PIndex].Progress.Inventory[SlotSold] = mod.Saved.Player[PIndex].Progress.Inventory[RandomIndex]
+    
+    elseif Joker == mod.Jokers.CHAOS_CLOWN then
 
+        mod:UpdateRerollPrice()
     end  
 
     for _,Index in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.CAMPFIRE, true)) do
@@ -3185,8 +3212,18 @@ end
 mod:AddCallback(mod.Callbalcks.JOKER_SOLD, OnJokerSold)
 
 
+local function OnJokerRemoved(_, Player, Joker)
 
---effects when a joker gets sold
+    if Joker == mod.Jokers.CHAOS_CLOWN then
+        
+        mod:UpdateRerollPrice()
+    end
+end
+mod:AddCallback(mod.Callbalcks.JOKER_REMOVED, OnJokerRemoved)
+
+
+
+--effects when a consumable gets sold
 ---@param Player EntityPlayer
 local function OnConsumableSold(_, Player, Consumable)
     --print("sold")

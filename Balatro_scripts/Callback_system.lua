@@ -39,7 +39,7 @@ function mod:OnGameStart(Continued)
 
 
         mod.Saved.HandOrderingMode = mod.HandOrderingModes.Rank
-        mod.Saved.DeckPreviewMode = mod.DeckPreviewModes.OFF
+        mod.Saved.RunInfoMode = mod.RunInfoModes.OFF
 
         --also restores the invisible collectibles added previously
         for _,Player in ipairs(PlayerManager.GetPlayers()) do
@@ -60,7 +60,7 @@ function mod:OnGameStart(Continued)
     else
 
         mod.Saved.HandOrderingMode = mod.HandOrderingModes.Rank
-        mod.Saved.DeckPreviewMode = mod.DeckPreviewModes.OFF
+        mod.Saved.RunInfoMode = mod.RunInfoModes.OFF
 
         mod.Saved.ShowmanRemovedItems = {}
         mod.HpEnable = false
@@ -201,13 +201,15 @@ function mod:OnGameStart(Continued)
         mod.Saved.PossibleHandTypes = mod.HandTypes.NONE
 
         mod.Saved.ClearedRooms = 0
-        mod.Saved.SmallCleared = false
-        mod.Saved.BigCleared = false
+        mod.Saved.SmallCleared = mod.BlindProgress.NOT_CLEARED
+        mod.Saved.BigCleared = mod.BlindProgress.NOT_CLEARED
         mod.Saved.BossCleared = mod.BossProgress.NOT_CLEARED
         mod.Saved.AnteLevel = 0
         mod.Saved.MaxAnteLevel = 0
         --mod.Saved.BlindScalingFactor = 1
         mod.Saved.AnteBoss = mod.BLINDS.BOSS
+        mod.Saved.SmallSkipTag = 0
+        mod.Saved.BigSkipTag = 0
 
         --mod.Saved.SmallBlindIndex = 1
         --mod.Saved.BigBlindIndex = 1
