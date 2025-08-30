@@ -174,6 +174,8 @@ Balatro_Expansion.Jokers.TRIBOULET = Isaac.GetTrinketIdByName("Triboulet")
 Balatro_Expansion.Jokers.YORICK = Isaac.GetTrinketIdByName("Yorick")
 Balatro_Expansion.Jokers.CHICOT = Isaac.GetTrinketIdByName("Chicot")
 Balatro_Expansion.Jokers.PERKEO = Isaac.GetTrinketIdByName("Perkeo")
+Balatro_Expansion.Jokers.CHAOS_THEORY = Isaac.GetTrinketIdByName("Chaos Theory")
+
 end
 
 
@@ -188,6 +190,7 @@ Balatro_Expansion.TastyCandyNum = 5
 for i = 1, Balatro_Expansion.TastyCandyNum do --puts every candy stage
     Balatro_Expansion.Trinkets.TASTY_CANDY[i] = Balatro_Expansion.Jokers.PERKEO + i
 end
+Balatro_Expansion.Trinkets.PENNY_SEEDS = Isaac.GetTrinketIdByName("Penny Seeds")
 
 Balatro_Expansion.INFINITE_HANDS = -1
 
@@ -263,12 +266,22 @@ Balatro_Expansion.Collectibles.UMBRELLA = Isaac.GetItemIdByName("Umbrella")
 Balatro_Expansion.Collectibles.OPENED_UMBRELLA = Isaac.GetItemIdByName("Opened Umbrella")
 Balatro_Expansion.Collectibles.LOLLYPOP = Isaac.GetItemIdByName("Lollypop")
 Balatro_Expansion.Collectibles.FUNNY_TEETH = Isaac.GetItemIdByName("Funny Teeth")
+Balatro_Expansion.Collectibles.PLANET_X = Isaac.GetItemIdByName("Planet X")
+Balatro_Expansion.Collectibles.CERES = Isaac.GetItemIdByName("Ceres")
+Balatro_Expansion.Collectibles.ERIS = Isaac.GetItemIdByName("Eris")
+Balatro_Expansion.Collectibles.HEIRLOOM = Isaac.GetItemIdByName("Heirloom")
+Balatro_Expansion.Collectibles.THE_HAND = Isaac.GetItemIdByName("The hand")
+
+
 
 
 Balatro_Expansion.Familiars = {}
 Balatro_Expansion.Familiars.HORSEY = Isaac.GetEntityVariantByName("Horsey")
 Balatro_Expansion.Familiars.BLOON_PUPPY = Isaac.GetEntityVariantByName("Baloon Puppy")
 Balatro_Expansion.Familiars.TEETH = Isaac.GetEntityVariantByName("Funny Teeth")
+Balatro_Expansion.Familiars.CERES = Isaac.GetEntityVariantByName("Planet Ceres")
+
+
 
 Balatro_Expansion.Effects = {}
 Balatro_Expansion.Effects.CRAYON_POWDER = Isaac.GetEntityVariantByName("Crayon Powder")
@@ -289,6 +302,8 @@ Balatro_Expansion.DialogBubbleSubType = {CASHOUT = Isaac.GetEntitySubTypeByName(
 
 Balatro_Expansion.Pickups = {}
 Balatro_Expansion.Pickups.LOLLYPOP = Isaac.GetEntityVariantByName("Base Lollypop")
+Balatro_Expansion.Pickups.PLAYING_CARD = Isaac.GetEntityVariantByName("Balatro Playing Card")
+
 
 Balatro_Expansion.Entities = {}
 Balatro_Expansion.Entities.BALATRO_TYPE = Isaac.GetEntityTypeByName("Pathfinder Slave") --every entity has the same Type but different variants
@@ -374,7 +389,8 @@ Balatro_Expansion.EffectKColors.GREEN = KColor(55/255, 194/255, 14/255, 1)
 Balatro_Expansion.EffectType = {NULL = -1,
                                 JOKER = -2,
                                 HAND = -3,
-                                ENTITY = -4,
+                                CONSUMABLE = -4,
+                                ENTITY = -5,
                                 HAND_FROM_JOKER = 0}
 
 
@@ -616,7 +632,7 @@ Balatro_Expansion.BLINDS = {WAITING_CASHOUT = 8192,
                             BOSS_WINDOW = 100,
                             BOSS_MANACLE = 108,
                             BOSS_EYE = 116,
-                            BOSS_MOUTH = 128,
+                            BOSS_MOUTH = 124,
                             BOSS_PLANT = 132,
                             BOSS_SERPENT = 140,
                             BOSS_PILLAR = 148,
@@ -709,7 +725,7 @@ local Game = Game()
 Balatro_Expansion.GameStarted = false
 --local HUD = Game:GetHUD()
 
-Balatro_Expansion.RNGs = {SHOP = RNG(), VOUCHERS = RNG(), LUCKY_CARD = RNG(), BOSS_BLINDS = RNG(), SKIP_TAGS = RNG(),}
+Balatro_Expansion.RNGs = {SHOP = RNG(), VOUCHERS = RNG(), LUCKY_CARD = RNG(), BOSS_BLINDS = RNG(), SKIP_TAGS = RNG(), PURPLE_SEAL = RNG(),}
 
 Balatro_Expansion.Saved = {} --every value that needs to be stored between game starts
 -------------------------------
@@ -787,9 +803,13 @@ Balatro_Expansion.Saved.RunInfoMode = Balatro_Expansion.RunInfoModes.OFF
 
 Balatro_Expansion.Saved.IsSpecialBoss = false
 Balatro_Expansion.Saved.AnteVoucher = 0
+Balatro_Expansion.Saved.NumBossRerolls = 0
+Balatro_Expansion.Saved.AnteCardsPlayed = {}
 Balatro_Expansion.Saved.NumShopRerolls = 0
 Balatro_Expansion.Saved.RerollStartingPrice = 5
 Balatro_Expansion.Saved.NumBlindsSkipped = 0
+Balatro_Expansion.Saved.EncounteredStageIDs = {}
+
 
 Balatro_Expansion.Saved.SkipTags = {}
 
@@ -1032,6 +1052,7 @@ Balatro_Expansion.Counters = {}--table used for variuos counters increased every
 Balatro_Expansion.Counters.SinceShift = 0
 Balatro_Expansion.Counters.SinceSelect = 0
 Balatro_Expansion.Counters.SinceCardTriggered = {}
+Balatro_Expansion.Counters.SinceConsumableTriggered = {}
 Balatro_Expansion.Counters.SinceShoot = 0
 Balatro_Expansion.Counters.Activated = {}
 
@@ -1126,6 +1147,7 @@ Balatro_Expansion.Saved.DSS = {
                             }
 
 Balatro_Expansion.Achievements = {
+                                    PERMA_LOCK = Isaac.GetAchievementIdByName("PermaLocked"), --achievement used to block certain pickups from appearing outside of forced spawning
                                     T_JIMBO = Isaac.GetAchievementIdByName("T_JimboUnlock"),
                                     Items = {   
                                             [Balatro_Expansion.Collectibles.HORSEY] = Isaac.GetAchievementIdByName("HorseyUnlock"),
@@ -1140,10 +1162,19 @@ Balatro_Expansion.Achievements = {
                                             [Balatro_Expansion.Collectibles.CLOWN] = Isaac.GetAchievementIdByName("ClownUnlock"), 
                                             [Balatro_Expansion.Collectibles.POCKET_ACES] = Isaac.GetAchievementIdByName("PocketAcesUnlock"), 
 
+                                            [Balatro_Expansion.Collectibles.CERES] = Isaac.GetAchievementIdByName("BalatroPlanetsUnlock"), 
+                                            [Balatro_Expansion.Collectibles.ERIS] = Isaac.GetAchievementIdByName("BalatroPlanetsUnlock"), 
+                                            [Balatro_Expansion.Collectibles.PLANET_X] = Isaac.GetAchievementIdByName("BalatroPlanetsUnlock"), 
+                                            [Balatro_Expansion.Collectibles.HEIRLOOM] = Isaac.GetAchievementIdByName("HeirloomUnlock"), 
+                                            [Balatro_Expansion.Collectibles.THE_HAND] = Isaac.GetAchievementIdByName("TheHandUnlock"), 
+
                                         },
                                     Trinkets = {
                                                 [Balatro_Expansion.Jokers.JOKER] = Isaac.GetAchievementIdByName("JokerTrinketUnlock"),
                                                 [Balatro_Expansion.Trinkets.TASTY_CANDY[1]] = Isaac.GetAchievementIdByName("TastyCandyUnlock"),
+                                                [Balatro_Expansion.Jokers.CHAOS_THEORY] = Isaac.GetAchievementIdByName("ChaosTheoryUnlock"),
+                                                [Balatro_Expansion.Trinkets.PENNY_SEEDS] = Isaac.GetAchievementIdByName("PennySeedsUnlock"),
+
                                         },
                                     Entities = {},
                                     Pickups = {}
@@ -1247,7 +1278,7 @@ include("Balatro_scripts.characters.T jimbo.mechanics")
 include("Balatro_scripts.characters.T jimbo.hud")
 include("Balatro_scripts.characters.T jimbo.Custom_Cards")
 include("Balatro_scripts.characters.T jimbo.scoring system") --hand scoring handling
-
+include("Balatro_scripts.characters.T jimbo.items")
 
 
 include("Balatro_scripts.characters.DebtManager")

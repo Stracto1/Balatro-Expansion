@@ -314,6 +314,11 @@
         gridCollision="none" tags="cansacrifice">
     </entity>
 
+    <entity name="Planet Ceres" anm2path="ceres_planet_familiar.anm2" id="3" 
+    	shodowSize="12" friction="0.7" collisionInterval="3" collisionRadius="19" collisionsMass="1"
+        gridCollision="none" tags="cansacrifice">
+    </entity>
+
 
 
     <!-- EFFECTS -->
@@ -324,8 +329,6 @@
     <entity name="Blind Cashout Bubble" anm2path="" id="1000"  friction="0" variant="2599" subtype="1" /> <!--uses custom rendering -->
     <entity name="Blind Info Bubble" anm2path="" id="1000"  friction="0" variant="2599" subtype="2" />  <!--uses custom rendering -->
     <entity name="Reroll Price Bubble" anm2path="" id="1000"  friction="0" variant="2599" subtype="3" />  <!--uses custom rendering -->
-    <!-- <entity name="Reroll Price Bubble" anm2path="reroll_price_bubble.anm2" id="1000"  friction="0" variant="2598" subtype="3" /> -->
-
 
     <entity name="Crayon Powder" anm2path="crayon_powder.anm2" id="1000" variant="2600" 
     	friction="1" collisionRadius="3"  collisionRadiusXMulti="3"> 
@@ -345,6 +348,9 @@
     <entity name="Player Umbrella" anm2path="player_umbrella_effect.anm2" id="1000" variant="2604" 
     	friction="1" collisionRadius="11" collisionRadiusXMulti="1.75" collisionRadiusXMulti="1.1">
     </entity>
+
+    <entity name="Heirloom Upgrade" anm2path="" id="1000" variant="2605"/>
+
 
 
     
@@ -366,7 +372,10 @@
         <gibs amount="0" blood="0" bone="0" eye="0" gut="0" large="0" />
 	    <!--<preload-snd id="234" />  PENNYPICKUP -->
     </entity>
-
+    <entity anm2path="" baseHP="0" boss="0" champion="0" collisionDamage="0" collisionMass="3" collisionRadius="12" friction="1" id="5" name="Balatro Playing Card" numGridCollisionPoints="24" shadowSize="14" stageHP="0" variant="2037" subtype="0">
+        <gibs amount="0" blood="0" bone="0" eye="0" gut="0" large="0" />
+	    <!--<preload-snd id="234" />  PENNYPICKUP -->
+    </entity>
 
 
     

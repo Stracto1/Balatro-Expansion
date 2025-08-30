@@ -18,4 +18,13 @@
     <achievement name="TastyCandyUnlock" gfx="achievement_tasty_candy.png"/>
 
 
+    <achievement name="TheHandUnlock" gfx="achievement_tasty_candy.png"/>
+    <achievement name="HeirloomUnlock" gfx="achievement_tasty_candy.png"/>
+    <achievement name="BalatroPlanetsUnlock" gfx="achievement_tasty_candy.png"/>
+
+    <achievement name="ChaosTheoryUnlock" gfx="achievement_tasty_candy.png"/>
+    <achievement name="PennySeedsUnlock" gfx="achievement_tasty_candy.png"/>
+
+
+
 </achievements>

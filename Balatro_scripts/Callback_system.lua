@@ -68,23 +68,22 @@ function mod:OnGameStart(Continued)
         mod.AnimationIsPlaying = false
 
         mod.Saved.Pools = {}
-        mod.Saved.Pools.Vouchers = {
-        mod.Vouchers.Grabber,
-        mod.Vouchers.Overstock,
-        mod.Vouchers.Wasteful,
-        mod.Vouchers.RerollSurplus,
-        mod.Vouchers.TarotMerch,
-        mod.Vouchers.PlanetMerch,
-        mod.Vouchers.Clearance,
-        mod.Vouchers.Hone,
-        mod.Vouchers.Crystal,
-        mod.Vouchers.Blank,
-        mod.Vouchers.Telescope,
-        mod.Vouchers.Brush,
-        mod.Vouchers.Director,
-        mod.Vouchers.Hieroglyph,
-        mod.Vouchers.MagicTrick,
-        mod.Vouchers.MoneySeed}
+        mod.Saved.Pools.Vouchers = {mod.Vouchers.Grabber,
+                                    mod.Vouchers.Overstock,
+                                    mod.Vouchers.Wasteful,
+                                    mod.Vouchers.RerollSurplus,
+                                    mod.Vouchers.TarotMerch,
+                                    mod.Vouchers.PlanetMerch,
+                                    mod.Vouchers.Clearance,
+                                    mod.Vouchers.Hone,
+                                    mod.Vouchers.Crystal,
+                                    mod.Vouchers.Blank,
+                                    mod.Vouchers.Telescope,
+                                    mod.Vouchers.Brush,
+                                    mod.Vouchers.Director,
+                                    mod.Vouchers.Hieroglyph,
+                                    mod.Vouchers.MagicTrick,
+                                    mod.Vouchers.MoneySeed}
 
         mod.Saved.Pools.BossBlinds = { mod.BLINDS.BOSS_HOOK,
                                        mod.BLINDS.BOSS_CLUB,
@@ -134,7 +133,9 @@ function mod:OnGameStart(Continued)
         mod.Saved.CurrentBlindReward = 0
         mod.Saved.CurrentRound = 0
         mod.Saved.BossBlindVarData = 0
-        --mod.Saved.AnteVoucher = 0   cannot be set here cause GAME_STARTED happens after NEW_LEVEL
+        mod.Saved.AnteCardsPlayed = {}
+        mod.Saved.NumBossRerolls = 0
+        mod.Saved.AnteVoucher = 0  
         mod.Saved.NumShopRerolls = 0
         mod.Saved.RerollStartingPrice = 5
         mod.Saved.NumBlindsSkipped = 0
@@ -210,6 +211,7 @@ function mod:OnGameStart(Continued)
         mod.Saved.AnteBoss = mod.BLINDS.BOSS
         mod.Saved.SmallSkipTag = 0
         mod.Saved.BigSkipTag = 0
+        mod.Saved.EncounteredStageIDs = {}
 
         --mod.Saved.SmallBlindIndex = 1
         --mod.Saved.BigBlindIndex = 1
@@ -251,16 +253,19 @@ function mod:OnGameStart(Continued)
     mod.RNGs.SHOP = RNG(RNGPlayer:GetTrinketRNG(mod.Jokers.JOKER):GetSeed())
     mod.RNGs.VOUCHERS = RNG(RNGPlayer:GetCollectibleRNG(mod.Vouchers.Blank):GetSeed())
     mod.RNGs.LUCKY_CARD = RNG(RNGPlayer:GetTrinketRNG(mod.Jokers.LUCKY_CAT):GetSeed())
+    mod.RNGs.PURPLE_SEAL = RNG(RNGPlayer:GetTrinketRNG(mod.Jokers.FORTUNETELLER):GetSeed())
     mod.RNGs.SKIP_TAGS = RNG(RNGPlayer:GetTrinketRNG(mod.Jokers.THROWBACK):GetSeed())
     mod.RNGs.BOSS_BLINDS = RNG(RNGPlayer:GetTrinketRNG(mod.Jokers.LUCHADOR):GetSeed())
     
     for _, player in ipairs(PlayerManager.GetPlayers()) do  --evaluates again for the mod's trinkets since closing the game
                                                             --resets stuff
 
-        mod:InitJimboValues(player) -- on new run always initialise jimbo values
+        mod:InitPlayerValues(player)
 
         if player:GetPlayerType() == mod.Characters.JimboType 
            or player:GetPlayerType() == mod.Characters.TaintedJimbo then
+
+            mod:InitJimboValues(player) -- on new run always initialise jimbo values
 
             local PIndex = player:GetData().TruePlayerIndex
             
@@ -272,7 +277,7 @@ function mod:OnGameStart(Continued)
             end
 
             Isaac.RunCallback("INVENTORY_CHANGE", player) --this evaluates everithing anyway
-            --player:AddCacheFlags(CacheFlag.CACHE_ALL, true)
+            --player:AddCacheFlags(CacheFlag.CACHE_ALL, true)            
         end 
     end
 
@@ -283,10 +288,33 @@ mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED ,mod.OnGameStart)
 --Counter = 60
 --Counter2 = 36
 
----@param Player EntityPlayer
-function mod:InitJimboValues(Player, Force)
+function mod:InitPlayerValues(Player)
+
+    local PIndex = Player:GetData().TruePlayerIndex
+    if not PIndex then
+        PlayerIndexUpdate(Player)
+        PIndex = Player:GetData().TruePlayerIndex
+    end
+
+    --print(PIndex)
+
+    mod.Saved.Player[PIndex] = {}
+
+    mod.SelectionParams[PIndex] = {}
+
+    mod.Saved.Player[PIndex].InnateItems = {}
+    mod.Saved.Player[PIndex].InnateItems.General = {} --used for things that can only give 1 kind of item
+    mod.Saved.Player[PIndex].InnateItems.Planet_X = {}
 
     
+    mod.Saved.Player[PIndex].ComedicState = 0
+end
+
+
+
+---@param Player EntityPlayer
+function mod:InitJimboValues(Player, Force)
+ 
     local PIndex = Player:GetData().TruePlayerIndex
     if not PIndex then
         PlayerIndexUpdate(Player)
@@ -347,8 +375,6 @@ function mod:InitJimboValues(Player, Force)
         mod.Saved.Player[PIndex].StatsToAdd.JokerTears = 0
         mod.Saved.Player[PIndex].StatsToAdd.JokerMult = 1
 
-        mod.Saved.Player[PIndex].InnateItems = {}
-        mod.Saved.Player[PIndex].InnateItems.General = {}
         mod.Saved.Player[PIndex].InnateItems.Hack = {}
 
         mod.Saved.Player[PIndex].FirstDeck = true
@@ -430,7 +456,6 @@ function mod:InitJimboValues(Player, Force)
     
     ::shared_values::
 
-    mod.SelectionParams[PIndex] = {}
     mod.SelectionParams[PIndex].Frames = 0 -- in update frames
     mod.SelectionParams[PIndex].Index = 1
     mod.SelectionParams[PIndex].Mode = 0
@@ -462,8 +487,6 @@ function mod:InitJimboValues(Player, Force)
 
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.NONE)
     end
-
-    mod.Saved.Player[PIndex].ComedicState = 0
 end
 mod:AddCallback(ModCallbacks.MC_PLAYER_INIT_POST_LEVEL_INIT_STATS, mod.InitJimboValues)
 

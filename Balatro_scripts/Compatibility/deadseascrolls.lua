@@ -218,6 +218,76 @@ local itemData = {
     {
         Divider = true,
     },
+
+    {
+        Id = Balatro_Expansion.Collectibles.PLANET_X,
+        Gfx = ItemsConfig:GetCollectible(Balatro_Expansion.Collectibles.PLANET_X).GfxFileName,
+        Type = "Collectible",
+        Name = "Planet X",
+        UnlockMethod = "Unlocked by compleating all marks as T. Jimbo",
+        Description = "Gain the effect of a random planetarium item every new room",
+        Achievement = mod.Achievements.Items[mod.Collectibles.PLANET_X]
+    },
+    {
+        Id = Balatro_Expansion.Collectibles.ERIS,
+        Gfx = ItemsConfig:GetCollectible(Balatro_Expansion.Collectibles.ERIS).GfxFileName,
+        Type = "Collectible",
+        Name = "Eris",
+        UnlockMethod = "Unlocked by compleating all marks as T. Jimbo",
+        Description = "Enemies close to Isaac are slowed as they approach him, eventually gettin frozen",
+        Achievement = mod.Achievements.Items[mod.Collectibles.ERIS]
+    },
+    {
+        Id = Balatro_Expansion.Collectibles.CERES,
+        Gfx = ItemsConfig:GetCollectible(Balatro_Expansion.Collectibles.CERES).GfxFileName,
+        Type = "Collectible",
+        Name = "Ceres",
+        UnlockMethod = "Unlocked by compleating all marks as T. Jimbo",
+        Description = "Gain an orbital that leaves behind floating meteors as it gets hit. The meteors deal Isaac's damage and disappear after taking 2 hits",
+        Achievement = mod.Achievements.Items[mod.Collectibles.CERES]
+    },
+
+    {
+        Id = Balatro_Expansion.Collectibles.THE_HAND,
+        Gfx = ItemsConfig:GetCollectible(Balatro_Expansion.Collectibles.THE_HAND).GfxFileName,
+        Type = "Collectible",
+        Name = "The Hand",
+        UnlockMethod = "Unlocked by aaaaaaaaaaaaa",
+        Description = "Up to 5 cards can be stored inside the active item. Using the item activates all cards stored in order",
+        Achievement = mod.Achievements.Items[mod.Collectibles.THE_HAND]
+    },
+
+    {
+        Id = Balatro_Expansion.Collectibles.HEIRLOOM,
+        Gfx = ItemsConfig:GetCollectible(Balatro_Expansion.Collectibles.HEIRLOOM).GfxFileName,
+        Type = "Collectible",
+        Name = "Heirloom",
+        UnlockMethod = "Unlocked by aaaaaaaaaaaaa",
+        Description = "Start the next run with 10 extra coins. Coins have a chance to get their value upgraded. Pickups have a chance to become thei golden cariant",
+        Achievement = mod.Achievements.Items[mod.Collectibles.HEIRLOOM]
+    },
+
+    {
+        Id = Balatro_Expansion.Trinkets.PENNY_SEEDS,
+        Gfx = ItemsConfig:GetTrinket(Balatro_Expansion.Trinkets.PENNY_SEEDS).GfxFileName,
+        Type = "Trinket",
+        Name = "Penny Seed",
+        UnlockMethod = "Unlocked by aaaaaaaaaaaaa",
+        Description = "Gain a coin per 5 cents held on new floor",
+        Achievement = mod.Achievements.Trinkets[mod.Collectibles.PENNY_SEEDS]
+    },
+
+    {
+        Id = Balatro_Expansion.Jokers.CHAOS_THEORY,
+        Gfx = ItemsConfig:GetTrinket(Balatro_Expansion.Jokers.CHAOS_THEORY).GfxFileName,
+        Type = "Trinket",
+        Name = "Chaos Theory",
+        UnlockMethod = "Unlocked by aaaaaaaaaaaaa",
+        Description = "Gain a coin per 5 cents held on new floor",
+        Achievement = mod.Achievements.Trinkets[mod.Collectibles.PENNY_SEEDS]
+    },
+
+
     --[[
     {
         Id = Balatro_Expansion.Items.LightningRod.ID,

@@ -95,7 +95,12 @@ function mod:VoucherPool2(Player, Type)
             return
         end
     end
-    table.insert(mod.Saved.Pools.Vouchers, Type)
+
+    if Type ~= mod.Vouchers.Director
+       and Type ~= mod.Vouchers.Retcon then
+        
+        table.insert(mod.Saved.Pools.Vouchers, Type)
+    end
 
     
 end
@@ -269,7 +274,8 @@ mod:AddCallback("CARD_SHOT", mod.CardShotVouchers)
 ---@param Rng RNG
 ---@param Player EntityPlayer
 function mod:DirectorVoucher(Item,Rng, Player, Flags,_,_)
-    if not Player:GetPlayerType() == mod.Characters.JimboType then
+
+    if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
         return
     end
 

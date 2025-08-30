@@ -112,13 +112,12 @@ LollypopPicker:AddOutcomeFloat(1, 1)
 LollypopPicker:AddOutcomeFloat(2, 1)
 LollypopPicker:AddOutcomeFloat(3, 0.01)
 
-local CandySheets = {}
-CandySheets[SlotVariant.BEGGAR] = "gfx/sprites/slot_004_beggar.png"
-CandySheets[SlotVariant.DEVIL_BEGGAR] = "gfx/sprites/slot_005_devil_beggar.png"
-CandySheets[SlotVariant.KEY_MASTER] = "gfx/sprites/slot_007_key_master.png"
-CandySheets[SlotVariant.BOMB_BUM] = "gfx/sprites/slot_009_bomb_bum.png"
-CandySheets[SlotVariant.BATTERY_BUM] = "gfx/sprites/slot_013_battery_bum.png"
-CandySheets[SlotVariant.ROTTEN_BEGGAR] = "gfx/sprites/rotten_beggar.png"
+local CandySheets = {[SlotVariant.BEGGAR] = "gfx/sprites/slot_004_beggar.png",
+                     [SlotVariant.DEVIL_BEGGAR] = "gfx/sprites/slot_005_devil_beggar.png",
+                     [SlotVariant.KEY_MASTER] = "gfx/sprites/slot_007_key_master.png",
+                     [SlotVariant.BOMB_BUM] = "gfx/sprites/slot_009_bomb_bum.png",
+                     [SlotVariant.BATTERY_BUM] = "gfx/sprites/slot_013_battery_bum.png",
+                     [SlotVariant.ROTTEN_BEGGAR] = "gfx/sprites/rotten_beggar.png"}
 
 local CandySheet = "gfx/sprites/tasty_candy_shard.png"
 
@@ -145,10 +144,17 @@ local TEETH_RICH_PATH = "gfx/familiar/teeth_but_rich_familiar.png"
 local FamiliarCollisionInterval = {}
 FamiliarCollisionInterval[mod.Familiars.BLOON_PUPPY] = EntityConfig.GetEntity(EntityType.ENTITY_FAMILIAR, mod.Familiars.BLOON_PUPPY):GetCollisionInterval()
 FamiliarCollisionInterval[mod.Familiars.TEETH] = EntityConfig.GetEntity(EntityType.ENTITY_FAMILIAR, mod.Familiars.TEETH):GetCollisionInterval()
+FamiliarCollisionInterval[mod.Familiars.CERES] = EntityConfig.GetEntity(EntityType.ENTITY_FAMILIAR, mod.Familiars.CERES):GetCollisionInterval()
+
+local CERES_PIECE_PATH = "gfx/familiar/familiar_ceres_piece.png"
+local CERES_FIRE_COOLDOWN = 50
+local COLOR_CERES = Color(1,1,1,1,0,0,0,0.55, 0.55, 0.6, 1)
 
 
 
-local function UnlockItems(_,Type)
+
+
+local function UnlockNormalItems(_,Type)
 
     if PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
         
@@ -194,7 +200,7 @@ local function UnlockItems(_,Type)
         end
     end
 end
-mod:AddCallback(ModCallbacks.MC_POST_COMPLETION_EVENT, UnlockItems)
+mod:AddCallback(ModCallbacks.MC_POST_COMPLETION_EVENT, UnlockNormalItems)
 
 
 
@@ -278,13 +284,16 @@ end
 function mod:GiveFamiliars(Player, _)
 
     local FamiliarCount = Player:GetEffects():GetCollectibleEffectNum(mod.Collectibles.HORSEY) + Player:GetCollectibleNum(mod.Collectibles.HORSEY)
-    Player:CheckFamiliar(mod.Familiars.HORSEY, FamiliarCount, RNG(math.max(Random(), 1)), ItemsConfig:GetCollectible(mod.Collectibles.HORSEY))
+    Player:CheckFamiliar(mod.Familiars.HORSEY, FamiliarCount, RNG(mod:RandomSeed()), ItemsConfig:GetCollectible(mod.Collectibles.HORSEY))
 
     FamiliarCount = Player:GetEffects():GetCollectibleEffectNum(mod.Collectibles.BALOON_PUPPY) + Player:GetCollectibleNum(mod.Collectibles.BALOON_PUPPY)
-    Player:CheckFamiliar(mod.Familiars.BLOON_PUPPY, FamiliarCount, RNG(math.max(Random(), 1)), ItemsConfig:GetCollectible(mod.Collectibles.BALOON_PUPPY))
+    Player:CheckFamiliar(mod.Familiars.BLOON_PUPPY, FamiliarCount, RNG(mod:RandomSeed()), ItemsConfig:GetCollectible(mod.Collectibles.BALOON_PUPPY))
 
     FamiliarCount = Player:GetEffects():GetCollectibleEffectNum(mod.Collectibles.FUNNY_TEETH) + Player:GetCollectibleNum(mod.Collectibles.FUNNY_TEETH)
-    Player:CheckFamiliar(mod.Familiars.TEETH, FamiliarCount, RNG(math.max(Random(), 1)), ItemsConfig:GetCollectible(mod.Collectibles.FUNNY_TEETH))
+    Player:CheckFamiliar(mod.Familiars.TEETH, FamiliarCount, RNG(mod:RandomSeed()), ItemsConfig:GetCollectible(mod.Collectibles.FUNNY_TEETH))
+
+    FamiliarCount = Player:GetEffects():GetCollectibleEffectNum(mod.Collectibles.CERES) + Player:GetCollectibleNum(mod.Collectibles.CERES)
+    Player:CheckFamiliar(mod.Familiars.CERES, FamiliarCount, RNG(mod:RandomSeed()), ItemsConfig:GetCollectible(mod.Collectibles.CERES))
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.GiveFamiliars, CacheFlag.CACHE_FAMILIARS)
 
@@ -326,6 +335,16 @@ function mod:FamiliarInit(Familiar)
         Familiar.State = TeethStates.IDLE
         Familiar.FireCooldown = 300
         Familiar.GridCollisionClass = EntityGridCollisionClass.GRIDCOLL_GROUND
+
+    elseif Familiar.Variant == mod.Familiars.CERES then
+
+        Familiar:AddEntityFlags(EntityFlag.FLAG_NO_SPRITE_UPDATE)
+
+        Familiar:AddToOrbit(5074)
+        Familiar.OrbitDistance = Vector(110, 109.6)
+        Familiar.OrbitSpeed = 0.05
+
+        Familiar.FireCooldown = 0
     end
 end
 mod:AddCallback(ModCallbacks.MC_FAMILIAR_INIT, mod.FamiliarInit)
@@ -453,7 +472,6 @@ function mod:FamiliarUpdate(Familiar)
             else --string is loose
                 Familiar.Velocity = Familiar.Velocity*0.95
                 Familiar:AddVelocity(Vector(0,-0.15))
-
             end
 
         elseif Familiar.State == PuppyState.ATTACK then
@@ -574,6 +592,23 @@ function mod:FamiliarUpdate(Familiar)
             end
         end
 
+
+    elseif Familiar.Variant == mod.Familiars.CERES then
+
+        Familiar.OrbitLayer = 5074
+        Familiar.OrbitDistance = Vector(110, 109.6)
+        Familiar.OrbitSpeed = 0.01
+
+        Familiar.FireCooldown = math.max(Familiar.FireCooldown - 1, 0)
+
+        local OrbitPosition = Familiar:GetOrbitPosition(Familiar.Player.Position) + Vector(2, 0)
+
+        Familiar:AddVelocity((OrbitPosition - Familiar.Position)*0.2)
+
+
+        if Game:GetFrameCount() % 50 == 0 then
+            Familiar:GetSprite():Update()
+        end
     end
 end
 mod:AddCallback(ModCallbacks.MC_FAMILIAR_UPDATE, mod.FamiliarUpdate)
@@ -633,7 +668,8 @@ mod:AddCallback(ModCallbacks.MC_PRE_FAMILIAR_RENDER, mod.FamiliarRender)
 ---@param Collider Entity
 function mod:FamiliarCollision(Familiar, Collider,_)
 
-    if Familiar.FrameCount % FamiliarCollisionInterval[Familiar.Variant] ~= 0 then
+    if FamiliarCollisionInterval[Familiar.Variant] 
+       and Familiar.FrameCount % FamiliarCollisionInterval[Familiar.Variant] ~= 0 then --aparently the collisionInterval in entities.xml doesn't do what i think it should
         return
     end
 
@@ -750,7 +786,9 @@ function mod:FamiliarCollision(Familiar, Collider,_)
                 return
             end
 
-            Enemy:TakeDamage(1 * Familiar:GetMultiplier(), 0, EntityRef(Familiar), 0)
+            local DamageDealt = 1 * Familiar:GetMultiplier()
+
+            Enemy:TakeDamage(DamageDealt, 0, EntityRef(Familiar), 0)
 
             if Familiar.Player:HasCollectible(CollectibleType.COLLECTIBLE_MIDAS_TOUCH) then
                 
@@ -759,17 +797,115 @@ function mod:FamiliarCollision(Familiar, Collider,_)
                     Enemy:AddMidasFreeze(EntityRef(Familiar), 90)
                 end
             end
+
+            if Familiar.Player:HasTrinket(TrinketType.TRINKET_BLACK_TOOTH) then
+                
+                if math.random() < 0.01 then
+                    
+                    Enemy:AddPoison(EntityRef(Familiar), 46, DamageDealt * 2.5)
+                end
+            end
+        end
+
+    elseif Familiar.Variant == mod.Familiars.CERES then
+
+        local Bullet = Collider:ToProjectile()
+        local NPC = Collider:ToNPC()
+        
+        local Collided = false
+        local Multiplier = Familiar:GetMultiplier()
+
+        if Bullet and not Bullet:HasProjectileFlags(ProjectileFlags.CANT_HIT_PLAYER) then
+
+            Collided = true
+
+            Familiar:AddVelocity(Bullet.Velocity/1.5)
+            Bullet:Kill()
+
+        elseif NPC and NPC:IsActiveEnemy() then
+
+            Collided = true
+
+            if NPC:IsVulnerableEnemy() then
+                NPC:TakeDamage((Familiar.Player.Damage / 6)*Multiplier, 0, EntityRef(Familiar), 2)
+            end
+        end
+
+        if Familiar.FireCooldown <= 0 and Collided then
+            
+            local MinPieces = math.floor(Multiplier)
+
+            local NumPieces = math.random(MinPieces, MinPieces + 2)
+
+            local CeresRNG = Familiar.Player:GetCollectibleRNG(mod.Collectibles.CERES)
+
+            local SpecialDropRoll = CeresRNG:RandomFloat()
+
+            if SpecialDropRoll <= 0.001 then -- 1 in 1000 chance
+            
+                local ColliderAngle = math.ceil((-Collider.Velocity):GetAngleDegrees())
+
+                local RockSpeed = Vector.FromAngle(math.random(ColliderAngle-60, ColliderAngle+60))
+                RockSpeed = RockSpeed * (math.random()*2 + 2.5)
+
+                Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET, Familiar.Position,
+                           RockSpeed, Familiar, TrinketType.TRINKET_LUCKY_ROCK, mod:RandomSeed(Familiar:GetDropRNG()))
+            
+                NumPieces = NumPieces - 1
+            
+            elseif SpecialDropRoll >= 0.999 then -- also 1 in 1000 chance
+
+                local ColliderAngle = math.ceil((-Collider.Velocity):GetAngleDegrees())
+
+                local RockSpeed = Vector.FromAngle(math.random(ColliderAngle-60, ColliderAngle+60))
+                RockSpeed = RockSpeed * (math.random()*2 + 2.5)
+
+                Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET, Familiar.Position,
+                           RockSpeed, Familiar, TrinketType.TRINKET_SHINY_ROCK, mod:RandomSeed(Familiar:GetDropRNG()))
+            
+                NumPieces = NumPieces - 1
+            end
+
+            for i = 1, NumPieces do
+
+                --local PlayerDisctanceAngle = (Familiar.Position - Familiar.Player.Position):GetAngleDegrees()
+                local ColliderAngle = math.ceil((-Collider.Velocity):GetAngleDegrees())
+
+                local BoneSpeed = Vector.FromAngle(math.random(ColliderAngle-60, ColliderAngle+60))
+                BoneSpeed = BoneSpeed * (math.random()*2.5 + 2)
+            
+                local Meteor = Game:Spawn(EntityType.ENTITY_FAMILIAR, FamiliarVariant.BONE_SPUR, Familiar.Position,
+                                          BoneSpeed, Familiar, 0, mod:RandomSeed(Familiar:GetDropRNG())):ToFamiliar()
+
+                Meteor.Player = Familiar.Player
+                Meteor:GetSprite():ReplaceSpritesheet(0, CERES_PIECE_PATH, true)
+
+
+                Meteor:ClearEntityFlags(EntityFlag.FLAG_APPEAR)
+
+                Game:SpawnParticles(Familiar.Position, EffectVariant.TOOTH_PARTICLE, 5, 2, COLOR_CERES)
+            end
+            
+            if NumPieces > 0 then
+                Familiar.FireCooldown = CERES_FIRE_COOLDOWN
+
+                sfx:Play(SoundEffect.SOUND_ROCK_CRUMBLE, 0.5, 2, false, math.random()*0.2 + 0.9)
+            end
         end
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_FAMILIAR_COLLISION, mod.FamiliarCollision, mod.Familiars.BLOON_PUPPY)
 mod:AddCallback(ModCallbacks.MC_POST_FAMILIAR_COLLISION, mod.FamiliarCollision, mod.Familiars.TEETH)
+mod:AddCallback(ModCallbacks.MC_POST_FAMILIAR_COLLISION, mod.FamiliarCollision, mod.Familiars.CERES)
+
 
 --------------EFFECTS--------------
 ----------------------------------
 
 ---@param Effect EntityEffect
 function mod:EffectInit(Effect)
+
+    --print(Effect.Variant, Effect.SubType)
 
     if Effect.Variant == mod.Effects.CRAYON_POWDER then
         local Sprite = Effect:GetSprite()
@@ -1244,11 +1380,12 @@ local function PickupUpdate(_, Pickup)
             Pickup:SetShadowSize(0)
 
         elseif Sprite:IsFinished("Collect") then
-                Pickup:Remove()
+            Pickup:Remove()
         end
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PICKUP_UPDATE, PickupUpdate)
+
 
 ---------GENERAL ENTITIES----------
 -----------------------------------
@@ -1361,55 +1498,11 @@ local function OnNewRoom()
                 end
             end
         end
-        if Player:HasCollectible(mod.Collectibles.TRAGICOMEDY) then
-
-            ---@diagnostic disable-next-line: param-type-mismatch
-            Player:AddCacheFlags(TragicomedyCaches)
-            Player:TryRemoveNullCostume(MaskCostume[mod.Saved.Player[PIndex].ComedicState])
-            mod.Saved.Player[PIndex].ComedicState = ComedicState.NONE
-            
-
-            if Player:GetPlayerType() == mod.Characters.JimboType and mod:JimboHasTrinket(Player, mod.Jokers.SOCK_BUSKIN)
-               or Player:HasTrinket(mod.Jokers.SOCK_BUSKIN) 
-               or Player:HasCollectible(CollectibleType.COLLECTIBLE_DUALITY) then --set both tragic and comedy
-
-                mod.Saved.Player[PIndex].ComedicState = ComedicState.TRAGICOMEDY + 0
-
-            else
-
-                local MaskRNG = Player:GetCollectibleRNG(mod.Collectibles.TRAGICOMEDY)
-                local ComedicChance = MaskRNG:RandomFloat()
-
-                if ComedicChance <= 0.4 or Player:HasCollectible(CollectibleType.COLLECTIBLE_POLAROID) then
-                    mod.Saved.Player[PIndex].ComedicState = mod.Saved.Player[PIndex].ComedicState + ComedicState.COMEDY
-
-                end
-
-                ComedicChance = MaskRNG:RandomFloat()
-
-                if ComedicChance <= 0.4 or Player:HasCollectible(CollectibleType.COLLECTIBLE_NEGATIVE) then
-                    mod.Saved.Player[PIndex].ComedicState = mod.Saved.Player[PIndex].ComedicState + ComedicState.TRAGEDY
-
-                end
-
-                Player:AddNullCostume(MaskCostume[mod.Saved.Player[PIndex].ComedicState])
-            end
-
-            Player:EvaluateItems()
-
-        else --does not have tragicomedy
-        
-            Player:TryRemoveNullCostume(MaskCostume[mod.Saved.Player[PIndex].ComedicState])
-            mod.Saved.Player[PIndex].ComedicState = ComedicState.NONE
-
-        end
     end
 
-    if PlayerManager.AnyoneHasCollectible(mod.Collectibles.LAUGH_SIGN) and Room:IsFirstVisit() then
+    if PlayerManager.AnyoneHasCollectible(mod.Collectibles.LAUGH_SIGN) and Room:IsFirstVisit() and Room:GetType() == RoomType.ROOM_TREASURE then
         mod:LaughSignEffect(LaughEffectType.GASP, PlayerManager.FirstCollectibleOwner(mod.Collectibles.LAUGH_SIGN))
     end
-
-
 end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, OnNewRoom)
 
@@ -1713,7 +1806,7 @@ end
 mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, OnPlayerTakeDamage, EntityType.ENTITY_PLAYER)
 
 
-local function OnRoomClear()
+local function OnRoomClear(_, Player)
 
     local Type = Game:GetRoom():GetType()
     if Type == RoomType.ROOM_BOSS or Type == RoomType.ROOM_MINIBOSS then
@@ -1725,8 +1818,56 @@ local function OnRoomClear()
             end
         end
     end
+
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    if Player:HasCollectible(mod.Collectibles.TRAGICOMEDY) then
+
+
+        ---@diagnostic disable-next-line: param-type-mismatch
+        Player:AddCacheFlags(TragicomedyCaches)
+        Player:TryRemoveNullCostume(MaskCostume[mod.Saved.Player[PIndex].ComedicState])
+        mod.Saved.Player[PIndex].ComedicState = ComedicState.NONE
+        
+
+        if Player:GetPlayerType() == mod.Characters.JimboType and mod:JimboHasTrinket(Player, mod.Jokers.SOCK_BUSKIN)
+           or Player:HasTrinket(mod.Jokers.SOCK_BUSKIN) 
+           or Player:HasCollectible(CollectibleType.COLLECTIBLE_DUALITY) then --set both tragic and comedy
+
+            mod.Saved.Player[PIndex].ComedicState = ComedicState.TRAGICOMEDY + 0
+
+        else
+
+            local MaskRNG = Player:GetCollectibleRNG(mod.Collectibles.TRAGICOMEDY)
+            local ComedicChance = MaskRNG:RandomFloat()
+
+            if ComedicChance <= 0.4 or Player:HasCollectible(CollectibleType.COLLECTIBLE_POLAROID) then
+                mod.Saved.Player[PIndex].ComedicState = mod.Saved.Player[PIndex].ComedicState + ComedicState.COMEDY
+
+            end
+
+            ComedicChance = MaskRNG:RandomFloat()
+
+            if ComedicChance <= 0.4 or Player:HasCollectible(CollectibleType.COLLECTIBLE_NEGATIVE) then
+                mod.Saved.Player[PIndex].ComedicState = mod.Saved.Player[PIndex].ComedicState + ComedicState.TRAGEDY
+
+            end
+
+            Player:AddNullCostume(MaskCostume[mod.Saved.Player[PIndex].ComedicState])
+        end
+
+        Player:EvaluateItems()
+
+    else --does not have tragicomedy
+    
+        Player:TryRemoveNullCostume(MaskCostume[mod.Saved.Player[PIndex].ComedicState])
+        mod.Saved.Player[PIndex].ComedicState = ComedicState.NONE
+
+    end
+
+
 end
-mod:AddCallback(ModCallbacks.MC_PRE_ROOM_TRIGGER_CLEAR, OnRoomClear)
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, OnRoomClear)
 
 
 ---@param Player EntityPlayer?

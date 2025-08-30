@@ -6,13 +6,14 @@ local ItemsConfig = Isaac.GetItemConfig()
 local SUIT_FLAG = 7 --111 00..
 local VALUE_FLAG = 120 --000 1111 00..
 
-local EID_DescType = {NONE = 0,
-                      CARD = 1,
-                      JOKER = 2,
-                      CONSUMABLE = 4,
-                      BOOSTER = 8,
-                      VOUCHER = 16,
-                      SELECTION_FLAG = 256}
+mod.EID_DescType = {NONE = 0,
+                    CARD = 1,
+                    JOKER = 2,
+                    CONSUMABLE = 4,
+                    BOOSTER = 8,
+                    VOUCHER = 16,
+                    BLIND = 32,
+                    SELECTION_FLAG = 256}
 
 local EID_DescAllingnment = {TOP = 1,
                              BOTTOM = 2,
@@ -132,7 +133,7 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
 
     Values = {}
 
-    if Type == EID_DescType.JOKER then
+    if Type == mod.EID_DescType.JOKER then
 
         local Joker = Subtype
 
@@ -354,7 +355,7 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
             end
         end
 
-    elseif Type == EID_DescType.CONSUMABLE then
+    elseif Type == mod.EID_DescType.CONSUMABLE then
 
         local card = Subtype
         
@@ -412,6 +413,15 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
 
         end
 
+    elseif Type == mod.EID_DescType.BLIND then
+    
+        local Blind = Subtype
+
+        if Blind == mod.BLINDS.OX then
+
+            Values[1] = "["..mod:GetEIDString("HandTypeName", mod.Saved.BossBlindVarData).."]"
+        end
+
     end
 
 
@@ -435,7 +445,7 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
 
     Values = {}
 
-    if Type == EID_DescType.JOKER then
+    if Type == mod.EID_DescType.JOKER then
 
         local Progress
         if Index then
@@ -505,6 +515,10 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
                 Progress = Progress or mod:GetJokerInitialProgress(Joker, false)
 
                 Values[1] = mod:GetCardName(Progress, true)
+
+                local ItemChosen = Progress >> 7
+                Values[2] = tostring(ItemChosen)
+                Values[3] = EID:getObjectName(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COLLECTIBLE, ItemChosen)
         
             elseif Joker == mod.Jokers.YORICK then
 
@@ -715,11 +729,20 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
                 Progress = Progress or mod:GetJokerInitialProgress(Joker, false)
                 
                 Values[1] = tostring(Progress)
+
+            elseif Joker == mod.Jokers.CHAOS_THEORY then
+
+                if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_CHAOS) then
+                    
+                    Values[1] = mod:GetEIDString("Synergies", Joker, CollectibleType.COLLECTIBLE_CHAOS)
+                else
+                    Values[1] = ""
+                end
             end
         end
 
 
-    elseif Type == EID_DescType.CONSUMABLE then
+    elseif Type == mod.EID_DescType.CONSUMABLE then
 
         local card = Subtype
 
@@ -786,18 +809,20 @@ function mod:ReplaceBalatroMarkups(String, DescType, DescSubType, Tainted, Index
 
     if Tainted then
         
-        String = String.gsub(String, "%{%{CR%}%}", "%{%{B_Black%}%}")
+        String = String.gsub(String, "%{%{CR%}%}", "{{B_Black}}")
     end
 
+    if DescType ~= mod.EID_DescType.NONE then
 
-    local Values 
-    if Tainted then
-        Values = GetT_JimboDescriptionValues(DescType & ~EID_DescType.SELECTION_FLAG, DescSubType, Index)
-    else
-        Values = GetJimboDescriptionValues(DescType & ~EID_DescType.SELECTION_FLAG, DescSubType, Index)
+        local Values 
+        if Tainted then
+            Values = GetT_JimboDescriptionValues(DescType & ~mod.EID_DescType.SELECTION_FLAG, DescSubType, Index)
+        else
+            Values = GetJimboDescriptionValues(DescType & ~mod.EID_DescType.SELECTION_FLAG, DescSubType, Index)
+        end
+
+        String = string.gsub(String, "%[%[VALUE%d%]%]", Values)
     end
-
-    String = string.gsub(String, "%[%[VALUE%d%]%]", Values)
 
     String = string.gsub(String, "%.0","")
 
@@ -924,7 +949,7 @@ local function BalatroInventoryCallback(descObj)
                 --PROGRESS--
 
                 
-                Description = mod:ReplaceBalatroMarkups(Description, EID_DescType.JOKER, SelectedCard.Joker, true, SelectIndex)
+                Description = mod:ReplaceBalatroMarkups(Description, mod.EID_DescType.JOKER, SelectedCard.Joker, true, SelectIndex)
 
                 --SELL VALUE--
 
@@ -980,7 +1005,7 @@ local function BalatroInventoryCallback(descObj)
 
                 local BaseDesc = mod:GetEIDString("Jimbo","Jokers",SelectedCard.Joker)
 
-                Description = mod:ReplaceBalatroMarkups(BaseDesc, EID_DescType.JOKER, SelectedCard.Joker, true, SelectIndex)
+                Description = mod:ReplaceBalatroMarkups(BaseDesc, mod.EID_DescType.JOKER, SelectedCard.Joker, true, SelectIndex)
 
 
                 local EditionDesc = mod.Descriptions.JokerEdition[SelectedCard.Edition][Lang] or mod.Descriptions.JokerEdition[SelectedCard.Edition]["en_us"]
@@ -1172,7 +1197,7 @@ local function JimboGroundtrinketsCallback(descObj)
 
     descObj.Description = mod:GetEIDString("Jimbo", "Jokers", descObj.ObjSubType)
 
-    descObj.Description = mod:ReplaceBalatroMarkups(descObj.Description, EID_DescType.JOKER, descObj.ObjSubType, false)
+    descObj.Description = mod:ReplaceBalatroMarkups(descObj.Description, mod.EID_DescType.JOKER, descObj.ObjSubType, false)
 
     return descObj
 end
@@ -1221,7 +1246,7 @@ local EID_BubbleLayers = {TOP_LEFT = 1,
 ---@field Entity integer? --PtrHash of entity or selection index
 
 ---@type Balatro_EID_Object
-local ObjectToDescribe = {Type = EID_DescType.NONE,
+local ObjectToDescribe = {Type = mod.EID_DescType.NONE,
                           SubType = 0,
                           Entity = nil,
                           Params = {},
@@ -1255,13 +1280,15 @@ local function ResetDescription()
 
     ObjectToDescribe.Position = Vector.Zero
 
-    ObjectToDescribe.Type = EID_DescType.NONE
+    ObjectToDescribe.Type = mod.EID_DescType.NONE
     ObjectToDescribe.SubType = 0 --not really needed
 
     EID:alterTextPos(Vector(-1000, -1000)) --basically erases the description form existence (prob not the best way to do that)
 
 end
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, ResetDescription)
+mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, ResetDescription)
+mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, ResetDescription)
 
 
 
@@ -1360,7 +1387,7 @@ local function TJimboDescriptionsCallback(descObj)
             ObjectToDescribe.Params = card
             ObjectToDescribe.Position = mod.CardFullPoss[Pointer] + Vector(0, -20)
 
-            ObjectToDescribe.Type = EID_DescType.CARD
+            ObjectToDescribe.Type = mod.EID_DescType.CARD
             ObjectToDescribe.SubType = 0 --not really needed
 
             goto FINISH
@@ -1379,7 +1406,7 @@ local function TJimboDescriptionsCallback(descObj)
 
             ObjectToDescribe.Allignment = EID_DescAllingnment.TOP
 
-            ObjectToDescribe.Type = EID_DescType.CONSUMABLE
+            ObjectToDescribe.Type = mod.EID_DescType.CONSUMABLE
             ObjectToDescribe.SubType = mod:FrameToSpecialCard(Consumable.Card)
 
 
@@ -1400,7 +1427,7 @@ local function TJimboDescriptionsCallback(descObj)
 
             ObjectToDescribe.Allignment = EID_DescAllingnment.TOP
 
-            ObjectToDescribe.Type = EID_DescType.JOKER
+            ObjectToDescribe.Type = mod.EID_DescType.JOKER
             ObjectToDescribe.SubType = Slot.Joker
 
 
@@ -1412,17 +1439,19 @@ local function TJimboDescriptionsCallback(descObj)
         Result = true
         ObjectToDescribe.Allignment = EID_DescAllingnment.BOTTOM
 
-        if PlayerSelection.PackPurpose == mod.SelectionParams.Purposes.BuffonPack then
+        local PackPurpose = PlayerSelection.PackPurpose & ~mod.SelectionParams.Purposes.MegaFlag
+
+        if PackPurpose == mod.SelectionParams.Purposes.BuffonPack then
 
             local Slot = PlayerSelection.PackOptions[PlayerSelection.Index]
 
             ObjectToDescribe.Params = Slot
             ObjectToDescribe.Position = mod.PackOptionFullPosition[PlayerSelection.Index] + Vector(0, -30)
 
-            ObjectToDescribe.Type = EID_DescType.JOKER
+            ObjectToDescribe.Type = mod.EID_DescType.JOKER
             ObjectToDescribe.SubType = Slot.Joker
         
-        elseif PlayerSelection.PackPurpose == mod.SelectionParams.Purposes.StandardPack then
+        elseif PackPurpose == mod.SelectionParams.Purposes.StandardPack then
 
 
             local card = PlayerSelection.PackOptions[PlayerSelection.Index]
@@ -1430,7 +1459,7 @@ local function TJimboDescriptionsCallback(descObj)
             ObjectToDescribe.Params = card
             ObjectToDescribe.Position = mod.PackOptionFullPosition[PlayerSelection.Index] + Vector(0, -20)
 
-            ObjectToDescribe.Type = EID_DescType.CARD
+            ObjectToDescribe.Type = mod.EID_DescType.CARD
             ObjectToDescribe.SubType = 0 --not really needed
         
         else
@@ -1439,7 +1468,7 @@ local function TJimboDescriptionsCallback(descObj)
             ObjectToDescribe.Params = {Edition = mod.Edition.BASE}
             ObjectToDescribe.Position = mod.PackOptionFullPosition[PlayerSelection.Index] + Vector(0, -30)
 
-            ObjectToDescribe.Type = EID_DescType.CONSUMABLE
+            ObjectToDescribe.Type = mod.EID_DescType.CONSUMABLE
             ObjectToDescribe.SubType = mod:FrameToSpecialCard(Consumable)
         end
 
@@ -1451,7 +1480,7 @@ local function TJimboDescriptionsCallback(descObj)
 
         EID:removeTextPosModifier("T_Jimbo HUD")
 
-        ObjectToDescribe.Type = ObjectToDescribe.Type | EID_DescType.SELECTION_FLAG
+        ObjectToDescribe.Type = ObjectToDescribe.Type | mod.EID_DescType.SELECTION_FLAG
 
         ObjectToDescribe.Position.Y = ObjectToDescribe.Position.Y - ObjectToDescribe.Position.Y%0.5
         ObjectToDescribe.Position.X = ObjectToDescribe.Position.X - ObjectToDescribe.Position.X%0.5
@@ -1491,7 +1520,7 @@ local function TJimboDescriptionsCallback(descObj)
                 ObjectToDescribe.Params = {}
 
 
-                ObjectToDescribe.Type = EID_DescType.VOUCHER
+                ObjectToDescribe.Type = mod.EID_DescType.VOUCHER
                 ObjectToDescribe.SubType = descObj.ObjSubType --not really needed
 
                 Result = true 
@@ -1526,7 +1555,7 @@ local function TJimboDescriptionsCallback(descObj)
                     end
                 end]]
 
-                ObjectToDescribe.Type = EID_DescType.CONSUMABLE
+                ObjectToDescribe.Type = mod.EID_DescType.CONSUMABLE
                 ObjectToDescribe.SubType = descObj.ObjSubType --not really needed
 
                 Result = true
@@ -1559,7 +1588,7 @@ local function TJimboDescriptionsCallback(descObj)
                     end
                 end]]
 
-                ObjectToDescribe.Type = EID_DescType.BOOSTER
+                ObjectToDescribe.Type = mod.EID_DescType.BOOSTER
                 ObjectToDescribe.SubType = descObj.ObjSubType --not really needed
 
                 Result = true
@@ -1598,11 +1627,22 @@ local function TJimboDescriptionsCallback(descObj)
                     end
                 end]]
 
-                ObjectToDescribe.Type = EID_DescType.JOKER
+                ObjectToDescribe.Type = mod.EID_DescType.JOKER
                 ObjectToDescribe.SubType = descObj.ObjSubType --not really needed
 
                 Result = true
             end
+
+
+        elseif descObj.ObjVarint == mod.Pickups.PLAYING_CARD then
+
+            local card = mod:PlayingCardSubTypeToParams(descObj.ObjSubType)
+
+            ObjectToDescribe.Params = card
+            ObjectToDescribe.Position = mod.PackOptionFullPosition[PlayerSelection.Index] + Vector(0, -20)
+
+            ObjectToDescribe.Type = mod.EID_DescType.CARD
+            ObjectToDescribe.SubType = 0 --not really needed
         end
 
         if Result then
@@ -1620,7 +1660,7 @@ local function TJimboDescriptionsCallback(descObj)
     ::FINISH::
 
     --save the object's description and name
-    if ObjectToDescribe.Type & EID_DescType.CARD ~= 0 then
+    if ObjectToDescribe.Type & mod.EID_DescType.CARD ~= 0 then
 
         EID_Bubble:SetFrame("Card", 0)
 
@@ -1681,7 +1721,7 @@ local function TJimboDescriptionsCallback(descObj)
             EID_Desc.Extras.Seal = card.Seal
         end
 
-    elseif ObjectToDescribe.Type & EID_DescType.JOKER ~= 0 then
+    elseif ObjectToDescribe.Type & mod.EID_DescType.JOKER ~= 0 then
 
         local Slot = ObjectToDescribe.Params
 
@@ -1719,7 +1759,7 @@ local function TJimboDescriptionsCallback(descObj)
             EID_Desc.Extras.Seal = mod.Seals.NONE
         end
 
-    elseif ObjectToDescribe.Type & EID_DescType.CONSUMABLE ~= 0 then
+    elseif ObjectToDescribe.Type & mod.EID_DescType.CONSUMABLE ~= 0 then
 
 
         if mod.Descriptions.ConsumablesName[ObjectToDescribe.SubType] then
@@ -1739,7 +1779,7 @@ local function TJimboDescriptionsCallback(descObj)
         EID_Desc.Extras.Edition = ObjectToDescribe.Params.Edition
         EID_Desc.Extras.Seal = mod.Seals.NONE
 
-    elseif ObjectToDescribe.Type & EID_DescType.VOUCHER ~= 0 then
+    elseif ObjectToDescribe.Type & mod.EID_DescType.VOUCHER ~= 0 then
 
         local Config = ItemsConfig:GetCollectible(ObjectToDescribe.SubType)
 
@@ -1751,7 +1791,7 @@ local function TJimboDescriptionsCallback(descObj)
         EID_Desc.Extras.Edition = ObjectToDescribe.Params.Edition
         EID_Desc.Extras.Seal = mod.Seals.NONE
 
-    elseif ObjectToDescribe.Type & EID_DescType.BOOSTER ~= 0 then
+    elseif ObjectToDescribe.Type & mod.EID_DescType.BOOSTER ~= 0 then
 
         local Config = ItemsConfig:GetCard(ObjectToDescribe.SubType)
 
@@ -1764,6 +1804,7 @@ local function TJimboDescriptionsCallback(descObj)
         EID_Desc.Extras.Seal = mod.Seals.NONE
     end
 
+    EID_Desc.Name = mod:ReplaceBalatroMarkups(EID_Desc.Name, mod.EID_DescType.NONE, 0, true, PlayerSelection.Index)
     EID_Desc.Description = mod:ReplaceBalatroMarkups(EID_Desc.Description, ObjectToDescribe.Type, ObjectToDescribe.SubType, true, PlayerSelection.Index)
 
     ObjectToDescribe.Position.Y = ObjectToDescribe.Position.Y - ObjectToDescribe.Position.Y%0.5
@@ -1787,7 +1828,7 @@ EID:addDescriptionModifier("Tainted Jimbo Special descripions", TJimboDescriptio
 
 function mod:RenderObjectDescription()
 
-    if ObjectToDescribe.Type == EID_DescType.NONE then
+    if ObjectToDescribe.Type == mod.EID_DescType.NONE then
 
         --resets the cached values
         EID_Desc.NumLines = nil 
@@ -1800,7 +1841,7 @@ function mod:RenderObjectDescription()
     EID_Bubble:SetFrame("Any", 0)
 
     
-    if ObjectToDescribe.Type & EID_DescType.CARD ~= 0 then
+    if ObjectToDescribe.Type & mod.EID_DescType.CARD ~= 0 then
 
         EID_Bubble:SetFrame("Card", 0)
     end
@@ -1822,7 +1863,7 @@ function mod:RenderObjectDescription()
 
     BubbleScale.X = mod.Fonts.Balatro:GetStringWidth(EID_Desc.FilteredName) + 24
 
-    if ObjectToDescribe.Type & EID_DescType.CARD ~= 0 then
+    if ObjectToDescribe.Type & mod.EID_DescType.CARD ~= 0 then
 
         BubbleScale.X = BubbleScale.X / 2
     end
@@ -1927,7 +1968,7 @@ function mod:RenderObjectDescription()
     local Params = mod.StringRenderingParams.EID | mod.StringRenderingParams.Centered
     local Kcolor 
 
-    if ObjectToDescribe.Type & EID_DescType.CARD == 0 then
+    if ObjectToDescribe.Type & mod.EID_DescType.CARD == 0 then
 
         Kcolor = KColor.White
         

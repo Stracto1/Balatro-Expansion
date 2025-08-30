@@ -45,7 +45,7 @@ local sfx = SFXManager()
 ----------------------------------------------------------------
 --These functions make the whole additional gfx system work 
 --(both sound and graphics can be turend off in MOD CONFIG MENU)
---initially this system was based on EntityEffects but i had many problems regarding lighting and the screen=>world coordinate conversion
+--initially this system was based on EntityEffects but I had many problems regarding lighting and the screen=>world coordinate conversion
 --ima be completely honest this is probably the most unreadable shit i have ever written for this mod, good luck understanding
 
 
@@ -135,10 +135,18 @@ function mod:CreateBalatroEffect(Index, Colour, Sound, Text, EffectType, Player,
         end
 
     elseif EffectType == mod.EffectType.HAND then
+
         EffectParams[EffectSlot].Position = mod.CardFullPoss[Index]
         EffectParams[EffectSlot].Offset = Vector(0,-30)
 
         mod.Counters.SinceCardTriggered[Index] = 1
+
+    elseif EffectType == mod.EffectType.CONSUMABLE then
+
+        EffectParams[EffectSlot].Position = mod.ConsumableFullPosition[Index]
+        EffectParams[EffectSlot].Offset = Vector(0,25)
+
+        mod.Counters.SinceConsumableTriggered[Index] = 1
 
     elseif EffectType == mod.EffectType.JOKER then
 
@@ -152,7 +160,7 @@ function mod:CreateBalatroEffect(Index, Colour, Sound, Text, EffectType, Player,
             EffectParams[EffectSlot].Offset = Vector(0,-30)
         end
         
-        mod.Counters.Activated[Index] = 1
+        mod.Counters.Activated[Slot.RenderIndex] = 1
 
     elseif EffectType ~= mod.EffectType.NULL then --HAND_FROM_JOKER
     

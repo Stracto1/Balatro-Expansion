@@ -191,7 +191,7 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
         RenderPos.Y = RenderPos.Y - 8
 
 
-        CardFrame:SetFrame(HUD_FRAME.Frame)
+        CardFrame:SetFrame(HUD_FRAME.JokerFrame)
         CardFrame.Scale = ScaleMult
         CardFrame:Render(RenderPos)
 
@@ -506,7 +506,7 @@ function mod:JimboHandRender(Player, Offset)
         end
 
         CardFrame.Scale = Vector(ScaleMult, ScaleMult)
-        CardFrame:SetFrame(HUD_FRAME.Frame)
+        CardFrame:SetFrame(HUD_FRAME.CardFrame)
         CardFrame:Render(PlayerScreenPos + (TrueOffset[mod.Saved.Player[PIndex].CurrentHand[mod.SelectionParams[PIndex].Index]] or RenderOff)  + Offset)
 
 
@@ -541,7 +541,7 @@ function mod:JimboHandRender(Player, Offset)
         RenderOff = BaseRenderOff + Vector(14 * (#mod.Saved.Player[PIndex].CurrentHand - 1) * ScaleMult, 0)
 
         CardFrame.Scale = Vector(ScaleMult, ScaleMult)
-        CardFrame:SetFrame(HUD_FRAME.Frame)
+        CardFrame:SetFrame(HUD_FRAME.CardFrame)
         CardFrame:Render(PlayerScreenPos + RenderOff + Offset)
     end
 end
@@ -593,6 +593,9 @@ function mod:JimboPackRender(_,_,_,_,Player)
             RenderPos.X = RenderPos.X + PACK_CARD_DISTANCE + CardHUDWidth
         end--end FOR
 
+        CardFrame:SetFrame(HUD_FRAME.CardFrame)
+
+
     elseif TruePurpose == mod.SelectionParams.Purposes.BuffonPack then
         
         for i,card in ipairs(mod.SelectionParams[PIndex].PackOptions) do
@@ -608,6 +611,9 @@ function mod:JimboPackRender(_,_,_,_,Player)
             RenderPos.X = RenderPos.X + PACK_CARD_DISTANCE + CardHUDWidth
 
         end
+
+        CardFrame:SetFrame(HUD_FRAME.JokerFrame)
+
 
     else--TAROT, PLANET or SPECTRAL
     
@@ -627,6 +633,8 @@ function mod:JimboPackRender(_,_,_,_,Player)
 
         end--end FOR
 
+        CardFrame:SetFrame(HUD_FRAME.CardFrame)
+
     end--end PURPOSES
 
     if TruePurpose == mod.SelectionParams.Purposes.BuffonPack then
@@ -639,7 +647,6 @@ function mod:JimboPackRender(_,_,_,_,Player)
     RenderPos.X = BaseRenderPos.X + (mod.SelectionParams[PIndex].Index - 1)*(PACK_CARD_DISTANCE + CardHUDWidth)
     RenderPos = RenderPos + (WobblyEffect[mod.SelectionParams[PIndex].Index] or Vector.Zero)
 
-    CardFrame:SetFrame(HUD_FRAME.Frame)
     CardFrame:Render(RenderPos)
 
 end

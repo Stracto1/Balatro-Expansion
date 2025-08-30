@@ -16,7 +16,7 @@ uniform sampler2D Texture0;
 
 void main(void){
 	//tried as hard as i could to make this as similar the original as possible, it's not EXACLTY the same but good enough for me
-	//if you have some suggestions please let me know!!z
+	//if you have some suggestions please let me know!!
 
 		// Clip
 	if(dot(gl_FragCoord.xy, ClipPlaneOut.xy) < ClipPlaneOut.z)

@@ -13,7 +13,7 @@ local VALUE_FLAG = 120 --000 1111 00..
 -- however for balance reasons the enemies are at least 5x as tanky, I could've trimeed down both values but
 -- in the end what makes Balatro fun is making BIG ASS NUMBERS so yeah
 
-
+local DEFAULT_INCREASE = 16
 
 local NumEffectPlayed = 0 --used to dealy the effects accordingly (resets to 0 after everything is done)
 local CurrentInterval = 16
@@ -307,10 +307,6 @@ local function TriggerCard(Player, CardPointer, CardIndex)
     repeat
         local BaseChips = mod:GetValueScoring(Card.Value)
 
-        if mod:JimboHasTrinket(Player, mod.Jokers.HIKER) then
-            Card.Upgrades = Card.Upgrades + 5
-        end
-
         if Card.Enhancement == mod.Enhancement.BONUS then
 
             BaseChips = BaseChips + 30
@@ -320,39 +316,45 @@ local function TriggerCard(Player, CardPointer, CardIndex)
             BaseChips = 50
         end
 
-        BaseChips = BaseChips + 1 * Card.Upgrades --HIKER EFFECT
+        BaseChips = BaseChips + 5 * Card.Upgrades --HIKER EFFECT
 
         IncreaseChips(Player, PIndex, mod:GetValueScoring(Card.Value), mod.EffectType.HAND, CardPointer)
 
+        for _, Index in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.HIKER)) do
+
+            Card.Upgrades = Card.Upgrades + 5
+
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, "Upgrade!", mod.EffectType.JOKER, Index)
+        end
 
         if Card.Enhancement == mod.Enhancement.MULT then
         
-        IncreaseMult(Player, PIndex, 4, mod.EffectType.HAND, CardPointer)
+            IncreaseMult(Player, PIndex, 4, mod.EffectType.HAND, CardPointer)
 
         elseif Card.Enhancement == mod.Enhancement.GLASS then
 
-        MultiplyMult(Player, PIndex, 2, mod.EffectType.HAND, CardPointer)
+            MultiplyMult(Player, PIndex, 2, mod.EffectType.HAND, CardPointer)
 
         elseif Card.Enhancement == mod.Enhancement.LUCKY then
 
-        local LuckyRNG = Player:GetTrinketRNG(mod.Jokers.LUCKY_CAT)
+            local LuckyRNG = Player:GetTrinketRNG(mod.Jokers.LUCKY_CAT)
 
-        if mod:TryGamble(Player, LuckyRNG, 0.2) then
+            if mod:TryGamble(Player, LuckyRNG, 0.2) then
 
-            IncreaseMult(Player, PIndex, 20, mod.EffectType.HAND, CardPointer)
+                IncreaseMult(Player, PIndex, 20, mod.EffectType.HAND, CardPointer)
 
-            for _, CatIndex in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.LUCKY_CAT, true)) do
-                IncreaseJokerProgress(Player, PIndex, CatIndex, 0,25, mod.EffectKColors.RED)
+                for _, CatIndex in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.LUCKY_CAT, true)) do
+                    IncreaseJokerProgress(Player, PIndex, CatIndex, 0,25, mod.EffectKColors.RED)
+                end
             end
-        end
 
-        if mod:TryGamble(Player, LuckyRNG, 0.05) then
-            AddMoney(Player, 20, mod.EffectType.HAND, CardPointer)
+            if mod:TryGamble(Player, LuckyRNG, 0.05) then
+                AddMoney(Player, 20, mod.EffectType.HAND, CardPointer)
 
-            for _, CatIndex in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.LUCKY_CAT, true)) do
-                IncreaseJokerProgress(Player, PIndex, CatIndex, 0,25, mod.EffectKColors.RED)
+                for _, CatIndex in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.LUCKY_CAT, true)) do
+                    IncreaseJokerProgress(Player, PIndex, CatIndex, 0,25, mod.EffectKColors.RED)
+                end
             end
-        end
         end
 
 
@@ -618,8 +620,20 @@ local function TriggerCard(Player, CardPointer, CardIndex)
             GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Again!", mod.EffectType.JOKER, TriggerCauses[TriggersLeft])
         end
 
-        TriggersLeft = TriggersLeft - 1
 
+        for _, Index in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.CHAOS_THEORY)) do
+
+            local NewCardSubType = mod:PlayingCardParamsToSubType(Card)
+
+            local NewCardRNG = RNG(Player:GetTrinketRNG(mod.Jokers.CHAOS_THEORY):PhantomInt(NewCardSubType) + 1)
+
+            mod.Saved.Player[PIndex].FullDeck[CardPointer] = mod:RandomPlayingCard(NewCardRNG, true)
+
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, "Chaos!", mod.EffectType.HAND_FROM_JOKER | Index, CardPointer)
+        end
+
+
+        TriggersLeft = TriggersLeft - 1
 
     until TriggersLeft <= 0
 
@@ -755,9 +769,16 @@ function mod:ScoreHand(Player)
     local CompatibleHands = mod.Saved.PossibleHandTypes
     local PlayedCards = mod.SelectionParams[PIndex].PlayedCards
 
+
+    for _, Pointer in ipairs(PlayedCards) do
+        mod.Saved.AnteCardsPlayed[#mod.Saved.AnteCardsPlayed + 1] = Pointer
+
+    end
+
 --------------------------------------------------
 ------------------BOSS EFFECTS--------------------
 --------------------------------------------------
+
 
     if mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_PSYCHIC then
         
@@ -772,6 +793,7 @@ function mod:ScoreHand(Player)
 
             Isaac.CreateTimer(function ()
 
+                mod.SelectionParams[PIndex].SelectionNum = 0
                 Isaac.RunCallback(mod.Callbalcks.POST_HAND_PLAY, Player)
 
             end, CurrentInterval, 1, true)
@@ -796,6 +818,7 @@ function mod:ScoreHand(Player)
         
             Isaac.CreateTimer(function ()
 
+                mod.SelectionParams[PIndex].SelectionNum = 0
                 Isaac.RunCallback(mod.Callbalcks.POST_HAND_PLAY, Player)
 
             end, CurrentInterval, 1, true)
@@ -824,6 +847,7 @@ function mod:ScoreHand(Player)
            
             Isaac.CreateTimer(function ()
 
+                mod.SelectionParams[PIndex].SelectionNum = 0
                 Isaac.RunCallback(mod.Callbalcks.POST_HAND_PLAY, Player)
 
             end, CurrentInterval, 1, true)
@@ -835,16 +859,7 @@ function mod:ScoreHand(Player)
 
         end
 
-    elseif mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_PILLAR then
-        
-        if mod.Saved.BlindBeingPlayed & mod.BLINDS.BOSS == 0 then --only on small/big blind
-
-            for _, Pointer in ipairs(PlayedCards) do
-
-                --stores the pointers of cards played
-                mod.Saved.BossBlindVarData[#mod.Saved.BossBlindVarData+1] = Pointer
-            end
-        end
+    
 
     elseif mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_TOOTH then
 
@@ -873,6 +888,27 @@ function mod:ScoreHand(Player)
         end
         
         CurrentInterval = CurrentInterval + mod:PlanetUpgradeAnimation(HandType, -1, CurrentInterval)
+
+    elseif mod.Saved.BlindBeingPlayed & mod.BLINDS.BOSS ~= 0 then
+
+        --in general, if a card is debuffed then matador does stuff
+
+        for _, Pointer in ipairs(PlayedCards) do
+
+            local card = mod.Saved.Player[PIndex].FullDeck[Pointer]
+
+            if card.Modifiers & mod.Modifier.DEBUFFED ~= 0 then
+                
+                local MatadorIndexes = mod:GetJimboJokerIndex(Player, mod.Jokers.MATADOR)
+
+                for _,Index in ipairs(MatadorIndexes) do
+
+                    AddMoney(Player, 8, mod.EffectType.JOKER, Index)
+                end
+
+                break
+            end
+        end
     end
 
 
@@ -901,7 +937,7 @@ function mod:ScoreHand(Player)
             Copied = true
         end
 
-        if Joker == 0 then
+        if Joker == 0 or Slot.Modifiers & mod.Modifier.DEBUFFED ~= 0 then
             goto SKIP_SLOT
         end
 
@@ -1538,6 +1574,33 @@ function mod:ScoreHand(Player)
         ::SKIP_SLOT::
     end
 
+-------------------OBSERVATORY--------------------
+--------------------------------------------------
+
+    if Player:HasCollectible(mod.Vouchers.Observatory) then
+
+        for i, Consumable in ipairs(mod.Saved.Player[PIndex].Consumables) do
+
+            local Planet = Consumable.Card
+
+            if Planet < mod.Planets.PLUTO
+               or Planet > mod.Planets.SUN then
+                
+                goto SKIP_PLANET
+            end
+
+            local PlanetPokerHand = Planet - mod.Planets.PLUTO + 1
+
+            if HandType == PlanetPokerHand then
+                
+                MultiplyMult(Player, PIndex, 1.5, mod.EffectType.CONSUMABLE, i)
+            end
+
+            ::SKIP_PLANET::
+        end
+
+    end
+
 
 ----------------------------------------------------
 ------------------POST HAND STUFF-------------------
@@ -1664,19 +1727,22 @@ function mod:ScoreHand(Player)
 
     if DestroyedBySixth then
 
-        Isaac.CreateTimer(function ()
-            
-            local SpectralRNG = Player:GetTrinketRNG(mod.Jokers.SIXTH_SENSE)
+        if mod:TJimboAddConsumable(Player, -1, 0, true) then
 
-            local RandomSpectral = mod:RandomTarot(SpectralRNG, false, false, false)
+            Isaac.CreateTimer(function ()
 
-            mod:TJimboAddConsumable(Player, RandomSpectral, 0, true)
-        end, CurrentInterval, 1, true)
+                local SpectralRNG = Player:GetTrinketRNG(mod.Jokers.SIXTH_SENSE)
 
-        GeneralBalatroEffect(Player, PIndex, mod.EffectColors.PURPLE, mod.Sounds.ACTIVATE, "Destroyed!", mod.EffectType.JOKER, SixthSense)
-    
+                local RandomSpectral = mod:RandomTarot(SpectralRNG, false, false, false)
+
+                mod:TJimboAddConsumable(Player, RandomSpectral, 0, true)
+            end, CurrentInterval, 1, true)
+
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.PURPLE, mod.Sounds.ACTIVATE, "Destroyed!", mod.EffectType.JOKER, SixthSense)
+        end
+
     elseif #CardsToDestroy > 0 then
-        IncreaseInterval(5)
+        IncreaseInterval(8)
     end
 
 
@@ -2134,6 +2200,13 @@ local function OnBlindStart(_,BlindType)
     ::skip_player::
 
     end --END PLAYER FOR
+
+    local T_Jimbo = PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo)
+
+
+---@diagnostic disable-next-line: need-check-nil
+    CurrentInterval = CurrentInterval + 4*T_Jimbo:GetCustomCacheValue(mod.CustomCache.HAND_SIZE)
+
 
     Isaac.CreateTimer(function ()
         mod.AnimationIsPlaying = false
@@ -2889,6 +2962,28 @@ local function OnCardDiscard(_, Player, PointerDiscarded, HandIndex, IsLastCard)
     local CardDiscarded = mod.Saved.Player[PIndex].FullDeck[PointerDiscarded]
 
 
+
+    if CardDiscarded.Seal == mod.Seals.PURPLE then
+
+        --tries to add a fake card to see if it's possible
+        local Success = mod:TJimboAddConsumable(Player, 0, 0, true)
+
+        if Success then
+
+            Isaac.CreateTimer(function ()
+
+                local Tarot = mod:RandomTarot(mod.RNGs.PURPLE_SEAL)
+
+                mod:TJimboAddConsumable(Player, Tarot, 0, true)
+
+            end, CurrentInterval, 1, true)
+
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.PURPLE, mod.Sounds.ACTIVATE, "+1 Tarot", mod.EffectType.HAND, PointerDiscarded, 2)
+        end
+            
+    end
+
+
     --cycles between all the held jokers
     for Index, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
 
@@ -3563,7 +3658,7 @@ local function EvaluateBlindEffect(_, BlindStarted)
     end
     
     if BlindType & mod.BLINDS.BOSS == 0  --if its not a boss
-       or BlindType & ~mod.BLINDS.BOSS == 0 then --if its an effectless boss (chicot/luchador)
+       or BlindType & ~mod.BLINDS.BOSS == 0 then --if its an effectless boss (usually chicot/luchador)
 
        -- no effects to apply
         return CurrentInterval

@@ -1,7 +1,7 @@
 local mod = Balatro_Expansion
 -- |_(T_T)_/ <-- me rn fr
 --[[
-small dissclaimer: there isn't really a pattern in which i decide where to put the effect
+small disclaimer: there isn't really a pattern in which i decide where to put the effect
 """evaluation""", i just put it where i thought made more sense as i was adding the joker,
 so some are in the stat evaluations and others in their respective callbacks
 (will prob regret this)
@@ -19,9 +19,10 @@ local BaronKings = 0
 
 --effects when a card is shot
 ---@param Player EntityPlayer
-function mod:OnCardShot(Player,ShotCard,Evaluate)
+function mod:OnCardShot(Player,ShotPointer,Evaluate)
 
 local PIndex = Player:GetData().TruePlayerIndex
+local ShotCard = mod.Saved.Player[PIndex].FullDeck[ShotPointer]
 
 local RandomSeed = Random()
 if RandomSeed == 0 then RandomSeed = 1 end --crash fix
@@ -139,7 +140,7 @@ for GoodSuit,IsValid in ipairs(mod:IsSuit(Player, ShotCard, 0, true)) do
     if IsValid then
         mod.Saved.Player[PIndex].Progress.Room.SuitUsed[GoodSuit] = mod.Saved.Player[PIndex].Progress.Room.SuitUsed[GoodSuit] + Triggers
     end
- end
+end
 mod.Saved.Player[PIndex].Progress.Room.ValueUsed[ShotCard.Value] = mod.Saved.Player[PIndex].Progress.Room.ValueUsed[ShotCard.Value] + Triggers
 
 if mod:IsValue(Player, ShotCard, mod.Values.FACE) then
@@ -575,6 +576,7 @@ for Index, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
 
             mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.TIMESMULT, "X"..tostring(Mult), mod.EffectType.JOKER, Player)
         end
+    
     end
 end
 ---------------BASE CARD STATS--------------
@@ -664,6 +666,32 @@ end
         end
     end
 
+    if mod:JimboHasTrinket(Player, mod.Jokers.CHAOS_THEORY) then
+
+        local NewCardSubType = mod:PlayingCardParamsToSubType(Card)
+
+        local NewCardRNG = RNG(Player:GetTrinketRNG(mod.Jokers.CHAOS_THEORY):PhantomInt(NewCardSubType) + 1)
+
+        local Enhancement, Seal, Edition
+
+        if Player:HasCollectible(CollectibleType.COLLECTIBLE_CHAOS) then
+
+            if ShotCard.Enhancement ~= mod.Enhancement.NONE then
+                Enhancement = -1
+            end
+
+            if ShotCard.Seal ~= mod.Seals.NONE then
+                Seal = -1
+            end
+
+            if ShotCard.Edition ~= mod.Edition.BASE then
+                Edition = -1
+            end
+        end
+
+        mod.Saved.Player[PIndex].FullDeck[ShotPointer] = mod:RandomPlayingCard(NewCardRNG, true, nil, nil, Enhancement, Seal, Edition)
+    end
+
     mod:IncreaseJimboStats(Player, TearsToGet, 0, 1, Evaluate, true)
 
 end
@@ -751,8 +779,7 @@ function mod:OnHandDiscard(Player, AmountDiscarded)
     end
 
     local PIndex = Player:GetData().TruePlayerIndex
-    local RandomSeed = Random()
-    if RandomSeed == 0 then RandomSeed = 1 end --would crash the game otherwise
+    local PlayerRNG = Player:GetDropRNG()
 
     local DiscardedPointers = {}
 
@@ -763,6 +790,22 @@ function mod:OnHandDiscard(Player, AmountDiscarded)
         end
     end
 
+
+    for i,index in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
+        local card = mod.Saved.Player[PIndex].FullDeck[index]
+
+        if card then --could be nil
+            if card.Seal == mod.Seals.PURPLE and PlayerRNG:RandomFloat() <= 1/SealTriggers then
+
+                --spawns a random basic tarotcard
+                local RandomSeed = mod:RandomSeed(PlayerRNG)
+
+                Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
+                           RandomVector()*2.5, Player, PlayerRNG:RandomInt(1,22), RandomSeed)
+                SealTriggers = SealTriggers + 1 --decreases the chance the more trigger at the same time
+            end
+        end
+    end
     
 
     --cycles between all the held jokers
@@ -839,7 +882,7 @@ function mod:OnHandDiscard(Player, AmountDiscarded)
 
                 for i=1,2*NumCompatible do
                     Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
-                               RandomVector()*2.5, Player, CoinSubType.COIN_PENNY, 1)
+                               RandomVector()*2.5, Player, CoinSubType.COIN_PENNY, mod:RandomSeed(PlayerRNG))
                 end
             end
 
@@ -903,7 +946,10 @@ function mod:OnHandDiscard(Player, AmountDiscarded)
             end
 
             if NumFaces >= 2 then
-                Player:AddCoins(3)
+                for i=1,3 do
+                    Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
+                               RandomVector()*2.5, Player, CoinSubType.COIN_PENNY, mod:RandomSeed(PlayerRNG))
+                end
 
                 mod:CreateBalatroEffect(Index,mod.EffectColors.YELLOW, 
                                         mod.Sounds.MOMEY, "+3$",mod.EffectType.JOKER, Player)
@@ -2983,6 +3029,18 @@ function mod:JokerAdded(Player, Joker, Edition, Index)
     elseif Joker == mod.Jokers.CHICOT then
 
         Game:GetLevel():RemoveCurses(Game:GetLevel():GetCurses())
+
+    elseif Joker == mod.Jokers.IDOL then
+
+        local Pool = Game:GetItemPool()
+        local IdolRNG = Player:GetTrinketRNG(Joker)
+        local Flags = GetCollectibleFlag.BAN_ACTIVES | GetCollectibleFlag.IGNORE_MODIFIERS
+
+---@diagnostic disable-next-line: param-type-mismatch
+        local RandomItem = Pool:GetCollectible(Pool:GetRandomPool(Player:GetTrinketRNG(Joker)), false, IdolRNG:GetSeed(), nil, Flags)
+
+        local Prog = mod.Saved.Player[PIndex].Progress.Inventory[Index]
+        Prog = Prog & (SUIT_FLAG | VALUE_FLAG) + RandomItem << 7
     end
 end
 mod:AddCallback("JOKER_ADDED", mod.JokerAdded)
@@ -3511,11 +3569,9 @@ function mod:TearsJokers(Player, _)
         
         elseif Joker == mod.Jokers.ARROWHEAD then
 
-            local NumSpades = mod.Saved.Player[PIndex].Progress.Room.SuitUsed[mod.Suits.Spade]
+            local Tears = Player:GetNumKeys()*0.5
 
-            local Tears = NumSpades*0.5 + Player:GetNumKeys()*0.5
-
-            if Tears ~= mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] and NumSpades ~= 0 then
+            if Tears ~= mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] then
 
                 
                 mod:CreateBalatroEffect(Index, mod.EffectColors.BLUE, mod.Sounds.CHIPS,
@@ -3966,6 +4022,7 @@ end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.DamageJokers, CacheFlag.CACHE_DAMAGE)
 
 
+---@param Player EntityPlayer
 function mod:DamageMultJokers(Player,_)
 
     if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted then
@@ -4207,6 +4264,14 @@ function mod:DamageMultJokers(Player,_)
             local Mult = 1 + (mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] // 23)
 
             mod:IncreaseJimboStats(Player, 0, 0, 1+ 0.25*Mult, false, false)
+
+        elseif Joker == mod.Jokers.IDOL then
+
+            local ItemChosen = mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] << 7
+
+            local Mult = math.max(Player:GetCollectibleNum(ItemChosen, false, false), 1)
+
+            mod:IncreaseJimboStats(Player, 0, 0, Mult, false, false)
         else
             mod:IncreaseJimboStats(Player,0,0,mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex],false,false)
         end

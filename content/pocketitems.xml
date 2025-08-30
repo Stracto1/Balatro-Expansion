@@ -58,5 +58,4 @@
     <card type="rune" name="Cryptid" description="You..." hud="Spectral_Cryptid" pickup="2519" achievement="PermaLocked"/>
     <card type="rune" name="Black hole" description="All in one place" hud="Spectral_Black_hole" pickup="2520" achievement="PermaLocked"/>
     <card type="rune" name="The Soul" description="..." hud="Spectral_Soul" pickup="2521" achievement="PermaLocked"/>
-
 </pocketitems>

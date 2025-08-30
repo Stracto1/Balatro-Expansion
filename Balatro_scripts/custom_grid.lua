@@ -8,12 +8,12 @@ local PlateState = {PRESSED = 3,
 local BALATRO_PLATE_SUFFIX = {
                               [mod.Grids.PlateVariant.BLIND] = {[mod.BLINDS.SMALL] = "small",
                                                                 [mod.BLINDS.BIG] = "big",
-                                                                [mod.BLINDS.BOSS] = "big",
+                                                                [mod.BLINDS.BOSS] = "boss",
                                                                 [mod.BLINDS.BOSS_HOOK] = "hook",
                                                                 [mod.BLINDS.BOSS_OX] = "ox",
                                                                 [mod.BLINDS.BOSS_HOUSE] = "house",
                                                                 [mod.BLINDS.BOSS_WALL] = "wall",
-                                                                [mod.BLINDS.BOSS_WHEEL] = "wheel",
+                                                                [mod.BLINDS.BOSS_WHEEL] = "weell",
                                                                 [mod.BLINDS.BOSS_ARM] = "arm",
                                                                 [mod.BLINDS.BOSS_CLUB] = "club",
                                                                 [mod.BLINDS.BOSS_FISH] = "fish",
@@ -91,7 +91,7 @@ function mod:UpdateBalatroPlate(Plate,Init)
                or Variant == mod.Grids.PlateVariant.SMALL_BLIND_SKIP then
 
             local SuffixVariant = mod.Grids.PlateVariant.SMALL_BLIND_SKIP
-            local SuffixIndex = Plate.VarData
+            local SuffixIndex = math.min(Plate.VarData, mod.SkipTags.ORBITAL)
 
             Sprite:ReplaceSpritesheet(0, "gfx/grid/grid_balatro_pressureplate_tag_"..BALATRO_PLATE_SUFFIX[SuffixVariant][SuffixIndex]..".png", true)
         else
@@ -100,19 +100,27 @@ function mod:UpdateBalatroPlate(Plate,Init)
 
         if Variant == mod.Grids.PlateVariant.CASHOUT then
 
-            Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.DIALOG_BUBBLE, Plate.Position,
-                       Vector.Zero, nil, mod.DialogBubbleSubType.CASHOUT, mod.Saved.BlindBeingPlayed)
+            if Game:GetLevel():GetCurrentRoomIndex() ~= Game:GetLevel():GetStartingRoomIndex() then
+
+                local Effect = Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.DIALOG_BUBBLE, Plate.Position,
+                                          Vector.Zero, nil, mod.DialogBubbleSubType.CASHOUT, mod.Saved.BlindBeingPlayed)
+            
+                Effect.GridCollisionClass = EntityGridCollisionClass.GRIDCOLL_WALLS --FindInRadius
+            end
 
         elseif Variant == mod.Grids.PlateVariant.REROLL then
 
-            Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.DIALOG_BUBBLE, Plate.Position,
-                       Vector.Zero, nil, mod.DialogBubbleSubType.REROLL_PRICE, mod.Saved.BlindBeingPlayed)
+            local Effect = Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.DIALOG_BUBBLE, Plate.Position,
+                                      Vector.Zero, nil, mod.DialogBubbleSubType.REROLL_PRICE, mod.Saved.BlindBeingPlayed)
 
+            Effect.GridCollisionClass = EntityGridCollisionClass.GRIDCOLL_WALLS --FindInRadius
 
         elseif Variant == mod.Grids.PlateVariant.BLIND then
 
-            Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.DIALOG_BUBBLE, Plate.Position,       
-                       Vector.Zero, nil, mod.DialogBubbleSubType.BLIND_INFO, Plate.VarData)
+            local Effect = Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.DIALOG_BUBBLE, Plate.Position,       
+                                      Vector.Zero, nil, mod.DialogBubbleSubType.BLIND_INFO, Plate.VarData)
+
+            Effect.GridCollisionClass = EntityGridCollisionClass.GRIDCOLL_WALLS --FindInRadius
 
         end
 
@@ -123,7 +131,9 @@ function mod:UpdateBalatroPlate(Plate,Init)
     
     if Variant == mod.Grids.PlateVariant.CASHOUT then
 
-        ShouldPlateBeAvailable = true
+        ShouldPlateBeAvailable = (mod.Saved.BlindBeingPlayed ~= (mod.BLINDS.SHOP | mod.BLINDS.WAITING_CASHOUT)
+                                  or Game:GetRoom():GetType() ~= RoomType.ROOM_BOSS)
+                                 and mod.Saved.BlindBeingPlayed ~= mod.BLINDS.NONE
 
     elseif Variant == mod.Grids.PlateVariant.BLIND then
 
@@ -143,16 +153,23 @@ function mod:UpdateBalatroPlate(Plate,Init)
 
         end
 
-        ShouldPlateBeAvailable = ShouldPlateBeAvailable and Plate.VarData ~= mod.Saved.BlindBeingPlayed
+        ShouldPlateBeAvailable = ShouldPlateBeAvailable 
+                                 and Plate.VarData ~= mod.Saved.BlindBeingPlayed
+                                 and mod.Saved.BlindBeingPlayed & mod.BLINDS.WAITING_CASHOUT == 0
+                                 and mod.Saved.BlindBeingPlayed & mod.BLINDS.SHOP == 0
     
     elseif Variant == mod.Grids.PlateVariant.SMALL_BLIND_SKIP then
         
         ShouldPlateBeAvailable = mod.Saved.SmallCleared == mod.BlindProgress.NOT_CLEARED
+                                 and mod.Saved.BlindBeingPlayed & mod.BLINDS.WAITING_CASHOUT == 0
+                                 and mod.Saved.BlindBeingPlayed & mod.BLINDS.SHOP == 0
     
     elseif Variant == mod.Grids.PlateVariant.BIG_BLIND_SKIP then
             
         ShouldPlateBeAvailable = mod.Saved.SmallCleared ~= mod.BlindProgress.NOT_CLEARED 
                                  and mod.Saved.BigCleared == mod.BlindProgress.NOT_CLEARED
+                                 and mod.Saved.BlindBeingPlayed & mod.BLINDS.WAITING_CASHOUT == 0
+                                 and mod.Saved.BlindBeingPlayed & mod.BLINDS.SHOP == 0
     else
     
         ShouldPlateBeAvailable = true
@@ -214,7 +231,10 @@ mod:AddCallback(ModCallbacks.MC_POST_GRID_ENTITY_PRESSUREPLATE_UPDATE, mod.Updat
 function mod:SpawnBalatroPressurePlate(Position, PlateVariant, VarData)
     VarData = VarData or 0
 
-    local Plate = Isaac.GridSpawn(GridEntityType.GRID_PRESSURE_PLATE, PlateVariant, Game:GetRoom():FindFreeTilePosition(Position, 10000))
+
+
+
+    local Plate = Isaac.GridSpawn(GridEntityType.GRID_PRESSURE_PLATE, PlateVariant, Game:GetRoom():FindFreeTilePosition(Position, 10000), true)
 
     if Plate then
 

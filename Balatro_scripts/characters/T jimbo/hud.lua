@@ -174,14 +174,6 @@ local function CancelMinimapHUD()
 end
 mod:AddCallback(ModCallbacks.MC_PRE_MINIMAP_RENDER, CancelMinimapHUD)
 
---jimbo travel around with buttons, so no door needed
-local function CancelDoorRendering(_, Door)
-
-    if PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then
-        return false
-    end
-end
-mod:AddCallback(ModCallbacks.MC_PRE_GRID_ENTITY_DOOR_RENDER, CancelDoorRendering)
 
 local OldCameraStyle
 local BaseRoomWidth = Isaac.WorldToScreenDistance(Vector(15 * 40, 0)).X
@@ -445,27 +437,37 @@ function mod:RenderBalatroStyle(String, Position, Params, StartFrame, Scale, Kco
 
         Lines[#Lines+1] = CurrentSection
 
-        Position.Y = Position.Y - ((#Lines - 1) * mod.Fonts.Balatro:GetLineHeight()*0.75* Scale.Y)
 
         local RenderedLines = 0
 
-        for _,Line in ipairs(Lines) do
+        local FutureStartFrame = StartFrame + 0
 
-            mod:RenderBalatroStyle(Line, Position, Params, StartFrame, Scale, Kcolor, BoxWidth, Sound)
-
-            Position.Y = Position.Y + mod.Fonts.Balatro:GetLineHeight()*1.5 * Scale.Y
-
-            StartFrame = StartFrame + 2*string.len(Line)
+        for i,Line in ipairs(Lines) do
 
             RenderedLines = RenderedLines + 1
 
+            FutureStartFrame = FutureStartFrame + 2*string.len(Line)
+
             if Params & mod.StringRenderingParams.Swoosh ~= 0
-               and StartFrame > Isaac.GetFrameCount() then
+               and FutureStartFrame > Isaac.GetFrameCount() then
     
                 break --lines wouldn't be rendered anyway
             end
-               
         end
+
+
+        Position.Y = Position.Y - ((RenderedLines - 1) * BALATRO_LINE_HEIGHT*0.75* Scale.Y)
+
+        for i = 1, RenderedLines do
+            
+            mod:RenderBalatroStyle(Lines[i], Position, Params, StartFrame, Scale, Kcolor, BoxWidth, Sound)
+
+            Position.Y = Position.Y + BALATRO_LINE_HEIGHT*1.5 * Scale.Y
+
+            StartFrame = StartFrame + 2*string.len(Lines[i])
+        end
+
+
 
         return RenderedLines
     end
@@ -616,7 +618,7 @@ end
 ---@param TextScale Vector? Default: Vector(0.5, 0.5)
 ---@param AdaptToTextSize boolean? makes it as long as the text itself (scale becomes the max size of the button)
 ---@param TextParams integer? I don't reccomend using Wrap here
-function mod:RenderGenericButton(Position, Scale, BaseColor, Pressed, Text, TextScale, AdaptToTextSize, TextParams, TextKcolor)
+function mod:RenderGenericButton(Position, Scale, BaseColor, Pressed, Text, TextScale, AdaptToTextSize, TextParams, TextKcolor, SubText)
 
     TextParams = TextParams or 0
     TextParams = TextParams | mod.StringRenderingParams.Centered
@@ -627,7 +629,16 @@ function mod:RenderGenericButton(Position, Scale, BaseColor, Pressed, Text, Text
     if Text and AdaptToTextSize then
         
         Scale.X = math.min(Scale.X, mod.Fonts.Balatro:GetStringWidth(Text)*TextScale.X)
-        Scale.Y = math.min(Scale.Y, mod.Fonts.Balatro:GetLineHeight()*TextScale.Y)
+
+
+        local TextHeight = BALATRO_BASE_LINE_HEIGHT*TextScale.Y
+
+        if SubText then
+            
+            TextHeight = TextHeight + BALATRO_LINE_HEIGHT*0.75 + BALATRO_BASE_LINE_HEIGHT*0.5
+        end
+
+        Scale.Y = math.max(Scale.Y, TextHeight + 5)
     end
 
     local BorderSize
@@ -708,7 +719,17 @@ function mod:RenderGenericButton(Position, Scale, BaseColor, Pressed, Text, Text
 
         local TextPos = Position + GenericButtonSprite:GetNullFrame("Text Position"):GetPos()
 
+        if SubText then
+            TextPos.Y = TextPos.Y - BALATRO_LINE_HEIGHT*0.375
+        end
+
         mod:RenderBalatroStyle(Text, TextPos, TextParams, 0, TextScale, TextKcolor, Scale.X)
+
+        if SubText then
+            TextPos.Y = TextPos.Y + BALATRO_LINE_HEIGHT*0.75
+
+            mod:RenderBalatroStyle(SubText, TextPos, TextParams, 0, Vector.One * 0.5, TextKcolor, Scale.X)
+        end
     end
 end
 
@@ -730,7 +751,7 @@ end
 
 function mod:GetBLindChipFrame(Blind)
 
-    return Blind & mod.BLINDS.BOSS ~= 0 and (Blind+4)/8 or (Blind - 1)
+    return Blind & mod.BLINDS.BOSS ~= 0 and (Blind+12)/8 or (Blind - 1)
 end
 
 function mod:GetSkipTagFrame(Tag)
@@ -796,26 +817,25 @@ local function JimboHandRender(_,_,_,_,_,Player)
         mod.CardFullPoss[Pointer] = mod.CardFullPoss[Pointer] or BRScreenWithOffset(DECK_RENDERING_POSITION) --check nil
 
 
-        
-
 
         if not mod.Saved.EnableHand then --mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.NONE then
 
-            local TimeOffset = math.max(NumCardsInHand, Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE)) - i*0.75
+            local TimeOffset = math.max(NumCardsInHand, Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE)) - i
             local LerpTime = math.max(mod.Counters.SinceSelect/5 - TimeOffset, 0)
 
             if LerpTime > 0 or Card.Modifiers & mod.Modifier.COVERED ~= 0 then
                 ForceCovered = true
             end
 
-            mod.CardFullPoss[Pointer] = BaseRenderPos + Vector(CardStep,0)*(i-1)
+            mod.CardFullPoss[Pointer] = mod.CardFullPoss[Pointer] or BaseRenderPos + Vector(CardStep,0)*(i-1)
 
             TargetRenderPos = BRScreenWithOffset(DECK_RENDERING_POSITION)
 
             RenderPos[Pointer] = mod:VectorLerp(mod.CardFullPoss[Pointer], TargetRenderPos, LerpTime)
             
-
             if RenderPos[Pointer].X == TargetRenderPos.X and RenderPos[Pointer].Y == TargetRenderPos.Y then
+
+                mod.CardFullPoss[Pointer] = nil
                 table.remove(mod.Saved.Player[PIndex].CurrentHand, i)
                 sfx:Play(mod.Sounds.SELECT)
             end
@@ -863,11 +883,15 @@ local function JimboHandRender(_,_,_,_,_,Player)
             mod.Counters.SinceCardTriggered[Pointer] = nil
         end
 
+        if mod.CardFullPoss[Pointer] then
 
-        Rotation = 10 * math.sin(math.rad(180*(RenderPos[Pointer].X-mod.CardFullPoss[Pointer].X)/math.max(1,TargetRenderPos.X-mod.CardFullPoss[Pointer].X)))
+            Rotation = 10 * math.sin(math.rad(180*(RenderPos[Pointer].X-mod.CardFullPoss[Pointer].X)/math.max(1,TargetRenderPos.X-mod.CardFullPoss[Pointer].X)))
 
-        if mod.CardFullPoss[Pointer].X < TargetRenderPos.X then
-            Rotation = -Rotation
+            if mod.CardFullPoss[Pointer].X > TargetRenderPos.X then
+                Rotation = -Rotation
+            end
+        else
+            Rotation = 0
         end
 
         RenderPos[Pointer].Y = RenderPos[Pointer].Y + math.sin(math.rad(Isaac.GetFrameCount()*1.75+i*22))
@@ -1184,9 +1208,6 @@ local function JimboPackRender(_,_,_,_,_,Player)
 
             mod.PackOptionFullPosition[i] = ActualRenderPos + Vector.Zero
 
-            ActualRenderPos = ActualRenderPos + Vector(-1,8) --fixes a pivot displacement
-
-
             TrinketSprite:Render(ActualRenderPos)
 
             RenderPos.X = RenderPos.X + PACK_CARD_DISTANCE + CardHUDWidth
@@ -1235,7 +1256,8 @@ local function JimboPackRender(_,_,_,_,_,Player)
     end--end PURPOSES
 
 
-    if mod.SelectionParams[PIndex].Mode ~= mod.SelectionParams.Modes.PACK then
+    if mod.SelectionParams[PIndex].Mode ~= mod.SelectionParams.Modes.PACK
+       or mod.AnimationIsPlaying then
         return
     end
 
@@ -1467,17 +1489,14 @@ local function JimboConsumableRender(_,_,_,_,_,Player)
         end
 
 
-        --if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.CONSUMABLES
-        --   and i == mod.SelectionParams[PIndex].Index then
-        --    
-        --    SpecialCardsSprite.Scale = Vector.One * 1.25
-        --else
-        --    SpecialCardsSprite.Scale = Vector.One
-        --end
-        
-        --SpecialCardsSprite.Scale = Vector.One * mod:Lerp(ConsumableScale[i], TargetScale, mod.Counters.SinceSelect/5)
 
-        SpecialCardsSprite.Scale = Vector.One
+        local CardTriggerCounter = (mod.Counters.SinceConsumableTriggered[i] or 0) * TriggerCounterMult
+
+
+        local AnimationValue = 1 - math.abs(math.cos(math.rad(CardTriggerCounter)))^0.5 --the graph is kind of like this [_^_]
+
+        TrinketSprite.Scale = Vector.One * (1 + math.min(0.8, 2.5*AnimationValue))
+
 
         SpecialCardsSprite:Render(RenderPos[i])
 
@@ -1585,14 +1604,12 @@ local BlindChipColor = mod.BalatroColorBlack    --= Color.Default
 ---@param Player EntityPlayer
 local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
 
-    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo
+       or RoomTransition:IsRenderingBossIntro() then
         return
     end
 
     local PIndex = Player:GetData().TruePlayerIndex 
-
-
-    local Lang = mod:GetEIDLanguage()
 
     local NullFrame
     local CenterPos
@@ -1613,36 +1630,41 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
         PreviousBlindInfoOffset.Y = -BlindInfoOffset.Y - 400
     end
 
+    local NeededColor
+
     if mod.Saved.BlindBeingPlayed == mod.BLINDS.SHOP then
 
-        if SinceBlindChange == 80 then
-            local BlindKColor = mod.EffectKColors.RED
+        NeededColor = mod.EffectKColors.RED
 
-            BlindChipColor = Color(BlindKColor.Red, BlindKColor.Green, BlindKColor.Blue, 1)--:SetColorize(BlindKColor.Red, BlindKColor.Green, BlindKColor.Blue, 1)
-        end
+        NeededColor = Color(NeededColor.Red, NeededColor.Green, NeededColor.Blue, 1)--:SetColorize(BlindKColor.Red, BlindKColor.Green, BlindKColor.Blue, 1)
+    
     elseif mod.Saved.BlindBeingPlayed == mod.BLINDS.NONE
-           or mod.Saved.BlindBeingPlayed == mod.BLINDS.WAITING_CASHOUT then
+           or mod.Saved.BlindBeingPlayed & mod.BLINDS.WAITING_CASHOUT ~= 0 then
 
-        if SinceBlindChange == 80 then
-            BlindChipColor = mod.BalatroColorBlack--:SetColorize(BlindKColor.Red, BlindKColor.Green, BlindKColor.Blue, 1)
-        end
+        NeededColor = mod.BalatroColorBlack--:SetColorize(BlindKColor.Red, BlindKColor.Green, BlindKColor.Blue, 1)
     else --if mod.Saved.BlindBeingPlayed == mod.BLINDS.SHOP then
         
         BlindChipsSprite:SetFrame("Chips", mod:GetBLindChipFrame(mod.Saved.BlindBeingPlayed))
 
         LeftSideHUD:SetFrame(LeftSideStringFrames.BlindChip)
 
-        local Pos = LeftSideHUD:GetNullFrame("String Positions"):GetPos() + BlindInfoOffset
+        NeededColor = BlindChipsSprite:GetTexel(BlindChipTexelPos, Vector.Zero, 1)
 
-        if SinceBlindChange == 80 then
-            local BlindKColor = BlindChipsSprite:GetTexel(BlindChipTexelPos, Vector.Zero, 1)
-
-            --print(BlindKColor.Red, BlindKColor.Green, BlindKColor.Blue, BlindKColor.Alpha)
-        
-            BlindChipColor = Color(BlindKColor.Red, BlindKColor.Green, BlindKColor.Blue, 1)--:SetColorize(BlindKColor.Red, BlindKColor.Green, BlindKColor.Blue, 1)
-        
-        end
+        NeededColor = Color(NeededColor.Red, NeededColor.Green, NeededColor.Blue, 1)
+        --print(BlindKColor.Red, BlindKColor.Green, BlindKColor.Blue, BlindKColor.Alpha)
+    
+        --BlindChipColor = Color(BlindKColor.Red, BlindKColor.Green, BlindKColor.Blue, 1)--:SetColorize(BlindKColor.Red, BlindKColor.Green, BlindKColor.Blue, 1)
     end
+
+
+    if SinceBlindChange >= 70 then
+
+        BlindChipColor = mod:ColorLerp(BlindChipColor, NeededColor, 0.045)
+    end
+
+    --BlindChipColor = Color(EndingKColor.Red, EndingKColor.Green, EndingKColor.Blue, 1)--:SetColorize(BlindKColor.Red, BlindKColor.Green, BlindKColor.Blue, 1)
+
+
 
     ------------BASE-------------
     -----------------------------
@@ -1837,7 +1859,7 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
 
         end
 
-        if mod.Saved.BlindBeingPlayed ~= mod.BLINDS.WAITING_CASHOUT then
+        if mod.Saved.BlindBeingPlayed & mod.BLINDS.WAITING_CASHOUT == 0 then
             LeftSideHUD:RenderLayer(LeftSideLayers.Blind_Info, BlindInfoOffset)
         end
 
@@ -1860,7 +1882,8 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
 
             mod:RenderBalatroStyle(String, CenterPos, Params, StartFrame, Scale, K_Color, BoxWidth)
 
-        elseif mod.Saved.BlindBeingPlayed ~= mod.BLINDS.WAITING_CASHOUT then
+        elseif mod.Saved.BlindBeingPlayed & mod.BLINDS.WAITING_CASHOUT == 0
+               and mod.Saved.BlindBeingPlayed & mod.BLINDS.SHOP == 0 then
 
             LeftSideHUD:SetFrame(LeftSideStringFrames.BlindChip)
 
@@ -2055,7 +2078,31 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
 
         String = mod:GetEIDString("T_Jimbo", "LeftHUD", "ChooseNextBlind")
 
-        mod:RenderBalatroStyle(String, CenterPos, Params, StartFrame + 145, Scale, KColor.White, BoxWidth)
+        local NumLines = mod:RenderBalatroStyle(String, CenterPos, Params, StartFrame + 145, Scale, KColor.White, BoxWidth)
+    
+    
+        --boss reroll button
+
+
+
+        if Player:HasCollectible(mod.Vouchers.Director)
+           or Player:HasCollectible(mod.Vouchers.Retcon) then
+            
+            local ButtonPos = NullFrame:GetPos() + BlindInfoOffset
+
+            ButtonPos.Y = ButtonPos.Y - 20 - BALATRO_BASE_LINE_HEIGHT*Scale.Y*0.5*math.ceil(NumLines/2) - BALATRO_LINE_HEIGHT*Scale.Y*math.max(NumLines-1, 1)*0.75
+
+            local Pressed = Input.IsActionPressed(ButtonAction.ACTION_ITEM, Player.ControllerIndex)
+                            or (mod.Saved.NumBossRerolls > 0 and not Player:HasCollectible(mod.Vouchers.Retcon))
+
+
+            local TextScale = Vector.One * 0.5
+
+            local Text = mod:GetEIDString("T_Jimbo", "LeftHUD", "RerollBoss")
+            local SubText = mod:GetEIDString("T_Jimbo", "LeftHUD", "SPACE_KeyBind")
+
+            mod:RenderGenericButton(ButtonPos, Vector(50, 25), mod.EffectColors.RED, Pressed, Text, TextScale, false, nil, nil, SubText)
+        end
     end
 
 
@@ -2080,7 +2127,7 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
             LeftSideHUD:SetLayerFrame(LeftSideLayers.Blind_Info, 0)
         end
 
-        if PreviousBlindType ~= mod.BLINDS.WAITING_CASHOUT then
+        if PreviousBlindType & mod.BLINDS.WAITING_CASHOUT == 0 then
             LeftSideHUD:RenderLayer(LeftSideLayers.Blind_Info, PreviousBlindInfoOffset)
         end
 
@@ -2103,7 +2150,7 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
 
             mod:RenderBalatroStyle(String, CenterPos, Params, StartFrame, Scale, K_Color, BoxWidth)
 
-        elseif PreviousBlindType ~= mod.BLINDS.WAITING_CASHOUT then
+        elseif PreviousBlindType & mod.BLINDS.WAITING_CASHOUT == 0 then
 
             LeftSideHUD:SetFrame(LeftSideStringFrames.BlindChip)
 
@@ -2225,7 +2272,25 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
 
         String = mod:GetEIDString("T_Jimbo", "LeftHUD", "ChooseNextBlind")
 
-        mod:RenderBalatroStyle(String, CenterPos, Params, StartFrame - PreviousBlindDuration, Scale, KColor.White, BoxWidth)
+        local NumLines = mod:RenderBalatroStyle(String, CenterPos, Params, StartFrame - PreviousBlindDuration, Scale, KColor.White, BoxWidth)
+    
+    
+        if Player:HasCollectible(mod.Vouchers.Director)
+           or Player:HasCollectible(mod.Vouchers.Retcon) then
+            
+            local ButtonPos = NullFrame:GetPos() + PreviousBlindInfoOffset
+
+            ButtonPos.Y = ButtonPos.Y - 20 - BALATRO_BASE_LINE_HEIGHT*Scale.Y*0.5*math.ceil(NumLines/2) - BALATRO_LINE_HEIGHT*Scale.Y*math.max(NumLines-1, 1)*0.75
+
+            local Pressed = true
+            local TextScale = Vector.One * 0.5
+
+            local Text = mod:GetEIDString("T_Jimbo", "LeftHUD", "RerollBoss")
+            local SubText = mod:GetEIDString("T_Jimbo", "LeftHUD", "SPACE_KeyBind")
+
+            mod:RenderGenericButton(ButtonPos, Vector(50, 25), mod.EffectColors.RED, Pressed, Text, TextScale, false, nil, nil, SubText)
+        end
+    
     end
 
     end
@@ -2508,8 +2573,11 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
 
         local Consumable = SelectParams.PackOptions[mod:GetValueIndex(SelectedCards, true, true)]
 
-        if SelectParams.PackPurpose == mod.SelectionParams.Purposes.BuffonPack
-           or SelectParams.PackPurpose == mod.SelectionParams.Purposes.StandardPack then
+
+        local PackPurpose = SelectParams.PackPurpose & ~mod.SelectionParams.Purposes.MegaFlag
+
+        if PackPurpose == mod.SelectionParams.Purposes.BuffonPack
+           or PackPurpose == mod.SelectionParams.Purposes.StandardPack then
 
             Q_Layer:SetColor(mod.EffectColors.RED) --Q is for card use
 
@@ -3681,7 +3749,8 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, TJimboRunInfo)
 ---@param Effect EntityEffect
 local function CashoutBubbleRender(_,Effect, Offset)
 
-    if Effect.SubType ~= mod.DialogBubbleSubType.CASHOUT then
+    if Effect.SubType ~= mod.DialogBubbleSubType.CASHOUT 
+       or mod.Saved.BlindBeingPlayed == (mod.BLINDS.SHOP | mod.BLINDS.WAITING_CASHOUT) then
         return
     end
 
@@ -3844,7 +3913,7 @@ local function BlindBubbleRender(_,Effect, Offset)
         Params = mod.StringRenderingParams.Centered | mod.StringRenderingParams.Wrap
 
 
-        Text = mod:GetEIDString("BossEffects", BlindType)
+        Text = mod:ReplaceBalatroMarkups(mod:GetEIDString("BossEffects", BlindType), mod.EID_DescType.NONE, BlindType, true)
 
         local NumLines = mod:GetNumLines(Text, Width, TextScale)
 
@@ -3953,36 +4022,57 @@ local function CustomPickupSprites(_, Pickup)
         return
     end
 
-    if Game:GetRoom():GetType() ~= RoomType.ROOM_SHOP then
+    local Room =Game:GetRoom():GetType()
+
+    if Room ~= RoomType.ROOM_SHOP and Room ~= RoomType.ROOM_BOSSRUSH then
         Pickup:Remove()
         return
     end
 
-    if Pickup.Variant ~= PickupVariant.PICKUP_TAROTCARD then
-        return
-    end
+    if Pickup.Variant == mod.Pickups.PLAYING_CARD then
 
-
-    if mod:Contained(mod.Packs, Pickup.SubType) then
-
-        local PackSprite = Pickup:GetSprite()
-        
-        PackSprite:Load("gfx/ui/Booster Packs.anm2")
-
-        local PackAnimation = ItemsConfig:GetCard(Pickup.SubType).Name
-
-        --print(".."..PackAnimation.."..")
-
-        PackSprite:SetFrame(PackAnimation, math.random(PackSprite:GetAnimationData(PackAnimation):GetLength()) - 1)
-
-    else
+        Pickup.EntityCollisionClass = EntityCollisionClass.ENTCOLL_ALL
 
         local CardSprite = Pickup:GetSprite()
+
+        CardSprite:Load("gfx/ui/Card Body.anm2", true)
+
+        CardSprite:SetAnimation("Base")
+
+        local Params = mod:PlayingCardSubTypeToParams(Pickup.SubType)
+
+
+        CardSprite:GetLayer(1):SetCustomShader(mod.EditionShaders[Params.Edition])
+        CardSprite:GetLayer(2):SetCustomShader(mod.EditionShaders[Params.Edition])
         
-        CardSprite:Load("gfx/ui/PackSpecialCards.anm2", true)
+        CardSprite:SetLayerFrame(0, 4* Params.Value + Params.Suit - 5)
+        CardSprite:SetLayerFrame(1, Params.Enhancement)
+        CardSprite:SetLayerFrame(2, Params.Enhancement)
+        CardSprite:SetLayerFrame(3, Params.Seal)
+
+    elseif Pickup.Variant == PickupVariant.PICKUP_TAROTCARD then
+
+        if mod:Contained(mod.Packs, Pickup.SubType) then
+
+            local PackSprite = Pickup:GetSprite()
+            
+            PackSprite:Load("gfx/ui/Booster Packs.anm2")
+
+            local PackAnimation = ItemsConfig:GetCard(Pickup.SubType).Name
+
+            --print(".."..PackAnimation.."..")
+
+            PackSprite:SetFrame(PackAnimation, math.random(PackSprite:GetAnimationData(PackAnimation):GetLength()) - 1)
 
 
-        CardSprite:SetFrame("idle",  mod:SpecialCardToFrame(Pickup.SubType))
+        else
+
+            local CardSprite = Pickup:GetSprite()
+
+            CardSprite:Load("gfx/ui/PackSpecialCards.anm2", true)
+
+            CardSprite:SetFrame("idle",  mod:SpecialCardToFrame(Pickup.SubType))
+        end
 
     end
     --Pickup.SpriteOffset.Y = -8
@@ -4002,7 +4092,7 @@ local function PickupWobble(_, Pickup, Offset)
     Pickup.SpriteOffset.Y, Pickup.SpriteRotation = JokerWobbleEffect(Pickup.InitSeed % 20, BaseOffset)
 
 end
-mod:AddCallback(ModCallbacks.MC_POST_PICKUP_RENDER, PickupWobble)
+mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_RENDER, PickupWobble)
 
 
 

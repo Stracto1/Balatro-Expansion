@@ -131,7 +131,7 @@ Descriptions.Jimbo.CardEdition[mod.Edition.BASE] = ""
 Descriptions.Jimbo.CardEdition[mod.Edition.FOIL] = "#{{Tears}} {{ColorChips}}Foil{{CR}}: {{ColorChips}}+1.25{{CR}} Tears when scored"
 Descriptions.Jimbo.CardEdition[mod.Edition.HOLOGRAPHIC] = "#{{Damage}} {{ColorMult}}Holographic{{CR}}: {{ColorMult}}+0.25{{CR}} Damage when scored"
 Descriptions.Jimbo.CardEdition[mod.Edition.POLYCROME] = "#{{Damage}} {{ColorRainbow}}Polychrome{{CR}}: {{ColorMult}}x1.2{{CR}} Damage Multiplier when scored"
-Descriptions.Jimbo.CardEdition[mod.Edition.NEGATIVE] = "#\1 {{ColorGray}}{{ColorFade}}Negative{{CR}}: wtf how did you even get this"
+Descriptions.Jimbo.CardEdition[mod.Edition.NEGATIVE] = "#\1 {{ColorGray}}{{ColorFade}}Negative{{CR}}: scemo chi legge (how tf did u even get this)"
 
 
 Descriptions.Jimbo.JokerEdition = {}
@@ -284,8 +284,8 @@ Descriptions.Jimbo.Jokers[mod.Jokers.SHOWMAN] = "{{ColorYellorange}}Items{{CR}},
 Descriptions.Jimbo.Jokers[mod.Jokers.FLOWER_POT] = "{{Damage}} {{ColorChips}}X1.5{{CR}} Damage Multiplier if every {{ColorYellorange}}Suit{{CR}} is held in hand when entering an hostile room#{{Blank}} {{ColorGray}}(Currently [[VALUE1]])"
 Descriptions.Jimbo.Jokers[mod.Jokers.WEE_JOKER] = "{{Tears}} Gains {{ColorChips}}+0.04{{CR}} Tears when a {{ColorYellorange}}2{{CR}} is scored #\1 The samller you are, the higher the stats gained #{{Blank}} {{ColorGray}}(Currently {{ColorChips}}+[[VALUE1]]{{ColorGray}} Tears)"
 Descriptions.Jimbo.Jokers[mod.Jokers.OOPS_6] = "{{Luck}} Every {{ColorMint}}Listed Chance{{CR}} is Doubled"
-Descriptions.Jimbo.Jokers[mod.Jokers.IDOL] = "{{Damage}} [[VALUE1]]{{CR}} give {{ColorMult}}X1.1{{CR}} Damage Multiplier when scored #{{ColorGray}} (Card changes every room)"
-Descriptions.Jimbo.Jokers[mod.Jokers.SEE_DOUBLE] = "{{Damage}} {{ColorMult}}X1.2{{CR}} Damage Multiplier if both a {{ColorClub}}Club{{CR}} and a {{ColorYellorange}}Not-club{{CR}} card are held in hand when entering an hostile room#{{Blank}} {{ColorGray}}(Currently [[VALUE1]])"
+Descriptions.Jimbo.Jokers[mod.Jokers.IDOL] = "{{Damage}} [[VALUE1]]{{CR}} give {{ColorMult}}X1.1{{CR}} Damage Multiplier when scored #{{ColorGray}} (Card changes every room) #{{Damage}} {{ColorMult}}X2{{CR}} Damage Mult. per {{ColorYellorange}} {{Collectible[[VALUE2]]}} [[VALUE3]]{{CR}} held"
+Descriptions.Jimbo.Jokers[mod.Jokers.SEE_DOUBLE] = "{{Damage}} {{ColorMult}}X1.2{{CR}} Damage Multiplier if both a {{ColorClub}}Club{{CR}} and a {{ColorYellorange}}Not-club{{CR}} card are held in hand when entering an hostile room#{{Blank}} {{ColorGray}}(Currently {{ColorMult}}[[VALUE1]]{{CR}})"
 Descriptions.Jimbo.Jokers[mod.Jokers.MATADOR] = "{{Coin}} Gain {{ColorYellow}}6 pennies{{CR}} when taking damage from a {{ColorYellorange}}Boss{{CR}}"
 Descriptions.Jimbo.Jokers[mod.Jokers.HIT_ROAD] = "{{Damage}} Gains {{ColorMult}}X0.2{{CR}} Damage Multiplier per {{ColorYellorange}}Jack{{CR}} discarded #!!! Resets every {{ColorYellorange}}Room{{CR}} #{{Blank}} {{ColorGray}}(Currently {{ColorMult}}X[[VALUE1]]{{ColorGray}} Damage Mult.)"
 Descriptions.Jimbo.Jokers[mod.Jokers.DUO] = "{{Damage}} {{ColorMult}}X1.25{{CR}} Damage Mutiplier if a {{ColorYellorange}}Pair{{CR}} is held when entering an hostile room #{{Blank}} {{ColorGray}}(Currently [[VALUE1]])"
@@ -306,6 +306,9 @@ Descriptions.Jimbo.Jokers[mod.Jokers.TRIBOULET] = "{{ColorYellorange}}Kings{{CR}
 Descriptions.Jimbo.Jokers[mod.Jokers.YORICK] = "Gains {{ColorMult}}+0.25X{{CR}} Damage Multiplier every {{ColorYellorange}}23{{CR}} cards discarded #{{Blank}} {{ColorGray}}(Currently {{ColorMult}}X[[VALUE1]]{{ColorGray}} Damage Mult.)"
 Descriptions.Jimbo.Jokers[mod.Jokers.CHICOT] = "{{Weakness}} Every {{ColorYellorange}}Boss{{CR}} is permanently weakened #Disables every curse"
 Descriptions.Jimbo.Jokers[mod.Jokers.PERKEO] = "{{Card}} Spawns a duplicate of every {{ColorYellorange}}Consumable{{CR}} held upon entering a {{Shop}} shop or a new floor"
+
+Descriptions.Jimbo.Jokers[mod.Jokers.CHAOS_THEORY] = "After being scored, cards become another {{ColorYellorange}}randomly{{CR}} chosen card #!!! {{ColorGray}} The new card generated depends on the starting one [[VALUE1]]"
+
 end
 
 Descriptions.Synergies = {}
@@ -316,6 +319,9 @@ Descriptions.Synergies[mod.Jokers.CERTIFICATE][CollectibleType.COLLECTIBLE_FALSE
 Descriptions.Synergies[mod.Jokers.MARBLE_JOKER] = {}
 Descriptions.Synergies[mod.Jokers.MARBLE_JOKER][CollectibleType.COLLECTIBLE_SMALL_ROCK] = "#{{Collectible90}} Cards added also have a random {{ColorYellorange}}Seal{{CR}}"
 Descriptions.Synergies[mod.Jokers.MARBLE_JOKER][CollectibleType.COLLECTIBLE_ROCK_BOTTOM] = "#{{Collectible562}} Cards added also have a random {{ColorYellorange}}Edition{{CR}}"
+
+Descriptions.Synergies[mod.Jokers.CHAOS_THEORY] = {}
+Descriptions.Synergies[mod.Jokers.CHAOS_THEORY][CollectibleType.COLLECTIBLE_CHAOS] = "#{{Collectible90}} Cards generated are guaranteed to have an {{ColorYellorange}}Enhancement{{CR}},{{ColorYellorange}}Seal{{CR}} or {{ColorYellorange}}Edition{{CR}} if the starting card had one"
 
 
 
@@ -375,7 +381,7 @@ Descriptions.T_Jimbo.Jokers[mod.Jokers.GOLDEN_JOKER] = "Earn {{ColorYellow}}4${{
 Descriptions.T_Jimbo.Jokers[mod.Jokers.FORTUNETELLER] = "{{ColorMult}}+1{{B_Black}}Mult per {{ColorPink}}Tarot{{B_Black}} card used this run # {{ColorGray}}(Currently {{ColorMult}}+[[VALUE1]]{{ColorGray}}Mult)"
 Descriptions.T_Jimbo.Jokers[mod.Jokers.BLUEPRINT] = "Copies the effect of the {{ColorYellorange}}Joker{{B_Black}} to its right#{{ColorGray}}([[VALUE1]]{{ColorGray}})"
 Descriptions.T_Jimbo.Jokers[mod.Jokers.BRAINSTORM] = "Copies the effect of the leftmost held {{ColorYellorange}}Joker{{B_Black}}#{{ColorGray}}([[VALUE1]]{{ColorGray}})"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.MADNESS] = "When a {{ColorYellorange}}Small{{B_Black}} or {{ColorYellorange}}Big Blind{{B_Black}} is selected, destroys another random Joker and gains {{ColorMult}}X0.5{{B_Black}} Mult# {{ColorGray}}(Currently X[[VALUE]]{{ColorGray}} Mult)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.MADNESS] = "When a {{ColorYellorange}}Small{{B_Black}} or {{ColorYellorange}}Big Blind{{B_Black}} is selected, destroys another random Joker and gains {{ColorMult}}X0.5{{B_Black}} Mult# {{ColorMult}}(Currently X[[VALUE1]]{{ColorGray}} Mult)"
 Descriptions.T_Jimbo.Jokers[mod.Jokers.MR_BONES] = "{{ColorMult}}Prevents Death{{B_Black}} and {{ColorYellorange}}self desctructs{{B_Black}} if the enemy with the most HP has up to{{ColorYellorange}}75% of the blind's base size"
 Descriptions.T_Jimbo.Jokers[mod.Jokers.ONIX_AGATE] = "{{ColorChips}}Club{{B_Black}} cards give{{ColorMult}}+7{{B_Black}} Mult when scored"
 Descriptions.T_Jimbo.Jokers[mod.Jokers.ARROWHEAD] = "{{ColorSpade}}Spade{{B_Black}} cards give{{ColorChips}}+50{{B_Black}}Chips when scored"
@@ -419,7 +425,7 @@ Descriptions.T_Jimbo.Jokers[mod.Jokers.CREDIT_CARD] = "Shop items can be bought 
 
 Descriptions.T_Jimbo.Jokers[mod.Jokers.BANNER] = "{{ColorChips}}+30{{B_Black}}Chips per remaining{{ColorYellorange}}Discard{{B_Black}}"
 Descriptions.T_Jimbo.Jokers[mod.Jokers.MYSTIC_SUMMIT] = "{{ColorMult}}+15{{B_Black}} when with {{ColorYellorange}}0{{B_Black}} discards remaining"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.MARBLE_JOKER] = "When a {{ColorYellorange}}Blind{{B_Black}} is selected, adds {{ColorYellorange}}Stone card{{B_Black}} is added to the deck [[VALUE1]][[VALUE2]]"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.MARBLE_JOKER] = "When a {{ColorYellorange}}Blind{{B_Black}} is selected, adds a {{ColorYellorange}}Stone card{{B_Black}} to the deck"
 Descriptions.T_Jimbo.Jokers[mod.Jokers._8_BALL] = "{{ColorMint}}[[CHANCE]]/4 Chance{{B_Black}} to create a{{ColorPink}}Tarot{{B_Black}}card when an {{ColorYellorange}}8{{B_Black}} is scored"
 Descriptions.T_Jimbo.Jokers[mod.Jokers.DUSK] = "{{ColorYellorange}}Retriggers{{B_Black}} last hand of round"
 Descriptions.T_Jimbo.Jokers[mod.Jokers.RAISED_FIST] = "Adds {{ColorYellorange}}double{{B_Black}} the rank of the {{ColorYellorange}}lowest{{B_Black}} ranked card held in hand to {{ColorMult}}Mult"
@@ -484,7 +490,7 @@ Descriptions.T_Jimbo.Jokers[mod.Jokers.ACROBAT] = "Gives {{ColorMult}}X3{{B_Blac
 Descriptions.T_Jimbo.Jokers[mod.Jokers.SOCK_BUSKIN] = "{{ColorYellorange}}Retriggers{{B_Black}} played {{ColorYellorange}}Face{{B_Black}} cards"
 Descriptions.T_Jimbo.Jokers[mod.Jokers.TROUBADOR] = "{{ColorYellorange}}+2{{B_Black}} Hand Size #{{ColorMult}}-1{{B_Black}} Hands"
 Descriptions.T_Jimbo.Jokers[mod.Jokers.THROWBACK] = "This gains {{ColorMult}}X0.25{{B_Black}} Mult per blind {{ColorYellorange}}skipped{{B_Black}} in this run# {{ColorGray}}(Currently {{ColorMult}}X[[VALUE1]]{{ColorGray}})"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.CERTIFICATE] = "When a blind is {{ColorYellorange}}selected{{B_Black}}, adds card with a random{{ColorYellorange}}Seal{{B_Black}} is added to the deck and drawn to hand"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.CERTIFICATE] = "When a blind is {{ColorYellorange}}selected{{B_Black}}, adds a card with a random{{ColorYellorange}}Seal{{B_Black} to the deck and drawn to hand"
 Descriptions.T_Jimbo.Jokers[mod.Jokers.HANG_CHAD] = "{{ColorYellorange}}First{{B_Black}} scoring card played is {{ColorYellorange}}retriggered{{B_Black}} twice"
 Descriptions.T_Jimbo.Jokers[mod.Jokers.GLASS_JOKER] = "This gains {{ColorMult}}X0.75{{B_Black}} per {{ColorYellorange}}Glass Card{{B_Black}} destroyed#{{ColorGray}}(Currently {{ColorMult}}X[[VALUE1]]{{Co}})"
 Descriptions.T_Jimbo.Jokers[mod.Jokers.SHOWMAN] = "{{ColorYellorange}}Joker{{B_Black}},{{ColorPink}}Tarot{{B_Black}},{{ColorCyan}}Planet{{B_Black}} and {{ColorBlue}}Spectral{{B_Black}} cards may appear multiple times"
@@ -769,7 +775,7 @@ Descriptions.BossEffects = {[mod.BLINDS.SMALL] = "No additional effect",
                             [mod.BLINDS.BOSS_MARK] = "All face cards are drawn face down",
                             [mod.BLINDS.BOSS_MOUTH] = "Can only play one hand type",
                             [mod.BLINDS.BOSS_NEEDLE] = "Only play 1 hand",
-                            [mod.BLINDS.BOSS_OX] = "Playing a [[HAND]] sets money to 0$",
+                            [mod.BLINDS.BOSS_OX] = "Playing a [[VALUE1]] sets money to 0$",
                             [mod.BLINDS.BOSS_PILLAR] = "Cards played this ante are debuffed",
                             [mod.BLINDS.BOSS_PLANT] = "All face cards are debuffed",
                             [mod.BLINDS.BOSS_PSYCHIC] = "Must play 5 cards",
@@ -789,6 +795,7 @@ Descriptions.BossEffects = {[mod.BLINDS.SMALL] = "No additional effect",
 
 Descriptions.T_Jimbo.LeftHUD = {ShopSlogan = "Improve your run!",
                                 ChooseNextBlind = "Choose your next blind",
+                                RerollBoss = "Reroll Boss $10",
                                 Reward = "Reward:", --try to keep this one short pls
                                 Hands = "Hands",
                                 Discards = "Discards",
@@ -798,6 +805,7 @@ Descriptions.T_Jimbo.LeftHUD = {ShopSlogan = "Improve your run!",
                                 Options = "Options",
                                 EnemyMaxHP = "Enemies' max HP",
                                 HandScore = "Score",
+                                SPACE_KeyBind = "[Item]",
                                 Q_KeyBind = "[Pill/Card]",
                                 E_KeyBind = "[Bomb]",
                             } 

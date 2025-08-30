@@ -1172,32 +1172,6 @@ end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, mod.JimboRoomClear)
 
 
----@param Player EntityPlayer
-function mod:DiscardEffects(Player)
-
-    local PlayerRNG = Player:GetDropRNG()
-    local SealTriggers = 1
-
-    local PIndex = Player:GetData().TruePlayerIndex
-
-    for i,index in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
-        local card = mod.Saved.Player[PIndex].FullDeck[index]
-
-        if card then --could be nil
-            if card.Seal == mod.Seals.PURPLE and PlayerRNG:RandomFloat() <= 1/SealTriggers then
-
-                --spawns a random basic tarotcard
-                local RandomSeed = Random()
-                if RandomSeed == 0 then RandomSeed = 1 end
-                Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
-                           RandomVector()*2.5, Player, PlayerRNG:RandomInt(1,22), RandomSeed)
-                SealTriggers = SealTriggers + 1 --decreases the chance the more trigger at the same time
-            end
-        end
-    end
-end
-mod:AddCallback("HAND_DISCARD", mod.DiscardEffects)
-
 
 -----------------------JIMBO STATS-----------------------
 ----------------------------------------------------------
@@ -1602,7 +1576,8 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
     local Weapon = Player:GetWeapon(1)
     
     local CardShot
-    if Split then
+    if Split then --if the card (probably) generated from a tear splitting
+
         CardShot = mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].LastShotIndex]
         CardShot.Index = mod.Saved.Player[PIndex].LastShotIndex --could be useful
     else
@@ -1698,7 +1673,7 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
                and (mod.Saved.Player[PIndex].Progress.Room.Shots < Player:GetCustomCacheValue("hands")
                     or mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR)) then
 
-                Isaac.RunCallback("CARD_SHOT", Player, CardShot, true)
+                Isaac.RunCallback("CARD_SHOT", Player, CardShot.Index, true)
             end
         end
 
@@ -1708,7 +1683,7 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
         Tear:ChangeVariant(mod.Tears.SUIT_TEAR_VARIANTS[TearData.Params.Suit])
 
         local TearSprite = Tear:GetSprite()
-        TearSprite:Play("Rotate3", true)
+        TearSprite:Play("Rotate5", true)
 
     end
 end

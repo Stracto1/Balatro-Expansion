@@ -10,5 +10,7 @@
     <costume id="37" anm2path="clown_costume.anm2" type="passive" priority="1"/>  
     <costume id="40" anm2path="lollypop_costume.anm2" type="passive" priority="10" hasSkinAlt="true"/> 
 
+    <costume id="47" anm2path="planet_x_costume.anm2" type="passive" priority="10"/> 
+    <costume id="48" anm2path="eris_costume.anm2" type="passive" priority="100" forceBodyColor="true" forceHeadColor="true" overwriteColor="true" skinColor="0" /> 
 
 </costumes>

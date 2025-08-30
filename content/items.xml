@@ -180,8 +180,6 @@
     <trinket gfx="tasty_candy_3_trinket.png" name="Tasty Candy" description="nom nom nom" achievement="PermaLocked"/>
     <trinket gfx="tasty_candy_4_trinket.png" name="Tasty Candy" description="nom nom nom nom" achievement="PermaLocked"/>
     <trinket gfx="tasty_candy_5_trinket.png" name="Tasty Candy" description="nom nom nom nom nom" achievement="TastyCandyUnlock"/>
-
-    <active id="0" name="The hand" chargetype="special" maxcharges="0" quality="2" craftquality="2" gfx="the_hand_active.png" description="Need a hand?"/>
     
     <passive id="1" name="Grabber"  customcache="hands"  quality="2" craftquality="2" gfx="grabber_voucher.png" description="hands up!" customtags="balatro" achievement="PermaLocked" tags="quest noeden"/>
     <passive id="2"  name="Nacho Tong"  customcache="hands" quality="3" craftquality="2" gfx="nacho_tong_voucher.png" description="just one more!" customtags="balatro" achievement="PermaLocked" tags="quest noeden"/>
@@ -201,8 +199,10 @@
     <passive id="16" name="Antimatter"  customcache="inventory" quality="3" craftquality="2" gfx="antimatter_voucher.png" description="All and nothing!" customtags="balatro" achievement="PermaLocked" tags="quest noeden"/>
     <passive id="17" name="Brush" customcache="handsize" quality="2" craftquality="2" gfx="brush_voucher.png" description="Be colorful!" customtags="balatro" achievement="PermaLocked" tags="quest noeden"/>
     <passive id="18" name="Palette" customcache="handsize" quality="3" craftquality="2" gfx="palette_voucher.png" description="Be creative!" customtags="balatro" achievement="PermaLocked" tags="quest noeden"/>
+    
     <active id="19" name="Director's Cut"  quality="2" craftquality="2" gfx="directors_cut_voucher.png" description="Don't like this!" chargetype="special" maxcharges="0" customtags="balatro" achievement="PermaLocked" tags="quest noeden"/>
     <active id="20" name="Retcon"  quality="3" craftquality="2" gfx="retocon_voucher.png" description="High standards!" chargetype="special" maxcharges="0" customtags="balatro" achievement="PermaLocked" tags="quest noeden"/>
+
     <passive id="21" name="Hieroglyph" customcache="hands" quality="2" craftquality="2" gfx="hieroglyph_voucher.png" description="Good old days!" customtags="balatro" achievement="PermaLocked" tags="quest noeden"/>
     <passive id="22" name="Petroglyph" customcache="discards" quality="3" craftquality="2" gfx="petroglyph_voucher.png" description="Old days good!" customtags="balatro" achievement="PermaLocked" tags="quest noeden"/>
     <passive id="23" name="Magic Trick"  quality="2" craftquality="2" gfx="magic_trick_voucher.png" description="Tada!" customtags="balatro" achievement="PermaLocked" tags="quest noeden"/>
@@ -232,6 +232,14 @@
     <familiar id="43" name="Baloon Puppy" cache="familiars" quality="2" craftquality="2" gfx="baloon_puppy_item.png" description="My dream buddy" achievement="BaloonPuppyUnlock" tags="offensive"/>
     <passive id="44" name="Pocket Aces" quality="3" craftquality="3" gfx="pocket_aces_item.png" description="A trick up my sleeve" achievement="PocketAcesUnlock" tags=""/>
 
-    
+    <active id="0" name="The hand" chargetype="special" maxcharges="0" quality="2" craftquality="2" gfx="the_hand_active.png" description="Need a hand?" achievement="TheHandUnlock"/>
+    <passive id="45" name="Heirloom" quality="3" craftquality="4" gfx="heirloom_item.png" description="500$ for this" achievement="HeirloomUnlock" tags=""/>
+    <passive id="46" name="Ceres" cache="familiars" quality="3" craftquality="3" gfx="ceres_item.png" description="Your inner dwarf" achievement="BalatroPlanetsUnlock" tags=""/>
+    <passive id="47" name="Planet X" quality="2" craftquality="2" gfx="planet_x_item.png" description="Ignote destination" achievement="BalatroPlanetsUnlock" tags=""/>
+    <passive id="48" name="Eris" quality="3" craftquality="3" gfx="eris_item.png" description="Chilling breeze" achievement="BalatroPlanetsUnlock" tags=""/>
+
+    <trinket gfx="chaos_theory_trinket.png" name="Chaos Theory" description="CHAOS! CHAOS!" customtags="!8 1 :0 ?uncommon balatro activate copy" achievement="ChaosTheoryUnlock"/>
+    <trinket gfx="penny_seeds_trinket.png" name="Penny Seeds" description="Maybe one day..." achievement="PennySeedsUnlock"/>
+
 
 </items>    

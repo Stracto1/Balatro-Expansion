@@ -53,7 +53,7 @@ void main(void)
 	
 	RedEnable = min(RedEnable * mult, 1); // in the end either 0 or 1
 
-	Color.rgb = mix(Color.rgb, Red, 0.45 * RedEnable); // red tint
+	Color.rgb = mix(Color.rgb, Red, 0.5 * RedEnable); // red tint
 
 	Color.a = min(RedEnable, Color.a); // erases anything outside of the X
 

@@ -41,11 +41,8 @@ PackQualityPicker:AddOutcomeWeight(mod.PackQuality.JUMBO, 4)
 PackQualityPicker:AddOutcomeWeight(mod.PackQuality.MEGA, 1)
 
 
-local ShopItemTypes = {JOKER = 0, PLANET = 1, TAROT = 2}
-local ShopItemPicker = WeightedOutcomePicker()
-ShopItemPicker:AddOutcomeWeight(ShopItemTypes.JOKER, 20)
-ShopItemPicker:AddOutcomeWeight(ShopItemTypes.PLANET, 4)
-ShopItemPicker:AddOutcomeWeight(ShopItemTypes.TAROT, 4)
+local ShopItemTypes = {JOKER = 0, PLANET = 1, TAROT = 2, PLAYING_CARD = 3}
+
 
 
 local EditionPicker = WeightedOutcomePicker()
@@ -154,18 +151,24 @@ function mod:GetRandom(Table, RNG, Phantom)
     end
 
     local Possibilities = {}
-    for _,v in pairs(Table) do
-        table.insert(Possibilities, v)
+    for k,v in pairs(Table) do
+        Possibilities[#Possibilities+1] = {Value = v, Index = k}
     end
-    if RNG then 
+
+    local RandomIndex
+
+    if RNG then
         if Phantom then
-            return Possibilities[RNG:PhantomInt(#Possibilities) + 1] -- +1 is to set it from 1 to #possibilities (sill no PhantomInt(min, max))
+            RandomIndex = RNG:PhantomInt(#Possibilities) + 1 -- +1 is to set it from 1 to #possibilities (sill no PhantomInt(min, max))
         else
-            return Possibilities[RNG:RandomInt(1,#Possibilities)]
+            RandomIndex = RNG:RandomInt(1,#Possibilities)
         end
     else
-        return Possibilities[math.random(1,#Possibilities)]
+        RandomIndex = math.random(1,#Possibilities)
     end
+
+
+    return Possibilities[RandomIndex].Value, Possibilities[RandomIndex].Index
 end
 
 function mod:CalculateTearsUp(currentMaxFireDelay, TearsAdded)
@@ -318,12 +321,24 @@ function mod:SmootherLerp(a,b,t)
     return a + (b - a) * (t^3 * (t*(6*t - 15) + 10))
 end
 
-function mod:FixScreenPosition(V)
+---@param a Color
+---@param b Color
+function mod:ColorLerp(a,b,t)
 
-    V.X = V.X - V.X%0.5
-    V.Y = V.Y - V.Y%0.5
+    local ColorizeA = a:GetColorize()
+    local ColorizeB = b:GetColorize()
 
-    return V
+    return Color(a.R + (b.R - a.R)*t,
+                 a.G + (b.G - a.G)*t,
+                 a.B + (b.B - a.B)*t,
+                 a.A + (b.A - a.A)*t,
+                 a.RO + (b.RO - a.RO)*t,
+                 a.GO + (b.GO - a.GO)*t,
+                 a.BO + (b.BO - a.BO)*t,
+                 ColorizeA.R + (ColorizeB.R - ColorizeA.R)*t,
+                 ColorizeA.G + (ColorizeB.G - ColorizeA.G)*t,
+                 ColorizeA.B + (ColorizeB.B - ColorizeA.B)*t,
+                 ColorizeA.A + (ColorizeB.A - ColorizeA.A)*t)
 end
 
 
@@ -340,6 +355,16 @@ function mod:CoolVectorLerp(vec1, vec2, percent)
 
     return vec1 * (1 - percent) + vec2 * percent
 end
+
+
+function mod:FixScreenPosition(V)
+
+    V.X = V.X - V.X%0.5
+    V.Y = V.Y - V.Y%0.5
+
+    return V
+end
+
 
 function mod:Clamp(Num,Max,Min)
     return math.max(Min,math.min(Num, Max))
@@ -361,6 +386,24 @@ function mod:HeadDirectionToString(Vector) --ty for the base sheriff
     end
 
     return ""
+end
+
+function mod:VectorToDirection(Vector)
+
+    --local Angle = ((Vector:GetAngleDegrees() + 22.5) // 45) * 45 --9 directions angle
+    local Angle = ((Vector:GetAngleDegrees() + 45) // 90) * 90
+
+    if Angle == 0 then
+        return Direction.RIGHT
+    elseif Angle == 90 then
+        return Direction.DOWN
+    elseif Angle == 180 or Angle == -180 then
+        return Direction.LEFT
+    elseif Angle == -90 then
+        return Direction.UP
+    end
+
+    return Direction.NO_DIRECTION
 end
 
 function mod:GetSignString(Num)
@@ -466,7 +509,11 @@ mod:AddCallback(ModCallbacks.MC_PRE_NEW_ROOM, ResetSpecialBossFight)
 ---@param RNG RNG
 function mod:RandomSeed(RNG)
 
-    return RNG:RandomInt(MAX_SEED_VALUE) + 1
+    if RNG then
+        return RNG:RandomInt(MAX_SEED_VALUE) + 1
+    else
+        return math.max(Random(), 1)
+    end
 end
 
 --for some reason i had difficulty using EntotyNPC:MakeBloodPoof()'s extra arguments so made this
@@ -498,33 +545,58 @@ function mod:GetEIDLanguage()
     return Lang
 end
 
+
+function mod:CalculateStageHP(StageHP)
+
+    local Stage = Game:GetLevel():GetAbsoluteStage()
+
+    return StageHP * (math.min(4, Stage) + 0.8*mod:Clamp(Stage - 5, 5, 0))
+
+end
+
 -------------JIMBO FUNCTIONS------------
 ---------------------------------------
 
 function mod:RoundBalatroStyle(Value, MaxFigures)
 
-
-    local Log = Value <= 0 and 2 or math.floor(math.log(Value, 10))
+    local Log = Value <= 0 and 2 or math.floor(1 + math.log(Value, 10))
 
     local ValueString
+    local DecimalDigits = math.max(2 - Log, 0)
 
     if Log >= MaxFigures then
 
-        ValueString = mod:RoundBalatroStyle(mod:round(Value /10^Log, 3), 3).."e"..tostring(Log)
+        ValueString = mod:RoundBalatroStyle(mod:round(Value /10^(Log-1), 3), 3).."e"..tostring(Log)
 
     else
-        ValueString = tostring(mod:round(Value, math.max(2 - Log, 0)))
+        ValueString = tostring(mod:round(Value, DecimalDigits))
     end
 
-    --if the number ends with .0 then erease it
-    local i , e = string.find(ValueString, ".0", 1, true)
+    ValueString = string.gsub(ValueString, "^%d+", function(sub)
+    
+                                                local len = string.len(sub)
 
-    if e == string.len(ValueString) then
+                                                if len < 4 then
+                                                   return sub
+                                                end
 
-        --print(ValueString,"erase")
-        
-        ValueString = string.gsub(Value, "%.0", "")
-    end
+                                                local NewSub = ""
+                                                local MinI
+
+                                                for i = len, 4, -3 do
+                                                    
+                                                    NewSub = ","..string.sub(sub, i-2, i)..NewSub
+                                                    sub = string.sub(sub, 1, i-3)
+                                                    MinI = i + 0
+                                                end
+
+                                                NewSub = sub..NewSub
+                                             
+                                                return NewSub
+                                             end)
+
+    ValueString = string.gsub(ValueString, "%.0$", "")
+
     
     return ValueString
 end
@@ -1602,6 +1674,15 @@ function mod:GetJokerInitialProgress(Joker, Tainted, Player)
 
                 Prog = Suit + 8*Value
 
+                local Pool = Game:GetItemPool()
+                local IdolRNG = Player:GetTrinketRNG(Joker)
+                local Flags = GetCollectibleFlag.BAN_ACTIVES | GetCollectibleFlag.IGNORE_MODIFIERS
+
+                ---@diagnostic disable-next-line: param-type-mismatch
+                local RandomItem = Pool:GetCollectible(Pool:GetRandomPool(Player:GetTrinketRNG(Joker)), false, IdolRNG:GetSeed(), nil, Flags)
+
+                Prog = Prog + (RandomItem << 7)
+
             elseif Joker == mod.Jokers.ANCIENT_JOKER then
                 Prog = JokerRNG:PhantomInt(mod.Suits.Diamond) + 1
 
@@ -1929,13 +2010,20 @@ function mod:RandomJoker(Rng, PlaySound, ForcedRarity, AllowDuplicates, Amount)
                 break
             end
 
-            Trinket.Joker = mod:GetRandom(Possibilities, Rng)
+            local ChosenIndex
+
+            Trinket.Joker, ChosenIndex = mod:GetRandom(Possibilities, Rng)
 
             ---@diagnostic disable-next-line: param-type-mismatch
-            Possibilities[mod:GetValueIndex(Possibilities, Trinket.Joker)] = nil
+            Possibilities[ChosenIndex] = nil
+
+            local JokerAchievement = ItemsConfig:GetTrinket(Trinket.Joker).AchievementID
 
         until (Trinket.Joker ~= mod.Jokers.GROS_MICHAEL or not mod.Saved.MichelDestroyed) --if it's michel, check if it was destroyed
               and (Trinket.Joker ~= mod.Jokers.CAVENDISH or mod.Saved.MichelDestroyed) --if it's cavendish do the same but opposite
+              and (JokerAchievement == mod.Achievements.PERMA_LOCK --(almost) all jokers
+                   or Isaac.GetPersistentGameData():Unlocked(JokerAchievement)) --currently only for Chaos Theory
+
     
     
         Trinket.Edition = mod.Edition.BASE
@@ -2006,7 +2094,7 @@ function mod:RandomPlayingCard(Rng, PlaySound, Rank, Suit, Enhancement, Seal, Ed
 
         CardSeal = Seal
 
-    elseif Rng:RandomFloat() <= 0.4 then --base chance
+    elseif Rng:RandomFloat() <= 0.2 then --base chance
 
         CardSeal = Rng:RandomInt(mod.Seals.RED, mod.Seals.PURPLE)
     end
@@ -2058,7 +2146,7 @@ function mod:RandomPlayingCard(Rng, PlaySound, Rank, Suit, Enhancement, Seal, Ed
 end
 
 
-function mod:RandomTarot(Rng, CanBeSoul, AllowDuplicates, Amount)
+function mod:RandomTarot(Rng, CanBeSoul, AllowDuplicates, Amount, CanBeSpectral)
 
     Amount = Amount or 1
     local IsTaintedJimbo = PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo)
@@ -2079,7 +2167,15 @@ function mod:RandomTarot(Rng, CanBeSoul, AllowDuplicates, Amount)
 
     for i = Card.CARD_FOOL, Card.CARD_WORLD do
         PossibleTarots[i] = i
-    end 
+    end
+
+    if CanBeSpectral then
+
+        for i = mod.Spectrals.FAMILIAR, mod.Spectrals.CRYPTID do
+
+            PossibleTarots[#PossibleTarots+1] = i
+        end
+    end
 
     if IsTaintedJimbo then
         PIndex = PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo):GetData().TruePlayerIndex
@@ -2142,12 +2238,17 @@ function mod:RandomTarot(Rng, CanBeSoul, AllowDuplicates, Amount)
 
         if not IsTaintedJimbo then
             
-            for i, PlanetCard in ipairs(Isaac.FindByType(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, -1, true)) do
+            for _, TarotCard in ipairs(Isaac.FindByType(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, -1, true)) do
 
-                if PlanetCard.SubType == mod.Spectrals.SOUL then
+                if TarotCard.SubType == mod.Spectrals.SOUL then
                     IsSoulAvailable = false
+
                 else
-                    PossibleTarots[PlanetCard.SubType] = nil
+                    local Index = mod:GetValueIndex(PossibleTarots, TarotCard.SubType, true)
+
+                    if Index then
+                        PossibleTarots[Index] = nil
+                    end
                 end
             end
 
@@ -2168,9 +2269,13 @@ function mod:RandomTarot(Rng, CanBeSoul, AllowDuplicates, Amount)
             ReturnTable[i] = Card.CARD_FOOL
         end
 
-        ReturnTable[i] = mod:GetRandom(PossibleTarots, Rng)
+        local ChosenIndex
 
-        PossibleTarots[ReturnTable[i]] = nil
+        ReturnTable[i], ChosenIndex = mod:GetRandom(PossibleTarots, Rng)
+
+        if not AllowDuplicates then
+            PossibleTarots[ChosenIndex] = nil
+        end
     end
 
     if Amount == 1 then
@@ -2324,7 +2429,9 @@ function mod:RandomPlanet(Rng, CanBeHole, AllowDuplicates, Amount)
 
         ReturnTable[i] = mod:GetRandom(PossiblePlanets, Rng)
 
-        PossiblePlanets[mod:GetValueIndex(PossiblePlanets, ReturnTable[i], true)] = nil
+        if not AllowDuplicates then
+            PossiblePlanets[mod:GetValueIndex(PossiblePlanets, ReturnTable[i], true)] = nil
+        end
     end
 
     if Amount == 1 then
@@ -2357,12 +2464,9 @@ function mod:RandomSpectral(Rng, CanBeHole, CanBeSoul, AllowDuplicates, Amount)
     local IsHoleAvailable = CanBeHole
     local IsSoulAvailable = CanBeSoul
 
-    for k,v in pairs(mod.Spectrals) do
-        PossibleSpectrals[k] = v
+    for i = mod.Spectrals.FAMILIAR, mod.Spectrals.CRYPTID do
+        PossibleSpectrals[#PossibleSpectrals + 1] = i
     end 
-
-    PossibleSpectrals.SOUL = nil
-    PossibleSpectrals.BLACK_HOLE = nil
 
     if IsTaintedJimbo then
         PIndex = PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo):GetData().TruePlayerIndex
@@ -2471,7 +2575,9 @@ function mod:RandomSpectral(Rng, CanBeHole, CanBeSoul, AllowDuplicates, Amount)
 
         ReturnTable[i] = mod:GetRandom(PossibleSpectrals, Rng)
 
-        table.remove(PossibleSpectrals, mod:GetValueIndex(PossibleSpectrals, ReturnTable[i], true))
+        if not AllowDuplicates then
+            table.remove(PossibleSpectrals, mod:GetValueIndex(PossibleSpectrals, ReturnTable[i], true))
+        end
     end
 
     if Amount == 1 then
@@ -2498,10 +2604,13 @@ function mod:RandomShopItem(Rng)
 
     local Variant
     local SubType
+    local InitSeed
 
     local TagActivated
     local ItemType
     local JokerRarity --nil if randomly chosen
+
+    local ShopItemPicker = WeightedOutcomePicker()
 
 
     for i, Tag in ipairs(mod.Saved.SkipTags) do
@@ -2527,7 +2636,38 @@ function mod:RandomShopItem(Rng)
     end
 
 
+    ShopItemPicker:AddOutcomeWeight(ShopItemTypes.JOKER, 20)
+
+
+    if PlayerManager.AnyoneHasCollectible(mod.Vouchers.PlanetTycoon) then
+        ShopItemPicker:AddOutcomeWeight(ShopItemTypes.PLANET, 20)
+
+    elseif PlayerManager.AnyoneHasCollectible(mod.Vouchers.PlanetMerch) then
+        ShopItemPicker:AddOutcomeWeight(ShopItemTypes.PLANET, 9.6)
+
+    else
+        ShopItemPicker:AddOutcomeWeight(ShopItemTypes.PLANET, 4)
+    end
+
+
+    if PlayerManager.AnyoneHasCollectible(mod.Vouchers.TarotTycoon) then
+        ShopItemPicker:AddOutcomeWeight(ShopItemTypes.TAROT, 20)
+
+    elseif PlayerManager.AnyoneHasCollectible(mod.Vouchers.TarotMerch) then
+        ShopItemPicker:AddOutcomeWeight(ShopItemTypes.TAROT, 9.6)
+
+    else
+        ShopItemPicker:AddOutcomeWeight(ShopItemTypes.TAROT, 4)
+    end
+
+    if PlayerManager.AnyoneHasCollectible(mod.Vouchers.MagicTrick) then
+        ShopItemPicker:AddOutcomeWeight(ShopItemTypes.PLAYING_CARD, 4)
+    end
+
+
+
     ItemType = ShopItemPicker:PickOutcome(Rng)
+
 
     ::RNG_PART::
 
@@ -2576,16 +2716,59 @@ function mod:RandomShopItem(Rng)
 
         SubType = mod:RandomTarot(Rng)
 
-    else --if Type == SHopItemTypes.PLANET
+    elseif ItemType == ShopItemTypes.PLANET then
         Variant = PickupVariant.PICKUP_TAROTCARD
 
         SubType = mod:RandomPlanet(Rng)
+
+    else --if ItemType == ShopItemTypes.PLAYING_CARD then
+
+        Variant = mod.Pickups.PLAYING_CARD
+
+        local RandomCard = mod:RandomPlayingCard(Rng, true)
+
+        
+        if not PlayerManager.AnyoneHasCollectible(mod.Vouchers.Illusion) then
+
+            RandomCard.Enhancement = mod.Enhancement.NONE
+            RandomCard.Seal = mod.Seals.NONE
+            RandomCard.Edition = mod.Edition.BASE
+        end
+
+        SubType =  mod:PlayingCardParamsToSubType(RandomCard)
+        
+        --print("Card seed = ", SubType)
     end
 
     ::RETURN::
 
-    return Variant, SubType, TagActivated
+    return Variant, SubType, TagActivated, InitSeed
 
+end
+
+
+function mod:PlayingCardParamsToSubType(Params)
+
+    return Params.Value + (Params.Suit<<4) + (Params.Enhancement<<7) + (Params.Seal<<11) + (Params.Edition<<14)
+end
+
+function mod:PlayingCardSubTypeToParams(SubType)
+
+    local Value = SubType & 15
+    local Suit = (SubType & 112)>>4
+    local Enhancement = (SubType & 1920)>>7
+    local Seal = (SubType & 14336)>>11
+    local Edition = (SubType & 114688)>>14
+
+    --print(SubType, Value, Suit, Enhancement, Seal, Edition)
+
+    return {Value = Value,
+            Suit = Suit,
+            Enhancement = Enhancement,
+            Seal = Seal,
+            Edition = Edition,
+            Upgrades = 0,
+            Modifiers = 0}
 end
 
 
@@ -2626,6 +2809,32 @@ function mod:RandomHandType(Rng, Phantom)
     end
 
     return mod:GetRandom(PossibleHands, Rng, Phantom)
+end
+
+
+function mod:RandomVoucher(Rng, Phantom)
+
+    local RoomItems = {}
+    
+    for i,Collectible in ipairs(Isaac.FindByType(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COLLECTIBLE)) do
+        
+        RoomItems[#RoomItems+1] = Collectible.SubType
+    end
+
+    local VouchersAvailable = {}
+
+    for i,Voucher in ipairs(mod.Saved.Pools.Vouchers) do
+        
+        if not mod:Contained(RoomItems, Voucher) and Voucher ~= mod.Saved.AnteVoucher then
+            VouchersAvailable[#VouchersAvailable+1] = Voucher
+        end
+    end
+
+    if not next(VouchersAvailable) then
+        return mod.Vouchers.Blank
+    end
+
+    return mod:GetRandom(VouchersAvailable, Rng, Phantom)
 end
 
 
@@ -2751,7 +2960,12 @@ function mod:AddSkipTag(TagAdded)
 
     Isaac.CreateTimer(function ()
         
-        Isaac.RunCallback(mod.Callbalcks.POST_SKIP_TAG_ADDED, TagAdded)
+        local ExtraInterval = Isaac.RunCallback(mod.Callbalcks.POST_SKIP_TAG_ADDED, TagAdded)
+
+        Isaac.CreateTimer(function ()
+
+            mod.AnimationIsPlaying = false
+        end, ExtraInterval, 1, true)
 
     end, Interval, 1, true)
 
@@ -2767,6 +2981,40 @@ function mod:UseSkipTag(Pos)
 end
 
 
+function mod:RerollBossBlind()
+
+    local BossPlate = Game:GetRoom():GetGridEntity(70)
+
+    if not BossPlate then
+        return false
+    end
+
+    BossPlate = BossPlate:ToPressurePlate()
+
+    for _, Entity in ipairs(Isaac.FindByType(EntityType.ENTITY_EFFECT, mod.Effects.DIALOG_BUBBLE, mod.DialogBubbleSubType.BLIND_INFO)) do
+
+        if Entity.InitSeed & mod.BLINDS.BOSS ~= 0 then
+
+            Entity:Remove()
+        end
+    end
+
+
+    local WasSpecialBoss = BossPlate.VarData >= mod.BLINDS.BOSS_ACORN
+
+    mod.Saved.AnteBoss = mod:RandomBossBlind(mod.RNGs.BOSS_BLINDS, WasSpecialBoss)
+
+    BossPlate.VarData = mod.Saved.AnteBoss
+
+    mod:EvaluateBlindData(mod.Saved.AnteBoss)
+
+    mod:TrueBloodPoof(BossPlate.Position, 1, mod.EffectColors.PURPLE)
+
+    mod:UpdateBalatroPlate(BossPlate, true)
+
+    return true
+end
+
 ---@param Player EntityPlayer
 ---@param StopEvaluation boolean this is only set when called in mod:AddJoker
 local function JimboAddTrinket(_, Player, Trinket, _, StopEvaluation)
@@ -2781,6 +3029,9 @@ local function JimboAddTrinket(_, Player, Trinket, _, StopEvaluation)
     local PIndex = Player:GetData().TruePlayerIndex
         
     Player:TryRemoveTrinket(Trinket) -- a custom table is used instead since he needs to hold many of them
+
+
+    mod.Saved.FloorEditions[Level:GetCurrentRoomDesc().ListIndex] = mod.Saved.FloorEditions[Level:GetCurrentRoomDesc().ListIndex] or {}
 
     local JokerEdition = mod.Saved.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Trinket).Name] or mod.Edition.BASE 
 
@@ -2842,6 +3093,8 @@ end
 
 function mod:AddCardToDeck(Player, CardTable,Amount, PutInHand)
 
+    Amount = Amount or 1
+
     if Amount <= 0 then
         return
     end
@@ -2850,6 +3103,7 @@ function mod:AddCardToDeck(Player, CardTable,Amount, PutInHand)
     CardTable.Edition = CardTable.Edition or mod.Edition.BASE
     CardTable.Seal = CardTable.Seal or mod.Seals.NONE
     CardTable.Modifiers = CardTable.Modifiers or 0
+    CardTable.Upgrades = CardTable.Upgrades or 0
 
     CardTable.Modifiers = CardTable.Modifiers | mod:GetCardModifiers(Player, CardTable)
 
@@ -2867,11 +3121,10 @@ function mod:AddCardToDeck(Player, CardTable,Amount, PutInHand)
         mod.SelectionParams[PIndex].PlayedCards[i] = mod.SelectionParams[PIndex].PlayedCards[i] + Amount --fixes the jump made by table.insert
     end
 
-    if mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_PILLAR then
-        for i,_ in ipairs(mod.Saved.BossBlindVarData) do
-            mod.Saved.BossBlindVarData[i] = mod.Saved.BossBlindVarData[i] + Amount --fixes the jump made by table.insert
-        end
+    for i,_ in ipairs(mod.Saved.AnteCardsPlayed) do
+        mod.Saved.AnteCardsPlayed[i] = mod.Saved.AnteCardsPlayed[i] + Amount --fixes the jump made by table.insert
     end
+    
 
     mod.Saved.Player[PIndex].DeckPointer = mod.Saved.Player[PIndex].DeckPointer + Amount --fixes the jump made by table.insert
 
@@ -2947,14 +3200,11 @@ function mod:DestroyCards(Player, DeckIndexes, DoEffects, BlockSubstitution)
                 end
             end
 
-            if mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_PILLAR then
                 
-                for i,Pointer in ipairs(mod.Saved.BossBlindVarData) do
-                    if Pointer >= DestroyedPointer then
-                        mod.SelectionParams[PIndex].PlayedCards[i] = mod.SelectionParams[PIndex].PlayedCards[i] - 1 --fixes the gap made by table.remove
-                    end
+            for i,Pointer in ipairs(mod.Saved.AnteCardsPlayed) do
+                if Pointer >= DestroyedPointer then
+                    mod.Saved.AnteCardsPlayed[i] = mod.Saved.AnteCardsPlayed[i] - 1 --fixes the gap made by table.remove
                 end
-
             end
         end
 
@@ -3203,7 +3453,7 @@ function mod:GetCardModifiers(Player, Card, Pointer)
 
     elseif BlindType == mod.BLINDS.BOSS_PILLAR then
 
-        if mod:Contained(mod.Saved.BossBlindVarData, Pointer) then
+        if mod:Contained(mod.Saved.AnteCardsPlayed, Pointer) then
             CardModifiers = mod.Modifier.DEBUFFED
         end
 
@@ -3223,6 +3473,21 @@ function mod:GetCardModifiers(Player, Card, Pointer)
     return CardModifiers
 end
 
+
+function mod:EvaluateBlindData(BlindType)
+
+
+    if BlindType == mod.BLINDS.BOSS_OX then
+        
+        local _
+        --saves the currently most used card
+        _,mod.Saved.BossBlindVarData = mod:GetMax(mod.Saved.HandsTypeUsed)
+
+    else
+        mod.Saved.BossBlindVarData = 0
+    end
+
+end
 
 
 --shuffles the deck
@@ -3641,7 +3906,7 @@ function mod:GetBlindScoreRequirement(Blind)
 
         local NumFixedAntes = #AnteScaling
     
-        local a, b, c, d, k = AnteScaling[8],1.6,mod.Saved.AnteLevel-NumFixedAntes, 1 + 0.2*(mod.Saved.AnteLevel-NumFixedAntes), 0.75
+        local a, b, c, d, k = AnteScaling[NumFixedAntes],1.6,mod.Saved.AnteLevel-NumFixedAntes, 1 + 0.2*(mod.Saved.AnteLevel-NumFixedAntes), 0.75
         
         Score = math.floor(a*(b+(k*c)^d)^c)
         
@@ -3678,6 +3943,11 @@ end
 
 ---@param Trinket EntityPickup
 function mod:TrinketEditionsRender(Trinket, Offset)
+
+    if Trinket.Variant ~= PickupVariant.PICKUP_TRINKET then
+        return --aparently the extra param in the callback isn't enough?? (problem came up when addinf he playing card pickup)
+    end
+
     local Index = Level:GetCurrentRoomDesc().ListIndex
     local JokerConfig = ItemsConfig:GetTrinket(Trinket.SubType)
 
@@ -3718,6 +3988,15 @@ function mod:PlaceBlindRoomsForReal()
     local RoomPlaceSeed = Level:GetDungeonPlacementSeed()
     local PlaceRNG = RNG(RoomPlaceSeed)
 
+
+    local StageID = Isaac.GetCurrentStageConfigId()
+
+    if StageID == StbType.VOID then --throws an error so just get a random floor
+    
+        ---@diagnostic disable-next-line: cast-local-type
+        StageID = mod:GetRandom(mod.Saved.EncounteredStageIDs, RoomRNG) or StbType.BASEMENT
+    end
+
     local SmallDesc
     local BigDesc
     local ShopDesc
@@ -3729,15 +4008,19 @@ function mod:PlaceBlindRoomsForReal()
         repeat
 
             BigRoom = RoomConfigHolder.GetRandomRoom( mod:RandomSeed(RoomRNG),
-                                                        true, 
-                                                        Isaac.GetCurrentStageConfigId(),
-                                                        RoomType.ROOM_DEFAULT,
-                                                        RoomShape.ROOMSHAPE_2x2,
-                                                        -1, -1,
-                                                        4,
-                                                        10,
-                                                        0,
-                                                        -1,-1)
+                                                      true, 
+                                                      StageID,
+                                                      RoomType.ROOM_DEFAULT,
+                                                      RoomShape.ROOMSHAPE_2x2,
+                                                      -1, -1,
+                                                      2,
+                                                      10,
+                                                      0,
+                                                      -1,-1)
+
+            if not BigRoom then
+                return
+            end
 
 
             local Entries = BigRoom.Spawns
@@ -3751,9 +4034,10 @@ function mod:PlaceBlindRoomsForReal()
 
                 if Config and Config:CanShutDoors() 
                    and Entity.Type ~= EntityType.ENTITY_EFFECT
+                   and Entity.Type ~= EntityType.ENTITY_SLOT
                    and Entity.Type ~= 4500 --i think it's the trigger pressure plate
                    and Entity.Type ~= EntityType.ENTITY_PICKUP --why tf is this even needed
-                   and Entity.Type ~= 246 then 
+                   and Entity.Type ~= EntityType.ENTITY_RAGLING then 
                     
                     IsHostile = true
                     break
@@ -3785,14 +4069,18 @@ function mod:PlaceBlindRoomsForReal()
         repeat
             SmallRoom = RoomConfigHolder.GetRandomRoom( mod:RandomSeed(RoomRNG),
                                                         true, 
-                                                        Isaac.GetCurrentStageConfigId(),
+                                                        StageID,
                                                         RoomType.ROOM_DEFAULT,
                                                         RoomShape.ROOMSHAPE_1x1,
                                                         -1, -1,
-                                                        4,
+                                                        2,
                                                         10,
                                                         0,
                                                         -1,-1)
+
+            if not SmallRoom then
+                return
+            end
 
             local Entries = SmallRoom.Spawns
             local IsHostile
@@ -3804,10 +4092,11 @@ function mod:PlaceBlindRoomsForReal()
                 local Config = EntityConfig.GetEntity(Entity.Type, Entity.Variant)
 
                 if Config and Config:CanShutDoors() 
-                   and Entity.Type ~= EntityType.ENTITY_EFFECT
+                   and Entity.Type ~= EntityType.ENTITY_EFFECT --why tf is this even needed
+                   and Entity.Type ~= EntityType.ENTITY_SLOT
                    and Entity.Type ~= 4500  -- i think it's the trigger pressure plate
                    and Entity.Type ~= EntityType.ENTITY_PICKUP 
-                   and Entity.Type ~= 246 then --why tf is this even needed
+                   and Entity.Type ~= EntityType.ENTITY_RAGLING then 
                     
                     print(Entity.Type, Entity.Variant, "is hostile")
                     IsHostile = true
@@ -3838,12 +4127,9 @@ function mod:PlaceBlindRoomsForReal()
 
     SmallDesc:AddRestrictedGridIndex(67)
 
-    local ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_2
 
-    if PlayerManager.AnyoneHasCollectible(mod.Vouchers.OverstockPlus) then
-        ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_3
-    elseif PlayerManager.AnyoneHasCollectible(mod.Vouchers.Overstock) then
-        ShopQuality= RoomSubType.SHOP_KEEPER_LEVEL_4
+    if mod.Saved.ShopIndex then
+        return
     end
 
     repeat
@@ -3856,7 +4142,7 @@ function mod:PlaceBlindRoomsForReal()
                                                         -1, -1,
                                                         0,
                                                         10,
-                                                        0, ShopQuality, -1)
+                                                        0, RoomSubType.SHOP_KEEPER_LEVEL_2, -1)
 
         local PlaceSeed = mod:RandomSeed(PlaceRNG)
 
@@ -4005,7 +4291,7 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
             if IsTaintedJimbo
                and mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_BELL then
 
-                mod.SelectionParams[PIndex].SelectedCards[mod.Saved.BossBlindVarData] = true
+                mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND][mod.Saved.BossBlindVarData] = true
             end
 
         elseif not IsTaintedJimbo then
@@ -4182,7 +4468,7 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
 
             Params.Index = NewIndex or 1
             
-            --mod.SelectionParams[PIndex].SelectionNum = mod:GetValueRepetitions(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams[PIndex].Mode],)
+            mod.SelectionParams[PIndex].SelectionNum = mod:GetValueRepetitions(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams[PIndex].Mode], true)
         else
             mod.SelectionParams[PIndex].Index = 1
         end
@@ -4662,6 +4948,9 @@ function mod:UseSelection(Player)
                 mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose & ~mod.SelectionParams.Purposes.MegaFlag
                 
                 goto FINISH --allow another card to be chosen
+
+            else
+                mod.AnimationIsPlaying = true
             end
 
         elseif PackPurpose == mod.SelectionParams.Purposes.StandardPack then
@@ -4678,6 +4967,9 @@ function mod:UseSelection(Player)
                      
                 mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose & ~mod.SelectionParams.Purposes.MegaFlag
                 goto FINISH
+
+            else
+                mod.AnimationIsPlaying = true
             end
 
         elseif PackPurpose == mod.SelectionParams.Purposes.BuffonPack then
@@ -4699,6 +4991,9 @@ function mod:UseSelection(Player)
                 mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose & ~mod.SelectionParams.Purposes.MegaFlag
 
                 goto FINISH
+
+            else
+                mod.AnimationIsPlaying = true
             end
         end
 
