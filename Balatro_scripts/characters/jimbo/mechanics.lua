@@ -15,6 +15,8 @@ local JOKER_OVERLAY_LENGTH = TrinketSprite:GetAnimationData("Idle"):GetLength()
 local CHARGED_ANIMATION = 22 --the length of an animation for chargebars
 local CHARGED_LOOP_ANIMATION = 10
 
+local JIMBO_BASE_TEARS = 2.5 --is actually 1+ this value
+
 
 local BasicRoomNum = 0
 local DeathCopyCard
@@ -342,10 +344,11 @@ function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rN
 
         local RandomJoker = mod:RandomJoker(RollRNG, true, false, false)
 
-        print(RandomJoker.Joker)
-        ReturnTable = {PickupVariant.PICKUP_TRINKET, RandomJoker.Joker ,false}
+        --print(RandomJoker.Joker, RandomJoker.Edition, RandomJoker.Joker | mod.EditionFlag[RandomJoker.Edition])
 
-        mod.Saved.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(RandomJoker.Joker).Name] = RandomJoker.Edition
+        ReturnTable = {PickupVariant.PICKUP_TRINKET, RandomJoker.Joker | mod.EditionFlag[RandomJoker.Edition] ,false}
+
+        --mod.Saved.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(RandomJoker.Joker).Name] = RandomJoker.Edition
     
     --reverse tarot become their non-reverse variant
     elseif ReturnTable[1] == PickupVariant.PICKUP_TAROTCARD 
@@ -421,7 +424,12 @@ function mod:SetItemPrices(Variant,SubType,ShopID,Price)
 
     elseif Variant == PickupVariant.PICKUP_TRINKET then --jokers
     
-        Cost = mod:GetJokerCost(SubType, mod.Saved.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(SubType).Name] or 0)
+        local Joker = SubType & ~mod.EditionFlag.ALL
+        local Edition = (SubType & mod.EditionFlag.ALL) >> mod.EDITION_FLAG_SHIFT
+
+        Cost = mod:GetJokerCost(SubType, Edition)
+    
+        --Cost = mod:GetJokerCost(SubType, mod.Saved.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(SubType).Name] or 0)
 
     else --prob stuff like booster packs
         Cost = 5
@@ -751,6 +759,8 @@ mod:AddCallback(ModCallbacks.MC_POST_ENTITY_REMOVE, mod.OverstockGreedJokerFix, 
 
 function mod:AddRoomsCleared(IsBoss, Hostile)
 
+    Isaac.DebugString("BALATRO Room cleared")
+
     if not Game:IsGreedMode() then
         for i,Player in ipairs(PlayerManager.GetPlayers()) do
             if Player:GetPlayerType() == mod.Characters.JimboType then
@@ -763,6 +773,9 @@ function mod:AddRoomsCleared(IsBoss, Hostile)
                 if Hostile then
                     mod:FullDeckShuffle(Player)
                 end
+
+                --Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.HEART, Player.Position + Vector(0,7),Vector.Zero,nil,0,1)
+                Player:AddHearts(2)
             end
         end
     end
@@ -772,17 +785,16 @@ function mod:AddRoomsCleared(IsBoss, Hostile)
         return
     end
 
-    if not Game:IsGreedMode() then
-
-        for i,Player in ipairs(PlayerManager.GetPlayers()) do
-            if Player:GetPlayerType() == mod.Characters.JimboType then
-
-                Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.HEART, Player.Position + Vector(0,7),Vector.Zero,nil,0,1)
-                Player:AddHearts(2)
-                mod:FullDeckShuffle(Player)
-            end
-        end
-    end
+    --if not Game:IsGreedMode() then
+--
+    --    for i,Player in ipairs(PlayerManager.GetPlayers()) do
+    --        if Player:GetPlayerType() == mod.Characters.JimboType then
+--
+    --            Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.HEART, Player.Position + Vector(0,7),Vector.Zero,nil,0,1)
+    --            Player:AddHearts(2)
+    --        end
+    --    end
+    --end
 
 
     if IsBoss and mod.Saved.BossCleared ~= mod.BossProgress.CLEARED
@@ -822,6 +834,8 @@ mod:AddPriorityCallback("TRUE_ROOM_CLEAR",CallbackPriority.LATE, mod.AddRoomsCle
 ---@param Player EntityPlayer
 function mod:OnDeckShift(Player)
 
+    Isaac.DebugString("BALATRO deck shift")
+
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
@@ -844,6 +858,8 @@ mod:AddCallback("DECK_SHIFT", mod.OnDeckShift)
 
 
 function mod:GiveRewards(BlindType)
+
+    Isaac.DebugString("BALATRO blind clear")
 
     if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
         return
@@ -918,12 +934,6 @@ function mod:GiveRewards(BlindType)
         end
         mod:CreateBalatroEffect(Jimbo,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+"..tostring(Interests).." $", mod.EffectType.ENTITY, Jimbo)
     end, 30, 1, true)
-
-
-    
-
-
-    print("rewards should be given")
 end
 mod:AddCallback(mod.Callbalcks.BLIND_CLEAR, mod.GiveRewards)
 
@@ -1022,7 +1032,6 @@ function mod:JimboTakeDamage(Player,Amount,_,Source,_)
 
 
         Isaac.RunCallback("DECK_SHIFT", Player)
-
     end
 
     DamagedThisFrame[Player:GetPlayerIndex()] = true
@@ -1120,6 +1129,9 @@ mod:AddCallback(ModCallbacks.MC_FAMILIAR_INIT, mod.JimboBlueFliesSpiders, Famili
 ---@param Player EntityPlayer
 function mod:JimboRoomClear(Player)
 
+
+    Isaac.DebugString("BALATRO trigger clear")
+
     if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
         return
     end
@@ -1152,18 +1164,23 @@ function mod:JimboRoomClear(Player)
     else
         local Room = Game:GetRoom():GetType()
 
-        if Room == RoomType.ROOM_DEFAULT then
-            Isaac.RunCallback("TRUE_ROOM_CLEAR",false, true)
-        elseif Room == RoomType.ROOM_BOSS then
-            Isaac.RunCallback("TRUE_ROOM_CLEAR",true, true)
-        else
-            for i,Player in ipairs(PlayerManager.GetPlayers()) do
-                if Player:GetPlayerType() == mod.Characters.JimboType then
-                    Player:AddHearts(2)
-                    mod:FullDeckShuffle(Player)
-                end
-            end
-        end
+        Isaac.RunCallback("TRUE_ROOM_CLEAR", Room == RoomType.ROOM_DEFAULT, true)
+
+
+        --if Room == RoomType.ROOM_DEFAULT
+        --   or Room == RoomType.ROOM_MINIBOSS then
+        --
+        --    Isaac.RunCallback("TRUE_ROOM_CLEAR",false, true)
+        --elseif Room == RoomType.ROOM_BOSS then
+        --    Isaac.RunCallback("TRUE_ROOM_CLEAR",true, true)
+        --else
+        --    for i,Player in ipairs(PlayerManager.GetPlayers()) do
+        --        if Player:GetPlayerType() == mod.Characters.JimboType then
+        --            Player:AddHearts(2)
+        --            mod:FullDeckShuffle(Player)
+        --        end
+        --    end
+        --end
 
 
     end
@@ -1185,16 +1202,23 @@ function mod:JokerStatReset(Player, Cache)
         return
     end
 
+    --Isaac.DebugString("-----START RESET------")
+
     --resets the jokers stat boosts every evaluation since otherwise they would infinitely stack
     mod:StatReset(Player, Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE,
                   Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY,
                   false, true, false)
+
+    --Isaac.DebugString("-----END RESET------")
 end
 mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.IMPORTANT, mod.JokerStatReset)
 
 ---@param Player EntityPlayer
 ---@param Cache CacheFlag
 function mod:JimboStatCalculator(Player, Cache)
+
+    --Isaac.DebugString("BALATRO stat calculator")
+
     if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted then
         return
     end
@@ -1214,6 +1238,8 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.JimboStatCalculator)
 
 ---@param Player EntityPlayer
 function mod:StatReset(Player, Damage, Tears, Evaluate, Jokers, Basic)
+
+    Isaac.DebugString("BALATRO stat reset  ("..tostring(Evaluate)..")")
 
     if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted then
         return
@@ -1236,7 +1262,7 @@ function mod:StatReset(Player, Damage, Tears, Evaluate, Jokers, Basic)
     end
     if Tears then
         if Basic then
-            mod.Saved.Player[PIndex].StatsToAdd.Tears = mod.JimboStartTears
+            mod.Saved.Player[PIndex].StatsToAdd.Tears = JIMBO_BASE_TEARS
         end
         if Jokers then
             mod.Saved.Player[PIndex].StatsToAdd.JokerTears = 0
@@ -1252,6 +1278,9 @@ local LibraEnable = true
 --finally gives the actual stat changes to jimbo, also used for always active buffs
 ---@param Player EntityPlayer
 function mod:StatGiver(Player, Cache)
+
+    Isaac.DebugString("BALATRO stat giver")
+
     if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted then
         return
     end
@@ -1560,7 +1589,11 @@ mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mo
 ---@param Tear EntityTear
 function mod:AddCardTearFalgs(Tear, Split, ForceCard)
 
-    local Player = Tear.Parent:ToPlayer()
+    local Player = Tear.Parent and Tear.Parent:ToPlayer() or nil
+
+    if not Player then
+        Player = Tear.SpawnerEntity and Tear.SpawnerEntity:ToPlayer() or nil
+    end
 
     --print(Tear.Variant, mod.Tears.BANANA_VARIANT)
 
@@ -1628,6 +1661,7 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
 
         local TearSprite = Tear:GetSprite()
         TearSprite:Play(ENHANCEMENTS_ANIMATIONS[TearData.Params.Enhancement], true)
+
         if TearData.Params.Enhancement ~= mod.Enhancement.STONE
            and TearData.Params.Enhancement ~= mod.Enhancement.WILD then
 
@@ -1711,6 +1745,7 @@ mod:AddCallback(ModCallbacks.MC_POST_FIRE_BOMB, mod.BombFix)
 
 
 function mod:SplitTears(Tear)
+
     Isaac.CreateTimer(function ()
         if not Tear:GetData().Num then
             mod:AddCardTearFalgs(Tear, true)
@@ -1780,6 +1815,11 @@ function mod:AdjustCardRotation(Tear)
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_TEAR_RENDER, mod.AdjustCardRotation, mod.Tears.CARD_TEAR_VARIANT)
+mod:AddCallback(ModCallbacks.MC_PRE_TEAR_RENDER, mod.AdjustCardRotation, mod.Tears.SUIT_TEAR_VARIANTS[mod.Suits.Spade])
+mod:AddCallback(ModCallbacks.MC_PRE_TEAR_RENDER, mod.AdjustCardRotation, mod.Tears.SUIT_TEAR_VARIANTS[mod.Suits.Heart])
+mod:AddCallback(ModCallbacks.MC_PRE_TEAR_RENDER, mod.AdjustCardRotation, mod.Tears.SUIT_TEAR_VARIANTS[mod.Suits.Club])
+mod:AddCallback(ModCallbacks.MC_PRE_TEAR_RENDER, mod.AdjustCardRotation, mod.Tears.SUIT_TEAR_VARIANTS[mod.Suits.Diamond])
+
 
 
 

@@ -150,7 +150,224 @@ local CERES_PIECE_PATH = "gfx/familiar/familiar_ceres_piece.png"
 local CERES_FIRE_COOLDOWN = 50
 local COLOR_CERES = Color(1,1,1,1,0,0,0,0.55, 0.55, 0.6, 1)
 
+local PLANET_X_PICKER = WeightedOutcomePicker() --setup as the game starts to include any item inside the planetarium pool
 
+local ERIS_MAX_RADIUS = 165
+local ERIS_MIN_RADIUS = 20
+local ERIS_MAX_SLOW = 0.075
+local ERIS_MIN_SLOW = 0.005
+
+
+local PENNY_TRINKET_POOLS = {[BackdropType.BASEMENT] = {TrinketType.TRINKET_BUTT_PENNY,
+                                                        TrinketType.TRINKET_COUNTERFEIT_PENNY,
+                                                        },
+                             [BackdropType.BURNT_BASEMENT] = {TrinketType.TRINKET_BUTT_PENNY,
+                                                             TrinketType.TRINKET_BURNT_PENNY,
+                                                             },
+                             [BackdropType.CELLAR] = {TrinketType.TRINKET_BUTT_PENNY,
+                                                      TrinketType.TRINKET_FLAT_PENNY,
+                                                      },
+                             [BackdropType.DOWNPOUR] = {TrinketType.TRINKET_SWALLOWED_PENNY,
+                                                        TrinketType.TRINKET_BLESSED_PENNY,
+                                                        },
+                             [BackdropType.DROSS] = {TrinketType.TRINKET_SWALLOWED_PENNY,
+                                                     TrinketType.TRINKET_ROTTEN_PENNY,
+                                                     },
+                             [BackdropType.CAVES] = {TrinketType.TRINKET_FLAT_PENNY,
+                                                     TrinketType.TRINKET_CHARGED_PENNY,
+                                                     },
+                             [BackdropType.FLOODED_CAVES] = {TrinketType.TRINKET_FLAT_PENNY,
+                                                             TrinketType.TRINKET_SWALLOWED_PENNY,
+                                                             },
+                             [BackdropType.CATACOMBS] = {TrinketType.TRINKET_FLAT_PENNY,
+                                                         TrinketType.TRINKET_CURSED_PENNY,
+                                                         },
+                             [BackdropType.MINES] = {TrinketType.TRINKET_COUNTERFEIT_PENNY,
+                                                     TrinketType.TRINKET_CHARGED_PENNY,
+                                                     },
+                             [BackdropType.ASHPIT] = {TrinketType.TRINKET_COUNTERFEIT_PENNY,
+                                                      TrinketType.TRINKET_CURSED_PENNY,
+                                                      },           
+                             [BackdropType.NECROPOLIS] = {TrinketType.TRINKET_CURSED_PENNY,
+                                                          TrinketType.TRINKET_BLESSED_PENNY,
+                                                          },
+                             [BackdropType.DEPTHS] = {TrinketType.TRINKET_CURSED_PENNY,
+                                                      TrinketType.TRINKET_COUNTERFEIT_PENNY,
+                                                      },
+                             [BackdropType.DANK_DEPTHS] = {TrinketType.TRINKET_CURSED_PENNY,
+                                                            TrinketType.TRINKET_SWALLOWED_PENNY,
+                                                            },
+                             [BackdropType.MAUSOLEUM] = {TrinketType.TRINKET_CURSED_PENNY,
+                                                         TrinketType.TRINKET_BLESSED_PENNY,
+                                                         },
+                             [BackdropType.GEHENNA] = {TrinketType.TRINKET_CURSED_PENNY,
+                                                       TrinketType.TRINKET_BLOODY_PENNY,
+                                                       },
+                             [BackdropType.WOMB] = {TrinketType.TRINKET_BLOODY_PENNY,
+                                                    TrinketType.TRINKET_CHARGED_PENNY,
+                                                    },
+                             [BackdropType.SCARRED_WOMB] = {TrinketType.TRINKET_BLOODY_PENNY,
+                                                            TrinketType.TRINKET_BURNT_PENNY,
+                                                            },
+                             [BackdropType.UTERO] = {TrinketType.TRINKET_BLOODY_PENNY,
+                                                     TrinketType.TRINKET_SWALLOWED_PENNY,
+                                                     },
+                             [BackdropType.BLUE_WOMB] = {TrinketType.TRINKET_ROTTEN_PENNY,
+                                                         TrinketType.TRINKET_BLESSED_PENNY,
+                                                         },
+                             [BackdropType.CORPSE] = {TrinketType.TRINKET_ROTTEN_PENNY,
+                                                      TrinketType.TRINKET_CURSED_PENNY,
+                                                      },
+                             [BackdropType.CATHEDRAL] = {TrinketType.TRINKET_BLESSED_PENNY,
+                                                         TrinketType.TRINKET_SWALLOWED_PENNY,
+                                                         },
+                             [BackdropType.CHEST] = {TrinketType.TRINKET_BLESSED_PENNY,
+                                                     TrinketType.TRINKET_ROTTEN_PENNY,
+                                                     TrinketType.TRINKET_FLAT_PENNY,
+                                                     },
+                             [BackdropType.SHEOL] = {TrinketType.TRINKET_CURSED_PENNY,
+                                                     TrinketType.TRINKET_COUNTERFEIT_PENNY
+                                                    },
+                             [BackdropType.DARKROOM] = {TrinketType.TRINKET_CURSED_PENNY,
+                                                        TrinketType.TRINKET_BLOODY_PENNY,
+                                                        },
+                             [BackdropType.ARCADE] = {TrinketType.TRINKET_CHARGED_PENNY,
+                                                      TrinketType.TRINKET_COUNTERFEIT_PENNY,
+                                                      },
+                             [BackdropType.SHOP] = {TrinketType.TRINKET_CHARGED_PENNY,
+                                                    TrinketType.TRINKET_ROTTEN_PENNY,
+                                                    },
+                             [BackdropType.PLANETARIUM] = {TrinketType.TRINKET_BLESSED_PENNY,
+                                                          },
+                             [BackdropType.MOMS_BEDROOM] = {TrinketType.TRINKET_CURSED_PENNY,
+                                                            TrinketType.TRINKET_BLESSED_PENNY,
+                                                            },
+                             [BackdropType.DICE] = {TrinketType.TRINKET_FLAT_PENNY,
+                                                    TrinketType.TRINKET_BURNT_PENNY,
+                                                    TrinketType.TRINKET_BLOODY_PENNY,
+                                                    TrinketType.TRINKET_CURSED_PENNY,
+                                                    TrinketType.TRINKET_ROTTEN_PENNY,
+                                                    TrinketType.TRINKET_BLESSED_PENNY,
+                                                    TrinketType.TRINKET_CHARGED_PENNY,
+                                                    TrinketType.TRINKET_SWALLOWED_PENNY,
+                                                    TrinketType.TRINKET_COUNTERFEIT_PENNY}}
+
+local GROUND_COLOR = {DEFAULT = Color(0.5, 0.2, 0.07),
+                      [BackdropType.CORPSE] = Color.ProjectileCorpseGreen,
+                      [BackdropType.CORPSE2] = Color.ProjectileCorpseGreen,
+                      [BackdropType.CORPSE3] = Color.ProjectileCorpseGreen,
+                      [BackdropType.CORPSE_ENTRANCE] = Color.ProjectileCorpseGreen,
+                    
+                      [BackdropType.BLUE_WOMB] = Color.ProjectileHushBlue,
+                      [BackdropType.BLUE_WOMB_PASS] = Color.ProjectileHushBlue,
+
+                      [BackdropType.CATHEDRAL] = Color.ProjectileHushBlue,
+
+                      [BackdropType.SHEOL] = Color(0.15, 0.15, 0.2),
+                      [BackdropType.DARKROOM] = Color(0.15, 0.15, 0.2),
+                      [BackdropType.MEGA_SATAN] = Color(0.15, 0.15, 0.2),
+                      [BackdropType.SACRIFICE] = Color(0.15, 0.15, 0.2),
+                        }
+
+local GROUND_PARTICLE = { DEFAULT = EffectVariant.TOOTH_PARTICLE,
+                         [BackdropType.WOMB] = EffectVariant.BLOOD_PARTICLE,
+                         [BackdropType.SCARRED_WOMB] = EffectVariant.BLOOD_PARTICLE,
+                         [BackdropType.UTERO] = EffectVariant.BLOOD_PARTICLE,
+                        
+                         [BackdropType.CORPSE] = EffectVariant.BLOOD_PARTICLE,
+                         [BackdropType.CORPSE2] = EffectVariant.BLOOD_PARTICLE,
+                         [BackdropType.CORPSE3] = EffectVariant.BLOOD_PARTICLE,
+                         [BackdropType.CORPSE_ENTRANCE] = EffectVariant.BLOOD_PARTICLE,
+
+                         [BackdropType.BLUE_WOMB] = EffectVariant.BLOOD_PARTICLE,
+                         [BackdropType.BLUE_WOMB_PASS] = EffectVariant.BLOOD_PARTICLE,
+
+                         [BackdropType.CELLAR] = EffectVariant.WOOD_PARTICLE,
+                         [BackdropType.CHEST] = EffectVariant.WOOD_PARTICLE,
+                         [BackdropType.SHOP] = EffectVariant.WOOD_PARTICLE,
+                         [BackdropType.GREED_SHOP] = EffectVariant.WOOD_PARTICLE}
+
+
+do --specific backdorps
+
+    PENNY_TRINKET_POOLS.DEFAULT = {TrinketType.TRINKET_FLAT_PENNY,
+                                  TrinketType.TRINKET_BURNT_PENNY,
+                                  TrinketType.TRINKET_SWALLOWED_PENNY,
+                                  TrinketType.TRINKET_CHARGED_PENNY}
+
+    PENNY_TRINKET_POOLS[BackdropType.ASHPIT_SHAFT] = PENNY_TRINKET_POOLS[BackdropType.ASHPIT]
+    PENNY_TRINKET_POOLS[BackdropType.MINES_SHAFT] = PENNY_TRINKET_POOLS[BackdropType.MINES]
+    PENNY_TRINKET_POOLS[BackdropType.MINES_ENTRANCE] = PENNY_TRINKET_POOLS[BackdropType.MINES]
+
+    PENNY_TRINKET_POOLS[BackdropType.CORPSE2] = PENNY_TRINKET_POOLS[BackdropType.CORPSE]
+    PENNY_TRINKET_POOLS[BackdropType.CORPSE3] = PENNY_TRINKET_POOLS[BackdropType.CORPSE]
+    PENNY_TRINKET_POOLS[BackdropType.CORPSE_ENTRANCE] = PENNY_TRINKET_POOLS[BackdropType.CORPSE]
+
+    PENNY_TRINKET_POOLS[BackdropType.GREED_SHOP] = PENNY_TRINKET_POOLS[BackdropType.SHOP]
+
+    PENNY_TRINKET_POOLS[BackdropType.MAUSOLEUM2] = PENNY_TRINKET_POOLS[BackdropType.MAUSOLEUM]
+    PENNY_TRINKET_POOLS[BackdropType.MAUSOLEUM3] = PENNY_TRINKET_POOLS[BackdropType.MAUSOLEUM]
+    PENNY_TRINKET_POOLS[BackdropType.MAUSOLEUM4] = PENNY_TRINKET_POOLS[BackdropType.MAUSOLEUM]
+    PENNY_TRINKET_POOLS[BackdropType.MAUSOLEUM_ENTRANCE] = PENNY_TRINKET_POOLS[BackdropType.MAUSOLEUM]
+
+    PENNY_TRINKET_POOLS[BackdropType.DOWNPOUR_ENTRANCE] = PENNY_TRINKET_POOLS[BackdropType.DOWNPOUR]
+    PENNY_TRINKET_POOLS[BackdropType.MEGA_SATAN] = PENNY_TRINKET_POOLS[BackdropType.SHEOL]
+end
+
+
+local HEIRLOOM_COIN_UPGRADES = {[CoinSubType.COIN_PENNY] = {NewSubType = CoinSubType.COIN_DOUBLEPACK, Chance = 0.5},
+                                [CoinSubType.COIN_DOUBLEPACK] = {NewSubType = CoinSubType.COIN_NICKEL, Chance = 0.4},
+                                [CoinSubType.COIN_NICKEL] = {NewSubType = CoinSubType.COIN_DIME, Chance = 0.12},
+                                [CoinSubType.COIN_DIME] = {NewSubType = CoinSubType.COIN_GOLDEN, Chance = 0.2},}
+
+local PICKUP_GOLDEN_SUB = {[PickupVariant.PICKUP_BOMB] = {NewSubType = BombSubType.BOMB_GOLDEN, Chance = 0.075},
+                           [PickupVariant.PICKUP_KEY] = {NewSubType = KeySubType.KEY_GOLDEN, Chance = 0.075},
+                           [PickupVariant.PICKUP_HEART] = {NewSubType = HeartSubType.HEART_GOLDEN, Chance = 0.06},
+                           [PickupVariant.PICKUP_LIL_BATTERY] = {NewSubType = BatterySubType.BATTERY_GOLDEN, Chance = 0.08},}
+                
+local GOLDEN_PILL_CHANCE = 0.095
+local GOLDEN_TRINKET_CHANCE = 0.075
+
+local PICKUP_GOLDEN_VARIANT = {[PickupVariant.PICKUP_CHEST] = {NewVariant = PickupVariant.PICKUP_LOCKEDCHEST, Chance = 0.065},
+                               [PickupVariant.PICKUP_MIMICCHEST] = {NewVariant = PickupVariant.PICKUP_LOCKEDCHEST, Chance = 0.065},
+                               [PickupVariant.PICKUP_SPIKEDCHEST] = {NewVariant = PickupVariant.PICKUP_LOCKEDCHEST, Chance = 0.065},
+                               }
+
+local GOLDEN_PICKUP_ACHIEVEMENTS = {[PickupVariant.PICKUP_COIN] = Achievement.GOLDEN_PENNY,
+                                    [PickupVariant.PICKUP_BOMB] = Achievement.GOLDEN_BOMBS,
+                                    [PickupVariant.PICKUP_HEART] = Achievement.GOLDEN_HEARTS,
+                                    [PickupVariant.PICKUP_LIL_BATTERY] = Achievement.GOLDEN_BATTERY,
+                                    }
+
+local GOLDEN_ITEM_CHANCE = 0.015 --only if Epiphany is active and they are unlocked
+
+local GoldTurnSfx
+
+local function GetEpiphanySound()
+
+    GoldTurnSfx = Isaac.GetSoundIdByName("Gold Turn") --useless if Epiphany isn't there
+end
+mod:AddCallback(ModCallbacks.MC_POST_MODS_LOADED, GetEpiphanySound)
+
+
+
+local function SetupPlanetXPool()
+
+    PLANET_X_PICKER:ClearOutcomes()
+
+    local PlanetPool = Game:GetItemPool():GetCollectiblesFromPool(ItemPoolType.POOL_PLANETARIUM)
+
+    for _,Registration in ipairs(PlanetPool) do
+
+        local Config = ItemsConfig:GetCollectible(Registration.itemID)
+        
+        if Registration.itemID ~= mod.Collectibles.PLANET_X and Isaac.GetPersistentGameData():Unlocked(Config.AchievementID) then
+            
+            PLANET_X_PICKER:AddOutcomeFloat(Registration.itemID, Registration.weight)
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, SetupPlanetXPool)
 
 
 
@@ -338,13 +555,13 @@ function mod:FamiliarInit(Familiar)
 
     elseif Familiar.Variant == mod.Familiars.CERES then
 
-        Familiar:AddEntityFlags(EntityFlag.FLAG_NO_SPRITE_UPDATE)
-
         Familiar:AddToOrbit(5074)
         Familiar.OrbitDistance = Vector(110, 109.6)
-        Familiar.OrbitSpeed = 0.05
+        Familiar.OrbitSpeed = 0.07
 
         Familiar.FireCooldown = 0
+
+        Familiar:GetSprite().PlaybackSpeed = 0.02 --orbits real slow
     end
 end
 mod:AddCallback(ModCallbacks.MC_FAMILIAR_INIT, mod.FamiliarInit)
@@ -543,7 +760,11 @@ function mod:FamiliarUpdate(Familiar)
             end
 
             --only decrease charge if it's chasing something
-            Familiar.FireCooldown = Familiar.State == TeethStates.CHASE and math.max(Familiar.FireCooldown - 1, 0) or Familiar.FireCooldown
+            if Familiar.State == TeethStates.CHASE 
+               and next(Isaac.FindInRadius(Familiar.Position, 200, EntityPartition.ENEMY)) then
+
+                Familiar.FireCooldown =  math.max(Familiar.FireCooldown - 1, 0)
+            end
 
             --Familiar.FireCooldown = Familiar.FireCooldown - 1
             if Familiar.FireCooldown <= 0 and CanStop then
@@ -606,9 +827,9 @@ function mod:FamiliarUpdate(Familiar)
         Familiar:AddVelocity((OrbitPosition - Familiar.Position)*0.2)
 
 
-        if Game:GetFrameCount() % 50 == 0 then
-            Familiar:GetSprite():Update()
-        end
+        --if Game:GetFrameCount() % 50 == 0 then
+        --    Familiar:GetSprite():Update()
+        --end
     end
 end
 mod:AddCallback(ModCallbacks.MC_FAMILIAR_UPDATE, mod.FamiliarUpdate)
@@ -761,7 +982,7 @@ function mod:FamiliarCollision(Familiar, Collider,_)
                 Sprite:Update()
 
                 if Familiar.FireCooldown % 40 == 0 then
-                    sfx:Play(SoundEffect.SOUND_BEEP, 0.8, 2, false, 0.45 + Familiar.FireCooldown/MAX_TEETH_CHARGE)
+                    sfx:Play(SoundEffect.SOUND_BEEP, 0.8, 2, false, 0.45 + 0.8*Familiar.FireCooldown/MAX_TEETH_CHARGE)
                 end
 
                 if Familiar.FireCooldown >= MIN_TEETH_CHARGE then
@@ -786,7 +1007,7 @@ function mod:FamiliarCollision(Familiar, Collider,_)
                 return
             end
 
-            local DamageDealt = 1 * Familiar:GetMultiplier()
+            local DamageDealt = 1.45 * Familiar:GetMultiplier() + 0.15*Game:GetLevel():GetAbsoluteStage()
 
             Enemy:TakeDamage(DamageDealt, 0, EntityRef(Familiar), 0)
 
@@ -1417,6 +1638,7 @@ end
 ----------ITEM EFFECTS---------
 -------------------------------
 
+
 ---@param Player EntityPlayer
 function mod:SpawnCrayonCreep(Player)
 
@@ -1615,6 +1837,8 @@ function mod:ActiveUse(Item, Rng, Player, Flags, Slot, Data)
         if Flags & UseFlag.USE_MIMIC == 0 then
             Player:AddCollectible(mod.Collectibles.UMBRELLA, 0,  false, Slot)
         end
+
+
     end
 end
 mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.ActiveUse)
@@ -1643,7 +1867,6 @@ local function OnPlayerUpdate(_,Player)
         sfx:Play(SoundEffect.SOUND_PLOP)
         Tear.CollisionDamage = 0
         Tear.FallingAcceleration = 0
-
 
     end
 end
@@ -1806,6 +2029,7 @@ end
 mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, OnPlayerTakeDamage, EntityType.ENTITY_PLAYER)
 
 
+---@param Player EntityPlayer
 local function OnRoomClear(_, Player)
 
     local Type = Game:GetRoom():GetType()
@@ -1865,6 +2089,28 @@ local function OnRoomClear(_, Player)
 
     end
 
+    if Player:HasCollectible(mod.Collectibles.PLANET_X) then
+
+        local PIndex = Player:GetData().TruePlayerIndex
+
+        local PlanetX_Items = mod.Saved.Player[PIndex].InnateItems.Planet_X
+
+        for _, Item in ipairs(PlanetX_Items) do
+
+            Player:AddInnateCollectible(Item, -1)
+        end
+
+        PlanetX_Items = {}
+
+        for i = 1, Player:GetCollectibleNum(mod.Collectibles.PLANET_X) do
+
+            local PickedItem = PLANET_X_PICKER:PickOutcome(Player:GetCollectibleRNG(mod.Collectibles.PLANET_X))
+            
+            PlanetX_Items[i] = PickedItem
+
+            Player:AddInnateCollectible(PickedItem, 1)
+        end
+    end
 
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, OnRoomClear)
@@ -2089,7 +2335,6 @@ mod:AddCallback(ModCallbacks.MC_POST_FIRE_BRIMSTONE, PocketAcesTrigger)
 mod:AddCallback(ModCallbacks.MC_POST_FIRE_BRIMSTONE_BALL, PocketAcesTrigger)
 
 
---idk if its normal to need this but oh well
 local function EvaluateOnCandySmelt(_,_,_, Player)
 
     local HasCandy = false
@@ -2105,6 +2350,404 @@ local function EvaluateOnCandySmelt(_,_,_, Player)
 
 end
 mod:AddCallback(ModCallbacks.MC_USE_ITEM, EvaluateOnCandySmelt, CollectibleType.COLLECTIBLE_SMELTER)
+
+
+---@param Player EntityPlayer
+local function ErisAreaEffect(_, Player)
+
+    if not Player:HasCollectible(mod.Collectibles.ERIS) or Game:GetFrameCount() % 3 ~= 0 then
+        return
+    end
+
+    for _, Enemy in ipairs(Isaac.GetRoomEntities()) do
+
+        if not Enemy:IsActiveEnemy() then
+            goto SKIP_ENEMY
+        end
+
+        do
+
+        local Data = Enemy:GetData()
+
+        Data.ErisUnfreezeTime = Data.ErisUnfreezeTime or 0
+        Data.CurrentErisSlowValue = Data.CurrentErisSlowValue or 0
+
+        local Distance = Enemy.Position:Distance(Player.Position)
+
+        if Distance <= ERIS_MAX_RADIUS then
+
+            local SlowFactor = 1 - math.min(ERIS_MAX_RADIUS, Distance + ERIS_MIN_RADIUS)/ERIS_MAX_RADIUS
+            local ExtraSlowValue = mod:ExponentLerp(ERIS_MIN_SLOW, ERIS_MAX_SLOW, SlowFactor, 1.85)
+            local StartingSlow = Data.CurrentErisSlowValue or 0
+
+            local FinalSlow =ExtraSlowValue + StartingSlow
+
+            Data.CurrentErisSlowValue = FinalSlow
+            Data.ErisUnfreezeTime = 0
+
+        else --enemy starts to unfreeze if outside of the radius
+
+            Data.ErisUnfreezeTime = Data.ErisUnfreezeTime + 1
+
+            Data.CurrentErisSlowValue = Data.CurrentErisSlowValue - 0.01*(1+Data.ErisUnfreezeTime*0.05) 
+        end
+
+        Data.CurrentErisSlowValue = mod:Clamp(Data.CurrentErisSlowValue, 0.95, 0)
+
+        local SlowValue = Data.CurrentErisSlowValue
+    
+
+        local PLAYER_REF = EntityRef(Player)
+
+        if SlowValue >= 0.9 then
+
+            Enemy:AddIce(PLAYER_REF, 3)
+
+            Enemy:TakeDamage(Player.Damage*0.25+0.1, 0, PLAYER_REF, 2)
+        end
+
+        if SlowValue >= 0.02 then
+            
+            local SlowColor = Color()
+            SlowColor:SetColorize(0, 0.75, 0.85, SlowValue)
+
+            Enemy:AddSlowing(PLAYER_REF, 7, SlowValue, Color.Default)
+            Enemy:SetColor(SlowColor, 5, 10, true, false)
+
+            Enemy:SetSlowingCountdown(7)
+        end
+
+        end
+
+        ::SKIP_ENEMY::
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, ErisAreaEffect)
+
+
+local function PennySeedsPayout()
+
+    for _, Player in ipairs(PlayerManager.GetPlayers()) do
+
+        if not Player:HasTrinket(mod.Trinkets.PENNY_SEEDS) then
+            goto SKIP_PLAYER
+        end
+
+        do
+        local Multiplier = Player:GetTrinketMultiplier(mod.Trinkets.PENNY_SEEDS)
+
+        local CoinsPlanted = (Player:GetNumCoins() // 5) * Multiplier
+
+        Isaac.CreateTimer(function ()
+            
+        Isaac.CreateTimer(function ()
+            
+            local CoinVariant
+            local CoinSub
+            local CoinPosition
+
+            local PennyRNG = Player:GetTrinketRNG(mod.Trinkets.PENNY_SEEDS)
+
+            local VariantRoll = PennyRNG:RandomFloat()
+
+            if VariantRoll <= 0.001 then
+
+                CoinVariant = PickupVariant.PICKUP_COLLECTIBLE
+                CoinSub = CollectibleType.COLLECTIBLE_QUARTER
+
+                CoinPosition = Isaac.GetCollectibleSpawnPosition(Player.Position)
+
+                Player:AnimateHappy()
+                --sfx:Play(SoundEffect.SOUND_)
+
+
+            elseif VariantRoll <= 0.01 then
+
+                CoinVariant = PickupVariant.PICKUP_TRINKET
+
+                local Pool = PENNY_TRINKET_POOLS[Game:GetRoom():GetBackdropType()] or PENNY_TRINKET_POOLS.DEFAULT
+                CoinSub = mod:GetRandom(Pool, PennyRNG)
+
+                if not Isaac.GetPersistentGameData():Unlocked(ItemsConfig:GetTrinket(CoinSub).AchievementID) then
+                    CoinVariant = nil
+                    CoinSub = nil
+                else
+                    Player:AnimateHappy()
+                end
+            end
+
+            CoinVariant = CoinVariant or PickupVariant.PICKUP_COIN
+            CoinSub = CoinSub or CoinSubType.COIN_PENNY
+            CoinPosition = CoinPosition or Player.Position
+
+            if Player:HasGoldenTrinket(mod.Trinkets.PENNY_SEEDS) then
+            
+                if PennyRNG:RandomFloat() <= 0.1 then
+
+                    if CoinVariant == PickupVariant.PICKUP_TRINKET then
+                        CoinSub = CoinSub + TrinketType.TRINKET_GOLDEN_FLAG
+
+                    elseif CoinVariant == PickupVariant.PICKUP_COIN then
+                        CoinSub = CoinSubType.COIN_GOLDEN
+                    end
+                end
+            end
+
+            Game:Spawn(EntityType.ENTITY_PICKUP, CoinVariant, CoinPosition, RandomVector()*3,
+                       Player, CoinSub, mod:RandomSeed(PennyRNG))
+
+
+            local BackType = Game:GetRoom():GetBackdropType()
+            local ParticleVariant = GROUND_PARTICLE[BackType] or GROUND_PARTICLE.DEFAULT
+            local ParticleColor = GROUND_COLOR[BackType] or GROUND_COLOR.DEFAULT
+            
+            Game:SpawnParticles(Player.Position, ParticleVariant, 2, 2.5, ParticleColor)
+
+            
+            if BackType == BackdropType.WOMB
+               or BackType == BackdropType.SCARRED_WOMB
+               or BackType == BackdropType.UTERO
+               or BackType == BackdropType.SCARRED_WOMB
+               or BackType == BackdropType.CORPSE
+               or BackType == BackdropType.CORPSE2
+               or BackType == BackdropType.CORPSE3
+               or BackType == BackdropType.CORPSE_ENTRANCE then
+
+                sfx:Play(SoundEffect.SOUND_MEATY_DEATHS, 0.35, 2, false, math.random()*0.2 + 0.9)
+
+            else
+                sfx:Play(SoundEffect.SOUND_SHOVEL_DIG, 0.35, 2, false, math.random()*0.2 + 1.2)
+            end
+
+        end, 3, CoinsPlanted, true)
+
+        end, 7, 1, true)
+        
+        end
+        ::SKIP_PLAYER::
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, PennySeedsPayout)
+
+
+local function ModifyPickups(_, Pickup, Variant, SubType, ReqVariant, ReqSubType, Rng)
+
+    if ReqVariant ~= 0 and ReqSubType ~= 0 then
+        return
+    end
+
+    if GOLDEN_PICKUP_ACHIEVEMENTS[Variant] 
+       and not Isaac.GetPersistentGameData():Unlocked(GOLDEN_PICKUP_ACHIEVEMENTS[Variant]) then
+        return
+    end
+
+    local ReturnTable = {Variant, SubType, true}
+
+    for _,Player in ipairs(PlayerManager.GetPlayers()) do
+
+        if not ReturnTable[3] then
+            break
+        end
+
+        local GoldenRNG = Player:GetCollectibleRNG(mod.Collectibles.HEIRLOOM)
+
+        for i = 1, Player:GetCollectibleNum(mod.Collectibles.HEIRLOOM) do
+
+            if not ReturnTable[3] then
+                break
+            end
+
+            local UpgradeRoll = GoldenRNG:RandomFloat()
+
+            if PICKUP_GOLDEN_SUB[Variant] then
+
+                if UpgradeRoll <= PICKUP_GOLDEN_SUB[Variant].Chance then
+
+                    if Variant == PickupVariant.PICKUP_BOMB 
+                       and (SubType == BombSubType.BOMB_TROLL
+                            or SubType == BombSubType.BOMB_SUPERTROLL) then
+
+                        ReturnTable[2] = BombSubType.BOMB_GOLDENTROLL
+                    else
+                        ReturnTable[2] = PICKUP_GOLDEN_SUB[Variant].NewSubType
+                    end
+
+                    local Effect = Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.HEIRLOOM_TRIGGER, Pickup.Position,
+                                              Vector.Zero, Pickup, 0, 1):ToEffect()
+
+                    Effect:FollowParent(Pickup)
+                    Effect.ParentOffset = RandomVector()*8
+
+                    ReturnTable[3] = false
+                end
+
+            elseif PICKUP_GOLDEN_VARIANT[Variant] then
+
+                if UpgradeRoll <= PICKUP_GOLDEN_VARIANT[Variant].Chance then
+
+                    ReturnTable[1] = PICKUP_GOLDEN_VARIANT[Variant].NewVariant
+
+
+                    local Effect = Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.HEIRLOOM_TRIGGER, Pickup.Position,
+                                              Vector.Zero, Pickup, 0, 1):ToEffect()
+
+                    Effect:FollowParent(Pickup)
+                    Effect.ParentOffset = RandomVector()*20
+
+                    ReturnTable[3] = false
+                end       
+
+            elseif Variant == PickupVariant.PICKUP_COIN and HEIRLOOM_COIN_UPGRADES[ReturnTable[2]] then
+
+                if UpgradeRoll <= HEIRLOOM_COIN_UPGRADES[ReturnTable[2]].Chance then
+
+                    ReturnTable[2] = HEIRLOOM_COIN_UPGRADES[ReturnTable[2]].NewSubType
+
+                    local Effect = Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.HEIRLOOM_TRIGGER, Pickup.Position,
+                                              Vector.Zero, Pickup, 0, 1):ToEffect()
+
+                    Effect:FollowParent(Pickup)
+                    Effect.ParentOffset = RandomVector()*8
+                end
+            end
+        end
+    end
+
+    
+
+    return ReturnTable
+end
+mod:AddCallback(ModCallbacks.MC_POST_PICKUP_SELECTION, ModifyPickups)
+
+
+local function ModifyPills()
+
+    if not Isaac.GetPersistentGameData():Unlocked(Achievement.GOLDEN_PILLS) then
+        return
+    end
+
+    for _,Player in ipairs(PlayerManager.GetPlayers()) do
+
+        local GoldenRNG = Player:GetCollectibleRNG(mod.Collectibles.HEIRLOOM)
+
+        for i = 1, Player:GetCollectibleNum(mod.Collectibles.HEIRLOOM) do
+
+            local UpgradeRoll = GoldenRNG:RandomFloat()
+
+            if UpgradeRoll <= GOLDEN_PILL_CHANCE then
+                
+                return PillColor.PILL_GOLD
+            end
+        end
+    end
+
+end
+mod:AddCallback(ModCallbacks.MC_GET_PILL_COLOR, ModifyPills)
+
+
+local function ModifyTrinkets(_, SelectedTrinket)
+
+    if SelectedTrinket & TrinketType.TRINKET_GOLDEN_FLAG ~= 0
+       or not Isaac.GetPersistentGameData():Unlocked(Achievement.GOLDEN_TRINKET) then
+        return
+    end
+
+    for _,Player in ipairs(PlayerManager.GetPlayers()) do
+
+        local GoldenRNG = Player:GetCollectibleRNG(mod.Collectibles.HEIRLOOM)
+
+        for i = 1, Player:GetCollectibleNum(mod.Collectibles.HEIRLOOM) do
+
+            local UpgradeRoll = GoldenRNG:RandomFloat()
+
+            if UpgradeRoll <= GOLDEN_TRINKET_CHANCE then
+                
+                return SelectedTrinket | TrinketType.TRINKET_GOLDEN_FLAG
+            end
+        end
+    end
+
+end
+mod:AddCallback(ModCallbacks.MC_GET_TRINKET, ModifyTrinkets)
+
+
+--taken straight up from Epiphany but with some removed parts since RGON is needed for mod
+local function TurnItemGold(pickup, playSfx)
+
+    if playSfx == nil then
+		playSfx = true
+	end
+	if not pickup or pickup.Variant ~= PickupVariant.PICKUP_COLLECTIBLE then
+        return
+    end
+
+    --in the originl file I only see this table empty so I guess i can not check this(?)
+	--if GOLDEN_ITEM.ActiveSpawnBlacklist[pickup.SubType] then
+	--	return
+	--end
+
+	local id = pickup.SubType
+	local ItemPedestal = pickup
+
+	local pData = Epiphany:GetRerollPersistentData(pickup)
+
+	pData.IsGoldenCollectible = true
+
+	--if REPENTOGON then RGON is needed anyway for this mod to run
+	ItemPedestal:GetSprite():SetRenderFlags(AnimRenderFlags.GOLDEN | AnimRenderFlags.IGNORE_GAME_TIME)
+	--end
+
+	if playSfx == true then
+		sfx:Play(GoldTurnSfx)
+	end
+end
+
+--synergises with the golden items made by Ephiphany
+--DisableGoldPedestal used in the original code isn't necessary since with RGON there no need to morph the pickup
+local function EpiphanyGoldenItems(_, Pickup)
+
+    if not Ephiphany then
+        return
+    end
+
+    --all the code in this function was taken from the mod itself with some removed part which weren't necessary
+
+    local pData = Ephiphany:GetRerollPersistentData(Pickup)
+
+	local run_save = Ephiphany:RunSave()
+
+	if pData.IsGoldenCollectible == true or Ephiphany:HasGoldenItem(Pickup.SubType) then
+		TurnItemGold(Pickup, false)
+		return
+	end
+	if pData.IsGoldenCollectible == false then
+		return
+	end
+
+	local rng = Pickup:GetDropRNG()
+
+	local roll = rng:RandomFloat()
+
+	run_save.goldActiveList = run_save.goldActiveList or {}
+
+	local isGold = GOLDEN_ITEM_CHANCE >= roll or run_save.goldActiveList[tostring(Pickup.SubType)]
+
+
+	if Ephiphany:GetAchievement("GOLDEN_COLLECTIBLE") > 0
+		and Epiphany.IsDeathCertificateFloor() == false
+		and (pData.IsGoldenCollectible == true or isGold)
+		and not Ephiphany.itemconfig:GetCollectible(Pickup.SubType):HasTags(ItemConfig.TAG_QUEST) then
+
+		TurnItemGold(Pickup, false)
+	else
+		-- If IsGoldenCollectible is nil and random check fails,
+		-- set it to false to prevent any future checks
+		pData.IsGoldenCollectible = false
+	end
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT, EpiphanyGoldenItems, PickupVariant.PICKUP_COLLECTIBLE)
+
 
 
 ---@param Player EntityPlayer
@@ -2160,7 +2803,6 @@ local function StatEvaluation(_,Player, Cache)
 
     if  Cache & CacheFlag.CACHE_SPEED == CacheFlag.CACHE_SPEED then
 
-        print("speed")
         local Trinkets = Player:GetSmeltedTrinkets()
 
 

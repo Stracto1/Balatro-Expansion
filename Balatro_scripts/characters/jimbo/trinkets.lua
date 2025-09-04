@@ -3150,10 +3150,9 @@ function mod:MischeviousThingsBasedEval(Player)
             Data.IsIcecreamB = true
 
         ---@diagnostic disable-next-line: need-check-nil
-            Creep:GetSprite().Color:SetOffset(-1,-0.5,-0.2)
+            Creep:GetSprite().Color:SetTint(0, 0.5, 0.8, 1)
 
             Creep.Scale = 0.65 + mod.Saved.Player[PIndex].Progress.Inventory[Index] * 0.1
-
         end
     end
 
@@ -3478,7 +3477,7 @@ function mod:TearsJokers(Player, _)
 
     local PIndex = Player:GetData().TruePlayerIndex
 
-    local MimeNum = #mod:GetJimboJokerIndex(Player, mod.Jokers.MIME)
+    --local MimeNum = #mod:GetJimboJokerIndex(Player, mod.Jokers.MIME)
 
     for Index, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
 
@@ -3502,6 +3501,7 @@ function mod:TearsJokers(Player, _)
         if Joker == 0 or not ItemsConfig:GetTrinket(Joker):HasCustomTag(mod.JokerTypes.CHIPS) then --could save some time
             goto skip_joker
         end
+        
         if Joker == mod.Jokers.BULL then
             
             local Coins = mod.Saved.HasDebt and 0 or Player:GetNumCoins()

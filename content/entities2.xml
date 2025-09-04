@@ -349,9 +349,11 @@
     	friction="1" collisionRadius="11" collisionRadiusXMulti="1.75" collisionRadiusXMulti="1.1">
     </entity>
 
-    <entity name="Heirloom Upgrade" anm2path="" id="1000" variant="2605"/>
+    <entity name="Heirloom Upgrade" anm2path="heirloom_trigger.anm2" id="1000" variant="2605"/>
 
-
+    <entity anm2path="the_hand_swing.anm2" baseHP="0" boss="0" champion="0" collisionDamage="0" collisionMass="3" collisionRadius="16" friction="1" id="1000" name="The Hand Swing" numGridCollisionPoints="0" shadowSize="0" stageHP="0" variant="2606">
+        <gibs amount="0" blood="0" bone="0" eye="0" gut="0" large="0"/>
+    </entity>
 
     
 

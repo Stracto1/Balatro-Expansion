@@ -820,7 +820,7 @@ local function JimboHandRender(_,_,_,_,_,Player)
 
         if not mod.Saved.EnableHand then --mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.NONE then
 
-            local TimeOffset = math.max(NumCardsInHand, Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE)) - i
+            local TimeOffset = math.max(NumCardsInHand, Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE)) - 0.75*i
             local LerpTime = math.max(mod.Counters.SinceSelect/5 - TimeOffset, 0)
 
             if LerpTime > 0 or Card.Modifiers & mod.Modifier.COVERED ~= 0 then
@@ -1728,25 +1728,44 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
 
     mod:RenderBalatroStyle(String, CenterPos, Params, StartFrame, Scale, KColor.White, BoxWidth)
 
+    
+
+    local HasCovered = mod.AnimationIsPlaying and true or false
+
+    if not HasCovered then
+
+        for i, Chosen in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
+
+            if Chosen then
+
+                local Card = mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]]
+
+                if Card.Modifiers & mod.Modifier.COVERED ~= 0 then
+
+                    HasCovered = true
+                    break
+                end
+            end
+        end
+    end
+
 
 
     local StatToShow = {}
 
-    local ShouldRenderStats = mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.HAND and mod.SelectionParams[PIndex].PackPurpose == mod.SelectionParams.Purposes.NONE
-                              or mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.NONE and (mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.HAND or mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.AIMING)
-                              or mod.SelectionParams[PIndex].PackPurpose == mod.SelectionParams.Purposes.CelestialPack
+    --local ShouldRenderStats = mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.HAND and mod.SelectionParams[PIndex].PackPurpose == mod.SelectionParams.Purposes.NONE
+    --                          or mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.NONE and (mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.HAND or mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.AIMING)
+    --                          or mod.SelectionParams[PIndex].PackPurpose == mod.SelectionParams.Purposes.CelestialPack
     
-
-    if not ShouldRenderStats then
-        StatToShow = {Mult = 0, Chips = 0}
-
-    --elseif mod.SelectionParams[PIndex].PackPurpose == mod.SelectionParams.Purposes.CelestialPack then
-    --    
-    --    StatToShow = mod.Saved.HandsStat[mod.Saved.HandType]
+    if HasCovered then
+        StatToShow.Mult = "???"
+        StatToShow.Chips = "???"
     else
         StatToShow.Mult = mod.Saved.MultValue
         StatToShow.Chips = mod.Saved.ChipsValue
     end
+
+    
 
     local MultString
     local ChipsString
@@ -1820,7 +1839,11 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
 
     
 
-    if mod.Saved.HandType ~= mod.HandTypes.NONE then
+    if HasCovered then
+
+        String = "?????"
+    
+    elseif mod.Saved.HandType ~= mod.HandTypes.NONE then
 
         local LV = mod:GetEIDString("Other", "LV")
 
@@ -1926,8 +1949,9 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
             local MaxHPEnemy
 
             for _,Enemy in ipairs(Isaac.GetRoomEntities()) do
-                if Enemy:IsActiveEnemy() and Enemy:IsVulnerableEnemy() then
-                    
+
+                if mod:IsValidScalingEnemy(Enemy) then
+ 
                     if not MaxHPEnemy or Enemy.HitPoints > MaxHPEnemy.HitPoints then
                         MaxHPEnemy = Enemy
                     end
@@ -1940,6 +1964,8 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
 
             --small enemy portrait
             if MaxHPEnemy then
+
+                print("Toughest Enemy:","("..tostring(MaxHPEnemy.Type).."."..tostring(MaxHPEnemy.Variant).."."..tostring(MaxHPEnemy.SubType)..")")
 
                 LeftSideHUD:SetFrame(LeftSideStringFrames.EnemyPortrait)
 
@@ -1990,7 +2016,7 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
 
                     local sin = math.sin(Isaac.GetFrameCount()/12)^2
 
-                    LastPortraiedEnemy.Color = Color(1 + sin, 1,1,1, sin*0.2) --modifies R tint and R offset
+                    LastPortraiedEnemy.Color = Color(1 + sin, 1,1,1, sin*0.1) --modifies R tint and R offset
 
                 end
 
@@ -4019,13 +4045,6 @@ mod:AddCallback(ModCallbacks.MC_POST_EFFECT_RENDER, RerollPriceRender, mod.Effec
 local function CustomPickupSprites(_, Pickup)
 
     if not PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then
-        return
-    end
-
-    local Room =Game:GetRoom():GetType()
-
-    if Room ~= RoomType.ROOM_SHOP and Room ~= RoomType.ROOM_BOSSRUSH then
-        Pickup:Remove()
         return
     end
 

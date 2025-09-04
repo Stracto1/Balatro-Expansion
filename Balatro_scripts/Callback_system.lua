@@ -264,10 +264,6 @@ function mod:OnGameStart(Continued)
 
         if player:GetPlayerType() == mod.Characters.JimboType 
            or player:GetPlayerType() == mod.Characters.TaintedJimbo then
-
-            mod:InitJimboValues(player) -- on new run always initialise jimbo values
-
-            local PIndex = player:GetData().TruePlayerIndex
             
             mod:StatReset(player,true,true,false,true,true)
 
@@ -302,41 +298,59 @@ function mod:InitPlayerValues(Player)
 
     mod.SelectionParams[PIndex] = {}
 
+    mod.SelectionParams[PIndex].Frames = 0 -- in update frames
+    mod.SelectionParams[PIndex].Index = 1
+    mod.SelectionParams[PIndex].Mode = 0
+    mod.SelectionParams[PIndex].Purpose = 0
+    mod.SelectionParams[PIndex].PackOptions = {} --the options for the selection inside of a pack
+    mod.SelectionParams[PIndex].OptionsNum = 0 --total amount of options
+    mod.SelectionParams[PIndex].MaxSelectionNum = 0 --how many things you can choose at a time
+    mod.SelectionParams[PIndex].SelectionNum = 0 --how many things you choosing
+    mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams.Purposes.NONE --used for TJimbo to not lose the current pack's purpose while doing other stuff 
+
+
+
+    
+
     mod.Saved.Player[PIndex].InnateItems = {}
     mod.Saved.Player[PIndex].InnateItems.General = {} --used for things that can only give 1 kind of item
     mod.Saved.Player[PIndex].InnateItems.Planet_X = {}
 
+    mod.Saved.Player[PIndex].LastTouchedTrinket = 0
+    mod.Saved.Player[PIndex].TrinketEditions = {[0] = mod.Edition.BASE,
+                                                [1] = mod.Edition.BASE,
+                                                SMELTED = {[mod.Edition.FOIL] = 0,
+                                                           [mod.Edition.HOLOGRAPHIC] = 0,
+                                                           [mod.Edition.POLYCROME] = 0}}
+
+    
     
     mod.Saved.Player[PIndex].ComedicState = 0
-end
 
+    mod.Saved.Player[PIndex].HandyCards = {0,0,0,0,0} --cards held with THE HAND collectible
 
+    if Player:GetPlayerType() == mod.Characters.JimboType 
+       or Player:GetPlayerType() == mod.Characters.TaintedJimbo then
 
----@param Player EntityPlayer
-function mod:InitJimboValues(Player, Force)
- 
-    local PIndex = Player:GetData().TruePlayerIndex
-    if not PIndex then
-        PlayerIndexUpdate(Player)
-        PIndex = Player:GetData().TruePlayerIndex
+        mod:InitJimboValues(PIndex, Player:GetPlayerType() == mod.Characters.TaintedJimbo)
+
+        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.NONE)
     end
+end
+mod:AddCallback(ModCallbacks.MC_PLAYER_INIT_POST_LEVEL_INIT_STATS, mod.InitPlayerValues)
+
+
+
+function mod:InitJimboValues(PIndex, Tainted)
+ 
 
     --print(PIndex)
-
-    mod.Saved.Player[PIndex] = {}
-    local PType =  Player:GetPlayerType()
-    
-    if PType ~= mod.Characters.JimboType
-       and PType ~= mod.Characters.TaintedJimbo then
-        goto shared_values
-    end
-
 
     mod.Saved.Player[PIndex].EctoUses = 0
     mod.Saved.Player[PIndex].OuijaUses = 0
 
 
-    if PType == mod.Characters.JimboType then
+    if not Tainted then
 
         mod.Saved.Player[PIndex].FullDeck = {}
 
@@ -410,7 +424,7 @@ function mod:InitJimboValues(Player, Force)
         mod.Saved.Player[PIndex].LastCardUsed = nil --the last card a player used
         mod.Saved.Player[PIndex].NumActiveCostumes = 0
 
-    elseif PType == mod.Characters.TaintedJimbo then
+    else
 
         mod.Saved.Player[PIndex].FullDeck = {}
 
@@ -454,19 +468,8 @@ function mod:InitJimboValues(Player, Force)
 
     mod.Saved.Player[PIndex].FullDeck = mod:Shuffle(mod.Saved.Player[PIndex].FullDeck, Game:GetPlayer(0):GetDropRNG())
     
-    ::shared_values::
 
-    mod.SelectionParams[PIndex].Frames = 0 -- in update frames
-    mod.SelectionParams[PIndex].Index = 1
-    mod.SelectionParams[PIndex].Mode = 0
-    mod.SelectionParams[PIndex].Purpose = 0
-    mod.SelectionParams[PIndex].PackOptions = {} --the options for the selection inside of a pack
-    mod.SelectionParams[PIndex].OptionsNum = 0 --total amount of options
-    mod.SelectionParams[PIndex].MaxSelectionNum = 0 --how many things you can choose at a time
-    mod.SelectionParams[PIndex].SelectionNum = 0 --how many things you choosing
-
-
-    if PType == mod.Characters.TaintedJimbo then --keeps in memory every different selection to make it much cooler
+    if Tainted then --keeps in memory every different selection to make it much cooler
         
         mod.SelectionParams[PIndex].SelectedCards = {}
 
@@ -475,20 +478,14 @@ function mod:InitJimboValues(Player, Force)
         mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.PACK] = {false,false,false}
         mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.INVENTORY] = {false,false,false,false,false}
         mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.CONSUMABLES] = {false,false}
-
-        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.NONE)
-    
-        mod.SelectionParams[PIndex].PackPurpose = 0
         
         mod.SelectionParams[PIndex].PlayedCards = {} --contains the deck indexes of cards played from your hand
         mod.SelectionParams[PIndex].ScoringCards = 0
+
     else
         mod.SelectionParams[PIndex].SelectedCards = {false,false,false,false,false}
-
-        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.NONE)
     end
 end
-mod:AddCallback(ModCallbacks.MC_PLAYER_INIT_POST_LEVEL_INIT_STATS, mod.InitJimboValues)
 
 
 

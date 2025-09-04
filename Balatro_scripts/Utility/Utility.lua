@@ -142,7 +142,7 @@ function mod:GetBitMaskMin(Mask)
 end
 
 ---@param Table tablelib
----@param RNG RNG
+---@param RNG RNG?
 ---@param Phantom boolean?
 function mod:GetRandom(Table, RNG, Phantom)
 
@@ -535,6 +535,22 @@ function mod:TrueBloodPoof(Position, Scale, Color)
 end
 
 
+function mod:IsValidScalingEnemy(Enemy)
+
+    return Enemy:IsActiveEnemy()
+           and not( --blacklisted enemies
+           Enemy.Type == EntityType.ENTITY_STONEY
+           or Enemy.Type == EntityType.ENTITY_STONEHEAD
+           or Enemy.Type == EntityType.ENTITY_STONE_EYE
+           or Enemy.Type == EntityType.ENTITY_CONSTANT_STONE_SHOOTER
+           or Enemy.Type == EntityType.ENTITY_BRIMSTONE_HEAD
+           or Enemy.Type == EntityType.ENTITY_QUAKE_GRIMACE 
+           or (Enemy.Type == EntityType.ENTITY_MOTHER and (Enemy.Variant ~= 10
+                                                           and (Enemy.Variant ~= 0 or Enemy.SubType ~= 0))) --any mother peon + the arms and back of the 1st phase
+          )
+end
+
+
 function mod:GetEIDLanguage()
 
     local Lang = EID and EID:getLanguage() or "en_us"
@@ -552,6 +568,13 @@ function mod:CalculateStageHP(StageHP)
 
     return StageHP * (math.min(4, Stage) + 0.8*mod:Clamp(Stage - 5, 5, 0))
 
+end
+
+function mod:IsMotherBossRoom()
+
+    local Data = Game:GetLevel():GetCurrentRoomDesc().Data
+
+    return Data.Type == RoomType.ROOM_BOSS and Data.Variant == 1 and Data.Subtype == 88
 end
 
 -------------JIMBO FUNCTIONS------------
@@ -2028,17 +2051,17 @@ function mod:RandomJoker(Rng, PlaySound, ForcedRarity, AllowDuplicates, Amount)
     
         Trinket.Edition = mod.Edition.BASE
 
-        if Rng:RandomFloat() <= NEGATIVE_CHANCE then --negative chance (fixed)
+        local EditionRoll = Rng:RandomFloat()
+
+        if EditionRoll <= NEGATIVE_CHANCE then --negative chance (fixed)
         
             Trinket.Edition = mod.Edition.NEGATIVE
-            if PlaySound then
-                sfx:Play(mod.Sounds.NEGATIVE)
-            end
+            
         else
 
-            local EditionChance = 0.04*EdMult - NEGATIVE_CHANCE --chance to get a non-negative edition
+            local EditionChance = 0.04*EdMult --chance to get a non-negative edition
 
-            if Rng:RandomFloat() <= EditionChance then
+            if EditionRoll <= EditionChance then
                 
                 Trinket.Edition = EditionPicker:PickOutcome(Rng)                
             end
@@ -2047,6 +2070,8 @@ function mod:RandomJoker(Rng, PlaySound, ForcedRarity, AllowDuplicates, Amount)
         if PlaySound then
             sfx:Play(EditionSound[Trinket.Edition])
         end
+
+        Trinket.Edition = mod.Edition.NEGATIVE
 
         Trinket.Modifiers = 0
 
@@ -2707,9 +2732,9 @@ function mod:RandomShopItem(Rng)
             end
         end
 
-        SubType = Joker.Joker
+        SubType = Joker.Joker | (Joker.Edition << mod.EDITION_FLAG_SHIFT)
 
-        mod.Saved.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Joker.Joker).Name] = Joker.Edition
+        --mod.Saved.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Joker.Joker).Name] = Joker.Edition
 
     elseif ItemType == ShopItemTypes.TAROT then
         Variant = PickupVariant.PICKUP_TAROTCARD
@@ -2935,25 +2960,34 @@ function mod:GetCardName(Card, IsEID)
 end
 
 
-function mod:AddSkipTag(TagAdded)
+function mod:AddSkipTag(TagAdded, Doubled)
 
     table.insert(mod.Saved.SkipTags, 1, TagAdded)
 
     local Interval = 8
 
+    if Doubled then
+        return Interval
+    end
+
+
     if TagAdded ~= mod.SkipTags.DOUBLE then
+
+        --local DoubleTagsUsed = 0
+
         for i,Tag in ipairs(mod.Saved.SkipTags) do
 
             if Tag == mod.SkipTags.DOUBLE then
 
+                local DoubleIndex = i
+
                 --remove the first double tag found and duplicate the originally added one
                 Isaac.CreateTimer(function ()
-                    mod:UseSkipTag(i)
-                    mod:AddSkipTag(TagAdded)
+                    mod:UseSkipTag(DoubleIndex)
+                    mod:AddSkipTag(TagAdded, true)
                 end, Interval, 1, true)
 
-                Interval = Interval + 20
-
+                Interval = Interval + 16
             end
         end
     end
@@ -3031,10 +3065,14 @@ local function JimboAddTrinket(_, Player, Trinket, _, StopEvaluation)
     Player:TryRemoveTrinket(Trinket) -- a custom table is used instead since he needs to hold many of them
 
 
-    mod.Saved.FloorEditions[Level:GetCurrentRoomDesc().ListIndex] = mod.Saved.FloorEditions[Level:GetCurrentRoomDesc().ListIndex] or {}
+    --mod.Saved.FloorEditions[Level:GetCurrentRoomDesc().ListIndex] = mod.Saved.FloorEditions[Level:GetCurrentRoomDesc().ListIndex] or {}
 
-    local JokerEdition = mod.Saved.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Trinket).Name] or mod.Edition.BASE 
+    --local JokerEdition = mod.Saved.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Trinket).Name] or mod.Edition.BASE 
 
+    local TrueSubType = mod.Saved.Player[PIndex].LastTouchedTrinket
+
+    local JokerType = TrueSubType & ~mod.EditionFlag.ALL
+    local JokerEdition = (TrueSubType & mod.EditionFlag.ALL) >> mod.EDITION_FLAG_SHIFT
     
     local EmptySlot
 
@@ -3062,16 +3100,16 @@ local function JimboAddTrinket(_, Player, Trinket, _, StopEvaluation)
 
     mod.Saved.LastJokerRenderIndex = mod.Saved.LastJokerRenderIndex + 1
 
-    mod.Saved.Player[PIndex].Inventory[EmptySlot].Joker = Trinket
+    mod.Saved.Player[PIndex].Inventory[EmptySlot].Joker = JokerType
     mod.Saved.Player[PIndex].Inventory[EmptySlot].Edition = JokerEdition
     mod.Saved.Player[PIndex].Inventory[EmptySlot].Modifiers = 0
     mod.Saved.Player[PIndex].Inventory[EmptySlot].RenderIndex = mod.Saved.LastJokerRenderIndex
 
 
-    mod.Saved.Player[PIndex].Progress.Inventory[EmptySlot] = mod:GetJokerInitialProgress(Trinket, IsTaintedJimbo)
+    mod.Saved.Player[PIndex].Progress.Inventory[EmptySlot] = mod:GetJokerInitialProgress(JokerType, IsTaintedJimbo)
 
     if not StopEvaluation then
-        Isaac.RunCallback("JOKER_ADDED", Player, Trinket, JokerEdition, EmptySlot)
+        Isaac.RunCallback("JOKER_ADDED", Player, JokerType, JokerEdition, EmptySlot)
         Isaac.RunCallback("INVENTORY_CHANGE", Player)
     end
 
@@ -3085,7 +3123,9 @@ function mod:AddJoker(Player, Joker, Edition, StopEval)
 
     Edition = Edition or mod.Edition.BASE
 
-    mod.Saved.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Joker).Name] = Edition
+    Joker = Joker | (Edition << mod.EDITION_FLAG_SHIFT)
+
+    --mod.Saved.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Joker).Name] = Edition
 
     return JimboAddTrinket(nil, Player, Joker, false, StopEval)
 end
@@ -3493,9 +3533,11 @@ end
 --shuffles the deck
 ---@param Player EntityPlayer
 function mod:FullDeckShuffle(Player)
-    if not (Player:GetPlayerType() == mod.Characters.JimboType
-       or Player:GetPlayerType() == mod.Characters.TaintedJimbo) then
 
+    local IsJimbo = Player:GetPlayerType() == mod.Characters.JimboType
+    local IsTaintedJimbo = Player:GetPlayerType() == mod.Characters.TaintedJimbo
+
+    if not IsJimbo and not IsTaintedJimbo then
         return
     end
 
@@ -3505,31 +3547,38 @@ function mod:FullDeckShuffle(Player)
     
     mod.Saved.Player[PIndex].CurrentHand = {}
 
-
     mod.Saved.Player[PIndex].FullDeck = mod:Shuffle(mod.Saved.Player[PIndex].FullDeck, PlayerRNG)
 
     mod.Saved.Player[PIndex].DeckPointer = 1
 
 
-    for i=1, Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) do
+    if IsJimbo then
+       
+        for i=1, Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) do
 
-        if mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_HOUSE then
-
-            local card = mod.Saved.Player[PIndex].FullDeck[i]
-
-            card.Modifiers = card.Modifiers | mod.Modifier.COVERED
+            mod.Saved.Player[PIndex].CurrentHand[i] = i
         end
 
-        --mod.Saved.Player[PIndex].CurrentHand[i] = i
+        Isaac.RunCallback("DECK_SHIFT", Player)
+    
+    elseif IsTaintedJimbo then
+
+
+        if mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_HOUSE then
+            for i=1, Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) do
+
+                local card = mod.Saved.Player[PIndex].FullDeck[i]
+
+                card.Modifiers = card.Modifiers | mod.Modifier.COVERED
+            end
+        end
+
+        local Interval, DeckFinished = mod:RefillHand(Player, false)
+
+        return Interval
     end
-
-    local Interval, DeckFinished = mod:RefillHand(Player, false)
-
-
-    Isaac.RunCallback("DECK_SHIFT", Player)
     
     --print("end shuffle")
-    return Interval
 end
 
 
@@ -3941,61 +3990,23 @@ function mod:GetBlindReward(Blind)
 end
 
 
----@param Trinket EntityPickup
-function mod:TrinketEditionsRender(Trinket, Offset)
-
-    if Trinket.Variant ~= PickupVariant.PICKUP_TRINKET then
-        return --aparently the extra param in the callback isn't enough?? (problem came up when addinf he playing card pickup)
-    end
-
-    local Index = Level:GetCurrentRoomDesc().ListIndex
-    local JokerConfig = ItemsConfig:GetTrinket(Trinket.SubType)
-
-    --some precautions
-    mod.Saved.FloorEditions[Index] = mod.Saved.FloorEditions[Index] or {}
-    mod.Saved.FloorEditions[Index][JokerConfig.Name] = mod.Saved.FloorEditions[Index][JokerConfig.Name] or 0
-
-    local Edition = mod.Saved.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name]
-    
-    Trinket:GetSprite():SetCustomShader(mod.EditionShaders[Edition])
-
-    --Trinket:GetSprite():SetCustomShader(mod.EditionShaders[mod.Edition.NEGATIVE])
-end
-mod:AddCallback(ModCallbacks.MC_POST_PICKUP_RENDER, mod.TrinketEditionsRender, PickupVariant.PICKUP_TRINKET)
-
-
-function mod:EnableTrinketEditions()
-    mod.Saved.FloorEditions = {}
-    Isaac.CreateTimer(function()
-        local AllRoomsDesc = Level:GetRooms()
-        for i=1, Level:GetRoomCount()-1 do
-            local RoomDesc = AllRoomsDesc:Get(i)
-            mod.Saved.FloorEditions[RoomDesc.ListIndex] = {}
-        end
-    end, 1,1,true )
-end
-mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.EnableTrinketEditions)
-
-
 
 
 function mod:PlaceBlindRoomsForReal()
 
     local Level = Game:GetLevel()
 
-    local RoomSeed = Game:GetSeeds():GetStageSeed(Isaac.GetCurrentStageConfigId())
-    local RoomRNG = RNG(RoomSeed)
-    local RoomPlaceSeed = Level:GetDungeonPlacementSeed()
-    local PlaceRNG = RNG(RoomPlaceSeed)
-
 
     local StageID = Isaac.GetCurrentStageConfigId()
 
-    if StageID == StbType.VOID then --throws an error so just get a random floor
+    if StageID == StbType.VOID then --throws an error so just get a random floor you've seen
     
-        ---@diagnostic disable-next-line: cast-local-type
-        StageID = mod:GetRandom(mod.Saved.EncounteredStageIDs, RoomRNG) or StbType.BASEMENT
+        StageID =  StbType.BASEMENT --aparently the room chosen doesn't care about the StbType as long as it's not VOID
     end
+
+    local RoomPlaceSeed = Level:GetDungeonPlacementSeed()
+    local RoomRNG = RNG(RoomPlaceSeed)
+
 
     local SmallDesc
     local BigDesc
@@ -4045,11 +4056,9 @@ function mod:PlaceBlindRoomsForReal()
             end
         until IsHostile
 
-        local PlaceSeed = mod:RandomSeed(PlaceRNG)
-
         for i = 3, 168 do
 
-            BigDesc = Level:TryPlaceRoom(BigRoom, i, -1, PlaceSeed, true, true, true)
+            BigDesc = Level:TryPlaceRoom(BigRoom, i, -1, nil, true, true, true)
 
             if BigDesc then
                 mod.Saved.BigBlindIndex = i
@@ -4064,9 +4073,10 @@ function mod:PlaceBlindRoomsForReal()
 
     repeat
 
-        local SmallRoom 
+        local SmallRoom
 
         repeat
+
             SmallRoom = RoomConfigHolder.GetRandomRoom( mod:RandomSeed(RoomRNG),
                                                         true, 
                                                         StageID,
@@ -4106,13 +4116,9 @@ function mod:PlaceBlindRoomsForReal()
 
         until IsHostile --makes sure the room has at least 1 enemy
 
-
-
-        local PlaceSeed = mod:RandomSeed(PlaceRNG)
-
         for i = 0, 168 do
 
-            SmallDesc = Level:TryPlaceRoom(SmallRoom, i, -1, PlaceSeed, true, true, true)
+            SmallDesc = Level:TryPlaceRoom(SmallRoom, i, -1, nil, true, true, true)
             
             if SmallDesc then
 
@@ -4144,11 +4150,9 @@ function mod:PlaceBlindRoomsForReal()
                                                         10,
                                                         0, RoomSubType.SHOP_KEEPER_LEVEL_2, -1)
 
-        local PlaceSeed = mod:RandomSeed(PlaceRNG)
-
         for i = 6, 168 do
 
-            ShopDesc = Level:TryPlaceRoom(ShopRoom, i, -1, PlaceSeed, true, true, true)
+            ShopDesc = Level:TryPlaceRoom(ShopRoom, i, -1, nil, true, true, true)
             
             if ShopDesc then
 
@@ -4225,6 +4229,11 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
 
                 Target.Parent = Player
                 Target.SortingLayer = SortingLayer.SORTING_BACKGROUND
+
+                local NewTargetColor = Color()
+                NewTargetColor:SetColorize(mod.EffectColors.BLUE.R, mod.EffectColors.BLUE.G, mod.EffectColors.BLUE.B, 1)
+
+                Target:SetColor(NewTargetColor, -1, 1000, false, false)
             end
             
         else
@@ -4645,13 +4654,15 @@ function mod:Select(Player)
 
             local Joker = mod.SelectionParams[PIndex].PackOptions[mod.SelectionParams[PIndex].Index].Joker
             local Edition = mod.SelectionParams[PIndex].PackOptions[mod.SelectionParams[PIndex].Index].Edition
-            local Index = Level:GetCurrentRoomDesc().ListIndex
+            --local Index = Level:GetCurrentRoomDesc().ListIndex
 
-            Game:Spawn(EntityType.ENTITY_PICKUP,PickupVariant.PICKUP_TRINKET, Player.Position, RandomVector()*3,nil,Joker,Game:GetSeeds():GetStartSeed())
+            local SubType = Joker | (Edition << mod.EDITION_FLAG_SHIFT)
+
+            Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET, Player.Position, RandomVector()*3,nil,Joker,Game:GetSeeds():GetStartSeed())
             
-            mod.Saved.FloorEditions[Index] = mod.Saved.FloorEditions[Index] or {}
+            --mod.Saved.FloorEditions[Index] = mod.Saved.FloorEditions[Index] or {}
             
-            mod.Saved.FloorEditions[Index][ItemsConfig:GetTrinket(Joker).Name] = Edition
+            --mod.Saved.FloorEditions[Index][ItemsConfig:GetTrinket(Joker).Name] = Edition
 
 
         else --tarot/planet/Spectral pack
@@ -4835,9 +4846,8 @@ function mod:UseSelection(Player)
 
     else
         SelectedCards = mod.SelectionParams[PIndex].SelectedCards
-
-        table.move(SelectedCards,1,#SelectedCards,1, PackSelectedCards)
-        table.move(SelectedCards,1,#SelectedCards,1, HandSelectedCards)
+        PackSelectedCards = SelectedCards
+        HandSelectedCards = SelectedCards
     end
 
 
@@ -5452,6 +5462,10 @@ function mod:PlanetUpgradeAnimation(HandType, LevelsGiven, BaseInterval)
         return 0 --no animation frames were used
     end
 
+    local PIndex = PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo):GetData().TruePlayerIndex
+
+    mod.Saved.HandType = HandType
+
 
     BaseInterval = BaseInterval or 0
     local OldAnimationIsPlaying = mod.AnimationIsPlaying and true or false --to make sure that there's no upvalue
@@ -5544,6 +5558,25 @@ function mod:PlanetUpgradeAnimation(HandType, LevelsGiven, BaseInterval)
     return Interval - BaseInterval --how long the animation lasted
 end
 
+function mod:GetPlanetAnimLength(HandType, LevelsGiven)
+
+
+    local CurrentLevel = mod.Saved.HandLevels[HandType]
+
+    local HypotheticalLevel = CurrentLevel + LevelsGiven
+
+    --puts a cap to LevelsGained if it would make the level lower than 1
+    LevelsGiven = LevelsGiven + (math.max(1,HypotheticalLevel) - HypotheticalLevel)
+
+    if LevelsGiven == 0 then
+        return 0 --no animation frames were used
+    end
+
+    local Interval = 60
+
+    return Interval --how long the animation would last
+end
+
 
 -------TRASH--------
 --------------------
@@ -5560,5 +5593,46 @@ function mod:SubstituteCards(ChosenTable)
     end
     
 end
+
+
+---@param Trinket EntityPickup
+function mod:TrinketEditionsRender(Trinket, _)
+
+    if Trinket.Variant ~= PickupVariant.PICKUP_TRINKET then
+        return --aparently the extra param in the callback isn't enough?? (problem came up when addinf he playing card pickup)
+    end
+
+    local JokerConfig = ItemsConfig:GetTrinket(Trinket.SubType)
+
+    --some precautions
+    --mod.Saved.FloorEditions[Index] = mod.Saved.FloorEditions[Index] or {}
+    --mod.Saved.FloorEditions[Index][JokerConfig.Name] = mod.Saved.FloorEditions[Index][JokerConfig.Name] or 0
+
+    --local Edition = mod.Saved.FloorEditions[Index][ItemsConfig:GetTrinket(Trinket.SubType).Name]
+
+    local Edition = (Trinket.SubType & ~mod.EditionFlag.ALL) >> mod.EDITION_FLAG_SHIFT
+    
+    Trinket:GetSprite():SetCustomShader(mod.EditionShaders[Edition])
+
+    --Trinket:GetSprite():SetCustomShader(mod.EditionShaders[mod.Edition.NEGATIVE])
+end
+--mod:AddCallback(ModCallbacks.MC_POST_PICKUP_RENDER, mod.TrinketEditionsRender, PickupVariant.PICKUP_TRINKET)
+
+
+
+function mod:EnableTrinketEditions()
+    mod.Saved.FloorEditions = {}
+    Isaac.CreateTimer(function()
+        local AllRoomsDesc = Level:GetRooms()
+        for i=1, Level:GetRoomCount()-1 do
+            local RoomDesc = AllRoomsDesc:Get(i)
+            mod.Saved.FloorEditions[RoomDesc.ListIndex] = {}
+        end
+    end, 1,1,true )
+end
+--mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.EnableTrinketEditions)
+
+
+
 
 ---]]

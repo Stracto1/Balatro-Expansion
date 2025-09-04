@@ -50,7 +50,7 @@ Descriptions.Other.Rounds = "Rounds"
 Descriptions.Other.HandSize = "Hand Size" --as in the Balatro stat
 
 
-Descriptions.HandTypeName = {[mod.HandTypes.NONE] = "None",
+Descriptions.HandTypeName = {[mod.HandTypes.NONE] = "",
                          [mod.HandTypes.HIGH_CARD] = "High Card",
                          [mod.HandTypes.PAIR] = "Pair",
                          [mod.HandTypes.TWO_PAIR] = "Two Pair",
@@ -768,9 +768,10 @@ Descriptions.BossEffects = {[mod.BLINDS.SMALL] = "No additional effect",
                             [mod.BLINDS.BOSS_FLINT] = "Halfes base chips and mult",
                             [mod.BLINDS.BOSS_GOAD] = "All spade cards are debuffed",
                             [mod.BLINDS.BOSS_HEAD] = "All heart cards are debuffed",
+                            [mod.BLINDS.BOSS_HEART] = "One random Joker is disabled every hand",
                             [mod.BLINDS.BOSS_HOOK] = "Discard 2 cards on hand play",
                             [mod.BLINDS.BOSS_HOUSE] = "Starting hand is drawn face down",
-                            [mod.BLINDS.BOSS_LEAF] = "All cards are debuffed until a joker is sold",
+                            [mod.BLINDS.BOSS_LEAF] = "All cards are debuffed until a Joker is sold",
                             [mod.BLINDS.BOSS_MANACLE] = "-1 hand size",
                             [mod.BLINDS.BOSS_MARK] = "All face cards are drawn face down",
                             [mod.BLINDS.BOSS_MOUTH] = "Can only play one hand type",

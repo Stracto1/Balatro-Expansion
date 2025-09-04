@@ -201,13 +201,11 @@ mod:AddCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE, mod.OnItemPickup)
 function mod:SpadeOpenDoor(Tear)
 
     local Data = Tear:GetData()
-    local Player = Tear.Parent
+    local Player = Tear.Parent and Tear.Parent:ToPlayer() or nil
 
     if not Player then
         return
     end
-
-    Player = Player:ToPlayer()
 
     if Player:GetPlayerType() ~= mod.Characters.JimboType
        or not Player:HasCollectible(CollectibleType.COLLECTIBLE_SHARP_KEY)
@@ -248,9 +246,13 @@ function mod:OnCardDeath(Tear)
         return
     end
 
-    local Player = Tear.Parent:ToPlayer()
+    local Player = Tear.Parent and Tear.Parent:ToPlayer() or nil
 
-    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+    if not Player then
+        Player = Tear.SpawnerEntity and Tear.SpawnerEntity:ToPlayer() or nil
+    end
+
+    if not Player or Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
 

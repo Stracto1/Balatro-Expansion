@@ -289,6 +289,8 @@ Balatro_Expansion.Effects.BANANA_PEEL = Isaac.GetEntityVariantByName("Banana Pee
 Balatro_Expansion.Effects.TOMATO = Isaac.GetEntityVariantByName("Thrown Tomato")
 Balatro_Expansion.Effects.ANVIL = Isaac.GetEntityVariantByName("Falling Anvil")
 Balatro_Expansion.Effects.UMBRELLA = Isaac.GetEntityVariantByName("Player Umbrella")
+Balatro_Expansion.Effects.HAND_SWING = Isaac.GetEntityVariantByName("The Hand Swing")
+Balatro_Expansion.Effects.HEIRLOOM_TRIGGER = Isaac.GetEntityVariantByName("Heirloom Upgrade")
 
 Balatro_Expansion.Effects.DIALOG_BUBBLE = Isaac.GetEntityVariantByName("Blind Cashout Bubble")
 
@@ -535,10 +537,20 @@ Balatro_Expansion.Edition.HOLOGRAPHIC = 2
 Balatro_Expansion.Edition.POLYCROME = 3
 Balatro_Expansion.Edition.NEGATIVE = 4
 
+Balatro_Expansion.EDITION_FLAG_SHIFT = 16
+Balatro_Expansion.EditionFlag = {[Balatro_Expansion.Edition.BASE] = 0,
+                                 [Balatro_Expansion.Edition.FOIL] = Balatro_Expansion.Edition.FOIL << 16,
+                                 [Balatro_Expansion.Edition.HOLOGRAPHIC] = Balatro_Expansion.Edition.HOLOGRAPHIC << 16,
+                                 [Balatro_Expansion.Edition.POLYCROME] = Balatro_Expansion.Edition.POLYCROME << 16,
+                                 [Balatro_Expansion.Edition.NEGATIVE] = Balatro_Expansion.Edition.NEGATIVE << 16,
+                                 ALL = 7 << 16}
+
+
+
 Balatro_Expansion.Modifier = {DEBUFFED = 1 << 0,
                               COVERED = 1 << 1}
 
-Balatro_Expansion.EditionShaders ={ --sadly these don't work for the bigger card spritesheet, if you know how to fix this please let me know!!
+Balatro_Expansion.EditionShaders ={
     "shaders/Foil_effect",
     "shaders/Holographic_effect",
     "shaders/Polychrome_effect",
@@ -808,7 +820,6 @@ Balatro_Expansion.Saved.AnteCardsPlayed = {}
 Balatro_Expansion.Saved.NumShopRerolls = 0
 Balatro_Expansion.Saved.RerollStartingPrice = 5
 Balatro_Expansion.Saved.NumBlindsSkipped = 0
-Balatro_Expansion.Saved.EncounteredStageIDs = {}
 
 
 Balatro_Expansion.Saved.SkipTags = {}
@@ -942,7 +953,6 @@ Balatro_Expansion.StatEnable = false --needed cause i hate my life
 --Balatro_Expansion.Saved.Player.StatsToAdd.JokerDamage = 0
 --Balatro_Expansion.Saved.Player.StatsToAdd.JokerTears = 0
 --Balatro_Expansion.Saved.Player.StatsToAdd.JokerMult = 1
-Balatro_Expansion.JimboStartTears = 1.5
 
 --Balatro_Expansion.Saved.Player.TrueDamageValue = 1 --used to surpass the usual 0.5 minimum damage cap (got this idea from isaacguru's Utility Commands)
 --Balatro_Expansion.Saved.Player.TrueTearsValue = 2.5
@@ -1134,7 +1144,12 @@ Balatro_Expansion.Saved.DSS = {
                                         HandHUDPosition = 1,
                                         HandScale = 1
                                     }, 
-                                T_Jimbo={},
+                                T_Jimbo={
+                                         BaseHands = 4,
+                                         BaseDiscards = 4,
+                                         OutOfRangeDamage = 0.5,
+                                         IsVulnerable = false
+                                },
                                 
                                 General={},
                                 MenuPalette = {},
@@ -1149,6 +1164,7 @@ Balatro_Expansion.Saved.DSS = {
 Balatro_Expansion.Achievements = {
                                     PERMA_LOCK = Isaac.GetAchievementIdByName("PermaLocked"), --achievement used to block certain pickups from appearing outside of forced spawning
                                     T_JIMBO = Isaac.GetAchievementIdByName("T_JimboUnlock"),
+                                    TRINKET_EDITIONS = Isaac.GetAchievementIdByName("TrinketEditionsUnlock"),
                                     Items = {   
                                             [Balatro_Expansion.Collectibles.HORSEY] = Isaac.GetAchievementIdByName("HorseyUnlock"),
                                             [Balatro_Expansion.Collectibles.CRAYONS] = Isaac.GetAchievementIdByName("CrayonsUnlock"),
@@ -1275,6 +1291,7 @@ include("Balatro_scripts.characters.jimbo.Synergies") --specific synergies
 
 
 include("Balatro_scripts.characters.T jimbo.mechanics")
+include("Balatro_scripts.characters.T jimbo.Special enemies")
 include("Balatro_scripts.characters.T jimbo.hud")
 include("Balatro_scripts.characters.T jimbo.Custom_Cards")
 include("Balatro_scripts.characters.T jimbo.scoring system") --hand scoring handling
@@ -1286,7 +1303,9 @@ include("Balatro_scripts.characters.DebtManager")
 include("Balatro_scripts.custom_grid")
 
 
-include("Balatro_scripts.Collectibles.Unlockable Items")
+include("Balatro_scripts.Unlockables.Unlockable Items")
+include("Balatro_scripts.Unlockables.The Hand")
+include("Balatro_scripts.Unlockables.Trinket Editions")
 --include("Balatro_scripts.Trinket_Callbacks")
 
 ---------------------CACHE EVALUATION FUNCTIONS---------------------

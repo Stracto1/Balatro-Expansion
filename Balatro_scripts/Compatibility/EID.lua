@@ -798,11 +798,12 @@ end
 function mod:ReplaceBalatroMarkups(String, DescType, DescSubType, Tainted, Index)
 
     local T_Jimbo = PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo)
+    local Jimbo = PlayerManager.FirstPlayerByType(mod.Characters.JimboType)
 
 
     String = string.gsub(String, "%[%[CHANCE%]%]", function ()
         
-        local NumDice = #mod:GetJimboJokerIndex(T_Jimbo, mod.Jokers.OOPS_6)
+        local NumDice = #mod:GetJimboJokerIndex(T_Jimbo or Jimbo, mod.Jokers.OOPS_6)
 
         return tostring(2^NumDice) --usually chance based things are 1/X chance so no problem in doing this
     end)
@@ -848,8 +849,7 @@ local function BalatroInventoryCallback(descObj)
     local Lang = mod:GetEIDLanguage()
 
 
-    descObj.Name = mod.Descriptions.Other.Name[Lang] --PLACEHOLDER
-
+    descObj.Name = mod:GetEIDString("Other", "Name")
 
     for _,Player in ipairs(PlayerManager.GetPlayers()) do
 
@@ -891,13 +891,13 @@ local function BalatroInventoryCallback(descObj)
                     EID:addIcon("CurrentCard", CardIcon[1], CardIcon[2], CardIcon[3], CardIcon[4], CardIcon[5], CardIcon[6], CardIcon[7])
 
                     Icon = "{{Shop}}"
-                    Name = mod.Descriptions.Other.SellJoker[Lang]
-                    Description = "#{{CurrentCard}} "..mod.Descriptions.Other.SellsFor[Lang].." {{ColorYellow}}"..mod:GetJokerCost(SelectedCard, SelectedSlots, Player).."${{CR}}"
+                    Name = mod:GetEIDString("Other", "SellJoker")
+                    Description = "#{{CurrentCard}} "..mod:GetEIDString("Other", "SellsFor").." {{ColorYellow}}"..tostring(mod:GetJokerCost(SelectedCard, SelectedSlots, Player)).."${{CR}}"
 
                 else --not selling anything and confirm button
 
                     Icon = ""
-                    Name = mod.Descriptions.Other.Exit[Lang]
+                    Name = mod:GetEIDString("Other", "Exit")
                     Description = ""
                 end
                 goto FINISH
@@ -907,8 +907,8 @@ local function BalatroInventoryCallback(descObj)
             if SelectedCard.Joker == 0 then --empty slot
 
                 Icon = ""
-                Name = "{{Blank}} "..mod.Descriptions.Other.Nothing[Lang]
-                Description = mod.Descriptions.Other.EmptySlot[Lang]
+                Name = "{{Blank}} "..mod:GetEIDString("Other", "Nothing")
+                Description = mod:GetEIDString("Other", "EmptySlot")
 
             else --slot with something
 
@@ -917,7 +917,7 @@ local function BalatroInventoryCallback(descObj)
                 descObj.ObjSubType = SelectedCard.Joker
 
 
-                local Tstring = "5.350."..tostring(SelectedCard.Joker)
+                --local Tstring = "5.350."..tostring(SelectedCard.Joker)
 
                 local CardIcon = EID:createItemIconObject("Trinket"..tostring(SelectedCard.Joker))
 
@@ -938,11 +938,11 @@ local function BalatroInventoryCallback(descObj)
                 Icon = "{{CurrentCard}}"
                 Name = RarityColor..EID:getObjectName(5, 350, SelectedCard.Joker).."{{CR}}#{{Blank}}"
 
-                Description = ""..mod.Descriptions.Jimbo.Jokers[SelectedCard.Joker][Lang] --EID:getDescriptionEntry("custom", Tstring)[3]
+                Description = ""..mod:GetEIDString("Jimbo", "Jokers", SelectedCard.Joker)
 
                 local Edition = mod.Saved.Player[PIndex].Inventory[mod.SelectionParams[PIndex].Index].Edition
 
-                local EditionDesc = mod.Descriptions.JokerEdition[Edition][Lang]
+                local EditionDesc = mod:GetEIDString("Jimbo", "JokerEdition", Edition)
 
                 Description = Description..EditionDesc
 
@@ -954,9 +954,9 @@ local function BalatroInventoryCallback(descObj)
                 --SELL VALUE--
 
                 if SelectedCard.Joker == mod.Jokers.EGG then
-                    Description = Description.." #{{Shop}}"..mod.Descriptions.Other.SellsFor[Lang].."{{ColorYellorange}}"..tostring(mod.Saved.Player[PIndex].Progress.Inventory[mod.SelectionParams[PIndex].Index]).."${{CR}}"
+                    Description = Description.." #{{Shop}}"..mod:GetEIDString("Other", "SellsFor").."{{ColorYellorange}}"..tostring(mod.Saved.Player[PIndex].Progress.Inventory[mod.SelectionParams[PIndex].Index]).."${{CR}}"
                 else
-                    Description = Description.." #{{Shop}}"..mod.Descriptions.Other.SellsFor[Lang].."{{ColorYellorange}}"..tostring(mod:GetJokerCost(SelectedCard.Joker, SelectedCard.Edition, mod.SelectionParams[PIndex].Index, Player)).."${{CR}}"
+                    Description = Description.." #{{Shop}}"..mod:GetEIDString("Other", "SellsFor").."{{ColorYellorange}}"..tostring(mod:GetJokerCost(SelectedCard.Joker, SelectedCard.Edition, mod.SelectionParams[PIndex].Index, Player)).."${{CR}}"
                 end
             end
 
@@ -968,8 +968,8 @@ local function BalatroInventoryCallback(descObj)
             if not SelectedCard then -- the skip option
 
                 Icon = ""
-                Name = mod.Descriptions.Other.SkipName[Lang].."#{{Blank}}"
-                Description = mod.Descriptions.Other.SkipDesc[Lang] --wasn't able to find an api function for this
+                Name = mod:GetEIDString("Other", "SkipName").."#{{Blank}}"
+                Description = mod:GetEIDString("Other", "SkipDesc") --wasn't able to find an api function for this
 
                 goto FINISH
             end
@@ -1008,7 +1008,7 @@ local function BalatroInventoryCallback(descObj)
                 Description = mod:ReplaceBalatroMarkups(BaseDesc, mod.EID_DescType.JOKER, SelectedCard.Joker, true, SelectIndex)
 
 
-                local EditionDesc = mod.Descriptions.JokerEdition[SelectedCard.Edition][Lang] or mod.Descriptions.JokerEdition[SelectedCard.Edition]["en_us"]
+                local EditionDesc = mod:GetEIDString("Jimbo", "JokerEdition", SelectedCard.Edition)
 
                 Description = Description..EditionDesc
 
@@ -1020,7 +1020,7 @@ local function BalatroInventoryCallback(descObj)
                 
                 if SelectedCard.Enhancement ~= mod.Enhancement.STONE then
                     
-                    CardName = CardName.."{{ColorCyan}} "..mod.Descriptions.Other.LV[Lang]..tostring(mod.Saved.CardLevels[SelectedCard.Value] + 1).."{{CR}}"
+                    CardName = CardName.."{{ColorCyan}} "..mod:GetEIDString("Other", "LV")..tostring(mod.Saved.CardLevels[SelectedCard.Value] + 1).."{{CR}}"
                 end
 
                 Name = CardName
@@ -1046,8 +1046,7 @@ local function BalatroInventoryCallback(descObj)
                 Icon = ""
                 Name = EID:getObjectName(5, 300, TrueCard).."#{{Blank}}"
 
-
-                Description = mod.Descriptions.Jimbo.Consumables[TrueCard][Lang] or mod.Descriptions.Consumables[TrueCard]["en_us"]
+                Description = mod:GetEIDString("Jimbo", "Consumables", TrueCard)
             end
 
         elseif Balatro_Expansion.SelectionParams[PIndex].Mode == Balatro_Expansion.SelectionParams.Modes.HAND then
@@ -1058,8 +1057,8 @@ local function BalatroInventoryCallback(descObj)
             if not SelectedCard then -- the skip option
 
                 Icon = ""
-                Name = mod.Descriptions.Other.ConfirmName[Lang].."#{{Blank}}"
-                Description = mod.Descriptions.Other.ConfirmDesc[Lang]
+                Name = mod:GetEIDString("Other", "ConfirmName").."#{{Blank}}"
+                Description = mod:GetEIDString("Other", "ConfirmDesc")
 
                 goto FINISH
             end
@@ -1070,23 +1069,20 @@ local function BalatroInventoryCallback(descObj)
 
             if SelectedCard.Enhancement ~= mod.Enhancement.STONE then
 
-                CardName = CardName.."{{ColorCyan}} "..mod.Descriptions.Other.LV[Lang]..tostring(mod.Saved.CardLevels[SelectedCard.Value] + 1).."{{CR}}"
+                CardName = CardName.."{{ColorCyan}} "..mod:GetEIDString("Other", "LV")..tostring(mod.Saved.CardLevels[SelectedCard.Value] + 1).."{{CR}}"
             end
 
             Name = CardName
 
-            local EnhancementEffect = mod.Descriptions.Jimbo.Enhancement[SelectedCard.Enhancement][Lang] or mod.Descriptions.Jimbo.Enhancement[SelectedCard.Enhancement]["en_us"]
-            local SealEffect = mod.Descriptions.Seal[SelectedCard.Seal][Lang] --PLACEHOLDER
-            local EditionEffect = mod.Descriptions.CardEdition[SelectedCard.Edition][Lang] --PLACEHOLDER
+            local EnhancementEffect = mod:GetEIDString("Jimbo", "Enhancement", SelectedCard.Enhancement)
+            local SealEffect = mod:GetEIDString("Jimbo", "Seal", SelectedCard.Seal)
+
+            local EditionEffect = mod:GetEIDString("Jimbo", "CardEdition", SelectedCard.Edition)
 
             local CardAttributes = EnhancementEffect..SealEffect..EditionEffect
 
-
-
             Description = CardAttributes
-
         end
-
 
         ::FINISH::
 
@@ -1112,9 +1108,6 @@ end
 
 local function BalatroExtraDescCallback(descObj)
     
-    local Lang = mod:GetEIDLanguage()
-
-
     local BaseDesc = ""
 
     if descObj.ObjSubType <= Card.CARD_WORLD then
@@ -1130,50 +1123,51 @@ local function BalatroExtraDescCallback(descObj)
             BaseDesc = BaseDesc..CardName
 
         elseif descObj.ObjSubType == Card.CARD_MAGICIAN then
-            BaseDesc = BaseDesc..mod.Descriptions.Jimbo.Enhancement[mod.Enhancement.LUCKY][Lang]
+            BaseDesc = BaseDesc..mod:GetEIDString("Jimbo", "Enhancement", mod.Enhancement.LUCKY)
         elseif descObj.ObjSubType== Card.CARD_LOVERS then
-            BaseDesc = BaseDesc..mod.Descriptions.Jimbo.Enhancement[mod.Enhancement.WILD][Lang]
+            BaseDesc = BaseDesc..mod:GetEIDString("Jimbo", "Enhancement", mod.Enhancement.WILD)
         
         elseif descObj.ObjSubType== Card.CARD_DEVIL then
-            BaseDesc = BaseDesc..mod.Descriptions.Jimbo.Enhancement[mod.Enhancement.GOLDEN][Lang] 
+            BaseDesc = BaseDesc..mod:GetEIDString("Jimbo", "Enhancement", mod.Enhancement.GOLDEN)
         
         elseif descObj.ObjSubType== Card.CARD_TOWER then
-            BaseDesc = BaseDesc..mod.Descriptions.Jimbo.Enhancement[mod.Enhancement.STONE][Lang]
+            BaseDesc = BaseDesc..mod:GetEIDString("Jimbo", "Enhancement", mod.Enhancement.STONE)
         
         elseif descObj.ObjSubType== Card.CARD_EMPRESS then
-            BaseDesc = BaseDesc..mod.Descriptions.Jimbo.Enhancement[mod.Enhancement.MULT][Lang]
+            BaseDesc = BaseDesc..mod:GetEIDString("Jimbo", "Enhancement", mod.Enhancement.MULT)
         
         elseif descObj.ObjSubType== Card.CARD_HIEROPHANT then
 
-            BaseDesc = BaseDesc..mod.Descriptions.Jimbo.Enhancement[mod.Enhancement.BONUS][Lang]
+            BaseDesc = BaseDesc..mod:GetEIDString("Jimbo", "Enhancement", mod.Enhancement.BONUS)
         elseif descObj.ObjSubType== Card.CARD_CHARIOT then
 
-            BaseDesc = BaseDesc..mod.Descriptions.Jimbo.Enhancement[mod.Enhancement.STEEL][Lang]
+            BaseDesc = BaseDesc..mod:GetEIDString("Jimbo", "Enhancement", mod.Enhancement.STEEL)
         elseif descObj.ObjSubType== Card.CARD_JUSTICE then
 
-            BaseDesc = BaseDesc..mod.Descriptions.Jimbo.Enhancement[mod.Enhancement.GLASS][Lang]
+            BaseDesc = BaseDesc..mod:GetEIDString("Jimbo", "Enhancement", mod.Enhancement.GLASS)
         end
     end
     
     if descObj.ObjSubType== mod.Spectrals.TALISMAN then
 
-        BaseDesc = BaseDesc..mod.Descriptions.Seal[mod.Seals.GOLDEN][Lang]
+        BaseDesc = BaseDesc..mod:GetEIDString("Jimbo", "Seal", mod.Seals.GOLDEN)
     elseif descObj.ObjSubType== mod.Spectrals.DEJA_VU then
 
-        BaseDesc = BaseDesc..mod.Descriptions.Seal[mod.Seals.RED][Lang]
+        BaseDesc = BaseDesc..mod:GetEIDString("Jimbo", "Seal", mod.Seals.RED)
     elseif descObj.ObjSubType== mod.Spectrals.TRANCE then
 
-        BaseDesc = BaseDesc..mod.Descriptions.Seal[mod.Seals.BLUE][Lang]
+        BaseDesc = BaseDesc..mod:GetEIDString("Jimbo", "Seal", mod.Seals.BLUE)
     elseif descObj.ObjSubType== mod.Spectrals.MEDIUM then
 
-        BaseDesc = BaseDesc..mod.Descriptions.Seal[mod.Seals.PURPLE][Lang]
+        BaseDesc = BaseDesc..mod:GetEIDString("Jimbo", "Seal", mod.Seals.PURPLE)
+
     elseif descObj.ObjSubType== mod.Spectrals.ECTOPLASM then
 
-        BaseDesc = BaseDesc..mod.Descriptions.JokerEdition[mod.Edition.NEGATIVE][Lang]
+        BaseDesc = BaseDesc..mod:GetEIDString("Jimbo", "JokerEdition", mod.Edition.NEGATIVE)
     end
 
-
     EID:appendToDescription(descObj, BaseDesc)
+
     return descObj
 end
 
@@ -1184,7 +1178,7 @@ local function JimboGroundtrinketsCondition(descObj)
 
     if PlayerManager.AnyoneIsPlayerType(Balatro_Expansion.Characters.JimboType) 
        and descObj.ObjType == EntityType.ENTITY_PICKUP and descObj.ObjVariant == PickupVariant.PICKUP_TRINKET 
-       and ItemsConfig:GetTrinket(descObj.ObjSubType):HasCustomTag("balatro") then
+       and ItemsConfig:GetTrinket(descObj.ObjSubType & ~mod.EditionFlag.ALL):HasCustomTag("balatro") then
 
         return true
     end
@@ -1192,10 +1186,10 @@ end
 
 local function JimboGroundtrinketsCallback(descObj)
 
-    local Lang = mod:GetEIDLanguage()
 
+    local Joker = descObj.ObjSubType & ~mod.EditionFlag.ALL
 
-    descObj.Description = mod:GetEIDString("Jimbo", "Jokers", descObj.ObjSubType)
+    descObj.Description = mod:GetEIDString("Jimbo", "Jokers", Joker)
 
     descObj.Description = mod:ReplaceBalatroMarkups(descObj.Description, mod.EID_DescType.JOKER, descObj.ObjSubType, false)
 
@@ -1221,7 +1215,7 @@ local function BalatroOffsetCallback(descObj)
     return descObj
 end
 
-EID:addDescriptionModifier("Balatro mod.Descriptions Offset", BalatroOffsetCondition, BalatroOffsetCallback)
+EID:addDescriptionModifier("Balatro Descriptions Offset", BalatroOffsetCondition, BalatroOffsetCallback)
 
 
 
@@ -1596,15 +1590,14 @@ local function TJimboDescriptionsCallback(descObj)
 
         elseif descObj.ObjVariant == PickupVariant.PICKUP_TRINKET then
 
-            local JokerConfig = ItemsConfig:GetTrinket(descObj.ObjSubType)
+            local JokerConfig = ItemsConfig:GetTrinket(descObj.ObjSubType & ~mod.EditionFlag.ALL)
 
             if JokerConfig:HasCustomTag("balatro") then
 
-                ObjectToDescribe.Params = {Edition = mod.Saved.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][JokerConfig.Name],
+                ObjectToDescribe.Params = {Edition = (descObj.ObjSubType & mod.EditionFlag.ALL) >> mod.EDITION_FLAG_SHIFT,
                                            Modifiers = 0}
 
                 
-
                 --[[
                 if ObjectToDescribe.Entity then
 

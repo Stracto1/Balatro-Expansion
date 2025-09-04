@@ -243,7 +243,9 @@
 		"REPENTOGON",
         "ModConfigMenu",
         "EID",
-        "dssmod"
+        "dssmod",
+        "Ephiphany",
+        "Epiphany"
 	],
     "diagnostics.disable": [
     ]}

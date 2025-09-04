@@ -152,8 +152,10 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
                 end
             else
 
+                InventoryFrame[i] = InventoryFrame[i] or 0
+
                 if Isaac.GetFrameCount() % 2 == 0 then
-                    InventoryFrame[i] = InventoryFrame[i] and (InventoryFrame[i] + 1 or 0)
+                    InventoryFrame[i] = InventoryFrame[i] + 1
 
                     InventoryFrame[i] = InventoryFrame[i] > JidleLength and 0 or InventoryFrame[i]
                 end

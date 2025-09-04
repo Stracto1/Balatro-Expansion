@@ -104,8 +104,8 @@ local itemData = {
         Type = "Trinket",
         Name = "Joker",
         UnlockMethod = "Unlocked by defeating Mom's Heart",
-        Description = "Gives 5 free beggar payouts. If gulped gives a speed up that scales with the amount of uses remaining",
-        Achievement = mod.Achievements.Trinkets[mod.Trinkets.TASTY_CANDY[1]]
+        Description = "1 flat damage up",
+        Achievement = mod.Achievements.Trinkets[mod.Jokers.JOKER]
     },
     {
         Id = Balatro_Expansion.Collectibles.HORSEY,
@@ -122,7 +122,7 @@ local itemData = {
         Type = "Collectible",
         Name = "Box of Crayons",
         UnlockMethod = "Unlocked by defeating ???",
-        Description = "While moving, Isaac leaves a trail of crayon dust which applies a different effect on enemies that step on it basing on it's color. The dust color changes every room.",
+        Description = "While moving, Isaac leaves a trail of crayon dust which applies various status effects on enemies that step on it basing on it's color. The dust color changes every room.",
         Achievement = mod.Achievements.Items[mod.Collectibles.CRAYONS]
     },
     {
@@ -234,7 +234,7 @@ local itemData = {
         Type = "Collectible",
         Name = "Eris",
         UnlockMethod = "Unlocked by compleating all marks as T. Jimbo",
-        Description = "Enemies close to Isaac are slowed as they approach him, eventually gettin frozen",
+        Description = "Enemies close to Isaac are slowed as they approach him, eventually starting to take damage",
         Achievement = mod.Achievements.Items[mod.Collectibles.ERIS]
     },
     {
@@ -253,7 +253,7 @@ local itemData = {
         Type = "Collectible",
         Name = "The Hand",
         UnlockMethod = "Unlocked by aaaaaaaaaaaaa",
-        Description = "Up to 5 cards can be stored inside the active item. Using the item activates all cards stored in order",
+        Description = "Up to 5 cards can be stored inside the active item. Holding the item activates all cards stored in order",
         Achievement = mod.Achievements.Items[mod.Collectibles.THE_HAND]
     },
 
@@ -263,7 +263,7 @@ local itemData = {
         Type = "Collectible",
         Name = "Heirloom",
         UnlockMethod = "Unlocked by aaaaaaaaaaaaa",
-        Description = "Start the next run with 10 extra coins. Coins have a chance to get their value upgraded. Pickups have a chance to become thei golden cariant",
+        Description = "Coins have a chance to get their value upgraded. Pickups have a chance to become their golden variant",
         Achievement = mod.Achievements.Items[mod.Collectibles.HEIRLOOM]
     },
 
@@ -274,7 +274,7 @@ local itemData = {
         Name = "Penny Seed",
         UnlockMethod = "Unlocked by aaaaaaaaaaaaa",
         Description = "Gain a coin per 5 cents held on new floor",
-        Achievement = mod.Achievements.Trinkets[mod.Collectibles.PENNY_SEEDS]
+        Achievement = mod.Achievements.Trinkets[mod.Trinkets.PENNY_SEEDS]
     },
 
     {
@@ -283,8 +283,8 @@ local itemData = {
         Type = "Trinket",
         Name = "Chaos Theory",
         UnlockMethod = "Unlocked by aaaaaaaaaaaaa",
-        Description = "Gain a coin per 5 cents held on new floor",
-        Achievement = mod.Achievements.Trinkets[mod.Collectibles.PENNY_SEEDS]
+        Description = "All pickups are randomized",
+        Achievement = mod.Achievements.Trinkets[mod.Jokers.CHAOS_THEORY]
     },
 
 
@@ -394,7 +394,40 @@ menu.regambledJimboSettings = {
 
 menu.regambledTaintedJimboSettings = {
     title = "t.jimbo settings",
+    buttons = {
+        {   str = 'hand card scale',
+            choices = {'100%','150%','200%',},
+            setting = 1,
+            variable = 'ragambledHandScale',
 
+            load = function ()
+                return mod.Saved.DSS.Jimbo.HandScale or 1
+            end,
+
+            store = function (var)
+                mod.Saved.DSS.Jimbo.HandScale = var
+            end,
+
+            tooltip = {strset = {"which do you", "prefer?"}}
+        },
+
+        {   str = 'hand hud position',
+            choices = {'player','hearts',},
+            setting = 1,
+            variable = 'ragambledHandPosition',
+
+            load = function ()
+                return mod.Saved.DSS.Jimbo.HandHUDPosition or 1
+            end,
+
+            store = function (var)
+                mod.Saved.DSS.Jimbo.HandHUDPosition = var
+            end,
+
+            tooltip = {strset = {"which do you", "prefer?"}}
+        },
+
+    }
 }
 
 menu.unlockManager = {
@@ -437,7 +470,7 @@ menu.unlockManager = {
                         Gfx = "gfx/ui/hud_dss_sheriff_icon.png",
                         ScaleFactor = Vector.Zero,
                         Name = "jimbo",
-                        Description = "jimbo shoots cards that dealing the product of his damage and tears stat worth of damage. shoot cards and collect joker effects to increase these stats.",
+                        Description = "jimbo shoots cards that dealing the product of his damage and tears stat worth of damage. shoot cards and collect joker to increase these stats.",
                         Unlocked = true,
                         UnlockMethod = "\"beat 'a familiar game'\""
                     }
@@ -482,6 +515,7 @@ menu.unlockManager = {
             spr:ReplaceSpritesheet(0, data.Gfx)
             spr:LoadGraphics()
             spr:Play("Idle", true)
+
             local unlocked = Isaac.GetPersistentGameData():Unlocked(data.Achievement) 
             local scaleFactor = 1
 
@@ -560,7 +594,6 @@ menu.unlockManager = {
                         Unlocked = unlocked,
                         UnlockMethod = data.UnlockMethod,
                         ToggleFunction = function (bool)
-                            -- this is all so hacky... i hate unlockapi
                             if data.Type == "Collectible" then
 
                                 if REPENTOGON and Balatro_Expansion.Achievements.Items[data.Id] then
@@ -766,8 +799,8 @@ menu.credits = {
     buttons = {
         { str = "first things first", fsize = 3, nosel = true},
         { str = "=================================", fsize = 1, nosel = true},
-        { str = "catinsurance", tooltip = {strset = {"original","creator of", "thid menu's","setup"}} },
-        { str = "gdkbb", tooltip = {strset = {"awesome","fella"}}},
+        { str = "catinsurance", tooltip = {strset = {"original","creator of", "this menu's","setup"}} },
+        { str = "NegativeNEV", tooltip = {strset = {"awesome","fella"}}},
         { str = "balatro/local thunk", tooltip = {strset = {"original", "inspiration"}}},
         LINE_BREAK,
         { str = "active contributors", fsize = 3, nosel = true},

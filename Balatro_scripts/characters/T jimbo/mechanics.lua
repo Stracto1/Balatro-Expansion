@@ -9,7 +9,7 @@ local sfx = SFXManager()
 local TimerFixerVariable = 0
 local BlindGotCleared = false --prevents blind clear callback to be called multiple times in the same frame
 
-local MAX_BOSSRUSH_WAVES = 3
+local MAX_BOSSRUSH_WAVES = 5
 
 local AmbushWasActive = false
 local PreviousWave = 0
@@ -99,15 +99,6 @@ local function FloorModifier()
 
     if not PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then
         return
-    end
-
-    local StageID = Isaac.GetCurrentStageConfigId()
-
-    if StageID ~= StbType.BLUE_WOMB
-       and StageID ~= StbType.VOID
-       and not mod:Contained(mod.Saved.EncounteredStageIDs, StageID) then
-
-        mod.Saved.EncounteredStageIDs[#mod.Saved.EncounteredStageIDs+1] = StageID
     end
 
     mod:PlaceBlindRoomsForReal()
@@ -795,7 +786,7 @@ local function SetupRoom()
     --RoomDesc:AddRestrictedGridIndex(Room:GetGridIndex(Room:GetDoorSlotPosition(DoorSlot.UP1)))
 
     if Room:GetType() == RoomType.ROOM_BOSSRUSH then
-        Ambush.SetMaxBossrushWaves(3)
+        Ambush.SetMaxBossrushWaves(MAX_BOSSRUSH_WAVES)
     end
 
 
@@ -808,7 +799,8 @@ local function SetupRoom()
 
     if RoomIndex ~= mod.Saved.SmallBlindIndex
        and RoomIndex ~= mod.Saved.BigBlindIndex
-       and RoomIndex ~= mod.Saved.BossIndex then
+       and RoomIndex ~= mod.Saved.BossIndex
+       and not mod:IsMotherBossRoom() then
         
         for i,Entity in ipairs(Isaac.GetRoomEntities()) do
 
@@ -1325,30 +1317,54 @@ function mod:ActivateCurrentHand(Player)
 
     local HandHype = mod.Saved.HandType
 
-    local RadiusMultiplier = mod.Saved.HandsStat[HandHype].Mult
+    local BaseHandMult = mod.Saved.HandsStat[HandHype].Mult
 
     local FullHandDamage = mod.Saved.TotalScore + 0
+
+
+    local EFFECT_RANGE = BASE_HAND_RADIUS*BaseHandMult
+    EFFECT_RANGE = EFFECT_RANGE * (EFFECT_RANGE/40)^0.85
+
+
+    sfx:Play(SoundEffect.SOUND_EXPLOSION_WEAK,1,0)
+    sfx:Play(SoundEffect.SOUND_BLACK_POOF, 1, 2, false, 0.75)
+
+    Game:MakeShockwave(TargetPosition, 0.0003*EFFECT_RANGE, 0.025, 6)
+    local BloodColor = Color()
+    BloodColor:SetColorize(mod.EffectColors.BLUE.R, mod.EffectColors.BLUE.G, mod.EffectColors.BLUE.B, 3)
 
     
     --enemies inside the radius shown take damage twice, others only once
 
+    local DamagedTheMother = false --the mother has multiple hitboxes
+
+    local OutOfRangeMult = mod.Saved.DSS.T_Jimbo.OutOfRangeDamage
+
+
     for _, Enemy in ipairs(Isaac.FindInRadius(TargetPosition, 
-                                              BASE_HAND_RADIUS * RadiusMultiplier + 5,
+                                              EFFECT_RANGE,
                                               EntityPartition.ENEMY)) do
         if Enemy:IsActiveEnemy() then
 
             if Enemy:IsVulnerableEnemy() then
-                Enemy:TakeDamage(math.ceil(FullHandDamage*0.25),
+
+                Enemy:TakeDamage(math.ceil(FullHandDamage*(1 - OutOfRangeMult)),
                                  DamageFlag.DAMAGE_IGNORE_ARMOR, EntityRef(Player), 0)
 
+                Game:SpawnParticles(Enemy.Position, EffectVariant.BLOOD_PARTICLE, 3, 3.5, BloodColor)
+
             else --invulnerable enemies take damage only if inside the radius
-                Enemy:TakeDamage(FullHandDamage,
-                                 DamageFlag.DAMAGE_IGNORE_ARMOR, EntityRef(Player), 0)
+
+                Enemy.HitPoints = Enemy.HitPoints - FullHandDamage*0.5
+
+                HitColor = Color(1.5, 1,1,1, 0.25)
+
+                Enemy:SetColor(HitColor, 2, 50, false, false)
             end
         end
     end
 
-    local PoofScale = 0.5 * RadiusMultiplier
+    local PoofScale = 0.45 * BaseHandMult
 
     mod:TrueBloodPoof(TargetPosition, PoofScale, HAND_POOF_COLOR)
 
@@ -1359,10 +1375,10 @@ function mod:ActivateCurrentHand(Player)
 
             if Enemy:IsActiveEnemy() and Enemy:IsVulnerableEnemy() then
 
-                Enemy:TakeDamage(FullHandDamage*0.75,
+                Enemy:TakeDamage(FullHandDamage*OutOfRangeMult,
                                  DamageFlag.DAMAGE_IGNORE_ARMOR, EntityRef(Player), 0)
 
-                local PoofScale = 0.035 * Enemy.Size
+                local PoofScale = 0.032 * Enemy.Size
 
                 mod:TrueBloodPoof(Enemy.Position, PoofScale, HAND_POOF_COLOR)
 
@@ -1412,7 +1428,7 @@ local function ClearBlindOnEnemyDeath(_,NPC)
         return
     end
 
-    local WAIT_FRAMES = 2
+    local WAIT_FRAMES = 4
 
     Isaac.CreateTimer(function ()
 
@@ -1426,7 +1442,7 @@ local function ClearBlindOnEnemyDeath(_,NPC)
 
         for _,Enemy in ipairs(Isaac.GetRoomEntities()) do
 
-            if Enemy:IsBoss() and Enemy:IsActiveEnemy() and Enemy:IsVulnerableEnemy() then
+            if Enemy:IsBoss() and Enemy:IsActiveEnemy() and mod:IsValidScalingEnemy(Enemy) then
 
                 if not (Enemy:IsDead() or Enemy:HasMortalDamage()) then
                     AllDead = false
@@ -1435,39 +1451,47 @@ local function ClearBlindOnEnemyDeath(_,NPC)
             end
         end
 
-        print(AllDead, Ambush:GetCurrentWave() ~= PreviousWave)
-
-
-        if AllDead and Ambush:GetCurrentWave() ~= PreviousWave then
-        
-            PreviousWave = Ambush:GetCurrentWave()
+        if AllDead and (Ambush:GetCurrentWave() ~= PreviousWave) then
+    
+            BlindGotCleared = true
 
             local T_Jimbo = PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo)
 
             local PIndex = T_Jimbo:GetData().TruePlayerIndex
 
 
-            mod.Saved.EnableHand = false
-
             mod:SwitchCardSelectionStates(T_Jimbo, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.NONE)
 
-            local Interval = 4 + 4 * #mod.Saved.Player[PIndex].FullDeck
+            local Interval = 17 + 5 * #mod.Saved.Player[PIndex].CurrentHand
 
             Isaac.CreateTimer(function ()
 
-                print("next wave")
+                if Ambush:GetCurrentWave() ~= MAX_BOSSRUSH_WAVES then
+
+                    ---sfx:Play(SoundEffect.SOUND_MEGA_BLAST_START)
+
+                    mod.Saved.DiscardsWasted = mod.Saved.DiscardsWasted + mod.Saved.DiscardsRemaining
+
+                    mod:SwitchCardSelectionStates(T_Jimbo, mod.SelectionParams.Modes.HAND, mod.SelectionParams.Purposes.HAND)
 
 
-                mod.Saved.DiscardsWasted = mod.Saved.DiscardsWasted + mod.Saved.DiscardsRemaining
+                    mod.Saved.HandsRemaining = math.ceil(T_Jimbo:GetCustomCacheValue(mod.CustomCache.HAND_NUM))
+                    mod.Saved.DiscardsRemaining = math.ceil(T_Jimbo:GetCustomCacheValue(mod.CustomCache.DISCARD_NUM))
 
-                mod:SwitchCardSelectionStates(T_Jimbo, mod.SelectionParams.Modes.HAND, mod.SelectionParams.Purposes.HAND)
+                    BlindGotCleared = false
+                else
+                    mod.AnimationIsPlaying = true
+                    local ClearInterval = Isaac.RunCallback(mod.Callbalcks.BLIND_CLEAR, mod.Saved.BlindBeingPlayed)
+                
+                    Isaac.CreateTimer(function ()
+                        mod.AnimationIsPlaying = false
+                    end, ClearInterval, 1, false)
+                end
 
-
-                mod.Saved.HandsRemaining = T_Jimbo:GetCustomCacheValue(mod.CustomCache.HAND_NUM)
-                mod.Saved.DiscardsRemaining = T_Jimbo:GetCustomCacheValue(mod.CustomCache.DISCARD_NUM)
-
+                PreviousWave = Ambush:GetCurrentWave()
 
             end, Interval, 1, true)
+
         end
         
         return
@@ -1479,7 +1503,7 @@ local function ClearBlindOnEnemyDeath(_,NPC)
 
     for _,Enemy in ipairs(Isaac.GetRoomEntities()) do
 
-        if Enemy:IsActiveEnemy() and Enemy:IsVulnerableEnemy() then
+        if Enemy:IsActiveEnemy() and mod:IsValidScalingEnemy() then
 
             if not (Enemy:IsDead() or Enemy:HasMortalDamage()) then
                 AllDead = false
@@ -1859,6 +1883,7 @@ local function OnBlindButtonPressed(_, Plate)
 
     local Variant = Plate:GetVariant()
     local VarData = Plate.VarData
+    local Level = Game:GetLevel()
 
     --apparently when buttons are pressed the timers activate frame one so I just put a second timer inside the first one
 
@@ -1958,44 +1983,34 @@ local function OnBlindButtonPressed(_, Plate)
 
     elseif Variant == mod.Grids.PlateVariant.SMALL_BLIND_SKIP then
 
+        mod.AnimationIsPlaying = true
+
         local Interval = mod:AddSkipTag(Plate.VarData)
 
         Isaac.RunCallback(mod.Callbalcks.BLIND_SKIP, mod.BLINDS.SMALL) --throwback
 
-        mod.AnimationIsPlaying = true
-
-        Isaac.CreateTimer(function ()
-
-            mod.AnimationIsPlaying = false
-
-        end, Interval, 1, true)
-
     elseif Variant == mod.Grids.PlateVariant.BIG_BLIND_SKIP then
     
+        mod.AnimationIsPlaying = true
+
         local Interval = mod:AddSkipTag(Plate.VarData)
 
         Isaac.RunCallback(mod.Callbalcks.BLIND_SKIP, mod.BLINDS.BIG) --throwback
 
-        mod.AnimationIsPlaying = true
-
-        Isaac.CreateTimer(function ()
-
-            mod.AnimationIsPlaying = false
-
-        end, Interval, 1, true)
-
     elseif Variant == mod.Grids.PlateVariant.BLIND then
 
-        mod.Saved.BlindBeingPlayed = VarData
-
-        local Lang = mod:GetEIDLanguage()
-
-        mod.Saved.CurrentBlindName = mod.Descriptions.BlindNames[mod.Saved.BlindBeingPlayed][Lang] or mod.Descriptions.BlindNames[mod.Saved.BlindBeingPlayed]["en_us"]
-
-        
-
-        mod.Saved.CurrentBlindReward = mod:GetBlindReward(mod.Saved.BlindBeingPlayed)
         mod.Saved.CurrentRound = mod.Saved.CurrentRound + 1
+
+        local IsCorpseII = Level:GetStage() == LevelStage.STAGE4_2 and Level:IsAltStage()
+
+
+        if not IsCorpseII then --set after entring the actual boss room
+
+            mod.Saved.BlindBeingPlayed = VarData
+            mod.Saved.CurrentBlindName = mod:GetEIDString("BlindNames", mod.Saved.BlindBeingPlayed)
+
+            mod.Saved.CurrentBlindReward = mod:GetBlindReward(mod.Saved.BlindBeingPlayed)
+        end
 
         local InitialInterval = Isaac.RunCallback(mod.Callbalcks.BLIND_SELECTED, VarData)
 
@@ -2049,6 +2064,8 @@ local function OnBlindButtonPressed(_, Plate)
                                             Game:StartRoomTransition(mod.Saved.BigBlindIndex, Direction.NO_DIRECTION, RoomTransitionAnim.PIXELATION)
                                         
                                         else--if Iteration == 2 then
+                                        
+                                        
                                             local Interval = Isaac.RunCallback(mod.Callbalcks.BLIND_START, VarData)
                                         
                                             Isaac.CreateTimer(function ()
@@ -2066,22 +2083,21 @@ local function OnBlindButtonPressed(_, Plate)
                 
                     Isaac.CreateTimer(function ()
 
-                                        Iteration = Iteration + 1
+                        Iteration = Iteration + 1
 
-                                        if Iteration == 1 then
-                                            Game:StartRoomTransition(mod.Saved.BossIndex, Direction.NO_DIRECTION, RoomTransitionAnim.PIXELATION)
-                                            TimerFixerVariable = TimerFixerVariable + 1
-                                        
-                                        else --if Iteration == 2 then
-                                            local Interval = Isaac.RunCallback(mod.Callbalcks.BLIND_START, VarData)
-                                            TimerFixerVariable = 0
-                                        
-                                            Isaac.CreateTimer(function ()
-                                                Isaac.RunCallback(mod.Callbalcks.POST_BLIND_START, VarData)
-                                            end, Interval, 1, true)
-                                        end
-                                    
-                                    end, 7, 2, true)
+                        if Iteration == 1 then
+                            Game:StartRoomTransition(mod.Saved.BossIndex, Direction.NO_DIRECTION, RoomTransitionAnim.PIXELATION)
+                        
+                        elseif not IsCorpseII then --if Iteration == 2 then
+                    
+                            local Interval = Isaac.RunCallback(mod.Callbalcks.BLIND_START, VarData)
+                            
+                            Isaac.CreateTimer(function ()
+                                Isaac.RunCallback(mod.Callbalcks.POST_BLIND_START, VarData)
+                            end, Interval, 1, true)
+                        end
+                    
+                    end, 7, 2, true)
                                 
                 end
 
@@ -2268,7 +2284,7 @@ mod:AddPriorityCallback(mod.Callbalcks.BLIND_SKIP, CallbackPriority.IMPORTANT, O
 
 local function OnTagAdded(_, TagAdded)
 
-    local Interval = 8
+    local Interval = 4
 
     local T_Jimbo = PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo)
 
@@ -2283,8 +2299,6 @@ local function OnTagAdded(_, TagAdded)
     for i,Tag in ipairs(mod.Saved.SkipTags) do
 
         if Tag == mod.SkipTags.BOSS then
-
-            Interval = Interval + 20
 
             Isaac.CreateTimer(function ()
                 Isaac.CreateTimer(function ()
@@ -2329,13 +2343,14 @@ local function OnTagAdded(_, TagAdded)
 
                 end, Interval, 1, true)
             end, 0, 1, true)
+
         elseif Tag == mod.SkipTags.SPEED then
 
             Interval = Interval + 20
 
             Isaac.CreateTimer(function ()
                 Isaac.CreateTimer(function ()
-                    local Money = 5 * (mod.Saved.NumBlindsSkipped - 1) --doesn't consider the one just skipped
+                    local Money = 5 * mod.Saved.NumBlindsSkipped
 
                     T_Jimbo:AddCoins(Money)
 
@@ -2427,11 +2442,16 @@ local function OnTagAdded(_, TagAdded)
             end, 0, 1, true)
 
         elseif Tag & mod.SkipTags.ORBITAL ~= 0 then
-
             
             local HandType = Tag & ~mod.SkipTags.ORBITAL
 
-            print(HandType)
+            Isaac.CreateTimer(function ()
+                Isaac.CreateTimer(function ()
+
+                    mod:UseSkipTag(1)
+
+                end, Interval, 1, true)
+            end, 0, 1, true)
 
             local PlanetInterval = mod:PlanetUpgradeAnimation(HandType, 3, Interval)
             
@@ -2577,6 +2597,8 @@ local function OnBlindClear(_, BlindData)
 
         mod.Saved.BlindBeingPlayed = mod.BLINDS.WAITING_CASHOUT
     end
+
+    return Interval --does not consider the time spent for CASHOUT_EVL
 end
 mod:AddCallback(mod.Callbalcks.BLIND_CLEAR, OnBlindClear)
 
@@ -2605,7 +2627,7 @@ function mod:InitializeAnte(NewFloor)
         mod.Saved.AnteLevel = mod.Saved.AnteLevel + 1
 
     else
-        print(Level:GetStage())
+        print("STAGE LEVEL:",Level:GetStage())
     end
 
     -------BOSS / SKIP TAGS POOL MANAGER---------
@@ -2667,7 +2689,7 @@ function mod:InitializeAnte(NewFloor)
     local CurrentStage = Level:GetStage()
 
     local IsSpecialBoss = CurrentStage == LevelStage.STAGE4_2 --mom's heart / mother floor
-                        or CurrentStage == LevelStage.STAGE6 -- dark room / chest
+                        --or CurrentStage == LevelStage.STAGE6 -- dark room / chest
                         or CurrentStage == LevelStage.STAGE7 --void
                         --or CurrentStage == LevelStage.STAGE8 -- home
 
@@ -2796,13 +2818,17 @@ local function EnemyHPScaling()
 
     for _,Enemy in ipairs(Isaac.GetRoomEntities()) do
 
-        if Enemy:IsActiveEnemy() and Enemy:IsVulnerableEnemy() then
+        if mod:IsValidScalingEnemy(Enemy) then
+
+            print("Found Enemy With",Enemy.MaxHitPoints, "MaxHP,","("..tostring(Enemy.Type).."."..tostring(Enemy.Variant).."."..tostring(Enemy.SubType)..")")
 
             HighestEnemyHP = HighestEnemyHP and math.max(Enemy.MaxHitPoints, HighestEnemyHP) or Enemy.MaxHitPoints
         end
     end
 
-    if not HighestEnemyHP then        
+    if not HighestEnemyHP then
+        
+        print("no enemies")
 
         mod.Saved.BlindScalingFactor = 0
         return
@@ -2813,10 +2839,16 @@ local function EnemyHPScaling()
 
     for _,Enemy in ipairs(Isaac.GetRoomEntities()) do
 
-        if Enemy:IsActiveEnemy() and Enemy:IsVulnerableEnemy() then
+        if Enemy:IsActiveEnemy() then
 
-            Enemy.MaxHitPoints = Enemy.MaxHitPoints * mod.Saved.BlindScalingFactor
-            Enemy.HitPoints = Enemy.HitPoints * mod.Saved.BlindScalingFactor
+            if Enemy:IsBoss() then
+
+                Enemy.MaxHitPoints = ScoreRequirement
+                Enemy.HitPoints = ScoreRequirement
+            else
+                Enemy.MaxHitPoints = Enemy.MaxHitPoints * mod.Saved.BlindScalingFactor
+                Enemy.HitPoints = Enemy.HitPoints * mod.Saved.BlindScalingFactor
+            end
 
             Enemy:GetData().AlreadyAnteScaled = true
         end
@@ -2836,6 +2868,12 @@ local function SpawnedEnemyHPScaling(_,SpawnedEnemy)
     end
     
     local Room = Game:GetRoom()
+
+    --print("IS ROOM INITED?:", Room:IsInitialized())
+
+    if not Room:IsInitialized() or SpawnedEnemy:GetData().AlreadyAnteScaled then
+        return --the NEW_ROOM scaling will take care of it
+    end
 
     if Room:IsClear() and not Room:GetType() == RoomType.ROOM_BOSSRUSH then
         SpawnedEnemy:Remove()
@@ -2861,6 +2899,15 @@ local function SpawnedEnemyHPScaling(_,SpawnedEnemy)
             mod.Saved.BlindBeingPlayed = mod.BLINDS.BOSS
         end
     end
+
+    if SpawnedEnemy.MaxHitPoints == 0 then
+
+        Isaac.CreateTimer(function ()
+            SpawnedEnemyHPScaling(_,SpawnedEnemy)
+        end, 1, 1, false)
+
+        return
+    end
     
     ScalingFactor = mod.Saved.BlindScalingFactor + 0
 
@@ -2871,27 +2918,48 @@ local function SpawnedEnemyHPScaling(_,SpawnedEnemy)
 
     while Spawner do
         
-        Multiplier = Multiplier / 2.5
+        Multiplier = Multiplier * 0.4
+
+        if Spawner.Type == EntityType.ENTITY_MOMS_HEART then --bro spawns a bit too much
+            Multiplier = Multiplier * 0.75
+        end
 
         Spawner = Spawner.SpawnerEntity
     end
 
+    --print("---------ENEMY--------")
+
+    --print(SpawnedEnemy.Type, SpawnedEnemy.Variant)
+    --print("PRE INIT", SpawnedEnemy.MaxHitPoints, "HP")
+
+
     if SpawnedEnemy:IsBoss() then
-        SpawnedEnemy.MaxHitPoints = mod:GetBlindScoreRequirement(mod.Saved.BlindBeingPlayed)
+
+        SpawnedEnemy.MaxHitPoints = mod:GetBlindScoreRequirement(mod.Saved.BlindBeingPlayed) * Multiplier
         SpawnedEnemy.HitPoints = SpawnedEnemy.MaxHitPoints
+
+        --print("BOSS init with", SpawnedEnemy.MaxHitPoints, "HP")
 
     elseif ScalingFactor == 0 then
         
-        ScalingFactor = SpawnedEnemy.MaxHitPoints / mod:GetBlindScoreRequirement(mod.Saved.BlindBeingPlayed)
+        ScalingFactor = mod:GetBlindScoreRequirement(mod.Saved.BlindBeingPlayed) / SpawnedEnemy.MaxHitPoints
         ScalingFactor = ScalingFactor / 5
 
         SpawnedEnemy.MaxHitPoints = SpawnedEnemy.MaxHitPoints * ScalingFactor * Multiplier
         SpawnedEnemy.HitPoints = SpawnedEnemy.HitPoints * ScalingFactor * Multiplier
+
+        --print("Enemy init with", SpawnedEnemy.MaxHitPoints, "HP (no initial scaling)")
+
     else
 
         SpawnedEnemy.MaxHitPoints = SpawnedEnemy.MaxHitPoints * ScalingFactor * Multiplier
         SpawnedEnemy.HitPoints = SpawnedEnemy.HitPoints * ScalingFactor * Multiplier
+
+        --print("Enemy init with", SpawnedEnemy.MaxHitPoints, "HP")
     end
+
+    SpawnedEnemy:GetData().AlreadyAnteScaled = true
+
 end
 mod:AddCallback(ModCallbacks.MC_POST_NPC_INIT, SpawnedEnemyHPScaling)
 
@@ -3060,7 +3128,7 @@ function mod:TJimboHandsCache(Player, Cache, Value)
         return
     end
 
-    Value = 5 --starting point
+    Value = 4 --starting point
 
     if Player:HasCollectible(mod.Vouchers.Grabber) then
         Value = Value + 1
@@ -3232,7 +3300,24 @@ mod:AddCallback(ModCallbacks.MC_PRE_GRID_ENTITY_TRAPDOOR_UPDATE, KeepTrapdoorsCl
 --mod:AddCallback(ModCallbacks.MC_POST_GRID_ENTITY_TRAPDOOR_UPDATE, KeepTrapdoorsClosed, GridEntityType.GRID_TRAPDOOR)
 
 
+local FORCED_PICKUPS = {PickupVariant.PICKUP_BIGCHEST,
+                        PickupVariant.PICKUP_TROPHY}
 
+local function RemoveUnwantedPickups(_, Pickup)
+
+    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then
+        return
+    end
+
+    local Room = Game:GetRoom():GetType()
+
+    if Room ~= RoomType.ROOM_SHOP and Room ~= RoomType.ROOM_BOSSRUSH
+       and not mod:Contained(FORCED_PICKUPS, Pickup.Variant) then
+ 
+        Pickup:Remove()
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT, RemoveUnwantedPickups)
 
 
 local function PrintRoomInfo()
