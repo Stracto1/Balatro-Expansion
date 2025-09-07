@@ -3,8 +3,8 @@
         skin="character_jimbo.png"
         nameimage="playername_jimbo.png"
         
-        heartcontainers="6"
-        redhearts="6"
+        heartcontainers="8"
+        redhearts="8"
         speedmodifier="0"
         firedelaymodifier="0"
         damagemodifier="0"
@@ -31,6 +31,8 @@
         skinColor="0" 
         canShoot="false"
         coins="4"
+        speedmodifier="0.4"
+        noshake="true"
     />
     <!-- costume="104" haha le funny number-->
 </players>

@@ -563,6 +563,10 @@ mod:AddCallback(ModCallbacks.MC_PRE_LEVEL_PLACE_ROOM, mod.FloorModifier)
 --calculates how big the blinds are 
 function mod:CalculateBlinds()
 
+    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
+        return
+    end
+
     mod.Saved.SmallCleared = mod.BlindProgress.NOT_CLEARED
     mod.Saved.BigCleared = mod.BlindProgress.NOT_CLEARED
     mod.Saved.BossCleared = mod.BossProgress.NOT_CLEARED
@@ -759,7 +763,7 @@ mod:AddCallback(ModCallbacks.MC_POST_ENTITY_REMOVE, mod.OverstockGreedJokerFix, 
 
 function mod:AddRoomsCleared(IsBoss, Hostile)
 
-    Isaac.DebugString("BALATRO Room cleared")
+    --Isaac.DebugString("BALATRO Room cleared")
 
     if not Game:IsGreedMode() then
         for i,Player in ipairs(PlayerManager.GetPlayers()) do
@@ -796,7 +800,6 @@ function mod:AddRoomsCleared(IsBoss, Hostile)
     --    end
     --end
 
-
     if IsBoss and mod.Saved.BossCleared ~= mod.BossProgress.CLEARED
        and (Game:GetLevel():GetStage() ~= LevelStage.STAGE7 or Game:GetRoom():GetDeliriumDistance() == 0) then
 
@@ -815,6 +818,7 @@ function mod:AddRoomsCleared(IsBoss, Hostile)
         if mod.Saved.SmallCleared ~= mod.BlindProgress.DEFEATED then
 
             if mod.Saved.ClearedRooms == mod.Saved.SmallBlind then
+
                 Isaac.RunCallback("BLIND_CLEARED", mod.BLINDS.SMALL)
                 mod.Saved.SmallCleared = mod.BlindProgress.DEFEATED
                 mod.Saved.ClearedRooms = 0
@@ -1164,7 +1168,7 @@ function mod:JimboRoomClear(Player)
     else
         local Room = Game:GetRoom():GetType()
 
-        Isaac.RunCallback("TRUE_ROOM_CLEAR", Room == RoomType.ROOM_DEFAULT, true)
+        Isaac.RunCallback("TRUE_ROOM_CLEAR", Room == RoomType.ROOM_BOSS, true)
 
 
         --if Room == RoomType.ROOM_DEFAULT
@@ -1471,7 +1475,7 @@ function mod:DiscardNumCache(Player, Cache, Value)
         return
     end
 
-    Value = 3 --base starting point
+    Value = 4 --base starting point
 
     if Player:HasCollectible(mod.Vouchers.Wasteful) then
         Value = Value + 1

@@ -34,8 +34,8 @@ void main(void){
 	
 
 	int enable = 1; 
-	if (Color.rgb == vec3(0))
-		enable = 0; //pure black doesn't get affected by the shader
+	if (((ColorHSV.b <= 0.3)&&(ColorHSV.g <= 0.4))||(ColorHSV.b <= 0.04))
+		enable = 0; //black-ish doesn't get affected by the shader
 
 	TrueCoord.y = 1 - TrueCoord.y; //unflips the y coordinate
 	TrueCoord.xy = fract(TrueCoord * 8); //makes the pattern repeat over the texture

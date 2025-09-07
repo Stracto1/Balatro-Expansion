@@ -219,7 +219,7 @@
 
     <familiar id="33" name="Horsey" cache="familiars" quality="2" craftquality="2" gfx="horsey_item.png" description="I trust you!" achievement="HorseyUnlock" tags="offensive summonable monstermanual"/>
     <passive id="34" name="Box of Crayons" quality="1" craftquality="1" gfx="box_of_crayons_item.png" description="So much fun!" achievement="CrayonsUnlock" tags="offensive"/>
-    <active id="35" name="Banana" quality="2" craftquality="2" chargetype="normal" maxcharges="1" gfx="banana_item.png" description="A deadly weapon" achievement="BananaUnlock" tags="offensive"/>
+    <active id="35" name="Banana" quality="2" craftquality="2" chargetype="normal" maxcharges="1" gfx="banana_item.png" description="A deadly weapon" achievement="BananaUnlock" tags="offensive nocantrip"/>
     <active id="36" name="Empty Banana" quality="2" craftquality="-1" chargetype="timed" maxcharges="210" gfx="banana_exploded_item.png" description="A not so deadly weapon" achievement="BananaUnlock" hidden="true" tags="noeden offensive"/>
     <passive id="37" name="Clown Costume" quality="1" craftquality="1" gfx="clown_costume_item.png" description="Just a cosplay" addcostumeonpickup="true" achievement="ClownUnlock" tags="nolostbr"/>
     <passive id="38" name="Tragicomedy" quality="3" craftquality="3" gfx="comedy_tragedy_masks_item.png" description=":):" achievement="TragicomedyUnlock" tags="offensive"/>
@@ -234,9 +234,9 @@
 
     <active id="0" name="The hand" chargetype="special" maxcharges="0" quality="2" craftquality="2" gfx="the_hand_active.png" description="Need a hand?" achievement="TheHandUnlock" tags="nocantrip nometronome offensive"/>
     <passive id="45" name="Heirloom" quality="3" craftquality="4" gfx="heirloom_item.png" description="500$ for this" achievement="HeirloomUnlock" tags="offensive"/>
-    <passive id="46" name="Ceres" cache="familiars" quality="3" craftquality="3" gfx="ceres_item.png" description="Your inner dwarf" achievement="BalatroPlanetsUnlock" tags=""/>
-    <passive id="47" name="Planet X" quality="2" craftquality="2" gfx="planet_x_item.png" description="Ignote destination" achievement="BalatroPlanetsUnlock" tags="offensive"/>
-    <passive id="48" name="Eris" quality="3" craftquality="3" gfx="eris_item.png" description="Chilling breeze" achievement="BalatroPlanetsUnlock" tags=""/>
+    <passive id="46" name="Ceres" cache="familiars" quality="3" craftquality="3" gfx="ceres_item.png" description="Your inner dwarf" achievement="BalatroPlanetsUnlock" tags="stars"/>
+    <passive id="47" name="Planet X" quality="2" craftquality="2" gfx="planex_x_item.png" description="Ignote destination" achievement="BalatroPlanetsUnlock" tags="offensive stars"/>
+    <passive id="48" name="Eris" quality="3" craftquality="3" gfx="eris_item.png" description="Chilling breeze" achievement="BalatroPlanetsUnlock" tags="stars"/>
 
     <trinket gfx="chaos_theory_trinket.png" name="Chaos Theory" description="CHAOS! CHAOS!" customtags="!8 1 :0 ?uncommon balatro activate copy" achievement="ChaosTheoryUnlock"/>
     <trinket gfx="penny_seeds_trinket.png" name="Penny Seeds" description="Maybe one day..." achievement="PennySeedsUnlock"/>

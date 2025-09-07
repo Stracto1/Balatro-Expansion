@@ -1186,7 +1186,6 @@ end
 
 local function JimboGroundtrinketsCallback(descObj)
 
-
     local Joker = descObj.ObjSubType & ~mod.EditionFlag.ALL
 
     descObj.Description = mod:GetEIDString("Jimbo", "Jokers", Joker)
@@ -1295,6 +1294,9 @@ local function TJimboDescriptionsCondition(descObj)
        --and descObj.ObjSubType == DescriptionHelperSubType then
 
         return true
+
+    else
+        EID:removeTextPosModifier("T_Jimbo HUD")
     end
 end
 
@@ -1594,7 +1596,8 @@ local function TJimboDescriptionsCallback(descObj)
 
             if JokerConfig:HasCustomTag("balatro") then
 
-                ObjectToDescribe.Params = {Edition = (descObj.ObjSubType & mod.EditionFlag.ALL) >> mod.EDITION_FLAG_SHIFT,
+                ObjectToDescribe.Params = {Joker = descObj.ObjSubType & ~mod.EditionFlag.ALL,
+                                           Edition = (descObj.ObjSubType & mod.EditionFlag.ALL) >> mod.EDITION_FLAG_SHIFT,
                                            Modifiers = 0}
 
                 
@@ -1741,11 +1744,11 @@ local function TJimboDescriptionsCallback(descObj)
             EID_Desc.Extras.Seal = mod.Seals.NONE
         else
 
-            local Config = ItemsConfig:GetTrinket(ObjectToDescribe.SubType)
+            local Config = ItemsConfig:GetTrinket(ObjectToDescribe.Params.Joker)
 
             EID_Desc.Name = Config.Name
 
-            EID_Desc.Description = mod:GetEIDString("T_Jimbo","Jokers", ObjectToDescribe.SubType)..mod:GetEIDString("T_Jimbo","Edition", Slot.Edition)
+            EID_Desc.Description = mod:GetEIDString("T_Jimbo","Jokers", ObjectToDescribe.Params.Joker)..mod:GetEIDString("T_Jimbo","Edition", Slot.Edition)
 
             EID_Desc.Extras.Enhancement = mod.Enhancement.NONE
             EID_Desc.Extras.Edition = ObjectToDescribe.Params.Edition

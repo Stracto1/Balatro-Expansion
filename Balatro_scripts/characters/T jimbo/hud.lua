@@ -759,7 +759,7 @@ function mod:GetSkipTagFrame(Tag)
     local Frame
 
     if Tag & mod.SkipTags.ORBITAL ~= 0 then
-        Frame = 23
+        Frame = SkipTagsSprite:GetAnimationData("Tags"):GetLength()-1
     else
         Frame = Tag
     end
@@ -1309,7 +1309,7 @@ local function JimboInventoryHUD(_,_,_,_,_,Player)
 
     local JokerStep = JOKER_AREA_WIDTH / (NumJokers + 1)
 
-    local BasePos = Vector((Isaac.GetScreenWidth() - JOKER_AREA_WIDTH)/2, 
+    local BasePos = Vector(130 - JOKER_AREA_WIDTH/2, 
                                     INVENTORY_RENDERING_HEIGHT) + Vector(0, -14)*Options.HUDOffset + CameraOffset
 
     local TargetRenderPos = BasePos + Vector.Zero
@@ -1749,6 +1749,7 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
         end
     end
 
+    HasCovered = HasCovered and mod.Saved.HandType ~= mod.HandTypes.NONE --no need to hide the nothingness
 
 
     local StatToShow = {}
@@ -1965,7 +1966,7 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
             --small enemy portrait
             if MaxHPEnemy then
 
-                print("Toughest Enemy:","("..tostring(MaxHPEnemy.Type).."."..tostring(MaxHPEnemy.Variant).."."..tostring(MaxHPEnemy.SubType)..")")
+                --print("Toughest Enemy:","("..tostring(MaxHPEnemy.Type).."."..tostring(MaxHPEnemy.Variant).."."..tostring(MaxHPEnemy.SubType)..")")
 
                 LeftSideHUD:SetFrame(LeftSideStringFrames.EnemyPortrait)
 
@@ -2548,20 +2549,42 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
 
     if SelectParams.Mode == mod.SelectionParams.Modes.INVENTORY then
 
-        Q_Layer:SetColor(DefaultColor) --does nothing
 
         local ChosenIndex = mod:GetValueIndex(SelectedCards, true, true)
-        local Slot = mod.Saved.Player[PIndex].Inventory[ChosenIndex]
 
-        E_ActionString = "Sell"
+        if SelectParams.Purpose == mod.SelectionParams.Purposes.SECRET_EXIT then
+               
 
-        if Slot then
+            local Slot = mod.Saved.Player[PIndex].Inventory[ChosenIndex]
 
-            E_Layer:SetColor(mod.EffectColors.GREEN) --E is for selling a joker
+            E_ActionString = "Cancel"
+            E_Layer:SetColor(mod.EffectColors.RED)
 
-            E_ActionString = "Sell [$"..mod:GetJokerCost(Slot.Joker, Slot.Edition, ChosenIndex, Player).."]"
+
+            if Slot then
+
+                Q_Layer:SetColor(mod.EffectColors.RED)
+
+                Q_ActionString = "Sacrifice"
+            else
+                Q_Layer:SetColor(DefaultColor)
+            end
+
         else
-            E_Layer:SetColor(DefaultColor)
+            Q_Layer:SetColor(DefaultColor) --does nothing
+
+            local Slot = mod.Saved.Player[PIndex].Inventory[ChosenIndex]
+
+            E_ActionString = "Sell"
+
+            if Slot then
+
+                E_Layer:SetColor(mod.EffectColors.GREEN) --E is for selling a joker
+
+                E_ActionString = "Sell [$"..mod:GetJokerCost(Slot.Joker, Slot.Edition, ChosenIndex, Player).."]"
+            else
+                E_Layer:SetColor(DefaultColor)
+            end
         end
 
     elseif SelectParams.Mode == mod.SelectionParams.Modes.CONSUMABLES then

@@ -56,8 +56,11 @@ void main(void)
 
 	vec3 ColorHSV = rgb2hsv(Color.rgb);
 
+	//if (((((ColorHSV.b <= 0.34)||(ColorHSV.b >= 0.87))&&(ColorHSV.g <= 0.48)))||((Color.r == Color.g)&&(Color.g == Color.b))){
+
+
 	//crazy ass if statement
-	if (((((ColorHSV.b <= 0.34)||(ColorHSV.b >= 0.87))&&(ColorHSV.g <= 0.48)))||((Color.r == Color.g)&&(Color.g == Color.b))){
+	if (((((ColorHSV.b <= 0.3)||(ColorHSV.b >= 0.87))&&(ColorHSV.g <= 0.48)))||(ColorHSV.b <= 0.04)){
 		//any color close to a greyscale is the actual inverted color
 		Color.r = 1 - Color.r;
 		Color.g = 1 - Color.g;

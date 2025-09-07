@@ -63,7 +63,10 @@ local BALATRO_PLATE_SUFFIX = {
                                                                            [mod.SkipTags.STANDARD] = "standard",
                                                                            [mod.SkipTags.TOP_UP] = "topup",
                                                                            [mod.SkipTags.UNCOMMON] = "uncommon",
-                                                                           [mod.SkipTags.VOUCHER] = "voucher",},
+                                                                           [mod.SkipTags.VOUCHER] = "voucher",
+                                                                           [mod.SpecialSkipTags.KEY_PIECE_1] = "key1",
+                                                                           [mod.SpecialSkipTags.KEY_PIECE_2] = "key2",
+                                                                           [mod.SpecialSkipTags.ANTE] = "ante",},
 }
 
 
@@ -88,7 +91,8 @@ function mod:UpdateBalatroPlate(Plate,Init)
             Sprite:ReplaceSpritesheet(0, "gfx/grid/grid_balatro_pressureplate_"..BALATRO_PLATE_SUFFIX[Variant][SuffixIndex]..".png", true)
 
         elseif Variant == mod.Grids.PlateVariant.BIG_BLIND_SKIP
-               or Variant == mod.Grids.PlateVariant.SMALL_BLIND_SKIP then
+               or Variant == mod.Grids.PlateVariant.SMALL_BLIND_SKIP
+               or Variant == mod.Grids.PlateVariant.BOSS_BLIND_SKIP then
 
             local SuffixVariant = mod.Grids.PlateVariant.SMALL_BLIND_SKIP
             local SuffixIndex = math.min(Plate.VarData, mod.SkipTags.ORBITAL)
@@ -170,6 +174,15 @@ function mod:UpdateBalatroPlate(Plate,Init)
                                  and mod.Saved.BigCleared == mod.BlindProgress.NOT_CLEARED
                                  and mod.Saved.BlindBeingPlayed & mod.BLINDS.WAITING_CASHOUT == 0
                                  and mod.Saved.BlindBeingPlayed & mod.BLINDS.SHOP == 0
+
+    elseif Variant == mod.Grids.PlateVariant.BOSS_BLIND_SKIP then
+
+        ShouldPlateBeAvailable = mod.Saved.SmallCleared ~= mod.BlindProgress.NOT_CLEARED 
+                                 and mod.Saved.BigCleared ~= mod.BlindProgress.NOT_CLEARED
+                                 and mod.Saved.BossCleared == mod.BossProgress.NOT_CLEARED
+                                 and mod.Saved.BlindBeingPlayed & mod.BLINDS.WAITING_CASHOUT == 0
+                                 and mod.Saved.BlindBeingPlayed & mod.BLINDS.SHOP == 0
+
     else
     
         ShouldPlateBeAvailable = true
@@ -232,9 +245,7 @@ function mod:SpawnBalatroPressurePlate(Position, PlateVariant, VarData)
     VarData = VarData or 0
 
 
-
-
-    local Plate = Isaac.GridSpawn(GridEntityType.GRID_PRESSURE_PLATE, PlateVariant, Game:GetRoom():FindFreeTilePosition(Position, 10000), true)
+    local Plate = Isaac.GridSpawn(GridEntityType.GRID_PRESSURE_PLATE, PlateVariant, Game:GetRoom():FindFreeTilePosition(Position, 100), true)
 
     if Plate then
 

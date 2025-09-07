@@ -544,10 +544,21 @@ function mod:IsValidScalingEnemy(Enemy)
            or Enemy.Type == EntityType.ENTITY_STONE_EYE
            or Enemy.Type == EntityType.ENTITY_CONSTANT_STONE_SHOOTER
            or Enemy.Type == EntityType.ENTITY_BRIMSTONE_HEAD
-           or Enemy.Type == EntityType.ENTITY_QUAKE_GRIMACE 
+           or Enemy.Type == EntityType.ENTITY_QUAKE_GRIMACE
            or (Enemy.Type == EntityType.ENTITY_MOTHER and (Enemy.Variant ~= 10
                                                            and (Enemy.Variant ~= 0 or Enemy.SubType ~= 0))) --any mother peon + the arms and back of the 1st phase
-          )
+           or Enemy.Type == EntityType.ENTITY_GIDEON
+           or Enemy.Type == EntityType.ENTITY_DOGMA and Enemy.Variant == 0 --0 is the baby attached to the TV
+           or Enemy.Type == EntityType.ENTITY_BEAST and (Enemy.Variant ~= 0
+                                                         and Enemy.Variant == 10
+                                                         and Enemy.Variant == 11
+                                                         and Enemy.Variant == 20
+                                                         and Enemy.Variant == 21
+                                                         and Enemy.Variant == 30
+                                                         and Enemy.Variant == 40
+
+                                                         )
+           )
 end
 
 
@@ -570,11 +581,136 @@ function mod:CalculateStageHP(StageHP)
 
 end
 
+
 function mod:IsMotherBossRoom()
 
     local Data = Game:GetLevel():GetCurrentRoomDesc().Data
 
     return Data.Type == RoomType.ROOM_BOSS and Data.Variant == 1 and Data.Subtype == 88
+end
+
+function mod:IsTaintedHeartBossRoom()
+
+    local Data = Game:GetLevel():GetCurrentRoomDesc().Data
+
+    return Data.Type == RoomType.ROOM_BOSS and Data.Variant == 6040 and Data.Subtype == 90
+end
+
+function mod:IsRotgutDungeon()
+
+    local Data = Game:GetLevel():GetCurrentRoomDesc().Data
+
+    return Data.Type == RoomType.ROOM_DUNGEON and (Data.Variant == 1010 and Data.Subtype == 2
+                                                   or Data.Variant == 1020 and Data.Subtype == 3)
+end
+
+function mod:IsDogmaBossRoom()
+
+    local Data = Game:GetLevel():GetCurrentRoomDesc().Data
+
+    return Data.Type == RoomType.ROOM_DEFAULT and Data.Variant == 1000 and Data.Subtype == 3
+end
+
+function mod:IsBeastBossRoom()
+
+    local Data = Game:GetLevel():GetCurrentRoomDesc().Data
+
+    return Data.Type == RoomType.ROOM_DUNGEON and (Data.Variant == 666 and Data.Subtype == 4)
+end
+
+
+--copy-pasted this function directly from the API docs
+function mod:GetDevilAngelRoomChance()
+  local level = Game:GetLevel()
+  local room = level:GetCurrentRoom()
+  local totalChance = math.min(room:GetDevilRoomChance(), 1.0)
+
+  local angelRoomSpawned = Game:GetStateFlag(GameStateFlag.STATE_FAMINE_SPAWNED) -- repurposed
+  local devilRoomSpawned = Game:GetStateFlag(GameStateFlag.STATE_DEVILROOM_SPAWNED)
+  local devilRoomVisited = Game:GetStateFlag(GameStateFlag.STATE_DEVILROOM_VISITED)
+
+  local devilRoomChance = 1.0
+  if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_EUCHARIST) then
+    devilRoomChance = 0.0
+  elseif devilRoomSpawned and devilRoomVisited and Game:GetDevilRoomDeals() > 0 then -- devil deals locked in
+    if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_BOOK_OF_VIRTUES) or
+       PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_ACT_OF_CONTRITION) or
+       level:GetAngelRoomChance() > 0.0 -- confessional, sac room
+    then
+      devilRoomChance = 0.5
+    end
+  elseif devilRoomSpawned or PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_BOOK_OF_VIRTUES) or level:GetAngelRoomChance() > 0.0 then
+    if not (devilRoomVisited or angelRoomSpawned) then
+      devilRoomChance = 0.0
+    else
+      devilRoomChance = 0.5
+    end
+  end
+
+  -- https://bindingofisaacrebirth.fandom.com/wiki/Angel_Room#Angel_Room_Generation_Chance
+  if devilRoomChance == 0.5 then
+    if PlayerManager.AnyoneHasTrinket(TrinketType.TRINKET_ROSARY_BEAD) then
+      devilRoomChance = devilRoomChance * (1.0 - 0.5)
+    end
+    if Game:GetDonationModAngel() >= 10 then -- donate 10 coins
+      devilRoomChance = devilRoomChance * (1.0 - 0.5)
+    end
+    if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_KEY_PIECE_1) then
+      devilRoomChance = devilRoomChance * (1.0 - 0.25)
+    end
+    if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_KEY_PIECE_2) then
+      devilRoomChance = devilRoomChance * (1.0 - 0.25)
+    end
+    if level:GetStateFlag(LevelStateFlag.STATE_EVIL_BUM_KILLED) then
+      devilRoomChance = devilRoomChance * (1.0 - 0.25)
+    end
+    if level:GetStateFlag(LevelStateFlag.STATE_BUM_LEFT) and not level:GetStateFlag(LevelStateFlag.STATE_EVIL_BUM_LEFT) then
+      devilRoomChance = devilRoomChance * (1.0 - 0.1)
+    end
+    if level:GetStateFlag(LevelStateFlag.STATE_EVIL_BUM_LEFT) and not level:GetStateFlag(LevelStateFlag.STATE_BUM_LEFT) then
+      devilRoomChance = devilRoomChance * (1.0 + 0.1)
+    end
+    if level:GetAngelRoomChance() > 0.0 or
+       (level:GetAngelRoomChance() < 0.0 and (PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_BOOK_OF_VIRTUES) or PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_ACT_OF_CONTRITION)))
+    then
+      devilRoomChance = devilRoomChance * (1.0 - level:GetAngelRoomChance())
+    end
+    if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_BOOK_OF_VIRTUES) then
+      devilRoomChance = devilRoomChance * (1.0 - 0.25)
+    end
+    devilRoomChance = math.max(0.0, math.min(devilRoomChance, 1.0))
+  end
+
+  local angelRoomChance = 1.0 - devilRoomChance
+  return totalChance * devilRoomChance, totalChance * angelRoomChance
+end
+
+function mod:CanReachMegaSatan()
+
+    local Level = Game:GetLevel()
+
+    local Stage = Level:GetStage()
+
+    return Stage <= LevelStage.STAGE3_2 
+           or (Stage <= LevelStage.STAGE4_2 and not Level:IsAltStage()) --womb but not corpse
+           or Stage == LevelStage.STAGE4_3 --hush floor
+           or Stage == LevelStage.STAGE5  --cathedral
+           or Stage == LevelStage.STAGE6 --chest
+end
+
+--copy-pasted this function directly from the API docs
+function mod:DefaultStageOfFloor(StageOffset)
+
+    if StageOffset == 0 then
+        return 0
+
+    elseif StageOffset <= 8 then
+
+        return math.ceil(StageOffset/2)*3 - 2
+
+    else
+        return 10 + (StageOffset-8)*2
+    end
 end
 
 -------------JIMBO FUNCTIONS------------
@@ -2071,8 +2207,6 @@ function mod:RandomJoker(Rng, PlaySound, ForcedRarity, AllowDuplicates, Amount)
             sfx:Play(EditionSound[Trinket.Edition])
         end
 
-        Trinket.Edition = mod.Edition.NEGATIVE
-
         Trinket.Modifiers = 0
 
         Trinket.Progress = mod:GetJokerInitialProgress(Trinket.Joker, PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo))
@@ -2971,7 +3105,8 @@ function mod:AddSkipTag(TagAdded, Doubled)
     end
 
 
-    if TagAdded ~= mod.SkipTags.DOUBLE then
+    if TagAdded ~= mod.SkipTags.DOUBLE
+       and not mod:Contained(mod.SpecialSkipTags, TagAdded) then
 
         --local DoubleTagsUsed = 0
 
@@ -2981,13 +3116,13 @@ function mod:AddSkipTag(TagAdded, Doubled)
 
                 local DoubleIndex = i
 
+                Interval = Interval + 16
+
                 --remove the first double tag found and duplicate the originally added one
                 Isaac.CreateTimer(function ()
                     mod:UseSkipTag(DoubleIndex)
                     mod:AddSkipTag(TagAdded, true)
                 end, Interval, 1, true)
-
-                Interval = Interval + 16
             end
         end
     end
@@ -3069,7 +3204,22 @@ local function JimboAddTrinket(_, Player, Trinket, _, StopEvaluation)
 
     --local JokerEdition = mod.Saved.FloorEditions[Level:GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(Trinket).Name] or mod.Edition.BASE 
 
-    local TrueSubType = mod.Saved.Player[PIndex].LastTouchedTrinket
+    local TrueSubType 
+    
+    if StopEvaluation == nil then --called through the callback
+
+        local LastTouched = mod.Saved.Player[PIndex].LastTouchedTrinket
+    
+        if (Trinket & ~mod.EditionFlag.ALL) ~= (LastTouched & ~mod.EditionFlag.ALL) then
+            
+            TrueSubType = Trinket
+        else
+            TrueSubType = mod.Saved.Player[PIndex].LastTouchedTrinket
+        end
+    
+    else
+        TrueSubType = Trinket
+    end
 
     local JokerType = TrueSubType & ~mod.EditionFlag.ALL
     local JokerEdition = (TrueSubType & mod.EditionFlag.ALL) >> mod.EDITION_FLAG_SHIFT
@@ -3120,6 +3270,8 @@ mod:AddPriorityCallback(ModCallbacks.MC_POST_TRIGGER_TRINKET_ADDED,CallbackPrior
 
 function mod:AddJoker(Player, Joker, Edition, StopEval)
     --local PIndex = Player:GetData().TruePlayerIndex
+
+    StopEval = StopEval or false
 
     Edition = Edition or mod.Edition.BASE
 
@@ -3928,6 +4080,10 @@ function mod:GetBlindLevel(PlateVarData)
     return PlateVarData & mod.BLINDS.BOSS ~= 0 and mod.BLINDS.BOSS or PlateVarData & ~mod.BLINDS.SKIP
 end
 
+function mod:IsBlindFinisher(Blind)
+    return Blind >= mod.BLINDS.BOSS_ACORN
+end
+
 
 local AnteScaling = {300, 1000, 3200, 9000, 25000, 60000, 110000, 200000, 320000, 450000, 630000, 880000, 1100000} --equal to purple stake's requirements but extended due to some routes being too long
                   --{300, 900, 2600, 8000, 20000, 36000, 60000, 100000} --green stake
@@ -3936,7 +4092,7 @@ local BlindScaling = {[mod.BLINDS.SMALL] = 1,
                       [mod.BLINDS.BOSS] = 2,
                       [mod.BLINDS.BOSS_NEEDLE] = 0.75, --usually it's 1 but more enemies need to be hit so make it a bit lower
                       [mod.BLINDS.BOSS_WALL] = 4,
-                      [mod.BLINDS.BOSS_VESSEL] = 6} 
+                      [mod.BLINDS.BOSS_VESSEL] = 5} --my own take in this boss
 
 
 function mod:GetBlindScoreRequirement(Blind)
@@ -3951,7 +4107,7 @@ function mod:GetBlindScoreRequirement(Blind)
     elseif AnteScaling[mod.Saved.AnteLevel] then
         Score = AnteScaling[mod.Saved.AnteLevel]
 
-    else --stole this bit directly from the game's source code (how tf do you even come up with this?)
+    else --stole this bit directly from the Game's source code (how tf do you even come up with this?)
 
         local NumFixedAntes = #AnteScaling
     
@@ -4509,6 +4665,9 @@ function mod:Select(Player)
 
     local SelectedCards = mod.SelectionParams[PIndex].SelectedCards
 
+    local CurrentPurpose = mod.SelectionParams[PIndex].Purpose & ~mod.SelectionParams.Purposes.FORCED_FLAG
+
+
     if IsTaintedJimbo then
         SelectedCards = mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams[PIndex].Mode]
         --print(mod.SelectionParams[PIndex].Mode)
@@ -4540,7 +4699,7 @@ function mod:Select(Player)
 
     elseif mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.HAND then
 
-        if mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.NONE then
+        if CurrentPurpose == mod.SelectionParams.Purposes.NONE then
             
             --print("purpose is set to NONE!")
             return
@@ -4588,7 +4747,7 @@ function mod:Select(Player)
                         mod:SwitchCardSelectionStates(Player,mod.SelectionParams.Modes.NONE,0)
                         return
 
-                    elseif mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.DEATH1 then
+                    elseif CurrentPurpose == mod.SelectionParams.Purposes.DEATH1 then
                         for i,v in ipairs(SelectedCards) do
                             if v then
                                 DeathCopyCard = mod.Saved.Player[PIndex].CurrentHand[i]
@@ -4601,7 +4760,7 @@ function mod:Select(Player)
             --else
             --    print("too many! (",mod.SelectionParams[PIndex].SelectionNum,"/",mod.SelectionParams[PIndex].MaxSelectionNum,")")
             end
-            if mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.HAND
+            if CurrentPurpose == mod.SelectionParams.Purposes.HAND
                and IsTaintedJimbo then
 
                 Isaac.RunCallback("HAND_TYPE_UPDATE", Player)
@@ -4615,7 +4774,7 @@ function mod:Select(Player)
 
     elseif mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.PACK then
 
-        local TruePurpose = mod.SelectionParams[PIndex].Purpose & ~mod.SelectionParams.Purposes.MegaFlag --removes it for pack checks
+        local TruePurpose = CurrentPurpose & ~mod.SelectionParams.Purposes.MegaFlag --removes it for pack checks
 
         if IsTaintedJimbo then
             
@@ -4719,11 +4878,11 @@ function mod:Select(Player)
 
                     SelectedCards[mod.SelectionParams[PIndex].Index] = true
 
-                elseif mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.SMELTER then --DSS TO BE ADDED
+                elseif CurrentPurpose == mod.SelectionParams.Purposes.SMELTER then --DSS TO BE ADDED
                     mod:UseSelection(Player)
                     mod:SwitchCardSelectionStates(Player,mod.SelectionParams.Modes.NONE,mod.SelectionParams.Purposes.NONE)
     
-                elseif mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.SELLING then
+                elseif CurrentPurpose == mod.SelectionParams.Purposes.SELLING then
                     local FirstI
                     local SecondI = mod.SelectionParams[PIndex].Index
                     for i,v in ipairs(SelectedCards) do
@@ -4775,11 +4934,11 @@ function mod:Select(Player)
 
         else--the confirm button is pressed
         
-            if mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.SMELTER then
+            if CurrentPurpose == mod.SelectionParams.Purposes.SMELTER then
                 mod:UseSelection(Player)
                 mod:SwitchCardSelectionStates(Player,mod.SelectionParams.Modes.NONE,mod.SelectionParams.Purposes.NONE)
 
-            elseif mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.SELLING then
+            elseif CurrentPurpose == mod.SelectionParams.Purposes.SELLING then
                 local SoldSlot
                 for i,v in ipairs(SelectedCards) do
                     if v then
@@ -4831,6 +4990,9 @@ function mod:UseSelection(Player)
     local PIndex = Player:GetData().TruePlayerIndex
     local IsTaintedJimbo = Player:GetPlayerType() == mod.Characters.TaintedJimbo
 
+
+    local CurrentPurpose = mod.SelectionParams[PIndex].Purpose & ~mod.SelectionParams.Purposes.FORCED_FLAG
+
     local SelectedCards
     local PackSelectedCards
     local HandSelectedCards
@@ -4853,7 +5015,7 @@ function mod:UseSelection(Player)
 
     if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.NONE then
 
-        if mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.AIMING then
+        if CurrentPurpose == mod.SelectionParams.Purposes.AIMING then
             
             mod:ActivateCurrentHand(Player)
             --Isaac.RunCallback(mod.Callbalcks.POST_HAND_PLAY, Player)
@@ -4862,7 +5024,40 @@ function mod:UseSelection(Player)
     
     elseif mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.INVENTORY then
 
-        if mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.SMELTER then
+
+        if CurrentPurpose == mod.SelectionParams.Purposes.SECRET_EXIT then
+
+            local SelectedSlot = mod:GetValueIndex(SelectedCards, true, true)
+
+            local IsNegativeJoker = mod.Saved.Player[PIndex].Inventory[SelectedSlot].Edition == mod.Edition.NEGATIVE
+
+                
+            mod.Saved.Player[PIndex].Inventory[SelectedSlot].Joker = 0
+            mod.Saved.Player[PIndex].Inventory[SelectedSlot].Edition = mod.Edition.BASE
+
+
+            local SecretDoor = Game:GetRoom():GetDoor(DoorSlot.UP0)
+
+            if SecretDoor then
+
+
+                local Sprite = SecretDoor:GetSprite()
+
+
+                Sprite:GetLayer(2):SetVisible(not IsNegativeJoker)
+                Sprite:GetLayer(4):SetVisible(IsNegativeJoker)
+
+                Sprite:ReplaceSpritesheet(2, "gfx/grid/door_mausoleum_alt_TJimbo.png", true)
+                Sprite:ReplaceSpritesheet(4, "gfx/grid/door_mausoleum_alt_TJimbo.png", true)
+
+
+                
+                SecretDoor:TryUnlock(Player, true)
+            end
+
+            mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.NONE)
+
+        elseif CurrentPurpose == mod.SelectionParams.Purposes.SMELTER then
 
             local SelectedSlot = mod:GetValueIndex(SelectedCards, true, true) --finds the first true
 
@@ -5038,7 +5233,7 @@ function mod:UseSelection(Player)
                 mod:UseSelection(Player)
                 return
 
-            elseif mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.HAND then
+            elseif CurrentPurpose == mod.SelectionParams.Purposes.HAND then
 
                 if mod.Saved.HandType ~= mod.HandTypes.NONE then
 
@@ -5050,7 +5245,7 @@ function mod:UseSelection(Player)
             end
         end
 
-        if mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.DEATH1 then --then the card that will become a copy
+        if CurrentPurpose == mod.SelectionParams.Purposes.DEATH1 then --then the card that will become a copy
             for i,v in ipairs(SelectedCards) do
                 if v then
                     local selection = mod.Saved.Player[PIndex].CurrentHand[i] --gets the card that will be modified
@@ -5058,7 +5253,7 @@ function mod:UseSelection(Player)
                     Isaac.RunCallback("DECK_MODIFY", Player)
                 end
             end
-        elseif mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.HANGED then
+        elseif CurrentPurpose == mod.SelectionParams.Purposes.HANGED then
             local selection = {}
             for i,v in ipairs(SelectedCards) do
                 if v then
@@ -5068,7 +5263,7 @@ function mod:UseSelection(Player)
 
             mod:DestroyCards(Player, selection, true, true)
 
-        elseif mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.STRENGTH then
+        elseif CurrentPurpose == mod.SelectionParams.Purposes.STRENGTH then
             for i,v in ipairs(SelectedCards) do
                 if v then
                     if mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]].Value == 13 then
@@ -5080,7 +5275,7 @@ function mod:UseSelection(Player)
                 end
             end
             Isaac.RunCallback("DECK_MODIFY", Player)
-        elseif mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.CRYPTID then
+        elseif CurrentPurpose == mod.SelectionParams.Purposes.CRYPTID then
             local Chosen
             for i,v in ipairs(SelectedCards) do
                 if v then
@@ -5091,7 +5286,7 @@ function mod:UseSelection(Player)
 
             mod:AddCardToDeck(Player, Chosen, 2, true)
 
-        elseif mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.AURA then
+        elseif CurrentPurpose == mod.SelectionParams.Purposes.AURA then
             for i,v in ipairs(SelectedCards) do
                 if v then
                     local EdRoll = Player:GetCardRNG(mod.Spectrals.AURA):RandomFloat()
@@ -5176,7 +5371,7 @@ function mod:DiscardSelection(Player)
 
 
     local CurrentMode = mod.SelectionParams[PIndex].Mode
-    local CurrentPurpose = mod.SelectionParams[PIndex].Purpose
+    local CurrentPurpose = mod.SelectionParams[PIndex].Purpose & ~mod.SelectionParams.Purposes.FORCED_FLAG
 
     local SelectedCards = mod.SelectionParams[PIndex].SelectedCards[CurrentMode] or {}
     local PackSelectedCards = mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.PACK]
@@ -5248,36 +5443,44 @@ function mod:DiscardSelection(Player)
             
         local SelectedSlot = mod:GetValueIndex(SelectedCards, true, true) 
 
-        if SelectedSlot then
+    
+        if CurrentPurpose == mod.SelectionParams.Purposes.SECRET_EXIT then
 
-            Success = mod:SellJoker(Player, SelectedSlot)
+            mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.NONE)
 
-            if Success then --moves the selection to the joker before the sold one
+        else
 
-                SelectedCards[SelectedSlot] = false
-                
-                local JokerSlot
+            if SelectedSlot then
 
-                for i,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
 
-                    if Slot.Joker ~= 0 then
-                        JokerSlot = i
-                        break
+                Success = mod:SellJoker(Player, SelectedSlot)
+
+                if Success then --moves the selection to the joker before the sold one
+
+                    SelectedCards[SelectedSlot] = false
+
+                    local JokerSlot
+
+                    for i,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+
+                        if Slot.Joker ~= 0 then
+                            JokerSlot = i
+                            break
+                        end
+                    end
+
+                    if JokerSlot then
+                        mod.SelectionParams[PIndex].Index = JokerSlot
+
+                    elseif mod.Saved.EnableHand then
+                        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams[PIndex].Purpose)
+                    else
+                        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.NONE)
                     end
                 end
-
-                if JokerSlot then
-                    mod.SelectionParams[PIndex].Index = JokerSlot
-
-                elseif mod.Saved.EnableHand then
-                    mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, mod.SelectionParams[PIndex].Purpose)
-                else
-                    mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.NONE)
-                end
+            else
+                sfx:Play(SoundEffect.SOUND_THUMBS_DOWN)
             end
-        
-        else
-            sfx:Play(SoundEffect.SOUND_THUMBS_DOWN)
         end
 
 
@@ -5438,7 +5641,7 @@ function mod:RenderCard(Params, Position, Offset, Scale, Rotation, ForceCovered,
 
 
     if Params.Modifiers & mod.Modifier.DEBUFFED ~= 0 then
-        --renders another copy of the card on top of the original (just like the original game!!)
+        --renders another copy of the card on top of the original (just like the original Game!!)
         JimboCards:SetCustomShader(mod.EditionShaders.DEBUFF)
 
         JimboCards:Render(Position)

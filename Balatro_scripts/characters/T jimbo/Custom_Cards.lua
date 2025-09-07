@@ -171,6 +171,10 @@ function mod:PlayerIsAbleToUseCard(Player, Consumable)
 
     elseif IsSpectral then
 
+        print(SpectralMaxSelection[Consumable],
+              mod.Saved.EnableHand, --if selection is impossible
+              mod.SelectionParams[PIndex].SelectionNum > SpectralMaxSelection[Consumable] ,
+              mod.SelectionParams[PIndex].SelectionNum <= 0)
 
         if Consumable == mod.Spectrals.WRAITH then
 
@@ -1042,7 +1046,9 @@ function mod:TJimboUseCard(card, Player, IsFromPack, UseFlags)
             end
         
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND, Purpose)
-        else
+
+        elseif mod.SelectionParams[PIndex].PackPurpose == mod.SelectionParams.Purposes.NONE then
+
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.NONE)
         end
 
@@ -1121,10 +1127,9 @@ local function TJimboCardPacks(_,card, Player,_)
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
                                         mod.SelectionParams.Purposes.TarotPack)
 
-        --if card == mod.Packs.MEGA_ARCANA then
-        --    mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose + mod.SelectionParams.Purposes.MegaFlag
-        --    mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!", mod.EffectType.ENTITY, Player)
-        --end
+        if card == mod.Packs.MEGA_ARCANA then
+            mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose + mod.SelectionParams.Purposes.MegaFlag
+        end
 
     elseif card >= mod.Packs.CELESTIAL and card <= mod.Packs.MEGA_CELESTIAL then
         Isaac.RunCallback("PACK_OPENED",Player,card)
@@ -1163,10 +1168,9 @@ local function TJimboCardPacks(_,card, Player,_)
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
                                               mod.SelectionParams.Purposes.CelestialPack)
 
-        --if card == mod.Packs.MEGA_CELESTIAL then
-        --    mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose + mod.SelectionParams.Purposes.MegaFlag
-        --    mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!", mod.EffectType.ENTITY, Player)
-        --end
+        if card == mod.Packs.MEGA_CELESTIAL then
+            mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose + mod.SelectionParams.Purposes.MegaFlag
+        end
         
     elseif card >= mod.Packs.SPECTRAL and card <= mod.Packs.MEGA_SPECTRAL then
         Isaac.RunCallback("PACK_OPENED",Player,card)
@@ -1185,10 +1189,9 @@ local function TJimboCardPacks(_,card, Player,_)
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
                                               mod.SelectionParams.Purposes.SpectralPack)
                         
-        --if card == mod.Packs.MEGA_SPECTRAL then
-        --    mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose + mod.SelectionParams.Purposes.MegaFlag
-        --    mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!", mod.EffectType.ENTITY, Player)
-        --end
+        if card == mod.Packs.MEGA_SPECTRAL then
+            mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose + mod.SelectionParams.Purposes.MegaFlag
+        end
 
     elseif card >= mod.Packs.BUFFON and card <= mod.Packs.MEGA_BUFFON then
         Isaac.RunCallback("PACK_OPENED",Player,card)

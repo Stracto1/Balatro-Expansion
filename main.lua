@@ -318,7 +318,8 @@ Balatro_Expansion.Grids.PlateVariant = {BLIND = 146,
                                         REROLL = 148,
                                         SHOP_EXIT = 149,
                                         SMALL_BLIND_SKIP = 150,
-                                        BIG_BLIND_SKIP = 151}
+                                        BIG_BLIND_SKIP = 151,
+                                        BOSS_BLIND_SKIP = 152} --only usen on last floor of ascent
 
 
 Balatro_Expansion.Grids.PLATE_ANM2_PATH = "gfx/grid/grid_balatro_pressureplate.anm2"
@@ -684,6 +685,12 @@ Balatro_Expansion.SkipTags = {UNCOMMON = 0,
                               SPEED = 21,
                               ECONOMY = 22,
                               ORBITAL = 32} --USED WITH A HAND FLAG 
+
+Balatro_Expansion.SpecialSkipTags = {KEY_PIECE_1 = 23,
+                                     KEY_PIECE_2 = 24,
+                                     ANTE = 25}
+
+
 
 Balatro_Expansion.CustomCache = {}
 Balatro_Expansion.CustomCache.HAND_SIZE = "handsize"
@@ -1136,7 +1143,9 @@ Balatro_Expansion.SelectionParams.Purposes.BuffonPack = 27
 Balatro_Expansion.SelectionParams.Purposes.SELLING = 28
 Balatro_Expansion.SelectionParams.Purposes.SMELTER = 29
 Balatro_Expansion.SelectionParams.Purposes.AIMING = 30
+Balatro_Expansion.SelectionParams.Purposes.SECRET_EXIT = 31
 Balatro_Expansion.SelectionParams.Purposes.MegaFlag = 128 --applied on top of the packs purposes to say it's a double choice
+Balatro_Expansion.SelectionParams.Purposes.FORCED_FLAG = 256
 
 
 Balatro_Expansion.Saved.DSS = { 
@@ -1200,8 +1209,8 @@ Balatro_Expansion.Achievements = {
 ----------------------------- gaw damn those were a lot of variables
 
 
---heyo dear Balatro_Expansion developer college! Fell free to take any of the code written here
---but please make sure to give this Balatro_Expansion credit when you take important/big chunks of code
+--heyo dear mod developer college! Fell free to take any of the code written here
+--but please make sure to give this mod credit when you take important/big chunks of code
 
 --also i don't know wether or not this thing is coded properly, so if you have an
 --optimisation idea write it in the comments of the steam page and i'll try to implement it (giving you credit obv)

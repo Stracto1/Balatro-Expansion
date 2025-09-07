@@ -2730,7 +2730,23 @@ local function CashoutEvaluation(_, BlindBeaten)
 
     ResetEffects(8)
 
+    local Room = Game:GetRoom()
+
     local TotalGain = 0
+
+    if Room:GetType() == RoomType.ROOM_BOSSRUSH
+       or mod:IsTaintedHeartBossRoom() then
+
+        Isaac.CreateTimer(function ()
+            mod.AnimationIsPlaying = false
+            
+        end, CurrentInterval, 1, true)
+
+
+        return TotalGain
+    end
+
+    
 
     local BlindMoney = mod:GetBlindReward(BlindBeaten)
 
@@ -2775,7 +2791,7 @@ local function CashoutEvaluation(_, BlindBeaten)
 
             AddCashoutString("Invenstment", 25, mod.StringTypes.Interest)
 
-            TotalGain = TotalGain + Interests
+            TotalGain = TotalGain + 25
         end
     end
 
