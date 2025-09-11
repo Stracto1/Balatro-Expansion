@@ -23,8 +23,9 @@
         skin="character_jimbo_b.png"
         nameimage="playername_jimbo.png"
         hp="2"
-        portrait="playerportrait_jimbo_b.png"
-        skinColor="-1"
+        portrait=""
+        extraportrait="character_jimbob_portrait.anm2"
+        noshake="true"
         bSkinParent="Jimbo"
         costumeSuffix="jimbob"
         modcostume="111"
@@ -32,7 +33,6 @@
         canShoot="false"
         coins="4"
         speedmodifier="0.4"
-        noshake="true"
     />
     <!-- costume="104" haha le funny number-->
 </players>

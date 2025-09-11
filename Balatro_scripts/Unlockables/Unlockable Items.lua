@@ -1,4 +1,4 @@
----@diagnostic disable: undefined-field, need-check-nil, inject-field, cast-local-type
+---@diagnostic disable: undefined-field, need-check-nil, inject-field, cast-local-type, param-type-mismatch
 local mod = Balatro_Expansion
 local Game = Game()
 local ItemsConfig = Isaac.GetItemConfig()
@@ -2112,6 +2112,25 @@ local function OnRoomClear(_, Player)
         end
     end
 
+
+    for i = 0, Player:GetMaxTrinkets() - 1 do
+
+        local HeldTrinket = Player:GetTrinket(i)
+
+        local TrueTrinket = HeldTrinket & ~TrinketType.TRINKET_GOLDEN_FLAG
+        
+        if mod:Contained(mod.Trinkets.TASTY_CANDY, TrueTrinket) and TrueTrinket ~= HeldTrinket then
+            
+            local NewCandy = HeldTrinket + 1
+
+            if mod:Contained(mod.Trinkets.TASTY_CANDY, NewCandy & ~TrinketType.TRINKET_GOLDEN_FLAG) then
+                
+                Player:TryRemoveTrinket(HeldTrinket)
+                Player:AddTrinket(NewCandy)
+            end
+        end
+    end
+
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, OnRoomClear)
 
@@ -2482,7 +2501,7 @@ local function PennySeedsPayout()
 
             if Player:HasGoldenTrinket(mod.Trinkets.PENNY_SEEDS) then
             
-                if PennyRNG:RandomFloat() <= 0.1 then
+                if PennyRNG:RandomFloat() <= 0.05 then
 
                     if CoinVariant == PickupVariant.PICKUP_TRINKET then
                         CoinSub = CoinSub + TrinketType.TRINKET_GOLDEN_FLAG
@@ -2846,11 +2865,18 @@ local function GuaranteeBeggarPayout(_, Slot, Player)
     end
 
     local CandySlot = -1
+    local HasGoldenCandy = false
 
     for i = 0, Player:GetMaxTrinkets() - 1 do
+
+        local HeldTrinket = Player:GetTrinket(i)
+
+        local TrueTrinket = HeldTrinket & ~TrinketType.TRINKET_GOLDEN_FLAG
         
-        if mod:Contained(mod.Trinkets.TASTY_CANDY, Player:GetTrinket(i)) then
+        if mod:Contained(mod.Trinkets.TASTY_CANDY, TrueTrinket) then
             
+            HasGoldenCandy = TrueTrinket ~= HeldTrinket
+
             CandySlot = i
             break
         end
@@ -2861,21 +2887,29 @@ local function GuaranteeBeggarPayout(_, Slot, Player)
         return
     end
 
+
     Sprite:ReplaceSpritesheet(2, CandySheet, true) --puts the candy in the bum's sprite
 
-
-    local CurrentCandy = Player:GetTrinket(CandySlot)
-    local NewCandy = CurrentCandy - 1
+    if HasGoldenCandy then
+        Sprite:GetLayer(2):SetRenderFlags(AnimRenderFlags.GOLDEN)
+    end
 
     --degrades the candy by one use
-    if mod:Contained(mod.Trinkets.TASTY_CANDY, NewCandy) then 
-        Player:TryRemoveTrinket(CurrentCandy)
-        Player:AddTrinket(NewCandy, false)
 
-    else
-        Player:TryRemoveTrinket(mod.Trinkets.TASTY_CANDY[1])
+    --if not HasGoldenCandy then
 
-    end
+        local CurrentCandy = Player:GetTrinket(CandySlot)
+        local NewCandy = CurrentCandy - 1
+
+        if mod:Contained(mod.Trinkets.TASTY_CANDY, NewCandy) then 
+            Player:TryRemoveTrinket(CurrentCandy)
+            Player:AddTrinket(NewCandy, false)
+
+        else
+            Player:TryRemoveTrinket(mod.Trinkets.TASTY_CANDY[1])
+
+        end
+    --end
 
     Sprite:Play("PayPrize")
     Slot:SetState(2)

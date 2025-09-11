@@ -32,6 +32,11 @@ local BALATRO_PLATE_SUFFIX = {
                                                                 [mod.BLINDS.BOSS_TOOTH] = "tooth",
                                                                 [mod.BLINDS.BOSS_FLINT] = "flint",
                                                                 [mod.BLINDS.BOSS_MARK] = "small",
+                                                                [mod.BLINDS.BOSS_LEAF] = "leaf",
+                                                                [mod.BLINDS.BOSS_LAMB] = "lamb",
+                                                                [mod.BLINDS.BOSS_MOTHER] = "mother",
+                                                                [mod.BLINDS.BOSS_DELIRIUM] = "delirium",
+                                                                [mod.BLINDS.BOSS_BEAST] = "beast",
                                                                 [mod.BLINDS.BOSS_ACORN] = "acorn",
                                                                 [mod.BLINDS.BOSS_VESSEL] = "vessel",
                                                                 [mod.BLINDS.BOSS_BELL] = "bell",
@@ -279,11 +284,29 @@ function mod:ResetPlatesData()
     local Room = Game:GetRoom()
 
     for i = 0, Room:GetGridSize() do
-        local Plate = Room:GetGridEntity(i)
-        if Plate and Plate:GetType() == GridEntityType.GRID_PRESSURE_PLATE and mod:Contained(mod.Grids.PlateVariant, Plate:GetVariant()) then
+        local Grid = Room:GetGridEntity(i)
+
+        if Grid then
             
-            mod:UpdateBalatroPlate(Plate:ToPressurePlate(), true)
-            --Plate:GetSprite():ReplaceSpritesheet(0, "gfx/grid/grid_balatro_pressureplate_"..BALATRO_PLATE_SUFFIX[Plate.VarData]..".png", true)
+            if Grid:GetType() == GridEntityType.GRID_PRESSURE_PLATE and mod:Contained(mod.Grids.PlateVariant, Grid:GetVariant()) then
+            
+                mod:UpdateBalatroPlate(Grid:ToPressurePlate(), true)
+                --Plate:GetSprite():ReplaceSpritesheet(0, "gfx/grid/grid_balatro_pressureplate_"..BALATRO_PLATE_SUFFIX[Plate.VarData]..".png", true)
+            
+            else
+
+                local Door = Grid:ToDoor()
+
+                if Door and Door.TargetRoomIndex == -10 and Door.TargetRoomType == RoomType.ROOM_SECRET_EXIT then
+            
+                    local Sprite = Door:GetSprite()
+
+                    for i = 0, Sprite:GetLayerCount() - 1 do
+
+                        Sprite:ReplaceSpritesheet(i, "gfx/grid/door_mausoleum_alt_TJimbo.png", true)
+                    end
+                end
+            end
         end
     end
 

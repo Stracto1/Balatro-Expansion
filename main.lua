@@ -197,6 +197,7 @@ Balatro_Expansion.INFINITE_HANDS = -1
 Balatro_Expansion.Callbalcks = {CARD_SHOT = "CARD_SHOT",
                                 CARD_HIT = "CARD_HIT",
                                 DISCARD = "HAND_DISCARD",
+                                DAMAGE_TAKEN = "TJIMBO_DAMAGE_TAKEN",
                                 CARD_DISCARD = "CARD_DISCARD",
                                 POST_DISCARD = "POST_HAND_DISCARD",
                                 JOKER_SOLD = "JOKER_SOLD",
@@ -291,6 +292,9 @@ Balatro_Expansion.Effects.ANVIL = Isaac.GetEntityVariantByName("Falling Anvil")
 Balatro_Expansion.Effects.UMBRELLA = Isaac.GetEntityVariantByName("Player Umbrella")
 Balatro_Expansion.Effects.HAND_SWING = Isaac.GetEntityVariantByName("The Hand Swing")
 Balatro_Expansion.Effects.HEIRLOOM_TRIGGER = Isaac.GetEntityVariantByName("Heirloom Upgrade")
+Balatro_Expansion.Effects.JIMBO_THE_KILLER = {VARIANT = Isaac.GetEntityVariantByName("Jimbo the Killer"),
+                                              SUBTYPE = {PLAYERS = 1,
+                                                         ENEMIES = 2}} --used to hide some character design flaws ;)
 
 Balatro_Expansion.Effects.DIALOG_BUBBLE = Isaac.GetEntityVariantByName("Blind Cashout Bubble")
 
@@ -308,7 +312,7 @@ Balatro_Expansion.Pickups.PLAYING_CARD = Isaac.GetEntityVariantByName("Balatro P
 
 
 Balatro_Expansion.Entities = {}
-Balatro_Expansion.Entities.BALATRO_TYPE = Isaac.GetEntityTypeByName("Pathfinder Slave") --every entity has the same Type but different variants
+Balatro_Expansion.Entities.BALATRO_TYPE = Isaac.GetEntityTypeByName("Pathfinder Slave")
 Balatro_Expansion.Entities.PATH_SLAVE = Isaac.GetEntityVariantByName("Pathfinder Slave")
 --Balatro_Expansion.Entities.SHOP_MIMIC = Isaac.GetEntityVariantByName("Shop Mimic")
 
@@ -338,7 +342,7 @@ end
 ------------------------
 
 
-Balatro_Expansion.SPECIAL_BOSSES = {BossType.MOTHER, BossType.MEGA_SATAN, BossType.HUSH, BossType.DELIRIUM, BossType.BEAST, BossType.DOGMA}
+--Balatro_Expansion.SPECIAL_BOSSES = {BossType.MOTHER, BossType.MEGA_SATAN, BossType.HUSH, BossType.DELIRIUM, BossType.BEAST, BossType.DOGMA}
 
 Balatro_Expansion.Characters = {}
 Balatro_Expansion.Characters.JimboType = Isaac.GetPlayerTypeByName("Jimbo", false) -- Exactly as in the xml. The second argument is if you want the Tainted variant.
@@ -361,6 +365,7 @@ Balatro_Expansion.Sounds.EXPLOSION = Isaac.GetSoundIdByName("EXPLOSIONSFX")
 Balatro_Expansion.Sounds.PLAY = Isaac.GetSoundIdByName("CARDPLAYSFX")
 Balatro_Expansion.Sounds.SELECT = Isaac.GetSoundIdByName("CARDSELECTSFX")
 Balatro_Expansion.Sounds.DESELECT = Isaac.GetSoundIdByName("CARDDESELECTSFX")
+Balatro_Expansion.Sounds.DEBUFFED = Isaac.GetSoundIdByName("HONKSFX")
 
 Balatro_Expansion.Sounds.SLIP = Isaac.GetSoundIdByName("SLIPSFX")
 Balatro_Expansion.Sounds.LAUGH = Isaac.GetSoundIdByName("LAUGHSFX")
@@ -654,11 +659,15 @@ Balatro_Expansion.BLINDS = {WAITING_CASHOUT = 8192,
                             BOSS_TOOTH = 172,
                             BOSS_FLINT = 180,
                             BOSS_MARK = 188,
-                            BOSS_ACORN = 196,
-                            BOSS_LEAF = 204,
-                            BOSS_HEART = 212,
-                            BOSS_VESSEL = 220,
-                            BOSS_BELL = 228}
+                            BOSS_LAMB = 196,
+                            BOSS_MOTHER = 204,
+                            BOSS_DELIRIUM = 212,
+                            BOSS_BEAST = 220,
+                            BOSS_ACORN = 228,--keep this the lowest finisher blind
+                            BOSS_LEAF = 236,
+                            BOSS_HEART = 244,
+                            BOSS_VESSEL = 252,
+                            BOSS_BELL = 260}
 
 
 Balatro_Expansion.SkipTags = {UNCOMMON = 0,
@@ -820,7 +829,6 @@ Balatro_Expansion.Saved.BossBlindVarData = 0
 Balatro_Expansion.Saved.HandOrderingMode = Balatro_Expansion.HandOrderingModes.Rank
 Balatro_Expansion.Saved.RunInfoMode = Balatro_Expansion.RunInfoModes.OFF
 
-Balatro_Expansion.Saved.IsSpecialBoss = false
 Balatro_Expansion.Saved.AnteVoucher = 0
 Balatro_Expansion.Saved.NumBossRerolls = 0
 Balatro_Expansion.Saved.AnteCardsPlayed = {}
@@ -1157,7 +1165,11 @@ Balatro_Expansion.Saved.DSS = {
                                          BaseHands = 4,
                                          BaseDiscards = 4,
                                          OutOfRangeDamage = 0.5,
-                                         IsVulnerable = false
+                                         Vulnerability = false,
+                                         VulnerableHandOpacity = 0.5,
+                                         ShowUnavailableCards = false,
+                                         CustomEID = true,
+                                         LowerScaling = false,
                                 },
                                 
                                 General={},
@@ -1232,8 +1244,6 @@ include("Balatro_scripts.Effects")
 --general function used in the code
 
 include("Balatro_scripts.Utility.Utility")
-include("Balatro_scripts.Utility.save_manager")
-include("Balatro_scripts.Utility.cool_title")
 include("Balatro_scripts.Utility.Console Commands")
 --Balatro_Expansion.ItemManager = include("Balatro_scripts.Utility.hidden_item_manager")
 --Balatro_Expansion.ItemManager = Balatro_Expansion.ItemManager:Init(Balatro_Expansion)
@@ -1317,20 +1327,15 @@ include("Balatro_scripts.Unlockables.The Hand")
 include("Balatro_scripts.Unlockables.Trinket Editions")
 --include("Balatro_scripts.Trinket_Callbacks")
 
----------------------CACHE EVALUATION FUNCTIONS---------------------
+---------------------CUSTOM UI ANIMATIONS---------------------
 --------------------------------------------------------------------
---these are all the cache evaluations for every trinekt/item
---the functions for non-statup trinkets are also here
---all the stats given by these trinkets are completely flat and can't be increset with multipliera and such
-
-
---include("Balatro_scripts.Trinkets_Effects")
+---
+include("Balatro_scripts.Utility.cool_title")
+include("Balatro_scripts.characters.T jimbo.Versus Screen")
 
 
 
--------------------OPTIMISATION FUNCTOINS------------------------------------
---these functions limit the ammount of callbacks the game has to consider for this Balatro_Expansion using REPENTOGON's custom tags,
---i have no idea if this change is actually noticable or not, but i think it's pretty well done
+-------------------SETUP FUNCTIOINS------------------------------------
 
 --to see the list of all the custom tags and how they work, see the items.xml file
 

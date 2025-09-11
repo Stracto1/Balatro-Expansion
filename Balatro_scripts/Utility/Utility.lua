@@ -482,29 +482,6 @@ function mod:IsFibonacciNumber(Number)
 end
 
 
-local function IsSpecialBossFight(_, CurrentBossType)
-
-    local Room = Game:GetRoom()
-    local Level = Game:GetLevel()
-
-    local Type = CurrentBossType or Room:GetBossID()
-
-    mod.Saved.IsSpecialBossFight = mod.Saved.IsSpecialBossFight
-                                   or (mod:Contained(mod.SPECIAL_BOSSES, CurrentBossType)
-                                   or Level:GetCurrentRoomDesc().Flags & RoomDescriptor.FLAG_NO_WALLS ~= 0)
-
-
-end
-mod:AddCallback(ModCallbacks.MC_POST_BOSS_INTRO_SHOW, IsSpecialBossFight)
-mod:AddPriorityCallback(ModCallbacks.MC_POST_NEW_ROOM, CallbackPriority.IMPORTANT, IsSpecialBossFight)
-
-
-local function ResetSpecialBossFight()
-
-    mod.Saved.IsSpecialBossFight = false
-end
-mod:AddCallback(ModCallbacks.MC_PRE_NEW_ROOM, ResetSpecialBossFight)
-
 
 ---@param RNG RNG
 function mod:RandomSeed(RNG)
@@ -535,6 +512,16 @@ function mod:TrueBloodPoof(Position, Scale, Color)
 end
 
 
+function mod:IsTJimboVulnerable()
+
+    return not mod.AnimationIsPlaying
+           and (mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_LAMB
+                or mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_MOTHER
+                or mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_DELIRIUM
+                or mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_BEAST)
+end
+
+
 function mod:IsValidScalingEnemy(Enemy)
 
     return Enemy:IsActiveEnemy()
@@ -549,16 +536,32 @@ function mod:IsValidScalingEnemy(Enemy)
                                                            and (Enemy.Variant ~= 0 or Enemy.SubType ~= 0))) --any mother peon + the arms and back of the 1st phase
            or Enemy.Type == EntityType.ENTITY_GIDEON
            or Enemy.Type == EntityType.ENTITY_DOGMA and Enemy.Variant == 0 --0 is the baby attached to the TV
-           or Enemy.Type == EntityType.ENTITY_BEAST and (Enemy.Variant ~= 0
-                                                         and Enemy.Variant == 10
-                                                         and Enemy.Variant == 11
-                                                         and Enemy.Variant == 20
-                                                         and Enemy.Variant == 21
-                                                         and Enemy.Variant == 30
-                                                         and Enemy.Variant == 40
-
+           or Enemy.Type == EntityType.ENTITY_BEAST and (Enemy.Variant ~= 11
+                                                         and Enemy.Variant ~= 21
+                                                         and Enemy.Variant ~= 22
+                                                         and not mod:IsActiveUltraHorsemen(Enemy)
                                                          )
            )
+end
+
+
+function mod:EnemySpawnsOnDeath(Enemy)
+
+    return
+end
+
+
+local HorsemenBlinds = {[0] = mod.BLINDS.BOSS, --beast
+                        [10] = mod.BLINDS.BOSS_ACORN, --famine
+                        [20] = mod.BLINDS.BOSS_BELL, --pestilence
+                        [30] = mod.BLINDS.BOSS_HEART, --war
+                        [40] = mod.BLINDS.BOSS_VESSEL,} --death
+
+function mod:IsActiveUltraHorsemen(Enemy)
+
+    return Enemy.Type == EntityType.ENTITY_BEAST
+           and HorsemenBlinds[Enemy.Variant]
+           and mod.Saved.BlindBeingPlayed == HorsemenBlinds[Enemy.Variant]
 end
 
 
@@ -617,6 +620,22 @@ function mod:IsBeastBossRoom()
 
     return Data.Type == RoomType.ROOM_DUNGEON and (Data.Variant == 666 and Data.Subtype == 4)
 end
+
+function mod:IsChestDarkRoomBossRoom()
+
+    local Data = Game:GetLevel():GetCurrentRoomDesc().Data
+
+    return Data.Type == RoomType.ROOM_BOSS and (Data.Variant == 5130 and Data.Subtype == 54
+                                                or Data.Variant == 3393 and Data.Subtype == 40)
+end
+
+function mod:IsMegaSatanBossRoom()
+
+    local Data = Game:GetLevel():GetCurrentRoomDesc().Data
+
+    return Data.Type == RoomType.ROOM_BOSS and (Data.Variant == 5000 and Data.Subtype == 55)
+end
+
 
 
 --copy-pasted this function directly from the API docs
@@ -1415,7 +1434,12 @@ function mod:GetJimboJokerIndex(Player, Joker, SkipCopy)
 
     for i,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
         if Slot.Joker == Joker then
-            table.insert(Indexes, i)
+
+            if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo 
+               or Slot.Modifiers & mod.Modifier.DEBUFFED == 0 then
+                
+                table.insert(Indexes, i)
+            end
 
         elseif not SkipCopy
                and (Slot.Joker == mod.Jokers.BLUEPRINT or Slot.Joker == mod.Jokers.BRAINSTORM) then
@@ -3305,21 +3329,31 @@ function mod:AddCardToDeck(Player, CardTable,Amount, PutInHand)
         table.insert(mod.Saved.Player[PIndex].FullDeck,1, CardTable) --adds it to pos 1 so it can't be seen again
     end
 
+    --fixes the jump made by table.insert in a lot of poiter-storing variables
+
     for i,_ in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
-        mod.Saved.Player[PIndex].CurrentHand[i] = mod.Saved.Player[PIndex].CurrentHand[i] + Amount --fixes the jump made by table.insert
+        mod.Saved.Player[PIndex].CurrentHand[i] = mod.Saved.Player[PIndex].CurrentHand[i] + Amount
     end
 
     for i,_ in ipairs(mod.SelectionParams[PIndex].PlayedCards or {}) do
-        mod.SelectionParams[PIndex].PlayedCards[i] = mod.SelectionParams[PIndex].PlayedCards[i] + Amount --fixes the jump made by table.insert
+        mod.SelectionParams[PIndex].PlayedCards[i] = mod.SelectionParams[PIndex].PlayedCards[i] + Amount
     end
 
     for i,_ in ipairs(mod.Saved.AnteCardsPlayed) do
-        mod.Saved.AnteCardsPlayed[i] = mod.Saved.AnteCardsPlayed[i] + Amount --fixes the jump made by table.insert
+        mod.Saved.AnteCardsPlayed[i] = mod.Saved.AnteCardsPlayed[i] + Amount 
+    end
+
+    if mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_BELL then
+                
+        mod.Saved.BossBlindVarData = mod.Saved.BossBlindVarData + 1
     end
     
 
-    mod.Saved.Player[PIndex].DeckPointer = mod.Saved.Player[PIndex].DeckPointer + Amount --fixes the jump made by table.insert
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo
+       or mod.Saved.EnableHand then
 
+        mod.Saved.Player[PIndex].DeckPointer = mod.Saved.Player[PIndex].DeckPointer + Amount --fixes the jump made by table.insert
+    end
 
     if PutInHand then
         for i=1, Amount do
@@ -3397,6 +3431,15 @@ function mod:DestroyCards(Player, DeckIndexes, DoEffects, BlockSubstitution)
                 if Pointer >= DestroyedPointer then
                     mod.Saved.AnteCardsPlayed[i] = mod.Saved.AnteCardsPlayed[i] - 1 --fixes the gap made by table.remove
                 end
+            end
+
+            if mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_BELL then
+                
+                --vardata stores a pointer of a card held
+                if mod.Saved.BossBlindVarData > DestroyedPointer then
+                    mod.Saved.BossBlindVarData = mod.Saved.BossBlindVarData - 1 --fixes the gap made by table.remove
+                end
+
             end
         end
 
@@ -3672,7 +3715,7 @@ function mod:EvaluateBlindData(BlindType)
     if BlindType == mod.BLINDS.BOSS_OX then
         
         local _
-        --saves the currently most used card
+        --saves the currently most used hand
         _,mod.Saved.BossBlindVarData = mod:GetMax(mod.Saved.HandsTypeUsed)
 
     else
@@ -3795,9 +3838,21 @@ function mod:RefillHand(Player, CausedByHandPlay)
     Dealy = Delay + 1
 
     Isaac.CreateTimer(function ()
+
         mod.SelectionParams[PIndex].OptionsNum = #mod.Saved.Player[PIndex].CurrentHand
 
         mod.AnimationIsPlaying = false
+
+
+        if mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_BELL then
+            
+            local Interval = Isaac.RunCallback(mod.Callbalcks.BOSS_BLIND_EVAL, mod.BLINDS.BOSS_BELL)
+
+            Isaac.CreateTimer(function ()
+                Isaac.RunCallback(mod.Callbalcks.HAND_UPDATE, Player)
+            end, Interval, 1, true)
+        end
+
     end, Delay, 1, true)
 
     --print("end refill")
@@ -4134,11 +4189,11 @@ function mod:GetBlindReward(Blind)
         Reward = 4
     elseif Blind & mod.BLINDS.BOSS ~= 0 then
 
-        if Blind < mod.BLINDS.BOSS_ACORN then
-            Reward = 5
-
-        else --finisher blinds
+        if mod:IsBlindFinisher(Blind) then
             Reward = 8
+
+        else
+            Reward = 5
         end
     end
     
@@ -4451,12 +4506,20 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
 
         if NewPurpose == mod.SelectionParams.Purposes.HAND then
             
-            mod.Saved.HandType = mod.HandTypes.NONE
+            --mod.Saved.HandType = mod.HandTypes.NONE
 
             if IsTaintedJimbo
                and mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_BELL then
 
-                mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND][mod.Saved.BossBlindVarData] = true
+                local BellForcedIndex = mod:GetValueIndex(mod.Saved.Player[PIndex].CurrentHand, mod.Saved.BossBlindVarData, true)
+
+                if BellForcedIndex then
+                    --print("set", mod.Saved.BossBlindVarData, "to true")
+
+                    mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND][BellForcedIndex] = true
+
+                    mod.SelectionParams[PIndex].SelecionNum = 1
+                end
             end
 
         elseif not IsTaintedJimbo then
@@ -4720,7 +4783,7 @@ function mod:Select(Player)
 
                 if IsTaintedJimbo
                    and mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_BELL
-                   and mod.Saved.BossBlindVarData == mod.SelectionParams[PIndex].Index then
+                   and mod:GetValueIndex(mod.Saved.Player[PIndex].CurrentHand, mod.Saved.BossBlindVarData, true) == mod.SelectionParams[PIndex].Index then
                     
                     SelectedCards[mod.SelectionParams[PIndex].Index] = true
                 end
@@ -5046,11 +5109,6 @@ function mod:UseSelection(Player)
 
                 Sprite:GetLayer(2):SetVisible(not IsNegativeJoker)
                 Sprite:GetLayer(4):SetVisible(IsNegativeJoker)
-
-                Sprite:ReplaceSpritesheet(2, "gfx/grid/door_mausoleum_alt_TJimbo.png", true)
-                Sprite:ReplaceSpritesheet(4, "gfx/grid/door_mausoleum_alt_TJimbo.png", true)
-
-
                 
                 SecretDoor:TryUnlock(Player, true)
             end
@@ -5596,11 +5654,15 @@ for _,v in pairs(CardLayerID) do
     JimboCardsLayers[v] = JimboCards:GetLayer(v)
 end
 
-function mod:RenderCard(Params, Position, Offset, Scale, Rotation, ForceCovered, Thin)
+function mod:RenderCard(Params, Position, Offset, Scale, Rotation, ForceCovered, Thin, color)
 
     Offset = Offset or Vector.Zero
     Scale = Scale or Vector.One
     Rotation = Rotation or 0
+    color = color or Color(1,1,1,1)
+
+
+    JimboCards.Color = color
 
     if Thin then
         JimboCards:SetAnimation("Thin")
@@ -5613,7 +5675,7 @@ function mod:RenderCard(Params, Position, Offset, Scale, Rotation, ForceCovered,
 
     JimboCards:ClearCustomShader()
 
-    if Params.Modifiers & mod.Modifier.COVERED ~= 0 or ForceCovered then
+    if ForceCovered or Params.Modifiers & mod.Modifier.COVERED ~= 0 then
         JimboCards:SetLayerFrame(CardLayerID.BODY, 0)
         JimboCards:RenderLayer(CardLayerID.BODY, Position)
 

@@ -2,6 +2,7 @@ local mod = Balatro_Expansion
 
 local Game = Game()
 local ItemsConfig = Isaac.GetItemConfig()
+local sfx = SFXManager()
 
 
 local SUIT_FLAG = 7 --111 00..
@@ -264,6 +265,13 @@ local function TriggerCard(Player, CardPointer, CardIndex)
             goto SKIP_SLOT
         end
 
+        if Slot.Modifiers & mod.Modifier.DEBUFFED ~= 0 then
+
+            --GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.DEBUFFED, "Debuffed!", mod.EffectType.JOKER, JokerIndex)
+
+            goto SKIP_SLOT
+        end
+
         if Joker == mod.Jokers.HANG_CHAD then
             
             if 2^CardIndex == mod:GetBitMaskMin(mod.SelectionParams[PIndex].ScoringCards) then
@@ -397,13 +405,20 @@ local function TriggerCard(Player, CardPointer, CardIndex)
                 goto SKIP_SLOT
             end
 
+            if Slot.Modifiers & mod.Modifier.DEBUFFED ~= 0 then
+
+                --GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.DEBUFFED, "Debuffed!", mod.EffectType.JOKER, JokerIndex)
+
+                goto SKIP_SLOT
+            end
+
 
             if Joker == mod.Jokers.EVENSTEVEN then
             
-            if Card.Enhancement ~= mod.Enhancement.STONE
-               and Card.Value % 2 == 0 and Card.Value < mod.Values.JACK then
-                IncreaseMult(Player, PIndex, 4, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
-            end
+                if Card.Enhancement ~= mod.Enhancement.STONE
+                   and Card.Value % 2 == 0 and Card.Value < mod.Values.JACK then
+                    IncreaseMult(Player, PIndex, 4, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                end
 
             elseif Joker == mod.Jokers.ODDTODD then
             
@@ -692,6 +707,13 @@ local function HeldCardEffect(Player, CardPointer, CardIndex, LowestPointer)
                 goto SKIP_SLOT
             end
 
+            if Slot.Modifiers & mod.Modifier.DEBUFFED ~= 0 then
+
+                --GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.DEBUFFED, "Debuffed!", mod.EffectType.JOKER, JokerIndex)
+
+                goto SKIP_SLOT
+            end
+
 
             if Joker == mod.Jokers.RAISED_FIST then
 
@@ -793,6 +815,8 @@ function mod:ScoreHand(Player)
 
             Isaac.CreateTimer(function ()
 
+                Player:AnimateSad()
+
                 mod.SelectionParams[PIndex].SelectionNum = 0
                 Isaac.RunCallback(mod.Callbalcks.POST_HAND_PLAY, Player)
 
@@ -817,6 +841,8 @@ function mod:ScoreHand(Player)
         
         
             Isaac.CreateTimer(function ()
+
+                Player:AnimateSad()
 
                 mod.SelectionParams[PIndex].SelectionNum = 0
                 Isaac.RunCallback(mod.Callbalcks.POST_HAND_PLAY, Player)
@@ -846,6 +872,8 @@ function mod:ScoreHand(Player)
            
            
             Isaac.CreateTimer(function ()
+
+                Player:AnimateSad()
 
                 mod.SelectionParams[PIndex].SelectionNum = 0
                 Isaac.RunCallback(mod.Callbalcks.POST_HAND_PLAY, Player)
@@ -1231,7 +1259,7 @@ function mod:ScoreHand(Player)
             Copied = true
         end
 
-        if Joker == 0 then
+        if Joker == 0 or Slot.Modifiers & mod.Modifier.DEBUFFED ~= 0 then
             goto SKIP_SLOT
         end
 
@@ -1626,7 +1654,7 @@ function mod:ScoreHand(Player)
             Copied = true
         end
 
-        if Joker == 0 then
+        if Joker == 0 or Slot.Modifiers & mod.Modifier.DEBUFFED ~= 0 then
             goto SKIP_SLOT
         end
 
@@ -1822,6 +1850,7 @@ local function CopyAdjustments(_,Player)
             if Index == StartI -- an infinite loop started
                or not mod.Saved.Player[PIndex].Inventory[Index] --the copied slot doesn't exsist
                or mod.Saved.Player[PIndex].Inventory[Index].Joker == 0 --the slot is empty
+               or mod.Saved.Player[PIndex].Inventory[Index].Modifiers & mod.Modifier.DEBUFFED ~= 0 --the joker is debuffed
                or not ItemsConfig:GetTrinket(mod.Saved.Player[PIndex].Inventory[Index].Joker):HasCustomCacheTag("copy") then --the joker cannot be copied
                 
                 mod.Saved.Player[PIndex].Progress.Inventory[StartI] = 0
@@ -1940,7 +1969,7 @@ local function OnBlindSkip(_,BlindType)
             Copied = true
         end
 
-        if Joker == 0 then --could save some time
+        if Joker == 0  or Slot.Modifiers & mod.Modifier.DEBUFFED ~= 0 then --could save some time
             goto SKIP_SLOT
         end
 
@@ -2006,7 +2035,7 @@ local function OnBlindSelect(_,BlindType)
             Copied = true
         end
 
-        if Joker == 0 then --could save some time
+        if Joker == 0 or Slot.Modifiers & mod.Modifier.DEBUFFED ~= 0 then --could save some time
             goto SKIP_SLOT
         end
 
@@ -2157,7 +2186,7 @@ local function OnBlindStart(_,BlindType)
             Copied = true
         end
 
-        if Joker == 0 then --could save some time
+        if Joker == 0 or Slot.Modifiers & mod.Modifier.DEBUFFED ~= 0 then --could save some time
             goto SKIP_SLOT
         end
 
@@ -2267,7 +2296,7 @@ local function OnBlindClear(_,BlindType)
             Copied = true
         end
 
-        if Joker == 0 then --could save some time
+        if Joker == 0 or Slot.Modifiers & mod.Modifier.DEBUFFED ~= 0 then --could save some time
             goto SKIP_SLOT
         end
 
@@ -2610,7 +2639,7 @@ local function OnShopReroll()
             Copied = true
         end
 
-        if Joker == 0 then --could save some time
+        if Joker == 0 or Slot.Modifiers & mod.Modifier.DEBUFFED ~= 0 then --could save some time
             goto SKIP_SLOT
         end
 
@@ -2674,7 +2703,7 @@ local function OnShopExit(_)
             Copied = true
         end
 
-        if Joker == 0 then --could save some time
+        if Joker == 0 or Slot.Modifiers & mod.Modifier.DEBUFFED ~= 0 then --could save some time
             goto SKIP_SLOT
         end
 
@@ -2816,7 +2845,7 @@ local function CashoutEvaluation(_, BlindBeaten)
             Copied = true
         end
 
-        if Joker == 0 then --could save some time
+        if Joker == 0 or Slot.Modifiers & mod.Modifier.DEBUFFED ~= 0 then --could save some time
             goto SKIP_SLOT
         end
 
@@ -2906,6 +2935,10 @@ local function OnPackOpened(_,Player,Pack)
             Copied = true
         end
 
+        if Slot.Modifiers & mod.Modifier.DEBUFFED ~= 0 then
+            goto SKIP_SLOT
+        end
+
         if Joker == mod.Jokers.HALLUCINATION then
             local TrinketRNG = Player:GetTrinketRNG(mod.Jokers.HALLUCINATION)
             if TrinketRNG:RandomFloat() < 0.5 then
@@ -2919,6 +2952,8 @@ local function OnPackOpened(_,Player,Pack)
                 end
             end
         end
+
+        ::SKIP_SLOT::
     end
 
 end
@@ -2938,12 +2973,18 @@ local function OnPackSkipped(_,Player,Pack)
     for Index, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
 
         local Joker = Slot.Joker
+
+        if Slot.Modifiers & mod.Modifier.DEBUFFED ~= 0 then
+            goto SKIP_SLOT
+        end
         
         if Joker == mod.Jokers.RED_CARD then
             IncreaseJokerProgress(Player, PIndex, Index, 3, mod.EffectColors.RED, false)
 
             GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+3", mod.EffectType.JOKER, Index)
         end
+
+        ::SKIP_SLOT::
     end
 end
 mod:AddCallback(mod.Callbalcks.PACK_SKIP, OnPackSkipped)
@@ -3020,7 +3061,7 @@ local function OnCardDiscard(_, Player, PointerDiscarded, HandIndex, IsLastCard)
             Copied = true
         end
 
-        if Joker == 0 then
+        if Joker == 0 or Slot.Modifiers & mod.Modifier.DEBUFFED ~= 0 then
             goto SKIP_SLOT
         end
 
@@ -3086,21 +3127,6 @@ local function OnCardDiscard(_, Player, PointerDiscarded, HandIndex, IsLastCard)
                 GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+0.5X", mod.EffectType.JOKER, Index, 2)
             end
 
-        elseif Joker == mod.Jokers.TRADING_CARD then
-
-            if Copied then
-                goto SKIP_SLOT
-            end
-
-            if mod.SelectionParams[PIndex].SelectionNum == 1
-               and mod.Saved.DiscardsRemaining == Player:GetCustomCacheValue(mod.CustomCache.DISCARD_NUM) - 1 then
-                
-                mod:CardRipEffect(CardDiscarded, mod.CardFullPoss[PointerDiscarded])
-                mod:DestroyCards(Player, {HandIndex})
-
-                AddMoney(Player, 3, mod.EffectType.JOKER, Index)
-            end
-
         elseif Joker == mod.Jokers.YORICK then
 
             if Copied then
@@ -3140,6 +3166,21 @@ local function OnCardDiscard(_, Player, PointerDiscarded, HandIndex, IsLastCard)
 
             if not Copied then
                 mod.Saved.Player[PIndex].Progress.Inventory[ProgressIndex] = 0
+            end
+
+        elseif Joker == mod.Jokers.TRADING_CARD then
+
+            if Copied then
+                goto SKIP_SLOT
+            end
+
+            if mod.SelectionParams[PIndex].SelectionNum == 1
+               and mod.Saved.DiscardsRemaining == Player:GetCustomCacheValue(mod.CustomCache.DISCARD_NUM) - 1 then
+                
+                mod:CardRipEffect(CardDiscarded, mod.CardFullPoss[PointerDiscarded])
+                mod:DestroyCards(Player, {HandIndex})
+
+                AddMoney(Player, 3, mod.EffectType.JOKER, Index)
             end
         end
 
@@ -3206,6 +3247,18 @@ local function OnJokerSold(_, Player,Joker,SlotSold)
 
     local PIndex = Player:GetData().TruePlayerIndex
 
+    if mod.Saved.Player[PIndex].Inventory[SlotSold].Modifiers & mod.Modifier.DEBUFFED ~= 0 then
+
+        goto FINISH
+    end
+
+
+    if mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_LEAF then
+       mod.Saved.BlindBeingPlayed = mod.BLINDS.BOSS --removes any special effect
+
+        Isaac.RunCallback(mod.Callbalcks.BOSS_BLIND_EVAL, mod.BLINDS.BOSS)
+    end
+
     --NOT COPIABLE JOKERS
 
     if Joker == mod.Jokers.INVISIBLE_JOKER then
@@ -3264,10 +3317,8 @@ local function OnJokerSold(_, Player,Joker,SlotSold)
 
             mod.Saved.BlindBeingPlayed = mod.BLINDS.BOSS --removes any special effect
 
-            for Pointer, Card in ipairs(mod.Saved.Player[PIndex].FullDeck) do
-        
-                mod.Saved.Player[PIndex].FullDeck[Pointer].Modifiers = 0 --no modifiers (not covered or debuffed)
-            end
+            Isaac.RunCallback(mod.Callbalcks.BOSS_BLIND_EVAL, mod.BLINDS.BOSS)
+
 
             for i, _ in ipairs(mod.Saved.Player[PIndex].Inventory) do
         
@@ -3300,8 +3351,6 @@ local function OnJokerSold(_, Player,Joker,SlotSold)
                         Enemy.HitPoints = Enemy.MaxHitPoints - DamageDealt
                     end
                 end
-
-
             end
 
         end
@@ -3312,6 +3361,9 @@ local function OnJokerSold(_, Player,Joker,SlotSold)
 
         mod:AddSkipTag(mod.SkipTags.DOUBLE)
     end
+
+
+    ::FINISH::
 
     Isaac.CreateTimer(function ()
         mod.AnimationIsPlaying = false
@@ -3559,6 +3611,10 @@ local function OnDeath(_, Player)
 
         local Joker = Slot.Joker
 
+        if Slot.Modifiers & mod.Modifier.DEBUFFED ~= 0 then
+            goto SKIP_SLOT
+        end
+
         if Joker == mod.Jokers.MR_BONES then
 
             local BlindSize = mod:GetBlindScoreRequirement(mod.Saved.BlindBeingPlayed)
@@ -3602,11 +3658,169 @@ local function OnDeath(_, Player)
             mod:CreateBalatroEffect(Index, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Saved!",
                                     mod.EffectType.JOKER, Player)
         end
+
+        ::SKIP_SLOT::
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_TRIGGER_PLAYER_DEATH, OnDeath)
 
 
+
+--custom bosses often have damage taking-related effects
+local function OnDamageTaken(_, Player)
+
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
+        return
+    end
+
+    ResetEffects(4)
+
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    if mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_LAMB then
+        
+        local LambRNG = Player:GetDropRNG()
+
+
+        local PossiblePointers = {}
+
+        for i,v in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
+            
+            if mod.Saved.Player[PIndex].FullDeck[v].Modifiers & mod.Modifier.DEBUFFED == 0 then
+                
+                PossiblePointers[#PossiblePointers+1] = v
+            end
+        end
+
+        if not next(PossiblePointers) then
+            return
+        end
+
+        local ChosenPointer = mod:GetRandom(PossiblePointers, LambRNG)
+
+        --PLACEHOLDER SOUND
+        GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.SELECT, "Debuffed!", mod.EffectType.HAND, ChosenPointer)
+
+        mod.Saved.Player[PIndex].FullDeck[ChosenPointer].Modifiers = mod.Saved.Player[PIndex].FullDeck[ChosenPointer].Modifiers | mod.Modifier.DEBUFFED
+
+
+    elseif mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_MOTHER then
+        
+        local MotherRNG = Player:GetDropRNG()
+
+
+        local PossiblePointers = {}
+
+        for i,v in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
+            
+            if mod.Saved.Player[PIndex].FullDeck[v].Modifiers & mod.Modifier.COVERED == 0 then
+                
+                PossiblePointers[#PossiblePointers+1] = v
+            end
+        end
+
+        if not next(PossiblePointers) then
+            return
+        end
+
+        local ChosenPointer = mod:GetRandom(PossiblePointers, MotherRNG)
+
+
+        GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Cut off!", mod.EffectType.HAND, ChosenPointer)
+
+
+        mod.Saved.Player[PIndex].FullDeck[ChosenPointer].Modifiers = mod.Saved.Player[PIndex].FullDeck[ChosenPointer].Modifiers | mod.Modifier.COVERED
+
+    elseif mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_DELIRIUM then
+        
+        local DeliRNG = Player:GetDropRNG()
+
+
+        local PossiblePointers = {}
+
+        for i,v in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
+                            
+            PossiblePointers[#PossiblePointers+1] = v
+        end
+
+        if not next(PossiblePointers) then
+            return
+        end
+
+        local ChosenPointer = mod:GetRandom(PossiblePointers, DeliRNG)
+
+        local CardRNG = RNG(mod:PlayingCardParamsToSubType(mod.Saved.Player[PIndex].FullDeck[ChosenPointer]))
+
+        local NewParams = mod:RandomPlayingCard(CardRNG, false, nil, nil, mod.Enhancement.NONE, mod.Seals.NONE, mod.Edition.BASE)
+
+
+        mod.Saved.Player[PIndex].FullDeck[ChosenPointer].Value = NewParams.Value
+        mod.Saved.Player[PIndex].FullDeck[ChosenPointer].Suit = NewParams.Suit
+
+        GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Chaos!", mod.EffectType.HAND, ChosenPointer)
+
+
+    elseif mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_BEAST then
+        
+        local BeastRNG = Player:GetDropRNG()
+
+
+        local PossiblePointers = {}
+
+        for i,v in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
+               
+            if mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND][i] then
+
+                PossiblePointers[#PossiblePointers+1] = v
+            end
+        end
+
+        if not next(PossiblePointers) then
+            return
+        end
+
+
+        local ChosenPointer = mod:GetRandom(PossiblePointers, BeastRNG)
+        local ChosenIndex = mod:GetValueIndex(mod.Saved.Player[PIndex].CurrentHand, ChosenPointer, true)
+
+        Isaac.RunCallback(mod.Callbalcks.DISCARD, Player, 1)
+        local Interval, GotDestroyed = Isaac.RunCallback(mod.Callbalcks.CARD_DISCARD, Player, ChosenPointer, ChosenIndex, false)
+
+
+        mod.AnimationIsPlaying = true
+
+        if not GotDestroyed then
+
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "Lost!", mod.EffectType.HAND, ChosenPointer)
+
+            Isaac.CreateTimer(function ()
+
+                table.remove(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND], ChosenIndex)
+                table.remove(mod.Saved.Player[PIndex].CurrentHand, ChosenIndex)
+
+                sfx:Play(mod.Sounds.DESELECT)
+
+                mod.SelectionParams[PIndex].SelectionNum = mod.SelectionParams[PIndex].SelectionNum - 1
+                mod.SelectionParams[PIndex].OptionsNum = mod.SelectionParams[PIndex].OptionsNum - 1
+
+                mod.SelectionParams[PIndex].Index = math.min(mod.SelectionParams[PIndex].Index, mod.SelectionParams[PIndex].OptionsNum)
+
+
+                if #mod.Saved.Player[PIndex].CurrentHand ~= 0 then
+
+                    mod.AnimationIsPlaying = false
+
+                else --refill hand if no more cards are left
+
+                    mod:RefillHand(Player, false)
+                end
+
+            end, Interval, 1, true)
+        end
+
+    end
+end
+mod:AddCallback(mod.Callbalcks.DAMAGE_TAKEN, OnDamageTaken)
 
 
 
@@ -3631,6 +3845,11 @@ local function EvaluateBlindEffect(_, BlindStarted)
     for Pointer, Card in ipairs(PlayerDeck) do
         
         PlayerDeck[Pointer].Modifiers = 0 --no modifiers (not covered or debuffed)
+    end
+
+    for i, _ in ipairs(mod.Saved.Player[PIndex].Inventory) do
+        
+        mod.Saved.Player[PIndex].Inventory[i].Modifiers = 0 --no modifiers (not covered or debuffed)
     end
 
 
@@ -3692,6 +3911,71 @@ local function EvaluateBlindEffect(_, BlindStarted)
         
         TJimbo:AddCustomCacheTag(mod.CustomCache.HAND_SIZE, true)
 
+    elseif mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_ACORN then
+
+        local Inventory = mod.Saved.Player[PIndex].Inventory
+
+        for i,_ in ipairs(Inventory) do
+
+            CurrentInterval = CurrentInterval + 1
+
+            local Slot = Inventory[i]
+            
+            Slot.Modifiers = Slot.Modifiers | mod.Modifier.COVERED
+        end
+
+        CurrentInterval = CurrentInterval + 2
+
+        local ShuffleRNG = TJimbo:GetDropRNG()
+
+        for i = #Inventory, 2 ,-1 do
+
+            CurrentInterval = CurrentInterval + 2
+
+            Isaac.CreateTimer(function ()
+
+              local j = ShuffleRNG:RandomInt(i) + 1
+
+              Inventory[i], Inventory[j] = Inventory[j], Inventory[i]
+
+            end, CurrentInterval, 1, true)
+        end
+        
+        CurrentInterval = CurrentInterval + 4
+
+    elseif mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_BELL then
+
+        local BellRNG = TJimbo:GetDropRNG()
+
+        Isaac.CreateTimer(function ()
+
+            local RandomIndex = BellRNG:RandomInt(mod.SelectionParams[PIndex].OptionsNum) + 1
+
+            mod.Saved.BossBlindVarData = mod.Saved.Player[PIndex].CurrentHand[RandomIndex] + 0
+
+            mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND][RandomIndex] = true
+            mod.SelectionParams[PIndex].SelectionNum = 1
+
+        end, CurrentInterval, 1, true)
+
+        
+
+        CurrentInterval = CurrentInterval + 4
+
+    elseif mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_HEART then
+        
+        local HeartRNG = TJimbo:GetDropRNG()
+
+        mod.Saved.BossBlindVarData = HeartRNG:RandomInt(#mod.Saved.Player[PIndex].Inventory) + 1
+    
+        Isaac.CreateTimer(function ()
+
+            local DebuffedSlot = mod.Saved.Player[PIndex].Inventory[mod.Saved.BossBlindVarData]
+            DebuffedSlot.Modifiers = DebuffedSlot.Modifiers | mod.Modifier.DEBUFFED
+        end, CurrentInterval, 1, true)
+
+        CurrentInterval = CurrentInterval + 4
+        
     else
         for Pointer,Card in ipairs(PlayerDeck) do
 

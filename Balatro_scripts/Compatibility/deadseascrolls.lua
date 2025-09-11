@@ -309,6 +309,14 @@ fullLineDivider:Load("gfx/ui/hud_dss_divider.anm2", true)
 fullLineDivider:Play("FullLine", true)
 
 
+local function upppdateee()
+
+    --print(mod.Saved.DSS.Jimbo.HandHUDPosition)
+end
+mod:AddCallback(ModCallbacks.MC_POST_UPDATE, upppdateee)
+
+
+
 
 menu.main = {
     title = "tboi: regambled",
@@ -395,36 +403,115 @@ menu.regambledJimboSettings = {
 menu.regambledTaintedJimboSettings = {
     title = "t.jimbo settings",
     buttons = {
-        {   str = 'hand card scale',
-            choices = {'100%','150%','200%',},
-            setting = 1,
-            variable = 'ragambledHandScale',
+        {   str = 'Custom Desc',
+            choices = {'disabled','enabled'},
+            setting = 2,
+            variable = 'ragambledTJimboDesc',
 
             load = function ()
-                return mod.Saved.DSS.Jimbo.HandScale or 1
+                return mod.Saved.DSS.T_Jimbo.CustomEID and 2 or 1
             end,
 
             store = function (var)
-                mod.Saved.DSS.Jimbo.HandScale = var
+                mod.Saved.DSS.T_Jimbo.CustomEID = var == 2
+            end,
+
+            tooltip = {strset = {"eid", "required!"}}
+        },
+
+        {   str = 'Hand combat opacity',
+            choices = {'0.25','0.5','0.75','1',},
+            setting = 2,
+            variable = 'ragambledTJimboOpacity',
+
+            load = function ()
+                return mod.Saved.DSS.T_Jimbo.VulnerableHandOpacity * 4
+            end,
+
+            store = function (var)
+                mod.Saved.DSS.T_Jimbo.VulnerableHandOpacity = var / 4
             end,
 
             tooltip = {strset = {"which do you", "prefer?"}}
         },
 
-        {   str = 'hand hud position',
-            choices = {'player','hearts',},
+        {   str = 'Show full deck',
+            choices = {'disabled','enabled',},
             setting = 1,
-            variable = 'ragambledHandPosition',
+            variable = 'ragambledTJimboFullDeck',
 
             load = function ()
-                return mod.Saved.DSS.Jimbo.HandHUDPosition or 1
+                return mod.Saved.DSS.T_Jimbo.ShowUnavailableCards and 2 or 1
             end,
 
             store = function (var)
-                mod.Saved.DSS.Jimbo.HandHUDPosition = var
+                mod.Saved.DSS.T_Jimbo.VulnerableHandOpacity = var == 2
             end,
 
-            tooltip = {strset = {"which do you", "prefer?"}}
+            tooltip = {strset = {"show used", "cards in","run info"}}
+        },
+
+        LINE_BREAK,
+
+        {   str = 'Base hands',
+            choices = {'1','2','3','4','5','6',},
+            setting = 4,
+            variable = 'ragambledTJimboBaseHands',
+
+            load = function ()
+                return mod.Saved.DSS.T_Jimbo.BaseHands
+            end,
+
+            store = function (var)
+                mod.Saved.DSS.T_Jimbo.BaseHands = var
+            end,
+
+            tooltip = {strset = {"how", "many?"}}
+        },
+        {   str = 'Base discards',
+            choices = {'1','2','3','4','5','6',},
+            setting = 4,
+            variable = 'ragambledTJimboBaseDiscards',
+
+            load = function ()
+                return mod.Saved.DSS.T_Jimbo.BaseDiscards
+            end,
+
+            store = function (var)
+                mod.Saved.DSS.T_Jimbo.BaseDiscards = var
+            end,
+
+            tooltip = {strset = {"how", "many?"}}
+        },
+        {   str = 'Out of range damage',
+            choices = {'0%','25%','50%','75%','100%'},
+            setting = 4,
+            variable = 'ragambledTJimboOoRDamage',
+
+            load = function ()
+                return mod.Saved.DSS.T_Jimbo.OutOfRangeDamage/0.25 + 1
+            end,
+
+            store = function (var)
+                mod.Saved.DSS.T_Jimbo.OutOfRangeDamage = (var-1)*0.25
+            end,
+
+            tooltip = {strset = {"how", "much?"}}
+        },
+        {   str = 'Constant vulnerability',
+            choices = {'disabled','enabled'},
+            setting = 4,
+            variable = 'ragambledTJimboVulnerability',
+
+            load = function ()
+                return mod.Saved.DSS.T_Jimbo.Vulnerability and 2 or 1
+            end,
+
+            store = function (var)
+                mod.Saved.DSS.T_Jimbo.Vulnerability = var == 2
+            end,
+
+            tooltip = {strset = {"are you", "up for","it?"}}
         },
 
     }

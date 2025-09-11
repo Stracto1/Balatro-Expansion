@@ -42,7 +42,7 @@ LeftSideHUD:SetFrame("Idle", 0)
 
 local LeftSideLayers = {Base = 0, Blind_Info = 1, General_Info = 2, Fixed_Color = 3, Lines = 4, Q_Button = 5, E_Button = 6}
 
-local BlindChipTexelPos = Vector(0,5)
+local CHIPS_TEXEL_POS = Vector(5,0)
 
 local LeftSideStringFrames = {
                               CurrentBlindName = 0, BlindChip = 1, ScoreRequirement = 2,
@@ -53,7 +53,7 @@ local LeftSideStringFrames = {
                               Discards = 15, DiscardsRemaining = 16, Money = 17,
                               Ante = 18, AnteLevel = 19, Rounds = 20, CurrentRound = 21,
                               ChooseNextBlind = 22, EnemyMaxHP = 23, EnemyPortrait = 24,
-                              Q_Action = 25, Q_Bind = 26, E_Action = 27, E_Bind = 28,
+                              Q_Action = 25, Q_Bind = 26, E_Action = 27, E_Bind = 28
                               }
 --[[
 local LeftSideStringPositions = {}
@@ -155,7 +155,7 @@ end
 mod:AddPriorityCallback(ModCallbacks.MC_PRE_PLAYERHUD_TRINKET_RENDER, CallbackPriority.LATE, CancelTrinketHUD)
 
 
-local BalatroMapOffset = Vector(228, -291) --just a random high number
+local BalatroMapOffset = Vector(228, -291) --just a random high vector
 --puts the map so far away it's basically impossible to see it
 local function CancelMinimapHUD()
 
@@ -175,9 +175,20 @@ end
 mod:AddCallback(ModCallbacks.MC_PRE_MINIMAP_RENDER, CancelMinimapHUD)
 
 
+local BossIntroTime = 0
 local OldCameraStyle
-local BaseRoomWidth = Isaac.WorldToScreenDistance(Vector(15 * 40, 0)).X
+local BaseRoomWidth = 15 * 26
 local CameraOffset = Vector.Zero
+
+function mod:BossIntroIsPlaying()
+
+    local Level = Game:GetLevel()
+
+    return BossIntroTime >= 60
+           or (Level:GetStage() == LevelStage.STAGE4_2 and Level:IsAltStage()
+               or Level:GetStage() == LevelStage.STAGE8) and BossIntroTime > 0
+
+end
 
 local function MoveCameraToRightBorder()
 
@@ -195,12 +206,29 @@ local function MoveCameraToRightBorder()
 
     Options.CameraStyle = CameraStyle.ACTIVE_CAM_OFF
 
-    local FreeRightSpace = (Isaac.GetScreenWidth() - BaseRoomWidth) / 2 + 5
+    local FreeRightSpace = (Isaac.GetScreenWidth() - BaseRoomWidth) / 2 - 7
 
-    CameraOffset = Isaac.WorldToScreenDistance(Vector(FreeRightSpace,0))/2
+    CameraOffset = Vector(FreeRightSpace,0)
+
+
+    if RoomTransition:IsRenderingBossIntro() then
+        
+        BossIntroTime = BossIntroTime + 1
+
+        --CameraOffset = mod:VectorLerp(CameraOffset, Vector.Zero, BossIntroTime/60)
+
+        --Params.CameraOffset = {CameraOffset.X, CameraOffset.Y}
+
+        --return Params
+    else
+        BossIntroTime = 0
+    end
+
 
     CameraOffset.X = math.ceil(CameraOffset.X)
     CameraOffset.Y = math.ceil(CameraOffset.Y)
+
+    
 
     --local ScreenCenter = Vector(Isaac.GetScreenWidth()/2, Isaac.GetScreenHeight()/2)
     --local CurrentCameraPos = Isaac.ScreenToWorld(ScreenCenter) * SCREEN_TO_WORLD_RATIO
@@ -216,19 +244,31 @@ local TJIMBO_SHADER = "Right Border Shift"
 local function RightMoveShader(_,Name) --this shader makes the whole game shifted closer to the right screen border, this allows for larger HUDs on the left side
     if Name == TJIMBO_SHADER then
 
-        local Params = {}
+        local Params = {CameraOffset = {0,0}}
 
 
-        if PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then
-            Params.CameraOffset = {CameraOffset.X*2, CameraOffset.Y*2}
+        if not PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo)
+           or mod:BossIntroIsPlaying() then
+
+            return Params
+
+            
+        elseif mod:IsBeastBossRoom() then
+
+            Params.CameraOffset = {CameraOffset.X, CameraOffset.Y}
+
         else
-            Params.CameraOffset = {0,0}
+            Params.CameraOffset = {CameraOffset.X, CameraOffset.Y}
         end
+
+
+
+        
 
         local HUD = Game:GetHUD()
 
         HUD:SetVisible(true)
-        Game:GetHUD():Render()
+        HUD:Render()
         HUD:SetVisible(false)
 
         return Params
@@ -578,7 +618,6 @@ function mod:RenderBalatroStyle(String, Position, Params, StartFrame, Scale, Kco
 end
 
 
-
 function mod:GetNumLines(String, BoxWidth, Scale)
     
     local Lines = 1
@@ -608,6 +647,9 @@ function mod:GetNumLines(String, BoxWidth, Scale)
 
     return Lines
 end
+
+
+
 
 
 ---@param Position Vector
@@ -723,12 +765,12 @@ function mod:RenderGenericButton(Position, Scale, BaseColor, Pressed, Text, Text
             TextPos.Y = TextPos.Y - BALATRO_LINE_HEIGHT*0.375
         end
 
-        mod:RenderBalatroStyle(Text, TextPos, TextParams, 0, TextScale, TextKcolor, Scale.X)
+        mod:RenderBalatroStyle(Text, TextPos, TextParams, 0, TextScale, TextKcolor, Scale.X - 2)
 
         if SubText then
             TextPos.Y = TextPos.Y + BALATRO_LINE_HEIGHT*0.75
 
-            mod:RenderBalatroStyle(SubText, TextPos, TextParams, 0, Vector.One * 0.5, TextKcolor, Scale.X)
+            mod:RenderBalatroStyle(SubText, TextPos, TextParams, 0, Vector.One * 0.5, TextKcolor, Scale.X - 2)
         end
     end
 end
@@ -780,13 +822,15 @@ local function JimboHandRender(_,_,_,_,_,Player)
 
     local NumCardsInHand = #mod.Saved.Player[PIndex].CurrentHand
 
+    local IsVulnerable = mod:IsTJimboVulnerable()
+
+
     local CardStep = CARD_AREA_WIDTH / (NumCardsInHand + 1)
 
     local BaseRenderPos = Vector((Isaac.GetScreenWidth() - CARD_AREA_WIDTH)/2 + CardStep,
                                  Isaac.GetScreenHeight() - HAND_RENDERING_HEIGHT) + CameraOffset
 
     if mod.SelectionParams[PIndex].PackPurpose ~= mod.SelectionParams.Purposes.NONE then
-        
         BaseRenderPos.Y = BaseRenderPos.Y - 75
     end
 
@@ -812,6 +856,12 @@ local function JimboHandRender(_,_,_,_,_,Player)
         local ForceCovered = Game:IsPaused()
         local ValueOffset
         local IsThin
+        local CardColor
+
+        if IsVulnerable then
+            CardColor = Color(1,1,1,0.5)
+        end
+    
 
 
         mod.CardFullPoss[Pointer] = mod.CardFullPoss[Pointer] or BRScreenWithOffset(DECK_RENDERING_POSITION) --check nil
@@ -900,7 +950,7 @@ local function JimboHandRender(_,_,_,_,_,Player)
            or mod.SelectionParams[PIndex].Index ~= i
            or mod.AnimationIsPlaying then
 
-            mod:RenderCard(Card, RenderPos[Pointer], ValueOffset, Scale, Rotation, ForceCovered, IsThin)
+            mod:RenderCard(Card, RenderPos[Pointer], ValueOffset, Scale, Rotation, ForceCovered, IsThin, CardColor)
         end
 
         --JimboCards.PlayingCards:Render(RenderPos[Pointer])
@@ -997,10 +1047,11 @@ local function JimboPlayedHandRender(_,_,_,_,_,Player)
                             and mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.HAND
 
     local NumPlayed = #mod.SelectionParams[PIndex].PlayedCards
+    local IsVulnerable = mod:IsTJimboVulnerable()
+
 
     local BaseRenderPos = Vector((Isaac.GetScreenWidth() -21*(NumPlayed - 1)), 
                           Isaac.GetScreenHeight())/2 + CameraOffset
-
 
     local TargetRenderPos = BaseRenderPos + Vector.Zero
     local RenderPos = {}
@@ -1017,6 +1068,11 @@ local function JimboPlayedHandRender(_,_,_,_,_,Player)
         local ForceCovered = false
         local ValueOffset = Vector.Zero
         local IsThin = false
+        local CardColor
+
+        if IsVulnerable then
+            CardColor = Color(1,1,1,0.5)
+        end
 
         
         mod.CardFullPoss[Pointer] = mod.CardFullPoss[Pointer] or BRScreenWithOffset(DECK_RENDERING_POSITION) --check nil
@@ -1060,7 +1116,7 @@ local function JimboPlayedHandRender(_,_,_,_,_,Player)
     
         -------------------------------------------------------------
 
-        mod:RenderCard(Card, RenderPos[Pointer], ValueOffset, Scale, Rotation, ForceCovered, IsThin)
+        mod:RenderCard(Card, RenderPos[Pointer], ValueOffset, Scale, Rotation, ForceCovered, IsThin, CardColor)
         
         TargetRenderPos = Vector(TargetRenderPos.X + 21, BaseRenderPos.Y)
 
@@ -1339,20 +1395,21 @@ local function JimboInventoryHUD(_,_,_,_,_,Player)
 
         TrinketSprite:ReplaceSpritesheet(0, JokerConfig.GfxFileName, true)
         TrinketSprite:ReplaceSpritesheet(2, JokerConfig.GfxFileName, true)
-        
+    
 
         TrinketSprite:SetFrame("Idle", math.ceil(Isaac.GetFrameCount()/2 + Slot.RenderIndex*36)%JidleLength)
         --TrinketSprite:SetAnimation("Idle", false)
-        
+
 
         TrinketSprite:SetCustomShader(mod.EditionShaders[mod.Saved.Player[PIndex].Inventory[i].Edition])
-        
+
         RenderPos[Slot.RenderIndex] = Vector(mod:ExponentLerp(mod.JokerFullPosition[Slot.RenderIndex].X, TargetRenderPos.X, mod.Counters.SinceSelect/8, 0.5),
                                  TargetRenderPos.Y)
 
         if RenderPos[Slot.RenderIndex].Y == TargetRenderPos.Y and RenderPos[Slot.RenderIndex].X == TargetRenderPos.X then
             mod.JokerFullPosition[Slot.RenderIndex] = RenderPos[Slot.RenderIndex] + Vector.Zero
         end
+        
 
         ----WOBBLE--------
         
@@ -1379,7 +1436,31 @@ local function JimboInventoryHUD(_,_,_,_,_,Player)
         if mod.SelectionParams[PIndex].Mode ~= mod.SelectionParams.Modes.INVENTORY
            or mod.SelectionParams[PIndex].Index ~= i then
 
-            TrinketSprite:Render(RenderPos[Slot.RenderIndex])
+
+            if Slot.Modifiers & mod.Modifier.COVERED ~= 0 then
+                
+                local Params = {} --no need for params if forceCovered is true
+                local Pos = RenderPos[Slot.RenderIndex] - Vector(0, 7)
+                local Offset = nil
+                local Scale = TrinketSprite.Scale
+                local Rotation = TrinketSprite.Rotation
+                local ForceCovered = true
+
+                mod:RenderCard(Params, Pos, Offset, Scale, Rotation, ForceCovered)
+
+            else
+
+                TrinketSprite:Render(RenderPos[Slot.RenderIndex])
+
+                if Slot.Modifiers & mod.Modifier.DEBUFFED ~= 0 then
+
+                    TrinketSprite:SetCustomShader(mod.EditionShaders.DEBUFF)
+
+                    TrinketSprite:Render(RenderPos[Slot.RenderIndex])
+                end
+            end
+
+
         end
         ::SKIP_JOKER::
     end
@@ -1399,6 +1480,9 @@ local function JimboInventoryHUD(_,_,_,_,_,Player)
         TrinketSprite:ReplaceSpritesheet(0, JokerConfig.GfxFileName, true)
         TrinketSprite:ReplaceSpritesheet(2, JokerConfig.GfxFileName, true)
 
+        TrinketSprite:SetCustomShader(mod.EditionShaders[Slot.Edition])
+
+
         TrinketSprite:SetFrame("Idle", math.ceil(Isaac.GetFrameCount()/2 + Slot.RenderIndex*36)%JidleLength)
         TrinketSprite.Rotation = 0
 
@@ -1411,7 +1495,28 @@ local function JimboInventoryHUD(_,_,_,_,_,Player)
             CardFrame.Scale = Vector.One
         end
 
-        TrinketSprite:Render(RenderPos[Slot.RenderIndex])
+        if Slot.Modifiers & mod.Modifier.COVERED ~= 0 then
+                
+            local Params = {} --no need for params if forceCovered is true
+            local Pos = RenderPos[Slot.RenderIndex] - Vector(0, 7)
+            local Offset = nil
+            local Scale = TrinketSprite.Scale
+            local Rotation = TrinketSprite.Rotation
+            local ForceCovered = true
+
+            mod:RenderCard(Params, Pos, Offset, Scale, Rotation, ForceCovered)
+
+        else
+
+            TrinketSprite:Render(RenderPos[Slot.RenderIndex])
+
+            if Slot.Modifiers & mod.Modifier.DEBUFFED ~= 0 then
+
+                TrinketSprite:SetCustomShader(mod.EditionShaders.DEBUFF)
+
+                TrinketSprite:Render(RenderPos[Slot.RenderIndex])
+            end
+        end
 
 
         CardFrame:SetFrame(HUD_FRAME.JokerFrame)
@@ -1593,21 +1698,24 @@ end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, SkipTagsHUD)
 
 
-local LastPortraiedSprite
-local LastPortraiedEnemy
+--local LastPortraiedSprite
+--local LastPortraiedEnemy
 
 local PreviousBlindDuration = 0
 local PreviousBlindType
+local PreviousBlindName
 local BlindChipColor = mod.BalatroColorBlack    --= Color.Default
 
---BIG ASS render function
+--BIG ASS render functions
 ---@param Player EntityPlayer
 local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
 
     if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo
-       or RoomTransition:IsRenderingBossIntro() then
+       or BossIntroTime >= 60 then
         return
     end
+
+    local SCREEN_SHAKE = Game.ScreenShakeOffset
 
     local PIndex = Player:GetData().TruePlayerIndex 
 
@@ -1626,8 +1734,15 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
     local PreviousBlindInfoOffset = Vector.Zero
 
     if PreviousBlindType then
-        BlindInfoOffset.Y = mod:Lerp(-400, 0, math.min(math.max(SinceBlindChange-175, 0)/20, 1))
-        PreviousBlindInfoOffset.Y = -BlindInfoOffset.Y - 400
+
+        if mod:IsBeastBossRoom() then --needes to be a bit faster
+
+            BlindInfoOffset.Y = mod:Lerp(-260, 0, math.min(math.max(SinceBlindChange-115, 0)/20, 1))
+            PreviousBlindInfoOffset.Y = -BlindInfoOffset.Y - 260
+        else
+            BlindInfoOffset.Y = mod:Lerp(-400, 0, math.min(math.max(SinceBlindChange-175, 0)/20, 1))
+            PreviousBlindInfoOffset.Y = -BlindInfoOffset.Y - 400
+        end
     end
 
     local NeededColor
@@ -1648,7 +1763,7 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
 
         LeftSideHUD:SetFrame(LeftSideStringFrames.BlindChip)
 
-        NeededColor = BlindChipsSprite:GetTexel(BlindChipTexelPos, Vector.Zero, 1)
+        NeededColor = BlindChipsSprite:GetTexel(CHIPS_TEXEL_POS +SCREEN_SHAKE, Vector.Zero, 1)
 
         NeededColor = Color(NeededColor.Red, NeededColor.Green, NeededColor.Blue, 1)
         --print(BlindKColor.Red, BlindKColor.Green, BlindKColor.Blue, BlindKColor.Alpha)
@@ -1657,7 +1772,7 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
     end
 
 
-    if SinceBlindChange >= 70 then
+    if SinceBlindChange >= 150 or Game:GetFrameCount() <= 25 then
 
         BlindChipColor = mod:ColorLerp(BlindChipColor, NeededColor, 0.045)
     end
@@ -1671,13 +1786,9 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
     
     do
 
-    if mod.Saved.BlindBeingPlayed & mod.BLINDS.BOSS ~= 0 then
+    LeftSideHUD:GetLayer(LeftSideLayers.Base):SetColor(BlindChipColor)
 
-        LeftSideHUD:GetLayer(LeftSideLayers.Base):SetColor(BlindChipColor)
-    else
-        LeftSideHUD:GetLayer(LeftSideLayers.Base):SetColor(mod.BalatroColorBlack)
-    end
-    LeftSideHUD:RenderLayer(LeftSideLayers.Base, Vector.Zero)
+    LeftSideHUD:RenderLayer(LeftSideLayers.Base, -SCREEN_SHAKE)
 
 
     end
@@ -1688,10 +1799,10 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
     do
         
     LeftSideHUD:GetLayer(LeftSideLayers.Lines):SetColor(BlindChipColor)
-    LeftSideHUD:RenderLayer(LeftSideLayers.Lines, Vector.Zero)
+    LeftSideHUD:RenderLayer(LeftSideLayers.Lines, -SCREEN_SHAKE)
 
     
-    LeftSideHUD:RenderLayer(LeftSideLayers.Fixed_Color, Vector.Zero)
+    LeftSideHUD:RenderLayer(LeftSideLayers.Fixed_Color, -SCREEN_SHAKE)
 
 
     LeftSideHUD:SetFrame(LeftSideStringFrames.RunInfo)
@@ -1699,17 +1810,16 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
     NullFrame = LeftSideHUD:GetNullFrame("String Positions")
 
     CenterPos = NullFrame:GetPos()
-    BoxWidth = NullFrame:GetScale().X * 100
-    Scale = Vector.One * NullFrame:GetScale().Y * 100
+    --BoxWidth = NullFrame:GetScale().X * 100
+    Scale = NullFrame:GetScale() * 100
+    local Pressed = mod.Saved.RunInfoMode ~= mod.RunInfoModes.OFF
 
     Params = mod.StringRenderingParams.Centered | mod.StringRenderingParams.Wrap
 
     String = mod:GetEIDString("T_Jimbo", "LeftHUD", "RunInfo")
 
-
-    
-
-    mod:RenderBalatroStyle(String, CenterPos, Params, StartFrame, Scale, KColor.White, BoxWidth)
+    mod:RenderGenericButton(CenterPos, Scale, mod.EffectColors.RED, Pressed, String, nil, nil, Params)
+    --mod:RenderBalatroStyle(String, CenterPos, Params, StartFrame, Scale, KColor.White, BoxWidth)
 
 
 
@@ -1717,22 +1827,26 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
 
     NullFrame = LeftSideHUD:GetNullFrame("String Positions")
 
-    CenterPos = NullFrame:GetPos()
-    BoxWidth = NullFrame:GetScale().X * 100
-    Scale = Vector.One * NullFrame:GetScale().Y * 100
+    NullFrame = LeftSideHUD:GetNullFrame("String Positions")
 
-    Params = mod.StringRenderingParams.Centered
+    CenterPos = NullFrame:GetPos()
+    --BoxWidth = NullFrame:GetScale().X * 100
+    Scale = NullFrame:GetScale() * 100
+    Pressed = Game:IsPaused()
+
+    --Params = mod.StringRenderingParams.Centered | mod.StringRenderingParams.Wrap
 
     String = mod:GetEIDString("T_Jimbo", "LeftHUD", "Options")
 
+    mod:RenderGenericButton(CenterPos, Scale, mod.EffectColors.YELLOW, Pressed, String)
 
-    mod:RenderBalatroStyle(String, CenterPos, Params, StartFrame, Scale, KColor.White, BoxWidth)
+    --mod:RenderBalatroStyle(String, CenterPos, Params, StartFrame, Scale, KColor.White, BoxWidth)
+
+
+    local HasCovered = false
 
     
-
-    local HasCovered = mod.AnimationIsPlaying and true or false
-
-    if not HasCovered then
+    if mod.Saved.EnableHand then
 
         for i, Chosen in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
 
@@ -1740,24 +1854,23 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
 
                 local Card = mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]]
 
-                if Card.Modifiers & mod.Modifier.COVERED ~= 0 then
+                if Card and Card.Modifiers & mod.Modifier.COVERED ~= 0 then
 
                     HasCovered = true
                     break
                 end
             end
         end
+
+        HasCovered = HasCovered and mod.Saved.HandType ~= mod.HandTypes.NONE --no need to hide the nothingness
     end
-
-    HasCovered = HasCovered and mod.Saved.HandType ~= mod.HandTypes.NONE --no need to hide the nothingness
-
 
     local StatToShow = {}
 
     --local ShouldRenderStats = mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.HAND and mod.SelectionParams[PIndex].PackPurpose == mod.SelectionParams.Purposes.NONE
     --                          or mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.NONE and (mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.HAND or mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.AIMING)
     --                          or mod.SelectionParams[PIndex].PackPurpose == mod.SelectionParams.Purposes.CelestialPack
-    
+
     if HasCovered then
         StatToShow.Mult = "???"
         StatToShow.Chips = "???"
@@ -1767,7 +1880,6 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
     end
 
     
-
     local MultString
     local ChipsString
 
@@ -1802,7 +1914,7 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
     String = ChipsString
 
 
----@diagnostic disable-next-line: param-type-mismatch
+    ---@diagnostic disable-next-line: param-type-mismatch
     mod:RenderBalatroStyle(String, CenterPos, Params, StartFrame, Scale, KColor.White, BoxWidth)
 
 
@@ -1838,7 +1950,7 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
 
     Params = mod.StringRenderingParams.Swoosh | mod.StringRenderingParams.Enlarge | mod.StringRenderingParams.Centered
 
-    
+
 
     if HasCovered then
 
@@ -1854,7 +1966,7 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
     else
         String = ""
     end
-    
+
 
 
 ---@diagnostic disable-next-line: param-type-mismatch
@@ -1884,7 +1996,7 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
         end
 
         if mod.Saved.BlindBeingPlayed & mod.BLINDS.WAITING_CASHOUT == 0 then
-            LeftSideHUD:RenderLayer(LeftSideLayers.Blind_Info, BlindInfoOffset)
+            LeftSideHUD:RenderLayer(LeftSideLayers.Blind_Info, BlindInfoOffset-SCREEN_SHAKE)
         end
 
         
@@ -1913,7 +2025,7 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
 
             local Pos = LeftSideHUD:GetNullFrame("String Positions"):GetPos() + BlindInfoOffset
 
-            BlindChipsSprite:Render(Pos)
+            BlindChipsSprite:Render(Pos -SCREEN_SHAKE)
 
 
 
@@ -1959,11 +2071,11 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
                 end
             end
 
-            String = mod:RoundBalatroStyle(MaxHPEnemy and MaxHPEnemy.HitPoints or 0, 9)
+            String = mod:RoundBalatroStyle(MaxHPEnemy and math.max(MaxHPEnemy.HitPoints,0) or 0, 9)
 
             mod:RenderBalatroStyle(String, CenterPos, Params, StartFrame, Scale, K_Color, BoxWidth)
 
-            --small enemy portrait
+            --[[ small enemy portrait 
             if MaxHPEnemy then
 
                 --print("Toughest Enemy:","("..tostring(MaxHPEnemy.Type).."."..tostring(MaxHPEnemy.Variant).."."..tostring(MaxHPEnemy.SubType)..")")
@@ -2022,7 +2134,7 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
                 end
 
                 LastPortraiedSprite.Scale = OldScale
-            end
+            end]]
 
 
 
@@ -2110,8 +2222,6 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
     
         --boss reroll button
 
-
-
         if Player:HasCollectible(mod.Vouchers.Director)
            or Player:HasCollectible(mod.Vouchers.Retcon) then
             
@@ -2145,7 +2255,7 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
 
         else
 
-            local PreviousBlindKColor = BlindChipsSprite:GetTexel(BlindChipTexelPos, Vector.Zero, 1)
+            local PreviousBlindKColor = BlindChipsSprite:GetTexel(CHIPS_TEXEL_POS +SCREEN_SHAKE, Vector.Zero, 1)
             
             PreviousBlindColor = Color(PreviousBlindKColor.Red, PreviousBlindKColor.Green, PreviousBlindKColor.Blue, 1)--:SetColorize(BlindKColor.Red, BlindKColor.Green, BlindKColor.Blue, 1)
     
@@ -2155,7 +2265,7 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
         end
 
         if PreviousBlindType & mod.BLINDS.WAITING_CASHOUT == 0 then
-            LeftSideHUD:RenderLayer(LeftSideLayers.Blind_Info, PreviousBlindInfoOffset)
+            LeftSideHUD:RenderLayer(LeftSideLayers.Blind_Info, PreviousBlindInfoOffset -SCREEN_SHAKE)
         end
 
         
@@ -2185,7 +2295,7 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
 
             BlindChipsSprite:SetFrame("Chips",mod:GetBLindChipFrame(PreviousBlindType))
 
-            BlindChipsSprite:Render(Pos)
+            BlindChipsSprite:Render(Pos -SCREEN_SHAKE)
 
 
 
@@ -2199,7 +2309,7 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
             BoxWidth = NullFrame:GetScale().X * 100
             Params = mod.StringRenderingParams.Centered | mod.StringRenderingParams.Swoosh | mod.StringRenderingParams.Wavy
 
-            String = mod.Saved.CurrentBlindName
+            String = PreviousBlindName
 
             StartFrame = Isaac.GetFrameCount() - SinceBlindChange - PreviousBlindDuration
 
@@ -2327,13 +2437,9 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
     
     do
 
-    if mod.Saved.BlindBeingPlayed & mod.BLINDS.BOSS ~= 0 then
+    LeftSideHUD:GetLayer(LeftSideLayers.General_Info):SetColor(BlindChipColor)
 
-        LeftSideHUD:GetLayer(LeftSideLayers.General_Info):SetColor(BlindChipColor)
-    else
-        LeftSideHUD:GetLayer(LeftSideLayers.General_Info):SetColor(mod.BalatroColorBlack)
-    end
-    LeftSideHUD:RenderLayer(LeftSideLayers.General_Info, Vector.Zero)
+    LeftSideHUD:RenderLayer(LeftSideLayers.General_Info, -SCREEN_SHAKE)
 
 
     LeftSideHUD:SetFrame(LeftSideStringFrames.Score)
@@ -2719,8 +2825,8 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
         E_Layer:SetColor(StartColor)
     end
 
-    LeftSideHUD:RenderLayer(LeftSideLayers.Q_Button, Q_Offset)
-    LeftSideHUD:RenderLayer(LeftSideLayers.E_Button, E_Offset)
+    LeftSideHUD:RenderLayer(LeftSideLayers.Q_Button, Q_Offset -SCREEN_SHAKE)
+    LeftSideHUD:RenderLayer(LeftSideLayers.E_Button, E_Offset -SCREEN_SHAKE)
     
     if Q_ActionString then
 
@@ -2799,7 +2905,7 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
     do
 
     LeftSideHUD:GetLayer(LeftSideLayers.Lines):SetColor(BlindChipColor)
-    LeftSideHUD:RenderLayer(LeftSideLayers.Lines, Vector.Zero)
+    LeftSideHUD:RenderLayer(LeftSideLayers.Lines, -SCREEN_SHAKE)
 
     end
 
@@ -3231,7 +3337,7 @@ local function TJimboRunInfo(_,offset,_,Position,_,Player)
         elseif mod.Saved.SmallCleared == mod.BlindProgress.DEFEATED then
 
             BlindChipsSprite:SetAnimation("Chips", false)
-            local BlindKColor = BlindChipsSprite:GetTexel(BlindChipTexelPos, Vector.Zero, 1)
+            local BlindKColor = BlindChipsSprite:GetTexel(CHIPS_TEXEL_POS, Vector.Zero, 1)
 
             ButtonColor = Color(BlindKColor.Red, BlindKColor.Green, BlindKColor.Blue, BlindKColor.Alpha)
             TextKcolor = KColor(0.8, 0.8, 0.8, 1)
@@ -3240,14 +3346,14 @@ local function TJimboRunInfo(_,offset,_,Position,_,Player)
         elseif mod.Saved.SmallCleared == mod.BlindProgress.SKIPPED then
 
             BlindChipsSprite:SetAnimation("Chips", false)
-            local BlindKColor = BlindChipsSprite:GetTexel(BlindChipTexelPos, Vector.Zero, 1)
+            local BlindKColor = BlindChipsSprite:GetTexel(CHIPS_TEXEL_POS, Vector.Zero, 1)
 
             ButtonColor = mod.EffectColors.BLUE
             TextKcolor = KColor.White
             IsPressed = true
         else 
             BlindChipsSprite:SetAnimation("Chips", false)
-            local BlindKColor = BlindChipsSprite:GetTexel(BlindChipTexelPos, Vector.Zero, 1)
+            local BlindKColor = BlindChipsSprite:GetTexel(CHIPS_TEXEL_POS, Vector.Zero, 1)
 
             ButtonColor = Color(BlindKColor.Red, BlindKColor.Green, BlindKColor.Blue, BlindKColor.Alpha)
             IsPressed = false
@@ -3398,7 +3504,7 @@ local function TJimboRunInfo(_,offset,_,Position,_,Player)
         elseif mod.Saved.BigCleared == mod.BlindProgress.DEFEATED then
 
             BlindChipsSprite:SetAnimation("Chips", false)
-            local BlindKColor = BlindChipsSprite:GetTexel(BlindChipTexelPos, Vector.Zero, 1)
+            local BlindKColor = BlindChipsSprite:GetTexel(CHIPS_TEXEL_POS, Vector.Zero, 1)
 
             ButtonColor = Color(BlindKColor.Red, BlindKColor.Green, BlindKColor.Blue, BlindKColor.Alpha)
             TextKcolor = KColor(0.8, 0.8, 0.8, 1)
@@ -3407,14 +3513,14 @@ local function TJimboRunInfo(_,offset,_,Position,_,Player)
         elseif mod.Saved.BigCleared == mod.BlindProgress.SKIPPED then
 
             BlindChipsSprite:SetAnimation("Chips", false)
-            local BlindKColor = BlindChipsSprite:GetTexel(BlindChipTexelPos, Vector.Zero, 1)
+            local BlindKColor = BlindChipsSprite:GetTexel(CHIPS_TEXEL_POS, Vector.Zero, 1)
 
             ButtonColor = mod.EffectColors.BLUE
             TextKcolor = KColor.White
             IsPressed = true
         else 
             BlindChipsSprite:SetAnimation("Chips", false)
-            local BlindKColor = BlindChipsSprite:GetTexel(BlindChipTexelPos, Vector.Zero, 1)
+            local BlindKColor = BlindChipsSprite:GetTexel(CHIPS_TEXEL_POS, Vector.Zero, 1)
 
             ButtonColor = Color(BlindKColor.Red, BlindKColor.Green, BlindKColor.Blue, BlindKColor.Alpha)
             IsPressed = false
@@ -3569,7 +3675,7 @@ local function TJimboRunInfo(_,offset,_,Position,_,Player)
             
         else
             BlindChipsSprite:SetAnimation("Chips", false)
-            local BlindKColor = BlindChipsSprite:GetTexel(BlindChipTexelPos, Vector.Zero, 1)
+            local BlindKColor = BlindChipsSprite:GetTexel(CHIPS_TEXEL_POS, Vector.Zero, 1)
 
             ButtonColor = Color(BlindKColor.Red, BlindKColor.Green, BlindKColor.Blue, BlindKColor.Alpha)
         end
@@ -4140,6 +4246,7 @@ mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_RENDER, PickupWobble)
 
 
 local LastBlindType = mod.BLINDS.NONE
+local LastBlindName = ""
 
 local LastChipValue = 0
 local LastMultValue = 0
@@ -4157,13 +4264,21 @@ local function Counters()
     elseif LastBlindType then
 
         PreviousBlindDuration = SinceBlindChange + 0
-        PreviousBlindType = LastBlindType + 0
-        
+
         SinceBlindChange = 0
+        
+        PreviousBlindType = LastBlindType + 0
         LastBlindType = mod.Saved.BlindBeingPlayed + 0
+
+
+        PreviousBlindName = string.sub(LastBlindName, 1)
+        LastBlindName = string.sub(mod.Saved.CurrentBlindName, 1)
+
+        --print("Blind Changed to", mod.Saved.BlindBeingPlayed)
 
     else 
         LastBlindType = mod.BLINDS.NONE
+        LastBlindName = ""
     end 
 
 
