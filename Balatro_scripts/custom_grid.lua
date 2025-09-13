@@ -184,7 +184,7 @@ function mod:UpdateBalatroPlate(Plate,Init)
 
         ShouldPlateBeAvailable = mod.Saved.SmallCleared ~= mod.BlindProgress.NOT_CLEARED 
                                  and mod.Saved.BigCleared ~= mod.BlindProgress.NOT_CLEARED
-                                 and mod.Saved.BossCleared == mod.BossProgress.NOT_CLEARED
+                                 and mod.Saved.BossCleared == mod.BlindProgress.NOT_CLEARED
                                  and mod.Saved.BlindBeingPlayed & mod.BLINDS.WAITING_CASHOUT == 0
                                  and mod.Saved.BlindBeingPlayed & mod.BLINDS.SHOP == 0
 

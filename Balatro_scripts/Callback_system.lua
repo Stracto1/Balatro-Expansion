@@ -64,7 +64,7 @@ function mod:OnGameStart(Continued)
 
         mod.Saved.ShowmanRemovedItems = {}
         mod.HpEnable = false
-        mod.ShopAddedThisFloor = false
+        --mod.NumShops = 0
         mod.AnimationIsPlaying = false
 
         mod.Saved.Pools = {}
@@ -204,7 +204,7 @@ function mod:OnGameStart(Continued)
         mod.Saved.ClearedRooms = 0
         mod.Saved.SmallCleared = mod.BlindProgress.NOT_CLEARED
         mod.Saved.BigCleared = mod.BlindProgress.NOT_CLEARED
-        mod.Saved.BossCleared = mod.BossProgress.NOT_CLEARED
+        mod.Saved.BossCleared = mod.BlindProgress.NOT_CLEARED
         mod.Saved.AnteLevel = 0
         mod.Saved.MaxAnteLevel = 0
         --mod.Saved.BlindScalingFactor = 1
@@ -379,6 +379,7 @@ function mod:InitJimboValues(PIndex, Tainted)
             mod.Saved.Player[PIndex].Inventory[i].Joker = 0
             mod.Saved.Player[PIndex].Inventory[i].Edition = mod.Edition.BASE
             mod.Saved.Player[PIndex].Inventory[i].RenderIndex = i
+            mod.Saved.Player[PIndex].Inventory[i].Progress = 0
         end        
 
         mod.Saved.Player[PIndex].StatsToAdd = {}
@@ -397,7 +398,6 @@ function mod:InitJimboValues(PIndex, Tainted)
         mod.Saved.Player[PIndex].TrueTearsValue = 1
 
         mod.Saved.Player[PIndex].Progress = {} --values used for jokers
-        mod.Saved.Player[PIndex].Progress.Inventory = {0,0,0} --never reset, changed in different ways basing on the joker
         mod.Saved.Player[PIndex].Progress.GiftCardExtra = {0,0,0}
 
         mod.Saved.Player[PIndex].Progress.Blind = {} --reset every new blind
@@ -414,14 +414,12 @@ function mod:InitJimboValues(PIndex, Tainted)
             mod.Saved.Player[PIndex].Progress.Room.ValueUsed[Value] = 0
         end
         mod.Saved.Player[PIndex].Progress.Room.Shots = 0
-        mod.Saved.Player[PIndex].Progress.Room.ChampKills = 0
         --mod.Saved.Player[PIndex].Progress.Room.KingsAtStart = 0
 
 
         mod.Saved.Player[PIndex].Progress.Floor = {}
         mod.Saved.Player[PIndex].Progress.Floor.CardsUsed = 0
 
-        mod.Saved.Player[PIndex].LastCardUsed = nil --the last card a player used
         mod.Saved.Player[PIndex].NumActiveCostumes = 0
 
     else
@@ -454,10 +452,10 @@ function mod:InitJimboValues(PIndex, Tainted)
             mod.Saved.Player[PIndex].Inventory[i].Edition = mod.Edition.BASE
             mod.Saved.Player[PIndex].Inventory[i].Modifiers = 0
             mod.Saved.Player[PIndex].Inventory[i].RenderIndex = i
+            mod.Saved.Player[PIndex].Inventory[i].Progress = 0
         end
 
         mod.Saved.Player[PIndex].Progress = {} --values used for jokers
-        mod.Saved.Player[PIndex].Progress.Inventory = {0,0,0,0,0} --never reset, changed in different ways basing on the joker
         mod.Saved.Player[PIndex].Progress.GiftCardExtra = {0,0,0,0,0}
         mod.Saved.Player[PIndex].Progress.GiftCardConsumableExtra = {0,0}
 
@@ -465,6 +463,7 @@ function mod:InitJimboValues(PIndex, Tainted)
 
     end
     
+    mod.Saved.Player[PIndex].LastCardUsed = nil --the last card a player used
 
     mod.Saved.Player[PIndex].FullDeck = mod:Shuffle(mod.Saved.Player[PIndex].FullDeck, Game:GetPlayer(0):GetDropRNG())
     

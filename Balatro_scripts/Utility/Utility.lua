@@ -1381,19 +1381,68 @@ function mod:GetValueScoring(Value)
     return Value
 end
 
+
+function mod:GetJimboTriggerableCards(Player)
+
+    if Player:GetPlayerType() ~= mod.Characters.JimboType or Game:GetRoom():IsClear() then
+        return 0
+    end
+
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    if mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR) then
+        
+        if not mod.Saved.Player[PIndex].FirstDeck then
+            return 0
+        end
+
+        return #mod.Saved.Player[PIndex].FullDeck - mod.Saved.Player[PIndex].DeckPointer + 1
+    end
+
+    return Player:GetCustomCacheValue(mod.CustomCache.HAND_NUM) - mod.Saved.Player[PIndex].Progress.Room.Shots
+
+end
+
+
 function mod:JimboHasTrinket(Player,Trinket)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType
-       and Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
+
+    local IsJimbo = Player:GetPlayerType() == mod.Characters.JimboType
+    local IsTJimbo = Player:GetPlayerType() == mod.Characters.TaintedJimbo
+
+    if not IsJimbo
+       and not IsTJimbo then
         return false
     end
+
     local PIndex = Player:GetData().TruePlayerIndex
 
     for _,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
-        if Slot.Joker == Trinket then
+        if Slot.Joker == Trinket
+           and (IsJimbo
+                or Slot.Modifiers & mod.Modifier.DEBUFFED == 0)  then
+
             return true
         end
     end
     return false
+end
+
+
+function mod:GetJimboBlindAvailability()
+
+    local Level = Game:GetLevel()
+    local Stage = Level:GetStage()
+    local IsAscent = Level:IsAscent()
+
+    local BossAvailable = Stage ~= LevelStage.STAGE8 
+                          and not IsAscent
+
+
+    local SmallAvailable = (not IsAscent and Stage <= LevelStage.STAGE4_2) or Stage == LevelStage.STAGE7
+    local BigAvailable = SmallAvailable or Stage > LevelStage.STAGE4_2
+
+    return SmallAvailable, BigAvailable, BossAvailable
+
 end
 
 
@@ -1444,7 +1493,7 @@ function mod:GetJimboJokerIndex(Player, Joker, SkipCopy)
         elseif not SkipCopy
                and (Slot.Joker == mod.Jokers.BLUEPRINT or Slot.Joker == mod.Jokers.BRAINSTORM) then
 
-            local CopiedJoker = mod.Saved.Player[PIndex].Inventory[mod.Saved.Player[PIndex].Progress.Inventory[i]]
+            local CopiedJoker = mod.Saved.Player[PIndex].Inventory[mod.Saved.Player[PIndex].Inventory[i].Progress]
             CopiedJoker = CopiedJoker and CopiedJoker.Joker or 0
 
             if CopiedJoker == Joker then
@@ -1566,7 +1615,7 @@ function mod:GetJokerCost(Joker, Edition, SellSlot, Player)
     
         Cost = math.floor(Cost / 2)
         if Joker == mod.Jokers.EGG then
-            Cost = mod.Saved.Player[PIndex].Progress.Inventory[SellSlot]
+            Cost = mod.Saved.Player[PIndex].Inventory[SellSlot].Progress
         end
 
         mod.Saved.Player[PIndex].Progress.GiftCardExtra[SellSlot] = mod.Saved.Player[PIndex].Progress.GiftCardExtra[SellSlot] or 0
@@ -1797,6 +1846,10 @@ function mod:GetJokerInitialProgress(Joker, Tainted, Player)
                 local ItemNum = Jimbo:GetCollectibleCount()
 
                 Prog = (ItemNum%2==1) and ItemNum*0.07 or 0
+
+            elseif Joker == mod.Jokers.BANNER then
+
+                Prog = 1.5 * (Jimbo:GetHearts()//2)
             end
 
         elseif Config:HasCustomTag("mult") then
@@ -1818,7 +1871,7 @@ function mod:GetJokerInitialProgress(Joker, Tainted, Player)
                 local TotalSell = 0
                 for JokerIndex, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
                     if Slot.Joker ~= 0 then
-                        TotalSell = TotalSell + mod:GetJokerCost(Slot.Joker, Slot.Edition, JokerIndex, Player)
+                        TotalSell = TotalSell + mod:GetJokerCost(Slot.Joker, Slot.Edition, JokerIndex, Jimbo)
                     end
                 end
 
@@ -1829,6 +1882,20 @@ function mod:GetJokerInitialProgress(Joker, Tainted, Player)
                 local ItemNum = Jimbo:GetCollectibleCount()
 
                 Prog = (ItemNum%2==0) and ItemNum*0.02 or 0
+
+            elseif Joker == mod.Jokers.HALF_JOKER then
+
+                local Damage = 0
+
+                if mod.Saved.Player[PIndex].Progress.Room.Shots <= 5 then
+                    Damage = Damage + 1.5
+                end
+
+                if Jimbo:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) <= 3 then
+                    Damage = Damage + 1
+                end
+
+                Prog = Damage
             end
 
         elseif Config:HasCustomTag("multm") then
@@ -1882,7 +1949,7 @@ function mod:GetJokerInitialProgress(Joker, Tainted, Player)
 
             elseif Joker == mod.Jokers.DRIVER_LICENSE then
 
-                local Is18 = Player:HasPlayerForm(PlayerForm.PLAYERFORM_ADULTHOOD) or Player:HasPlayerForm(PlayerForm.PLAYERFORM_MOM) or Player:HasPlayerForm(PlayerForm.PLAYERFORM_BOB)
+                local Is18 = Jimbo:HasPlayerForm(PlayerForm.PLAYERFORM_ADULTHOOD) or Jimbo:HasPlayerForm(PlayerForm.PLAYERFORM_MOM) or Player:HasPlayerForm(PlayerForm.PLAYERFORM_BOB)
 
                 if not Is18 then
                     local Enahncements = 0
@@ -2107,8 +2174,7 @@ end
 
 
 function mod:RandomJoker(Rng, PlaySound, ForcedRarity, AllowDuplicates, Amount)
-    
-    
+       
     Amount = Amount or 1
 
     local Possibilities = {}
@@ -2226,6 +2292,8 @@ function mod:RandomJoker(Rng, PlaySound, ForcedRarity, AllowDuplicates, Amount)
                 Trinket.Edition = EditionPicker:PickOutcome(Rng)                
             end
         end
+
+        Trinket.Edition = mod.Edition.NEGATIVE
 
         if PlaySound then
             sfx:Play(EditionSound[Trinket.Edition])
@@ -3252,14 +3320,17 @@ local function JimboAddTrinket(_, Player, Trinket, _, StopEvaluation)
 
     if JokerEdition == mod.Edition.NEGATIVE then
     
-        EmptySlot = #mod.Saved.Player[PIndex].Inventory + 1
-        mod.Saved.Player[PIndex].Inventory[EmptySlot] = {}
-    else
+        table.insert(mod.Saved.Player[PIndex].Inventory, 1, {})
 
-        local Empties = mod:GetJimboJokerIndex(Player, 0,true)
-
-        EmptySlot = Empties[#Empties]
+        mod.Saved.Player[PIndex].Inventory[1].Joker = 0
+        mod.Saved.Player[PIndex].Inventory[1].Edition = mod.Edition.BASE
+        mod.Saved.Player[PIndex].Inventory[1].Modifiers = 0
+        mod.Saved.Player[PIndex].Inventory[1].RenderIndex = 0
     end
+
+
+    EmptySlot = mod:GetJimboJokerIndex(Player, 0,true)[1]
+
 
     if not EmptySlot then
 
@@ -3274,13 +3345,15 @@ local function JimboAddTrinket(_, Player, Trinket, _, StopEvaluation)
 
     mod.Saved.LastJokerRenderIndex = mod.Saved.LastJokerRenderIndex + 1
 
+    --print("added", JokerType, "to", EmptySlot)
+
     mod.Saved.Player[PIndex].Inventory[EmptySlot].Joker = JokerType
     mod.Saved.Player[PIndex].Inventory[EmptySlot].Edition = JokerEdition
     mod.Saved.Player[PIndex].Inventory[EmptySlot].Modifiers = 0
     mod.Saved.Player[PIndex].Inventory[EmptySlot].RenderIndex = mod.Saved.LastJokerRenderIndex
 
 
-    mod.Saved.Player[PIndex].Progress.Inventory[EmptySlot] = mod:GetJokerInitialProgress(JokerType, IsTaintedJimbo)
+    mod.Saved.Player[PIndex].Inventory[EmptySlot].Progress = mod:GetJokerInitialProgress(JokerType, IsTaintedJimbo)
 
     if not StopEvaluation then
         Isaac.RunCallback("JOKER_ADDED", Player, JokerType, JokerEdition, EmptySlot)
@@ -4880,13 +4953,8 @@ function mod:Select(Player)
 
             local SubType = Joker | (Edition << mod.EDITION_FLAG_SHIFT)
 
-            Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET, Player.Position, RandomVector()*3,nil,Joker,Game:GetSeeds():GetStartSeed())
+            Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET, Player.Position, RandomVector()*3,nil,SubType,Game:GetSeeds():GetStartSeed())
             
-            --mod.Saved.FloorEditions[Index] = mod.Saved.FloorEditions[Index] or {}
-            
-            --mod.Saved.FloorEditions[Index][ItemsConfig:GetTrinket(Joker).Name] = Edition
-
-
         else --tarot/planet/Spectral pack
             local card = mod:FrameToSpecialCard(mod.SelectionParams[PIndex].PackOptions[mod.SelectionParams[PIndex].Index])
             local RndSeed = Random()
@@ -4964,17 +5032,7 @@ function mod:Select(Player)
                     mod.Saved.Player[PIndex].Inventory[FirstI].Joker,mod.Saved.Player[PIndex].Inventory[SecondI].Joker =
                     mod.Saved.Player[PIndex].Inventory[SecondI].Joker,mod.Saved.Player[PIndex].Inventory[FirstI].Joker
 
-                    mod.Saved.Player[PIndex].Progress.Inventory[FirstI],mod.Saved.Player[PIndex].Progress.Inventory[SecondI] =
-                    mod.Saved.Player[PIndex].Progress.Inventory[SecondI],mod.Saved.Player[PIndex].Progress.Inventory[FirstI]
-
-                    for _,GiftSlot in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.GIFT_CARD, true)) do
-
-                        mod.Saved.Player[PIndex].Progress.Inventory[GiftSlot][FirstI],mod.Saved.Player[PIndex].Progress.Inventory[GiftSlot][SecondI] = 
-                        mod.Saved.Player[PIndex].Progress.Inventory[GiftSlot][SecondI],mod.Saved.Player[PIndex].Progress.Inventory[GiftSlot][FirstI]    
                     
-                    end
-
-
                     Isaac.RunCallback("INVENTORY_CHANGE", Player)
 
                     mod.SelectionParams[PIndex].Purpose = mod.SelectionParams.Purposes.NONE

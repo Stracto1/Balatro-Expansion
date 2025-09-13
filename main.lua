@@ -560,7 +560,7 @@ Balatro_Expansion.EditionShaders ={
     "shaders/Foil_effect",
     "shaders/Holographic_effect",
     "shaders/Polychrome_effect",
-    "shaders/Negative_effect",
+    "shaders/Negative_effect_test",
     DEBUFF = "shaders/Debuff_modifier"
 }
 Balatro_Expansion.EditionShaders[Balatro_Expansion.Edition.BASE] = "shaders/Nothing" --prevents extra if statements on render
@@ -950,9 +950,9 @@ Balatro_Expansion.BlindProgress = {NOT_CLEARED = 0,
                                    SKIPPED = 1,
                                    DEFEATED = 2}
 
-Balatro_Expansion.BossProgress = {NOT_CLEARED = 0,
-                                  PARTIAL = 1,
-                                  CLEARED = 2}
+--Balatro_Expansion.BossProgress = {NOT_CLEARED = 0,
+--                                  PARTIAL = 1,
+--                                  CLEARED = 2}
 
 
 Balatro_Expansion.JokerProgress = {NOT_ACTIVE = 0, ACTIVE = 1}
@@ -997,8 +997,6 @@ Balatro_Expansion.StatEnable = false --needed cause i hate my life
     --Balatro_Expansion.Saved.Player.Progress.Room.ValueUsed[Value] = 0
 --end
 --Balatro_Expansion.Saved.Player.Progress.Room.Shots = 0 --used to tell how many cards are already used
---Balatro_Expansion.Saved.Player.Progress.Room.ChampKills = 0
---Balatro_Expansion.Saved.Player.Progress.Room.KingsAtStart = 0
 
 --Balatro_Expansion.Saved.Player.Progress.Floor = {}
 --Balatro_Expansion.Saved.Player.Progress.Floor.CardsUsed = 0
@@ -1070,15 +1068,16 @@ Balatro_Expansion.Saved.FloorEditions = {} --used to save which trinkets have ce
 
 --OTHER VALUES
 Balatro_Expansion.HpEnable = false
-Balatro_Expansion.ShopAddedThisFloor = false
+--Balatro_Expansion.NumShops = 0
 Balatro_Expansion.AnimationIsPlaying = false
 
 Balatro_Expansion.Counters = {}--table used for variuos counters increased every update (mainly used for animated HUD stuff)
 Balatro_Expansion.Counters.SinceShift = 0
 Balatro_Expansion.Counters.SinceSelect = 0
+
+--t.jimbo counters
 Balatro_Expansion.Counters.SinceCardTriggered = {}
 Balatro_Expansion.Counters.SinceConsumableTriggered = {}
-Balatro_Expansion.Counters.SinceShoot = 0
 Balatro_Expansion.Counters.Activated = {}
 
 

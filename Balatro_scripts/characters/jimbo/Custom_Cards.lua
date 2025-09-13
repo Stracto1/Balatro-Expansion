@@ -224,7 +224,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
                 mod.Saved.Player[PIndex].Inventory.Jokers[EmptySlot] = RandomJoker.Joker
                 mod.Saved.Player[PIndex].Inventory.Editions[EmptySlot] = RandomJoker.Edition
 
-                mod.Saved.Player[PIndex].Progress.Inventory[EmptySlot] = tonumber(ItemsConfig:GetTrinket(RandomJoker.Joker):GetCustomTags()[2]) --sets the base progress
+                mod.Saved.Player[PIndex].Inventory[EmptySlot] = tonumber(ItemsConfig:GetTrinket(RandomJoker.Joker):GetCustomTags()[2]) --sets the base progress
                 
                 Isaac.RunCallback("INVENTORY_CHANGE", Player)
             else
@@ -743,7 +743,7 @@ function mod:SpectralCards(card, Player)
             local Rslot = mod:GetRandom(FilledSlots, CardRNG)
             local CopyJoker = mod.Saved.Player[PIndex].Inventory[Rslot].Joker + 0
             local CopyEdition = mod.Saved.Player[PIndex].Inventory[Rslot].Edition + 0
-            local CopyProgress = mod.Saved.Player[PIndex].Progress.Inventory[Rslot]
+            local CopyProgress = mod.Saved.Player[PIndex].Inventory[Rslot].Progress
 
             
             for i, _ in ipairs(mod.Saved.Player[PIndex].Inventory) do
@@ -754,7 +754,7 @@ function mod:SpectralCards(card, Player)
             for i=1,2 do
 
                 mod:AddJoker(Player, CopyJoker, CopyEdition, false)
-                mod.Saved.Player[PIndex].Progress.Inventory[i] = CopyProgress
+                mod.Saved.Player[PIndex].Inventory[i].Progress = CopyProgress
             end
                       
             --Isaac.RunCallback("JOKER_ADDED", Player, CopyJoker, CopyEdition)

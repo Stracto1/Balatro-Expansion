@@ -142,7 +142,7 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
 
         local Progress
         if Index then
-            Progress = mod.Saved.Player[PIndex].Progress.Inventory[Index]
+            Progress = mod.Saved.Player[PIndex].Inventory[Index].Progress
         end
 
         if JokerConfig:HasCustomTag("chips") then
@@ -264,7 +264,7 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
 
                 local Hand = mod:GetEIDString("HandTypeName", Progress)
 
-                print(Hand)
+                --print(Hand)
 
                 Values[1] = Hand
 
@@ -428,6 +428,8 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
     --converts the normal indexes to what we need for string.gsub (this made it easier to write the stuff above)
     for i,v in ipairs(Values) do
 
+        v = string.gsub(v, "%.0$", "")
+
         Values["[[VALUE"..tostring(i).."]]"] = v
     end
 
@@ -449,7 +451,7 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
 
         local Progress
         if Index then
-            Progress = mod.Saved.Player[PIndex].Progress.Inventory[Index]
+            Progress = mod.Saved.Player[PIndex].Inventory[Index].Progress
         end
 
         local Joker = Subtype
@@ -465,10 +467,6 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
                 Values[1] = mod:CardSuitToName(Progress & SUIT_FLAG, true)
             
                 Values[2] = tostring((Progress & ~SUIT_FLAG)/(SUIT_FLAG + 1)) --chips accumulated
-
-            elseif Joker == mod.Jokers.BLUE_JOKER then
-
-                Values[1] = mod:GetJokerInitialProgress(Joker, false)
 
             elseif Joker == mod.Jokers.RUNNER then
 
@@ -783,6 +781,8 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
     --converts the normal indexes to what we need for string.gsub (this made it easier to write the stuff above)
     for i,v in ipairs(Values) do
 
+        v = string.gsub(v, "%.0$", "")
+
         Values["[[VALUE"..tostring(i).."]]"] = v
     end
 
@@ -805,7 +805,7 @@ function mod:ReplaceBalatroMarkups(String, DescType, DescSubType, Tainted, Index
         
         local NumDice = #mod:GetJimboJokerIndex(T_Jimbo or Jimbo, mod.Jokers.OOPS_6)
 
-        return tostring(2^NumDice) --usually chance based things are 1/X chance so no problem in doing this
+        return tostring(math.floor(2^NumDice)) --usually chance based things are 1/X chance so no problem in doing this
     end)
 
     if Tainted then
@@ -825,8 +825,6 @@ function mod:ReplaceBalatroMarkups(String, DescType, DescSubType, Tainted, Index
         String = string.gsub(String, "%[%[VALUE%d%]%]", Values)
     end
 
-    String = string.gsub(String, "%.0","")
-
     return String
 end
 
@@ -844,10 +842,6 @@ local function BalatroInventoryCondition(descObj)
 end
 
 local function BalatroInventoryCallback(descObj)
-
-
-    local Lang = mod:GetEIDLanguage()
-
 
     descObj.Name = mod:GetEIDString("Other", "Name")
 
@@ -912,9 +906,9 @@ local function BalatroInventoryCallback(descObj)
 
             else --slot with something
 
-                descObj.ObjType = 5
-                descObj.ObjVariant = 350
-                descObj.ObjSubType = SelectedCard.Joker
+                --descObj.ObjType = 5
+                --descObj.ObjVariant = 350
+                --descObj.ObjSubType = SelectedCard.Joker
 
 
                 --local Tstring = "5.350."..tostring(SelectedCard.Joker)
@@ -938,26 +932,28 @@ local function BalatroInventoryCallback(descObj)
                 Icon = "{{CurrentCard}}"
                 Name = RarityColor..EID:getObjectName(5, 350, SelectedCard.Joker).."{{CR}}#{{Blank}}"
 
-                Description = ""..mod:GetEIDString("Jimbo", "Jokers", SelectedCard.Joker)
+
 
                 local Edition = mod.Saved.Player[PIndex].Inventory[mod.SelectionParams[PIndex].Index].Edition
 
                 local EditionDesc = mod:GetEIDString("Jimbo", "JokerEdition", Edition)
 
-                Description = Description..EditionDesc
-
-                --PROGRESS--
-
-                
-                Description = mod:ReplaceBalatroMarkups(Description, mod.EID_DescType.JOKER, SelectedCard.Joker, true, SelectIndex)
-
                 --SELL VALUE--
+                local SellString
 
                 if SelectedCard.Joker == mod.Jokers.EGG then
-                    Description = Description.." #{{Shop}}"..mod:GetEIDString("Other", "SellsFor").."{{ColorYellorange}}"..tostring(mod.Saved.Player[PIndex].Progress.Inventory[mod.SelectionParams[PIndex].Index]).."${{CR}}"
+                    SellString = " #{{Shop}}"..mod:GetEIDString("Other", "SellsFor").."{{ColorYellorange}}"..tostring(mod.Saved.Player[PIndex].Inventory[mod.SelectionParams[PIndex].Index].Progress).."${{CR}}"
                 else
-                    Description = Description.." #{{Shop}}"..mod:GetEIDString("Other", "SellsFor").."{{ColorYellorange}}"..tostring(mod:GetJokerCost(SelectedCard.Joker, SelectedCard.Edition, mod.SelectionParams[PIndex].Index, Player)).."${{CR}}"
+                    SellString = " #{{Shop}}"..mod:GetEIDString("Other", "SellsFor").."{{ColorYellorange}}"..tostring(mod:GetJokerCost(SelectedCard.Joker, SelectedCard.Edition, mod.SelectionParams[PIndex].Index, Player)).."${{CR}}"
                 end
+
+
+                Description = mod:GetEIDString("Jimbo", "Jokers", SelectedCard.Joker)..EditionDesc..SellString
+
+                --PROGRESS--
+                
+                Description = mod:ReplaceBalatroMarkups(Description, mod.EID_DescType.JOKER, SelectedCard.Joker, false, SelectIndex)
+            
             end
 
         elseif Balatro_Expansion.SelectionParams[PIndex].Mode == Balatro_Expansion.SelectionParams.Modes.PACK then
@@ -977,12 +973,10 @@ local function BalatroInventoryCallback(descObj)
 
             if Balatro_Expansion.SelectionParams[PIndex].Purpose == Balatro_Expansion.SelectionParams.Purposes.BuffonPack then
 
-                descObj.ObjType = 5
-                descObj.ObjVariant = 350
-                descObj.ObjSubType = SelectedCard.Joker
+                --descObj.ObjType = 5
+                --descObj.ObjVariant = 350
+                --descObj.ObjSubType = SelectedCard.Joker
 
-
-                local Tstring = "5.350."..tostring(SelectedCard.Joker)
 
                 local CardIcon = EID:createItemIconObject("Trinket"..tostring(SelectedCard.Joker))
 
@@ -1005,7 +999,7 @@ local function BalatroInventoryCallback(descObj)
 
                 local BaseDesc = mod:GetEIDString("Jimbo","Jokers",SelectedCard.Joker)
 
-                Description = mod:ReplaceBalatroMarkups(BaseDesc, mod.EID_DescType.JOKER, SelectedCard.Joker, true, SelectIndex)
+                Description = mod:ReplaceBalatroMarkups(BaseDesc, mod.EID_DescType.JOKER, SelectedCard.Joker, false, SelectIndex)
 
 
                 local EditionDesc = mod:GetEIDString("Jimbo", "JokerEdition", SelectedCard.Edition)
@@ -1095,6 +1089,31 @@ end
 EID:addDescriptionModifier("Balatro Inventory Overview", BalatroInventoryCondition, BalatroInventoryCallback)
 
 
+local function JimboGroundtrinketsCondition(descObj)
+
+    if PlayerManager.AnyoneIsPlayerType(Balatro_Expansion.Characters.JimboType) 
+       and descObj.ObjType == EntityType.ENTITY_PICKUP and descObj.ObjVariant == PickupVariant.PICKUP_TRINKET 
+       and ItemsConfig:GetTrinket(descObj.ObjSubType & ~mod.EditionFlag.ALL):HasCustomTag("balatro") then
+
+        return true
+    end
+end
+
+local function JimboGroundtrinketsCallback(descObj)
+
+    local Joker = descObj.ObjSubType & ~mod.EditionFlag.ALL
+    local Edition = (descObj.ObjSubType & mod.EditionFlag.ALL) >> mod.EDITION_FLAG_SHIFT
+
+    descObj.Description = mod:GetEIDString("Jimbo", "Jokers", Joker)..mod:GetEIDString("Jimbo", "JokerEdition", Edition)
+
+    descObj.Description = mod:ReplaceBalatroMarkups(descObj.Description, mod.EID_DescType.JOKER, Joker, false)
+
+
+    return descObj
+end
+EID:addDescriptionModifier("Balatro Jimbo ground trinkets", JimboGroundtrinketsCondition, JimboGroundtrinketsCallback)
+
+
 
 local function BalatroExtraDescCondition(descObj)
     if descObj.ObjType == EntityType.ENTITY_PICKUP and descObj.ObjVariant == PickupVariant.PICKUP_TAROTCARD 
@@ -1170,32 +1189,7 @@ local function BalatroExtraDescCallback(descObj)
 
     return descObj
 end
-
 EID:addDescriptionModifier("Balatro Extra descriptions", BalatroExtraDescCondition, BalatroExtraDescCallback)
-
-
-local function JimboGroundtrinketsCondition(descObj)
-
-    if PlayerManager.AnyoneIsPlayerType(Balatro_Expansion.Characters.JimboType) 
-       and descObj.ObjType == EntityType.ENTITY_PICKUP and descObj.ObjVariant == PickupVariant.PICKUP_TRINKET 
-       and ItemsConfig:GetTrinket(descObj.ObjSubType & ~mod.EditionFlag.ALL):HasCustomTag("balatro") then
-
-        return true
-    end
-end
-
-local function JimboGroundtrinketsCallback(descObj)
-
-    local Joker = descObj.ObjSubType & ~mod.EditionFlag.ALL
-
-    descObj.Description = mod:GetEIDString("Jimbo", "Jokers", Joker)
-
-    descObj.Description = mod:ReplaceBalatroMarkups(descObj.Description, mod.EID_DescType.JOKER, descObj.ObjSubType, false)
-
-    return descObj
-end
-EID:addDescriptionModifier("Balatro Jimbo ground trinkets", JimboGroundtrinketsCondition, JimboGroundtrinketsCallback)
-
 
 
 

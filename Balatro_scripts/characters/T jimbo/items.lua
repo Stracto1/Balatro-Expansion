@@ -66,8 +66,7 @@ local function AddAntimatterSlot(_, Item,_,_,_,_,Player)
 
     local PIndex = Player:GetData().TruePlayerIndex
 
-    mod.Saved.Player[PIndex].Inventory[#mod.Saved.Player[PIndex].Inventory + 1] = {Joker = 0, Edition = mod.Edition.BASE, Modifiers = 0}
-    mod.Saved.Player[PIndex].Progress.Inventory[#mod.Saved.Player[PIndex].Progress.Inventory + 1] = 0
+    mod.Saved.Player[PIndex].Inventory[#mod.Saved.Player[PIndex].Inventory + 1] = {Joker = 0, Edition = mod.Edition.BASE, Modifiers = 0, Progress = 0}
 
 end
 mod:AddCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE, AddAntimatterSlot)

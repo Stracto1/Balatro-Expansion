@@ -38,6 +38,7 @@ void main(void)
 	//apparently balatro's negative effect is nowhere near an actual negative filter, so
 	//I tried to read the original shader but had a stroke while doing so (incredible godzilla reference)
 	//tried a method i found on reddit and it works quite well
+
 	// Clip
 	if(dot(gl_FragCoord.xy, ClipPlaneOut.xy) < ClipPlaneOut.z)
 		discard;
@@ -52,34 +53,23 @@ void main(void)
 	vec2 pa = vec2(1.0+PixelationAmountOut, 1.0+PixelationAmountOut) / TextureSizeOut;
 	vec4 Color = Color0 * texture2D(Texture0, PixelationAmountOut > 0.0 ? TexCoord0 - mod(TexCoord0, pa) + pa * 0.5 : TexCoord0);
 	
-	//vec4 Color = Color0 * texture2D(Texture0, TexCoord0);
-
 	vec3 ColorHSV = rgb2hsv(Color.rgb);
 
-	//if (((((ColorHSV.b <= 0.34)||(ColorHSV.b >= 0.87))&&(ColorHSV.g <= 0.48)))||((Color.r == Color.g)&&(Color.g == Color.b))){
+
+	ColorHSV.b = 1 - ColorHSV.b + ColorHSV.g*0.56; //inverts the value of the color, but reducing the effect for saturated values
+
+	ColorHSV.r = (1 - ColorHSV.r) + 0.18; //inverts and moves the hue a bit
+	Color.rgb = hsv2rgb(ColorHSV.rgb);
 
 
-	//crazy ass if statement
-	if (((((ColorHSV.b <= 0.3)||(ColorHSV.b >= 0.87))&&(ColorHSV.g <= 0.48)))||(ColorHSV.b <= 0.04)){
-		//any color close to a greyscale is the actual inverted color
-		Color.r = 1 - Color.r;
-		Color.g = 1 - Color.g;
-		Color.b = 1 - Color.b;
-	}
-	else{
+	float YshinePoint = -1.75*TrueCoord.x + 0.18; //where the shine effect peak should be
+
+	TrueCoord.y = TrueCoord.y - 0.5*sin((TrueCoord.x*1.55 - 0.4)*3.1415); //literally threw in some random shit and made it much cooler idk
+
+	float Distance = YshinePoint - TrueCoord.y; //the distance from the shine point
+
+	Color.rgb = mix(Color.rgb, vec3(0.9,0.9,1), clamp(0.31*cos(Distance * 12),0.0, 0.6)); //make it shine!
 	
-		ColorHSV.r = ColorHSV.r + 0.11; //moves the hue
-		Color.rgb = hsv2rgb(ColorHSV.rgb);
-	}
-
-
-	float XshinePoint = 0.66 * -TrueCoord.y + 0.12; //where the shine effect should be
-	float Distance = XshinePoint - TrueCoord.x; //the distance from the shine point
-
-	Color.rgb = mix(Color.rgb, vec3(1), clamp(0.36*cos(Distance * 20),0.05, 0.6)); //make it shine!
-	
-	//Color.rgb = vec3(ColorHSV.b,ColorHSV.b,ColorHSV.b);
-
 	gl_FragColor = Color;
 }
 

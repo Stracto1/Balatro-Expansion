@@ -1,3 +1,4 @@
+---@diagnostic disable: need-check-nil
 local mod = Balatro_Expansion
 
 local Game = Game()
@@ -5,6 +6,7 @@ local ItemsConfig = Isaac.GetItemConfig()
 local sfx = SFXManager()
 
 local TrinketSprite = Sprite("gfx/005.350_trinket_custom.anm2")
+TrinketSprite.Offset = Vector(0, 8)
 local JactivateLength = TrinketSprite:GetAnimationData("Effect"):GetLength()
 local JidleLength = TrinketSprite:GetAnimationData("Idle"):GetLength()
 
@@ -18,6 +20,9 @@ local MultCounter = Sprite("gfx/ui/Mult Counter.anm2")
 local ChipsCounter = Sprite("gfx/ui/Chips Counter.anm2")
 MultCounter:SetFrame("Idle",0)
 ChipsCounter:SetFrame("Idle",0)
+
+local BlindInicator = Sprite("gfx/ui/Blind_indicator.anm2")
+BlindInicator:SetFrame("Full",0)
 
 local DiscardChargeSprite = Sprite("gfx/chargebar.anm2")
 local HandChargeSprite = Sprite("gfx/chargebar.anm2")
@@ -54,9 +59,9 @@ CardFrame:SetAnimation("Frame")
 local CHARGED_ANIMATION = 11 --the length of an animation for chargebars
 local CHARGED_LOOP_ANIMATION = 5
 
-local DECK_RENDERING_POSITION = Vector(110,15) --in screen coordinates
+--local DECK_RENDERING_POSITION = Vector(110,15) --in screen coordinates
 local HAND_RENDERING_POSITION = Vector(40,30) --in screen coordinates
-local INVENTORY_RENDERING_POSITION = Vector(10,258)
+local INVENTORY_RENDERING_POSITION = Vector(10,16)
 
 local INVENTORY_COOP_OFFSET = {[1]=Vector(-10,0), [0]=Vector(0,0)}
 
@@ -107,7 +112,11 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
 
     TrinketSprite.Scale = ScaleMult
 
-    local BasePos = INVENTORY_RENDERING_POSITION + Vector(20, -14)*Options.HUDOffset
+    local BasePos = Vector(0,0)
+    BasePos.X = INVENTORY_RENDERING_POSITION.X + 20*Options.HUDOffset
+    BasePos.Y = Isaac.GetScreenHeight() - INVENTORY_RENDERING_POSITION.Y - 14*Options.HUDOffset
+
+
     if IsCoop then
         BasePos = HeartPosition + INVENTORY_COOP_OFFSET[PIndex%2]
 
@@ -190,15 +199,12 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
             RenderPos = BasePos + Vector(23 * mod.SelectionParams[PIndex].Index , 0)
         end
 
-        RenderPos.Y = RenderPos.Y - 8
-
-
         CardFrame:SetFrame(HUD_FRAME.JokerFrame)
         CardFrame.Scale = ScaleMult
         CardFrame:Render(RenderPos)
 
         --last confirm option
-        RenderPos = BasePos + Vector(23 * (#mod.Saved.Player[PIndex].Inventory + 1), -8) * ScaleMult * PlayerRenderMult
+        RenderPos = BasePos + Vector(23 * (#mod.Saved.Player[PIndex].Inventory + 1), 0) * ScaleMult * PlayerRenderMult
         
         
         if mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.SELLING then
@@ -215,7 +221,7 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.JimboInventoryH
 
 --renders the deck on top of the screen and the blind progress
 ---@param Player EntityPlayer
-function mod:JimboDeckHUD(offset,_,Position,_,Player)
+function mod:JimboStatsHUD(offset,_,Position,_,Player)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
@@ -275,103 +281,8 @@ function mod:JimboDeckHUD(offset,_,Position,_,Player)
     mod.Fonts.Balatro:DrawStringScaled(ChipsString, ChipsPos.X-6,ChipsPos.Y-3,0.5,0.5,KColor.White)
     mod.Fonts.Balatro:DrawStringScaled(MultString, MultPos.X-6,MultPos.Y-3,0.5,0.5,KColor.White)
 
-
-
-
-
-    --------BLIND PROGRESS-----------
-    
-    if Minimap:GetState() ~= MinimapState.NORMAL or Game:GetLevel():GetStage() == LevelStage.STAGE8 then
-        return
-    end
-
-    local ScreenWidth = Isaac.GetScreenWidth()
-    local RenderPos = Vector(ScreenWidth - 80 ,10) + Vector(-20, 14)*Options.HUDOffset + Minimap:GetShakeOffset()
-
-    local SmallProgress
-    local BigProgress
-    local BossProgress
-    local ProgressString
-
-    local SmallIsCleared = mod.Saved.SmallCleared == mod.BlindProgress.DEFEATED
-    local BigIsCleared = mod.Saved.BigCleared == mod.BlindProgress.DEFEATED
-    local BossIsCleared = mod.Saved.BossCleared == mod.BossProgress.CLEARED
-
-    ---SMALL BLIND
-    local Color = KColor.White
-    local DarkColor = KColor(0.7,0.7,0.7,1)
-
-    if not SmallIsCleared then
-        Color = KColor(238/255, 186/255, 49/255, 1)
-        DarkColor = KColor(166/255,130/255,34/255,1)
-
-        SmallProgress = mod.Saved.ClearedRooms
-    else
-        SmallProgress = mod.Saved.SmallBlind
-    end
-    ProgressString = tostring(SmallProgress).."/"..tostring(mod.Saved.SmallBlind)
-
-    mod.Fonts.Balatro:DrawStringScaled(ProgressString,
-    RenderPos.X ,RenderPos.Y, 0.5, 0.5, DarkColor)
-
-    mod.Fonts.Balatro:DrawStringScaled(ProgressString,
-    RenderPos.X ,RenderPos.Y - 1, 0.5, 0.5, Color)
-
-
-
-    --BIG BLIND
-    RenderPos.Y = RenderPos.Y + 12
-    Color = KColor.White
-    DarkColor = KColor(0.7,0.7,0.7,1)
-
-    if SmallIsCleared then
-    
-        if BigIsCleared then
-            BigProgress = mod.Saved.BigBlind
-        else
-            Color = KColor(238/255, 186/255, 49/255, 1)
-            DarkColor = KColor(166/255,130/255,34/255,1)
-
-            BigProgress = mod.Saved.ClearedRooms
-        end
-    else
-        BigProgress = 0
-    end
-    ProgressString = tostring(BigProgress).."/"..tostring(mod.Saved.BigBlind)
-
-    mod.Fonts.Balatro:DrawStringScaled(ProgressString,
-    RenderPos.X, RenderPos.Y, 0.5, 0.5, DarkColor)
-
-    mod.Fonts.Balatro:DrawStringScaled(ProgressString,
-    RenderPos.X, RenderPos.Y - 1, 0.5, 0.5, Color)        
-    
-
-
-    if not Game:GetLevel():IsAscent() then --ascents don't have any boss blind
-        --BOSS BLIND
-        RenderPos = RenderPos + Vector(-19,14)
-        Color = KColor.White
-        DarkColor = KColor(0.7,0.7,0.7,1)
-
-        if SmallIsCleared and BigIsCleared and not BossIsCleared then
-            Color = KColor(238/255, 186/255, 49/255, 1)
-            DarkColor = KColor(166/255,130/255,34/255,1)
-        end
-
-        BossProgress = "Not Cleared"
-        if BossIsCleared then
-            RenderPos.X = RenderPos.X + 13
-            BossProgress = "Cleared"
-        end
-
-        mod.Fonts.Balatro:DrawStringScaled(BossProgress,
-        RenderPos.X ,RenderPos.Y , 0.5, 0.5, DarkColor)  
-
-        mod.Fonts.Balatro:DrawStringScaled(BossProgress,
-        RenderPos.X ,RenderPos.Y -1, 0.5, 0.5, Color)        
-    end
 end
-mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.JimboDeckHUD)
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.JimboStatsHUD)
 
 
 function mod:HandBarRender(offset,_,Position,_,Player)
@@ -425,6 +336,119 @@ function mod:HandBarRender(offset,_,Position,_,Player)
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.HandBarRender)
+
+
+local function BlindProgressHUD(offset,_,Position,_,Player)
+
+    --------BLIND PROGRESS-----------
+    
+    if Minimap:GetState() ~= MinimapState.NORMAL or Game:GetLevel():GetStage() == LevelStage.STAGE8 then
+        return
+    end
+
+    local SmallAvailable, BigAvailable, BossAvailable = mod:GetJimboBlindAvailability()
+
+    if not BossAvailable then
+        return
+    end
+
+
+    if BigAvailable then
+        
+        if SmallAvailable then
+            
+            BlindInicator:SetFrame("Full", 0)
+
+        else
+            BlindInicator:SetFrame("Big Boss", 0)
+        end
+    else
+        BlindInicator:SetFrame("Boss", 0)
+    end
+
+
+    local ScreenWidth = Isaac.GetScreenWidth()
+    local RenderPos = Vector(ScreenWidth - 55 ,25) + Vector(-20, 14)*Options.HUDOffset + Minimap:GetShakeOffset()
+
+    BlindInicator:Render(RenderPos)
+
+
+    local String
+    local Position
+    local Params = mod.StringRenderingParams.Centered
+    local StartFrame = 0 --doesn't matter
+    local Scale
+    local Kcolor
+    local BoxWidth
+
+    ---SMALL BLIND
+    
+    if SmallAvailable then
+        BlindInicator:SetFrame(0)
+        local Frame = BlindInicator:GetNullFrame("String Positions")
+
+        Position = RenderPos + Frame:GetPos()
+        Scale = Vector.One * 100 * Frame:GetScale().Y
+        BoxWidth = Frame:GetScale().X * 100
+    
+        if mod.Saved.SmallCleared == mod.BlindProgress.DEFEATED then
+            Kcolor = mod.EffectKColors.YELLOW
+            String = mod:GetEIDString("Other","Cleared")
+
+        else
+            Kcolor = KColor.White
+            String = mod:GetEIDString("Other","NotCleared")
+        end
+    
+        mod:RenderBalatroStyle(String, Position, Params, StartFrame, Scale, Kcolor, BoxWidth)
+    end
+
+
+    ---BIG BLIND
+    
+    if BigAvailable then
+        BlindInicator:SetFrame(1)
+        local Frame = BlindInicator:GetNullFrame("String Positions")
+
+        Position = RenderPos + Frame:GetPos()
+        Scale = Vector.One * 100 * Frame:GetScale().Y
+        BoxWidth = Frame:GetScale().X * 100
+        
+        if mod.Saved.BigCleared == mod.BlindProgress.DEFEATED then
+            Kcolor = mod.EffectKColors.YELLOW
+            String = mod:GetEIDString("Other","Cleared")
+
+        else
+            Kcolor = KColor.White
+            String = mod:GetEIDString("Other","NotCleared")
+        end
+    
+        mod:RenderBalatroStyle(String, Position, Params, StartFrame, Scale, Kcolor, BoxWidth)
+    end
+
+    --BOSS BLINDS (always available if rendering)
+    
+    BlindInicator:SetFrame(2)
+    local Frame = BlindInicator:GetNullFrame("String Positions")
+
+    Position = RenderPos + Frame:GetPos()
+    Scale = Vector.One * 100 * Frame:GetScale().Y
+    BoxWidth = Frame:GetScale().X * 100
+    
+    if mod.Saved.BossCleared == mod.BlindProgress.DEFEATED then
+        Kcolor = mod.EffectKColors.YELLOW
+        String = mod:GetEIDString("Other","Cleared")
+
+    else
+        Kcolor = KColor.White
+        String = mod:GetEIDString("Other","NotCleared")
+    end
+
+    mod:RenderBalatroStyle(String, Position, Params, StartFrame, Scale, Kcolor, BoxWidth)
+
+end
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, BlindProgressHUD)
+
 
 
 
@@ -602,7 +626,8 @@ function mod:JimboPackRender(_,_,_,_,Player)
         
         for i,card in ipairs(mod.SelectionParams[PIndex].PackOptions) do
     
-            TrinketSprite:ReplaceSpritesheet(0, ItemsConfig:GetTrinket(card.Joker).GfxFileName, true)
+            TrinketSprite:ReplaceSpritesheet(0, ItemsConfig:GetTrinket(card.Joker).GfxFileName, false)
+            TrinketSprite:ReplaceSpritesheet(2, ItemsConfig:GetTrinket(card.Joker).GfxFileName, true)
             TrinketSprite:SetFrame("Idle", 0)
 
             WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams[PIndex].Frames*5+i*95))*1.5)
@@ -639,9 +664,7 @@ function mod:JimboPackRender(_,_,_,_,Player)
 
     end--end PURPOSES
 
-    if TruePurpose == mod.SelectionParams.Purposes.BuffonPack then
-        RenderPos.Y = RenderPos.Y - 8 --adjusts the difference in pivots
-    end
+
     CardFrame.Scale = Vector.One
     CardFrame:SetFrame(HUD_FRAME.Skip)
     CardFrame:Render(RenderPos)
@@ -649,6 +672,11 @@ function mod:JimboPackRender(_,_,_,_,Player)
     RenderPos.X = BaseRenderPos.X + (mod.SelectionParams[PIndex].Index - 1)*(PACK_CARD_DISTANCE + CardHUDWidth)
     RenderPos = RenderPos + (WobblyEffect[mod.SelectionParams[PIndex].Index] or Vector.Zero)
 
+    if TruePurpose == mod.SelectionParams.Purposes.BuffonPack then
+        CardFrame:SetFrame(HUD_FRAME.JokerFrame)
+    else
+        CardFrame:SetFrame(HUD_FRAME.CardFrame)
+    end
     CardFrame:Render(RenderPos)
 
 end

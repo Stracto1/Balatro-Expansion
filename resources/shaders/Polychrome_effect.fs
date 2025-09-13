@@ -53,14 +53,25 @@ void main(void)
 	//vec4 Color = Color0 * texture2D(Texture0, TexCoord0);
 	vec3 ColorHSV = rgb2hsv(Color.rgb);
 
-	float Strength = 0.72;
+	float Strength = 0.7;
 	if (((((ColorHSV.b <= 0.3)||(ColorHSV.b >= 0.87))&&(ColorHSV.g <= 0.48)))||(ColorHSV.b <= 0.04))
-		Strength = 0.65; //Greyscales aren't affected as much
+	{
+		Strength = 0.55; //Greyscales aren't affected as much
+		ColorHSV.g = ColorHSV.g + 0.19*(1.0 - ColorHSV.g);
+	}
+	else
+	{
+		float Sin = 0.19*sin((0.6*ColorHSV.g + 0.72)*3.1415);
+
+	    ColorHSV.g = ColorHSV.g + Sin;
+	}
 
 	vec2 Center = vec2(0.6,0.65);//center of the elipse
 
-	float Distance = distance(vec2(TrueCoord.x, TrueCoord.y/2.0), Center); 
-	ColorHSV.r = sin(Distance * 5.0) * sin(Distance * 5.0); //gets the hue basing on the distance from the circles
+	float Distance = length(distance(TrueCoord + vec2(0.17*sin(2*(TrueCoord.x - 0.5))), Center)); 
+	//ColorHSV.r = sin(Distance * 5.0) * sin(Distance * 5.0); //gets the hue basing on the distance from the circles
+
+	ColorHSV.r = 0.23 + Distance * 1.6;
 
 	Color.rgb = mix(Color.rgb, hsv2rgb(ColorHSV), Strength);
 

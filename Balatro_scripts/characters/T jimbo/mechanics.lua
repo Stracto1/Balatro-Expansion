@@ -456,9 +456,9 @@ local function JimboInputHandle(_, Player)
                     PlayerInventory[Params.Index],  PlayerInventory[Params.Index + Step] = 
                     PlayerInventory[Params.Index + Step],  PlayerInventory[Params.Index]
 
-                    local JokerProgs = mod.Saved.Player[PIndex].Progress.Inventory
-                    JokerProgs[Params.Index],  JokerProgs[Params.Index + Step] = 
-                    JokerProgs[Params.Index + Step],  JokerProgs[Params.Index]
+                    --local JokerProgs = mod.Saved.Player[PIndex].Inventory
+                    --JokerProgs[Params.Index],  JokerProgs[Params.Index + Step] = 
+                    --JokerProgs[Params.Index + Step],  JokerProgs[Params.Index]
 
                 end
 
@@ -612,9 +612,9 @@ local function JimboInputHandle(_, Player)
                 PlayerInventory[Params.Index],  PlayerInventory[Params.Index + Step] = 
                 PlayerInventory[Params.Index + Step],  PlayerInventory[Params.Index]
 
-                local JokerProgs = mod.Saved.Player[PIndex].Progress.Inventory
-                JokerProgs[Params.Index],  JokerProgs[Params.Index + Step] = 
-                JokerProgs[Params.Index + Step],  JokerProgs[Params.Index]
+                --local JokerProgs = mod.Saved.Player[PIndex].Inventory
+                --JokerProgs[Params.Index],  JokerProgs[Params.Index + Step] = 
+                --JokerProgs[Params.Index + Step],  JokerProgs[Params.Index]
             end
 
             mod.Counters.SinceSelect = 0
@@ -1035,9 +1035,9 @@ local function ShopItemChanger()
                     
                     if Slot.Joker == mod.Jokers.CHAOS_CLOWN then
                     
-                        if mod.Saved.Player[PIndex].Progress.Inventory[i] == 1 then
+                        if mod.Saved.Player[PIndex].Inventory[i].Progress == 1 then
                             
-                            mod.Saved.Player[PIndex].Progress.Inventory[i] = 0
+                            mod.Saved.Player[PIndex].Inventory[i].Progress = 0
 
                             OnSpawnPrice = 0
 
@@ -1253,11 +1253,11 @@ function mod:UpdateRerollPrice(RerollPlate)
                 
                     NumClowns = NumClowns + 1
 
-                    if mod.Saved.Player[PIndex].Progress.Inventory[i] == 1 then
+                    if mod.Saved.Player[PIndex].Inventory[i].Progress == 1 then
                         
                         if not NewPrice and OldPrice ~= 0 then --only the first time deactivates a chaos clown
                             
-                            mod.Saved.Player[PIndex].Progress.Inventory[i] = 0
+                            mod.Saved.Player[PIndex].Inventory[i].Progress = 0
                         end
 
                         NewPrice = 0
@@ -1955,7 +1955,7 @@ local function OnBlindButtonPressed(_, Plate)
 
     elseif Variant == mod.Grids.PlateVariant.CASHOUT then
 
-        local ShouldGoToShop = mod.Saved.BossCleared == mod.BossProgress.NOT_CLEARED or Level:IsAscent()
+        local ShouldGoToShop = mod.Saved.BossCleared == mod.BlindProgress.NOT_CLEARED or Level:IsAscent()
 
         for i,Player in ipairs(PlayerManager.GetPlayers()) do
 
@@ -2666,7 +2666,7 @@ local function OnBlindClear(_, BlindData)
         mod.Saved.BigCleared = mod.BlindProgress.DEFEATED
 
     else --if BlindData & mod.BLINDS.BOSS ~= 0 then
-        mod.Saved.BossCleared = mod.BossProgress.CLEARED
+        mod.Saved.BossCleared = mod.BlindProgress.DEFEATED
     end
 
 
@@ -2731,7 +2731,7 @@ function mod:InitializeAnte(NewFloor)
 
         mod.Saved.SmallCleared = mod.BlindProgress.DEFEATED
         mod.Saved.BigCleared = mod.BlindProgress.DEFEATED
-        mod.Saved.BossCleared = mod.BossProgress.CLEARED --ante boss got decided in the previous floor
+        mod.Saved.BossCleared = mod.BlindProgress.DEFEATED --ante boss got decided in the previous floor
 
         return --things will be handled as the fight starts (see Special enemies.lua)
     end
@@ -2877,7 +2877,7 @@ function mod:InitializeAnte(NewFloor)
 
         mod.Saved.SmallCleared = mod.BlindProgress.DEFEATED
         mod.Saved.BigCleared = mod.BlindProgress.DEFEATED
-        mod.Saved.BossCleared = mod.BossProgress.NOT_CLEARED
+        mod.Saved.BossCleared = mod.BlindProgress.NOT_CLEARED
 
     elseif IsMinesII then
 
@@ -2894,7 +2894,7 @@ function mod:InitializeAnte(NewFloor)
 
         mod.Saved.SmallCleared = mod.BlindProgress.NOT_CLEARED
         mod.Saved.BigCleared = mod.BlindProgress.NOT_CLEARED
-        mod.Saved.BossCleared = mod.BossProgress.NOT_CLEARED
+        mod.Saved.BossCleared = mod.BlindProgress.NOT_CLEARED
 
     elseif IsCorpseII then
 
@@ -2913,7 +2913,7 @@ function mod:InitializeAnte(NewFloor)
 
         mod.Saved.SmallCleared = mod.BlindProgress.NOT_CLEARED
         mod.Saved.BigCleared = mod.BlindProgress.NOT_CLEARED
-        mod.Saved.BossCleared = mod.BossProgress.NOT_CLEARED
+        mod.Saved.BossCleared = mod.BlindProgress.NOT_CLEARED
 
     elseif IsVoid then
 
@@ -2932,7 +2932,7 @@ function mod:InitializeAnte(NewFloor)
 
         mod.Saved.SmallCleared = mod.BlindProgress.NOT_CLEARED
         mod.Saved.BigCleared = mod.BlindProgress.NOT_CLEARED
-        mod.Saved.BossCleared = mod.BossProgress.NOT_CLEARED
+        mod.Saved.BossCleared = mod.BlindProgress.NOT_CLEARED
 
     elseif IsAscent then
         
@@ -2946,7 +2946,7 @@ function mod:InitializeAnte(NewFloor)
 
             mod.Saved.SmallCleared = mod.BlindProgress.NOT_CLEARED
             mod.Saved.BigCleared = mod.BlindProgress.NOT_CLEARED
-            mod.Saved.BossCleared = mod.BossProgress.NOT_CLEARED
+            mod.Saved.BossCleared = mod.BlindProgress.NOT_CLEARED
 
         elseif CurrentStage == LevelStage.STAGE3_1 then
 
@@ -2968,7 +2968,7 @@ function mod:InitializeAnte(NewFloor)
             --BOSS_SKIP_POSITION = 81
 
             ForcedBossBlind = mod.BLINDS.BOSS
-            mod.Saved.BossCleared = mod.BossProgress.NOT_CLEARED
+            mod.Saved.BossCleared = mod.BlindProgress.NOT_CLEARED
         end
 
     else
@@ -2985,7 +2985,7 @@ function mod:InitializeAnte(NewFloor)
 
         mod.Saved.SmallCleared = mod.BlindProgress.NOT_CLEARED
         mod.Saved.BigCleared = mod.BlindProgress.NOT_CLEARED
-        mod.Saved.BossCleared = mod.BossProgress.NOT_CLEARED
+        mod.Saved.BossCleared = mod.BlindProgress.NOT_CLEARED
     end
     
         local _, AngelChance = mod:GetDevilAngelRoomChance()
@@ -3341,7 +3341,7 @@ function mod:TJimboHandSizeCache(Player, Cache, Value)
     Value = Value - 3*#mod:GetJimboJokerIndex(Player, mod.Jokers.STUNTMAN, true)
 
     for _, Index in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.TURTLE_BEAN)) do
-        Value = Value + mod.Saved.Player[PIndex].Progress.Inventory[Index]
+        Value = Value + mod.Saved.Player[PIndex].Inventory[Index].Progress
     end
 
     Value = Value + #mod:GetJimboJokerIndex(Player, mod.Jokers.JUGGLER)

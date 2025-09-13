@@ -1,3 +1,4 @@
+---@diagnostic disable: param-type-mismatch
 local mod = Balatro_Expansion
 
 local Game = Game()

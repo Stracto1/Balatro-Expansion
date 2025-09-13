@@ -15,10 +15,11 @@ local JOKER_OVERLAY_LENGTH = TrinketSprite:GetAnimationData("Idle"):GetLength()
 local CHARGED_ANIMATION = 22 --the length of an animation for chargebars
 local CHARGED_LOOP_ANIMATION = 10
 
-local JIMBO_BASE_TEARS = 2.5 --is actually 1+ this value
+local JIMBO_BASE_TEARS = 2 --is actually 1+ this value
 
 
 local BasicRoomNum = 0
+local NumShops = 0
 local DeathCopyCard
 
 --local jesterhatCostume = Isaac.GetCostumeIdByPath("gfx/characters/gabriel_hair.anm2") -- Exact path, with the "resources" folder as the root
@@ -45,6 +46,7 @@ function mod:JimboInit(player)
         Data.NotAlrPressed.confirm = true
         Data.NotAlrPressed.ctrl = true
         Data.ALThold = 0 --used to activate the inventory selection
+        Data.SinceCardShoot = 0
 
         --player:SetPocketActiveItem(CollectibleType.COLLECTIBLE_THE_HAND,ActiveSlot.SLOT_POCKET)
         --ItemPool:RemoveCollectible(CollectibleType.COLLECTIBLE_THE_HAND)
@@ -119,7 +121,8 @@ function mod:JimboInputHandle(Player)
     ----------------------------------------
 
     local Data = Player:GetData()
-    --print(Isaac.WorldToScreen(Player.Position))
+
+    Data.SinceCardShoot = Data.SinceCardShoot + 1
 
     ----------SELECTION INPUT / INPUT COOLDOWN------------
     if mod.SelectionParams[PIndex].Mode ~= mod.SelectionParams.Modes.NONE then --while in the card selection menu cheks for inputs
@@ -482,6 +485,16 @@ end
 mod:AddCallback(ModCallbacks.MC_GET_SHOP_ITEM_PRICE, mod.SetItemPrices)
 
 
+
+local function ResetNumFloorShops()
+
+    NumShops = 0
+end
+mod:AddCallback(ModCallbacks.MC_PRE_LEVEL_INIT, ResetNumFloorShops)
+
+
+
+
 --modifies the floor generation and calculates the number of normal rooms
 ---@param RoomConfig RoomConfigRoom
 ---@param LevelGen LevelGeneratorRoom
@@ -489,65 +502,36 @@ function mod:FloorModifier(LevelGen,RoomConfig,Seed)
     if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
         return
     end
-    mod.ShopAddedThisFloor = false
     local RoomIndex = LevelGen:Column() + LevelGen:Row()*13
     
     --print(RoomIndex)
 
     if RoomConfig.Type == RoomType.ROOM_SHOP then
-        --("s")
-        local ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_3
-            if PlayerManager.AnyoneHasCollectible(mod.Vouchers.OverstockPlus) then
-                ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_4
-            elseif PlayerManager.AnyoneHasCollectible(mod.Vouchers.Overstock) then
-                ShopQuality= RoomSubType.SHOP_KEEPER_LEVEL_5
-            end
-        local NewRoom = RoomConfigHolder.GetRandomRoom(Seed,false, StbType.SPECIAL_ROOMS, RoomType.ROOM_SHOP, RoomShape.ROOMSHAPE_1x1,-1,-1,0,10,0, ShopQuality)
 
-        Isaac.CreateTimer(
-        function()
-            Level:GetRoomByIdx(RoomIndex).DisplayFlags = 5
-
-            Level:UpdateVisibility()
-        end, 1, 1, true)
-
-        return NewRoom --replaces the room with the new one
-
-    elseif RoomConfig.Type == RoomType.ROOM_DEFAULT then
-        --adds an extra shop on every floor (on basement I/II has a ~8% to fail due to lack of options)
-
-        if RoomIndex ~= Level:GetStartingRoomIndex() then
-            BasicRoomNum = BasicRoomNum + 1
-        end
+        NumShops = NumShops + 1
 
         local ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_3
 
         if PlayerManager.AnyoneHasCollectible(mod.Vouchers.OverstockPlus) then
-            ShopQuality= RoomSubType.SHOP_KEEPER_LEVEL_5
-        elseif PlayerManager.AnyoneHasCollectible(mod.Vouchers.Overstock) then
             ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_4
+        elseif PlayerManager.AnyoneHasCollectible(mod.Vouchers.Overstock) then
+            ShopQuality= RoomSubType.SHOP_KEEPER_LEVEL_5
         end
 
-        local NewRoom = RoomConfigHolder.GetRandomRoom(Seed,false, StbType.SPECIAL_ROOMS, RoomType.ROOM_SHOP, RoomShape.ROOMSHAPE_1x1,-1,-1,0,10,0, ShopQuality)
+        if RoomConfig.Subtype ~= ShopQuality then --get anew shop if  the one got isn't good
 
-        for Slot = DoorSlot.LEFT0, DoorSlot.DOWN1 do
-            if RoomConfig.Doors & (1 << Slot) ~= 0 then --if door is available
-                --print("door at "..tostring(Slot))
-                Isaac.CreateTimer(
-                function()
-                    if mod.ShopAddedThisFloor then
-                        return
-                    end
+            local NewRoom = RoomConfigHolder.GetRandomRoom(Seed,false, StbType.SPECIAL_ROOMS, RoomType.ROOM_SHOP, RoomShape.ROOMSHAPE_1x1,-1,-1,0,10,0, ShopQuality)
 
-                    ---@diagnostic disable-next-line: redundant-parameter
-                    local YeRoom = Level:TryPlaceRoomAtDoor(NewRoom, Level:GetRoomByIdx(RoomIndex), Slot,Seed, false, false)
-                    if YeRoom then
-                        YeRoom.DisplayFlags = 5
-                        mod.ShopAddedThisFloor = true
-                    end
-                end,1,1,true)
-            end
+            Isaac.CreateTimer(
+            function()
+                Level:GetRoomByIdx(RoomIndex).DisplayFlags = 5
+
+                Level:UpdateVisibility()
+            end, 1, 1, true)
+
+            return NewRoom --replaces the room with the new one
         end
+
     elseif RoomConfig.Type == RoomType.ROOM_BOSS then
         Isaac.CreateTimer(
         function()
@@ -560,6 +544,81 @@ end
 mod:AddCallback(ModCallbacks.MC_PRE_LEVEL_PLACE_ROOM, mod.FloorModifier)
 
 
+
+local function AddOneMoreShop()
+
+    local NeededShops = 0
+
+    local SmallAvailable, BigAvailable = mod:GetJimboBlindAvailability()
+
+    if SmallAvailable then
+        NeededShops = NeededShops + 1
+    end
+    if BigAvailable then
+        NeededShops = NeededShops + 1
+    end
+
+    NeededShops = math.max(1, NeededShops) --at least one every floor even without blinds to defeat
+
+
+    local MissingShops = NeededShops - NumShops
+    
+    for i = 1, MissingShops do
+
+        local Level = Game:GetLevel()
+
+        local ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_3
+
+        if PlayerManager.AnyoneHasCollectible(mod.Vouchers.OverstockPlus) then
+            ShopQuality= RoomSubType.SHOP_KEEPER_LEVEL_5
+        elseif PlayerManager.AnyoneHasCollectible(mod.Vouchers.Overstock) then
+            ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_4
+        end
+
+        local Seed = Level:GetDungeonPlacementSeed()
+
+        local ExtraShop = RoomConfigHolder.GetRandomRoom(Seed,false, StbType.SPECIAL_ROOMS, RoomType.ROOM_SHOP, RoomShape.ROOMSHAPE_1x1,-1,-1,0,10,0, ShopQuality)
+
+        local IsSmallFloor = Level:GetStage() <= LevelStage.STAGE1_2 or Level:IsAscent()
+
+        local StartIndex = Level:GetStartingRoomIndex()
+        local StartPos = Vector(StartIndex % 13, StartIndex // 13)
+
+        local ValidIndexes = Level:FindValidRoomPlacementLocations(ExtraShop, Dimension.NORMAL, false)
+
+
+        local RoomDesc
+
+        for _,Index in ipairs(ValidIndexes) do
+
+            local RoomPos = Vector(Index % 13, Index // 13)
+
+            if IsSmallFloor
+               or math.abs(RoomPos.X - StartPos.X) > 1
+                  and math.abs(RoomPos.Y - StartPos.Y) > 1 then --keep a slight distance from the starting room if possible
+
+
+                RoomDesc = Level:TryPlaceRoom(ExtraShop, Index, Dimension.NORMAL)
+
+                if RoomDesc then
+                    break
+                end
+            end
+        end
+
+        Isaac.CreateTimer(
+            function()
+                RoomDesc.DisplayFlags = 5
+
+                Level:UpdateVisibility()
+            end, 1, 1, true)
+    end
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, AddOneMoreShop)
+
+
+
 --calculates how big the blinds are 
 function mod:CalculateBlinds()
 
@@ -567,38 +626,39 @@ function mod:CalculateBlinds()
         return
     end
 
-    mod.Saved.SmallCleared = mod.BlindProgress.NOT_CLEARED
-    mod.Saved.BigCleared = mod.BlindProgress.NOT_CLEARED
-    mod.Saved.BossCleared = mod.BossProgress.NOT_CLEARED
+    local SmallAvailable, BigAvailable, BossAvailable = mod:GetJimboBlindAvailability()
 
-    mod.Saved.ClearedRooms = 0
+    mod.Saved.SmallCleared = SmallAvailable and mod.BlindProgress.NOT_CLEARED or mod.BlindProgress.CLEARED
+    mod.Saved.BigCleared = BigAvailable and mod.BlindProgress.NOT_CLEARED or mod.BlindProgress.CLEARED
+    mod.Saved.BossCleared = BossAvailable and mod.BlindProgress.NOT_CLEARED or mod.BlindProgress.CLEARED
 
-    if Game:IsGreedMode() then
-
-        if Game:GetLevel():GetName() == "shop" then
-            mod.Saved.SmallBlind = 0
-            mod.Saved.BigBlind = 0
-        else
-            mod.Saved.SmallBlind = 8
-            mod.Saved.BigBlind = 2
-            if Game:IsHardMode() then
-                mod.Saved.SmallBlind = mod.Saved.SmallBlind + 1
-            end
-        end
-
-    else
-        --the more rooms, the less you need to complete
-        if BasicRoomNum < 40 then
-            BasicRoomNum = math.floor(BasicRoomNum * (0.9 - BasicRoomNum/100))
-        else
-            BasicRoomNum =  math.floor(BasicRoomNum * 0.55) --the minimum is 55% of rooms
-        end
- 
-        mod.Saved.SmallBlind = math.floor(BasicRoomNum/2) -- about half of the rooms
-        mod.Saved.BigBlind = BasicRoomNum - mod.Saved.SmallBlind --about half of the rooms
-    end
-    BasicRoomNum = 0 --resets the counter
-    ShopAddedThisFloor = false
+    --mod.Saved.ClearedRooms = 0
+--
+    --if Game:IsGreedMode() then
+--
+    --    if Game:GetLevel():GetName() == "shop" then
+    --        mod.Saved.SmallBlind = 0
+    --        mod.Saved.BigBlind = 0
+    --    else
+    --        mod.Saved.SmallBlind = 8
+    --        mod.Saved.BigBlind = 2
+    --        if Game:IsHardMode() then
+    --            mod.Saved.SmallBlind = mod.Saved.SmallBlind + 1
+    --        end
+    --    end
+--
+    --else
+    --    --the more rooms, the less you need to complete
+    --    if BasicRoomNum < 40 then
+    --        BasicRoomNum = math.floor(BasicRoomNum * (0.9 - BasicRoomNum/100))
+    --    else
+    --        BasicRoomNum =  math.floor(BasicRoomNum * 0.55) --the minimum is 55% of rooms
+    --    end
+ --
+    --    mod.Saved.SmallBlind = math.floor(BasicRoomNum/2) -- about half of the rooms
+    --    mod.Saved.BigBlind = BasicRoomNum - mod.Saved.SmallBlind --about half of the rooms
+    --end
+    --BasicRoomNum = 0 --resets the counter
 
     --Isaac.RunCallback("BLIND_STARTED", mod.BLINDS.SMALL)
 end
@@ -606,7 +666,7 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.CalculateBlinds)
 --mod:AddPriorityCallback(ModCallbacks.MC_POST_GAME_STARTED, CallbackPriority.LATE,mod.CalculateBlinds)
 
 
---handles the rooms which are cleared by default and shuffels if they are not
+--handles the rooms which are cleared by default and shuffles if they are not
 function mod:HandleNoHarmRoomsClear()
 
     if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
@@ -668,8 +728,19 @@ function mod:HandleNoHarmRoomsClear()
             else
                 Game:Spawn(EntityType.ENTITY_SLOT, SlotVariant.SHOP_RESTOCK_MACHINE,
                        Game:GetRoom():GetGridPosition(25),Vector.Zero, nil, 0, Seed)
+
+                Isaac.CreateTimer(function ()
+                    if mod.Saved.SmallCleared == mod.BlindProgress.DEFEATED then
+                    
+                        Isaac.RunCallback("BLIND_CLEARED", mod.BLINDS.BIG)
+
+                    else
+
+                        Isaac.RunCallback("BLIND_CLEARED", mod.BLINDS.SMALL)
+                    end
+                end, 8, 1, true)
+                
             end
-            
         end
     end
 end
@@ -778,7 +849,7 @@ function mod:AddRoomsCleared(IsBoss, Hostile)
                     mod:FullDeckShuffle(Player)
                 end
 
-                --Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.HEART, Player.Position + Vector(0,7),Vector.Zero,nil,0,1)
+                Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.HEART, Player.Position + Vector(0,7),Vector.Zero,nil,0,1)
                 Player:AddHearts(2)
             end
         end
@@ -800,35 +871,32 @@ function mod:AddRoomsCleared(IsBoss, Hostile)
     --    end
     --end
 
-    if IsBoss and mod.Saved.BossCleared ~= mod.BossProgress.CLEARED
-       and (Game:GetLevel():GetStage() ~= LevelStage.STAGE7 or Game:GetRoom():GetDeliriumDistance() == 0) then
+    if IsBoss and mod.Saved.BossCleared ~= mod.BlindProgress.DEFEATED then
+       --and (Game:GetLevel():GetStage() ~= LevelStage.STAGE7 or Game:GetRoom():GetDeliriumDistance() == 0) then
 
         
-        if Game:GetLevel():GetCurses() & LevelCurse.CURSE_OF_LABYRINTH == LevelCurse.CURSE_OF_LABYRINTH
-           and mod.Saved.BossCleared == 0 then
+        if Game:GetLevel():GetCurses() & LevelCurse.CURSE_OF_LABYRINTH == 0
+           or Game:GetRoom():IsCurrentRoomLastBoss() then
 
-            mod.Saved.BossCleared = 1 --basically serves as an "in between state" symbolising that 1 of 2 bossrooms were completed
-        else
             Isaac.RunCallback("BLIND_CLEARED", mod.BLINDS.BOSS)
-            mod.Saved.BossCleared = 2 -- all bosses completed
         end
-    else
-        mod.Saved.ClearedRooms = mod.Saved.ClearedRooms + 1
-
-        if mod.Saved.SmallCleared ~= mod.BlindProgress.DEFEATED then
-
-            if mod.Saved.ClearedRooms == mod.Saved.SmallBlind then
-
-                Isaac.RunCallback("BLIND_CLEARED", mod.BLINDS.SMALL)
-                mod.Saved.SmallCleared = mod.BlindProgress.DEFEATED
-                mod.Saved.ClearedRooms = 0
-            end
-        
-        elseif mod.Saved.ClearedRooms == mod.Saved.BigBlind and mod.Saved.BigCleared ~= mod.BlindProgress.DEFEATED then
-            Isaac.RunCallback("BLIND_CLEARED", mod.BLINDS.BIG)
-            mod.Saved.BigCleared = mod.BlindProgress.DEFEATED
-            mod.Saved.ClearedRooms = 0
-        end
+    --else
+    --    mod.Saved.ClearedRooms = mod.Saved.ClearedRooms + 1
+--
+    --    if mod.Saved.SmallCleared ~= mod.BlindProgress.DEFEATED then
+--
+    --        if mod.Saved.ClearedRooms == mod.Saved.SmallBlind then
+--
+    --            Isaac.RunCallback("BLIND_CLEARED", mod.BLINDS.SMALL)
+    --            mod.Saved.SmallCleared = mod.BlindProgress.DEFEATED
+    --            mod.Saved.ClearedRooms = 0
+    --        end
+    --    
+    --    elseif mod.Saved.ClearedRooms == mod.Saved.BigBlind and mod.Saved.BigCleared ~= mod.BlindProgress.DEFEATED then
+    --        Isaac.RunCallback("BLIND_CLEARED", mod.BLINDS.BIG)
+    --        mod.Saved.BigCleared = mod.BlindProgress.DEFEATED
+    --        mod.Saved.ClearedRooms = 0
+    --    end
     end
 end
 mod:AddPriorityCallback("TRUE_ROOM_CLEAR",CallbackPriority.LATE, mod.AddRoomsCleared)
@@ -848,8 +916,10 @@ function mod:OnDeckShift(Player)
     --shuffle the deck if finished
     if not next(mod.Saved.Player[PIndex].CurrentHand) then
 
-        if mod.Saved.Player[PIndex].FirstDeck and mod.Saved.Player[PIndex].Progress.Room.Shots < Player:GetCustomCacheValue("hands") then
-            mod.Saved.Player[PIndex].FirstDeck = false --no more stat boosts from cards in the cuurent room
+        mod.Saved.Player[PIndex].FirstDeck = false
+
+        if mod.Saved.Player[PIndex].FirstDeck and mod:GetJimboTriggerableCards(Player) > 0 then
+             --no more stat boosts from cards in the cuurent room
             Player:AnimateSad()
         end
         mod:FullDeckShuffle(Player)
@@ -863,7 +933,7 @@ mod:AddCallback("DECK_SHIFT", mod.OnDeckShift)
 
 function mod:GiveRewards(BlindType)
 
-    Isaac.DebugString("BALATRO blind clear")
+    --Isaac.DebugString("BALATRO blind clear")
 
     if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
         return
@@ -899,17 +969,25 @@ function mod:GiveRewards(BlindType)
 
             Isaac.CreateTimer(function ()
                 if BlindType == mod.BLINDS.SMALL then
+
+                    mod.Saved.SmallCleared = mod.BlindProgress.DEFEATED
                     
                     Player:AddCoins(4)
                     mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+4 $", mod.EffectType.ENTITY, Player)
                     --Isaac.RunCallback("BLIND_STARTED", mod.BLINDS.BIG)
 
                 elseif BlindType == mod.BLINDS.BIG then
+
+                    mod.Saved.BigCleared = mod.BlindProgress.DEFEATED
+
                     Player:AddCoins(5)
                     mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+5 $", mod.EffectType.ENTITY, Player)
                     --Isaac.RunCallback("BLIND_STARTED", mod.BLINDS.BOSS)
                     
                 elseif BlindType == mod.BLINDS.BOSS then
+
+                    mod.Saved.BossCleared = mod.BlindProgress.DEFEATED
+
                     Player:AddCoins(6)
                     mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+6 $", mod.EffectType.ENTITY, Player)
     
@@ -1019,7 +1097,7 @@ function mod:JimboTakeDamage(Player,Amount,_,Source,_)
             local RandomDirection = RandomVector()
             
             mod.TearCardEnable = false
-            mod.Counters.SinceShoot = 0
+            Player:GetData().SinceCardShoot = 0
 
             local Tear = Player:FireTear(Player.Position, 10*Player.ShotSpeed * RandomDirection + Player:GetTearMovementInheritance(RandomDirection), true, true, true, Player)
             mod:AddCardTearFalgs(Tear, false, true)
@@ -1447,7 +1525,7 @@ function mod:HandSizeCache(Player, Cache, Value)
     Value = Value - 2*#mod:GetJimboJokerIndex(Player, mod.Jokers.STUNTMAN, true)
 
     for _, Index in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.TURTLE_BEAN)) do
-        Value = Value + mod.Saved.Player[PIndex].Progress.Inventory[Index]
+        Value = Value + mod.Saved.Player[PIndex].Inventory[Index].Progress
     end
 
     Value = Value + #mod:GetJimboJokerIndex(Player, mod.Jokers.JUGGLER)
@@ -1491,10 +1569,11 @@ function mod:DiscardNumCache(Player, Cache, Value)
     
     Value = Value + #mod:GetJimboJokerIndex(Player, mod.Jokers.DRUNKARD)
 
+    --Value = Value - 2*#mod:GetJimboJokerIndex(Player, mod.Jokers.BURGLAR)
 
 
     if mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR) then
-        Value = 1
+        Value = 2
     end
 
     --Value = math.max(1, Value) --minimum 1 discard
@@ -1609,7 +1688,8 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
         return
     end
 
-    local PIndex = Player:GetData().TruePlayerIndex
+    local PlayerData = Player:GetData()
+    local PIndex = PlayerData.TruePlayerIndex
     local Weapon = Player:GetWeapon(1)
     
     local CardShot
@@ -1653,12 +1733,12 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
 
 
 
-    if mod.Counters.SinceShoot >= 4 then
+    if PlayerData.SinceCardShoot >= 4 then
         mod.TearCardEnable = true
     end
 
 
-    --if (mod.TearCardEnable and not Init) or (not mod.TearCardEnable and Init and mod.Counters.SinceShoot > 2) then
+    --if (mod.TearCardEnable and not Init) or (not mod.TearCardEnable and Init and Data.SinceCardShoot > 2) then
     if (ForceCard or mod.TearCardEnable) and not Split then
         
         Tear:ChangeVariant(mod.Tears.CARD_TEAR_VARIANT)
@@ -1693,23 +1773,25 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
 
 
         mod.TearCardEnable = false
-        mod.Counters.SinceShoot = 0
+        PlayerData.SinceCardShoot = 0
 
         if not ForceCard then
-
-            mod.Saved.Player[PIndex].Progress.Room.Shots = mod.Saved.Player[PIndex].Progress.Room.Shots + 1
-
-            if (mod.Saved.Player[PIndex].Progress.Room.Shots == Player:GetCustomCacheValue("hands")
-                and not mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR)) --with burglar you can play all your deck
-                or not mod.Saved.Player[PIndex].FirstDeck then 
-
-                Player:AnimateSad()
-            end
 
             if not Game:GetRoom():IsClear()
                and mod.Saved.Player[PIndex].FirstDeck
                and (mod.Saved.Player[PIndex].Progress.Room.Shots < Player:GetCustomCacheValue("hands")
                     or mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR)) then
+
+                mod.Saved.Player[PIndex].Progress.Room.Shots = mod.Saved.Player[PIndex].Progress.Room.Shots + 1
+
+                print(mod.Saved.Player[PIndex].FirstDeck)
+
+                if (mod.Saved.Player[PIndex].Progress.Room.Shots == Player:GetCustomCacheValue("hands")
+                    and not mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR)) --with burglar you can play all your deck
+                    or not mod.Saved.Player[PIndex].FirstDeck then 
+
+                    Player:AnimateSad()
+                end
 
                 Isaac.RunCallback("CARD_SHOT", Player, CardShot.Index, true)
             end
@@ -1993,7 +2075,7 @@ function mod:JimboShootCardTear(Player,Direction)
         end
     end
 
-    mod.Counters.SinceShoot = 0
+    Data.SinceCardShoot = 0
 
     
     mod.Saved.Player[PIndex].CurrentHand[mod.Saved.Player[PIndex].HandSize -mod.Saved.Player[PIndex].Progress.Hand] = 0 --removes the used card

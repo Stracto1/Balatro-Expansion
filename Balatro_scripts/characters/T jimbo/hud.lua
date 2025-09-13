@@ -14,6 +14,7 @@ local SpecialCardsSprite = Sprite("gfx/ui/PackSpecialCards.anm2")
 
 local DeckSprite = Sprite("gfx/ui/Deck Stages.anm2")
 local TrinketSprite = Sprite("gfx/005.350_trinket_custom.anm2")
+TrinketSprite.Offset = Vector(0, 8)
 local SellChargeSprite = Sprite("gfx/chargebar.anm2")
 
 local BlindChipsSprite = Sprite("gfx/ui/Blind Chips.anm2")

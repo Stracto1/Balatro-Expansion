@@ -824,7 +824,7 @@ local function TJimboUseSpectral(card, Player, UseFlags)
         local Rslot = mod:GetRandom(FilledSlots, CardRNG)
         local CopyJoker = mod.Saved.Player[PIndex].Inventory[Rslot].Joker + 0
         local CopyEdition = mod.Saved.Player[PIndex].Inventory[Rslot].Edition + 0
-        local CopyProgress = mod.Saved.Player[PIndex].Progress.Inventory[Rslot]
+        local CopyProgress = mod.Saved.Player[PIndex].Inventory[Rslot].Progress
 
         
         for i, _ in ipairs(mod.Saved.Player[PIndex].Inventory) do
@@ -842,7 +842,7 @@ local function TJimboUseSpectral(card, Player, UseFlags)
 
 
         local Success, JokerIndex = mod:AddJoker(Player, CopyJoker, CopyEdition, false)
-        mod.Saved.Player[PIndex].Progress.Inventory[JokerIndex] = CopyProgress
+        mod.Saved.Player[PIndex].Inventory[JokerIndex].Progress = CopyProgress
 
         AnimationInterval = STANDARD_INTERVAL
                   
