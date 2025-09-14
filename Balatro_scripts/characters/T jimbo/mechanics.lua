@@ -35,13 +35,22 @@ local SCREEN_TO_WORLD_RATIO = 4
 local BASE_HAND_RADIUS = 30 --this gets increased by the handtype's base mult value (considering planet upgrades)
 
 
+--due to *AHEM* design reasons greed mode is unplayable as TJimbo
+--i cooould like try to remake everything just for that but like no one likes greed mode anyway
+local function NO_GREED_MODE()
 
-----FUTURE GLOBALS -----
+    if Game:IsGreedMode() and PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then
 
+        Game:Spawn(1000, mod.Effects.JIMBO_THE_KILLER.VARIANT, Game:GetRoom():GetCenterPos(),
+                   Vector.Zero, nil, mod.Effects.JIMBO_THE_KILLER.SUBTYPE.PLAYERS, 1)
 
------------------------------------
+        for i,v in ipairs(PlayerManager.GetPlayers()) do
 
-
+            v:AnimateSad()
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, NO_GREED_MODE)
 
 
 --setups variables for jimbo

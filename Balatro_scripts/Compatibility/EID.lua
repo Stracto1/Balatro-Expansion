@@ -466,13 +466,13 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
 
                 Values[1] = mod:CardSuitToName(Progress & SUIT_FLAG, true)
             
-                Values[2] = tostring((Progress & ~SUIT_FLAG)/(SUIT_FLAG + 1)) --chips accumulated
+                Values[2] = (Progress & ~SUIT_FLAG)/(SUIT_FLAG + 1) --chips accumulated
 
             elseif Joker == mod.Jokers.RUNNER then
 
                 Progress = Progress or mod:GetJokerInitialProgress(Joker, false)
 
-                Values[1] = Progress + Jimbo.MoveSpeed
+                Values[1] = Progress + 2*Jimbo.MoveSpeed
                 
 
             else --[[if Joker == mod.Jokers.STONE_JOKER
@@ -483,9 +483,7 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
                    or Joker == mod.Jokers.BULL then]]
 
 
-                Progress = Progress or mod:GetJokerInitialProgress(Joker, false)
-
-                Values[1] = tostring(Progress) --chips accumulated
+                Values[1] = Progress or mod:GetJokerInitialProgress(Joker, false) --usually chips accumulated
             end
 
         elseif JokerConfig:HasCustomTag("mult") then
@@ -495,9 +493,7 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
                Values[1] = mod:GetJokerInitialProgress(Joker, false)
 
             else
-                Progress = Progress or mod:GetJokerInitialProgress(Joker, false)
-
-                Values[1] = tostring(Progress)
+                Values[1] = Progress or mod:GetJokerInitialProgress(Joker, false)
             end
 
         elseif JokerConfig:HasCustomTag("multm") then
@@ -515,15 +511,15 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
                 Values[1] = mod:GetCardName(Progress, true)
 
                 local ItemChosen = Progress >> 7
-                Values[2] = tostring(ItemChosen)
+                Values[2] = ItemChosen
                 Values[3] = EID:getObjectName(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COLLECTIBLE, ItemChosen)
         
             elseif Joker == mod.Jokers.YORICK then
 
                 Progress = Progress or mod:GetJokerInitialProgress(Joker, false)
 
-                Values[2] = tostring(23 - (Progress % 23))
-                Values[1] = tostring(1 + (Progress // 23))
+                Values[2] = 23 - (Progress % 23)
+                Values[1] = 1 + (Progress // 23)
 
             elseif Joker == mod.Jokers.DRIVER_LICENSE then
             
@@ -541,7 +537,7 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
                         end
                     end
 
-                    Values[1] = "{{ColorYellorange}}"..tostring(Enahncements).."{{ColorGray}} Enhanced cards"
+                    Values[1] = "{{ColorYellorange}}"..Enahncements.."{{ColorGray}} Enhanced cards"
                 end
 
             elseif Joker == mod.Jokers.LOYALTY_CARD then
@@ -553,7 +549,7 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
                     Values[1] = mod:GetEIDString("Other", "Ready")
 
                 else
-                    Values[1] = tostring(Progress).." "..mod:GetEIDString("Other", "Remaining")
+                    Values[1] = Progress.." "..mod:GetEIDString("Other", "Remaining")
 
                 end
 
@@ -598,9 +594,7 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
                    or Joker == mod.Jokers.HIT_ROAD then]]
 
 
-                Progress = Progress or mod:GetJokerInitialProgress(Joker, false)
-
-                Values[1] = tostring(Progress)
+                Values[1] = Progress or mod:GetJokerInitialProgress(Joker, false)
             end
 
 
@@ -624,13 +618,18 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
                     end
                 end
                 
-                Values[1] = tostring(PlanetsUsed)
+                Values[1] = PlanetsUsed
         
             elseif Joker == mod.Jokers.MAIL_REBATE then
 
                 local Value = mod:GetJokerInitialProgress(Joker, false)
 
                 Values[1] = mod:CardValueToName(Value, true)
+
+            else--if Joker == mod.Jokers.ROCKET
+                --   or Joker == mod.Jokers.CLOUD_NINE then
+
+                Values[1] = Progress or mod:GetJokerInitialProgress(Joker, false)
             end
         elseif JokerConfig:HasCustomTag("activate") then
 
@@ -651,7 +650,7 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
                 elseif Progress == 3 then
                     Values[1] = mod:GetEIDString("Other", "Ready")
                 else
-                    Values[1] = "{{ColorYellorange}}"..tostring(Progress).."/3{{ColorGray}}"..mod:GetEIDString("Other", "Rounds")
+                    Values[1] = "{{ColorYellorange}}"..Progress.."/3{{ColorGray}}"..mod:GetEIDString("Other", "Rounds")
                 end
                 
 
@@ -724,10 +723,8 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
             elseif Joker == mod.Jokers.TURTLE_BEAN 
                    or Joker == mod.Jokers.SELTZER then
 
-                Progress = Progress or mod:GetJokerInitialProgress(Joker, false)
+                Values[1] = Progress or mod:GetJokerInitialProgress(Joker, false)
                 
-                Values[1] = tostring(Progress)
-
             elseif Joker == mod.Jokers.CHAOS_THEORY then
 
                 if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_CHAOS) then
@@ -781,9 +778,9 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
     --converts the normal indexes to what we need for string.gsub (this made it easier to write the stuff above)
     for i,v in ipairs(Values) do
 
-        v = string.gsub(v, "%.0$", "")
+        v = string.gsub(tostring(v), "%.0$", "")
 
-        Values["[[VALUE"..tostring(i).."]]"] = v
+        Values["[[VALUE"..i.."]]"] = v
     end
 
     return Values
@@ -874,19 +871,22 @@ local function BalatroInventoryCallback(descObj)
 
                     for i,selected in ipairs(mod.SelectionParams[PIndex].SelectedCards) do
                         if selected then
-                            SelectedCard = mod.Saved.Player[PIndex].Inventory[i].Joker
+                            SelectedCard = mod.Saved.Player[PIndex].Inventory[i]
                             SelectedSlots = i
                             break
                         end
                     end
 
-                    local CardIcon = EID:createItemIconObject("Trinket"..tostring(SelectedCard))
+                    local CardIcon = EID:createItemIconObject("Trinket"..tostring(SelectedCard.Joker))
 
                     EID:addIcon("CurrentCard", CardIcon[1], CardIcon[2], CardIcon[3], CardIcon[4], CardIcon[5], CardIcon[6], CardIcon[7])
 
+
+                    local JokerName = ItemsConfig:GetTrinket(SelectedCard.Joker).Name
+
                     Icon = "{{Shop}}"
                     Name = mod:GetEIDString("Other", "SellJoker")
-                    Description = "#{{CurrentCard}} "..mod:GetEIDString("Other", "SellsFor").." {{ColorYellow}}"..tostring(mod:GetJokerCost(SelectedCard, SelectedSlots, Player)).."${{CR}}"
+                    Description = "#{{CurrentCard}} {{ColorYellorange}}"..JokerName.."{{CR}} "..mod:GetEIDString("Other", "SellsFor").." {{ColorYellow}}"..tostring(mod:GetJokerCost(SelectedCard.Joker, SelectedCard.Edition, SelectedSlots, Player)).."${{CR}}"
 
                 else --not selling anything and confirm button
 
@@ -942,9 +942,9 @@ local function BalatroInventoryCallback(descObj)
                 local SellString
 
                 if SelectedCard.Joker == mod.Jokers.EGG then
-                    SellString = " #{{Shop}}"..mod:GetEIDString("Other", "SellsFor").."{{ColorYellorange}}"..tostring(mod.Saved.Player[PIndex].Inventory[mod.SelectionParams[PIndex].Index].Progress).."${{CR}}"
+                    SellString = " #{{Shop}} "..mod:GetEIDString("Other", "SellsFor").." {{ColorYellorange}}"..mod.Saved.Player[PIndex].Inventory[mod.SelectionParams[PIndex].Index].Progress.."${{CR}}"
                 else
-                    SellString = " #{{Shop}}"..mod:GetEIDString("Other", "SellsFor").."{{ColorYellorange}}"..tostring(mod:GetJokerCost(SelectedCard.Joker, SelectedCard.Edition, mod.SelectionParams[PIndex].Index, Player)).."${{CR}}"
+                    SellString = " #{{Shop}} "..mod:GetEIDString("Other", "SellsFor").." {{ColorYellorange}}"..mod:GetJokerCost(SelectedCard.Joker, SelectedCard.Edition, mod.SelectionParams[PIndex].Index, Player).."${{CR}}"
                 end
 
 

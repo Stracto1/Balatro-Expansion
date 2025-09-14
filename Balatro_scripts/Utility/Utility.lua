@@ -1373,7 +1373,7 @@ function mod:PlayedCardIsScored(PIndex, Index)
 end
 
 function mod:GetValueScoring(Value)
-    if Value >=10 then
+    if Value >= 10 then
         return 10
     elseif Value == 1 then
         return 11
@@ -2079,7 +2079,6 @@ function mod:SellJoker(Player, Slot, Multiplier)
     local Edition = mod.Saved.Player[PIndex].Inventory[Slot].Edition + 0
 
     mod.Saved.Player[PIndex].Inventory[Slot].Joker = 0
-    mod.Saved.Player[PIndex].Inventory[Slot].Edition = mod.Edition.BASE
 
     local SellValue = mod:GetJokerCost(Trinket, Edition, Slot, Player) * (Multiplier or 1)
     SellValue = math.floor(SellValue)
@@ -2089,9 +2088,14 @@ function mod:SellJoker(Player, Slot, Multiplier)
     if mod.Saved.Player[PIndex].Inventory[Slot].Edition == mod.Edition.NEGATIVE then
         --selling a negative joker reduces your inventory size
         mod:AddJimboInventorySlots(Player, -1)
-        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.INVENTORY, mod.SelectionParams.Purposes.NONE)
+        --mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.INVENTORY, mod.SelectionParams.Purposes.NONE)
+        
         mod.SelectionParams[PIndex].Index = mod.SelectionParams[PIndex].Index - 1
+        mod.SelectionParams[PIndex].OptionsNum = mod.SelectionParams[PIndex].OptionsNum - 1
     end
+
+    mod.Saved.Player[PIndex].Inventory[Slot].Edition = mod.Edition.BASE
+
 
     if Player:GetPlayerType() == mod.Characters.JimboType then
 

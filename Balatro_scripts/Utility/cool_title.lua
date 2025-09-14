@@ -11,9 +11,11 @@ CARD_STATES.IDLE = 0 --usual title animation
 CARD_STATES.PICKED_UP = 1 --dragging card with mouse
 CARD_STATES.RETURNING = 2 --returning to title position
 
-
+local PICKED_TIME = 0
 local CardState = CARD_STATES.IDLE
 local LastCardPos = Vector(237,69)
+
+
 function mod:Tast()
     if MenuManager.GetActiveMenu() ~= MainMenuType.TITLE then
         return
@@ -31,6 +33,7 @@ function mod:Tast()
 
 
     if CardState == CARD_STATES.RETURNING then
+
         local RenderPos = LastCardPos + (CardIdlePos - LastCardPos)/2
         LastCardPos = RenderPos
 
@@ -45,18 +48,22 @@ function mod:Tast()
         end
 
     elseif Input.IsMouseBtnPressed(MouseButton.LEFT) then
+
         if CardState ~= CARD_STATES.PICKED_UP
            and MousePos.X >= CardIdlePos.X - 20 and MousePos.X <= CardIdlePos.X + 20
-           and MousePos.Y >= CardIdlePos.Y - 30 and MousePos.Y <= CardIdlePos.Y + 30 then --sadly there isn't a way to really get where the logo is rendered vertically, so put a large window instead
+           and MousePos.Y >= CardIdlePos.Y - 30 and MousePos.Y <= CardIdlePos.Y + 30 then
 
             CardState = CARD_STATES.PICKED_UP
             SFXManager():Play(mod.Sounds.PLAY)
         end
 
     elseif CardState == CARD_STATES.PICKED_UP then
+
         CardState = CARD_STATES.RETURNING
 
-        --got an idea from a dude on telegram but sadly i don't think it's possible
+        PICKED_TIME = 0
+
+        --got an idea from a dude on telegram but sadly i don't think it's possible unlless luadebug is active
         --os.execute('"C:\\Program Files (x86)\\Steam\\steam.exe" -applaunch 220')
 
     end
@@ -66,11 +73,16 @@ function mod:Tast()
     if CardState == CARD_STATES.PICKED_UP then
         Title:SetOverlayFrame("Card", 0)
 
-        local RenderPos = LastCardPos + (MousePos - LastCardPos)/4
+        local RenderPos = LastCardPos + (MousePos - LastCardPos)/5
 
-        Card.Rotation = (RenderPos.X - LastCardPos.X)*1.75
+        Card.Rotation = (RenderPos.X - LastCardPos.X)*2
 
-        Card:Render(RenderPos)
+        if PICKED_TIME ~= 0 then --prevents some funky rendering as it is first picked up
+            Card:Render(RenderPos)
+        end
+
+        PICKED_TIME = PICKED_TIME + 1
+
         LastCardPos = RenderPos
 
     elseif CardState == CARD_STATES.IDLE then

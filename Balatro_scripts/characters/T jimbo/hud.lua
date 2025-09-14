@@ -175,7 +175,6 @@ local function CancelMinimapHUD()
 end
 mod:AddCallback(ModCallbacks.MC_PRE_MINIMAP_RENDER, CancelMinimapHUD)
 
-
 local BossIntroTime = 0
 local OldCameraStyle
 local BaseRoomWidth = 15 * 26
@@ -247,16 +246,11 @@ local function RightMoveShader(_,Name) --this shader makes the whole game shifte
 
         local Params = {CameraOffset = {0,0}}
 
-
         if not PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo)
-           or mod:BossIntroIsPlaying() then
+           or mod:BossIntroIsPlaying()
+           or (Game:IsPaused() and not Game:IsPauseMenuOpen()) then
 
             return Params
-
-            
-        elseif mod:IsBeastBossRoom() then
-
-            Params.CameraOffset = {CameraOffset.X, CameraOffset.Y}
 
         else
             Params.CameraOffset = {CameraOffset.X, CameraOffset.Y}

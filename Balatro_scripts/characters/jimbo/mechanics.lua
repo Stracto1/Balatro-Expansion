@@ -547,6 +547,11 @@ mod:AddCallback(ModCallbacks.MC_PRE_LEVEL_PLACE_ROOM, mod.FloorModifier)
 
 local function AddOneMoreShop()
 
+    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType)
+       or Game:IsGreedMode() then
+        return    
+    end
+
     local NeededShops = 0
 
     local SmallAvailable, BigAvailable = mod:GetJimboBlindAvailability()
@@ -733,9 +738,7 @@ function mod:HandleNoHarmRoomsClear()
                     if mod.Saved.SmallCleared == mod.BlindProgress.DEFEATED then
                     
                         Isaac.RunCallback("BLIND_CLEARED", mod.BLINDS.BIG)
-
                     else
-
                         Isaac.RunCallback("BLIND_CLEARED", mod.BLINDS.SMALL)
                     end
                 end, 8, 1, true)
@@ -836,7 +839,23 @@ function mod:AddRoomsCleared(IsBoss, Hostile)
 
     --Isaac.DebugString("BALATRO Room cleared")
 
-    if not Game:IsGreedMode() then
+    local IsGreed = Game:IsGreedMode()
+
+    if IsGreed then
+
+        for i,Player in ipairs(PlayerManager.GetPlayers()) do
+
+            if Player:GetPlayerType() == mod.Characters.JimboType then
+
+                Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.HEART, Player.Position + RandomVector() * 5,Vector.Zero,nil,0,1)
+                Player:AddHearts(2)
+
+                if Hostile then
+                    mod:FullDeckShuffle(Player)
+                end
+            end
+        end
+    else
         for i,Player in ipairs(PlayerManager.GetPlayers()) do
             if Player:GetPlayerType() == mod.Characters.JimboType then
 
@@ -856,20 +875,10 @@ function mod:AddRoomsCleared(IsBoss, Hostile)
     end
 
 
-    if Game:GetLevel():GetDimension() ~= Dimension.NORMAL then
+    if Game:GetLevel():GetDimension() ~= Dimension.NORMAL or IsGreed then
         return
     end
 
-    --if not Game:IsGreedMode() then
---
-    --    for i,Player in ipairs(PlayerManager.GetPlayers()) do
-    --        if Player:GetPlayerType() == mod.Characters.JimboType then
---
-    --            Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.HEART, Player.Position + Vector(0,7),Vector.Zero,nil,0,1)
-    --            Player:AddHearts(2)
-    --        end
-    --    end
-    --end
 
     if IsBoss and mod.Saved.BossCleared ~= mod.BlindProgress.DEFEATED then
        --and (Game:GetLevel():GetStage() ~= LevelStage.STAGE7 or Game:GetRoom():GetDeliriumDistance() == 0) then
@@ -880,23 +889,6 @@ function mod:AddRoomsCleared(IsBoss, Hostile)
 
             Isaac.RunCallback("BLIND_CLEARED", mod.BLINDS.BOSS)
         end
-    --else
-    --    mod.Saved.ClearedRooms = mod.Saved.ClearedRooms + 1
---
-    --    if mod.Saved.SmallCleared ~= mod.BlindProgress.DEFEATED then
---
-    --        if mod.Saved.ClearedRooms == mod.Saved.SmallBlind then
---
-    --            Isaac.RunCallback("BLIND_CLEARED", mod.BLINDS.SMALL)
-    --            mod.Saved.SmallCleared = mod.BlindProgress.DEFEATED
-    --            mod.Saved.ClearedRooms = 0
-    --        end
-    --    
-    --    elseif mod.Saved.ClearedRooms == mod.Saved.BigBlind and mod.Saved.BigCleared ~= mod.BlindProgress.DEFEATED then
-    --        Isaac.RunCallback("BLIND_CLEARED", mod.BLINDS.BIG)
-    --        mod.Saved.BigCleared = mod.BlindProgress.DEFEATED
-    --        mod.Saved.ClearedRooms = 0
-    --    end
     end
 end
 mod:AddPriorityCallback("TRUE_ROOM_CLEAR",CallbackPriority.LATE, mod.AddRoomsCleared)
@@ -955,10 +947,8 @@ function mod:GiveRewards(BlindType)
     for _,Player in ipairs(PlayerManager:GetPlayers()) do
         if Player:GetPlayerType() == mod.Characters.JimboType then
 
-            if (not Game:IsGreedMode() 
-               and Player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT))
-               or (BlindType == mod.BLINDS.BOSS and Game:IsGreedMode())
-                then
+            if not Game:IsGreedMode() 
+               and Player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT) then
             
                 mod:StatReset(Player, true, true, true, false, true)
             end
@@ -1208,13 +1198,12 @@ mod:AddCallback(ModCallbacks.MC_FAMILIAR_INIT, mod.JimboBlueFliesSpiders, Famili
 mod:AddCallback(ModCallbacks.MC_FAMILIAR_INIT, mod.JimboBlueFliesSpiders, FamiliarVariant.BLUE_SPIDER)
 
 
----@param Player EntityPlayer
 function mod:JimboRoomClear(Player)
 
+    local Jimbo = PlayerManager.FirstPlayerByType(mod.Characters.JimboType)
 
-    Isaac.DebugString("BALATRO trigger clear")
-
-    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
+    if not Jimbo 
+       or Player:GetData().TruePlayerIndex ~= Jimbo:GetData().TruePlayerIndex then
         return
     end
 
@@ -1228,21 +1217,19 @@ function mod:JimboRoomClear(Player)
             WantedWaves = {8,10,11} --greed last waves
         end
 
-        local IsFirstWave = CurrentWave == 1 or CurrentWave == WantedWaves[2]-1 or CurrentWave == WantedWaves[3]
+        local IsFloorStarter = CurrentWave == 1
+        local IsFirstWave = IsFloorStarter or CurrentWave == WantedWaves[2]-1 or CurrentWave == WantedWaves[3]
 
-        Isaac.RunCallback("TRUE_ROOM_CLEAR", CurrentWave == WantedWaves[3], IsFirstWave)
+        if IsFirstWave then
+            print("first")
 
-        
-        --as the button is first pressed, reset stats and deck
-        if IsFirstWave and not Player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT) then
-            for i,Player in ipairs(PlayerManager.GetPlayers()) do
-                if Player:GetPlayerType() == mod.Characters.JimboType then
-                    ---@diagnostic disable-next-line: param-type-mismatch
-                    mod:StatReset(Player, true, true, true, false, true)
-                    mod:FullDeckShuffle(Player)
-                end
-            end
+            Isaac.CreateTimer(function ()
+                mod:OnNewRoomJokers()
+            end, 0, 1, true)
         end
+
+        Isaac.RunCallback("TRUE_ROOM_CLEAR", CurrentWave == WantedWaves[3], false)
+        
     else
         local Room = Game:GetRoom():GetType()
 
@@ -1269,6 +1256,61 @@ function mod:JimboRoomClear(Player)
     
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, mod.JimboRoomClear)
+
+
+function GreedmodeLastWaveClear()
+
+    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType)
+       or not Game:IsGreedMode() then
+        return
+    end
+
+    local CurrentWave = Level.GreedModeWave
+    local WantedWaves
+    if Game:IsHardMode() then
+        WantedWaves = {9,11,12} --greedier last waves
+    else
+        WantedWaves = {8,10,11} --greed last waves
+    end
+
+    
+    local BlindCleared
+
+    if CurrentWave == WantedWaves[1] then
+        
+        BlindCleared = mod.BLINDS.SMALL
+
+    elseif CurrentWave == WantedWaves[2] then
+        BlindCleared = mod.BLINDS.BIG
+
+    elseif CurrentWave == WantedWaves[3] then
+        BlindCleared = mod.BLINDS.BOSS
+    end
+
+
+    if BlindCleared then
+
+        Isaac.RunCallback("TRUE_ROOM_CLEAR", BlindCleared == mod.BLINDS.BOSS, true)
+
+        Isaac.RunCallback("BLIND_CLEARED", BlindCleared)
+
+        --as the button is first pressed, reset stats and deck
+        for i,Player in ipairs(PlayerManager.GetPlayers()) do
+        
+            if Player:GetPlayerType() == mod.Characters.JimboType then
+            
+                if not Player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT)
+                   or BlindCleared == mod.BLINDS.BOSS then
+                
+                    ---@diagnostic disable-next-line: param-type-mismatch
+                    mod:StatReset(Player, true, true, true, false, true)
+                end
+            
+            end
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_ROOM_TRIGGER_CLEAR, GreedmodeLastWaveClear)
 
 
 
@@ -1321,7 +1363,7 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.JimboStatCalculator)
 ---@param Player EntityPlayer
 function mod:StatReset(Player, Damage, Tears, Evaluate, Jokers, Basic)
 
-    Isaac.DebugString("BALATRO stat reset  ("..tostring(Evaluate)..")")
+    --Isaac.DebugString("BALATRO stat reset  ("..tostring(Evaluate)..")")
 
     if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted then
         return
@@ -1352,6 +1394,27 @@ function mod:StatReset(Player, Damage, Tears, Evaluate, Jokers, Basic)
         if Evaluate then
             Player:AddCacheFlags(CacheFlag.CACHE_FIREDELAY, true)
         end
+    end
+
+    if Basic then
+        
+        local EffectColor
+        if Damage then
+            
+            if Tears then
+                EffectColor = mod.EffectColors.YELLOW
+            else
+                EffectColor = mod.EffectColors.RED
+            end
+
+        elseif Tears then
+
+            EffectColor = mod.EffectColors.BLUE
+        else
+            return
+        end
+
+        mod:CreateBalatroEffect(Player, EffectColor ,mod.Sounds.ACTIVATE, "Reset!", mod.EffectType.ENTITY, Player)
     end
 end
 
@@ -1634,10 +1697,14 @@ function mod:OnTearCardCollision(Tear,Collider,_)
 
 
     if Player:GetPlayerType() ~= mod.Characters.JimboType or
-       not Collider:IsActiveEnemy() or mod:Contained(TearData.CollidedWith, GetPtrHash(Collider)) then
+       mod:Contained(TearData.CollidedWith, GetPtrHash(Collider)) then
+
         return
     end
 
+    if Collider.Type == EntityType.ENTITY_FIREPLACE then
+        Collider:Kill()
+    end
 
     table.insert(TearData.CollidedWith, GetPtrHash(Collider))
 
@@ -1646,7 +1713,7 @@ function mod:OnTearCardCollision(Tear,Collider,_)
     if mod:IsSuit(Player, TearData.Params, mod.Suits.Heart) then --Hearts
 
         local Creep = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.PLAYER_CREEP_RED, Tear.Position, Vector.Zero, Tear, 0, TearRNG:GetSeed()):ToEffect()
-        Creep.SpriteScale = Vector(1.2,1.2)
+        Creep.SpriteScale = Vector(1.25,1.25)
         Creep.CollisionDamage = Tear.CollisionDamage / 6
         ---@diagnostic disable-next-line: need-check-nil
         Creep:Update()
@@ -1784,7 +1851,7 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
 
                 mod.Saved.Player[PIndex].Progress.Room.Shots = mod.Saved.Player[PIndex].Progress.Room.Shots + 1
 
-                print(mod.Saved.Player[PIndex].FirstDeck)
+                --print(mod.Saved.Player[PIndex].FirstDeck)
 
                 if (mod.Saved.Player[PIndex].Progress.Room.Shots == Player:GetCustomCacheValue("hands")
                     and not mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR)) --with burglar you can play all your deck
