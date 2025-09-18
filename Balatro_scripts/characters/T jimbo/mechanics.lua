@@ -53,6 +53,7 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, NO_GREED_MODE)
 
 
+
 --setups variables for jimbo
 ---@param player EntityPlayer
 function mod:JimboInit(player)
@@ -1319,13 +1320,6 @@ end
 mod:AddCallback(mod.Callbalcks.HAND_UPDATE, mod.UpdateCurrentHandType)
 
 
-local function effectTest(_, Effect)
-    
-    print(Effect.Variant, Effect.SubType)
-end
---mod:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT, effectTest)
-
-
 
 ---@param Player EntityPlayer
 function mod:ActivateCurrentHand(Player)
@@ -1935,7 +1929,15 @@ local function OnBlindButtonPressed(_, Plate)
 
     Isaac.CreateTimer(function () --apparently when buttons are pressed the timers activate frame one so I just put a second timer inside the first one
 
-    if Variant == mod.Grids.PlateVariant.REROLL then
+    if Variant == mod.Grids.PlateVariant.RUN_STARTER then
+
+        Game:GetRoom():RemoveGridEntity(Plate:GetGridIndex(), 0, false)
+
+        sfx:Play(SoundEffect.SOUND_SUMMONSOUND)
+
+        mod:InitializeAnte(false)
+    
+    elseif Variant == mod.Grids.PlateVariant.REROLL then
 
         local Price = VarData
 
@@ -2721,18 +2723,29 @@ function mod:InitializeAnte(NewFloor)
         return
     end
 
+    local Level = Game:GetLevel()
+    local Room = Game:GetRoom()
+
+    local CurrentStage = Level:GetStage()
+    local IsAscent = Level:IsAscent()
+
+
     if not mod.GameStarted then --wait a frame to let the variables get set up (see Callback System.lua)
         
-        Isaac.CreateTimer(function ()
-            mod:InitializeAnte(false)
-        end,0,1,true)
+        if CurrentStage == LevelStage.STAGE1_1 and not IsAscent then --just to be safe
+                    
+            mod:SpawnBalatroPressurePlate(Room:GetCenterPos(), mod.Grids.PlateVariant.RUN_STARTER, 0)
+        end
+    
+    
+        --Isaac.CreateTimer(function ()
+        --    mod:InitializeAnte(false)
+        --end,0,1,true)
 
         return
     end
 
-    local Level = Game:GetLevel()
-
-    local CurrentStage = Level:GetStage()
+    
 
     local IsHome = CurrentStage == LevelStage.STAGE8
 
@@ -2749,7 +2762,6 @@ function mod:InitializeAnte(NewFloor)
     local IsMinesII = CurrentStage == LevelStage.STAGE2_2 and Level:IsAltStage()
                       and PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_KNIFE_PIECE_1)
     local IsSpecialMausoleum = Level:IsPreAscent()
-    local IsAscent = Level:IsAscent()
     local IsCorpseII = Level:GetStage() == LevelStage.STAGE4_2 and Level:IsAltStage()
     local IsVoid = Level:GetStage() == LevelStage.STAGE7
 
@@ -2862,7 +2874,6 @@ function mod:InitializeAnte(NewFloor)
     -------------CUSTOM PRESSURE PLATES-------------
     ------------------------------------------------
 
-    local Room = Game:GetRoom()
     local Plate
 
     local SMALL_POSITION

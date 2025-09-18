@@ -223,7 +223,7 @@ function mod:RenderEffect(_,_,_,_,_)
 
             if Entity:Exists() then
 
-                RenderPos = Isaac.WorldToScreen(Entity.Position) + Params.Offset
+                RenderPos = Entity.SpriteOffset + Isaac.WorldToScreen(Entity.Position + Entity.PositionOffset) + Params.Offset
             else
                 EffectParams[Slot] = nil
                 return

@@ -360,6 +360,60 @@ Descriptions.T_Jimbo.ConsumableNEGATIVE = "#{{ColorYellorange}}+1{{B_Black}} Con
 Descriptions.T_Jimbo.CardNEGATIVE = "#{{ColorYellorange}}+1{{B_Black}} Hand Size"
 
 
+Descriptions.T_Jimbo.SkipName = {}
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.BOSS] = "Boss Tag"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.BUFFON] = "Buffon Tag"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.CHARM] = "Charm Tag"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.COUPON] = "Coupon Tag"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.D6] = "D6 Tag"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.DOUBLE] = "Double Tag"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.ECONOMY] = "Economy Tag"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.ETHEREAL] = "Ethereal Tag"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.FOIL] = "Foil Tag"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.GARBAGE] = "Garbage Tag"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.HANDY] = "Handy Tag"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.HOLO] = "Holographic Tag"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.INVESTMENT] = "Investment Tag"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.JUGGLE] = "Juggle Tag"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.METEOR] = "Meteor Tag"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.NEGATIVE] = "Negative Tag"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.ORBITAL] = "Orbital Tag"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.POLYCHROME] = "Polychrome Tag"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.RARE] = "Rare Tag"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.SPEED] = "Speed Tag"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.STANDARD] = "Standard Tag"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.TOP_UP] = "Top-Up Tag"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.UNCOMMON] = "Uncommon Tag"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.VOUCHER] = "Voucher Tag"
+
+
+
+Descriptions.T_Jimbo.SkipTag = {}
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.BOSS] = "{{ColorYellorange}}Reroll{{B_Black}} this ante's boss blind"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.BUFFON] = "Open a {{ColorYellorange}}Mega Buffon Pack{{B_Black}}"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.CHARM] = "Open a {{ColorYellorange}}Mega Arcana Pack{{B_Black}}"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.COUPON] = "Initial jokers and boosters in the next shops are {{ColorYellorange}}Free"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.D6] = "Rerolls in the next shop start at {{ColorYellorange}}0$"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.DOUBLE] = "Duplicates the next skip tag taken {{ColorGray}}(except Double Tag)"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.ECONOMY] = "Duplicate you money {{ColorGray}}(Max 40$)"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.ETHEREAL] = "Open a {{ColorYellorange}}Spectral Pack{{B_Black}}"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.FOIL] = "The next shop contains a free {{ColorChips}}Foil{{B_Black}} Joker"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.GARBAGE] = "Gain {{ColorYellorange}}1${{B_Black}} per unused {{ColorMult}}Discard{{ColorGray}}([[VALUE1]]$)"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.HANDY] = "Gain {{ColorYellorange}}1${{B_Black}} per played {{ColorChips}}Hand{{ColorGray}}([[VALUE1]]$)"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.HOLO] = "The next shop contains a free {{ColorMult}}Holographic{{B_Black}} Joker"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.INVESTMENT] = "Gain {{ColorYellorange}}25${{B_Black}} after defeating thid ante's boss"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.JUGGLE] = "Gain {{ColorYellorange}}+3{{B_Black}} hand size for the next blind"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.METEOR] = "Open a {{ColorYellorange}}Mega Celestial Pack{{B_Black}}"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.NEGATIVE] = "The next shop contains a free {{ColorBlack}}Negative{{B_Black}} Joker"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.ORBITAL] = "Upgrade {{ColorYellorange}}[[VALUE1]]{{B_Black}} by 3 levels"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.POLYCHROME] = "The next shop contains a free {{ColorRainbow}}Polychrome{{B_Black}} Joker"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.RARE] = "The next shop contains a free {{ColorMult}}Rare{{B_Black}} Joker"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.SPEED] = "Gain {{ColorYellorange}}5${{B_Black}} per blind skipped this run"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.STANDARD] = "Open a {{ColorYellorange}}Mega Standard Pack{{B_Black}}"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.TOP_UP] = "Gain up to {{ColorYellorange}}2{{B_Black}} {{ColorChips}}Common{{B_Black}} Jokers"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.UNCOMMON] = "The next shop contains a free {{ColorLime}}Uncommon{{B_Black}} Joker"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.VOUCHER] = "The next shop has an additional {{ColorYellorange}}Voucher"
+
 
 Descriptions.T_Jimbo.Jokers = {}
 do

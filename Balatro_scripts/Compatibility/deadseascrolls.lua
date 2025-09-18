@@ -207,16 +207,25 @@ local itemData = {
         Achievement = mod.Achievements.Items[mod.Collectibles.POCKET_ACES]
     },
     {
-        Id = Balatro_Expansion.Trinkets.TASTY_CANDY,
+        Id = Balatro_Expansion.Trinkets.TASTY_CANDY[1],
         Gfx = ItemsConfig:GetTrinket(Balatro_Expansion.Trinkets.TASTY_CANDY[mod.TastyCandyNum]).GfxFileName,
         Type = "Trinket",
         Name = "Tasty Candy",
         UnlockMethod = "Unlocked by defeating Ultra Greedier",
         Description = "Gives 5 free beggar payouts. If gulped gives a speed up that scales with the amount of uses remaining",
-        Achievement = mod.Achievements.Trinkets[mod.Trinkets.TASTY_CANDY[1]]
+        Achievement = mod.Achievements.Trinkets[mod.Trinkets.TASTY_CANDY[1]],
+
+        Last = true --added  by me cause my menu was broken idk
     },
+
     {
-        Divider = true,
+        Gfx = "gfx/ui/jimbob_dss_icon.png",
+        Type = "Character",
+        Name = "The Joker",
+        UnlockMethod = "Visit Home's wardrobe as jimbo",
+        Description = "balatro balatrez",
+        Achievement = mod.Achievements.T_JIMBO,
+        Tainted = true,
     },
 
     {
@@ -284,7 +293,9 @@ local itemData = {
         Name = "Chaos Theory",
         UnlockMethod = "Unlocked by aaaaaaaaaaaaa",
         Description = "All pickups are randomized",
-        Achievement = mod.Achievements.Trinkets[mod.Jokers.CHAOS_THEORY]
+        Achievement = mod.Achievements.Trinkets[mod.Jokers.CHAOS_THEORY],
+
+        Last = true
     },
 
 
@@ -307,14 +318,6 @@ local menu = {}
 local fullLineDivider = Sprite()
 fullLineDivider:Load("gfx/ui/hud_dss_divider.anm2", true)
 fullLineDivider:Play("FullLine", true)
-
-
-local function upppdateee()
-
-    --print(mod.Saved.DSS.Jimbo.HandHUDPosition)
-end
-mod:AddCallback(ModCallbacks.MC_POST_UPDATE, upppdateee)
-
 
 
 
@@ -517,6 +520,7 @@ menu.regambledTaintedJimboSettings = {
     }
 }
 
+
 menu.unlockManager = {
     title = "unlock manager",
     gridx = 2,
@@ -531,8 +535,16 @@ menu.unlockManager = {
         local dividerA = Sprite()
         dividerA:Load("gfx/ui/hud_dss_divider.anm2", true)
         dividerA:Play("Normal", true)
+        dividerA:ReplaceSpritesheet(1, "gfx/ui/jimbo_dss_icon.png", true)
+        dividerA.Offset = Vector(75,0)
 
         item.buttons = {
+            {
+                inline = true,
+                str = "lock all",
+                dest = "lockAllConfirmation",
+                fullrow = true,
+            },
             {
                 inline = true,
                 str = "unlock all",
@@ -554,12 +566,12 @@ menu.unlockManager = {
                 },
                 func = function ()
                     activeItem = {
-                        Gfx = "gfx/ui/hud_dss_sheriff_icon.png",
+                        Gfx = "gfx/ui/jimbo_dss_icon.png",
                         ScaleFactor = Vector.Zero,
-                        Name = "jimbo",
-                        Description = "jimbo shoots cards that dealing the product of his damage and tears stat worth of damage. shoot cards and collect joker to increase these stats.",
+                        Name = "Jimbo",
+                        Description = "Instead of shooting tears, Jimbo trows cards at enemies, which deal damage equal to the product of his tears and damage stat. Cards can be score a limited amount if times per room, giving him extra stats. Shops have special stocks of of jokers for jim to use.",
                         Unlocked = true,
-                        UnlockMethod = "\"beat 'a familiar game'\""
+                        UnlockMethod = "\"Have fun\""
                     }
                 end,
                 dest = "unlockInspection"
@@ -602,17 +614,25 @@ menu.unlockManager = {
             spr:ReplaceSpritesheet(0, data.Gfx)
             spr:LoadGraphics()
             spr:Play("Idle", true)
-
-            local unlocked = Isaac.GetPersistentGameData():Unlocked(data.Achievement) 
+            local unlocked = Isaac.GetPersistentGameData():Unlocked(data.Achievement)
             local scaleFactor = 1
 
             local color = unlocked and Color.Default or Color(0, 0, 0, 1)
+
 
             if data.Type == "Character" then
                 local dividerB = Sprite()
                 dividerB:Load("gfx/ui/hud_dss_divider.anm2", true)
                 dividerB:Play("Tainted", true)
+                dividerB:ReplaceSpritesheet(3, data.Gfx, true)
+                dividerB.Offset = Vector(75, 0)
+
+
+                --dividerLine.Offset = Vector(-75, 75) --idfk man it was just broken
+
                 table.insert(item.buttons, {
+                    nosel = false,
+                    fullrow = true,
                     cursoroff = dividerOffset,
                     spr = {
                         color = DeadSeaScrollsMenu:GetPalette()[2],
@@ -634,9 +654,9 @@ menu.unlockManager = {
                             ToggleFunction = function (bool)
 
                                 if bool then
-                                    Isaac.GetPersistentGameData():TryUnlock(Balatro_Expansion.Achievements.T_JIMBO)
+                                    Isaac.GetPersistentGameData():TryUnlock(Sheriff.RepentogonAchievements.Tainted)
                                 else
-                                    Isaac.ExecuteCommand("lockachievement " .. Balatro_Expansion.Achievements.T_JIMBO)
+                                    Isaac.ExecuteCommand("lockachievement " .. Sheriff.RepentogonAchievements.Tainted)
                                 end
                             end
                         }
@@ -660,8 +680,18 @@ menu.unlockManager = {
                 goto skip
             end
 
+            local FullRow = false
+            local CursorOff = Vector(-10, 0)
+
+            if i % 2 == 1 and data.Last then
+                spr.Offset = Vector(30, 0)
+                FullRow = true
+                CursorOff = CursorOff + spr.Offset
+            end
+
             local button = {
-                cursoroff = Vector(-10, 0),
+                fullrow = FullRow,
+                cursoroff = CursorOff,
                 spr = {
                     color = color,
                     sprite = spr,
@@ -681,45 +711,58 @@ menu.unlockManager = {
                         Unlocked = unlocked,
                         UnlockMethod = data.UnlockMethod,
                         ToggleFunction = function (bool)
+                            -- this is all so hacky... i hate unlockapi
                             if data.Type == "Collectible" then
-
-                                if REPENTOGON and Balatro_Expansion.Achievements.Items[data.Id] then
-                                    if bool then
-                                        Isaac.GetPersistentGameData():TryUnlock(Balatro_Expansion.Achievements.Items[data.Id])
-                                    else
-                                        Isaac.ExecuteCommand("lockachievement " .. Balatro_Expansion.Achievements.Items[data.Id])
-                                    end
+  
+                                if bool then
+                                    Isaac.GetPersistentGameData():TryUnlock(data.Achievement)
+                                else
+                                    Isaac.ExecuteCommand("lockachievement " .. data.Achievement)
                                 end
+                                
                             elseif data.Type == "Trinket" then
-                                if REPENTOGON and Balatro_Expansion.Achievements.Trinkets[data.Id] then
-                                    if bool then
-                                        Isaac.GetPersistentGameData():TryUnlock(Balatro_Expansion.Achievements.Trinkets[data.Id])
-                                    else
-                                        Isaac.ExecuteCommand("lockachievement " .. Balatro_Expansion.Achievements.Trinkets[data.Id])
-                                    end
+
+                                if bool then
+                                    Isaac.GetPersistentGameData():TryUnlock(data.Achievement)
+                                else
+                                    Isaac.ExecuteCommand("lockachievement " .. data.Achievement)
                                 end
+                               
                             elseif data.Type == "Entity" then
-                                if data.Variant == Balatro_Expansion.Entities.Rancher.ID then --USELESS FOR NOW
-                                    if bool then
-                                        Isaac.GetPersistentGameData():TryUnlock(Balatro_Expansion.Achievements.Entities[data.Id])
-                                    else
-                                        Isaac.ExecuteCommand("lockachievement " .. Balatro_Expansion.Achievements.Entities[data.Id])
+                                for _, unlockData in ipairs(UnlockAPI.Unlocks.Entities) do
+                                    if data.Id == unlockData.Type and data.Variant == (unlockData.Variant or data.Variant) and data.Subtype == (unlockData.SubType or data.Subtype) then
+                                        UnlockAPI.Helper.SetRequirements(unlockData.UnlockRequirements, data.Tainted and "t.The Sheriff" or "The Sheriff", bool)
                                     end
+
+                                    if bool then
+                                        Isaac.GetPersistentGameData():TryUnlock(Sheriff.RepentogonAchievements.Rancher)
+                                    else
+                                        Isaac.ExecuteCommand("lockachievement " .. Sheriff.RepentogonAchievements.Rancher)
+                                    end
+                                    
                                 end
                             elseif data.Type == "Card" then
 
-                                if Balatro_Expansion.Achievements.Pickups[data.Id] then
-                                    if bool then
-                                        Isaac.GetPersistentGameData():TryUnlock(Balatro_Expansion.Achievements.Pickups[data.Id])
-                                    else
-                                        Isaac.ExecuteCommand("lockachievement " .. Balatro_Expansion.Achievements.Pickups[data.Id])
-                                    end
+                                if bool then
+                                    Isaac.GetPersistentGameData():TryUnlock(data.Achievement)
+                                else
+                                    Isaac.ExecuteCommand("lockachievement " .. data.Achievement)
+                                end
+                            elseif data.Type == "Ultimate" then
+
+                                if bool then
+                                    Isaac.GetPersistentGameData():TryUnlock(data.Achievement)
+                                else
+                                    Isaac.ExecuteCommand("lockachievement " .. data.Achievement)
                                 end
                             end
                         end
                     }
-                end
+                end,
             }
+
+
+
 
             table.insert(item.buttons, button)
 
@@ -727,6 +770,7 @@ menu.unlockManager = {
         end
     end
 }
+
 
 menu.lockAllConfirmation = {
     title = "confirmation",

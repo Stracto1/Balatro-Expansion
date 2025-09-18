@@ -297,6 +297,9 @@ Balatro_Expansion.Effects.JIMBO_THE_KILLER = {VARIANT = Isaac.GetEntityVariantBy
                                                          ENEMIES = 2}} --used to hide some character design flaws ;)
 
 Balatro_Expansion.Effects.DIALOG_BUBBLE = Isaac.GetEntityVariantByName("Blind Cashout Bubble")
+Balatro_Expansion.Effects.DESC_HELPER = Isaac.GetEntityVariantByName("Description Helper")
+Balatro_Expansion.Effects.PLATE_HELPER_SUBTYPE = Isaac.GetEntitySubTypeByName("Plate desc helper")
+
 
 Balatro_Expansion.DialogBubbleSubType = {CASHOUT = Isaac.GetEntitySubTypeByName("Blind Cashout Bubble"),
                                          BLIND_INFO = Isaac.GetEntitySubTypeByName("Blind Info Bubble"),
@@ -314,7 +317,10 @@ Balatro_Expansion.Pickups.PLAYING_CARD = Isaac.GetEntityVariantByName("Balatro P
 Balatro_Expansion.Entities = {}
 Balatro_Expansion.Entities.BALATRO_TYPE = Isaac.GetEntityTypeByName("Pathfinder Slave")
 Balatro_Expansion.Entities.PATH_SLAVE = Isaac.GetEntityVariantByName("Pathfinder Slave")
+Balatro_Expansion.Entities.CLOSET_JIMBO_SUBTYPE = Isaac.GetEntitySubTypeByName("Jimbo (secret)")
+Balatro_Expansion.Entities.STUPID_GAPER_SUBTYPE = Isaac.GetEntitySubTypeByName("Stupid Gaper")
 --Balatro_Expansion.Entities.SHOP_MIMIC = Isaac.GetEntityVariantByName("Shop Mimic")
+
 
 Balatro_Expansion.Grids = {}
 Balatro_Expansion.Grids.PlateVariant = {BLIND = 146,
@@ -323,7 +329,8 @@ Balatro_Expansion.Grids.PlateVariant = {BLIND = 146,
                                         SHOP_EXIT = 149,
                                         SMALL_BLIND_SKIP = 150,
                                         BIG_BLIND_SKIP = 151,
-                                        BOSS_BLIND_SKIP = 152} --only usen on last floor of ascent
+                                        BOSS_BLIND_SKIP = 152,--only usen on last floor of ascent (unused)
+                                        RUN_STARTER = 153}
 
 
 Balatro_Expansion.Grids.PLATE_ANM2_PATH = "gfx/grid/grid_balatro_pressureplate.anm2"
@@ -1183,7 +1190,7 @@ Balatro_Expansion.Saved.DSS = {
 
 Balatro_Expansion.Achievements = {
                                     PERMA_LOCK = Isaac.GetAchievementIdByName("PermaLocked"), --achievement used to block certain pickups from appearing outside of forced spawning
-                                    T_JIMBO = Isaac.GetAchievementIdByName("T_JimboUnlock"),
+                                    T_JIMBO = Isaac.GetAchievementIdByName("RagambledTJimboUnlock"),
                                     TRINKET_EDITIONS = Isaac.GetAchievementIdByName("TrinketEditionsUnlock"),
                                     Items = {   
                                             [Balatro_Expansion.Collectibles.HORSEY] = Isaac.GetAchievementIdByName("HorseyUnlock"),
@@ -1212,7 +1219,8 @@ Balatro_Expansion.Achievements = {
                                                 [Balatro_Expansion.Trinkets.PENNY_SEEDS] = Isaac.GetAchievementIdByName("PennySeedsUnlock"),
 
                                         },
-                                    Entities = {},
+                                    Entities = {A_STUPID_IDEA = Isaac.GetAchievementIdByName("AStupidIdeaUnlock"),
+},
                                     Pickups = {}
                                  
                                 }
@@ -1324,6 +1332,7 @@ include("Balatro_scripts.custom_grid")
 include("Balatro_scripts.Unlockables.Unlockable Items")
 include("Balatro_scripts.Unlockables.The Hand")
 include("Balatro_scripts.Unlockables.Trinket Editions")
+include("Balatro_scripts.Unlockables.Stupid Gaper")
 --include("Balatro_scripts.Trinket_Callbacks")
 
 ---------------------CUSTOM UI ANIMATIONS---------------------

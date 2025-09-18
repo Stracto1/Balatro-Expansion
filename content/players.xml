@@ -11,15 +11,18 @@
         rangemodifier="1"
         luckmodifier="1"
         modcostume="110"
+        birthright="Scaling big"
 
         coins="4"
 
-        
         portrait="playerportrait_jimbo.png"
         skinColor="0"
     />
 
     <player name="Jimbo"
+
+        achievement="RagambledTJimboUnlock"
+
         skin="character_jimbo_b.png"
         nameimage="playername_jimbo.png"
         hp="2"
@@ -33,6 +36,8 @@
         canShoot="false"
         coins="4"
         speedmodifier="0.4"
+
+        birthright="That's him officer!"
     />
-    <!-- costume="104" haha le funny number-->
+    <!-- costume="104" haha le funny italian number-->
 </players>

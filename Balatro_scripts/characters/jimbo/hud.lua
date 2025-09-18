@@ -21,9 +21,6 @@ local ChipsCounter = Sprite("gfx/ui/Chips Counter.anm2")
 MultCounter:SetFrame("Idle",0)
 ChipsCounter:SetFrame("Idle",0)
 
-local BlindInicator = Sprite("gfx/ui/Blind_indicator.anm2")
-BlindInicator:SetFrame("Full",0)
-
 local DiscardChargeSprite = Sprite("gfx/chargebar.anm2")
 local HandChargeSprite = Sprite("gfx/chargebar.anm2")
 
@@ -336,119 +333,6 @@ function mod:HandBarRender(offset,_,Position,_,Player)
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.HandBarRender)
-
-
-local function BlindProgressHUD(offset,_,Position,_,Player)
-
-    --------BLIND PROGRESS-----------
-    
-    if Minimap:GetState() ~= MinimapState.NORMAL or Game:GetLevel():GetStage() == LevelStage.STAGE8 then
-        return
-    end
-
-    local SmallAvailable, BigAvailable, BossAvailable = mod:GetJimboBlindAvailability()
-
-    if not BossAvailable then
-        return
-    end
-
-
-    if BigAvailable then
-        
-        if SmallAvailable then
-            
-            BlindInicator:SetFrame("Full", 0)
-
-        else
-            BlindInicator:SetFrame("Big Boss", 0)
-        end
-    else
-        BlindInicator:SetFrame("Boss", 0)
-    end
-
-
-    local ScreenWidth = Isaac.GetScreenWidth()
-    local RenderPos = Vector(ScreenWidth - 55 ,25) + Vector(-20, 14)*Options.HUDOffset + Minimap:GetShakeOffset()
-
-    BlindInicator:Render(RenderPos)
-
-
-    local String
-    local Position
-    local Params = mod.StringRenderingParams.Centered
-    local StartFrame = 0 --doesn't matter
-    local Scale
-    local Kcolor
-    local BoxWidth
-
-    ---SMALL BLIND
-    
-    if SmallAvailable then
-        BlindInicator:SetFrame(0)
-        local Frame = BlindInicator:GetNullFrame("String Positions")
-
-        Position = RenderPos + Frame:GetPos()
-        Scale = Vector.One * 100 * Frame:GetScale().Y
-        BoxWidth = Frame:GetScale().X * 100
-    
-        if mod.Saved.SmallCleared == mod.BlindProgress.DEFEATED then
-            Kcolor = mod.EffectKColors.YELLOW
-            String = mod:GetEIDString("Other","Cleared")
-
-        else
-            Kcolor = KColor.White
-            String = mod:GetEIDString("Other","NotCleared")
-        end
-    
-        mod:RenderBalatroStyle(String, Position, Params, StartFrame, Scale, Kcolor, BoxWidth)
-    end
-
-
-    ---BIG BLIND
-    
-    if BigAvailable then
-        BlindInicator:SetFrame(1)
-        local Frame = BlindInicator:GetNullFrame("String Positions")
-
-        Position = RenderPos + Frame:GetPos()
-        Scale = Vector.One * 100 * Frame:GetScale().Y
-        BoxWidth = Frame:GetScale().X * 100
-        
-        if mod.Saved.BigCleared == mod.BlindProgress.DEFEATED then
-            Kcolor = mod.EffectKColors.YELLOW
-            String = mod:GetEIDString("Other","Cleared")
-
-        else
-            Kcolor = KColor.White
-            String = mod:GetEIDString("Other","NotCleared")
-        end
-    
-        mod:RenderBalatroStyle(String, Position, Params, StartFrame, Scale, Kcolor, BoxWidth)
-    end
-
-    --BOSS BLINDS (always available if rendering)
-    
-    BlindInicator:SetFrame(2)
-    local Frame = BlindInicator:GetNullFrame("String Positions")
-
-    Position = RenderPos + Frame:GetPos()
-    Scale = Vector.One * 100 * Frame:GetScale().Y
-    BoxWidth = Frame:GetScale().X * 100
-    
-    if mod.Saved.BossCleared == mod.BlindProgress.DEFEATED then
-        Kcolor = mod.EffectKColors.YELLOW
-        String = mod:GetEIDString("Other","Cleared")
-
-    else
-        Kcolor = KColor.White
-        String = mod:GetEIDString("Other","NotCleared")
-    end
-
-    mod:RenderBalatroStyle(String, Position, Params, StartFrame, Scale, Kcolor, BoxWidth)
-
-end
-mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, BlindProgressHUD)
-
 
 
 

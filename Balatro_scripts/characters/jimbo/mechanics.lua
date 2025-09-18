@@ -6,24 +6,16 @@ local music = MusicManager()
 
 local ENHANCEMENTS_ANIMATIONS = {"Base","Mult","Bonus","Wild","Glass","Steel","Stone","Gold","Lucky"}
 local SUIT_ANIMATIONS = {"Spade","Heart","Club","Diamond"}
-local HAND_TYPE_NAMES = {"high card","pair","Two pair","three of a kind","straight","flush","full house","four of a kind", "straight flush", "royal flush","five of a kind","fluah house","flush five"}
-HAND_TYPE_NAMES[0] = "none"
 
 local TrinketSprite = Sprite("gfx/005.350_trinket_custom.anm2")
 local JOKER_OVERLAY_LENGTH = TrinketSprite:GetAnimationData("Idle"):GetLength()
 
-local CHARGED_ANIMATION = 22 --the length of an animation for chargebars
-local CHARGED_LOOP_ANIMATION = 10
-
-local JIMBO_BASE_TEARS = 2 --is actually 1+ this value
+local JIMBO_BASE_TEARS = 2 --it's actually 1+ this value
 
 
 local BasicRoomNum = 0
 local NumShops = 0
-local DeathCopyCard
 
---local jesterhatCostume = Isaac.GetCostumeIdByPath("gfx/characters/gabriel_hair.anm2") -- Exact path, with the "resources" folder as the root
---local jesterstolesCostume = Isaac.GetCostumeIdByPath("gfx/characters/gabriel_stoles.anm2") -- Exact path, with the "resources" folder as the root
 local Game = Game()
 local Level = Game:GetLevel()
 local ItemPool = Game:GetItemPool()
@@ -56,6 +48,66 @@ function mod:JimboInit(player)
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, mod.JimboInit)
+
+
+local function SetupTJimboUnlock()
+
+    local Room = Game:GetRoom()
+
+    if not mod:IsSecretCloset() 
+       or Isaac.GetPersistentGameData():Unlocked(mod.Achievements.T_JIMBO)
+       or not Room:IsFirstVisit() then
+        return
+    end
+
+    local FirstPlayerType = Game:GetPlayer(0):GetPlayerType() --specifically needs the first player to determine wheter to spawn jimbo or not
+
+    if FirstPlayerType ~= mod.Characters.JimboType then
+        return
+    end
+
+
+    local RoomCenter = Room:GetCenterPos()
+
+    Isaac.CreateTimer(function () --freakin timers man
+        Isaac.CreateTimer(function ()
+            for _,Entity in ipairs(Isaac.GetRoomEntities()) do
+            
+                if Entity.Type == 5 and Entity.Variant == PickupVariant.PICKUP_COLLECTIBLE
+                   or Entity.Type == EntityType.ENTITY_SHOPKEEPER then
+                    Entity:Remove() --removes the inner child/shopkeeper that normally spawns
+                end
+            end
+        end, 1, 1, true)
+    end, 0, 1, true)
+        
+
+
+    local DeadDude = Game:Spawn(EntityType.ENTITY_SLOT, SlotVariant.HOME_CLOSET_PLAYER, RoomCenter,
+                                Vector.Zero, nil, mod.Entities.CLOSET_JIMBO_SUBTYPE, 1)
+
+    local SkinSheet = EntityConfig.GetPlayer(mod.Characters.TaintedJimbo):GetSkinPath()
+    SkinSheet = string.gsub(SkinSheet, "%.png", "_white.png") --the other sheets are useless for this character 
+
+
+    DeadDude:GetSprite():ReplaceSpritesheet(0, SkinSheet, true)
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, SetupTJimboUnlock)
+
+local function TJimboUnlock(_, Slot)
+
+    if Slot.Variant ~= SlotVariant.HOME_CLOSET_PLAYER
+       and Slot.SubType ~= mod.Entities.CLOSET_JIMBO_SUBTYPE then
+        return
+    end
+
+    if Slot:GetSprite():IsEventTriggered("Poof") then
+        Isaac.GetPersistentGameData():TryUnlock(mod.Achievements.T_JIMBO)
+    end
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_SLOT_UPDATE, TJimboUnlock)
 
 
 
@@ -868,8 +920,15 @@ function mod:AddRoomsCleared(IsBoss, Hostile)
                     mod:FullDeckShuffle(Player)
                 end
 
+                if mod:IsBeastBossRoom() then
+                    Player:SetFullHearts()
+                else
+                    Player:AddHearts(2)
+                end
+
                 Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.HEART, Player.Position + Vector(0,7),Vector.Zero,nil,0,1)
-                Player:AddHearts(2)
+
+                
             end
         end
     end
@@ -1221,7 +1280,6 @@ function mod:JimboRoomClear(Player)
         local IsFirstWave = IsFloorStarter or CurrentWave == WantedWaves[2]-1 or CurrentWave == WantedWaves[3]
 
         if IsFirstWave then
-            print("first")
 
             Isaac.CreateTimer(function ()
                 mod:OnNewRoomJokers()

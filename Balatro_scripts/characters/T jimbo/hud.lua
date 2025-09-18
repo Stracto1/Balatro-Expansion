@@ -27,7 +27,8 @@ local JidleLength = TrinketSprite:GetAnimationData("Idle"):GetLength()
 local TriggerAnimationLength = 30
 local TriggerCounterMult = 180 / TriggerAnimationLength
 
-
+local BlindInicator = Sprite("gfx/ui/Blind_indicator.anm2")
+BlindInicator:SetFrame("Full",0)
 
 
 local HUD_FRAME = {}
@@ -116,7 +117,7 @@ local CardHUDWidth = 13
 local PACK_CARD_DISTANCE = 10
 local DECK_RENDERING_POSITION = Vector(-15,-20) --in screen coordinates
 --local DECK_RENDERING_POSITION = Vector(450,250) --in screen coordinates
-local INVENTORY_RENDERING_HEIGHT = 32
+local INVENTORY_RENDERING_HEIGHT = 25
 local JOKER_AREA_WIDTH = 125
 local CONSUMABLE_CENTER_OFFSET = 150
 local CONSUMABLE_AREA_WIDTH = 75
@@ -188,6 +189,10 @@ function mod:BossIntroIsPlaying()
            or (Level:GetStage() == LevelStage.STAGE4_2 and Level:IsAltStage()
                or Level:GetStage() == LevelStage.STAGE8) and BossIntroTime > 0
 
+end
+
+function mod:WorldToScreen(Position)
+    return Isaac.WorldToScreen(Position) + CameraOffset
 end
 
 local function MoveCameraToRightBorder()
@@ -1020,6 +1025,120 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, JimboDeckRender)
 
 
 
+local function BlindProgressHUD(offset,_,Position,_,Player)
+
+    --------BLIND PROGRESS-----------
+    
+    if Minimap:GetState() ~= MinimapState.NORMAL or Game:GetLevel():GetStage() == LevelStage.STAGE8
+       or not PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then
+        return
+    end
+
+    local SmallAvailable, BigAvailable, BossAvailable = mod:GetJimboBlindAvailability()
+
+    if not BossAvailable then
+        return
+    end
+
+
+    if BigAvailable then
+        
+        if SmallAvailable then
+            
+            BlindInicator:SetFrame("Full", 0)
+
+        else
+            BlindInicator:SetFrame("Big Boss", 0)
+        end
+    else
+        BlindInicator:SetFrame("Boss", 0)
+    end
+
+
+    local ScreenWidth = Isaac.GetScreenWidth()
+    local RenderPos = Vector(ScreenWidth - 55 ,25) + Vector(-20, 14)*Options.HUDOffset + Minimap:GetShakeOffset()
+
+    BlindInicator:Render(RenderPos)
+
+
+    local String
+    local Position
+    local Params = mod.StringRenderingParams.Centered
+    local StartFrame = 0 --doesn't matter
+    local Scale
+    local Kcolor
+    local BoxWidth
+
+    ---SMALL BLIND
+    
+    if SmallAvailable then
+        BlindInicator:SetFrame(0)
+        local Frame = BlindInicator:GetNullFrame("String Positions")
+
+        Position = RenderPos + Frame:GetPos()
+        Scale = Vector.One * 100 * Frame:GetScale().Y
+        BoxWidth = Frame:GetScale().X * 100
+    
+        if mod.Saved.SmallCleared == mod.BlindProgress.DEFEATED then
+            Kcolor = mod.EffectKColors.YELLOW
+            String = mod:GetEIDString("Other","Cleared")
+
+        else
+            Kcolor = KColor.White
+            String = mod:GetEIDString("Other","NotCleared")
+        end
+    
+        mod:RenderBalatroStyle(String, Position, Params, StartFrame, Scale, Kcolor, BoxWidth)
+    end
+
+
+    ---BIG BLIND
+    
+    if BigAvailable then
+        BlindInicator:SetFrame(1)
+        local Frame = BlindInicator:GetNullFrame("String Positions")
+
+        Position = RenderPos + Frame:GetPos()
+        Scale = Vector.One * 100 * Frame:GetScale().Y
+        BoxWidth = Frame:GetScale().X * 100
+        
+        if mod.Saved.BigCleared == mod.BlindProgress.DEFEATED then
+            Kcolor = mod.EffectKColors.YELLOW
+            String = mod:GetEIDString("Other","Cleared")
+
+        else
+            Kcolor = KColor.White
+            String = mod:GetEIDString("Other","NotCleared")
+        end
+    
+        mod:RenderBalatroStyle(String, Position, Params, StartFrame, Scale, Kcolor, BoxWidth)
+    end
+
+    --BOSS BLINDS (always available if rendering)
+    
+    BlindInicator:SetFrame(2)
+    local Frame = BlindInicator:GetNullFrame("String Positions")
+
+    Position = RenderPos + Frame:GetPos()
+    Scale = Vector.One * 100 * Frame:GetScale().Y
+    BoxWidth = Frame:GetScale().X * 100
+    
+    if mod.Saved.BossCleared == mod.BlindProgress.DEFEATED then
+        Kcolor = mod.EffectKColors.YELLOW
+        String = mod:GetEIDString("Other","Cleared")
+
+    else
+        Kcolor = KColor.White
+        String = mod:GetEIDString("Other","NotCleared")
+    end
+
+    mod:RenderBalatroStyle(String, Position, Params, StartFrame, Scale, Kcolor, BoxWidth)
+
+end
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, BlindProgressHUD)
+
+
+
 --rendere the player's current hand below them
 local ScaleMult = 1
 ---@param Player EntityPlayer
@@ -1752,7 +1871,7 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
            or mod.Saved.BlindBeingPlayed & mod.BLINDS.WAITING_CASHOUT ~= 0 then
 
         NeededColor = mod.BalatroColorBlack--:SetColorize(BlindKColor.Red, BlindKColor.Green, BlindKColor.Blue, 1)
-    else --if mod.Saved.BlindBeingPlayed == mod.BLINDS.SHOP then
+    else
         
         BlindChipsSprite:SetFrame("Chips", mod:GetBLindChipFrame(mod.Saved.BlindBeingPlayed))
 
@@ -2432,7 +2551,11 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
     
     do
 
-    LeftSideHUD:GetLayer(LeftSideLayers.General_Info):SetColor(BlindChipColor)
+    if mod.Saved.BlindBeingPlayed & mod.BLINDS.BOSS ~= 0 then
+        LeftSideHUD:GetLayer(LeftSideLayers.General_Info):SetColor(BlindChipColor)
+    else
+        LeftSideHUD:GetLayer(LeftSideLayers.General_Info):SetColor(BlindChipColor)
+    end
 
     LeftSideHUD:RenderLayer(LeftSideLayers.General_Info, -SCREEN_SHAKE)
 

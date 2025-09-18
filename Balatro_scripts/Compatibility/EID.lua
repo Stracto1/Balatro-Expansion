@@ -13,6 +13,7 @@ mod.EID_DescType = {NONE = 0,
                     BOOSTER = 8,
                     VOUCHER = 16,
                     BLIND = 32,
+                    PLATE = 64,
                     SELECTION_FLAG = 256}
 
 local EID_DescAllingnment = {TOP = 1,
@@ -21,10 +22,8 @@ local EID_DescAllingnment = {TOP = 1,
                              RIGHT = 8,
                              CENTER = 0}
 
-
-local DescriptionHelperVariant = Isaac.GetEntityVariantByName("Description Helper")
-local DescriptionHelperSubType = Isaac.GetEntitySubTypeByName("Description Helper")
-EID:addEntity(1000, DescriptionHelperVariant, DescriptionHelperSubType, "", "")
+EID:addEntity(1000, mod.Effects.DESC_HELPER, 0, "", "")
+EID:addEntity(1000, mod.Effects.DESC_HELPER, mod.Effects.PLATE_HELPER_SUBTYPE, "", "")
 
 
 mod.Descriptions = {}
@@ -831,7 +830,9 @@ end
 --uses a hacky entity to simulate the options being described, no idea if this is an optimal way or not
 local function BalatroInventoryCondition(descObj)
 
-    if descObj.ObjType == EntityType.ENTITY_EFFECT and descObj.ObjVariant == DescriptionHelperVariant and descObj.ObjSubType == DescriptionHelperSubType then
+    if descObj.ObjType == EntityType.ENTITY_EFFECT 
+       and descObj.ObjVariant == mod.Effects.DESC_HELPER
+       and descObj.ObjSubType == 0 then
         if PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
             return true
         end
@@ -1278,15 +1279,13 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, ResetDescription)
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, ResetDescription)
 
 
-
 --I hate myself for doing this
 local function TJimboDescriptionsCondition(descObj)
 
     if PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then
 
-       --and descObj.ObjVariant == DescriptionHelperVariant
+       --and descObj.ObjVariant == mod.Effects.DESC_HELPER
        --and descObj.ObjSubType == DescriptionHelperSubType then
-
         return true
 
     else
@@ -1311,9 +1310,8 @@ local function TJimboDescriptionsCallback(descObj)
     PlayerSelection = mod.SelectionParams[PIndex]
 
     --first check if the selection has something to describe
-    
-
-    if descObj.ObjVariant ~= DescriptionHelperVariant and descObj.ObjSubType ~= DescriptionHelperSubType
+    if descObj.ObjType ~= 1000
+       or descObj.ObjVariant ~= mod.Effects.DESC_HELPER
        or PlayerSelection.Mode == mod.SelectionParams.Modes.NONE then
 
         goto ENTITY_CHECK
@@ -1467,32 +1465,89 @@ local function TJimboDescriptionsCallback(descObj)
 
 
     if Result then
-
-        EID:removeTextPosModifier("T_Jimbo HUD")
-
+        
         ObjectToDescribe.Type = ObjectToDescribe.Type | mod.EID_DescType.SELECTION_FLAG
 
         ObjectToDescribe.Position.Y = ObjectToDescribe.Position.Y - ObjectToDescribe.Position.Y%0.5
         ObjectToDescribe.Position.X = ObjectToDescribe.Position.X - ObjectToDescribe.Position.X%0.5
 
         EID_Desc.StartFrame = Isaac.GetFrameCount()
+
+        return descObj
     end
 
 
     ::ENTITY_CHECK::
 
-    if descObj.ObjType == EntityType.ENTITY_PICKUP then
 
-        local NewHash = GetPtrHash(descObj.Entity)
+    if descObj.ObjType == 1000 
+       and descObj.ObjVariant == mod.Effects.DESC_HELPER 
+       and descObj.ObjSubType == mod.Effects.PLATE_HELPER_SUBTYPE then
 
-        if ObjectToDescribe.Entity == NewHash then --caches the previous variables to save time
-            
+
+        if ObjectToDescribe.Entity == GetPtrHash(descObj.Entity) then --caches the previous variables to save time
+        
             Result = true
             return descObj
         end
 
-        EID_Desc.StartFrame = Isaac.GetFrameCount()
+        ---@type GridEntityDesc
+        local Desc = descObj.Entity:GetData().GridEntityDesc
 
+        if (Desc.Variant ~= mod.Grids.PlateVariant.SMALL_BLIND_SKIP
+           and Desc.Variant ~= mod.Grids.PlateVariant.BIG_BLIND_SKIP
+           and Desc.Variant ~= mod.Grids.PlateVariant.BOSS_BLIND_SKIP)
+           or not Desc.Initialized then
+
+            Result = false
+            goto FINISH
+        end
+
+        Result = true
+        ObjectToDescribe.Entity = GetPtrHash(descObj.Entity)
+
+        EID_Desc.NumLines = nil
+        EID_Desc.FilteredName = nil
+        EID_Desc.FilteredDescription = nil
+
+        --local PlateVariant = descObj.ObjVariant
+        local VarData = Desc.VarData
+
+        ObjectToDescribe.Params = {}
+
+        ObjectToDescribe.Type = mod.EID_DescType.PLATE
+        ObjectToDescribe.SubType = VarData
+
+        ObjectToDescribe.Allignment = EID_DescAllingnment.TOP
+
+        ObjectToDescribe.Position = mod:WorldToScreen(descObj.Entity.Position) + Vector(0, 13)
+
+
+    elseif descObj.ObjType == EntityType.ENTITY_PICKUP then
+
+        if ObjectToDescribe.Entity == GetPtrHash(descObj.Entity) then --caches the previous variables to save time
+        
+            local RenderLeft = T_Jimbo.Position.X > descObj.Entity.Position.X
+
+            local LateralOffset
+
+            if RenderLeft then
+                
+                ObjectToDescribe.Allignment = EID_DescAllingnment.RIGHT
+                LateralOffset = Vector(-12, 0)
+            else
+                ObjectToDescribe.Allignment = EID_DescAllingnment.LEFT
+                LateralOffset = Vector(12, 0)
+            end
+
+            ObjectToDescribe.Position = mod:WorldToScreen(descObj.Entity.Position) + LateralOffset
+        
+            Result = true
+            return descObj
+        end
+
+
+        EID_Desc.StartFrame = Isaac.GetFrameCount()
 
         ObjectToDescribe.Entity = GetPtrHash(descObj.Entity)
 
@@ -1501,7 +1556,7 @@ local function TJimboDescriptionsCallback(descObj)
         EID_Desc.FilteredDescription = nil
 
 
-        ObjectToDescribe.Allignment = EID_DescAllingnment.TOP | EID_DescAllingnment.LEFT
+        --ObjectToDescribe.Allignment = EID_DescAllingnment.TOP | EID_DescAllingnment.LEFT
 
         if descObj.ObjVariant == PickupVariant.PICKUP_COLLECTIBLE then
 
@@ -1624,7 +1679,7 @@ local function TJimboDescriptionsCallback(descObj)
             end
 
 
-        elseif descObj.ObjVarint == mod.Pickups.PLAYING_CARD then
+        elseif descObj.ObjVariant == mod.Pickups.PLAYING_CARD then
 
             local card = mod:PlayingCardSubTypeToParams(descObj.ObjSubType)
 
@@ -1636,12 +1691,22 @@ local function TJimboDescriptionsCallback(descObj)
         end
 
         if Result then
-            
-            EID:removeTextPosModifier("T_Jimbo HUD")
+            --ObjectToDescribe.Position = Vector(92,42)
 
-            ObjectToDescribe.Position = EID:getTextPosition() + Vector(50,-20)
+            local RenderLeft = T_Jimbo.Position.X > descObj.Entity.Position.X
 
-            EID:addTextPosModifier("T_Jimbo HUD", Vector(-200,-100))
+            local LateralOffset
+
+            if RenderLeft then
+                
+                ObjectToDescribe.Allignment = EID_DescAllingnment.RIGHT
+                LateralOffset = Vector(-12, 0)
+            else
+                ObjectToDescribe.Allignment = EID_DescAllingnment.LEFT
+                LateralOffset = Vector(12, 0)
+            end
+
+            ObjectToDescribe.Position = mod:WorldToScreen(descObj.Entity.Position) + LateralOffset
         end
     end
 
@@ -1792,6 +1857,15 @@ local function TJimboDescriptionsCallback(descObj)
         EID_Desc.Extras.Enhancement = mod.Enhancement.NONE
         EID_Desc.Extras.Edition = ObjectToDescribe.Params.Edition
         EID_Desc.Extras.Seal = mod.Seals.NONE
+
+
+    elseif ObjectToDescribe.Type & mod.EID_DescType.PLATE ~= 0 then
+
+
+        EID_Desc.Name = mod:GetEIDString("T_Jimbo", "SkipName", ObjectToDescribe.SubType)
+
+        EID_Desc.Description = mod:GetEIDString("T_Jimbo", "SkipTag", ObjectToDescribe.SubType)
+
     end
 
     EID_Desc.Name = mod:ReplaceBalatroMarkups(EID_Desc.Name, mod.EID_DescType.NONE, 0, true, PlayerSelection.Index)
@@ -1800,6 +1874,8 @@ local function TJimboDescriptionsCallback(descObj)
     ObjectToDescribe.Position.Y = ObjectToDescribe.Position.Y - ObjectToDescribe.Position.Y%0.5
     ObjectToDescribe.Position.X = ObjectToDescribe.Position.X - ObjectToDescribe.Position.X%0.5
 
+    EID_Desc.StartFrame = Isaac.GetFrameCount()
+
 
     if not Result then
 
@@ -1807,9 +1883,6 @@ local function TJimboDescriptionsCallback(descObj)
 
         return descObj
     end
-
-    
-
     
     return descObj -- return the modified description object
 end
@@ -1878,7 +1951,7 @@ function mod:RenderObjectDescription()
 
     local RenderPos = ObjectToDescribe.Position + Vector.Zero
     
-
+    
     if ObjectToDescribe.Allignment & EID_DescAllingnment.BOTTOM ~= 0 then
 
         local Offset = BubbleScale.Y*5 + EID_BUBBLE_BASE_SIZE.Y/2
@@ -1919,7 +1992,7 @@ function mod:RenderObjectDescription()
     local X_BorderOffset = Vector(BubbleScale.X*5,0)
 
     EID_Bubble.Scale = BubbleScale
-
+    RenderPos = RenderPos
 
     EID_Bubble:SetFrame(0)
 

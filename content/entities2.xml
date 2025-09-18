@@ -316,7 +316,7 @@
 
     <entity name="Planet Ceres" anm2path="ceres_planet_familiar.anm2" id="3" 
     	shodowSize="12" friction="0.7" collisionInterval="3" collisionRadius="19" collisionsMass="1"
-        gridCollision="none" tags="cansacrifice">
+        gridCollision="none" tags="cansacrifice" customtags="familiarblockprojectiles">
     </entity>
 
 
@@ -325,7 +325,9 @@
 
     <entity name="Pack Particle Helper" anm2path="" id="1000" variant="2595" />
     <entity name="Pack Particle" anm2path="Particle.anm2" friction="1" id="1000" variant="2596" />
-    <entity name="Description Helper" anm2path="" id="1000"  friction="0" variant="2597" />
+    <entity name="Description Helper" anm2path="" id="1000" variant="0" friction="0" variant="2597" />
+    <entity name="Plate desc helper" anm2path="" id="1000" variant="2597" subtype ="1"/>
+
     <entity name="Blind Cashout Bubble" anm2path="" id="1000"  friction="0" variant="2599" subtype="1" /> <!--uses custom rendering -->
     <entity name="Blind Info Bubble" anm2path="" id="1000"  friction="0" variant="2599" subtype="2" />  <!--uses custom rendering -->
     <entity name="Reroll Price Bubble" anm2path="" id="1000"  friction="0" variant="2599" subtype="3" />  <!--uses custom rendering -->
@@ -368,7 +370,7 @@
     <entity name="Pathfinder Slave" anm2path="" id="2743" variant="1"
     	friction="0" collisionRadius="9" tags="noreroll" gridCollision="ground" shutdoors="false">
     </entity> <!-- cannot be id 1000 cause I need its pathfinder object-->
-
+    
     
     <entity anm2path="lollypop_1_pickup.anm2" baseHP="0" boss="0" champion="0" collisionDamage="0" collisionMass="3" collisionRadius="12" friction="1" id="5" name="Base Lollypop" numGridCollisionPoints="24" shadowSize="14" stageHP="0" variant="2036" subtype="1">
         <gibs amount="0" blood="0" bone="0" eye="0" gut="0" large="0" />
@@ -385,6 +387,20 @@
     <entity anm2path="" baseHP="0" boss="0" champion="0" collisionDamage="0" collisionMass="3" collisionRadius="12" friction="1" id="5" name="Balatro Playing Card" numGridCollisionPoints="24" shadowSize="14" stageHP="0" variant="2037" subtype="0">
         <gibs amount="0" blood="0" bone="0" eye="0" gut="0" large="0" />
 	    <!--<preload-snd id="234" />  PENNYPICKUP -->
+    </entity>
+
+
+    <entity anm2path="006.014_Isaac.anm2" baseHP="0" boss="0" champion="0" collisionDamage="0" collisionMass="3" collisionRadius="20" friction="1" id="6" name="Jimbo (secret)" numGridCollisionPoints="24" shadowSize="15" stageHP="0" variant="14" subtype="762">
+        <gibs amount="6" blood="1" bone="1" eye="1" gut="1" large="0"/>
+    </entity>
+
+    <entity anm2path="stupid_ass_gaper.anm2" hasFloorAlts="true" reroll="true" baseHP="10" boss="0" champion="1" collisionDamage="1" collisionMass="5" collisionRadius="13" friction="1" id="10" name="Stupid Gaper" numGridCollisionPoints="12" shadowSize="14" stageHP="0" variant="1" subtype="905" portrait="1">
+        <gibs amount="6" blood="1" bone="1" eye="1" gut="1" large="0" />
+        <preload-snd id="165" /> <!-- SOUND_ZOMBIE_WALKER_KID -->
+    </entity>
+    <entity anm2path="stupid_ass_flaminggaper.anm2" reroll="true" baseHP="9" boss="0" champion="1" collisionDamage="1" collisionMass="5" collisionRadius="13" friction="1" id="10" name="Stupid Flaming Gaper" numGridCollisionPoints="12" shadowSize="14" stageHP="0" variant="2" subtype="905" portrait="135">
+        <gibs amount="6" blood="1" bone="1" eye="1" gut="1" large="0" />
+        <preload-snd id="165" /> <!-- SOUND_ZOMBIE_WALKER_KID -->
     </entity>
 
 

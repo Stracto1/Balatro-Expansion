@@ -633,9 +633,16 @@ function mod:IsMegaSatanBossRoom()
 
     local Data = Game:GetLevel():GetCurrentRoomDesc().Data
 
-    return Data.Type == RoomType.ROOM_BOSS and (Data.Variant == 5000 and Data.Subtype == 55)
+    return Data.Type == RoomType.ROOM_BOSS and Data.Variant == 5000 and Data.Subtype == 55
 end
 
+
+function mod:IsSecretCloset()
+
+    local Data = Game:GetLevel():GetCurrentRoomDesc().Data
+
+    return Data.Type == RoomType.ROOM_DEFAULT and Data.Variant == 6 and Data.Subtype == 11
+end
 
 
 --copy-pasted this function directly from the API docs
@@ -731,6 +738,15 @@ function mod:DefaultStageOfFloor(StageOffset)
         return 10 + (StageOffset-8)*2
     end
 end
+
+
+
+local function effectTest(_, Effect)
+    
+    print(Effect.Type, Effect.Variant, Effect.SubType, EntityConfig.GetEntity(Effect.Type, Effect.Variant, Effect.SubType):GetName())
+end
+--mod:AddCallback(ModCallbacks.MC_POST_SLOT_INIT, effectTest)
+
 
 -------------JIMBO FUNCTIONS------------
 ---------------------------------------
@@ -4459,8 +4475,6 @@ end
 
 --VV sorry, didn't put many comments on these functions and I'm too lazy to do so now (I'll def regret this)
 
-local DescriptionHelperVariant = Isaac.GetEntityVariantByName("Description Helper")
-local DescriptionHelperSubType = Isaac.GetEntitySubTypeByName("Description Helper")
 local music = MusicManager()
 
 
@@ -4492,7 +4506,7 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
         end
         music:VolumeSlide(1, 0.04)
     
-        for i,v in ipairs(Isaac.FindByType(1000, DescriptionHelperVariant, DescriptionHelperSubType)) do
+        for i,v in ipairs(Isaac.FindByType(1000, mod.Effects.DESC_HELPER, 0)) do
             v:Remove()
         end
     
@@ -4543,8 +4557,8 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
         goto FINISH
 
     else
-        local Effect = Game:Spawn(EntityType.ENTITY_EFFECT, DescriptionHelperVariant, Player.Position,
-                                  Vector.Zero, nil, DescriptionHelperSubType, 1):ToEffect()
+        local Effect = Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.DESC_HELPER, Player.Position,
+                                  Vector.Zero, nil, 0, 1):ToEffect()
         Effect:FollowParent(Player)
         Effect:AddEntityFlags(EntityFlag.FLAG_PERSISTENT)
     end
@@ -4794,6 +4808,8 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
     mod.SelectionParams[PIndex].Purpose = NewPurpose
 end
 
+
+local DeathCopyCard
 
 --handles the single card selection
 ---@param Player EntityPlayer

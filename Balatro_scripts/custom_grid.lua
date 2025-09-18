@@ -43,6 +43,7 @@ local BALATRO_PLATE_SUFFIX = {
                                                                 [mod.BLINDS.BOSS_HEART] = "heart",
                                                                 [mod.BLINDS.BOSS_LEAF] = "leaf"},
                               [mod.Grids.PlateVariant.CASHOUT] = "cashout",
+                              [mod.Grids.PlateVariant.RUN_STARTER] = "cashout",
                               [mod.Grids.PlateVariant.SHOP_EXIT] = "shop_exit",
                               [mod.Grids.PlateVariant.REROLL] = "reroll",
                               [mod.Grids.PlateVariant.SMALL_BLIND_SKIP] = {[mod.SkipTags.BOSS] = "boss",
@@ -88,6 +89,11 @@ function mod:UpdateBalatroPlate(Plate,Init)
     --local PlateBlindLevel = mod:GetBlindLevel(Plate.VarData)
 
     if Init == true then
+
+        local Helper = Game:Spawn(1000, mod.Effects.DESC_HELPER, Plate.Position, Vector.Zero,
+                                  nil, mod.Effects.PLATE_HELPER_SUBTYPE, 1)
+        Helper:GetData().GridEntityDesc = Plate.Desc
+
 
         if Variant == mod.Grids.PlateVariant.BLIND then
 
