@@ -47,6 +47,25 @@ local function NO_GREED_MODE()
         for i,v in ipairs(PlayerManager.GetPlayers()) do
 
             v:AnimateSad()
+
+            if v:GetPlayerType() == mod.Characters.TaintedJimbo then
+
+                if Game:IsHardMode() then
+
+                    Isaac.SetCompletionMark(mod.Characters.TaintedJimbo, CompletionType.ULTRA_GREED, 2)
+                    Isaac.SetCompletionMark(mod.Characters.TaintedJimbo, CompletionType.ULTRA_GREEDIER, 2)
+                else
+                    Isaac.SetCompletionMark(mod.Characters.TaintedJimbo, CompletionType.ULTRA_GREED, 1)
+                    --Isaac.SetCompletionMark(mod.Characters.TaintedJimbo, CompletionType.ULTRA_GREEDIER, 2)
+                end
+            end
+        end
+
+        if Game:IsHardMode() then
+
+            Game:RecordPlayerCompletion(CompletionType.ULTRA_GREEDIER)
+        else
+            Game:RecordPlayerCompletion(CompletionType.ULTRA_GREED)
         end
     end
 end
@@ -816,7 +835,7 @@ local function SetupRoom()
        and not mod:IsBeastBossRoom()
        and not mod:IsMegaSatanBossRoom() then
 
-        print("REMOVEIN ALL")
+        --print("REMOVEIN ALL")
         
         for _,Entity in ipairs(Isaac.GetRoomEntities()) do --just to be safe
 
@@ -867,8 +886,10 @@ local function SetupRoom()
     for i=2, Width-1, 2 do
         local Position = Room:GetGridPosition(i + math.random(2, Height-1)*Width)
 
-        Game:Spawn(mod.Entities.BALATRO_TYPE, mod.Entities.PATH_SLAVE, Position,
-                   Vector.Zero, nil, 0, 1)
+        local Ent = Game:Spawn(mod.Entities.BALATRO_TYPE, mod.Entities.PATH_SLAVE, Position,
+                               Vector.Zero, nil, 0, 1)
+
+        Ent:ClearEntityFlags(EntityFlag.FLAG_APPEAR)
 
     end
 
@@ -1871,45 +1892,13 @@ local function MoveHandTarget(_,Effect)
 
     local Radius = BASE_HAND_RADIUS *mod.Saved.HandsStat[HandHype].Mult
 
+    mod:RenderCoolCircle(mod:WorldToScreen(Effect.Position), Radius, mod.EffectKColors, true, true, Effect.FrameCount)
+
+
     for _, Enemy in ipairs(Isaac.FindInRadius(Effect.Position, Radius, EntityPartition.ENEMY)) do
         
         Enemy:SetColor(Color(1.5,1.5,1.5,1, 0.1, 0.1, 0.1), 2, 100, true, false)
 
-    end
-
-    local TLClamp = Isaac.WorldToScreen(Game:GetRoom():GetTopLeftPos())
-    local BRClamp = Isaac.WorldToScreen(Game:GetRoom():GetBottomRightPos())
-
-    local NumSides = (Radius // 60)*2 + 6 --number of actually drawn lines
-    local Step = 90 / NumSides
-
-    local RadiusWiggle = math.sin(Isaac.GetFrameCount()/8) * mod:Clamp(Radius/15, 5.5, 1.5)
-
-    Radius = mod:CoolLerp(5, Radius + RadiusWiggle, Effect.FrameCount / 20)
-     
-    local StartRotation = (Isaac.GetFrameCount()*1.5) % 360
-
-    local EffectPos = Isaac.WorldToScreen(Effect.Position)
-    local FirstPoint = Isaac.WorldToScreenDistance(Vector(0, Radius)):Rotated(StartRotation)
-    local SecondPoint
-
-    for i=1, NumSides do
-        
-        SecondPoint = FirstPoint:Rotated(Step)
-
-        Isaac.DrawLine((EffectPos + FirstPoint):Clamped(TLClamp.X, TLClamp.Y, BRClamp.X, BRClamp.Y), 
-                       (EffectPos + SecondPoint):Clamped(TLClamp.X, TLClamp.Y, BRClamp.X, BRClamp.Y),
-                       LineBlue, mod.EffectKColors.BLUE, 3)
-
-        FirstPoint = SecondPoint:Rotated(Step)
-
-
-        Isaac.DrawLine((EffectPos + FirstPoint):Clamped(TLClamp.X, TLClamp.Y, BRClamp.X, BRClamp.Y), 
-                       (EffectPos + SecondPoint):Clamped(TLClamp.X, TLClamp.Y, BRClamp.X, BRClamp.Y),
-                       LineBlue, mod.EffectKColors.BLUE, 3)
-
-        FirstPoint = FirstPoint:Rotated(Step*2)
-        SecondPoint = SecondPoint:Rotated(Step*2)
     end
 
 end

@@ -326,6 +326,7 @@ function mod:InitPlayerValues(Player)
     
     
     mod.Saved.Player[PIndex].ComedicState = 0
+    mod.Saved.Player[PIndex].JimboSoulCharge = 0
 
     mod.Saved.Player[PIndex].HandyCards = {0,0,0,0,0} --cards held with THE HAND collectible
 

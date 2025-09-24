@@ -229,39 +229,41 @@ local itemData = {
     },
 
     {
-        Id = Balatro_Expansion.Collectibles.PLANET_X,
-        Gfx = ItemsConfig:GetCollectible(Balatro_Expansion.Collectibles.PLANET_X).GfxFileName,
-        Type = "Collectible",
-        Name = "Planet X",
-        UnlockMethod = "Unlocked by compleating all marks as T. Jimbo",
-        Description = "Gain the effect of a random planetarium item every new room",
-        Achievement = mod.Achievements.Items[mod.Collectibles.PLANET_X]
-    },
-    {
-        Id = Balatro_Expansion.Collectibles.ERIS,
-        Gfx = ItemsConfig:GetCollectible(Balatro_Expansion.Collectibles.ERIS).GfxFileName,
-        Type = "Collectible",
-        Name = "Eris",
-        UnlockMethod = "Unlocked by compleating all marks as T. Jimbo",
-        Description = "Enemies close to Isaac are slowed as they approach him, eventually starting to take damage",
-        Achievement = mod.Achievements.Items[mod.Collectibles.ERIS]
-    },
-    {
-        Id = Balatro_Expansion.Collectibles.CERES,
-        Gfx = ItemsConfig:GetCollectible(Balatro_Expansion.Collectibles.CERES).GfxFileName,
-        Type = "Collectible",
-        Name = "Ceres",
-        UnlockMethod = "Unlocked by compleating all marks as T. Jimbo",
-        Description = "Gain an orbital that leaves behind floating meteors as it gets hit. The meteors deal Isaac's damage and disappear after taking 2 hits",
-        Achievement = mod.Achievements.Items[mod.Collectibles.CERES]
+        Id = Balatro_Expansion.Trinkets.PENNY_SEEDS,
+        Gfx = ItemsConfig:GetTrinket(Balatro_Expansion.Trinkets.PENNY_SEEDS).GfxFileName,
+        Type = "Trinket",
+        Name = "Penny Seed",
+        UnlockMethod = "Unlocked by beating Isaac, B.B., Satan and The Lamb as T.Jimbo",
+        Description = "Gain a coin per 5 cents held on new floor",
+        Achievement = mod.Achievements.Trinkets[mod.Trinkets.PENNY_SEEDS]
     },
 
+    {
+        Id = Balatro_Expansion.JIMBO_SOUL,
+        Gfx = "gfx/ui/jimbosoul_dss_icon.png",
+        Type = "Trinket",
+        Name = "Soul of Jimbo",
+        UnlockMethod = "Unlocked by beating Boss Rush and Hush as T.Jimbo",
+        Description = "Gain a coin per 5 cents held on new floor",
+        Achievement = mod.Achievements.Consumables[mod.JIMBO_SOUL]
+    },
+
+    {
+        Gfx = ItemsConfig:GetTrinket(TrinketType.TRINKET_CANCER).GfxFileName,
+        Type = "idk man",
+        Name = "Trinket Editions",
+        UnlockMethod = "Unlocked by beating Mega Satanas T.Jimbo",
+        Description = "All Trinkets have a small chance to gain an edition when spawned",
+        Achievement = mod.Achievements.TRINKET_EDITIONS,
+        EditionShaders = true
+    },
+    
     {
         Id = Balatro_Expansion.Collectibles.THE_HAND,
         Gfx = ItemsConfig:GetCollectible(Balatro_Expansion.Collectibles.THE_HAND).GfxFileName,
         Type = "Collectible",
         Name = "The Hand",
-        UnlockMethod = "Unlocked by aaaaaaaaaaaaa",
+        UnlockMethod = "Unlocked by beating Delirium as T.Jimbo",
         Description = "Up to 5 cards can be stored inside the active item. Holding the item activates all cards stored in order",
         Achievement = mod.Achievements.Items[mod.Collectibles.THE_HAND]
     },
@@ -271,19 +273,9 @@ local itemData = {
         Gfx = ItemsConfig:GetCollectible(Balatro_Expansion.Collectibles.HEIRLOOM).GfxFileName,
         Type = "Collectible",
         Name = "Heirloom",
-        UnlockMethod = "Unlocked by aaaaaaaaaaaaa",
+        UnlockMethod = "Unlocked by beating The Beast as T.Jimbo",
         Description = "Coins have a chance to get their value upgraded. Pickups have a chance to become their golden variant",
         Achievement = mod.Achievements.Items[mod.Collectibles.HEIRLOOM]
-    },
-
-    {
-        Id = Balatro_Expansion.Trinkets.PENNY_SEEDS,
-        Gfx = ItemsConfig:GetTrinket(Balatro_Expansion.Trinkets.PENNY_SEEDS).GfxFileName,
-        Type = "Trinket",
-        Name = "Penny Seed",
-        UnlockMethod = "Unlocked by aaaaaaaaaaaaa",
-        Description = "Gain a coin per 5 cents held on new floor",
-        Achievement = mod.Achievements.Trinkets[mod.Trinkets.PENNY_SEEDS]
     },
 
     {
@@ -291,12 +283,54 @@ local itemData = {
         Gfx = ItemsConfig:GetTrinket(Balatro_Expansion.Jokers.CHAOS_THEORY).GfxFileName,
         Type = "Trinket",
         Name = "Chaos Theory",
-        UnlockMethod = "Unlocked by aaaaaaaaaaaaa",
-        Description = "All pickups are randomized",
+        UnlockMethod = "Unlocked by beating Mother as T.Jimbo",
+        Description = "All pickups spawned are randomized",
         Achievement = mod.Achievements.Trinkets[mod.Jokers.CHAOS_THEORY],
+    },
+
+    {
+        Gfx = "gfx/ui/stupid_dss_icon.png",
+        Type = "Entity",
+        Name = "A stupid idea",
+        UnlockMethod = "Unlocked by trying to play greedier as T.Jimbo",
+        Description = "Chance to encounter a formidable new enemy",
+        Achievement = mod.Achievements.Entities.A_STUPID_IDEA,
 
         Last = true
     },
+
+    {
+        Id = Balatro_Expansion.Collectibles.PLANET_X,
+        Gfx = ItemsConfig:GetCollectible(Balatro_Expansion.Collectibles.PLANET_X).GfxFileName,
+        Type = "Collectible",
+        Name = "Planet X",
+        UnlockMethod = "Unlocked by compleating all marks as T. Jimbo",
+        Description = "Gain the effect of a random planetarium item every new room",
+        Achievement = mod.Achievements.Items.FORGOTTEN_PLANETS
+    },
+    {
+        Id = Balatro_Expansion.Collectibles.ERIS,
+        Gfx = ItemsConfig:GetCollectible(Balatro_Expansion.Collectibles.ERIS).GfxFileName,
+        Type = "Collectible",
+        Name = "Eris",
+        UnlockMethod = "Unlocked by compleating all marks as T. Jimbo",
+        Description = "Enemies close to Isaac are slowed as they approach him, eventually starting to take damage",
+        Achievement = mod.Achievements.Items.FORGOTTEN_PLANETS
+    },
+    {
+        Id = Balatro_Expansion.Collectibles.CERES,
+        Gfx = ItemsConfig:GetCollectible(Balatro_Expansion.Collectibles.CERES).GfxFileName,
+        Type = "Collectible",
+        Name = "Ceres",
+        UnlockMethod = "Unlocked by compleating all marks as T. Jimbo",
+        Description = "Gain an orbital that leaves behind floating meteors as it gets hit. The meteors deal Isaac's damage and disappear after taking 2 hits",
+        Achievement = mod.Achievements.Items.FORGOTTEN_PLANETS,
+
+        Last = true
+    },
+
+
+
 
 
     --[[
@@ -590,8 +624,17 @@ menu.unlockManager = {
             {str = "", nosel = true, fullrow = true, fsize = 3},
             {str = "", nosel = true, fullrow = true, fsize = 1},
         }
+
+        local GroupCount = 0
+
         for i, data in ipairs(itemData) do
+
+            GroupCount = GroupCount + 1
+
             if data.Divider then
+
+                GroupCount = 0
+
                 table.insert(item.buttons, {
                     nosel = true,
                     fullrow = true,
@@ -621,6 +664,9 @@ menu.unlockManager = {
 
 
             if data.Type == "Character" then
+
+                GroupCount = 0
+
                 local dividerB = Sprite()
                 dividerB:Load("gfx/ui/hud_dss_divider.anm2", true)
                 dividerB:Play("Tainted", true)
@@ -683,7 +729,10 @@ menu.unlockManager = {
             local FullRow = false
             local CursorOff = Vector(-10, 0)
 
-            if i % 2 == 1 and data.Last then
+            if GroupCount % 2 == 1 and data.Last then
+
+                GroupCount = 0
+
                 spr.Offset = Vector(30, 0)
                 FullRow = true
                 CursorOff = CursorOff + spr.Offset
@@ -710,46 +759,10 @@ menu.unlockManager = {
                         Description = data.Description:lower(),
                         Unlocked = unlocked,
                         UnlockMethod = data.UnlockMethod,
+                        EditionShaders = data.EditionShaders,
                         ToggleFunction = function (bool)
                             -- this is all so hacky... i hate unlockapi
-                            if data.Type == "Collectible" then
-  
-                                if bool then
-                                    Isaac.GetPersistentGameData():TryUnlock(data.Achievement)
-                                else
-                                    Isaac.ExecuteCommand("lockachievement " .. data.Achievement)
-                                end
-                                
-                            elseif data.Type == "Trinket" then
-
-                                if bool then
-                                    Isaac.GetPersistentGameData():TryUnlock(data.Achievement)
-                                else
-                                    Isaac.ExecuteCommand("lockachievement " .. data.Achievement)
-                                end
-                               
-                            elseif data.Type == "Entity" then
-                                for _, unlockData in ipairs(UnlockAPI.Unlocks.Entities) do
-                                    if data.Id == unlockData.Type and data.Variant == (unlockData.Variant or data.Variant) and data.Subtype == (unlockData.SubType or data.Subtype) then
-                                        UnlockAPI.Helper.SetRequirements(unlockData.UnlockRequirements, data.Tainted and "t.The Sheriff" or "The Sheriff", bool)
-                                    end
-
-                                    if bool then
-                                        Isaac.GetPersistentGameData():TryUnlock(Sheriff.RepentogonAchievements.Rancher)
-                                    else
-                                        Isaac.ExecuteCommand("lockachievement " .. Sheriff.RepentogonAchievements.Rancher)
-                                    end
-                                    
-                                end
-                            elseif data.Type == "Card" then
-
-                                if bool then
-                                    Isaac.GetPersistentGameData():TryUnlock(data.Achievement)
-                                else
-                                    Isaac.ExecuteCommand("lockachievement " .. data.Achievement)
-                                end
-                            elseif data.Type == "Ultimate" then
-
+                            if data.Achievement then
                                 if bool then
                                     Isaac.GetPersistentGameData():TryUnlock(data.Achievement)
                                 else
@@ -867,6 +880,10 @@ menu.unlockInspection = {
         spr:ReplaceSpritesheet(0, activeItem.Gfx)
         spr:LoadGraphics()
         spr:Play("Idle", true)
+
+        if activeItem.EditionShaders then
+            spr:SetCustomShader(mod.EditionShaders[mod.Edition.NEGATIVE])
+        end
 
         item.buttons = {
             {

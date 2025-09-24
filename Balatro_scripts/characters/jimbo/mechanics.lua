@@ -482,7 +482,7 @@ function mod:SetItemPrices(Variant,SubType,ShopID,Price)
         local Joker = SubType & ~mod.EditionFlag.ALL
         local Edition = (SubType & mod.EditionFlag.ALL) >> mod.EDITION_FLAG_SHIFT
 
-        Cost = mod:GetJokerCost(SubType, Edition)
+        Cost = mod:GetJokerCost(Joker, Edition)
     
         --Cost = mod:GetJokerCost(SubType, mod.Saved.FloorEditions[Game:GetLevel():GetCurrentRoomDesc().ListIndex][ItemsConfig:GetTrinket(SubType).Name] or 0)
 
@@ -498,13 +498,16 @@ function mod:SetItemPrices(Variant,SubType,ShopID,Price)
 
         elseif PlayerManager.AnyoneHasCollectible(mod.Vouchers.Clearance) then --25% off
             Cost = Cost * 0.75
-
         end
     end
 
-    if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_STEAM_SALE) then
-        Cost = Cost * 2 - 1 --nullifies the usual steam sale effect and subratcts 1 instead
+    for i,Player in ipairs(PlayerManager.GetPlayers()) do
+        
+        Cost = Cost - #mod:GetJimboJokerIndex(Player, mod.Jokers.GIFT_CARD)
+
     end
+
+    Cost = Cost * 2 - PlayerManager.GetNumCollectibles(CollectibleType.COLLECTIBLE_STEAM_SALE) --nullifies the usual steam sale effect and subratcts 1 instead
 
     for _,Player in ipairs(PlayerManager.GetPlayers()) do
         if mod:JimboHasTrinket(Player, mod.Jokers.ASTRONOMER) then
@@ -926,9 +929,7 @@ function mod:AddRoomsCleared(IsBoss, Hostile)
                     Player:AddHearts(2)
                 end
 
-                Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.HEART, Player.Position + Vector(0,7),Vector.Zero,nil,0,1)
-
-                
+                Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.HEART, Player.Position + Vector(0,7),Vector.Zero,nil,0,1) 
             end
         end
     end
@@ -1497,7 +1498,7 @@ function mod:StatGiver(Player, Cache)
         --Player.Damage = (Player.Damage + (stats.Damage + stats.JokerDamage) * Player.Damage) * stats.JokerMult * stats.Mult
         mod.Saved.Player[PIndex].TrueDamageValue = (Player.Damage + (stats.Damage + stats.JokerDamage) * Player.Damage) * stats.JokerMult * stats.Mult
 
-        Player.Damage = 1
+        Player.Damage = mod.Saved.Player[PIndex].TrueDamageValue
 
     elseif Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then
         

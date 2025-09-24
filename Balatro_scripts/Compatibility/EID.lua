@@ -1020,11 +1020,12 @@ local function BalatroInventoryCallback(descObj)
 
                 Name = CardName
 
+                local BaseEffect = "{{ColorChips}}+"..mod:RoundBalatroStyle(mod:GetValueScoring(SelectedCard.Value) + 0.02*SelectedCard.Upgrades, 8).."{{CR}} "..mod:GetEIDString("Other", "ChipsScored")
                 local EnhancementEffect = mod:GetEIDString("Jimbo", "Enhancement", SelectedCard.Enhancement)
                 local SealEffect = mod:GetEIDString("Jimbo", "Seal", SelectedCard.Seal)
                 local EditionEffect = mod:GetEIDString("Jimbo", "CardEdition", SelectedCard.Edition)
 
-                local CardAttributes = EnhancementEffect..SealEffect..EditionEffect
+                local CardAttributes = BaseEffect..EnhancementEffect..SealEffect..EditionEffect
 
                 Description = CardAttributes
 

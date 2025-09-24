@@ -24,7 +24,8 @@ local function SubstituteGapers(_, NPC)
 
     local Roll = math.random()
 
-    if Roll <= REPLACEMENT_CHANCE then
+    if Isaac.GetPersistentGameData():Unlocked(mod.Achievements.Entities.A_STUPID_IDEA)
+       and Roll <= REPLACEMENT_CHANCE then
 
         NPC:Morph(NPC.Type, NPC.Variant, mod.Entities.STUPID_GAPER_SUBTYPE, NPC:GetChampionColorIdx())
     end

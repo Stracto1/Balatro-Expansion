@@ -295,6 +295,7 @@ Balatro_Expansion.Effects.HEIRLOOM_TRIGGER = Isaac.GetEntityVariantByName("Heirl
 Balatro_Expansion.Effects.JIMBO_THE_KILLER = {VARIANT = Isaac.GetEntityVariantByName("Jimbo the Killer"),
                                               SUBTYPE = {PLAYERS = 1,
                                                          ENEMIES = 2}} --used to hide some character design flaws ;)
+Balatro_Expansion.Effects.BANNER = Isaac.GetEntityVariantByName("Banner")
 
 Balatro_Expansion.Effects.DIALOG_BUBBLE = Isaac.GetEntityVariantByName("Blind Cashout Bubble")
 Balatro_Expansion.Effects.DESC_HELPER = Isaac.GetEntityVariantByName("Description Helper")
@@ -389,7 +390,7 @@ Balatro_Expansion.BalatroColorBlack = Color(41/255, 51/255, 53/255, 1)
 Balatro_Expansion.EffectColors = {}
 Balatro_Expansion.EffectColors.RED = Color(238/255, 49/255, 66/255)
 Balatro_Expansion.EffectColors.BLUE = Color(49/255, 140/255, 238/255)
-Balatro_Expansion.EffectColors.YELLOW = Color(238/255, 186/255, 49/255)
+Balatro_Expansion.EffectColors.YELLOW = Color(237/255, 179/255, 26/255)
 Balatro_Expansion.EffectColors.PURPLE = Color(238/255, 186/255, 49/255)
 Balatro_Expansion.EffectColors.GREEN = Color(55/255, 194/255, 14/255)
 
@@ -472,6 +473,8 @@ Balatro_Expansion.Spectrals.MEDIUM = Isaac.GetCardIdByName("Spectral_Medium")
 Balatro_Expansion.Spectrals.CRYPTID =  Isaac.GetCardIdByName("Spectral_Cryptid")
 Balatro_Expansion.Spectrals.BLACK_HOLE = Isaac.GetCardIdByName("Spectral_Black_hole")
 Balatro_Expansion.Spectrals.SOUL = Isaac.GetCardIdByName("Spectral_Soul")
+
+Balatro_Expansion.JIMBO_SOUL = Isaac.GetCardIdByName("Jimbo_Soul")
 
 
 Balatro_Expansion.Vouchers = {}
@@ -1205,9 +1208,7 @@ Balatro_Expansion.Achievements = {
                                             [Balatro_Expansion.Collectibles.CLOWN] = Isaac.GetAchievementIdByName("ClownUnlock"), 
                                             [Balatro_Expansion.Collectibles.POCKET_ACES] = Isaac.GetAchievementIdByName("PocketAcesUnlock"), 
 
-                                            [Balatro_Expansion.Collectibles.CERES] = Isaac.GetAchievementIdByName("BalatroPlanetsUnlock"), 
-                                            [Balatro_Expansion.Collectibles.ERIS] = Isaac.GetAchievementIdByName("BalatroPlanetsUnlock"), 
-                                            [Balatro_Expansion.Collectibles.PLANET_X] = Isaac.GetAchievementIdByName("BalatroPlanetsUnlock"), 
+                                            FORGOTTEN_PLANETS = Isaac.GetAchievementIdByName("BalatroPlanetsUnlock"), 
                                             [Balatro_Expansion.Collectibles.HEIRLOOM] = Isaac.GetAchievementIdByName("HeirloomUnlock"), 
                                             [Balatro_Expansion.Collectibles.THE_HAND] = Isaac.GetAchievementIdByName("TheHandUnlock"), 
 
@@ -1219,6 +1220,7 @@ Balatro_Expansion.Achievements = {
                                                 [Balatro_Expansion.Trinkets.PENNY_SEEDS] = Isaac.GetAchievementIdByName("PennySeedsUnlock"),
 
                                         },
+                                    Consumables = {[Balatro_Expansion.JIMBO_SOUL] = Isaac.GetAchievementIdByName("JimboSoulUnlock")},
                                     Entities = {A_STUPID_IDEA = Isaac.GetAchievementIdByName("AStupidIdeaUnlock"),
 },
                                     Pickups = {}
@@ -1330,6 +1332,7 @@ include("Balatro_scripts.custom_grid")
 
 
 include("Balatro_scripts.Unlockables.Unlockable Items")
+include("Balatro_scripts.Unlockables.Soul of Jimbo")
 include("Balatro_scripts.Unlockables.The Hand")
 include("Balatro_scripts.Unlockables.Trinket Editions")
 include("Balatro_scripts.Unlockables.Stupid Gaper")

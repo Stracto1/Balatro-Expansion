@@ -740,6 +740,48 @@ function mod:DefaultStageOfFloor(StageOffset)
 end
 
 
+---@param Kcolor KColor
+function mod:RenderCoolCircle(Position, Radius, Kcolor, Rotate, Bounce, FrameCount)
+
+    local Room = Game:GetRoom()
+    FrameCount = FrameCount or Isaac.GetFrameCount()
+
+    local EndKcolor = KColor(Kcolor.Red, Kcolor.Green, Kcolor.Blue, Kcolor.Alpha*0.6)
+
+    local NumSides = (Radius // 60)*2 + 6 --number of actually drawn lines
+    local Step = 90 / NumSides
+
+    local RadiusWiggle = math.sin(FrameCount/8) * mod:Clamp(Radius/15, 5.5, 1.5)
+
+    if Bounce then
+        Radius = mod:CoolLerp(5, Radius + RadiusWiggle, FrameCount / 20)
+    end
+     
+    local StartRotation = Rotate and ((FrameCount*1.5) % 360) or 0
+
+    local FirstPoint = Isaac.WorldToScreenDistance(Vector(0, Radius)):Rotated(StartRotation)
+    local SecondPoint
+
+    for i=1, NumSides do
+        
+        SecondPoint = FirstPoint:Rotated(Step)
+
+        Isaac.DrawLine(Room:GetClampedPosition((Position + FirstPoint), 0), 
+                       Room:GetClampedPosition((Position + SecondPoint), 0),
+                       EndKcolor, mod.EffectKColors.BLUE, 3)
+
+        FirstPoint = SecondPoint:Rotated(Step)
+
+
+        Isaac.DrawLine(Room:GetClampedPosition((Position + FirstPoint), 0), 
+                       Room:GetClampedPosition((Position + SecondPoint), 0),
+                       EndKcolor, mod.EffectKColors.BLUE, 3)
+
+        FirstPoint = FirstPoint:Rotated(Step*2)
+        SecondPoint = SecondPoint:Rotated(Step*2)
+    end
+end
+
 
 local function effectTest(_, Effect)
     

@@ -55,6 +55,8 @@ void main(void)
 	
 	vec3 ColorHSV = rgb2hsv(Color.rgb);
 
+	if ((Color.r <= (8.0/255.0))&&(Color.gb == vec2(0))) //mf nicalis black i hate you
+		ColorHSV.g = 0;
 
 	ColorHSV.b = 1 - ColorHSV.b + ColorHSV.g*0.56; //inverts the value of the color, but reducing the effect for saturated values
 

@@ -78,7 +78,7 @@ function mod:CreateBalatroEffect(Index, Colour, Sound, Text, EffectType, Player,
                 --print("posticipated")
                 Isaac.CreateTimer(function()
                                 mod:CreateBalatroEffect(Index, Colour, Sound, Text, EffectType, Player, Speed)--Source, Offset, Volume)
-                                end,  EffectsInterval - EffectParams[Index].Frames, 1, false)
+                                end,  EffectsInterval - EffectParams[Type].Frames, 1, false)
 
                 return
             end

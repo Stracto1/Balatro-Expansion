@@ -147,7 +147,7 @@ FamiliarCollisionInterval[mod.Familiars.TEETH] = EntityConfig.GetEntity(EntityTy
 FamiliarCollisionInterval[mod.Familiars.CERES] = EntityConfig.GetEntity(EntityType.ENTITY_FAMILIAR, mod.Familiars.CERES):GetCollisionInterval()
 
 local CERES_PIECE_PATH = "gfx/familiar/familiar_ceres_piece.png"
-local CERES_FIRE_COOLDOWN = 50
+local CERES_FIRE_COOLDOWN = 35
 local COLOR_CERES = Color(1,1,1,1,0,0,0,0.55, 0.55, 0.6, 1)
 
 local PLANET_X_PICKER = WeightedOutcomePicker() --setup as the game starts to include any item inside the planetarium pool
@@ -414,6 +414,44 @@ local function UnlockNormalItems(_,Type)
             GameData:TryUnlock(mod.Achievements.Items[mod.Collectibles.CLOWN])
         elseif Type == CompletionType.ULTRA_GREEDIER then
             GameData:TryUnlock(mod.Achievements.Items[mod.Trinkets.TASTY_CANDY[1]])
+        end
+    end
+
+    if PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then
+        
+        local GameData = Isaac.GetPersistentGameData()
+
+        if Type == CompletionType.ISAAC or Type == CompletionType.BLUE_BABY
+           or Type == CompletionType.SATAN or Type == CompletionType.LAMB then
+
+            if Isaac.AllTaintedCompletion(mod.Characters.TaintedJimbo, TaintedMarksGroup.POLAROID_NEGATIVE) ~= 0 then
+                GameData:TryUnlock(mod.Achievements.Trinkets[mod.Trinkets.PENNY_SEEDS])
+            end
+
+        elseif Type == CompletionType.BOSS_RUSH or Type == CompletionType.HUSH then
+
+            if Isaac.AllTaintedCompletion(mod.Characters.TaintedJimbo, TaintedMarksGroup.SOULSTONE) ~= 0 then
+                GameData:TryUnlock(mod.Achievements.Consumables[mod.JIMBO_SOUL])
+            end
+
+        elseif Type == CompletionType.MEGA_SATAN then
+            GameData:TryUnlock(mod.Achievements.TRINKET_EDITIONS)
+
+        elseif Type == CompletionType.MOTHER then
+            GameData:TryUnlock(mod.Achievements.Trinkets[mod.Jokers.CHAOS_THEORY])
+
+        elseif Type == CompletionType.BEAST then
+            GameData:TryUnlock(mod.Achievements.Items[mod.Collectibles.HEIRLOOM])
+
+        elseif Type == CompletionType.DELIRIUM then
+            GameData:TryUnlock(mod.Achievements.Items[mod.Collectibles.THE_HAND])
+
+        elseif Type == CompletionType.ULTRA_GREEDIER then
+            GameData:TryUnlock(mod.Achievements.Entities.A_STUPID_IDEA)
+        end
+
+        if Isaac.AllMarksFilled(mod.Characters.TaintedJimbo) ~= 0 then
+            GameData:TryUnlock(mod.Achievements.Items.FORGOTTEN_PLANETS)
         end
     end
 end
@@ -948,13 +986,6 @@ function mod:FamiliarCollision(Familiar, Collider,_)
                 Familiar:GetSprite():Play("Explode")
                 Familiar.FireCooldown = PUPPY_RESPAWN_TIMER
                 sfx:Play(SoundEffect.SOUND_BOSS1_EXPLOSIONS, 1, 2,false,1.2)
-            
-            elseif Familiar.State == PuppyState.ATTACK then
-                if NPC and NPC:IsActiveEnemy() and NPC:IsVulnerableEnemy() then
-
-                    NPC:TakeDamage(0.5 * Familiar:GetMultiplier(), DamageFlag.DAMAGE_COUNTDOWN, EntityRef(Familiar), 5)
-                    Familiar:CanBlockProjectiles()
-                end
             end
         end
 
@@ -1048,7 +1079,7 @@ function mod:FamiliarCollision(Familiar, Collider,_)
             Collided = true
 
             if NPC:IsVulnerableEnemy() then
-                NPC:TakeDamage((Familiar.Player.Damage / 6)*Multiplier, 0, EntityRef(Familiar), 2)
+                NPC:TakeDamage(0.1*Multiplier, 0, EntityRef(Familiar), 2)
             end
         end
 
@@ -2422,7 +2453,9 @@ local function ErisAreaEffect(_, Player)
 
             Enemy:AddIce(PLAYER_REF, 3)
 
-            Enemy:TakeDamage(Player.Damage*0.25+0.1, 0, PLAYER_REF, 2)
+            Enemy:TakeDamage(math.max(Enemy.HitPoints*0.03, 0.1), 0, PLAYER_REF, 2)
+
+            --Enemy:TakeDamage(Player.Damage*0.25+0.1, 0, PLAYER_REF, 2)
         end
 
         if SlowValue >= 0.02 then

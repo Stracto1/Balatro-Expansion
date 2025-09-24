@@ -18,14 +18,16 @@
     <achievement name="TastyCandyUnlock" gfx="achievement_tasty_candy.png"/>
 
 
-    <achievement name="TheHandUnlock" gfx="achievement_tasty_candy.png"/>
-    <achievement name="HeirloomUnlock" gfx="achievement_tasty_candy.png"/>
-    <achievement name="BalatroPlanetsUnlock" gfx="achievement_tasty_candy.png"/>
+    <achievement name="TheHandUnlock" gfx="achievement_the_hand.png"/>
+    <achievement name="HeirloomUnlock" gfx="achievement_heirloom.png"/>
+    <achievement name="BalatroPlanetsUnlock" gfx="achievement_forgotten_planets.png"/>
+    <achievement name="JimboSoulUnlock" gfx="achievement_soul_of_jimbo.png"/>
 
-    <achievement name="ChaosTheoryUnlock" gfx="achievement_tasty_candy.png"/>
-    <achievement name="PennySeedsUnlock" gfx="achievement_tasty_candy.png"/>
-    <achievement name="TrinketEditionsUnlock" gfx="achievement_tasty_candy.png"/>
-    <achievement name="AStupidIdeaUnlock" gfx="achievement_tasty_candy.png"/>
+
+    <achievement name="ChaosTheoryUnlock" gfx="achievement_chaos_theory.png"/>
+    <achievement name="PennySeedsUnlock" gfx="achievement_penny_seeds.png"/>
+    <achievement name="TrinketEditionsUnlock" gfx="achievement_trinket_editions.png"/>
+    <achievement name="AStupidIdeaUnlock" gfx="achievement_stupid_idea.png"/>
 
 
 
