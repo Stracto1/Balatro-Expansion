@@ -31,7 +31,7 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, PlayerIndexUpdate)
 
 function mod:OnGameStart(Continued)
 
-    if Continued and mod:HasData()then
+    if Continued and mod:HasData() then
 
         mod.Saved = json.decode(mod:LoadData()) --restores every saved progress from the last run
 
@@ -260,7 +260,9 @@ function mod:OnGameStart(Continued)
     for _, player in ipairs(PlayerManager.GetPlayers()) do  --evaluates again for the mod's trinkets since closing the game
                                                             --resets stuff
 
-        mod:InitPlayerValues(player)
+        if not Continued then
+            mod:InitPlayerValues(player)
+        end
 
         if player:GetPlayerType() == mod.Characters.JimboType 
            or player:GetPlayerType() == mod.Characters.TaintedJimbo then

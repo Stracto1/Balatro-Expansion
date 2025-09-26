@@ -368,10 +368,14 @@
         <gibs amount="0" blood="0" bone="0" eye="0" gut="0" large="0"/>
     </entity>
 
-    <entity name="Banner" anm2path="banner_effect.anm2" id="1000" variant="2608" subtype="1"/>
-    <entity name="Banner Helper" anm2path="" id="1000" variant="2608" subtype="1"/>
+    <entity name="Banner" anm2path="banner_effect.anm2" id="1000" variant="2608"/>
+    <entity name="Banner Helper" anm2path="" id="2743" variant="2"
+        friction="0" collisionRadius="9" tags="noreroll" gridCollision="ground" shutdoors="false">
+    </entity> <!-- cannot be id 1000 cause I need its dirt color functions-->
 
-    
+    <entity name="Popcorn Kernel" anm2path="popcorn_kernel_effect.anm2" id="1000" variant="2609"
+        friction="1" collisionRadius="9">
+    </entity>
 
     <entity name="Pathfinder Slave" anm2path="" id="2743" variant="1"
     	friction="0" collisionRadius="9" tags="noreroll" gridCollision="ground" shutdoors="false">

@@ -104,8 +104,6 @@ CardFrame:SetAnimation("Frame")
 local HAND_RENDERING_HEIGHT = 30 --in screen coordinates
 --local ENHANCEMENTS_ANIMATIONS = {"Base","Mult","Bonus","Wild","Glass","Steel","Stone","Golden","Lucky"}
 
-local SCREEN_TO_WORLD_RATIO = 4 --idk why this is needed but it is
-
 local BASE_BUBBLE_HEIGHT = 11
 local CASHOUT_STRING_X_OFFSET = -39
 local BALATRO_BASE_LINE_HEIGHT = mod.Fonts.Balatro:GetBaselineHeight()
@@ -236,7 +234,7 @@ local function MoveCameraToRightBorder()
     
 
     --local ScreenCenter = Vector(Isaac.GetScreenWidth()/2, Isaac.GetScreenHeight()/2)
-    --local CurrentCameraPos = Isaac.ScreenToWorld(ScreenCenter) * SCREEN_TO_WORLD_RATIO
+    --local CurrentCameraPos = Isaac.ScreenToWorld(ScreenCenter) * mod.SCREEN_TO_WORLD_RATIO
 
     
     --Game:GetRoom():GetCamera():SnapToPosition(CurrentCameraPos + CameraOffset)

@@ -367,16 +367,16 @@ for Index, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
 
         mod:CreateBalatroEffect(Index,mod.EffectColors.BLUE, mod.Sounds.CHIPS, "Upgrade!",mod.EffectType.JOKER, Player)
 
-    elseif Joker == mod.Jokers.TO_DO_LIST then
-
-        if mod:IsValue(Player, ShotCard, mod.Saved.Player[PIndex].Inventory[ProgressIndex].Progress) then
-
-            local Coin = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,                                  
-            RandomVector()*3, Player, CoinSubType.COIN_PENNY, RandomSeed)
-                                    Coin:ToPickup().Timeout = 50
-
-            mod:CreateBalatroEffect(Index,mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Done!",mod.EffectType.JOKER, Player)
-        end
+    --elseif Joker == mod.Jokers.TO_DO_LIST then
+--
+    --    if mod:IsValue(Player, ShotCard, mod.Saved.Player[PIndex].Inventory[ProgressIndex].Progress) then
+--
+    --        local Coin = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,                                  
+    --        RandomVector()*3, Player, CoinSubType.COIN_PENNY, RandomSeed)
+    --                                Coin:ToPickup().Timeout = 50
+--
+    --        mod:CreateBalatroEffect(Index,mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Done!",mod.EffectType.JOKER, Player)
+    --    end
 
     elseif Joker == mod.Jokers.CARD_SHARP then
 
@@ -470,8 +470,7 @@ for Index, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
 
         if mod:IsValue(Player, ShotCard, 2) then
 
-            local ScaleMult = math.min(2/Player.SpriteScale:LengthSquared(),1)
-            local TearGain = 0.04 * Triggers * ScaleMult
+            local TearGain = 0.04 * Triggers
 
             mod.Saved.Player[PIndex].Inventory[ProgressIndex].Progress = mod.Saved.Player[PIndex].Inventory[ProgressIndex].Progress + TearGain
 
@@ -922,11 +921,6 @@ function mod:OnHandDiscard(Player, AmountDiscarded)
                 end
             end
 
-        elseif Joker == mod.Jokers.DRUNKARD then
-
-            Game:SetDizzyAmount(math.max(Game:GetDizzyAmount()-0.05, 0))
-
-
         elseif Joker == mod.Jokers.HIT_ROAD then
 
             local NumJacks = 0
@@ -1266,7 +1260,7 @@ function mod:OnBlindClear(BlindType)
         elseif Joker == mod.Jokers.POPCORN then
 
             if not Copied then
-                mod.Saved.Player[PIndex].Inventory[Index].Progress = mod.Saved.Player[PIndex].Inventory[Index].Progress - 0.2
+                mod.Saved.Player[PIndex].Inventory[Index].Progress = mod.Saved.Player[PIndex].Inventory[Index].Progress - 0.3
                 if mod.Saved.Player[PIndex].Inventory[Index].Progress <= 0.1 then --at 0 it self destructs
 
                     mod.Saved.Player[PIndex].Inventory[Index].Joker = 0
@@ -1276,7 +1270,7 @@ function mod:OnBlindClear(BlindType)
                     Isaac.RunCallback("INVENTORY_CHANGE", Player)
                 else
 
-                    mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "-0.2",mod.EffectType.JOKER, Player)
+                    mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "-0.3",mod.EffectType.JOKER, Player)
                 end
 
                 Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, false)
@@ -2569,12 +2563,7 @@ function mod:OnNewRoomJokers()
 
                 local pos = Room:GetRandomPosition(40)
 
-                local Banner = Game:Spawn(1000, mod.Effects.BANNER, pos, Vector.Zero, nil, 0, mod:RandomSeed())
-
-                local Path = "gfx/effects/banner_effect"
-                local ExtraPaths = {"_white.png", "_red.png", "_orange.png"}
-
-                Banner:GetSprite():ReplaceSpritesheet(0, Path..mod:GetRandom(ExtraPaths))
+                Game:Spawn(1000, mod.Effects.BANNER, pos, Vector.Zero, nil, 0, mod:RandomSeed())
             end
         end
 
@@ -3084,6 +3073,14 @@ function mod:CopyAdjustments(Player)
         table.remove(mod.Saved.Player[PIndex].InnateItems.General, mod:GetValueIndex(mod.Saved.Player[PIndex].InnateItems.General,CollectibleType.COLLECTIBLE_PHD,true))
     end
 
+    if not mod:JimboHasTrinket(Player, mod.Jokers.MYSTIC_SUMMIT)
+       and mod:Contained(mod.Saved.Player[PIndex].InnateItems.General, CollectibleType.COLLECTIBLE_SOUL) then
+
+        Player:AddInnateCollectible(CollectibleType.COLLECTIBLE_SOUL, -1)
+        Player:RemoveCostume(ItemsConfig:GetCollectible(CollectibleType.COLLECTIBLE_SOUL)) --idk why its needed
+        table.remove(mod.Saved.Player[PIndex].InnateItems.General, mod:GetValueIndex(mod.Saved.Player[PIndex].InnateItems.General,CollectibleType.COLLECTIBLE_SOUL,true))
+    end
+
     Player:AddCacheFlags(CacheFlag.CACHE_ALL)
 
     Player:EvaluateItems()
@@ -3353,10 +3350,25 @@ local function OnHeartsChange(_,Player, Amount, HpType, _)
 
             Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, false)
 
-        end
+            if NowHearts <= 2 then
+                if not mod:Contained(mod.Saved.Player[PIndex].InnateItems.General, CollectibleType.COLLECTIBLE_SOUL) then
+        
+                    if not Player:HasCollectible(CollectibleType.COLLECTIBLE_SOUL, false, false) then
+                        Player:AddInnateCollectible(CollectibleType.COLLECTIBLE_SOUL)
+                        table.insert(mod.Saved.Player[PIndex].InnateItems.General, CollectibleType.COLLECTIBLE_SOUL)
+                    end
+                end
 
+            elseif mod:Contained(mod.Saved.Player[PIndex].InnateItems.General, CollectibleType.COLLECTIBLE_SOUL) then
+        
+                Player:RemoveCostume(ItemsConfig:GetCollectible(CollectibleType.COLLECTIBLE_SOUL)) --idk why its needed
+                Player:AddInnateCollectible(CollectibleType.COLLECTIBLE_SOUL, -1)
+                table.remove(mod.Saved.Player[PIndex].InnateItems.General, mod:GetValueIndex(mod.Saved.Player[PIndex].InnateItems.General,CollectibleType.COLLECTIBLE_SOUL,true))
+            end            
+        end
     end
 
+    Player:EvaluateItems()
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_ADD_HEARTS, OnHeartsChange)
 
@@ -3727,7 +3739,7 @@ function mod:TearsJokers(Player, _)
 
         elseif Joker == mod.Jokers.BANNER then
 
-            local Tears = 1.5 * Player:GetHearts()
+            local Tears = 0.75 * Player:GetHearts()
 
             if Tears ~= mod.Saved.Player[PIndex].Inventory[ProgressIndex].Progress
                and not Copied then
@@ -4019,13 +4031,13 @@ function mod:DamageJokers(Player,_)
 
         elseif Joker == mod.Jokers.MYSTIC_SUMMIT then
 
-            local Damage = (Player:GetHearts() == 2) and 0.75 or 0
+            local Damage = (Player:GetHearts() == 2) and 1.5 or 0
 
             if Damage ~= mod.Saved.Player[PIndex].Inventory[ProgressIndex].Progress and not Copied then
 
                 mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ACTIVATE,
-                "+"..tostring(Damage - mod.Saved.Player[PIndex].Inventory[ProgressIndex].Progress)
-                ,mod.EffectType.JOKER, Player)
+                "+"..Damage,
+                mod.EffectType.JOKER, Player)
 
                 mod.Saved.Player[PIndex].Inventory[ProgressIndex].Progress = Damage --this is only to tell when to spawn the effect
             end
@@ -4070,6 +4082,8 @@ function mod:DamageJokers(Player,_)
             mod:IncreaseJimboStats(Player, 0, Damage, 1, false, false)
 
         else
+
+
             mod:IncreaseJimboStats(Player,0,mod.Saved.Player[PIndex].Inventory[ProgressIndex].Progress,1,false,false)    
         end
         ::skip_joker::
@@ -5499,7 +5513,8 @@ local function OnTakeDamage(_,Player,Amount,Flags,Source,_)
     ---@diagnostic disable-next-line: cast-local-type
     Player = Player:ToPlayer()
 
-    if not Player or Player:GetPlayerType() ~= mod.Characters.JimboType then
+    if not Player or Player:GetPlayerType() ~= mod.Characters.JimboType
+       or not Source.Entity then
         return
     end
 
@@ -5552,10 +5567,20 @@ local function SpawnBannerHelper(_, Banner)
         return
     end
 
-    local Helper = Game:Spawn(1000, mod.Effects.BANNER, Banner.Position, Vector.Zero, Banner.SpawnerEntity, 1, Banner.InitSeed):ToEffect()
+    local Path = "gfx/effects/banner_effect"
+    local ExtraPaths = {"_white.png", "_red.png", "_orange.png"}
+
+    Banner:GetSprite():ReplaceSpritesheet(0, Path..mod:GetRandom(ExtraPaths), true)
+
+
+
+    local Helper = Game:Spawn(mod.Entities.BALATRO_TYPE, mod.Entities.BANNER_HELPER, Banner.Position, Vector.Zero, Banner.SpawnerEntity, 1, Banner.InitSeed)
+
+    Helper.Parent = Banner
+---@diagnostic disable-next-line: assign-type-mismatch
+    Banner.Child = Helper
 
     Helper.SortingLayer = SortingLayer.SORTING_BACKGROUND
-    Helper:FollowParent(Banner)
 end
 mod:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT, SpawnBannerHelper, mod.Effects.BANNER)
 
@@ -5563,32 +5588,39 @@ mod:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT, SpawnBannerHelper, mod.Effects
 ---@param Banner EntityEffect
 local function BannerUpdate(_, Banner)
 
-    if Banner.SubType == 0 then
-        return
-    end
-
     local Sprite = Banner:GetSprite()
 
     if Sprite:IsFinished("Appear") then
-        Sprite:Play("Idle")
+        Sprite:Play("Idle", false)
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, BannerUpdate,  mod.Effects.BANNER)
 
+---@param Helper EntityNPC
+local function BannerRender(_, Helper)
 
-local function BannerRender(_, Banner)
-
-    if Banner.SubType == 0 then
+    if Helper.Variant ~= mod.Entities.BANNER_HELPER then
         return
     end
 
     local Radius = 110
     local Kcolor = KColor(0,0,0.1, 0.5)
 
-    mod:RenderCoolCircle(Banner.Position, Radius, Kcolor, true, false, Banner.FrameCount)
+    mod:RenderCoolCircle(Isaac.WorldToScreen(Helper.Position), Radius, Kcolor, true, false, true, Helper.FrameCount)
 
 
-    local Data = Banner:GetData()
+    local Banner = Helper.Parent
+
+    Helper:UpdateDirtColor(true)
+    local DirtColor = Helper:GetDirtColor()
+    --local LayerColor = Color()
+    --LayerColor:SetColorize(DirtColor.GetColorize)f
+
+    Banner:GetSprite():GetLayer(2):SetColor(DirtColor)
+
+
+
+    local Data = Helper:GetData()
     Data.InsidePlayers = Data.InsidePlayers or {}
 
 
@@ -5596,7 +5628,7 @@ local function BannerRender(_, Banner)
         
         local PIndex = Player:GetData().TruePlayerIndex
 
-        local IsInside = Player.Position:Distance(Banner.Position) <= Radius
+        local IsInside = Player.Position:Distance(Helper.Position) <= Radius
         local WasInside = mod:Contained(Data.InsidePlayers, PIndex)
 
         if WasInside ~= IsInside then
@@ -5611,7 +5643,7 @@ local function BannerRender(_, Banner)
         end
     end
 end
-mod:AddCallback(ModCallbacks.MC_PRE_EFFECT_RENDER, BannerRender,  mod.Effects.BANNER)
+mod:AddCallback(ModCallbacks.MC_PRE_NPC_RENDER, BannerRender, mod.Entities.BALATRO_TYPE)
 
 local function BannerStatsUp(_, Player)
 
@@ -5627,11 +5659,12 @@ local function BannerStatsUp(_, Player)
         local IsInside = Player.Position:Distance(Banner.Position) <= 110
 
         if IsInside then
-            mod:IncreaseJimboStats(Player,2.5, 0, 1, false, false)
+            mod:IncreaseJimboStats(Player,3, 0, 1, false, false)
         end
     end
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, BannerStatsUp, CacheFlag.CACHE_FIREDELAY)
+
 
 
 local function MarbleTintedRocks(_, Type, Variant, SubType, Index, Seed)
@@ -5655,6 +5688,350 @@ local function MarbleTintedRocks(_, Type, Variant, SubType, Index, Seed)
 
 end
 mod:AddCallback(ModCallbacks.MC_PRE_ROOM_ENTITY_SPAWN, MarbleTintedRocks)
+
+
+
+local function AstronomerPlanetChance(_, Chance)
+
+    if not mod.GameStarted then
+        return
+    end
+
+    local NumAstronomer = 0
+
+    for _, Player in ipairs(PlayerManager.GetPlayers()) do
+
+        NumAstronomer = NumAstronomer + #mod:GetJimboJokerIndex(Player, mod.Jokers.ASTRONOMER)
+    end
+
+    local AlrVisited = Game:GetPlanetariumsVisited()
+    local AdditionalChance = (0.2 * NumAstronomer) / (2 ^ AlrVisited)
+
+    return Chance + AdditionalChance
+end
+mod:AddCallback(ModCallbacks.MC_PRE_PLANETARIUM_APPLY_TELESCOPE_LENS, AstronomerPlanetChance)
+
+
+local function AstronomerAlwaysPlanet()
+
+    if not mod.GameStarted then
+        return
+    end
+
+    for _, Player in ipairs(PlayerManager.GetPlayers()) do
+
+        if mod:JimboHasTrinket(Player, mod.Jokers.ASTRONOMER) then
+            
+            local Level = Game:GetLevel()
+
+            return not (Level:IsAscent()
+                        or Level:GetStage() == LevelStage.STAGE4_3
+                        or Level:GetStage() == LevelStage.STAGE8)
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_PLANETARIUM_APPLY_STAGE_PENALTY, AstronomerAlwaysPlanet)
+
+
+---@param Collider Entity
+local function BootstrapsCollisionDamage(_, Player, Collider)
+
+---@diagnostic disable-next-line: cast-local-type
+    Collider = Collider:ToNPC()
+
+    if Player:GetPlayerType() ~= mod.Characters.JimboType or not Collider then
+        return
+    end
+
+    if not Collider:IsActiveEnemy() or not Collider:IsVulnerableEnemy() then
+        return
+    end
+
+    if mod:JimboHasTrinket(Player, mod.Jokers.BOOTSTRAPS) then
+        
+        local Damage = Player:GetNumCoins() * #mod:GetJimboJokerIndex(Player, mod.Jokers.BOOTSTRAP)
+
+        Collider:TakeDamage(Damage, DamageFlag.DAMAGE_COUNTDOWN, EntityRef(Player), 10)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_COLLISION, BootstrapsCollisionDamage)
+
+
+
+local function ToDoListInit(_, NPC)
+
+    if not mod:IsValidScalingEnemy(NPC) then 
+        return
+    end
+
+    local NumLists = mod:GetTotalTrinketAmount(mod.Jokers.TO_DO_LIST)
+
+    if NumLists == 0 then
+        return
+    end
+
+    local FoundEnemies = 0
+    local FoundCoins = 0
+
+    local Entities = Isaac.GetRoomEntities()
+
+    for _, Entity in ipairs(Entities) do
+        
+        if mod:IsValidScalingEnemy(Entity) then
+            
+            FoundEnemies = FoundEnemies + 1
+
+            if Entity:GetData().ToDoListCoinCounter then
+                FoundCoins = FoundCoins + 1
+            end
+        end
+    end
+
+    local MaxCoins = (FoundEnemies // 10) + NumLists
+
+    if FoundCoins < MaxCoins then
+        NPC:GetData().ToDoListCoinCounter = 0
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_NPC_INIT, ToDoListInit)
+
+
+local function ToDoListOnDeath(_, NPC)
+
+    if mod:IsValidScalingEnemy(NPC) then 
+        return
+    end
+
+    local NPCCounter = NPC:GetData().ToDoListCoinCounter
+
+    local HadCoin = NPCCounter and (NPCCounter >= 0)
+
+    if HadCoin then
+
+        local FoundPoorEnemy = false
+
+        for _, Entity in ipairs(Isaac.GetRoomEntities()) do
+
+            if mod:IsValidScalingEnemy(Entity) then
+
+                local EntityCounter = Entity:GetData().ToDoListCoinCounter
+
+                if not EntityCounter then
+
+                    FoundPoorEnemy = true
+                    Entity:GetData().ToDoListCoinCounter = 0
+
+                    break
+                end
+            end
+        end
+
+        if not FoundPoorEnemy then
+
+            Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, NPC.Position, RandomVector() * 4,
+                       Game:GetPlayer(0), CoinSubType.COIN_PENNY, mod:RandomSeed(NPC:GetDropRNG()))
+        end
+
+    else
+        for _, Entity in ipairs(Isaac.GetRoomEntities()) do
+
+            local EntityCounter = Entity:GetData().ToDoListCoinCounter
+
+            if EntityCounter and EntityCounter >= 0 then
+
+                Entity:GetData().ToDoListCoinCounter = -1
+            end
+        end
+    end
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_ENTITY_KILL, ToDoListOnDeath)
+
+
+local ToDoCoin = Sprite("gfx/todo_coin_status.anm2")
+local COIN_LOOP_LENGTH = ToDoCoin:GetAnimationData("Idle"):GetLength()
+local COIN_START_LENGTH = ToDoCoin:GetAnimationData("Start"):GetLength()
+local COIN_LEAVE_LENGTH = ToDoCoin:GetAnimationData("Leave"):GetLength()
+
+---@param NPC EntityNPC
+local function ToDoListRender(_, NPC)
+
+    local NPCCounter = NPC:GetData().ToDoListCoinCounter
+
+    if not NPCCounter then
+        return
+    end
+
+
+    local CoinPosition = Isaac.WorldToScreen(NPC.Position + NPC.PositionOffset) + NPC.SpriteOffset + NPC:GetSprite():GetNullFrame("OverlayEffect"):GetPos()
+
+    if NPCCounter < 0 then
+        
+        local Frame = -NPCCounter - 1
+
+        --print("leave", Frame)
+
+
+        if Frame == COIN_LEAVE_LENGTH then
+            NPC:GetData().ToDoListCoinCounter = nil
+            return
+        end
+
+        ToDoCoin:SetFrame("Leave", Frame)
+
+        ToDoCoin:Render(CoinPosition)
+
+    else
+
+        if NPCCounter < COIN_START_LENGTH then
+
+            local Frame = NPCCounter
+
+            --print("start", Frame)
+
+
+            ToDoCoin:SetFrame("Start", Frame)
+
+            ToDoCoin:Render(CoinPosition)
+        else
+
+            local Frame = NPC.FrameCount % COIN_LOOP_LENGTH
+
+            --print("Idle", Frame)
+
+
+            ToDoCoin:SetFrame("Idle", Frame)
+
+            ToDoCoin:Render(CoinPosition)
+        end
+    end
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_NPC_RENDER, ToDoListRender)
+
+---@param NPC EntityNPC
+local function ToDoListUpdate(_, NPC)
+
+    local NPCCounter = NPC:GetData().ToDoListCoinCounter
+
+    if NPCCounter then
+
+        NPC:GetData().ToDoListCoinCounter = NPCCounter >= 0 and (NPCCounter + 1) or (NPCCounter - 1)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_NPC_UPDATE, ToDoListUpdate)
+
+
+
+local function POPcorn(_, Player)
+    
+    local IsJimbo = Player:GetPlayerType() == mod.Characters.JimboType
+
+    local ChanceMult
+
+    if IsJimbo then
+        
+        ChanceMult = 0
+
+        for _, v in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.POPCORN)) do
+            
+            ChanceMult = ChanceMult + mod.Saved.Player[Player:GetData().TruePlayerIndex].Inventory[v].Progress
+        end
+
+    else
+        ChanceMult = Player:GetTrinketMultiplier(mod.Jokers.POPCORN)
+    end
+
+    if math.random() <= (0.025 * ChanceMult) then
+        
+        local KernelSpeed = RandomVector()*(math.random()*2.5 + 3)
+        KernelSpeed = KernelSpeed + Player:GetTearMovementInheritance(KernelSpeed)
+
+        local SubType
+        if math.random() <= 0.02 then
+            SubType = 0
+        else
+            SubType = math.random(1,7)
+        end
+
+        local Kernel = Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.KERNEL, Player.Position,
+                                  KernelSpeed, Player, SubType, mod:RandomSeed()):ToEffect()
+        
+        Kernel:ClearEntityFlags(EntityFlag.FLAG_APPEAR)
+        Kernel:AddEntityFlags(EntityFlag.FLAG_NO_SPRITE_UPDATE)
+        --sfx:Play(SoundEffect.SOUND_SUMMON_POOF)
+
+        Kernel:GetSprite():SetFrame("Idle", SubType)
+
+        Kernel.SpriteRotation = math.random(0,180)
+
+        local Data = Kernel:GetData()
+
+        Data.ZSpeed = -math.random()*9 - 5
+        Data.ZAcceleration = 1 or math.random()*1.25 + 1
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, POPcorn)
+
+local function ExplodeCorn(_, Kernel)
+
+    Kernel.EntityCollisionClass = EntityCollisionClass.ENTCOLL_NONE
+    Kernel.GridCollisionClass = EntityGridCollisionClass.GRIDCOLL_WALLS
+
+
+    Kernel.SpriteRotation = Kernel.SpriteRotation + Kernel.Velocity:Length()*3
+
+    local Data = Kernel:GetData()
+    
+    Kernel.SpriteOffset.Y = math.min(Kernel.SpriteOffset.Y + Data.ZSpeed,0)
+    Data.ZSpeed = Data.ZSpeed + Data.ZAcceleration
+
+    if Kernel.SpriteOffset.Y == 0 or Isaac.FindInCapsule(Kernel:GetCollisionCapsule(), EntityPartition.ENEMY)[1] then
+
+        Kernel.Velocity = Vector.Zero
+
+        if Kernel.SubType ~= 0 then
+
+            local Mult = Kernel.SpawnerType == EntityType.ENTITY_PLAYER and Kernel.SpawnerEntity:ToPlayer().Damage or 1
+
+            Game:BombExplosionEffects(Kernel.Position, 5*Mult, TearFlags.TEAR_NO_GRID_DAMAGE, mod.EffectColors.YELLOW, Kernel,
+                                      0.25, true, true)
+
+            Kernel:Remove()
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, ExplodeCorn, mod.Effects.KERNEL)
+
+---@param Player EntityPlayer
+---@param Source EntityRef
+local function ImmuneToPOPExp(_, Player, _,_, Source)
+
+    if Source.Entity.Type == 1000
+       and Source.Entity.Variant == mod.Effects.KERNEL then
+        return false
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TAKE_DMG, ImmuneToPOPExp)
+
+
+local function WeeSizeDown(_, Player)
+
+    local WeeScale = 0.8 ^ mod:GetPlayerTrinketAmount(Player, mod.Jokers.WEE_JOKER)
+
+    Player.SpriteScale = Player.SpriteScale * WeeScale
+end
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, WeeSizeDown, CacheFlag.CACHE_SIZE)
+
+
+---@param Player EntityPlayer
+local function BallShotSpeed(_, Player)
+
+    local ExtraSpeed = 0.16 * mod:GetPlayerTrinketAmount(Player, mod.Jokers._8_BALL)
+
+    Player.ShotSpeed = Player.ShotSpeed + ExtraSpeed
+end
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, BallShotSpeed, CacheFlag.CACHE_SHOTSPEED)
 
 
 ------------EXAMPLE JOKER FUNCTION----------

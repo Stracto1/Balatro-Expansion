@@ -296,6 +296,8 @@ Balatro_Expansion.Effects.JIMBO_THE_KILLER = {VARIANT = Isaac.GetEntityVariantBy
                                               SUBTYPE = {PLAYERS = 1,
                                                          ENEMIES = 2}} --used to hide some character design flaws ;)
 Balatro_Expansion.Effects.BANNER = Isaac.GetEntityVariantByName("Banner")
+Balatro_Expansion.Effects.KERNEL = Isaac.GetEntityVariantByName("Popcorn Kernel")
+
 
 Balatro_Expansion.Effects.DIALOG_BUBBLE = Isaac.GetEntityVariantByName("Blind Cashout Bubble")
 Balatro_Expansion.Effects.DESC_HELPER = Isaac.GetEntityVariantByName("Description Helper")
@@ -318,6 +320,7 @@ Balatro_Expansion.Pickups.PLAYING_CARD = Isaac.GetEntityVariantByName("Balatro P
 Balatro_Expansion.Entities = {}
 Balatro_Expansion.Entities.BALATRO_TYPE = Isaac.GetEntityTypeByName("Pathfinder Slave")
 Balatro_Expansion.Entities.PATH_SLAVE = Isaac.GetEntityVariantByName("Pathfinder Slave")
+Balatro_Expansion.Entities.BANNER_HELPER = Isaac.GetEntityVariantByName("Banner Helper")
 Balatro_Expansion.Entities.CLOSET_JIMBO_SUBTYPE = Isaac.GetEntitySubTypeByName("Jimbo (secret)")
 Balatro_Expansion.Entities.STUPID_GAPER_SUBTYPE = Isaac.GetEntitySubTypeByName("Stupid Gaper")
 --Balatro_Expansion.Entities.SHOP_MIMIC = Isaac.GetEntityVariantByName("Shop Mimic")

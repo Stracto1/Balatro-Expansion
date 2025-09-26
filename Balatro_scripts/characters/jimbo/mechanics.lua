@@ -252,7 +252,7 @@ function mod:LessCoins(Pickup)
         return
     end
 
-    --try to remove if spawned by a player or if it's bigger than a penny 
+    --try to remove if not spawned by a player
     if Pickup.SpawnerEntity and Pickup.SpawnerType == EntityType.ENTITY_PLAYER then
         return
     end
@@ -501,13 +501,15 @@ function mod:SetItemPrices(Variant,SubType,ShopID,Price)
         end
     end
 
+    
+    if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_STEAM_SALE) then
+        Cost = Cost * 2 - PlayerManager.GetNumCollectibles(CollectibleType.COLLECTIBLE_STEAM_SALE) --nullifies the usual steam sale effect and subratcts 1 instead
+    end
+
     for i,Player in ipairs(PlayerManager.GetPlayers()) do
         
         Cost = Cost - #mod:GetJimboJokerIndex(Player, mod.Jokers.GIFT_CARD)
-
     end
-
-    Cost = Cost * 2 - PlayerManager.GetNumCollectibles(CollectibleType.COLLECTIBLE_STEAM_SALE) --nullifies the usual steam sale effect and subratcts 1 instead
 
     for _,Player in ipairs(PlayerManager.GetPlayers()) do
         if mod:JimboHasTrinket(Player, mod.Jokers.ASTRONOMER) then
@@ -903,7 +905,13 @@ function mod:AddRoomsCleared(IsBoss, Hostile)
             if Player:GetPlayerType() == mod.Characters.JimboType then
 
                 Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.HEART, Player.Position + RandomVector() * 5,Vector.Zero,nil,0,1)
-                Player:AddHearts(2)
+                
+                local Hearts = 2
+
+                Hearts = Hearts + 2*#mod:GetJimboJokerIndex(Player, mod.Jokers.DRUNKARD)
+                Hearts = Hearts + 2*#mod:GetJimboJokerIndex(Player, mod.Jokers.MERRY_ANDY)
+
+                Player:AddHearts(Hearts)
 
                 if Hostile then
                     mod:FullDeckShuffle(Player)
@@ -926,7 +934,13 @@ function mod:AddRoomsCleared(IsBoss, Hostile)
                 if mod:IsBeastBossRoom() then
                     Player:SetFullHearts()
                 else
-                    Player:AddHearts(2)
+
+                    local Hearts = 2
+
+                    Hearts = Hearts + 2*#mod:GetJimboJokerIndex(Player, mod.Jokers.DRUNKARD)
+                    Hearts = Hearts + 2*#mod:GetJimboJokerIndex(Player, mod.Jokers.MERRY_ANDY)
+
+                    Player:AddHearts(Hearts)
                 end
 
                 Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.HEART, Player.Position + Vector(0,7),Vector.Zero,nil,0,1) 
@@ -1208,14 +1222,6 @@ function mod:JimboOnlyRedHearts(Player, Amount, HpType, _)
         return 0
 
     elseif HpType & AddHealthType.RED == AddHealthType.RED then
-
-        if Amount > 0 and mod:JimboHasTrinket(Player, mod.Jokers.DRUNKARD) then
-
-            if Player:HasFullHearts() then
-                Game:SetDizzyAmount(math.min(Game:GetDizzyAmount() + 0.02*(1-Game:GetDizzyAmount()), 1))
-                sfx:Play(SoundEffect.SOUND_GULP)
-            end
-        end
 
         return Amount + (Amount % 2)
     end

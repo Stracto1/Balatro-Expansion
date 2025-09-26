@@ -13,7 +13,20 @@ DoorSides.UP = 1
 DoorSides.RIGHT = 2
 DoorSides.DOWN = 3
 
-local SCREEN_TO_WORLD_RATIO = 4
+
+
+mod.SCREEN_TO_WORLD_RATIO = Vector.One --from what i understood, Isaac.ScreenToWorld uses screen coordinates as the monitor's coordinates instead of normal coordinates (wtf nicalis fr)
+local function FindScreenToWorldRatio()
+    
+    local NormalCoord = Isaac.WorldToScreen(Input.GetMousePosition(true)) --the actual game's screen coords
+    local FuckedCoord = Input.GetMousePosition(false) --the monitor's screen coords
+
+    if NormalCoord.X ~= 0 and NormalCoord.Y ~= 0 then
+        mod.SCREEN_TO_WORLD_RATIO =  FuckedCoord/NormalCoord 
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_RENDER, FindScreenToWorldRatio)
+
 
 local EditionValue = {[mod.Edition.BASE] = 0,
                       [mod.Edition.FOIL] = 2,
@@ -741,7 +754,7 @@ end
 
 
 ---@param Kcolor KColor
-function mod:RenderCoolCircle(Position, Radius, Kcolor, Rotate, Bounce, FrameCount)
+function mod:RenderCoolCircle(Position, Radius, Kcolor, Rotate, Bounce, RoomClamp, FrameCount)
 
     local Room = Game:GetRoom()
     FrameCount = FrameCount or Isaac.GetFrameCount()
@@ -766,16 +779,34 @@ function mod:RenderCoolCircle(Position, Radius, Kcolor, Rotate, Bounce, FrameCou
         
         SecondPoint = FirstPoint:Rotated(Step)
 
-        Isaac.DrawLine(Room:GetClampedPosition((Position + FirstPoint), 0), 
-                       Room:GetClampedPosition((Position + SecondPoint), 0),
-                       EndKcolor, mod.EffectKColors.BLUE, 3)
+        local Start
+        local Finish
+
+        if RoomClamp then
+            Start = Isaac.WorldToScreen(Room:GetClampedPosition(Isaac.ScreenToWorld(mod.SCREEN_TO_WORLD_RATIO * (Position + FirstPoint)), 0))
+            Finish = Isaac.WorldToScreen(Room:GetClampedPosition(Isaac.ScreenToWorld(mod.SCREEN_TO_WORLD_RATIO * (Position + SecondPoint)), 0))
+        else
+            Start = Position + FirstPoint
+            Finish = Position + SecondPoint
+        end
+
+        Isaac.DrawLine(Start, 
+                       Finish,
+                       EndKcolor, Kcolor, 3)
 
         FirstPoint = SecondPoint:Rotated(Step)
 
+        if RoomClamp then
+            Start = Isaac.WorldToScreen(Room:GetClampedPosition(Isaac.ScreenToWorld(mod.SCREEN_TO_WORLD_RATIO * (Position + FirstPoint)), 0))
+            Finish = Isaac.WorldToScreen(Room:GetClampedPosition(Isaac.ScreenToWorld(mod.SCREEN_TO_WORLD_RATIO * (Position + SecondPoint)), 0))
+        else
+            Start = Position + FirstPoint
+            Finish = Position + SecondPoint
+        end
 
-        Isaac.DrawLine(Room:GetClampedPosition((Position + FirstPoint), 0), 
-                       Room:GetClampedPosition((Position + SecondPoint), 0),
-                       EndKcolor, mod.EffectKColors.BLUE, 3)
+        Isaac.DrawLine(Start, 
+                       Finish,
+                       EndKcolor, Kcolor, 3)
 
         FirstPoint = FirstPoint:Rotated(Step*2)
         SecondPoint = SecondPoint:Rotated(Step*2)
@@ -1469,7 +1500,7 @@ function mod:JimboHasTrinket(Player,Trinket)
 
     if not IsJimbo
        and not IsTJimbo then
-        return false
+        return Player:HasTrinket(Trinket)
     end
 
     local PIndex = Player:GetData().TruePlayerIndex
@@ -1483,6 +1514,34 @@ function mod:JimboHasTrinket(Player,Trinket)
         end
     end
     return false
+end
+
+function mod:GetPlayerTrinketAmount(Player, Trinket)
+
+    local IsJimbo = Player:GetPlayerType() == mod.Characters.JimboType or Player:GetPlayerType() == mod.Characters.TaintedJimbo
+
+    if IsJimbo then
+        return #mod:GetJimboJokerIndex(Player, Trinket)
+
+    else
+        return Player:GetTrinketMultiplier()
+    end
+end
+
+function mod:GetTotalTrinketAmount(Trinket)
+
+    local Amount = PlayerManager.GetTotalTrinketMultiplier(Trinket) --normal player's trinkets
+
+    for _,Player in ipairs(PlayerManager.GetPlayers()) do
+
+        local IsJimbo = Player:GetPlayerType() == mod.Characters.JimboType
+
+        if IsJimbo then
+            Amount = Amount + #mod:GetJimboJokerIndex(Player, Trinket)
+        end
+    end
+
+    return Amount
 end
 
 
@@ -1849,7 +1908,7 @@ function mod:GetJokerInitialProgress(Joker, Tainted, Player)
 
         end
 
-        Prog = Prog or tonumber(string.gsub(Config:GetCustomTags()[3],"%:",""), 10)
+        Prog = Prog or tonumber(string.gsub(Config:GetCustomTags()[3],"%:",""))
 
     else
         ---@type EntityPlayer
@@ -2053,8 +2112,7 @@ function mod:GetJokerInitialProgress(Joker, Tainted, Player)
 
         end
         
-
-        Prog = Prog or tonumber(Config:GetCustomTags()[2], 10)
+        Prog = Prog or tonumber(Config:GetCustomTags()[2])
     end
 
     return Prog
@@ -3414,7 +3472,6 @@ local function JimboAddTrinket(_, Player, Trinket, _, StopEvaluation)
     mod.Saved.Player[PIndex].Inventory[EmptySlot].Modifiers = 0
     mod.Saved.Player[PIndex].Inventory[EmptySlot].RenderIndex = mod.Saved.LastJokerRenderIndex
 
-
     mod.Saved.Player[PIndex].Inventory[EmptySlot].Progress = mod:GetJokerInitialProgress(JokerType, IsTaintedJimbo)
 
     if not StopEvaluation then
@@ -3581,7 +3638,7 @@ function mod:DestroyCards(Player, DeckIndexes, DoEffects, BlockSubstitution)
         table.remove(mod.Saved.Player[PIndex].FullDeck, DestroyedPointer)
         
         if DoEffects then
-            mod:CardRipEffect(CardParams, IsTaintedJimbo and Isaac.ScreenToWorld(mod.CardFullPoss[DestroyedPointer]) * SCREEN_TO_WORLD_RATIO or Player.Position)
+            mod:CardRipEffect(CardParams, IsTaintedJimbo and Isaac.ScreenToWorld(mod.CardFullPoss[DestroyedPointer]) * mod.SCREEN_TO_WORLD_RATIO or Player.Position)
         end
     end
 
@@ -4336,7 +4393,17 @@ function mod:GetBlindReward(Blind)
 end
 
 
+function mod:IsHostileRoomSpawn(Type, Variant, SubType)
 
+    local Config = EntityConfig.GetEntity(Type, Variant)
+
+    return Config and Config:CanShutDoors() 
+           and Entity.Type ~= EntityType.ENTITY_EFFECT
+           and Entity.Type ~= EntityType.ENTITY_SLOT
+           and Entity.Type ~= StbGridType.PRESSURE_PLATE --the "puzzle" plates
+           and Entity.Type ~= EntityType.ENTITY_PICKUP --why tf is this even needed
+           and Entity.Type ~= EntityType.ENTITY_RAGLING
+end
 
 function mod:PlaceBlindRoomsForReal()
 
@@ -4387,14 +4454,7 @@ function mod:PlaceBlindRoomsForReal()
                 
                 local Entity = Entries:Get(i):PickEntry(0)
 
-                local Config = EntityConfig.GetEntity(Entity.Type, Entity.Variant)
-
-                if Config and Config:CanShutDoors() 
-                   and Entity.Type ~= EntityType.ENTITY_EFFECT
-                   and Entity.Type ~= EntityType.ENTITY_SLOT
-                   and Entity.Type ~= 4500 --i think it's the trigger pressure plate
-                   and Entity.Type ~= EntityType.ENTITY_PICKUP --why tf is this even needed
-                   and Entity.Type ~= EntityType.ENTITY_RAGLING then 
+                if mod:IsHostileRoomSpawn(Entity.Type, Entity.Variant, Entity.Subtype) then 
                     
                     IsHostile = true
                     break
@@ -4447,14 +4507,8 @@ function mod:PlaceBlindRoomsForReal()
 
                 local Config = EntityConfig.GetEntity(Entity.Type, Entity.Variant)
 
-                if Config and Config:CanShutDoors() 
-                   and Entity.Type ~= EntityType.ENTITY_EFFECT --why tf is this even needed
-                   and Entity.Type ~= EntityType.ENTITY_SLOT
-                   and Entity.Type ~= 4500  -- i think it's the trigger pressure plate
-                   and Entity.Type ~= EntityType.ENTITY_PICKUP 
-                   and Entity.Type ~= EntityType.ENTITY_RAGLING then 
+                if mod:IsHostileRoomSpawn(Entity.Type, Entity.Variant, Entity.Subtype) then 
                     
-                    print(Entity.Type, Entity.Variant, "is hostile")
                     IsHostile = true
                     break
                 end

@@ -1803,7 +1803,7 @@ function mod:ActiveUse(Item, Rng, Player, Flags, Slot, Data)
         local BananaSpeed = RandomVector()*(math.random() + 2)
 
         local Banan = Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.BANANA_PEEL, Player.Position,
-                   BananaSpeed + Player:GetTearMovementInheritance(BananaSpeed), Player, 0, math.max(Random(), 1)):ToEffect()
+                   BananaSpeed + Player:GetTearMovementInheritance(BananaSpeed), Player, 0, mod:RandomSeed()):ToEffect()
         
         sfx:Play(SoundEffect.SOUND_SUMMON_POOF)
 
