@@ -309,7 +309,7 @@ function mod:ResetPlatesData()
 
                     for i = 0, Sprite:GetLayerCount() - 1 do
 
-                        Sprite:ReplaceSpritesheet(i, "gfx/grid/door_mausoleum_alt_TJimbo.png", true)
+                        Sprite:ReplaceSpritesheet(i, "gfx/grid/Strange_Door_TJimbo.png", true)
                     end
                 end
             end

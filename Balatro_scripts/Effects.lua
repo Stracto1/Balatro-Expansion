@@ -54,10 +54,20 @@ function mod:CreateBalatroEffect(Index, Colour, Sound, Text, EffectType, Player,
     Speed = Speed or 1
     EffectType = EffectType or mod.EffectType.NULL
 
+    local IsTaintedJimbo = Player:GetPlayerType() == mod.Characters.TaintedJimbo
+    local IsJimbo = Player:GetPlayerType() == mod.Characters.JimboType
+
+    if EffectType ~= mod.EffectType.ENTITY and EffectType ~= mod.EffectType.NULL
+       and IsJimbo
+       and not IsTaintedJimbo then
+        
+        EffectType = mod.EffectType.ENTITY
+        Index = Player
+    end
+
     local IsEntity = EffectType == mod.EffectType.ENTITY
     local EffectSlot = EffectType
     local PIndex = Player:GetData().TruePlayerIndex
-    local IsTaintedJimbo = Player:GetPlayerType() == mod.Characters.TaintedJimbo
 
     if IsEntity then --basically checks if it's an entity
 
@@ -127,7 +137,7 @@ function mod:CreateBalatroEffect(Index, Colour, Sound, Text, EffectType, Player,
 
         EffectParams[EffectSlot].Position = EntityPtr(Index)
 
-        if Index:ToPlayer() and Player:GetPlayerType() == mod.Characters.TaintedJimbo then
+        if Index:ToPlayer() and IsTaintedJimbo then
             
             EffectParams[EffectSlot].Offset = Vector(30,20)
         else

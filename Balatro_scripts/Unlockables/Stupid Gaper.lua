@@ -42,6 +42,8 @@ local function StupidGapersKill(_, NPC)
         return
     end
 
+    NPC = NPC:ToNPC()
+
     local Target = (NPC:GetPlayerTarget() or Game:GetPlayer(0)):ToPlayer()
 
     local Locust = Game:Spawn(EntityType.ENTITY_FAMILIAR, FamiliarVariant.BLUE_FLY, NPC.Position,
@@ -50,5 +52,5 @@ local function StupidGapersKill(_, NPC)
 ---@diagnostic disable-next-line: assign-type-mismatch
     Locust.Player = Target
 end
-mod:AddCallback(ModCallbacks.MC_POST_NPC_DEATH, StupidGapersKill, EntityType.ENTITY_GAPER)
+mod:AddCallback(ModCallbacks.MC_POST_ENTITY_KILL, StupidGapersKill, EntityType.ENTITY_GAPER)
 

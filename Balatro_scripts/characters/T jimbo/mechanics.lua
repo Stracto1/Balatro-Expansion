@@ -886,7 +886,7 @@ local function SetupRoom()
     for i=2, Width-1, 2 do
         local Position = Room:GetGridPosition(i + math.random(2, Height-1)*Width)
 
-        local Ent = Game:Spawn(mod.Entities.BALATRO_TYPE, mod.Entities.PATH_SLAVE, Position,
+        local Ent = Game:Spawn(mod.Entities.BALATRO_TYPE, mod.Entities.NPC_SLAVE, Position,
                                Vector.Zero, nil, 0, 1)
 
         Ent:ClearEntityFlags(EntityFlag.FLAG_APPEAR)
@@ -896,7 +896,7 @@ local function SetupRoom()
     for i=2, Height-1, 2 do
         local Position = Room:GetGridPosition(math.random(2, Width-1) +i*Width)
 
-        Game:Spawn(mod.Entities.BALATRO_TYPE, mod.Entities.PATH_SLAVE, Position,
+        Game:Spawn(mod.Entities.BALATRO_TYPE, mod.Entities.NPC_SLAVE, Position,
                    Vector.Zero, nil, 0, 1)
 
     end
@@ -921,7 +921,7 @@ local function PreventTjimboTarget(_, NPC, Target)
 
     --Tjimbo shouldn't be targeted by enemies, so make them move semi-randomly against entities spawned in SpawnAdditionalTargets()
 
-    local PossibleTargets = Isaac.FindByType(mod.Entities.BALATRO_TYPE, mod.Entities.PATH_SLAVE)
+    local PossibleTargets = Isaac.FindByType(mod.Entities.BALATRO_TYPE, mod.Entities.NPC_SLAVE)
 
     local NewTarget = mod:GetRandom(PossibleTargets)
 

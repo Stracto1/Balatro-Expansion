@@ -2847,7 +2847,7 @@ local function StatEvaluation(_,Player, Cache)
     end
 
     if Player:HasTrinket(mod.Jokers.JOKER) then
-        if  Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
+        if Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
             
             Player.Damage = Player.Damage + 1 * Player:GetTrinketMultiplier(mod.Jokers.JOKER)
         end

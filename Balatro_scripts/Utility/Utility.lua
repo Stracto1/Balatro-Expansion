@@ -15,7 +15,7 @@ DoorSides.DOWN = 3
 
 
 
-mod.SCREEN_TO_WORLD_RATIO = Vector.One --from what i understood, Isaac.ScreenToWorld uses screen coordinates as the monitor's coordinates instead of normal coordinates (wtf nicalis fr)
+mod.SCREEN_TO_WORLD_RATIO = Vector.One --from what i understood, Isaac.ScreenToWorld uses the monitor's coordinates instead of normal coordinates (wtf nicalis fr)
 local function FindScreenToWorldRatio()
     
     local NormalCoord = Isaac.WorldToScreen(Input.GetMousePosition(true)) --the actual game's screen coords
@@ -26,6 +26,34 @@ local function FindScreenToWorldRatio()
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, FindScreenToWorldRatio)
+
+
+local function NoPoofs(_,NPC)
+
+    NPC:ClearEntityFlags(EntityFlag.FLAG_APPEAR)
+end
+mod:AddCallback(ModCallbacks.MC_POST_NPC_INIT, NoPoofs, mod.Entities.BALATRO_TYPE)
+
+
+---@param NPC EntityNPC
+local function DirtColorHelper(_,NPC)
+
+    if NPC.Variant == mod.Entities.NPC_SLAVE
+       and NPC.SubType == mod.Entities.DIRT_COLOR_HELPER_SUBTYPE
+       and NPC.Parent then
+
+        NPC.Position = NPC.Parent.Position
+
+        NPC:UpdateDirtColor(false)
+        local Dirt = NPC:GetDirtColor()
+        local ParentColor = Color(1,1,1,1,0,0,0, Dirt.R, Dirt.G, Dirt.B, 10)
+
+
+        NPC.Parent:SetColor(ParentColor, 1, 100, true, false)
+    end
+end
+--mod:AddCallback(ModCallbacks.MC_NPC_UPDATE, DirtColorHelper, mod.Entities.BALATRO_TYPE)
+
 
 
 local EditionValue = {[mod.Edition.BASE] = 0,
@@ -463,7 +491,7 @@ function mod:CanTileBeBlocked(IndexToDestroy)
         end
     end
 
-    local PathfinderSlave = Game:Spawn(mod.Entities.BALATRO_TYPE, mod.Entities.PATH_SLAVE, DoorPositions[1],
+    local PathfinderSlave = Game:Spawn(mod.Entities.BALATRO_TYPE, mod.Entities.NPC_SLAVE, DoorPositions[1],
                                        Vector.Zero, nil, 0, 1):ToNPC()
 
     local Pathfinder = PathfinderSlave.Pathfinder
@@ -887,11 +915,12 @@ function mod:DeterminePokerHand(Player)
                 table.insert(RealHand, mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]])
             end
         end
-    else
+    elseif Player:GetPlayerType() == mod.Characters.JimboType then
         for _,index in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
             table.insert(RealHand, mod.Saved.Player[PIndex].FullDeck[index])
-
         end
+    else
+        return 0
     end
 
     if #RealHand > 0 then --shoud never happen but you never know...
@@ -1524,7 +1553,7 @@ function mod:GetPlayerTrinketAmount(Player, Trinket)
         return #mod:GetJimboJokerIndex(Player, Trinket)
 
     else
-        return Player:GetTrinketMultiplier()
+        return Player:GetTrinketMultiplier(Trinket)
     end
 end
 
@@ -1588,13 +1617,6 @@ end
 
 function mod:GetJimboJokerIndex(Player, Joker, SkipCopy)
     local Indexes = {}
-
-    if Player:GetPlayerType() ~= mod.Characters.JimboType
-       and Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
-
-        return Indexes
-    end
-
 
     local PIndex = Player:GetData().TruePlayerIndex
 
@@ -1910,7 +1932,7 @@ function mod:GetJokerInitialProgress(Joker, Tainted, Player)
 
         Prog = Prog or tonumber(string.gsub(Config:GetCustomTags()[3],"%:",""))
 
-    else
+    elseif Tainted == false then
         ---@type EntityPlayer
         local Jimbo = Player or PlayerManager.FirstPlayerByType(mod.Characters.JimboType)
         local PIndex = Jimbo:GetData().TruePlayerIndex
@@ -1992,7 +2014,7 @@ function mod:GetJokerInitialProgress(Joker, Tainted, Player)
                     end
                 end
 
-                Prog = TotalSell * 0.05
+                Prog = TotalSell * 0.07
 
             elseif Joker == mod.Jokers.EVENSTEVEN then
 
@@ -2042,11 +2064,10 @@ function mod:GetJokerInitialProgress(Joker, Tainted, Player)
                 Prog = Suit + 8*Value
 
                 local Pool = Game:GetItemPool()
-                local IdolRNG = Player:GetTrinketRNG(Joker)
                 local Flags = GetCollectibleFlag.BAN_ACTIVES | GetCollectibleFlag.IGNORE_MODIFIERS
 
                 ---@diagnostic disable-next-line: param-type-mismatch
-                local RandomItem = Pool:GetCollectible(Pool:GetRandomPool(Player:GetTrinketRNG(Joker)), false, IdolRNG:GetSeed(), nil, Flags)
+                local RandomItem = Pool:GetCollectible(Pool:GetRandomPool(JokerRNG), false, JokerRNG:GetSeed(), nil, Flags)
 
                 Prog = Prog + (RandomItem << 7)
 
@@ -2083,7 +2104,7 @@ function mod:GetJokerInitialProgress(Joker, Tainted, Player)
 
             elseif Joker == mod.Jokers.THROWBACK then
 
-                Prog = 1 + mod.Saved.RunSkippedSpecials*0.05
+                Prog = 1 + 0.02*mod.Saved.RunSkippedSpecials + 0.1*mod.Saved.RunSkippedBlinds
             end
 
         elseif Config:HasCustomTag("money") then
@@ -2102,9 +2123,7 @@ function mod:GetJokerInitialProgress(Joker, Tainted, Player)
             
                 Prog = JokerRNG:PhantomInt(mod.Values.KING) + 1
 
-            elseif Joker == mod.Jokers.TO_DO_LIST then
 
-                Prog = mod:RandomHandType(JokerRNG, true)
             end
 
         elseif Config:HasCustomTag("activate") then
@@ -2113,6 +2132,65 @@ function mod:GetJokerInitialProgress(Joker, Tainted, Player)
         end
         
         Prog = Prog or tonumber(Config:GetCustomTags()[2])
+
+    else
+        ---@type EntityPlayer
+        local PIndex = Player:GetData().TruePlayerIndex
+        local JokerRNG = Player:GetTrinketRNG(Joker)
+
+        if Config:HasCustomTag("chips") then
+
+
+        elseif Config:HasCustomTag("multm") then
+
+            if Joker == mod.Jokers.IDOL then
+
+                local Pool = Game:GetItemPool()
+                local IdolRNG = Player:GetTrinketRNG(Joker)
+                local Flags = GetCollectibleFlag.BAN_ACTIVES | GetCollectibleFlag.IGNORE_MODIFIERS
+
+                ---@diagnostic disable-next-line: param-type-mismatch
+                local RandomItem = Pool:GetCollectible(Pool:GetRandomPool(Player:GetTrinketRNG(Joker)), false, IdolRNG:GetSeed(), nil, Flags)
+
+                Prog = RandomItem << 7
+
+            elseif Joker == mod.Jokers.DRIVER_LICENSE then
+
+                local Is18 = Player:HasPlayerForm(PlayerForm.PLAYERFORM_ADULTHOOD) or Player:HasPlayerForm(PlayerForm.PLAYERFORM_MOM) or Player:HasPlayerForm(PlayerForm.PLAYERFORM_BOB)
+
+                Prog = Is18 and 1.5 or 1
+
+            elseif Joker == mod.Jokers.THROWBACK then
+
+                Prog = 1 + 0.02*mod.Saved.RunSkippedSpecials + 0.1*mod.Saved.RunSkippedBlinds
+            end
+
+        elseif Config:HasCustomTag("money") then
+
+            if Joker == mod.Jokers.SATELLITE then
+
+                Prog = 0
+
+                for i=1, mod.Values.KING do
+
+                    if mod.Saved.PlanetTypesUsed & (1 << i) ~= 0 then
+                        Prog = Prog + 1
+                    end
+                end
+            elseif Joker == mod.Jokers.MAIL_REBATE then
+            
+                Prog = JokerRNG:PhantomInt(mod.Values.KING) + 1
+
+
+            end
+
+        elseif Config:HasCustomTag("activate") then
+            
+
+        end
+        
+        Prog = Prog or tonumber(Config:GetCustomTags()[2])
+
     end
 
     return Prog
@@ -2222,11 +2300,16 @@ function mod:SellJoker(Player, Slot, Multiplier)
         Player:AddCoins(SellValue)
     end
 
-    mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..SellValue.."$", mod.EffectType.ENTITY, Player)
+    if Multiplier ~= 0 then --actually gave some money
 
+        mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..SellValue.."$", mod.EffectType.ENTITY, Player)
 
-    --Isaac.RunCallback("INVENTORY_CHANGE", Player)
-    Isaac.RunCallback("JOKER_SOLD", Player, Trinket, Slot)
+        --Isaac.RunCallback("INVENTORY_CHANGE", Player)
+        Isaac.RunCallback(mod.Callbalcks.JOKER_SOLD, Player, Trinket, Slot)
+
+    else
+        Isaac.RunCallback(mod.Callbalcks.INVENTORY_CHANGE, Player)
+    end
 
     return true
 end
@@ -2413,7 +2496,7 @@ function mod:RandomJoker(Rng, PlaySound, ForcedRarity, AllowDuplicates, Amount)
             end
         end
 
-        Trinket.Edition = mod.Edition.NEGATIVE
+        --Trinket.Edition = mod.Edition.POLYCROME
 
         if PlaySound then
             sfx:Play(EditionSound[Trinket.Edition])
@@ -3497,6 +3580,10 @@ function mod:AddJoker(Player, Joker, Edition, StopEval)
 
     return JimboAddTrinket(nil, Player, Joker, false, StopEval)
 end
+
+----------
+--for mod:RemoveJoker() see Trinket Editions.lua in Unlockables
+----------
 
 
 function mod:AddCardToDeck(Player, CardTable,Amount, PutInHand)
@@ -4992,14 +5079,7 @@ function mod:Select(Player)
 
                 if not IsTaintedJimbo then
                 
-                    --if max selection is done, automatically use hand
-                    if mod.SelectionParams[PIndex].MaxSelectionNum == mod.SelectionParams[PIndex].SelectionNum then --DSS TO BE ADDED
-                        --makes things faster by automatically activating if you chose the maximum number of cards
-                        mod:UseSelection(Player)
-                        mod:SwitchCardSelectionStates(Player,mod.SelectionParams.Modes.NONE,0)
-                        return
-
-                    elseif CurrentPurpose == mod.SelectionParams.Purposes.DEATH1 then
+                    if CurrentPurpose == mod.SelectionParams.Purposes.DEATH1 then
                         for i,v in ipairs(SelectedCards) do
                             if v then
                                 DeathCopyCard = mod.Saved.Player[PIndex].CurrentHand[i]
@@ -5165,8 +5245,6 @@ function mod:Select(Player)
                     end
 
                 end
-
-
             end
 
         else--the confirm button is pressed
@@ -5215,6 +5293,16 @@ function mod:Select(Player)
             SelectedCards[mod.SelectionParams[PIndex].Index] = true
         end
     
+    end
+       
+    --if max selection is done, automatically use hand
+    if not IsTaintedJimbo
+       and mod.SelectionParams[PIndex].MaxSelectionNum == mod.SelectionParams[PIndex].SelectionNum then --DSS TO BE ADDED
+        --makes things faster by automatically activating if you chose the maximum number of cards
+        mod:UseSelection(Player)
+        mod:SwitchCardSelectionStates(Player,mod.SelectionParams.Modes.NONE,0)
+        return
+
     end
 end
 
@@ -5266,7 +5354,7 @@ function mod:UseSelection(Player)
 
             local SelectedSlot = mod:GetValueIndex(SelectedCards, true, true)
 
-            local IsNegativeJoker = mod.Saved.Player[PIndex].Inventory[SelectedSlot].Edition == mod.Edition.NEGATIVE
+            local Edition = mod.Saved.Player[PIndex].Inventory[SelectedSlot].Edition + 0
 
                 
             mod.Saved.Player[PIndex].Inventory[SelectedSlot].Joker = 0
@@ -5280,9 +5368,21 @@ function mod:UseSelection(Player)
 
                 local Sprite = SecretDoor:GetSprite()
 
+                Sprite:GetLayer(2):SetVisible(true)
+                Sprite:GetLayer(4):SetVisible(false)
 
-                Sprite:GetLayer(2):SetVisible(not IsNegativeJoker)
-                Sprite:GetLayer(4):SetVisible(IsNegativeJoker)
+                if Edition == mod.Edition.FOIL then
+                    Sprite:ReplaceSpritesheet(2, "gfx/grid/Strange_Door_TJimbo_Foil.png", true)
+
+                elseif Edition == mod.Edition.HOLOGRAPHIC then
+                    Sprite:ReplaceSpritesheet(2, "gfx/grid/Strange_Door_TJimbo_Holo.png", true)
+
+                elseif Edition == mod.Edition.POLYCROME then
+                    Sprite:ReplaceSpritesheet(2, "gfx/grid/Strange_Door_TJimbo_Poly.png", true)
+
+                elseif Edition == mod.Edition.NEGATIVE then
+                    Sprite:ReplaceSpritesheet(2, "gfx/grid/Strange_Door_TJimbo_Nagative.png", true)
+                end
                 
                 SecretDoor:TryUnlock(Player, true)
             end

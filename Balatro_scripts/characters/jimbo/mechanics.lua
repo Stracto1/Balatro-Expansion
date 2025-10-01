@@ -10,7 +10,7 @@ local SUIT_ANIMATIONS = {"Spade","Heart","Club","Diamond"}
 local TrinketSprite = Sprite("gfx/005.350_trinket_custom.anm2")
 local JOKER_OVERLAY_LENGTH = TrinketSprite:GetAnimationData("Idle"):GetLength()
 
-local JIMBO_BASE_TEARS = 2 --it's actually 1+ this value
+local JIMBO_BASE_TEARS = 3 --it's actually 1+ this value
 
 
 local BasicRoomNum = 0
@@ -39,6 +39,8 @@ function mod:JimboInit(player)
         Data.NotAlrPressed.ctrl = true
         Data.ALThold = 0 --used to activate the inventory selection
         Data.SinceCardShoot = 0
+
+        Data.EnableFireDelayModify = true
 
         --player:SetPocketActiveItem(CollectibleType.COLLECTIBLE_THE_HAND,ActiveSlot.SLOT_POCKET)
         --ItemPool:RemoveCollectible(CollectibleType.COLLECTIBLE_THE_HAND)
@@ -244,7 +246,7 @@ local CoinQuality = {[CoinSubType.COIN_PENNY] = 1,
                     [CoinSubType.COIN_LUCKYPENNY] = 4, 
                     [CoinSubType.COIN_GOLDEN] = 0.5, 
                     [CoinSubType.COIN_DIME] = 5}
---removes some coins spawnned by the game and players
+--removes some coins spawned by the game
 ---@param Pickup EntityPickup
 function mod:LessCoins(Pickup)
 
@@ -684,9 +686,59 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, AddOneMoreShop)
 --calculates how big the blinds are 
 function mod:CalculateBlinds()
 
-    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
+    local Jimbo = PlayerManager.FirstPlayerByType(mod.Characters.JimboType)
+
+    if not Jimbo or not mod.GameStarted then
         return
     end
+
+
+    local NumPacks = 1
+    local BlindsSkipped = 0
+    local SkippedFlag = 0
+
+    for i,Player in ipairs(PlayerManager.GetPlayers()) do
+        
+        if Player:GetPlayerType() == mod.Characters.JimboType then
+            NumPacks = NumPacks + 1
+        end
+    end
+
+    
+
+    if mod.Saved.SmallCleared == mod.BlindProgress.NOT_CLEARED then
+        BlindsSkipped = BlindsSkipped + 1
+        SkippedFlag = SkippedFlag & mod.BLINDS.SMALL
+    end
+    if mod.Saved.BigBlind == mod.BlindProgress.NOT_CLEARED then
+        BlindsSkipped = BlindsSkipped + 1
+        SkippedFlag = SkippedFlag & mod.BLINDS.BIG
+    end
+    if mod.Saved.BossCleared == mod.BlindProgress.NOT_CLEARED then
+        BlindsSkipped = BlindsSkipped + 1
+        SkippedFlag = SkippedFlag & mod.BLINDS.BOSS
+    end
+
+
+    if BlindsSkipped ~= 0 then
+
+        mod.Saved.RunSkippedBlinds = mod.Saved.RunSkippedBlinds + BlindsSkipped
+
+        Isaac.CreateTimer(function ()
+        Isaac.CreateTimer(function ()
+            
+            local Pack = mod:RandomPack(mod.RNGs.SKIP_TAGS, false)
+
+            Game:Spawn(5, 300, Jimbo.Position, RandomVector()*5, Jimbo, Pack, mod:RandomSeed(mod.RNGs.SKIP_TAGS))
+
+        end, 5, BlindsSkipped * NumPacks, true)
+        end, 5, 1, true)
+
+        mod:CreateBalatroEffect(Jimbo, mod.EffectColors.YELLOW ,mod.Sounds.ACTIVATE, "Skipped!", mod.EffectType.ENTITY, Jimbo)
+    
+        Isaac.RunCallback(mod.Callbalcks.BLIND_SKIP, SkippedFlag)
+    end
+
 
     local SmallAvailable, BigAvailable, BossAvailable = mod:GetJimboBlindAvailability()
 
@@ -694,33 +746,7 @@ function mod:CalculateBlinds()
     mod.Saved.BigCleared = BigAvailable and mod.BlindProgress.NOT_CLEARED or mod.BlindProgress.CLEARED
     mod.Saved.BossCleared = BossAvailable and mod.BlindProgress.NOT_CLEARED or mod.BlindProgress.CLEARED
 
-    --mod.Saved.ClearedRooms = 0
---
-    --if Game:IsGreedMode() then
---
-    --    if Game:GetLevel():GetName() == "shop" then
-    --        mod.Saved.SmallBlind = 0
-    --        mod.Saved.BigBlind = 0
-    --    else
-    --        mod.Saved.SmallBlind = 8
-    --        mod.Saved.BigBlind = 2
-    --        if Game:IsHardMode() then
-    --            mod.Saved.SmallBlind = mod.Saved.SmallBlind + 1
-    --        end
-    --    end
---
-    --else
-    --    --the more rooms, the less you need to complete
-    --    if BasicRoomNum < 40 then
-    --        BasicRoomNum = math.floor(BasicRoomNum * (0.9 - BasicRoomNum/100))
-    --    else
-    --        BasicRoomNum =  math.floor(BasicRoomNum * 0.55) --the minimum is 55% of rooms
-    --    end
- --
-    --    mod.Saved.SmallBlind = math.floor(BasicRoomNum/2) -- about half of the rooms
-    --    mod.Saved.BigBlind = BasicRoomNum - mod.Saved.SmallBlind --about half of the rooms
-    --end
-    --BasicRoomNum = 0 --resets the counter
+
 
     --Isaac.RunCallback("BLIND_STARTED", mod.BLINDS.SMALL)
 end
@@ -1387,7 +1413,8 @@ mod:AddCallback(ModCallbacks.MC_PRE_ROOM_TRIGGER_CLEAR, GreedmodeLastWaveClear)
 
 function mod:JokerStatReset(Player, Cache)
 
-    if not mod.GameStarted then
+    if Player:GetPlayerType() == mod.Characters.TaintedJimbo
+       or not mod.GameStarted then
         return
     end
 
@@ -1400,7 +1427,7 @@ function mod:JokerStatReset(Player, Cache)
 
     --Isaac.DebugString("-----END RESET------")
 end
-mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.IMPORTANT, mod.JokerStatReset)
+mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE + 1, mod.JokerStatReset)
 
 ---@param Player EntityPlayer
 ---@param Cache CacheFlag
@@ -1415,14 +1442,14 @@ function mod:JimboStatCalculator(Player, Cache)
 
     if Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
 
-        Player.Damage = (Player.Damage / 3.50)^0.75
+        Player.Damage = (Player.Damage / 3.50)
     end
     if Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then
 
-        Player.MaxFireDelay = mod:CalculateMaxFireDelay((mod:CalculateTears(Player.MaxFireDelay)/ 2.73)^0.75)
+        Player.MaxFireDelay = mod:CalculateMaxFireDelay((mod:CalculateTears(Player.MaxFireDelay)/ 2.7272))
     end
 end
-mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.JimboStatCalculator)
+mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE + 2, mod.JimboStatCalculator)
 
 
 ---@param Player EntityPlayer
@@ -1451,7 +1478,7 @@ function mod:StatReset(Player, Damage, Tears, Evaluate, Jokers, Basic)
     end
     if Tears then
         if Basic then
-            mod.Saved.Player[PIndex].StatsToAdd.Tears = JIMBO_BASE_TEARS
+            mod.Saved.Player[PIndex].StatsToAdd.Tears = 0
         end
         if Jokers then
             mod.Saved.Player[PIndex].StatsToAdd.JokerTears = 0
@@ -1484,14 +1511,14 @@ function mod:StatReset(Player, Damage, Tears, Evaluate, Jokers, Basic)
 end
 
 
-local LibraEnable = true
+--local LibraEnable = true
 --finally gives the actual stat changes to jimbo, also used for always active buffs
 ---@param Player EntityPlayer
 function mod:StatGiver(Player, Cache)
 
-    Isaac.DebugString("BALATRO stat giver")
+    --Isaac.DebugString("BALATRO stat giver")
 
-    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted then
+    if Player:GetPlayerType() == mod.Characters.TaintedJimbo or not mod.GameStarted then
         return
     end
 
@@ -1499,47 +1526,58 @@ function mod:StatGiver(Player, Cache)
 
     local stats = mod.Saved.Player[PIndex].StatsToAdd
 
-    if Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
+    if Player :GetPlayerType() == mod.Characters.JimboType then
+        if Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
+
+        local BaseDamage = Player.Damage
 
         --Player.Damage = (Player.Damage + (stats.Damage + stats.JokerDamage) * Player.Damage) * stats.JokerMult * stats.Mult
-        mod.Saved.Player[PIndex].TrueDamageValue = (Player.Damage + (stats.Damage + stats.JokerDamage) * Player.Damage) * stats.JokerMult * stats.Mult
+        mod.Saved.Player[PIndex].TrueDamageValue = (BaseDamage + stats.Damage + stats.JokerDamage) * stats.JokerMult * stats.Mult
 
-        Player.Damage = mod.Saved.Player[PIndex].TrueDamageValue
 
-    elseif Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then
+        elseif Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then
+
+        local BaseTears = JIMBO_BASE_TEARS * mod:CalculateTearsValue(Player)
         
-        mod.Saved.Player[PIndex].TrueTearsValue = mod:CalculateTearsValue(Player) + (stats.Tears +  stats.JokerTears)* mod:CalculateTearsValue(Player)
-
-        Player.MaxFireDelay = Player:GetCustomCacheValue(mod.CustomCache.HAND_COOLDOWN)
-    end
-
-    --changing stats the next frame sadly causes some "jiggling" fpr the stats values, but it's needed due to
-    --how libra and the minimum damage cap (0.5) work, but these ifs at leat limit the ammount of situations they can appear in
-    if Player:HasCollectible(CollectibleType.COLLECTIBLE_LIBRA) then
-
-        local HalfStat = (mod.Saved.Player[PIndex].TrueDamageValue + mod.Saved.Player[PIndex].TrueTearsValue)/2
-        --local HalfStat = ((mod.Saved.Player[PIndex].TrueDamageValue + mod.Saved.Player[PIndex].TrueTearsValue)/4)^0.5 --halfes the total card damage
-
-        if Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE 
-           or Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY
-           and LibraEnable then
-            
-            Isaac.CreateTimer(function ()
-                mod.Saved.Player[PIndex].TrueDamageValue = HalfStat
-                mod.Saved.Player[PIndex].TrueTearsValue = HalfStat
-                LibraEnable = true
-            end,0,1,true)
-            LibraEnable = false
+        mod.Saved.Player[PIndex].TrueTearsValue = BaseTears + (stats.Tears +  stats.JokerTears)
         end
 
-        Isaac.CreateTimer(function ()
-            Player.Damage = 1
-            Player.MaxFireDelay = Player:GetCustomCacheValue(mod.CustomCache.HAND_COOLDOWN)
-        end,0,1,true)
+        --changing stats the next frame sadly causes some "jiggling" fpr the stats values, but it's needed due to
+        --how libra and the minimum damage cap (0.5) work, but these ifs at leat limit the ammount of situations they can appear in
+        if Player:HasCollectible(CollectibleType.COLLECTIBLE_LIBRA) then
+
+            local HalfStat = (mod.Saved.Player[PIndex].TrueDamageValue + mod.Saved.Player[PIndex].TrueTearsValue)/2
+            --local HalfStat = ((mod.Saved.Player[PIndex].TrueDamageValue + mod.Saved.Player[PIndex].TrueTearsValue)/4)^0.5 --halfes the total card damage
+
+            if Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE 
+               or Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then
+
+                mod.Saved.Player[PIndex].TrueDamageValue = HalfStat
+                mod.Saved.Player[PIndex].TrueTearsValue = HalfStat
+            end
+        end
+    else
+
+        if Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
+
+            --Player.Damage = (Player.Damage + (stats.Damage + stats.JokerDamage) * Player.Damage) * stats.JokerMult * stats.Mult
+            Player.Damage = (Player.Damage + stats.Damage + stats.JokerDamage) * stats.JokerMult * stats.Mult
+
+        elseif Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then
+            
+            Player.MaxFireDelay = Player.MaxFireDelay - mod:CalculateTearsUp(Player.MaxFireDelay, stats.Tears +  stats.JokerTears)
+        end
 
     end
+
+    Isaac.CreateTimer(function ()
+        Player.Damage = mod.Saved.Player[PIndex].TrueDamageValue
+        Player.MaxFireDelay = mod:CalculateMaxFireDelay(mod.Saved.Player[PIndex].TrueTearsValue)
+    end,0,1,true)
+
+
 end
-mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE + 1, mod.StatGiver)
+mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE + 5, mod.StatGiver)
 
 
 function mod:IncreaseJimboStats(Player,TearsUp,DamageUp,Mult, Evaluate, Basic)
@@ -1555,6 +1593,9 @@ function mod:IncreaseJimboStats(Player,TearsUp,DamageUp,Mult, Evaluate, Basic)
         mod.Saved.Player[PIndex].StatsToAdd.JokerTears = mod.Saved.Player[PIndex].StatsToAdd.JokerTears + TearsUp
         mod.Saved.Player[PIndex].StatsToAdd.JokerMult = mod.Saved.Player[PIndex].StatsToAdd.JokerMult * Mult
     end
+
+    mod:EnsurePlayCD(Player)
+    
     
     if Evaluate then
         Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, false)
@@ -1600,6 +1641,33 @@ function mod:PlayCDCache(Player, Cache, Value)
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.PlayCDCache, mod.CustomCache.HAND_COOLDOWN)
 
+---@param Player EntityPlayer
+function mod:EnsurePlayCD(Player)
+
+    if not mod.GameStarted then return end
+
+    local Data = Player:GetData()
+
+    if Player.FireDelay <= 0 then 
+        Data.EnableFireDelayModify = true
+        return 
+    end
+
+    if Player:GetPlayerType() == mod.Characters.JimboType then
+
+        local IsEqual = math.abs(Player.FireDelay - Player.MaxFireDelay) < 0.005 --prevents big floating errors
+
+        if IsEqual and Data.EnableFireDelayModify then
+
+            local TrueMaxDelay = Player:GetCustomCacheValue(mod.CustomCache.HAND_COOLDOWN)
+
+            Player.FireDelay =  TrueMaxDelay
+
+            Data.EnableFireDelayModify = false
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.EnsurePlayCD)
 
 
 ---@param Player EntityPlayer
@@ -1778,14 +1846,29 @@ function mod:OnTearCardCollision(Tear,Collider,_)
     if mod:IsSuit(Player, TearData.Params, mod.Suits.Heart) then --Hearts
 
         local Creep = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.PLAYER_CREEP_RED, Tear.Position, Vector.Zero, Tear, 0, TearRNG:GetSeed()):ToEffect()
-        Creep.SpriteScale = Vector(1.25,1.25)
-        Creep.CollisionDamage = Tear.CollisionDamage / 6
+        
+        local NumBlood = mod:GetPlayerTrinketAmount(Player, mod.Jokers.BLOODSTONE)
+        
+        local CreepScale = Vector.One * (1.25 + 0.25*NumBlood)
+        local DamageMult = 0.17 + 0.1*NumBlood
+        
+        Creep.SpriteScale = CreepScale
+        Creep.CollisionDamage = Tear.CollisionDamage * DamageMult
         ---@diagnostic disable-next-line: need-check-nil
         Creep:Update()
     end
     if mod:IsSuit(Player, TearData.Params, mod.Suits.Club) then --Clubs
-        if TearRNG:RandomFloat() < 0.2 then
-            Game:BombExplosionEffects(Tear.Position, Tear.CollisionDamage / 2, Player:GetBombFlags(), Color.Default, Tear.Parent, 0.5)
+
+        local NumOnix = mod:GetPlayerTrinketAmount(Player, mod.Jokers.ONIX_AGATE)
+    
+        local ExplodeChance = 0.2 + 0.25+NumOnix
+
+        if math.random() < ExplodeChance then
+
+            local DamageMult = 0.5 + 0.4*NumOnix
+            local RadiusMult = 0.5 + 0.25*NumOnix
+
+            Game:BombExplosionEffects(Tear.Position, Tear.CollisionDamage * DamageMult, Player:GetBombFlags(), mod.EffectColors.BLUE, Tear.Parent, RadiusMult)
             --Isaac.Explode(Tear.Position, Tear, Tear.CollisionDamage / 2)
         end
     end
@@ -1810,133 +1893,176 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
         Player = Tear.SpawnerEntity and Tear.SpawnerEntity:ToPlayer() or nil
     end
 
-    --print(Tear.Variant, mod.Tears.BANANA_VARIANT)
-
-    if not Player or Player:GetPlayerType() ~= mod.Characters.JimboType
-       or Tear.Variant == TearVariant.ERASER or Tear.Variant == TearVariant.BOBS_HEAD
-       or Tear.Variant == TearVariant.KEY or Tear.Variant == TearVariant.KEY_BLOOD
-       or Tear.Variant == TearVariant.FETUS or (Tear.Variant == TearVariant.BONE and not Tear:HasTearFlags(TearFlags.TEAR_BONE))
-       or Tear.Variant == mod.Tears.BANANA_VARIANT then
+    if not Player then
         return
     end
 
+    --print(Tear.Variant, mod.Tears.BANANA_VARIANT)
+
+    local ValidCardTear = not (Player:GetPlayerType() ~= mod.Characters.JimboType
+                               or Tear.Variant == TearVariant.ERASER or Tear.Variant == TearVariant.BOBS_HEAD
+                               or Tear.Variant == TearVariant.KEY or Tear.Variant == TearVariant.KEY_BLOOD
+                               or Tear.Variant == TearVariant.FETUS or (Tear.Variant == TearVariant.BONE and not Tear:HasTearFlags(TearFlags.TEAR_BONE))
+                               or Tear.Variant == mod.Tears.BANANA_VARIANT)
+
+
+
     local PlayerData = Player:GetData()
     local PIndex = PlayerData.TruePlayerIndex
-    local Weapon = Player:GetWeapon(1)
-    
-    local CardShot
-    if Split then --if the card (probably) generated from a tear splitting
 
-        CardShot = mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].LastShotIndex]
-        CardShot.Index = mod.Saved.Player[PIndex].LastShotIndex --could be useful
-    else
-        CardShot = mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[#mod.Saved.Player[PIndex].CurrentHand]]
-        CardShot.Index = mod.Saved.Player[PIndex].CurrentHand[#mod.Saved.Player[PIndex].CurrentHand] --could be useful
-    end
-
-
-
-    local TearData = Tear:GetData()
-    TearData.Params = CardShot
-    TearData.Num = mod.Saved.Player[PIndex].Progress.Blind.Shots + 1
-    if ForceCard then
-        TearData.Num = 0
-    end
-
-    TearData.EnableSpawn = not Split
-
-    --damage dealt = Damage * TearRate of the player
-    Tear.CollisionDamage = mod.Saved.Player[PIndex].TrueDamageValue * mod.Saved.Player[PIndex].TrueTearsValue
-
-    if Weapon and Weapon:GetModifiers() & WeaponModifier.CHOCOLATE_MILK == WeaponModifier.CHOCOLATE_MILK then
-        Tear.CollisionDamage = Tear.CollisionDamage *(0.1 + 0.0527*Weapon:GetCharge())
-    end
-
-
-
-    if mod:IsSuit(Player, TearData.Params, mod.Suits.Spade, false) then --SPADES
-        Tear:AddTearFlags(TearFlags.TEAR_PIERCING)
-        Tear:AddTearFlags(TearFlags.TEAR_SPECTRAL)
-
-    elseif mod:IsSuit(Player, TearData.Params, mod.Suits.Diamond, false) then
-        --Tear:AddTearFlags(TearFlags.TEAR_BACKSTAB)
-        Tear:AddTearFlags(TearFlags.TEAR_BOUNCE)
-    end
-
-
-
-    if PlayerData.SinceCardShoot >= 4 then
-        mod.TearCardEnable = true
-    end
-
-
-    --if (mod.TearCardEnable and not Init) or (not mod.TearCardEnable and Init and Data.SinceCardShoot > 2) then
-    if (ForceCard or mod.TearCardEnable) and not Split then
         
-        Tear:ChangeVariant(mod.Tears.CARD_TEAR_VARIANT)
+    local NumSenses = mod:GetPlayerTrinketAmount(Player, mod.Jokers.SIXTH_SENSE)
 
-        local TearSprite = Tear:GetSprite()
-        TearSprite:Play(ENHANCEMENTS_ANIMATIONS[TearData.Params.Enhancement], true)
+    if Tear.TearIndex % 4 <= (NumSenses - 1) then
+        
+        Tear:AddTearFlags(TearFlags.TEAR_HOMING)
+    end
 
-        if TearData.Params.Enhancement ~= mod.Enhancement.STONE
-           and TearData.Params.Enhancement ~= mod.Enhancement.WILD then
 
-            TearSprite:PlayOverlay(SUIT_ANIMATIONS[TearData.Params.Suit], true)
+    if ValidCardTear then
+
+        local Weapon = Player:GetWeapon(1)
+
+        local CardShot
+        if Split then --if the card (probably) generated from a tear splitting
+
+            CardShot = mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].LastShotIndex]
+            CardShot.Index = mod.Saved.Player[PIndex].LastShotIndex --could be useful
+        else
+            CardShot = mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[#mod.Saved.Player[PIndex].CurrentHand]]
+            CardShot.Index = mod.Saved.Player[PIndex].CurrentHand[#mod.Saved.Player[PIndex].CurrentHand] --could be useful
         end
 
-        Tear.Scale = (Player.SpriteScale.Y + Player.SpriteScale.X) / 2
-        Tear.Scale = mod:Clamp(Tear.Scale, 3, 0.75)
 
-        Isaac.CreateTimer(function ()
-            if #mod.Saved.Player[PIndex].CurrentHand > Player:GetCustomCacheValue("handsize")
-               or not mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].DeckPointer] then
-                --having more cards than you should removes the last card
 
-                table.remove(mod.Saved.Player[PIndex].CurrentHand)
+        local TearData = Tear:GetData()
+        TearData.Params = CardShot
+        TearData.Num = mod.Saved.Player[PIndex].Progress.Blind.Shots + 1
+        if ForceCard then
+            TearData.Num = 0
+        end
 
-            elseif mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].DeckPointer] then
-                
-                mod:AddValueToTable(mod.Saved.Player[PIndex].CurrentHand, mod.Saved.Player[PIndex].DeckPointer,false,true)
-                mod.Saved.Player[PIndex].DeckPointer = mod.Saved.Player[PIndex].DeckPointer + 1
+        TearData.EnableSpawn = not Split
+
+        --damage dealt = Damage * TearRate of the player
+        Tear.CollisionDamage = mod.Saved.Player[PIndex].TrueDamageValue * mod.Saved.Player[PIndex].TrueTearsValue
+
+        if Weapon and Weapon:GetModifiers() & WeaponModifier.CHOCOLATE_MILK == WeaponModifier.CHOCOLATE_MILK then
+            Tear.CollisionDamage = Tear.CollisionDamage *(0.1 + 0.0527*Weapon:GetCharge())
+        end
+
+
+
+        if mod:IsSuit(Player, TearData.Params, mod.Suits.Spade, false) then --SPADES
+            Tear:AddTearFlags(TearFlags.TEAR_PIERCING)
+            Tear:AddTearFlags(TearFlags.TEAR_SPECTRAL)
+
+            local NumArrows = mod:GetPlayerTrinketAmount(Player, mod.Jokers.ARROWHEAD)
+
+            local Chance = 0.5 * NumArrows
+
+            if math.random() <= Chance then
+                Tear:AddTearFlags(TearFlags.TEAR_SLOW)
             end
-            
-            Isaac.RunCallback("DECK_SHIFT",Player)
-        end,0,1,true)
+            if math.random() <= Chance then
+                Tear:AddTearFlags(TearFlags.TEAR_CONFUSION)
+            end
+        end
+        if mod:IsSuit(Player, TearData.Params, mod.Suits.Diamond, false) then
+            --Tear:AddTearFlags(TearFlags.TEAR_BACKSTAB)
+            Tear:AddTearFlags(TearFlags.TEAR_BOUNCE)
+
+            if mod:JimboHasTrinket(Player, mod.Jokers.ROUGH_GEM) then
+                Tear:AddTearFlags(TearFlags.TEAR_BACKSTAB)
+            end
+        end
+        if mod:IsSuit(Player, TearData.Params, mod.Suits.Heart, false) then
+            --Tear:AddTearFlags(TearFlags.TEAR_BACKSTAB)
+
+            local NumBlood = mod:GetPlayerTrinketAmount(Player, mod.Jokers.BLOODSTONE)
+
+            local Chance = 0.1 * NumBlood
+
+            if math.random() <= Chance then
+                Tear:AddTearFlags(TearFlags.TEAR_CHARM)
+            end
+        end
 
 
-        mod.TearCardEnable = false
-        PlayerData.SinceCardShoot = 0
 
-        if not ForceCard then
+        if PlayerData.SinceCardShoot >= 4 then
+            mod.TearCardEnable = true
+        end
 
-            if not Game:GetRoom():IsClear()
-               and mod.Saved.Player[PIndex].FirstDeck
-               and (mod.Saved.Player[PIndex].Progress.Room.Shots < Player:GetCustomCacheValue("hands")
-                    or mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR)) then
 
-                mod.Saved.Player[PIndex].Progress.Room.Shots = mod.Saved.Player[PIndex].Progress.Room.Shots + 1
+        --if (mod.TearCardEnable and not Init) or (not mod.TearCardEnable and Init and Data.SinceCardShoot > 2) then
+        if (ForceCard or mod.TearCardEnable) and not Split then
 
-                --print(mod.Saved.Player[PIndex].FirstDeck)
+            Tear:ChangeVariant(mod.Tears.CARD_TEAR_VARIANT)
 
-                if (mod.Saved.Player[PIndex].Progress.Room.Shots == Player:GetCustomCacheValue("hands")
-                    and not mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR)) --with burglar you can play all your deck
-                    or not mod.Saved.Player[PIndex].FirstDeck then 
+            local TearSprite = Tear:GetSprite()
+            TearSprite:Play(ENHANCEMENTS_ANIMATIONS[TearData.Params.Enhancement], true)
 
-                    Player:AnimateSad()
+            if TearData.Params.Enhancement ~= mod.Enhancement.STONE
+               and TearData.Params.Enhancement ~= mod.Enhancement.WILD then
+
+                TearSprite:PlayOverlay(SUIT_ANIMATIONS[TearData.Params.Suit], true)
+            end
+
+            Tear.Scale = (Player.SpriteScale.Y + Player.SpriteScale.X) / 2
+            Tear.Scale = mod:Clamp(Tear.Scale, 3, 0.75)
+
+            Isaac.CreateTimer(function ()
+                if #mod.Saved.Player[PIndex].CurrentHand > Player:GetCustomCacheValue("handsize")
+                   or not mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].DeckPointer] then
+                    --having more cards than you should removes the last card
+
+                    table.remove(mod.Saved.Player[PIndex].CurrentHand)
+
+                elseif mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].DeckPointer] then
+
+                    mod:AddValueToTable(mod.Saved.Player[PIndex].CurrentHand, mod.Saved.Player[PIndex].DeckPointer,false,true)
+                    mod.Saved.Player[PIndex].DeckPointer = mod.Saved.Player[PIndex].DeckPointer + 1
                 end
 
-                Isaac.RunCallback("CARD_SHOT", Player, CardShot.Index, true)
+                Isaac.RunCallback("DECK_SHIFT",Player)
+            end,0,1,true)
+
+
+            mod.TearCardEnable = false
+            PlayerData.SinceCardShoot = 0
+
+            if not ForceCard then
+
+                if not Game:GetRoom():IsClear()
+                   and mod.Saved.Player[PIndex].FirstDeck
+                   and (mod.Saved.Player[PIndex].Progress.Room.Shots < Player:GetCustomCacheValue("hands")
+                        or mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR)) then
+
+                    mod.Saved.Player[PIndex].Progress.Room.Shots = mod.Saved.Player[PIndex].Progress.Room.Shots + 1
+
+                    --print(mod.Saved.Player[PIndex].FirstDeck)
+
+                    if (mod.Saved.Player[PIndex].Progress.Room.Shots == Player:GetCustomCacheValue("hands")
+                        and not mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR)) --with burglar you can play all your deck
+                        or not mod.Saved.Player[PIndex].FirstDeck then 
+
+                        Player:AnimateSad()
+                    end
+
+                    Isaac.RunCallback("CARD_SHOT", Player, CardShot.Index, true)
+                end
             end
+
+            mod.Saved.Player[PIndex].LastShotIndex = CardShot.Index
+
+        else
+            Tear:ChangeVariant(mod.Tears.SUIT_TEAR_VARIANTS[TearData.Params.Suit])
+
+            local TearSprite = Tear:GetSprite()
+            TearSprite:Play("Rotate5", true)
+
         end
-
-        mod.Saved.Player[PIndex].LastShotIndex = CardShot.Index
-
-    else
-        Tear:ChangeVariant(mod.Tears.SUIT_TEAR_VARIANTS[TearData.Params.Suit])
-
-        local TearSprite = Tear:GetSprite()
-        TearSprite:Play("Rotate5", true)
-
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, mod.AddCardTearFalgs)

@@ -1,5 +1,5 @@
 <AnimatedActor>
-	<Info CreatedBy="Unknown" CreatedOn="19/05/2025 20:42:44" Version="5" Fps="30"/>
+	<Info CreatedBy="stracto" CreatedOn="28/09/2025 19:51:16" Version="6" Fps="30"/>
 	<Content>
 		<Spritesheets>
 			<Spritesheet Path="effects\tomato_effect.png" Id="0"/>

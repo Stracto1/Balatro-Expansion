@@ -28,6 +28,20 @@ local EditionCaches = {[mod.Edition.BASE] = 0,
 
 local DisableChecks = false
 
+local function TrinketSlotToInventory(i)
+
+    if i == 0 then
+        return 1
+
+    else
+        if i > 1 then
+            return i
+        else
+            return 0
+        end
+    end
+end
+
 
 local function EditionaliseTrinkets(_, Type, RNG)
 
@@ -61,8 +75,6 @@ local function EditionaliseTrinkets(_, Type, RNG)
 
 end
 mod:AddCallback(ModCallbacks.MC_GET_TRINKET, EditionaliseTrinkets)
-
-
 
 ---@param Trinket EntityPickup
 function mod:EditionedTrinketSprite(Trinket)
@@ -103,28 +115,27 @@ function mod:RegisterEditionAdded(Player, Trinket, FirstTime)
 
     local TrinketSubType = Trinket + 0
 
-    Trinket = LastTouchedTrinket
-
-    local TrinketEdition = (Trinket & mod.EditionFlag.ALL) >> mod.EDITION_FLAG_SHIFT
+    local TrueTrinket = LastTouchedTrinket & ~mod.EditionFlag.ALL
+    local TrinketEdition = (LastTouchedTrinket & mod.EditionFlag.ALL) >> mod.EDITION_FLAG_SHIFT
 
     if TrinketEdition == mod.Edition.BASE then
         return
     end
-
-
     
 
     local TrinketSlot
 
-    for i = 0, Player:GetMaxTrinkets() - 1 do
-
-        --print(Player:GetTrinket(i), "at", i, "With")
+    for i = 0, Player:GetMaxTrinkets()-1 do
 
         if Player:GetTrinket(i) == TrinketSubType
-           and mod.Saved.Player[PIndex].TrinketEditions[i] == mod.Edition.BASE then
+           and mod.Saved.Player[PIndex].Inventory[TrinketSlotToInventory(i)].Edition == mod.Edition.BASE then
 
-            TrinketSlot = i
+            TrinketSlot = TrinketSlotToInventory(i)
         end
+    end
+
+    if not TrinketSlot then
+        return
     end
 
 
@@ -140,13 +151,12 @@ function mod:RegisterEditionAdded(Player, Trinket, FirstTime)
         return
     end
 
-    mod.Saved.Player[PIndex].TrinketEditions[TrinketSlot] = TrinketEdition
+    mod.Saved.Player[PIndex].Inventory[TrinketSlot].Progress = mod:GetJokerInitialProgress(TrueTrinket, nil, Player)
+
+    mod.Saved.Player[PIndex].Inventory[TrinketSlot].Joker = TrueTrinket
+    mod.Saved.Player[PIndex].Inventory[TrinketSlot].Edition = TrinketEdition
 
     Player:AddCacheFlags(EditionCaches[TrinketEdition], true)
-
-
-    --Player:AddTrinket(TrueTrinketType)
-
 end
 mod:AddCallback(ModCallbacks.MC_POST_TRIGGER_TRINKET_ADDED, mod.RegisterEditionAdded)
 
@@ -168,37 +178,62 @@ function mod:RegisterEditionRemoved(Player, Trinket)
 
     local TrinketSlot
 
-    for i = 0, Player:GetMaxTrinkets() - 1 do
+    for i = 0, Player:GetMaxTrinkets()-1 do
         if Player:GetTrinket(i) == TrinketType.TRINKET_NULL
-           and mod.Saved.Player[PIndex].TrinketEditions[i] ~= mod.Edition.BASE then
+           and mod.Saved.Player[PIndex].Inventory[TrinketSlotToInventory(i)].Edition ~= mod.Edition.BASE then
 
-            TrinketSlot = i
+            TrinketSlot = TrinketSlotToInventory(i)
+            break
         end
     end
 
     if not TrinketSlot then
+
+        for i = 3, #mod.Saved.Player[PIndex].Inventory do
+
+            local Slot = mod.Saved.Player[PIndex].Inventory[i]
+
+            if Slot.Joker == Trinket then
+
+                TrinketSlot = i
+                break
+            end
+        end
+
+        if TrinketSlot then
+
+            Isaac.CreateTimer(function ()
+                table.remove(mod.Saved.Player[PIndex].Inventory, TrinketSlot) --cannot be used if called inside a loop in the inventory so wait an update to do so
+            end,0,1,true)
+
+            mod.Saved.Player[PIndex].Inventory[TrinketSlot] = {Joker = 0,
+                                                               Edition = mod.Edition.BASE,
+                                                               Progress = 0,
+                                                               RenderIndex = 0}
+        end
+
         return
     end
 
-    if Player:GetMaxTrinkets() == 2 and TrinketSlot == 1 then
+    if Player:GetMaxTrinkets() == 2 and TrinketSlot == 2 then
         
-        mod.Saved.Player[PIndex].TrinketEditions[1], mod.Saved.Player[PIndex].TrinketEditions[0] = 
-        mod.Saved.Player[PIndex].TrinketEditions[0], mod.Saved.Player[PIndex].TrinketEditions[1]
+        mod.Saved.Player[PIndex].Inventory[2], mod.Saved.Player[PIndex].Inventory[1] = 
+        mod.Saved.Player[PIndex].Inventory[1], mod.Saved.Player[PIndex].Inventory[2]
     end
 
     --print("removed", TrinketSlot)
 
-    local EditionRemoved = mod.Saved.Player[PIndex].TrinketEditions[TrinketSlot] + 0
+    local EditionRemoved = mod.Saved.Player[PIndex].Inventory[TrinketSlot].Edition + 0
 
-    mod.Saved.Player[PIndex].TrinketEditions[TrinketSlot] = mod.Edition.BASE
+    mod.Saved.Player[PIndex].Inventory[TrinketSlot].Edition = mod.Edition.BASE
+    mod.Saved.Player[PIndex].Inventory[TrinketSlot].Joker = 0
+    mod.Saved.Player[PIndex].Inventory[TrinketSlot].Progress = 0
 
 
     Player:AddCacheFlags(EditionCaches[EditionRemoved], true)
 
 
     for _,Pickup in ipairs(Isaac.FindByType(5, 350, Trinket)) do
-
-        --print("found")
     
         local Edition = (Pickup.SubType & mod.EditionFlag.ALL) >> mod.EDITION_FLAG_SHIFT
 
@@ -225,7 +260,7 @@ local function RenderHeldEdition(_, Slot, Position, Scale, Player, CropOffset)
 
     local PIndex = Player:GetData().TruePlayerIndex
 
-    local Edition = mod.Saved.Player[PIndex].TrinketEditions[Slot]
+    local Edition = mod.Saved.Player[PIndex].Inventory[TrinketSlotToInventory(Slot)].Edition
 
     if Edition == mod.Edition.BASE then
         return
@@ -274,21 +309,25 @@ local function OnSmelterUse(_, Item, _, Player)
 
     local PIndex = Player:GetData().TruePlayerIndex
 
-
-
-    for i = 0, Player:GetMaxTrinkets() - 1 do
+    for i = 0, Player:GetMaxTrinkets()-1 do
         
         local Trinket = Player:GetTrinket(i)
 
-        local Edition = mod.Saved.Player[PIndex].TrinketEditions[i]
+        --local Edition = mod.Saved.Player[PIndex].Inventory[i].Edition
 
-        if Trinket ~= TrinketType.TRINKET_NULL and Edition ~= mod.Edition.BASE then
+        if Trinket ~= TrinketType.TRINKET_NULL then
+
+            local I = #mod.Saved.Player[PIndex].Inventory+1
+
+            mod.Saved.Player[PIndex].Inventory[I] = mod.Saved.Player[PIndex].Inventory[TrinketSlotToInventory(i)]
             
-            mod.Saved.Player[PIndex].TrinketEditions.SMELTED[Edition] = mod.Saved.Player[PIndex].TrinketEditions.SMELTED[Edition] + 1
+            --mod.Saved.Player[PIndex].TrinketEditions.SMELTED[Edition] = mod.Saved.Player[PIndex].TrinketEditions.SMELTED[Edition] + 1
         
-            Player:AddCacheFlags(EditionCaches[Edition])
+            Player:AddCacheFlags(EditionCaches[mod.Saved.Player[PIndex].Inventory[I].Edition])
 
-            mod.Saved.Player[PIndex].TrinketEditions[i] = mod.Edition.BASE
+            mod.Saved.Player[PIndex].Inventory[TrinketSlotToInventory(i)] = {Joker = 0,
+                                                                             Edition = mod.Edition.BASE,
+                                                                             Progress = 0}
         end
     end
 
@@ -312,14 +351,12 @@ local function FoilStatBoost(_, Player)
 
     local NumFoil = 0
 
-    for i = 0, Player:GetMaxTrinkets() - 1 do
+    for i = 1, #mod.Saved.Player[PIndex].Inventory do
         
-        if mod.Saved.Player[PIndex].TrinketEditions[i] == mod.Edition.FOIL then
+        if mod.Saved.Player[PIndex].Inventory[i].Edition == mod.Edition.FOIL then
             NumFoil = NumFoil + 1
         end
     end
-
-    NumFoil = NumFoil + mod.Saved.Player[PIndex].TrinketEditions.SMELTED[mod.Edition.FOIL]
 
     local Tears = FOIL_BOOST*NumFoil
 
@@ -339,14 +376,12 @@ local function HoloStatBoost(_, Player)
 
     local NumHolo = 0
 
-    for i = 0, Player:GetMaxTrinkets() - 1 do
+    for i = 1, #mod.Saved.Player[PIndex].Inventory do
         
-        if mod.Saved.Player[PIndex].TrinketEditions[i] == mod.Edition.HOLOGRAPHIC then
+        if mod.Saved.Player[PIndex].Inventory[i].Edition == mod.Edition.HOLOGRAPHIC then
             NumHolo = NumHolo + 1
         end
     end
-
-    NumHolo = NumHolo + mod.Saved.Player[PIndex].TrinketEditions.SMELTED[mod.Edition.HOLOGRAPHIC]
 
     local Damage = HOLO_BOOST*NumHolo
 
@@ -366,14 +401,12 @@ local function PolyStatBoost(_, Player)
 
     local NumPoly = 0
 
-    for i = 0, Player:GetMaxTrinkets() - 1 do
+    for i = 1, #mod.Saved.Player[PIndex].Inventory do
         
-        if mod.Saved.Player[PIndex].TrinketEditions[i] == mod.Edition.POLYCROME then
+        if mod.Saved.Player[PIndex].Inventory[i].Edition == mod.Edition.POLYCROME then
             NumPoly = NumPoly + 1
         end
     end
-
-    NumPoly = NumPoly + mod.Saved.Player[PIndex].TrinketEditions.SMELTED[mod.Edition.POLYCROME]
 
     local DamageMult = POLY_MULT^NumPoly
 
@@ -381,4 +414,60 @@ local function PolyStatBoost(_, Player)
 
 end
 mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE, CallbackPriority.LATE, PolyStatBoost, CacheFlag.CACHE_DAMAGE)
+
+
+
+
+---@param Player EntityPlayer
+function mod:RemoveJoker(Player, Index, StopEval, KeepSmelted)
+
+    local Success = false
+
+    local Inventory = mod.Saved.Player[Player:GetData().TruePlayerIndex].Inventory
+
+    if Player:GetPlayerType() == mod.Characters.JimboType
+       or Player:GetPlayerType() == mod.Characters.TaintedJimbo then
+
+        if Inventory[Index].Joker ~= 0 then
+
+            Inventory[Index] = {Joker = 0,
+                                Edition = mod.Edition.BASE,
+                                Progress = 0,
+                                RenderIndex = 0}
+            Success = true
+        end
+    else
+        if Index <= 2 then
+
+            Success = Player:TryRemoveTrinket(Inventory[Index].Joker)-- | mod.EditionFlag[Inventory[Index].Edition])
+        
+        elseif not KeepSmelted then
+
+            Success = Inventory[Index]
+
+            if Success then
+                DisableChecks = true
+
+                Player:TryRemoveSmeltedTrinket(Inventory[Index].Joker)-- | mod.EditionFlag[Inventory[Index].Edition])
+
+                DisableChecks = false
+
+                Isaac.CreateTimer(function ()
+                    table.remove(Inventory, Index) --cannot be used if called inside a loop in the inventory so wait an update to do so
+                end,0,1,true)
+
+                Inventory[Index] = {Joker = 0,
+                                    Edition = mod.Edition.BASE,
+                                    Progress = 0,
+                                    RenderIndex = 0}
+            end
+        end
+    end
+
+    if not StopEval and Success then
+        Isaac.RunCallback(mod.Callbalcks.INVENTORY_CHANGE, Player)
+    end
+
+    return Success
+end
 

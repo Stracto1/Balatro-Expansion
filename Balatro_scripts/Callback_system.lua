@@ -125,6 +125,7 @@ function mod:OnGameStart(Continued)
 
         mod.Saved.FloorSkippedSpecials = 0
         mod.Saved.RunSkippedSpecials = 0
+        mod.Saved.RunSkippedBlinds = 0
         mod.Saved.GlassBroken = 0
         mod.Saved.TarotsUsed = 0
         mod.Saved.PlanetTypesUsed = 0
@@ -310,22 +311,36 @@ function mod:InitPlayerValues(Player)
     mod.SelectionParams[PIndex].SelectionNum = 0 --how many things you choosing
     mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams.Purposes.NONE --used for TJimbo to not lose the current pack's purpose while doing other stuff 
 
-
-
-    
-
     mod.Saved.Player[PIndex].InnateItems = {}
+    mod.Saved.Player[PIndex].InnateItems.Hack = {}
     mod.Saved.Player[PIndex].InnateItems.General = {} --used for things that can only give 1 kind of item
     mod.Saved.Player[PIndex].InnateItems.Planet_X = {}
 
     mod.Saved.Player[PIndex].LastTouchedTrinket = 0
-    mod.Saved.Player[PIndex].TrinketEditions = {[0] = mod.Edition.BASE,
-                                                [1] = mod.Edition.BASE,
-                                                SMELTED = {[mod.Edition.FOIL] = 0,
-                                                           [mod.Edition.HOLOGRAPHIC] = 0,
-                                                           [mod.Edition.POLYCROME] = 0}}
 
-    
+
+    mod.Saved.Player[PIndex].Inventory = {}
+    for i=1,2 do
+        mod.Saved.Player[PIndex].Inventory[i] = {}
+        mod.Saved.Player[PIndex].Inventory[i].Joker = 0
+        mod.Saved.Player[PIndex].Inventory[i].Edition = mod.Edition.BASE
+        mod.Saved.Player[PIndex].Inventory[i].Progress = 0
+    end
+
+    --mod.Saved.Player[PIndex].TrinketEditions = {[0] = mod.Edition.BASE,
+    --                                            [1] = mod.Edition.BASE,
+    --                                            SMELTED = {[mod.Edition.FOIL] = 0,
+    --                                                       [mod.Edition.HOLOGRAPHIC] = 0,
+    --                                                       [mod.Edition.POLYCROME] = 0}}
+
+    mod.Saved.Player[PIndex].StatsToAdd = {}
+    mod.Saved.Player[PIndex].StatsToAdd.Damage = 0
+    mod.Saved.Player[PIndex].StatsToAdd.Tears = 0
+    mod.Saved.Player[PIndex].StatsToAdd.Mult = 0
+    mod.Saved.Player[PIndex].StatsToAdd.JokerDamage = 0
+    mod.Saved.Player[PIndex].StatsToAdd.JokerTears = 0
+    mod.Saved.Player[PIndex].StatsToAdd.JokerMult = 0
+
     
     mod.Saved.Player[PIndex].ComedicState = 0
     mod.Saved.Player[PIndex].JimboSoulCharge = 0
@@ -384,16 +399,6 @@ function mod:InitJimboValues(PIndex, Tainted)
             mod.Saved.Player[PIndex].Inventory[i].RenderIndex = i
             mod.Saved.Player[PIndex].Inventory[i].Progress = 0
         end        
-
-        mod.Saved.Player[PIndex].StatsToAdd = {}
-        mod.Saved.Player[PIndex].StatsToAdd.Damage = 0
-        mod.Saved.Player[PIndex].StatsToAdd.Tears = 1.5
-        mod.Saved.Player[PIndex].StatsToAdd.Mult = 1
-        mod.Saved.Player[PIndex].StatsToAdd.JokerDamage = 0
-        mod.Saved.Player[PIndex].StatsToAdd.JokerTears = 0
-        mod.Saved.Player[PIndex].StatsToAdd.JokerMult = 1
-
-        mod.Saved.Player[PIndex].InnateItems.Hack = {}
 
         mod.Saved.Player[PIndex].FirstDeck = true
 

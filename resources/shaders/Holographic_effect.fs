@@ -50,11 +50,11 @@ void main(void){
 	// Pixelate
 	vec2 pa = vec2(1.0+PixelationAmountOut, 1.0+PixelationAmountOut) / TextureSizeOut;
 	vec4 Color = Color0 * texture2D(Texture0, PixelationAmountOut > 0.0 ? TexCoord0 - mod(TexCoord0, pa) + pa * 0.5 : TexCoord0);
-	
+	vec3 ColorHSV = rgb2hsv(Color.rgb);
 
-	int enable = 1; 
+	float enable = 1; 
 	if (((ColorHSV.b <= 0.3)&&(ColorHSV.g <= 0.4))||(ColorHSV.b <= 0.04))
-		enable = 0; //black-ish doesn't get affected by the shader
+		enable = 0.1; //black-ish doesn't get affected by the shader
 
 	TrueCoord.y = 1 - TrueCoord.y; //unflips the y coordinate
 	TrueCoord.xy = fract(TrueCoord * 8); //makes the pattern repeat over the texture
@@ -64,7 +64,7 @@ void main(void){
 	vec3 Green = vec3(0.2,1.1 - TrueCoord.x, 0.9 * TrueCoord.x);
 	vec3 PureColor = mix(Red,Green, mixAmount); 		//decides of it's red or green
 	
-	Color.rgb = mix(Color.rgb, PureColor, 0.3 * enable);   //mixes the original sprite pixel with the green/red (except for black)
+	Color.rgb = mix(Color.rgb, PureColor, 0.3 * enable);   //mixes the original sprite pixel with the green/red
 
 	gl_FragColor = Color;//finished!
 }

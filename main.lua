@@ -5,6 +5,9 @@ Balatro_Expansion = RegisterMod("Balatro Expansion", 1)
 
 Balatro_Expansion.HOLD_THRESHOLD = 10 --if time is EQUAL OR HIGHER then it's probably holding
 
+Balatro_Expansion.PLAYER_MULTIPLIERS = {CHIPS = 0.5,
+                                        MULT = 5,
+                                        XMULT = 0.5}
 
 local ItemsConfig = Isaac.GetItemConfig()
 
@@ -281,7 +284,8 @@ Balatro_Expansion.Familiars.HORSEY = Isaac.GetEntityVariantByName("Horsey")
 Balatro_Expansion.Familiars.BLOON_PUPPY = Isaac.GetEntityVariantByName("Baloon Puppy")
 Balatro_Expansion.Familiars.TEETH = Isaac.GetEntityVariantByName("Funny Teeth")
 Balatro_Expansion.Familiars.CERES = Isaac.GetEntityVariantByName("Planet Ceres")
-
+Balatro_Expansion.Familiars.RAMEN_WORM_SUBTYPE = 8741 --Isaac.GetEntitySubTypeByName("Ramen Worm Friend")
+Balatro_Expansion.Familiars.EGG = Isaac.GetEntityVariantByName("Balatro Egg")
 
 
 Balatro_Expansion.Effects = {}
@@ -297,6 +301,7 @@ Balatro_Expansion.Effects.JIMBO_THE_KILLER = {VARIANT = Isaac.GetEntityVariantBy
                                                          ENEMIES = 2}} --used to hide some character design flaws ;)
 Balatro_Expansion.Effects.BANNER = Isaac.GetEntityVariantByName("Banner")
 Balatro_Expansion.Effects.KERNEL = Isaac.GetEntityVariantByName("Popcorn Kernel")
+Balatro_Expansion.Effects.FLOWER = Isaac.GetEntityVariantByName("Balatro Flower")
 
 
 Balatro_Expansion.Effects.DIALOG_BUBBLE = Isaac.GetEntityVariantByName("Blind Cashout Bubble")
@@ -318,9 +323,14 @@ Balatro_Expansion.Pickups.PLAYING_CARD = Isaac.GetEntityVariantByName("Balatro P
 
 
 Balatro_Expansion.Entities = {}
-Balatro_Expansion.Entities.BALATRO_TYPE = Isaac.GetEntityTypeByName("Pathfinder Slave")
-Balatro_Expansion.Entities.PATH_SLAVE = Isaac.GetEntityVariantByName("Pathfinder Slave")
-Balatro_Expansion.Entities.BANNER_HELPER = Isaac.GetEntityVariantByName("Banner Helper")
+Balatro_Expansion.Entities.BALATRO_TYPE = Isaac.GetEntityTypeByName("NPC Function Slave")
+Balatro_Expansion.Entities.NPC_SLAVE = Isaac.GetEntityVariantByName("NPC Function Slave")
+Balatro_Expansion.Entities.PATH_HELPER_SUBTYPE = Isaac.GetEntitySubTypeByName("Pathfinder Slave")
+Balatro_Expansion.Entities.BANNER_HELPER_SUBTYPE = Isaac.GetEntitySubTypeByName("Banner Helper")
+Balatro_Expansion.Entities.FLOWER_HELPER_SUBTYPE = Isaac.GetEntitySubTypeByName("Balatro Flower Helper")
+Balatro_Expansion.Entities.DIRT_COLOR_HELPER_SUBTYPE = Isaac.GetEntitySubTypeByName("Entity Dirt Color Helper")
+
+
 Balatro_Expansion.Entities.CLOSET_JIMBO_SUBTYPE = Isaac.GetEntitySubTypeByName("Jimbo (secret)")
 Balatro_Expansion.Entities.STUPID_GAPER_SUBTYPE = Isaac.GetEntitySubTypeByName("Stupid Gaper")
 --Balatro_Expansion.Entities.SHOP_MIMIC = Isaac.GetEntityVariantByName("Shop Mimic")
@@ -830,6 +840,7 @@ Balatro_Expansion.Saved.Pools.SkipTags = {  Balatro_Expansion.SkipTags.UNCOMMON,
 
 Balatro_Expansion.Saved.FloorSkippedSpecials = 0
 Balatro_Expansion.Saved.RunSkippedSpecials = 0
+Balatro_Expansion.Saved.RunSkippedBlinds = 0
 Balatro_Expansion.Saved.GlassBroken = 0
 Balatro_Expansion.Saved.TarotsUsed = 0
 Balatro_Expansion.Saved.PlanetTypesUsed = 0

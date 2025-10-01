@@ -22,9 +22,6 @@ local EID_DescAllingnment = {TOP = 1,
                              RIGHT = 8,
                              CENTER = 0}
 
-EID:addEntity(1000, mod.Effects.DESC_HELPER, 0, "", "")
-EID:addEntity(1000, mod.Effects.DESC_HELPER, mod.Effects.PLATE_HELPER_SUBTYPE, "", "")
-
 
 mod.Descriptions = {}
 
@@ -66,6 +63,9 @@ end
 if not EID then
     return
 end
+
+EID:addEntity(1000, mod.Effects.DESC_HELPER, 0, "", "")
+EID:addEntity(1000, mod.Effects.DESC_HELPER, mod.Effects.PLATE_HELPER_SUBTYPE, "", "")
 
 
 
@@ -554,10 +554,7 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
 
             elseif Joker == mod.Jokers.ACROBAT then
 
-                local CardsRemaining = Jimbo:GetCustomCacheValue("hands") - mod.Saved.Player[PIndex].Progress.Room.Shots
-
-                if CardsRemaining <= 5 and CardsRemaining >= 0
-                   or Game:GetRoom():GetBossID() ~= 0 then
+                if Game:GetRoom():GetBossID() ~= 0 then
 
                     Values[1] = mod:GetEIDString("Other", "Active")
                 else
@@ -741,25 +738,32 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
         local card = Subtype
 
         if card == Card.CARD_FOOL then
+
+            local LastUsed = mod.Saved.Player[PIndex].LastCardUsed
         
-            if not mod.Saved.Player[PIndex].LastCardUsed then
+            if not LastUsed then
                 
-                Values[1] = "{{ColorMult}}"..mod:GetEIDString("Other","NONE").."{{CR}}"
+                Values[2] = "{{ColorMult}}"..mod:GetEIDString("Other","NONE").."{{CR}}"
 
-            elseif mod.Saved.Player[PIndex].LastCardUsed == Card.CARD_FOOL then
+                Values[1] = "!!! "
+            elseif LastUsed == Card.CARD_FOOL then
 
-                Values[1] = "{{ColorMult}}"..mod:GetEIDString("ComsumablesName", Card.CARD_FOOL).."{{CR}}"
+                Values[2] = "{{ColorMult}}"..mod:GetEIDString("ConsumablesName", Card.CARD_FOOL).."{{CR}}"
 
-            elseif card <= Card.CARD_WORLD then
+                Values[1] = "!!! "
 
-                Values[1] = "{{ColorMint}}"..mod:GetEIDString("ComsumablesName", card).."{{CR}}"
+            elseif LastUsed <= Card.CARD_WORLD then --the vanilla tarots have their name fucked up 
+
+                Values[2] = "{{ColorMint}}"..mod:GetEIDString("ConsumablesName", LastUsed).."{{CR}}"
+
+                Values[1] = "{{Card"..LastUsed.."}} "
             else
-                local Config = ItemsConfig:GetCard(card)
+                local Config = ItemsConfig:GetCard(LastUsed)
 
-                Values[1] = Config.Name
+                Values[2] = "{{ColorMint}}"..Config.Name.."{{CR}}"
+
+                Values[1] = "{{Card"..LastUsed.."}} "
             end
-
-
 
         elseif card == mod.Spectrals.ANKH then
             for i,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
@@ -1091,29 +1095,57 @@ end
 EID:addDescriptionModifier("Balatro Inventory Overview", BalatroInventoryCondition, BalatroInventoryCallback)
 
 
-local function JimboGroundtrinketsCondition(descObj)
+local function JimboGroundPickupsCondition(descObj)
 
     if PlayerManager.AnyoneIsPlayerType(Balatro_Expansion.Characters.JimboType) 
-       and descObj.ObjType == EntityType.ENTITY_PICKUP and descObj.ObjVariant == PickupVariant.PICKUP_TRINKET 
-       and ItemsConfig:GetTrinket(descObj.ObjSubType & ~mod.EditionFlag.ALL):HasCustomTag("balatro") then
+       and descObj.ObjType == EntityType.ENTITY_PICKUP
+       and descObj.ObjVariant == PickupVariant.PICKUP_TAROTCARD
+           or (descObj.ObjVariant == PickupVariant.PICKUP_TRINKET 
+               and ItemsConfig:GetTrinket(descObj.ObjSubType & ~mod.EditionFlag.ALL):HasCustomTag("balatro")) then
 
         return true
     end
 end
 
-local function JimboGroundtrinketsCallback(descObj)
+local function JimboGroundPickupsCallback(descObj)
 
-    local Joker = descObj.ObjSubType & ~mod.EditionFlag.ALL
-    local Edition = (descObj.ObjSubType & mod.EditionFlag.ALL) >> mod.EDITION_FLAG_SHIFT
+    if descObj.ObjVariant == PickupVariant.PICKUP_TAROTCARD then
+        
+        local Desc = mod:GetEIDString("Jimbo","Consumables", descObj.ObjSubType)
 
-    descObj.Description = mod:GetEIDString("Jimbo", "Jokers", Joker)..mod:GetEIDString("Jimbo", "JokerEdition", Edition)
+        if Desc then
+            
+            local OnlyJimbo = true
 
-    descObj.Description = mod:ReplaceBalatroMarkups(descObj.Description, mod.EID_DescType.JOKER, Joker, false)
+            for i,v in ipairs(PlayerManager.GetPlayers()) do
+                if v:GetPlayerType() ~= mod.Characters.JimboType then
+                    OnlyJimbo = false
+                    break
+                end
+            end
 
+            if OnlyJimbo then
+                descObj.Description = Desc
+            else
+                EID:appendToDescription(descObj, "#{{PlayerJimbo}} "..Desc)
+            end
 
+            descObj.Description = mod:ReplaceBalatroMarkups(descObj.Description, mod.EID_DescType.CONSUMABLE, descObj.ObjSubType, false)
+        end
+
+    elseif descObj.ObjVariant == PickupVariant.PICKUP_TRINKET then
+
+        local Joker = descObj.ObjSubType & ~mod.EditionFlag.ALL
+        local Edition = (descObj.ObjSubType & mod.EditionFlag.ALL) >> mod.EDITION_FLAG_SHIFT
+        
+        descObj.Description = mod:GetEIDString("Jimbo", "Jokers", Joker)..mod:GetEIDString("Jimbo", "JokerEdition", Edition)
+        
+        descObj.Description = mod:ReplaceBalatroMarkups(descObj.Description, mod.EID_DescType.JOKER, Joker, false)
+    end
+    
     return descObj
 end
-EID:addDescriptionModifier("Balatro Jimbo ground trinkets", JimboGroundtrinketsCondition, JimboGroundtrinketsCallback)
+EID:addDescriptionModifier("Balatro Jimbo ground pickups", JimboGroundPickupsCondition, JimboGroundPickupsCallback)
 
 
 

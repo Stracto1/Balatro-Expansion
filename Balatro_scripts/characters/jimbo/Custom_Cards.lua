@@ -5,11 +5,17 @@ local Game = Game()
 local sfx = SFXManager()
 
 
-local CardEditionChance = {}
-CardEditionChance.Foil = 0.04
-CardEditionChance.Holo = 0.068 --is actually 0.028
-CardEditionChance.Poly = 0.080 --is actually 0.012
-CardEditionChance.Negative = 0.003 --is actually 0.012
+local PlanetCardToItem = {[mod.Planets.PLUTO] = CollectibleType.COLLECTIBLE_PLUTO,
+                          [mod.Planets.MERCURY] = CollectibleType.COLLECTIBLE_MERCURIUS,
+                          [mod.Planets.VENUS] = CollectibleType.COLLECTIBLE_VENUS,
+                          [mod.Planets.URANUS] = CollectibleType.COLLECTIBLE_URANUS,
+                          [mod.Planets.JUPITER] = CollectibleType.COLLECTIBLE_JUPITER,
+                          [mod.Planets.SATURN] = CollectibleType.COLLECTIBLE_SATURNUS,
+                          [mod.Planets.MARS] = CollectibleType.COLLECTIBLE_MARS,
+                          [mod.Planets.NEPTUNE] = CollectibleType.COLLECTIBLE_NEPTUNUS,
+                          [mod.Planets.PLANET_X] = mod.Collectibles.PLANET_X,
+                          [mod.Planets.ERIS] = mod.Collectibles.ERIS,
+                          [mod.Planets.CERES] = mod.Collectibles.CERES}
 
 local MegaChance = 0.15 --0.10 originally
 local JumboChance = 0.55 --0.4 originally
@@ -21,34 +27,42 @@ local HoleChance = 0.003
 ---@param Player EntityPlayer
 ---@param card Card
 function mod:NewTarotEffects(card, Player, UseFlags)
-    if Player:GetPlayerType() == mod.Characters.JimboType then
-        local PIndex = Player:GetData().TruePlayerIndex
-        local RandomSeed = Random()
 
-        if RandomSeed==0 then RandomSeed=1 end
+    local PIndex = Player:GetData().TruePlayerIndex
 
-        local IsTarot = false
+    local FOOL_COPY = mod.Saved.Player[PIndex].LastCardUsed and mod.Saved.Player[PIndex].LastCardUsed + 0 or nil
+    mod.Saved.Player[PIndex].LastCardUsed = card
 
-        if card == Card.CARD_FOOL then
-            if mod.Saved.Player[PIndex].LastCardUsed then
 
-                Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
-                           RandomVector()*3, Player, mod.Saved.Player[PIndex].LastCardUsed, RandomSeed)
-            else
-                Player:AnimateSad()
-            end
+    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+        return
+    end
 
-            IsTarot = true
+    local RandomSeed = Random()
+
+    if RandomSeed==0 then RandomSeed=1 end
+
+    local IsTarot = false
+
+    if card == Card.CARD_FOOL then
+        if FOOL_COPY
+           and FOOL_COPY ~= Card.CARD_FOOL then
+
+            Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
+                       RandomVector()*3, Player, FOOL_COPY, RandomSeed)
         else
-        
-        mod.Saved.Player[PIndex].LastCardUsed = card
+            Player:AnimateSad()
+        end
 
-        if card == Card.CARD_MAGICIAN then
+        IsTarot = true
+    else
+    
+    if card == Card.CARD_MAGICIAN then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.MAGICIAN)
             
             IsTarot = true
-        elseif card == Card.CARD_HIGH_PRIESTESS then
+    elseif card == Card.CARD_HIGH_PRIESTESS then
 
             local CardRNG = Player:GetCardRNG(card)
             for i=1, 2 do
@@ -61,13 +75,13 @@ function mod:NewTarotEffects(card, Player, UseFlags)
             
             IsTarot = true
         
-        elseif card == Card.CARD_EMPRESS then
+    elseif card == Card.CARD_EMPRESS then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.EMPRESS)
             
             IsTarot = true
         
-        elseif card == Card.CARD_EMPEROR then
+    elseif card == Card.CARD_EMPEROR then
             
             local CardRNG = Player:GetCardRNG(card)
             for i=1, 2 do
@@ -82,28 +96,28 @@ function mod:NewTarotEffects(card, Player, UseFlags)
                            RandomVector()*3, Player, RandomTarot, RandomSeed)
             end
             IsTarot = true
-        elseif card == Card.CARD_HIEROPHANT then
+    elseif card == Card.CARD_HIEROPHANT then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.HIEROPHANT)
             
             IsTarot = true
-        elseif card == Card.CARD_LOVERS then
+    elseif card == Card.CARD_LOVERS then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.LOVERS)
             
             IsTarot = true
         
-        elseif card == Card.CARD_CHARIOT then
+    elseif card == Card.CARD_CHARIOT then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.CHARIOT)
             
             IsTarot = true
-        elseif card == Card.CARD_JUSTICE then
+    elseif card == Card.CARD_JUSTICE then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.JUSTICE)
             
             IsTarot = true
-        elseif card == Card.CARD_HERMIT then
+    elseif card == Card.CARD_HERMIT then
             local CoinsToAdd = Player:GetNumCoins()
             if CoinsToAdd > 20 then CoinsToAdd = 20 end --no more then 20 coins
 
@@ -112,7 +126,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
             mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(CoinsToAdd).."$", mod.EffectType.ENTITY, Player)
 
             IsTarot = true
-        elseif card == Card.CARD_WHEEL_OF_FORTUNE then
+    elseif card == Card.CARD_WHEEL_OF_FORTUNE then
             local CardRNG = Player:GetCardRNG(card)
 
             local BaseJokers = {}
@@ -152,22 +166,22 @@ function mod:NewTarotEffects(card, Player, UseFlags)
 
             IsTarot = true
 
-        elseif card == Card.CARD_STRENGTH then
+    elseif card == Card.CARD_STRENGTH then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.STRENGTH)
             
             IsTarot = true
-        elseif card == Card.CARD_HANGED_MAN then
+    elseif card == Card.CARD_HANGED_MAN then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.HANGED)
             
             IsTarot = true
-        elseif card == Card.CARD_DEATH then
+    elseif card == Card.CARD_DEATH then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.DEATH1)
             
             IsTarot = true
-        elseif card == Card.CARD_TEMPERANCE then
+    elseif card == Card.CARD_TEMPERANCE then
 
             local CoinsToGain = 0
 
@@ -182,32 +196,32 @@ function mod:NewTarotEffects(card, Player, UseFlags)
 
 
             IsTarot = true
-        elseif card == Card.CARD_DEVIL then
+    elseif card == Card.CARD_DEVIL then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.DEVIL)
             
             IsTarot = true
-        elseif card == Card.CARD_TOWER then
+    elseif card == Card.CARD_TOWER then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.TOWER)
             
             IsTarot = true
-        elseif card == Card.CARD_STARS then
+    elseif card == Card.CARD_STARS then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.STARS)
             
             IsTarot = true
-        elseif card == Card.CARD_MOON then
+    elseif card == Card.CARD_MOON then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.MOON)
             
             IsTarot = true
-        elseif card == Card.CARD_SUN then
+    elseif card == Card.CARD_SUN then
             mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
                                                   mod.SelectionParams.Purposes.SUN)
             
             IsTarot = true
-        elseif card == Card.CARD_JUDGEMENT then
+    elseif card == Card.CARD_JUDGEMENT then
 
             --[[
             local EmptySlot
@@ -241,31 +255,29 @@ function mod:NewTarotEffects(card, Player, UseFlags)
 
             IsTarot = true
 
-        elseif card == Card.CARD_WORLD then
-            mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
-                                                  mod.SelectionParams.Purposes.WORLD)
-            
-            IsTarot = true
-        end
-        end
+    elseif card == Card.CARD_WORLD then
+        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.HAND,
+                                              mod.SelectionParams.Purposes.WORLD)
         
-        if IsTarot then
-
-            Player:AnimateCard(card, "UseItem")
-
-            return false
-        end
-
+        IsTarot = true
     end
+    end
+    
+    if IsTarot then
+
+        Player:AnimateCard(card, "UseItem")
+
+        return false
+    end
+
 end
 mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.NewTarotEffects)
 
-
+---@param Player EntityPlayer
 function mod:PlanetCards(card, Player,_)
-    if card <= mod.Planets.PLUTO or card >= mod.Planets.SUN then --if it's a planet Card
-        return
-    end
-    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+
+    if card < mod.Planets.PLUTO or card > mod.Planets.SUN
+       or Player:GetPlayerType() == mod.Characters.TaintedJimbo then --if it's a planet Card
         return
     end
 
@@ -274,11 +286,16 @@ function mod:PlanetCards(card, Player,_)
 
     mod.Saved.PlanetTypesUsed = mod.Saved.PlanetTypesUsed | (1 << Hand)
 
-    mod.Saved.CardLevels[Hand] = mod.Saved.CardLevels[Hand] + 1
+    local PlanetItem = PlanetCardToItem[card]
 
-    --PLACEHOLDER
-    mod:CreateBalatroEffect(Player, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, mod:CardValueToName(Hand, false, true).." Up!", mod.EffectType.ENTITY, Player)
+    table.insert(mod.Saved.Player[PIndex].InnateItems.Planet_X, PlanetItem)
+    Player:AddInnateCollectible(PlanetItem)
 
+    if Player:GetPlayerType() == mod.Characters.JimboType then
+
+        mod.Saved.CardLevels[Hand] = mod.Saved.CardLevels[Hand] + 1
+        mod:CreateBalatroEffect(Player, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, mod:CardValueToName(Hand, false, true).." Up!", mod.EffectType.ENTITY, Player)
+    end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.PlanetCards)
 
