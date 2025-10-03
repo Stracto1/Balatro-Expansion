@@ -314,7 +314,7 @@ function mod:CardPacks(card, Player,_)
 
         local PackRng = Player:GetCardRNG(mod.Packs.STANDARD)
 
-        local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 4) or 3
+        local Size = 3 + Player:GetCollectibleNum(mod.Vouchers.Crystal)
 
         if Player:HasCollectible(mod.Vouchers.Illusion) then
             
@@ -363,7 +363,7 @@ function mod:CardPacks(card, Player,_)
             end
         end
 
-        local Size = Player:HasCollectible(mod.Vouchers.Crystal) and 4 or 3 --very cool lua thingy
+        local Size = 3 + Player:GetCollectibleNum(mod.Vouchers.Crystal)
 
         local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
         if EditionRoll <= JumboChance then
@@ -407,7 +407,7 @@ function mod:CardPacks(card, Player,_)
         local PackRng = Player:GetCardRNG(mod.Packs.CELESTIAL)
         local RandomPack = {}
         
-        local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 4) or 3
+        local Size = 3 + Player:GetCollectibleNum(mod.Vouchers.Crystal)
 
         local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
         if EditionRoll <= JumboChance then
@@ -448,7 +448,7 @@ function mod:CardPacks(card, Player,_)
         local PackRng = Player:GetCardRNG(mod.Packs.SPECTRAL)
         local RandomPack = {}
 
-        local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 3) or 2
+        local Size = 2 + Player:GetCollectibleNum(mod.Vouchers.Crystal)
 
         local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
         if EditionRoll <= JumboChance then
@@ -492,7 +492,7 @@ function mod:CardPacks(card, Player,_)
 
         local PackRng = Player:GetCardRNG(mod.Packs.BUFFON)
 
-        local Size = (Player:HasCollectible(mod.Vouchers.Crystal) and 3) or 2
+        local Size = 2 + Player:GetCollectibleNum(mod.Vouchers.Crystal)
 
         local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
         if EditionRoll <= JumboChance then

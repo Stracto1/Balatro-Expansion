@@ -1534,6 +1534,7 @@ function mod:StatGiver(Player, Cache)
         --Player.Damage = (Player.Damage + (stats.Damage + stats.JokerDamage) * Player.Damage) * stats.JokerMult * stats.Mult
         mod.Saved.Player[PIndex].TrueDamageValue = (BaseDamage + stats.Damage + stats.JokerDamage) * stats.JokerMult * stats.Mult
 
+        mod.Saved.Player[PIndex].TrueDamageValue = math.max(mod.Saved.Player[PIndex].TrueDamageValue, BaseDamage)
 
         elseif Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then
 
@@ -1861,9 +1862,11 @@ function mod:OnTearCardCollision(Tear,Collider,_)
 
         local NumOnix = mod:GetPlayerTrinketAmount(Player, mod.Jokers.ONIX_AGATE)
     
-        local ExplodeChance = 0.2 + 0.25+NumOnix
+        local ExplodeChance = 0.2 + 0.25*NumOnix
 
-        if math.random() < ExplodeChance then
+        if Player:HasCollectible(CollectibleType.COLLECTIBLE_EXPLOSIVO)
+           or Player:HasCollectible(CollectibleType.COLLECTIBLE_EXPLOSIVO)
+           or math.random() < ExplodeChance then
 
             local DamageMult = 0.5 + 0.4*NumOnix
             local RadiusMult = 0.5 + 0.25*NumOnix
@@ -1918,8 +1921,11 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
         Tear:AddTearFlags(TearFlags.TEAR_HOMING)
     end
 
+    local TearData = Tear:GetData()
 
     if ValidCardTear then
+
+        Tear:ClearTearFlags(TearFlags.TEAR_SHIELDED) --since 1 card is shot every pope death its better to not destroy it (will still block projectiles (see synergies.lua))
 
         local Weapon = Player:GetWeapon(1)
 
@@ -1935,7 +1941,6 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
 
 
 
-        local TearData = Tear:GetData()
         TearData.Params = CardShot
         TearData.Num = mod.Saved.Player[PIndex].Progress.Blind.Shots + 1
         if ForceCard then
@@ -1951,9 +1956,10 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
             Tear.CollisionDamage = Tear.CollisionDamage *(0.1 + 0.0527*Weapon:GetCharge())
         end
 
+        local CompatibleSuits = mod:IsSuit(Player, TearData.Params)
 
-
-        if mod:IsSuit(Player, TearData.Params, mod.Suits.Spade, false) then --SPADES
+        if CompatibleSuits[mod.Suits.Spade] then --SPADES
+        
             Tear:AddTearFlags(TearFlags.TEAR_PIERCING)
             Tear:AddTearFlags(TearFlags.TEAR_SPECTRAL)
 
@@ -1967,16 +1973,38 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
             if math.random() <= Chance then
                 Tear:AddTearFlags(TearFlags.TEAR_CONFUSION)
             end
+
+
+            if Player:HasCollectible(CollectibleType.COLLECTIBLE_CUPIDS_ARROW) then
+                
+                local CharmChance = NumArrows > 0 and 1 or 0.5
+
+                if math.random() <= CharmChance then
+                    Tear:AddTearFlags(TearFlags.TEAR_CHARM)
+                end
+            end
+
+            local EvilItems = 0
+
+            for _,v in ipairs(mod.EVIL_ITEMS) do --black feather's items
+                EvilItems = EvilItems + Player:GetCollectibleNum(v, true)
+            end
+
+            Tear.CollisionDamage = Tear.CollisionDamage * (1 + 0.1*EvilItems)
         end
-        if mod:IsSuit(Player, TearData.Params, mod.Suits.Diamond, false) then
+        if CompatibleSuits[mod.Suits.Diamond] then
             --Tear:AddTearFlags(TearFlags.TEAR_BACKSTAB)
             Tear:AddTearFlags(TearFlags.TEAR_BOUNCE)
 
             if mod:JimboHasTrinket(Player, mod.Jokers.ROUGH_GEM) then
                 Tear:AddTearFlags(TearFlags.TEAR_BACKSTAB)
             end
+
+            if Player:HasCollectible(CollectibleType.COLLECTIBLE_HALO) then
+                Tear:AddTearFlags(TearFlags.TEAR_GLOW)
+            end
         end
-        if mod:IsSuit(Player, TearData.Params, mod.Suits.Heart, false) then
+        if CompatibleSuits[mod.Suits.Heart] then
             --Tear:AddTearFlags(TearFlags.TEAR_BACKSTAB)
 
             local NumBlood = mod:GetPlayerTrinketAmount(Player, mod.Jokers.BLOODSTONE)
@@ -1987,7 +2015,13 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
                 Tear:AddTearFlags(TearFlags.TEAR_CHARM)
             end
         end
+        if CompatibleSuits[mod.Suits.Club] then
+            --Tear:AddTearFlags(TearFlags.TEAR_BACKSTAB)
 
+            if Player:HasCollectible(CollectibleType.COLLECTIBLE_IRON_BAR) then
+                Tear:AddTearFlags(TearFlags.TEAR_CONFUSION)
+            end
+        end
 
 
         if PlayerData.SinceCardShoot >= 4 then

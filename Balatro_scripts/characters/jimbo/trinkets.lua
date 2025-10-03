@@ -48,8 +48,7 @@ function mod:OnCardShot(Player,ShotPointer,Evaluate)
 local PIndex = Player:GetData().TruePlayerIndex
 local ShotCard = mod.Saved.Player[PIndex].FullDeck[ShotPointer]
 
-local RandomSeed = Random()
-if RandomSeed == 0 then RandomSeed = 1 end --crash fix
+
 ---
 --RETRIGGER CALCULATION + SEALS + VAMPIRE EFFECT----
 -----------------------------------
@@ -163,6 +162,17 @@ for Index, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
 
 end
 
+--so no better way to do this (kind of an estimate) 
+--for i, Star in ipairs(Isaac.FindByType(EntityType.ENTITY_FAMILIAR, FamiliarVariant.STAR_OF_BETHLEHEM)) do
+--    if Star.Position:Distance(Player.Position) <= 60 then 
+--        Triggers = Triggers + 1
+--    end
+--end
+
+if Player:GetHallowedGroundCountdown() > 0 then
+    Triggers = Triggers + 1
+end
+
 
 if ShotCard.Seal == mod.Seals.RED then
     Triggers = Triggers + 1
@@ -170,14 +180,14 @@ if ShotCard.Seal == mod.Seals.RED then
 elseif ShotCard.Seal == mod.Seals.GOLDEN then
     for i=1, Triggers do
         local Coin = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
-                                RandomVector()*4 *Player.MoveSpeed^0.5, Player, CoinSubType.COIN_PENNY, RandomSeed)  
+                                RandomVector()*4 *Player.MoveSpeed^0.5, Player, CoinSubType.COIN_PENNY, mod:RandomSeed())  
         Coin:ToPickup().Timeout = 45 --disappers short after spawning (would be too OP otherwise)
     end
 end
 
 ----- PROGRESS CALCULATION------------------
 --------------------------------------------
-for GoodSuit,IsValid in ipairs(mod:IsSuit(Player, ShotCard, 0, true)) do
+for GoodSuit,IsValid in ipairs(mod:IsSuit(Player, ShotCard)) do
 
     if IsValid then
         mod.Saved.Player[PIndex].Progress.Room.SuitUsed[GoodSuit] = mod.Saved.Player[PIndex].Progress.Room.SuitUsed[GoodSuit] + Triggers
@@ -213,11 +223,14 @@ for Index, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
     if Joker == 0 then
     elseif Joker == mod.Jokers.ROUGH_GEM then
         if mod:IsSuit(Player, ShotCard, mod.Suits.Diamond, false) then
+
+            local TrinketRNG = Player:GetTrinketRNG(mod.Jokers.ROUGH_GEM)
+
             for i = 1, Triggers do
             
-                if mod:TryGamble(Player, Player:GetTrinketRNG(mod.Jokers.ROUGH_GEM), 0.5) then
+                if mod:TryGamble(Player, TrinketRNG, 0.5) then
                     local Coin = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
-                                            RandomVector()*3, Player, CoinSubType.COIN_PENNY, RandomSeed)
+                                            RandomVector()*3, Player, CoinSubType.COIN_PENNY, mod:RandomSeed(TrinketRNG))
                     Coin:ToPickup().Timeout = 50
 
                     
@@ -338,14 +351,16 @@ for Index, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
         if mod:IsValue(Player, ShotCard, 8) then
 
             local BallRNG = Player:GetTrinketRNG(mod.Jokers._8_BALL)
+            local Chance = 0.125 * 2^Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_MAGIC_8_BALL)
+
             for i = 1, Triggers do
             
-                if mod:TryGamble(Player, BallRNG, 0.25) then
+                if mod:TryGamble(Player, BallRNG, Chance) then
 
                     local Rtarot = mod:RandomTarot(BallRNG, false, false)
 
                     local Tarot = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Player.Position,
-                                            RandomVector()*3, Player, Rtarot, RandomSeed)
+                                            RandomVector()*3, Player, Rtarot, mod:RandomSeed(BallRNG))
 
                     
                     mod:CreateBalatroEffect(Index,mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "+1 Tarot!",mod.EffectType.JOKER, Player)
@@ -355,13 +370,15 @@ for Index, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
     elseif Joker == mod.Jokers.BUSINESS_CARD then
         if mod:IsValue(Player, ShotCard, mod.Values.FACE) then --only face cards
             
+            local TrinketRNG = Player:GetTrinketRNG(mod.Jokers.BUSINESS_CARD)
+        
             for i = 1, Triggers do
 
-                if mod:TryGamble(Player, Player:GetTrinketRNG(mod.Jokers.BUSINESS_CARD), 0.25) then
+                if mod:TryGamble(Player, TrinketRNG, 0.25) then
             
                     for i=1, 2 do --spawns 2 coins 25% of the time
                         local Coin = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
-                                                RandomVector()*4 * Player.MoveSpeed, Player, CoinSubType.COIN_PENNY, RandomSeed)
+                                                RandomVector()*4 * Player.MoveSpeed, Player, CoinSubType.COIN_PENNY, mod:RandomSeed(TrinketRNG))
                         Coin:ToPickup().Timeout = 50
                     end
 
@@ -492,7 +509,7 @@ for Index, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
         if ShotCard.Enhancement == mod.Enhancement.GOLDEN then
             for i = 1, Triggers do
                 local Coin = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
-                                        RandomVector()*3*Player.MoveSpeed, Player, CoinSubType.COIN_PENNY, RandomSeed)
+                                        RandomVector()*3*Player.MoveSpeed, Player, CoinSubType.COIN_PENNY, mod:RandomSeed())
                 
                 Coin:ToPickup().Timeout = 50
 
@@ -633,6 +650,7 @@ for Index, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
 end
 ---------------BASE CARD STATS--------------
 -------------------------------------------
+
     --------EDITIONS EFFECTS----------
     ----------------------------------
     if ShotCard.Edition == mod.Edition.FOIL then
@@ -666,7 +684,13 @@ end
         mod:IncreaseJimboStats(Player, 0, 0.05 * Triggers,1, false,true) 
 
     elseif ShotCard.Enhancement == mod.Enhancement.BONUS then
-        TearsToGet = TearsToGet + 0.75*Triggers
+
+        local Multiplier = 1
+        Multiplier = Multiplier + Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_MITRE) 
+                                + Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_SOUL, true) 
+                                + Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_SCAPULAR)
+
+        TearsToGet = TearsToGet + 0.75*Triggers*Multiplier
 
     elseif ShotCard.Enhancement == mod.Enhancement.GLASS then
 
@@ -745,6 +769,16 @@ end
         end
 
         mod.Saved.Player[PIndex].FullDeck[ShotPointer] = mod:RandomPlayingCard(NewCardRNG, true, nil, nil, Enhancement, Seal, Edition)
+    end
+
+    -------ITEMS SYNERGIES------
+    ----------------------------
+    if Player:HasCollectible(CollectibleType.COLLECTIBLE_MONEY_EQUALS_POWER) then
+
+        local Coins = mod.Saved.HasDebt and  0 or (Player:GetNumCoins() // 5)
+        local ItemNum = Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_MONEY_EQUALS_POWER, true)
+
+        mod:IncreaseJimboStats(Player, 0, 0.01*ItemNum*Triggers,1, false,true)
     end
 
     mod:IncreaseJimboStats(Player, TearsToGet, 0, 1, Evaluate, true)
@@ -2203,7 +2237,12 @@ function mod:OnNewRoomJokers()
 
                     if not Copied then
 
-                        MisDMG = mod:round(RoomRNG:RandomFloat(), 2)
+                        if Player:HasCollectible(CollectibleType.COLLECTIBLE_TMTRAINER) then
+                            MisDMG = mod:Lerp(-1, 3)
+                        else
+                            MisDMG = mod:round(RoomRNG:RandomFloat(), 2)
+                        end
+
                         mod.Saved.Player[PIndex].Inventory[ProgressIndex].Progress = MisDMG
 
                         mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ADDMULT, "+"..PlayerDamage(Player, MisDMG),mod.EffectType.JOKER, Player)

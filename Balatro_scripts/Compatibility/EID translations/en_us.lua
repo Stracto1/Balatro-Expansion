@@ -218,7 +218,7 @@ Descriptions.Jimbo.Jokers[mod.Jokers.CREDIT_CARD] = "Allows to go in {{ColorYell
 Descriptions.Jimbo.Jokers[mod.Jokers.BANNER] = "{{Tears}} {{ColorChips}}+1.5{{CR}} Tears per {{Heart}} {{ColorYellorange}}full heart{{CR}}#{{Blank}} {{ColorGray}}(Currently {{ColorChips}}+[[VALUE1]]{{ColorGray}} Tears) #A banner spawns as an hostile room is entered #{{Tears}} Standing close to the banner gives {{ColorChips}}+3{{CR}} Tears"
 Descriptions.Jimbo.Jokers[mod.Jokers.MYSTIC_SUMMIT] = "{{Damage}} {{ColorMult}}+1.5{{CR}} Damage while having only {{ColorYellorange}}1{{CR}} full Heart #{{Collectible335}} Grants a {{ColorYellorange}}repelling aura{{CR}} while active"
 Descriptions.Jimbo.Jokers[mod.Jokers.MARBLE_JOKER] = "Adds a {{ColorYellorange}}Stone card{{CR}} to the deck on blind clear # {{ColorMint}}[[CHANCE]]/100 Chance{{CR}} for rocks to be replaced with {{ColorYellorange}}Tinted Rocks"
-Descriptions.Jimbo.Jokers[mod.Jokers._8_BALL] = "{{ColorYellorange}}8s{{CR}} have a {{ColorMint}}[[CHANCE]]/8 Chance{{CR}} to spawn a random {{Card}} {{ColorPink}}Tarot{{CR}} card scored #{{Shotspeed}} +0.16 Shot Speed"
+Descriptions.Jimbo.Jokers[mod.Jokers._8_BALL] = "{{ColorYellorange}}8s{{CR}} have a {{ColorMint}}[[CHANCE]]/8 Chance{{CR}} to spawn a random {{Card}} {{ColorPink}}Tarot{{CR}} card scored #{{Shotspeed}} +0.16 Shot Speed[[VALUE1]]"
 Descriptions.Jimbo.Jokers[mod.Jokers.DUSK] = "The {{ColorYellorange}}last 10{{CR}} scoring cards get {{ColorYellorange}}Retriggered #{{Blank}} {{ColorGray}}(Currently [[VALUE1]]{{ColorGray}})"
 Descriptions.Jimbo.Jokers[mod.Jokers.RAISED_FIST] = "Gives {{ColorMult}}0.05{{CR}} Damage {{ColorYellorange}}X the Rank{{CR}} of the lowest card {{ColorYellorange}}held{{CR}} #{{Blank}} {{ColorGray}}(Currently {{ColorMult}}+[[VALUE1]]{{ColorGray}} Damage)"
 Descriptions.Jimbo.Jokers[mod.Jokers.CHAOS_CLOWN] = "{{Collectible376}} All Shops and Treasure rooms visited have an additional Restock Machine"
@@ -318,17 +318,109 @@ Descriptions.Jimbo.Jokers[mod.Jokers.CHAOS_THEORY] = "After being scored, cards 
 
 end
 
-Descriptions.Synergies = {}
-Descriptions.Synergies[mod.Jokers.CERTIFICATE] = {}
-Descriptions.Synergies[mod.Jokers.CERTIFICATE][CollectibleType.COLLECTIBLE_PHD] = "#{{Collectible75}} Cards added also have a random {{ColorYellorange}}Edition{{CR}}"
-Descriptions.Synergies[mod.Jokers.CERTIFICATE][CollectibleType.COLLECTIBLE_FALSE_PHD] = "#{{Collectible654}} Cards added also have a random {{ColorYellorange}}Enhancement{{CR}}"
+Descriptions.JokerSynergies = {}
+Descriptions.JokerSynergies[mod.Jokers.CERTIFICATE][CollectibleType.COLLECTIBLE_PHD] = "Cards added also have a random {{ColorYellorange}}Edition{{CR}}"
+Descriptions.JokerSynergies[mod.Jokers.CERTIFICATE][CollectibleType.COLLECTIBLE_FALSE_PHD] = "Cards added also have a random {{ColorYellorange}}Enhancement{{CR}}"
 
-Descriptions.Synergies[mod.Jokers.MARBLE_JOKER] = {}
-Descriptions.Synergies[mod.Jokers.MARBLE_JOKER][CollectibleType.COLLECTIBLE_SMALL_ROCK] = "#{{Collectible90}} Cards added also have a random {{ColorYellorange}}Seal{{CR}}"
-Descriptions.Synergies[mod.Jokers.MARBLE_JOKER][CollectibleType.COLLECTIBLE_ROCK_BOTTOM] = "#{{Collectible562}} Cards added also have a random {{ColorYellorange}}Edition{{CR}}"
+Descriptions.JokerSynergies[mod.Jokers.MARBLE_JOKER] = {}
+Descriptions.JokerSynergies[mod.Jokers.MARBLE_JOKER][CollectibleType.COLLECTIBLE_SMALL_ROCK] = "Cards added also have a random {{ColorYellorange}}Seal{{CR}}"
+Descriptions.JokerSynergies[mod.Jokers.MARBLE_JOKER][CollectibleType.COLLECTIBLE_ROCK_BOTTOM] = "Cards added also have a random {{ColorYellorange}}Edition{{CR}}"
 
-Descriptions.Synergies[mod.Jokers.CHAOS_THEORY] = {}
-Descriptions.Synergies[mod.Jokers.CHAOS_THEORY][CollectibleType.COLLECTIBLE_CHAOS] = "#{{Collectible90}} Cards generated are guaranteed to have an {{ColorYellorange}}Enhancement{{CR}},{{ColorYellorange}}Seal{{CR}} or {{ColorYellorange}}Edition{{CR}} if the starting card had one"
+Descriptions.JokerSynergies[mod.Jokers.CHAOS_THEORY] = {}
+Descriptions.JokerSynergies[mod.Jokers.CHAOS_THEORY][CollectibleType.COLLECTIBLE_CHAOS] = "Cards generated are guaranteed to have an {{ColorYellorange}}Enhancement{{CR}},{{ColorYellorange}}Seal{{CR}} or {{ColorYellorange}}Edition{{CR}} if the starting card had one"
+
+Descriptions.JokerSynergies[mod.Jokers._8_BALL] = {}
+Descriptions.JokerSynergies[mod.Jokers._8_BALL][CollectibleType.COLLECTIBLE_MAGIC_8_BALL] = "{{ColorMint}}Trigger Chance{{CR}} doubled!"
+
+Descriptions.JokerSynergies[mod.Jokers.MISPRINT] = {}
+Descriptions.JokerSynergies[mod.Jokers.MISPRINT][CollectibleType.COLLECTIBLE_TMTRAINER] = "Stats given range from {{ColorMult}}-1{{CR}} to {{CR}} {{ColorMult}}4{{CR}} Damage #{{Blank}} {{ColorGray}}(Stats can't go lower than their base value)"
+
+Descriptions.JokerSynergies[mod.Jokers.ARROWHEAD] = {}
+Descriptions.JokerSynergies[mod.Jokers.ARROWHEAD][CollectibleType.COLLECTIBLE_CUPIDS_ARROW] = "{{BalatroSpade}} Sade charm becomes guaranteed"
+
+
+--inverts the table to make collectible synergy descriptions lookup faster
+Descriptions.ItemSynergies = {}
+for Joker,JokerSynergies in ipairs(Descriptions.JokerSynergies) do
+    
+    for Item, SynString in ipairs(JokerSynergies) do
+        
+        Descriptions.ItemSynergies[Item] = Descriptions.ItemSynergies[Item] or {}
+        Descriptions.ItemSynergies[Item][Joker] = SynString
+    end
+end
+
+
+Descriptions.JimboSynergies = {}
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_BRIMSTONE] = "{{PlayerJimbo}} When hitting an enemy, cards shoot 1 blood laser that deal 50% the card's damage in a random direction #{{BalatroSpade}} Spade cards shoot an extra laser #{{BalatroSpade}} All cads held in hand become Spade cards on pickup #\2 +50% card fire cooldown"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_TECHNOLOGY] = "{{PlayerJimbo}} When hitting an enemy, cards shoot 1 laser that deal 50% the card's damage in a random direction #{{BalatroHeart}} Heart cards shoot an extra laser"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_DR_FETUS] = "{{PlayerJimbo}} When hitting an enemy, cards leave a bomb #The bombs deal 250% of the card's damage and inherit his bomb upgrades #{{BalatroClub}} Club card's bombs are bigger and deal more damage"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_SMELTER] = "{{PlayerJimbo}} On use allows to sell a Joker for double the normal amount of coins"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_MOMS_BOX] = "{{PlayerJimbo}} what the fuck did I do"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_DOLLAR] = "{{PlayerJimbo}} Change all your deck's cards suit to {{BalatroDiamond}} Diamond"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_PYRO] = "{{PlayerJimbo}} Change all your deck's cards suit to {{BalatroClub}} Club"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_SKELETON_KEY] = "{{PlayerJimbo}} Change all your deck's cards suit to {{BalatroSpade}} Spade"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_BINGE_EATER] = "{{PlayerJimbo}} Change all your deck's cards suit to {{BalatroHeart}} Heart"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_HEART] = "{{PlayerJimbo}} All cards held in hand become {{BalatroSpade}} Heart cards on pickup"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_QUARTER] = "{{PlayerJimbo}} All cards held in hand become {{BalatroDiamond}} Diamond cards on pickup"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_BOOM] = "{{PlayerJimbo}} All cards held in hand become {{BalatroClub}} Club cards on pickup"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_GLITTER_BOMBS] = "{{PlayerJimbo}} All cards held in hand become {{BalatroClub}} Club cards on pickup"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_BOMBER_BOY] = "{{PlayerJimbo}} All cards held in hand become {{BalatroClub}} Club cards on pickup"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_HOT_BOMBS] = "{{PlayerJimbo}} All cards held in hand become {{BalatroClub}} Club cards on pickup"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_BUTT_BOMBS] = "{{PlayerJimbo}} All cards held in hand become {{BalatroClub}} Club cards on pickup"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_NANCY_BOMBS] = "{{PlayerJimbo}} All cards held in hand become {{BalatroClub}} Club cards on pickup"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_SCATTER_BOMBS] = "{{PlayerJimbo}} All cards held in hand become {{BalatroClub}} Club cards on pickup"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_BLOOD_BOMBS] = "{{PlayerJimbo}} All cards held in hand become {{BalatroHeart}} Heart cards on pickup #{{BalatroHeart}} Heart cards are also considered as {{BalatroClub}} Club cards"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_FAST_BOMBS] = "{{PlayerJimbo}} All cards held in hand become {{BalatroClub}} Club cards on pickup"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_BOBBY_BOMB] = "{{PlayerJimbo}} All cards held in hand become {{BalatroClub}} Club cards on pickup"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_SAD_BOMBS] = "{{PlayerJimbo}} All cards held in hand become {{BalatroClub}} Club cards on pickup"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_GHOST_BOMBS] = "{{PlayerJimbo}} All cards held in hand become {{BalatroClub}} Club cards on pickup"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_STICKY_BOMBS] = "{{PlayerJimbo}} All cards held in hand become {{BalatroClub}} Club cards on pickup"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_BRIMSTONE_BOMBS] = "{{PlayerJimbo}} All cards held in hand become {{BalatroClub}} Club cards on pickup"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_SHARP_KEY] = "{{PlayerJimbo}} {{BalatroSpade}} Spade cards can be used to open doors #{{BalatroSpade}} All cards held in hand become Spade cards on pickup"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_C_SECTION] = "{{PlayerJimbo}} Cards fire a fetus as they land #{{BalatroHeart}} Heart cards fire an additional fetus #{{BalatroHeart}} All cards held in hand become heart cards on pickup"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_TECH_X] = "{{PlayerJimbo}} Cards are surrounded by a laser ring that deals 50% of its damage per tick"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_MOMS_KNIFE] = "{{PlayerJimbo}} Cards gain spectral and piercing, dealing 30% of its damage per tick"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_TRISAGION] = "{{PlayerJimbo}} Cards gain piercing, dealing 20% of its damage per tick"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_SPIRIT_SWORD] = "{{PlayerJimbo}} The sword is applied on top of the usual card shooting"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_HALLOWED_GROUND] = "{{PlayerJimbo}} The sword is applied on top of the usual card shooting"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_STAR_OF_BETHLEHEM] = "{{PlayerJimbo}} The sword is applied on top of the usual card shooting"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_POUND_OF_FLESH] = "{{PlayerJimbo}} {{BalatroDiamond}} Diamond and {{BalatroHeart}} Heart are considered as the same suit"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_TMTRAINER] = "{{PlayerJimbo}} All cards in the deck get randomised on pickup"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_CUPIDS_ARROW] = "{{PlayerJimbo}} {{BalatroSpade}} Spade cards have a 50% chance to {{Charm}} Charm enemies"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_ABADDON] = "{{PlayerJimbo}} {{BalatroSpade}} Spade cards deal 10% more damage"
+
+mod.EVIL_ITEMS = {CollectibleType.COLLECTIBLE_ABADDON,
+                  CollectibleType.COLLECTIBLE_BLACK_CANDLE,
+                  CollectibleType.COLLECTIBLE_CEREMONIAL_ROBES,
+                  CollectibleType.COLLECTIBLE_GOAT_HEAD,
+                  CollectibleType.COLLECTIBLE_BLACK_CANDLE,
+                  CollectibleType.COLLECTIBLE_MATCH_BOOK,
+                  CollectibleType.COLLECTIBLE_MISSING_NO,
+                  CollectibleType.COLLECTIBLE_FALSE_PHD,
+                  CollectibleType.COLLECTIBLE_SAFETY_PIN}
+for _,v in ipairs(mod.EVIL_ITEMS) do
+    Descriptions.JimboSynergies[v] = Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_ABADDON]
+end
+
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_HALO] = "{{PlayerJimbo}} {{BalatroDiamond}} Diamond cards gain a {{Collectible331}} God Head-like aura #{{BalatroDiamond}} All cads held in hand become Diamond cards on pickup"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_MONEY_EQUALS_POWER] = "{{PlayerJimbo}} {{BalatroDiamond}} Diamond cards give {{ColorMult}}+0.01{{CR}} Damage per {{ColoraYellorange}}5{{CR}} coins held when scored"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_MITRE] = "{{PlayerJimbo}} Tears given by {{BalatroBonus}} {{ColorYellorange}}Bouns enhancements{{CR}} are doubled"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_SOUL] = Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_MITRE]
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_SCAPULAR] = Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_MITRE]
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_KEEPERS_KIN] = "{{PlayerJimbo}} when landing, {{BalatroStone}} {{ColorYellorange}}Stone cards{{CR}} spawn 1-3 {{ColorYellorange}}Blue Spiders"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_CRYSTAL_BALL] = "{{PlayerJimbo}} Also gives the {{Collectible"..mod.Vouchers.Crystal.."}} Crystal ball effect while held"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_LOST_CONTACT] = "{{PlayerJimbo}} Cards fired still block projectiles but can't disappear #{{ColorGray}} (Suit tears behave as usual)"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_PYROMANIAC] = "{{PlayerJimbo}} All cards held in hand become {{BalatroClub}} Club cards on pickup #{{BalatroClub}} Club cards are also considered as Heart cards"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_BOGO_BOMBS] = "{{PlayerJimbo}} {{BalatroClub}} Club cards added to your deck are doubled"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_IRON_BAR] = "{{PlayerJimbo}} {{BalatroSteel}} Steel cards cause {{Confusion}} Confusion to enemies hit"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_MIDAS_TOUCH] = "{{PlayerJimbo}} {{BalatroGold}} Gold cards turn enemies hit into golden statues"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_FRUIT_CAKE] = "{{PlayerJimbo}} All cards held in hand become {{BalatroWild}} Wild cards on pickup #{{Blank}} {{ColorGray}}(can't overwrite existing enhancements) #{{BalatroWild}} Wild cards gain additional random tear effects"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_PLAYDOUGH_COOKIE] = Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_FRUIT_CAKE]
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_3_DOLLAR_BILL] = "{{PlayerJimbo}} {{BalatroYellorange}}3s{{CR}} fired gain 3 additional tear effects"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_GODHEAD] = "{{PlayerJimbo}} All {{BalatroSpade}} Spade cards in your deck are destroyed #{{Balatro Wild}} All other cards become {{ColroYellorange}}Wild Cards#{{Blank}} {{ColorGray}}(Can't overide exisisting echancements)"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_EXPLOSIVO] = "{{PlayerJimbo}} {{BalatroClub}} Club cards are guaranteed to trigger their explosion"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_FIRE_MIND] = Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_EXPLOSIVO]
 
 
 

@@ -24,7 +24,7 @@ function mod:VoucherPool(Type,_,_,_,_,Player)
         return
     end
 
-    if Player:HasCollectible(Type) then --there shouldn't be duplicate vouchers
+    if Player:HasCollectible(Type, true) then --there shouldn't be duplicate vouchers
 
         if Type % 2 == mod.VoucherOff then --if it's a base voucher
 

@@ -1614,6 +1614,10 @@ function mod:PlayerCanAfford(Price)
 
 end
 
+function mod:TEARFLAG(x)
+    return x >= 64 and BitSet128(0,1<<(x-64)) or BitSet128(1<<x,0)
+end
+
 
 function mod:GetJimboJokerIndex(Player, Joker, SkipCopy)
     local Indexes = {}
@@ -1645,7 +1649,9 @@ end
 
 
 ---@param Player EntityPlayer
-function mod:IsSuit(Player, Card, WantedSuit, MakeTable)
+function mod:IsSuit(Player, Card, WantedSuit)
+
+    local MakeTable = not WantedSuit
 
     if MakeTable then --in this case makes a table telling the equivalent suits
 
@@ -1670,11 +1676,21 @@ function mod:IsSuit(Player, Card, WantedSuit, MakeTable)
             GoodSuits[WantedSuit + Jump] = true
         end
 
-        if Player:HasCollectible(CollectibleType.COLLECTIBLE_BLOOD_BOMBS) --clubs count as hearts
-           and Card.Suit == mod.Suits.Club and WantedSuit == mod.Suits.Heart then
+        if Player:HasCollectible(CollectibleType.COLLECTIBLE_BLOOD_BOMBS) --hearts count as club
+           and Card.Suit == mod.Suits.Heart then
+
+            GoodSuits[mod.Suits.Club] = true
+        end
+        if Player:HasCollectible(CollectibleType.COLLECTIBLE_PYROMANIAC) --clubs count as hearts
+           and Card.Suit == mod.Suits.Club then
 
             GoodSuits[mod.Suits.Heart] = true
+        end
+        if Player:HasCollectible(CollectibleType.COLLECTIBLE_POUND_OF_FLESH) --clubs count as hearts
+           and Card.Suit % 2 == 0 then
 
+            GoodSuits[mod.Suits.Heart] = true
+            GoodSuits[mod.Suits.Diamond] = true
         end
 
         return GoodSuits
@@ -1697,7 +1713,17 @@ function mod:IsSuit(Player, Card, WantedSuit, MakeTable)
 
 
         if Player:HasCollectible(CollectibleType.COLLECTIBLE_BLOOD_BOMBS) --clubs count as hearts
+           and Card.Suit == mod.Suits.Heart and WantedSuit == mod.Suits.Club then
+
+            return true
+        end
+        if Player:HasCollectible(CollectibleType.COLLECTIBLE_PYROMANIAC) --clubs count as hearts
            and Card.Suit == mod.Suits.Club and WantedSuit == mod.Suits.Heart then
+
+            return true
+        end
+        if Player:HasCollectible(CollectibleType.COLLECTIBLE_POUND_OF_FLESH) --clubs count as hearts
+           and Card.Suit % 2 == 0 and  WantedSuit % 2 == 0 then
 
             return true
         end
@@ -3592,6 +3618,12 @@ function mod:AddCardToDeck(Player, CardTable,Amount, PutInHand)
 
     if Amount <= 0 then
         return
+    end
+
+    if Player:HasCollectible(CollectibleType.COLLECTIBLE_BOGO_BOMBS)
+       and mod:IsSuit(Player, CardTable, mod.Suits.Club) then
+        
+        Amount = Amount*2
     end
 
     CardTable.Enhancement = CardTable.Enhancement or mod.Enhancement.NONE

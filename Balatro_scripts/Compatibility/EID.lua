@@ -70,9 +70,23 @@ EID:addEntity(1000, mod.Effects.DESC_HELPER, mod.Effects.PLATE_HELPER_SUBTYPE, "
 
 
 do
-    local CoopMenu = Sprite("gfx/sprites/EID Icons.anm2")
+    local CoopMenu = Sprite("gfx/ui/hud_eid_jimbo.anm2")
 
-    EID:addIcon("PlayerJimbo","Jimbo",0,16,16,-7,-6, CoopMenu)
+    EID:addIcon("PlayerJimbo","Idle",0,8,8,0,0, CoopMenu)
+    EID:addIcon("BalatroSpade","Spade",0,8,8,0,0, CoopMenu)
+    EID:addIcon("BalatroHeart","Heart",0,8,8,0,0, CoopMenu)
+    EID:addIcon("BalatroClub","Club",0,8,8,0,0, CoopMenu)
+    EID:addIcon("BalatroDiamond","Diamond",0,8,8,0,0, CoopMenu)
+    EID:addIcon("BalatroBonus","Bonus",0,8,8,0,0, CoopMenu)
+    EID:addIcon("BalatroMult","Mult",0,8,8,0,0, CoopMenu)
+    EID:addIcon("BalatroGlass","Glass",0,8,8,0,0, CoopMenu)
+    EID:addIcon("BalatroSteel","Steel",0,8,8,0,0, CoopMenu)
+    EID:addIcon("BalatroGold","Gold",0,8,8,0,0, CoopMenu)
+    EID:addIcon("BalatroWild","Wild",0,8,8,0,0, CoopMenu)
+    EID:addIcon("BalatroStone","Stone",0,8,8,0,0, CoopMenu)
+    EID:addIcon("BalatroLucky","Lucky",0,8,8,0,0, CoopMenu)
+
+
 end
 
 EID:addColor("B_Black", mod.BalatroKColorBlack)
@@ -688,14 +702,14 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
 
                 if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_PHD) then
                     
-                    Values[1] = mod:GetEIDString("Synergies", Joker, CollectibleType.COLLECTIBLE_PHD)
+                    Values[1] = mod:GetEIDString("JokerSynergies", Joker, CollectibleType.COLLECTIBLE_PHD)
                 else
                     Values[1] = ""
                 end
 
                 if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_FALSE_PHD) then
                     
-                    Values[2] = mod:GetEIDString("Synergies", Joker, CollectibleType.COLLECTIBLE_FALSE_PHD)
+                    Values[2] = mod:GetEIDString("JokerSynergies", Joker, CollectibleType.COLLECTIBLE_FALSE_PHD)
                 else
                     Values[2] = ""
                 end
@@ -704,14 +718,14 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
 
                 if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_SMALL_ROCK) then
                     
-                    Values[1] = mod:GetEIDString("Synergies", Joker, CollectibleType.COLLECTIBLE_SMALL_ROCK)
+                    Values[1] = mod:GetEIDString("JokerSynergies", Joker, CollectibleType.COLLECTIBLE_SMALL_ROCK)
                 else
                     Values[1] = ""
                 end
 
                 if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_ROCK_BOTTOM) then
                     
-                    Values[2] = mod:GetEIDString("Synergies", Joker, CollectibleType.COLLECTIBLE_ROCK_BOTTOM)
+                    Values[2] = mod:GetEIDString("JokerSynergies", Joker, CollectibleType.COLLECTIBLE_ROCK_BOTTOM)
                 else
                     Values[2] = ""
                 end
@@ -725,7 +739,15 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
 
                 if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_CHAOS) then
                     
-                    Values[1] = mod:GetEIDString("Synergies", Joker, CollectibleType.COLLECTIBLE_CHAOS)
+                    Values[1] = mod:GetEIDString("JokerSynergies", Joker, CollectibleType.COLLECTIBLE_CHAOS)
+                else
+                    Values[1] = ""
+                end
+
+            elseif Joker == mod.Jokers._8_BALL then
+                if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_MAGIC_8_BALL) then
+                    
+                    Values[1] = mod:GetEIDString("JokerSynergies", Joker, CollectibleType.COLLECTIBLE_MAGIC_8_BALL)
                 else
                     Values[1] = ""
                 end
