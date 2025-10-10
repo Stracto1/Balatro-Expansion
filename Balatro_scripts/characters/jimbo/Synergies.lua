@@ -6,7 +6,7 @@ local sfx = SFXManager()
 
 ---@param Tear EntityTear
 ---@param Collider Entity
-function mod:CardCollisionSynergy(Tear,Collider,_)
+local function OnCardHit(_,Tear,Collider)
 
     local Player = Tear.Parent:ToPlayer()
 
@@ -46,7 +46,7 @@ function mod:CardCollisionSynergy(Tear,Collider,_)
         Collider:TakeDamage(TriDamage, DamageFlag.DAMAGE_COUNTDOWN, EntityRef(Tear), 3)
     end
 
-    if mod:Contained(TearData.CollidedWith, GetPtrHash(Collider)) then return end
+    --if mod:Contained(TearData.CollidedWith, GetPtrHash(Collider)) then return end
 
     local TearRNG = Tear:GetDropRNG()
 
@@ -118,13 +118,35 @@ function mod:CardCollisionSynergy(Tear,Collider,_)
        and TearData.Params.Enhancement == mod.Enhancement.GOLDEN then
         Collider:AddMidasFreeze(EntityRef(Player), 120)
     end
-end
-mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.Tears.CARD_TEAR_VARIANT)
-mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.Tears.SUIT_TEAR_VARIANTS[mod.Suits.Spade])
-mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.Tears.SUIT_TEAR_VARIANTS[mod.Suits.Heart])
-mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.Tears.SUIT_TEAR_VARIANTS[mod.Suits.Club])
-mod:AddPriorityCallback(ModCallbacks.MC_POST_TEAR_COLLISION,CallbackPriority.EARLY, mod.CardCollisionSynergy, mod.Tears.SUIT_TEAR_VARIANTS[mod.Suits.Diamond])
 
+    if Player:HasCollectible(CollectibleType.COLLECTIBLE_EYE_OF_GREED)
+       and mod:IsSuit(Player, TearData.Params, mod.Suits.Diamond) then
+        Collider:AddMidasFreeze(EntityRef(Player), 120)
+    end
+
+
+    if Player:HasCollectible(CollectibleType.COLLECTIBLE_HEAD_OF_THE_KEEPER) then
+        
+        if mod:IsSuit(Player, TearData.Params, mod.Suits.Diamond, false) then
+            
+            local Coins = Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_HEAD_OF_THE_KEEPER)
+
+            for i=1, Coins do
+                
+                local Coin = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Tear.Position, Vector.Zero, Player, CoinSubType.COIN_PENNY, mod:RandomSeed(TearRNG)):ToPickup()
+
+                Coin.Timeout = 50
+            end 
+        end
+    end
+
+    if Player:HasCollectible(CollectibleType.COLLECTIBLE_HEAD_OF_THE_KEEPER)
+       and TearData.Params.Enhancement == mod.Enhancement.GLASS then
+        
+        Collider:AddBleeding(Player, 90)
+    end
+end
+mod:AddCallback("CARD_HIT", OnCardHit)
 
 
 ---@param Player EntityPlayer
@@ -136,17 +158,56 @@ function mod:ActiveItemsNewEffect(Type, ItemRNG, Player, Flags)
     if Type == CollectibleType.COLLECTIBLE_SMELTER then
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.INVENTORY,
                                                       mod.SelectionParams.Purposes.SMELTER)
-    
-    elseif Type == CollectibleType.COLLECTIBLE_MOMS_BOX then
-
-        if Flags & UseFlag.USE_MIMIC == 0 then
-            Player:UseActiveItem(CollectibleType.COLLECTIBLE_MOMS_BOX, UseFlag.USE_MIMIC | UseFlag.USE_NOANIM) --spawns 2 trinkets
-        end
-
-        return {["Remove"] = true}
     end
 end
 mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.ActiveItemsNewEffect)
+
+
+function ActiveMaxCharge(_, Type, Player, CurrentMax)
+
+    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
+        return
+    end
+
+    if Type == CollectibleType.COLLECTIBLE_MOMS_BOX then
+        return 12
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PLAYER_GET_ACTIVE_MAX_CHARGE, ActiveMaxCharge)
+
+
+function mod:OnShopRestock(Partial)
+
+    if Partial then
+        return
+    end
+    local DidSomething = false --needs to reroll an item to work
+
+    for i,Pickup in ipairs(Isaac.FindByType(EntityType.ENTITY_PICKUP,-1,-1, true)) do
+        if Pickup:ToPickup():IsShopItem() or Pickup.Variant == PickupVariant.PICKUP_COLLECTIBLE then
+            DidSomething = true
+            break
+        end
+    end
+
+    if not DidSomething then
+        return
+    end
+
+
+    for _, Player in ipairs(PlayerManager.GetPlayers()) do
+
+        for Slot=0, ActiveSlot.SLOT_SECONDARY do
+            
+            if Player:GetActiveItem(Slot) == CollectibleType.COLLECTIBLE_MOMS_BOX then
+                
+                Player:AddActiveCharge(2, Slot, true, false, true)
+            end
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_RESTOCK_SHOP, mod.OnShopRestock)
+
 
 
 ---@param Player EntityPlayer
@@ -155,6 +216,7 @@ function mod:OnItemPickup(Type, _,FirstTime,_,_, Player)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
+
     local PIndex = Player:GetData().TruePlayerIndex
 
     local Any = true
@@ -187,7 +249,9 @@ function mod:OnItemPickup(Type, _,FirstTime,_,_, Player)
             mod.Saved.Player[PIndex].FullDeck[Pointer].Suit = mod.Suits.Heart
         end
 
-    elseif Type == CollectibleType.COLLECTIBLE_QUARTER then
+    elseif Type == CollectibleType.COLLECTIBLE_QUARTER
+           or Type == CollectibleType.COLLECTIBLE_HEAD_OF_THE_KEEPER
+           or Type == CollectibleType.COLLECTIBLE_EYE_OF_GREED then
 
         for _,Pointer in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
             mod.Saved.Player[PIndex].FullDeck[Pointer].Suit = mod.Suits.Diamond
@@ -247,11 +311,13 @@ function mod:OnItemPickup(Type, _,FirstTime,_,_, Player)
 
                 Spades[#Spades+1] = i
 
-            elseif Card.Enhancement ~= mod.Enhancement.NONE then
+            elseif Card.Enhancement == mod.Enhancement.NONE then
 
                 mod.Saved.Player[PIndex].FullDeck[i].Enhancement = mod.Enhancement.WILD
             end
         end
+
+        mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Clensed!", mod.EffectType.ENTITY, Player)
 
         mod:DestroyCards(Player, Spades, true, false)
     else
@@ -283,12 +349,12 @@ mod:AddCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE, mod.OnItemPickup)
 
 
 ---@param Tear EntityTear
-function mod:SpadeOpenDoor(Tear)
+function mod:SpadeOpenDoor(Tear, Index, Grid)
 
     local Data = Tear:GetData()
     local Player = Tear.Parent and Tear.Parent:ToPlayer() or nil
 
-    if not Player then
+    if not Player or not Grid then
         return
     end
 
@@ -299,24 +365,16 @@ function mod:SpadeOpenDoor(Tear)
         return
     end
 
-    local Grid = Game:GetRoom():GetGridEntityFromPos(Tear.Position)
-
-    if not Grid then
-        return
-    end
-
     Grid = Grid:ToDoor()
 
     if Grid and (Grid:IsLocked() or Grid:CanBlowOpen()) then
 
----@diagnostic disable-next-line: param-type-mismatch
+        ---@diagnostic disable-next-line: param-type-mismatch
         Grid:TryUnlock(Player, true)
     end
 end
-mod:AddCallback(ModCallbacks.MC_POST_TEAR_UPDATE, mod.SpadeOpenDoor, mod.CARD_TEAR_VARIANT)
-mod:AddCallback(ModCallbacks.MC_POST_TEAR_UPDATE, mod.SpadeOpenDoor, mod.Tears.SUIT_TEAR_VARIANTS[mod.Suits.Spade])
-
-
+mod:AddCallback(ModCallbacks.MC_TEAR_GRID_COLLISION, mod.SpadeOpenDoor, mod.CARD_TEAR_VARIANT)
+mod:AddCallback(ModCallbacks.MC_TEAR_GRID_COLLISION, mod.SpadeOpenDoor, mod.Tears.SUIT_TEAR_VARIANTS[mod.Suits.Spade])
 
 ---@param Tear EntityTear
 function mod:OnCardDeath(Tear)
@@ -474,6 +532,12 @@ function mod:OntearFired(Tear, Split)
         end
     end
 
+
+    if Player:HasCollectible(CollectibleType.COLLECTIBLE_SHARD_OF_GLASS)
+       and CardParams.Enhancement == mod.Enhancement.GLASS then
+        Tear:AddTearFlags(TearFlags.TEAR_BACKSTAB)
+    end
+
 end
 mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, mod.OntearFired)
 
@@ -494,4 +558,3 @@ function mod:EvaluateJimboStats(Type, _,FirstTime,_,_, Player)
 
 end
 mod:AddPriorityCallback(ModCallbacks.MC_PRE_ADD_COLLECTIBLE,CallbackPriority.LATE, mod.EvaluateJimboStats)
-

@@ -201,7 +201,7 @@ mod:AddCallback(ModCallbacks.MC_POST_CURSE_EVAL, SetCustomCurses)
 
 
 
---makes basically every input possible when using T jimbo (+ other stuff)
+--makes basically every input possible when using T jimbo
 ---@param Player EntityPlayer
 local function JimboInputHandle(_, Player)
 
@@ -1337,6 +1337,52 @@ function mod:UpdateCurrentHandType(Player)
     mod.Saved.MultValue = mod.Saved.HandsStat[mod.Saved.HandType].Mult
     mod.Saved.ChipsValue = mod.Saved.HandsStat[mod.Saved.HandType].Chips
 
+
+    local ShouldWarn = false
+
+    if mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_PSYCHIC then
+        
+        local PlayedCards = {}
+
+        for i,v in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
+            if v then
+                PlayedCards[#PlayedCards+1] = i
+            end
+        end
+
+        if #PlayedCards < 5 then
+            ShouldWarn = true
+        end
+
+    elseif mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_EYE then
+        
+        local HandFlag = 1 << mod.Saved.HandType
+
+        if mod.Saved.BossBlindVarData & HandFlag ~= 0 then --if hand got already played
+            ShouldWarn = true
+        end
+
+    elseif mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_MOUTH then
+        
+        local HandFlag = 1 << mod.Saved.HandType
+
+        if mod.Saved.BossBlindVarData ~= 0  --if no hand was played yet
+           and mod.Saved.BossBlindVarData & HandFlag == 0 then --if hand didn't get played
+            ShouldWarn = true
+        end
+    end
+
+    if ShouldWarn then
+        mod.ScreenStrings.Warning = {Name = mod:GetEIDString("Warning", "Title"),
+                                     String = "["..string.upper(mod:GetEIDString("BlindNames", mod.Saved.BlindBeingPlayed)).."]: "..mod:GetEIDString("Warning", mod.Saved.BlindBeingPlayed),
+                                     StartFrame = Isaac.GetFrameCount(),
+                                     Type = mod.Saved.BlindBeingPlayed}
+
+        mod.ScreenStrings.Warning.String = mod:ReplaceBalatroMarkups(mod.ScreenStrings.Warning.String, mod.EID_DescType.WARNING, mod.Saved.BlindBeingPlayed, true)
+        
+    else
+        mod.ScreenStrings.Warning = {}
+    end
 end
 mod:AddCallback(mod.Callbalcks.HAND_UPDATE, mod.UpdateCurrentHandType)
 
@@ -1382,14 +1428,29 @@ function mod:ActivateCurrentHand(Player)
     EFFECT_RANGE = EFFECT_RANGE * (EFFECT_RANGE/40)^0.85
 
 
-    sfx:Play(SoundEffect.SOUND_EXPLOSION_WEAK,1,0)
-    sfx:Play(SoundEffect.SOUND_BLACK_POOF, 1, 2, false, 0.75)
+    local BloodColor = Color()
+    BloodColor:SetColorize(mod.EffectColors.BLUE.R, mod.EffectColors.BLUE.G, mod.EffectColors.BLUE.B, 1.5)
+
+
+    sfx:Play(SoundEffect.SOUND_EXPLOSION_WEAK,0.6,0)
+    sfx:Play(SoundEffect.SOUND_BLACK_POOF, 0.6, 2, false, 0.75)
+    Game:SpawnParticles(TargetPosition, EffectVariant.BLOOD_DROP, 3, 10, BloodColor, nil, 1)
+
+    for i=1, 3 + EFFECT_RANGE//10 do
+        
+        local drop = Game:Spawn(1000, 70, TargetPosition, RandomVector()*math.random(5,8), nil, 1, mod:RandomSeed())
+        drop.PositionOffset = Vector(0,-15)
+        drop:SetColor(BloodColor, -1, 1, false, false)
+    end
+
+    local PoofScale = 0.45 * BaseHandMult
+    mod:TrueBloodPoof(TargetPosition, PoofScale, HAND_POOF_COLOR)
 
     Game:MakeShockwave(TargetPosition, 0.0003*EFFECT_RANGE, 0.025, 6)
-    local BloodColor = Color()
-    BloodColor:SetColorize(mod.EffectColors.BLUE.R, mod.EffectColors.BLUE.G, mod.EffectColors.BLUE.B, 3)
 
-    
+
+
+
     --enemies inside the radius shown take damage twice, others only once
 
 
@@ -1418,10 +1479,6 @@ function mod:ActivateCurrentHand(Player)
             end
         end
     end
-
-    local PoofScale = 0.45 * BaseHandMult
-
-    mod:TrueBloodPoof(TargetPosition, PoofScale, HAND_POOF_COLOR)
 
 
     --second damage tick
@@ -1605,20 +1662,13 @@ local function ClearBlindOnEnemyDeath(_,NPC)
 
                 local PIndex = Player:GetData().TruePlayerIndex
 
-                --if mod.Saved.IsSpecialBoss then 
-                --
-                --    Player:AddCustomCacheTag(mod.CustomCache.DISCARD_NUM)
-                --    Player:AddCustomCacheTag(mod.CustomCache.HAND_NUM, true)
---
-                --    mod.Saved.Player[PIndex].FirstDeck = false
-                --else
-                    sfx:Play(SoundEffect.SOUND_BOSS2INTRO_ERRORBUZZ)
-                    Isaac.CreateTimer(function ()
-                                        Player:Kill()
-                                    end, 40, 1, true)
+                sfx:Play(SoundEffect.SOUND_BOSS2INTRO_ERRORBUZZ)
+                Isaac.CreateTimer(function ()
+                                    Player:AnimatePitfallIn()
+                                    Player:Kill()
+                                end, 40, 1, true)
 
-                    return
-                --end
+                return
             end
         end
     
@@ -1641,9 +1691,12 @@ function mod:SetupForHandScoring(Player)
 
     local PIndex = Player:GetData().TruePlayerIndex
 
+    mod.ScreenStrings.Warning = {}
+
     mod.Saved.HandsRemaining = mod.Saved.HandsRemaining - 1
 
     mod.Saved.HandsPlayed = mod.Saved.HandsPlayed + 1
+    mod.Saved.BlindHandsPlayed = mod.Saved.BlindHandsPlayed + 1
 
 
     mod.Saved.HandsTypeUsed[mod.Saved.HandType] = mod.Saved.HandsTypeUsed[mod.Saved.HandType] + 1
@@ -1680,6 +1733,8 @@ function mod:SetupForHandScoring(Player)
 
                 table.remove(mod.Saved.Player[PIndex].CurrentHand, TrueHandIndex)
                 table.remove(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND], TrueHandIndex)
+
+                sfx:Play(mod.Sounds.SELECT, 1,2,false, mod:Lerp(0.7,1.3, #mod.SelectionParams[PIndex].PlayedCards/mod.SelectionParams[PIndex].SelectionNum))
 
             end, CurrentTimer, 1, true)
 
@@ -1842,15 +1897,10 @@ function mod:SetupForNextHandPlay(Player)
         mod.SelectionParams[PIndex].PossibleHandType = mod.HandFlags.NONE
 
         mod.SelectionParams[PIndex].ScoringCards = 0
-
-
-        --Player:AddCustomCacheTag(mod.CustomCache.HAND_SIZE, true)
         
         local Delay, DeckFinished = mod:RefillHand(Player, true)
 
-
-        --print("scoring: ", mod.SelectionParams[PIndex].ScoringCards)
-        mod.Counters.SinceSelect = 0
+        --mod.Counters.SinceSelect = 0
         mod.AnimationIsPlaying = false
 
         mod.Saved.ChipsValue = 0
@@ -1867,8 +1917,6 @@ end
 mod:AddPriorityCallback(mod.Callbalcks.POST_HAND_PLAY, CallbackPriority.LATE, mod.SetupForNextHandPlay)
 
 
-
-local LineBlue = KColor(mod.EffectKColors.BLUE.Red,mod.EffectKColors.BLUE.Green,mod.EffectKColors.BLUE.Blue,0.65)
 
 
 ---@param Effect EntityEffect
@@ -1892,7 +1940,7 @@ local function MoveHandTarget(_,Effect)
 
     local Radius = BASE_HAND_RADIUS *mod.Saved.HandsStat[HandHype].Mult
 
-    mod:RenderCoolCircle(mod:WorldToScreen(Effect.Position), Radius, mod.EffectKColors, true, true, Effect.FrameCount)
+    mod:RenderCoolCircle(Isaac.WorldToScreen(Effect.Position), Radius, mod.EffectKColors.BLUE, true, true, Effect.FrameCount)
 
 
     for _, Enemy in ipairs(Isaac.FindInRadius(Effect.Position, Radius, EntityPartition.ENEMY)) do
@@ -1920,7 +1968,8 @@ local function OnBlindButtonPressed(_, Plate)
 
     if Variant == mod.Grids.PlateVariant.RUN_STARTER then
 
-        Game:GetRoom():RemoveGridEntity(Plate:GetGridIndex(), 0, false)
+        --Game:GetRoom():RemoveGridEntity(Plate:GetGridIndex(), 0, false)
+        Plate:Destroy(true)
 
         sfx:Play(SoundEffect.SOUND_SUMMONSOUND)
 
@@ -2137,7 +2186,8 @@ local function OnBlindButtonPressed(_, Plate)
 
                                     if Iteration == 1 then
                                         Game:StartRoomTransition(mod.Saved.SmallBlindIndex, Direction.NO_DIRECTION, RoomTransitionAnim.PIXELATION)
-                                    
+                                        sfx:Play(mod.Sounds.TIMPANI)
+
                                     else --if Iteration == 2 then
                                         local Interval = Isaac.RunCallback(mod.Callbalcks.BLIND_START, VarData)
                                     
@@ -2161,7 +2211,8 @@ local function OnBlindButtonPressed(_, Plate)
                     
                                         if Iteration == 1 then
                                             Game:StartRoomTransition(mod.Saved.BigBlindIndex, Direction.NO_DIRECTION, RoomTransitionAnim.PIXELATION)
-                                        
+                                            sfx:Play(mod.Sounds.TIMPANI)
+
                                         else--if Iteration == 2 then
                                         
                                         
@@ -2203,6 +2254,7 @@ local function OnBlindButtonPressed(_, Plate)
                         else
                             Game:StartRoomTransition(mod.Saved.BossIndex, Direction.NO_DIRECTION, RoomTransitionAnim.PIXELATION)
                         end
+                        sfx:Play(mod.Sounds.TIMPANI)
                     
                     elseif not IsCorpseII and not IsSpecialMausoleum then --if Iteration == 2 then
                 
@@ -2555,8 +2607,6 @@ end
 mod:AddCallback(mod.Callbalcks.POST_SKIP_TAG_ADDED, OnTagAdded)
 
 
-
-
 local function OnBlindClear(_, BlindData)
 
     if not PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then
@@ -2568,6 +2618,8 @@ local function OnBlindClear(_, BlindData)
     local Room = Game:GetRoom()
 
     mod.Saved.BlindScalingFactor = 1
+    mod.Saved.BlindHandsPlayed = 0
+    mod.Saved.BlindDiscardsUsed = 0
 
     for _,Enemy in ipairs(Isaac.GetRoomEntities()) do
 
@@ -2723,13 +2775,8 @@ function mod:InitializeAnte(NewFloor)
         
         if CurrentStage == LevelStage.STAGE1_1 and not IsAscent then --just to be safe
                     
-            mod:SpawnBalatroPressurePlate(Room:GetCenterPos(), mod.Grids.PlateVariant.RUN_STARTER, 0)
+            mod:SpawnBalatroPressurePlate(Room:GetCenterPos()-Vector(0,40), mod.Grids.PlateVariant.RUN_STARTER, 0)
         end
-    
-    
-        --Isaac.CreateTimer(function ()
-        --    mod:InitializeAnte(false)
-        --end,0,1,true)
 
         return
     end
@@ -2997,7 +3044,7 @@ function mod:InitializeAnte(NewFloor)
         mod.Saved.BossCleared = mod.BlindProgress.NOT_CLEARED
     end
     
-        local _, AngelChance = mod:GetDevilAngelRoomChance()
+    local _, AngelChance = mod:GetDevilAngelRoomChance()
 
     local HasKey1 = PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_KEY_PIECE_1)
     local HasKey2 = PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_KEY_PIECE_2)
@@ -3051,7 +3098,8 @@ function mod:InitializeAnte(NewFloor)
         end
 
 
-        Plate = mod:SpawnBalatroPressurePlate(Room:GetGridPosition(BOSS_POSITION), mod.Grids.PlateVariant.BLIND, mod.Saved.AnteBoss)
+        --Plate = mod:SpawnBalatroPressurePlate(Room:GetGridPosition(BOSS_POSITION), mod.Grids.PlateVariant.BLIND, mod.Saved.AnteBoss)
+        Plate = mod:SpawnBalatroPressurePlate(Room:GetGridPosition(BOSS_POSITION), mod.Grids.PlateVariant.BLIND, mod.BLINDS.BOSS_SERPENT)
         Plate.State = 3
         Plate:GetSprite():Play("Switched")
 
@@ -3401,8 +3449,7 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.TJimboHandSizeCache, 
 ---@param Player EntityPlayer
 function mod:TJimboDiscardNumCache(Player, Cache, Value)
     if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo 
-       or not mod.GameStarted
-       or not Game:GetRoom():IsClear() then
+       or not mod.GameStarted then
         return
     end
 
@@ -3427,11 +3474,9 @@ function mod:TJimboDiscardNumCache(Player, Cache, Value)
         Value = 0
     end
 
+    Value = Value - mod.Saved.BlindDiscardsUsed
 
     Value = math.max(Value, 0)
-
-
-    local PIndex = Player:GetData().TruePlayerIndex
 
     mod.Saved.DiscardsRemaining = Value
 
@@ -3444,8 +3489,7 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.TJimboDiscardNumCache
 function mod:TJimboHandsCache(Player, Cache, Value)
 
     if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo 
-       or not mod.GameStarted
-       or not Game:GetRoom():IsClear() then --jokers cannot change hand num during a round
+       or not mod.GameStarted then
         return
     end
 
@@ -3470,6 +3514,7 @@ function mod:TJimboHandsCache(Player, Cache, Value)
         Value = 1
     end
 
+    Value = Value - mod.Saved.BlindHandsPlayed
 
     Value = math.max(Value, 1)
 

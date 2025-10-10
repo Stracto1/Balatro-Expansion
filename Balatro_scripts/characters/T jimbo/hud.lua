@@ -186,7 +186,7 @@ function mod:BossIntroIsPlaying()
 
 end
 
-function mod:WorldToScreen(Position)
+function mod:HUDWorldToScreen(Position)
     return Isaac.WorldToScreen(Position) + CameraOffset
 end
 
@@ -804,6 +804,9 @@ function mod:GetSkipTagFrame(Tag)
     return Frame
 end
 
+
+--local LastSinceSelect = 0
+
 --renders the player's current hand below them
 ---@param Player EntityPlayer
 local function JimboHandRender(_,_,_,_,_,Player)
@@ -891,9 +894,12 @@ local function JimboHandRender(_,_,_,_,_,Player)
 
 
             if RenderPos[Pointer].X == TargetRenderPos.X and RenderPos[Pointer].Y == TargetRenderPos.Y then
+               --or mod.Counters.SinceSelect == 0 and LastSinceSelect ~= 0 then
                 --print(Pointer, "assigned")
                 mod.CardFullPoss[Pointer] = TargetRenderPos  + Vector.Zero
             end
+
+            LastSinceSelect = mod.Counters.SinceSelect + 0
 
              --[[                        
             if Card.Modifiers & mod.Modifier.COVERED ~= 0 or Game:IsPaused() then
@@ -1038,6 +1044,8 @@ local function JimboPlayedHandRender(_,_,_,_,_,Player)
         return
     end
 
+    local Params = mod.SelectionParams[PIndex]
+
     local IsDuringScoring = mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.NONE 
                             and mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.HAND
 
@@ -1095,7 +1103,7 @@ local function JimboPlayedHandRender(_,_,_,_,_,Player)
             mod.Counters.SinceCardTriggered[Pointer] = nil
         end
 
-        RenderPos[Pointer] = mod:Lerp(mod.CardFullPoss[Pointer], TargetRenderPos, mod.Counters.SinceSelect/4 - TimeOffset)
+        RenderPos[Pointer] = mod:Lerp(mod.CardFullPoss[Pointer], TargetRenderPos, math.abs(Params.Frames)/4 - TimeOffset)
                                         
 
         if RenderPos[Pointer].X == TargetRenderPos.X and RenderPos[Pointer].Y == TargetRenderPos.Y then
@@ -1781,8 +1789,11 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
     
     do
 
-    LeftSideHUD:GetLayer(LeftSideLayers.Base):SetColor(BlindChipColor)
-
+    if mod.Saved.BlindBeingPlayed & mod.BLINDS.BOSS ~= 0 then
+        LeftSideHUD:GetLayer(LeftSideLayers.Base):SetColor(BlindChipColor)
+    else
+        LeftSideHUD:GetLayer(LeftSideLayers.Base):SetColor(mod.BalatroColorBlack)
+    end
     LeftSideHUD:RenderLayer(LeftSideLayers.Base, -SCREEN_SHAKE)
 
 
@@ -2435,7 +2446,7 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
     if mod.Saved.BlindBeingPlayed & mod.BLINDS.BOSS ~= 0 then
         LeftSideHUD:GetLayer(LeftSideLayers.General_Info):SetColor(BlindChipColor)
     else
-        LeftSideHUD:GetLayer(LeftSideLayers.General_Info):SetColor(BlindChipColor)
+        LeftSideHUD:GetLayer(LeftSideLayers.General_Info):SetColor(mod.BalatroColorBlack)
     end
 
     LeftSideHUD:RenderLayer(LeftSideLayers.General_Info, -SCREEN_SHAKE)
@@ -2910,6 +2921,32 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
 
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, TJimbosLeftSideHUD)
+
+
+local function TJimboWarning(_,offset,_,Position,_,Player)
+
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo
+       or not mod.ScreenStrings.Warning.Type then
+        return
+    end
+
+    local WARNING = mod.ScreenStrings.Warning
+
+
+    local Position = Vector(Isaac.GetScreenWidth()/2, 55) + CameraOffset
+    local Params = mod.StringRenderingParams.Centered | mod.StringRenderingParams.Swoosh | mod.StringRenderingParams.Wavy
+    local Kcolor = KColor(1,1,1,0.75)
+
+
+    mod:RenderBalatroStyle(WARNING.Name, Position, Params, WARNING.StartFrame, Vector.One, Kcolor, Isaac.GetScreenWidth()-150)
+
+    Position.Y = Position.Y + 15
+    Params = mod.StringRenderingParams.Centered | mod.StringRenderingParams.Swoosh | mod.StringRenderingParams.Peaking
+
+    mod:RenderBalatroStyle(WARNING.String, Position, Params, WARNING.StartFrame, Vector(0.5, 0.5), Kcolor, Isaac.GetScreenWidth()-150)
+
+end
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, TJimboWarning)
 
 
 local DeckOverviewPos = Vector(1000, 0)

@@ -576,12 +576,12 @@ function mod:IsValidScalingEnemy(Enemy)
            or (Enemy.Type == EntityType.ENTITY_MOTHER and (Enemy.Variant ~= 10
                                                            and (Enemy.Variant ~= 0 or Enemy.SubType ~= 0))) --any mother peon + the arms and back of the 1st phase
            or Enemy.Type == EntityType.ENTITY_GIDEON
-           or Enemy.Type == EntityType.ENTITY_DOGMA and Enemy.Variant == 0 --0 is the baby attached to the TV
-           or Enemy.Type == EntityType.ENTITY_BEAST and (Enemy.Variant ~= 11
+           or (Enemy.Type == EntityType.ENTITY_DOGMA and Enemy.Variant == 0) --0 is the baby attached to the TV
+           or (Enemy.Type == EntityType.ENTITY_BEAST and (Enemy.Variant ~= 11
                                                          and Enemy.Variant ~= 21
                                                          and Enemy.Variant ~= 22
                                                          and not mod:IsActiveUltraHorsemen(Enemy)
-                                                         )
+                                                         ))
            )
 end
 
@@ -1956,7 +1956,7 @@ function mod:GetJokerInitialProgress(Joker, Tainted, Player)
 
         end
 
-        Prog = Prog or tonumber(string.gsub(Config:GetCustomTags()[3],"%:",""))
+        Prog = Prog or tonumber(string.gsub(Config:GetCustomTags()[3],"%:",""), 10)
 
     elseif Tainted == false then
         ---@type EntityPlayer
@@ -4079,7 +4079,7 @@ function mod:FullDeckShuffle(Player)
             end
         end
 
-        local Interval, DeckFinished = mod:RefillHand(Player, false)
+        local Interval, DeckFinished = mod:RefillHand(Player, false, true)
 
         return Interval
     end
@@ -4088,7 +4088,7 @@ function mod:FullDeckShuffle(Player)
 end
 
 
-function mod:RefillHand(Player, CausedByHandPlay)
+function mod:RefillHand(Player, CausedByHandPlay, IsStartingHand)
 
 
     mod.AnimationIsPlaying = true
@@ -4103,7 +4103,8 @@ function mod:RefillHand(Player, CausedByHandPlay)
 
     local CardsToGive = Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) - #mod.Saved.Player[PIndex].CurrentHand
 
-    if mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_SERPENT then
+    if mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_SERPENT
+       and not IsStartingHand then
 
         CardsToGive = 3
     end
@@ -4705,11 +4706,12 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
     local OldMode = mod.SelectionParams[PIndex].Mode
     local OldPurpose = mod.SelectionParams[PIndex].Purpose
 
-    mod.Counters.SinceSelect = 0
+    --mod.Counters.SinceSelect = 0
+
     --if the selection changes from an ""active"" to a ""not active"" state
-    if (NewMode == mod.SelectionParams.Modes.NONE) ~= (OldMode == mod.SelectionParams.Modes.NONE) then
+    --if (NewMode == mod.SelectionParams.Modes.NONE) ~= (OldMode == mod.SelectionParams.Modes.NONE) then
         mod.SelectionParams[PIndex].Frames = 0
-    end
+    --end
 
     --creates a dummy entity to rely on for selection descriptions
     if NewMode == mod.SelectionParams.Modes.NONE then
@@ -5286,17 +5288,8 @@ function mod:Select(Player)
                 mod:SwitchCardSelectionStates(Player,mod.SelectionParams.Modes.NONE,mod.SelectionParams.Purposes.NONE)
 
             elseif CurrentPurpose == mod.SelectionParams.Purposes.SELLING then
-                local SoldSlot
-                for i,v in ipairs(SelectedCards) do
-                    if v then
-                        SoldSlot = i
-                        SelectedCards[i] = false
-                       break
-                    end
-                end
-                --print(FirstI)
 
-                mod:SellJoker(Player, SoldSlot)
+                mod:UseSelection(Player)
                 mod.SelectionParams[PIndex].Purpose = mod.SelectionParams.Purposes.NONE
             else
                 mod:SwitchCardSelectionStates(Player,mod.SelectionParams.Modes.NONE,mod.SelectionParams.Purposes.NONE)
@@ -5381,6 +5374,18 @@ function mod:UseSelection(Player)
     
     elseif mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.INVENTORY then
 
+        if CurrentPurpose == mod.SelectionParams.Purposes.SELLING
+           and Player:HasCollectible(CollectibleType.COLLECTIBLE_SMELTER) then
+            
+            local Slot = Player:GetActiveItemSlot(CollectibleType.COLLECTIBLE_SMELTER)
+            
+            if not Player:NeedsCharge(Slot) then
+                
+                CurrentPurpose = mod.SelectionParams.Purposes.SMELTER
+                Player:DischargeActiveItem(Slot)
+            end
+        end      
+
 
         if CurrentPurpose == mod.SelectionParams.Purposes.SECRET_EXIT then
 
@@ -5428,17 +5433,29 @@ function mod:UseSelection(Player)
             local Joker = mod.Saved.Player[PIndex].Inventory[SelectedSlot].Joker
 
             if Joker == mod.Jokers.GOLDEN_JOKER then --or Joker == mod.Jokers.GOLDEN_TICKET then
-                for i=1, 2 do --gives money 2 golden pennies
-                    local Seed = Random()
-                    Seed = Seed==0 and 1 or Seed
+                for i=1, 2 do --gives money + 2 golden pennies
+                    local Seed = mod:RandomSeed(Player:GetTrinketRNG(Joker))
 
                     Game:Spawn(EntityType.ENTITY_PICKUP,PickupVariant.PICKUP_COIN,Player.Position,RandomVector()*2,Player,CoinSubType.COIN_GOLDEN,Seed)
                 end
 
-                mod:SellJoker(Player, SelectedSlot)
+                mod:SellJoker(Player, SelectedSlot, 2)
             else
                 mod:SellJoker(Player, SelectedSlot, 2)
             end
+
+        elseif CurrentPurpose == mod.SelectionParams.Purposes.SELLING then
+            local SoldSlot
+            for i,v in ipairs(SelectedCards) do
+                if v then
+                    SoldSlot = i
+                    SelectedCards[i] = false
+                   break
+                end
+            end
+            --print(FirstI)
+
+            mod:SellJoker(Player, SoldSlot)
         end
 
     elseif mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.CONSUMABLES then
@@ -5796,6 +5813,7 @@ function mod:DiscardSelection(Player)
             Isaac.CreateTimer(function ()
 
                 mod.Saved.DiscardsRemaining = mod.Saved.DiscardsRemaining - 1
+                mod.Saved.BlindDiscardsUsed = mod.Saved.BlindDiscardsUsed + 1
 
                 mod:RefillHand(Player)
             end, CurrentDelay+2, 1, true)
@@ -5815,7 +5833,6 @@ function mod:DiscardSelection(Player)
         else
 
             if SelectedSlot then
-
 
                 Success = mod:SellJoker(Player, SelectedSlot)
 
@@ -5940,11 +5957,10 @@ function mod:CountersUpdate()
     for _,Player in ipairs(PlayerManager.GetPlayers()) do
         local PIndex = Player:GetData().TruePlayerIndex
 
-        --print(PIndex, Player:GetPlayerType())
-        if mod.SelectionParams[PIndex].Mode ~= mod.SelectionParams.Modes.NONE then
-            mod.SelectionParams[PIndex].Frames = mod.SelectionParams[PIndex].Frames + 1
-        else
+        if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.NONE then
             mod.SelectionParams[PIndex].Frames = mod.SelectionParams[PIndex].Frames - 1
+        else
+            mod.SelectionParams[PIndex].Frames = mod.SelectionParams[PIndex].Frames + 1
         end
     end
 end
@@ -6112,8 +6128,10 @@ function mod:PlanetUpgradeAnimation(HandType, LevelsGiven, BaseInterval)
 
         mod.AnimationIsPlaying = OldAnimationIsPlaying --puts back the animation to where it was
 
-        Isaac.RunCallback(mod.Callbalcks.HAND_UPDATE, PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo))
-
+        if mod.Saved.BlindBeingPlayed == mod.BLINDS.NONE
+           or mod.Saved.BlindBeingPlayed & mod.BLINDS.SHOP ~= 0 then
+            Isaac.RunCallback(mod.Callbalcks.HAND_UPDATE, PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo))
+        end
     end, Interval, 1, true)
 
 

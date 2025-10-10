@@ -31,7 +31,10 @@ function mod:NewTarotEffects(card, Player, UseFlags)
     local PIndex = Player:GetData().TruePlayerIndex
 
     local FOOL_COPY = mod.Saved.Player[PIndex].LastCardUsed and mod.Saved.Player[PIndex].LastCardUsed + 0 or nil
-    mod.Saved.Player[PIndex].LastCardUsed = card
+    
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
+        mod.Saved.Player[PIndex].LastCardUsed = card
+    end
 
 
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
@@ -142,7 +145,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
                 return false
             end
 
-            if CardRNG:RandomFloat() < 0.25 and BaseJokers ~= {} then 
+            if CardRNG:RandomFloat() < 0.25 then 
                 
                 local RandIndex = mod:GetRandom(BaseJokers,CardRNG)
 
@@ -161,7 +164,7 @@ function mod:NewTarotEffects(card, Player, UseFlags)
 
                 Isaac.RunCallback("INVENTORY_CHANGE", Player)
             else
-                mod:CreateBalatroEffect(Player, mod.EffectColors.PURPLE, mod.Sounds.ACTIVATE, "Nope!", mod.EffectType.ENTITY, Player)--PLACEHOLDER
+                mod:CreateBalatroEffect(Player, mod.EffectColors.PURPLE, mod.Sounds.NOPE, "Nope!", mod.EffectType.ENTITY, Player)--PLACEHOLDER
             end
 
             IsTarot = true

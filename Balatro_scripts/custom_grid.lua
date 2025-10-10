@@ -279,6 +279,10 @@ end
 
 function mod:ResetPlatesData()
 
+    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then
+        return
+    end
+
     if not mod.GameStarted then
         Isaac.CreateTimer(function ()
             mod:ResetPlatesData()

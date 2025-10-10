@@ -1,3 +1,4 @@
+---@diagnostic disable: param-type-mismatch
 local mod = Balatro_Expansion
 local Game = Game()
 local ItemsConfig = Isaac.GetItemConfig()
@@ -14,7 +15,8 @@ mod.EID_DescType = {NONE = 0,
                     VOUCHER = 16,
                     BLIND = 32,
                     PLATE = 64,
-                    SELECTION_FLAG = 256}
+                    WARNING = 128,
+                    SELECTION_FLAG = 2048}
 
 local EID_DescAllingnment = {TOP = 1,
                              BOTTOM = 2,
@@ -23,7 +25,7 @@ local EID_DescAllingnment = {TOP = 1,
                              CENTER = 0}
 
 
-mod.Descriptions = {}
+EID_Descriptions = {}
 
 mod.EIDSupportedLanguages = {"en_us"}
 
@@ -35,24 +37,24 @@ for _, LanguageCode in ipairs(mod.EIDSupportedLanguages) do
 
     for Type, v in pairs(LangDescriptions) do
 
-        mod.Descriptions[Type] = mod.Descriptions[Type] or {}
+        EID_Descriptions[Type] = EID_Descriptions[Type] or {}
         
         for Variant ,Description in pairs(v) do
 
-            mod.Descriptions[Type][Variant] = mod.Descriptions[Type][Variant] or {}
+            EID_Descriptions[Type][Variant] = EID_Descriptions[Type][Variant] or {}
         
             if type(Description) == "table" then
 
                 for SubType, String in pairs(Description) do
 
-                    mod.Descriptions[Type][Variant][SubType] = mod.Descriptions[Type][Variant][SubType] or {}
+                    EID_Descriptions[Type][Variant][SubType] = EID_Descriptions[Type][Variant][SubType] or {}
 
-                    mod.Descriptions[Type][Variant][SubType][LanguageCode] = String
+                    EID_Descriptions[Type][Variant][SubType][LanguageCode] = String
                 end
 
             else
 
-                mod.Descriptions[Type][Variant][LanguageCode] = Description
+                EID_Descriptions[Type][Variant][LanguageCode] = Description
             end
         end
     end
@@ -72,20 +74,20 @@ EID:addEntity(1000, mod.Effects.DESC_HELPER, mod.Effects.PLATE_HELPER_SUBTYPE, "
 do
     local CoopMenu = Sprite("gfx/ui/hud_eid_jimbo.anm2")
 
-    EID:addIcon("PlayerJimbo","Idle",0,8,8,0,0, CoopMenu)
-    EID:addIcon("BalatroSpade","Spade",0,8,8,0,0, CoopMenu)
-    EID:addIcon("BalatroHeart","Heart",0,8,8,0,0, CoopMenu)
-    EID:addIcon("BalatroClub","Club",0,8,8,0,0, CoopMenu)
-    EID:addIcon("BalatroDiamond","Diamond",0,8,8,0,0, CoopMenu)
-    EID:addIcon("BalatroBonus","Bonus",0,8,8,0,0, CoopMenu)
-    EID:addIcon("BalatroMult","Mult",0,8,8,0,0, CoopMenu)
-    EID:addIcon("BalatroGlass","Glass",0,8,8,0,0, CoopMenu)
-    EID:addIcon("BalatroSteel","Steel",0,8,8,0,0, CoopMenu)
-    EID:addIcon("BalatroGold","Gold",0,8,8,0,0, CoopMenu)
-    EID:addIcon("BalatroWild","Wild",0,8,8,0,0, CoopMenu)
-    EID:addIcon("BalatroStone","Stone",0,8,8,0,0, CoopMenu)
-    EID:addIcon("BalatroLucky","Lucky",0,8,8,0,0, CoopMenu)
-
+    EID:addIcon("PlayerJimbo","Idle",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroSpade","Spade",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroHeart","Heart",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroClub","Club",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroDiamond","Diamond",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroBonus","Bonus",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroMult","Mult",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroGlass","Glass",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroSteel","Steel",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroGold","Gold",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroWild","Wild",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroStone","Stone",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroLucky","Lucky",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroJoker","Joker",0,8,8,6,7, CoopMenu)
 
 end
 
@@ -124,16 +126,48 @@ function mod:GetFilteredEIDString(EIDstr)
     return FilteredStr
 end
 
+---@param Type string
+---@param Variant string|number?
+---@param SubType string|number?
+---@param Raw boolean? return the desc's table instead of its translated string
+function mod:GetEIDString(Type, Variant, SubType, Raw)
 
-function mod:GetEIDString(Type, Variant, SubType)
-
-    local Lang = mod:GetEIDLanguage()
-
-    if SubType then
-        return mod.Descriptions[Type][Variant][SubType][Lang] or mod.Descriptions[Type][Variant][SubType]["en_us"]
+    if Raw then
+        if SubType then
+            return EID_Descriptions[Type][Variant][SubType]
+        elseif Variant then
+            return EID_Descriptions[Type][Variant]
+        else
+            return EID_Descriptions[Type]
+        end
     else
-        return mod.Descriptions[Type][Variant][Lang] or mod.Descriptions[Type][Variant]["en_us"]
+        local Lang = mod:GetEIDLanguage()
+
+        if SubType then
+            return EID_Descriptions[Type][Variant][SubType] 
+                   and (EID_Descriptions[Type][Variant][SubType][Lang] or EID_Descriptions[Type][Variant][SubType]["en_us"])
+                   or nil
+        else
+            return EID_Descriptions[Type][Variant][Lang] or EID_Descriptions[Type][Variant]["en_us"]
+        end
     end
+end
+
+function mod:HasEIDString(Type, Variant, SubType)
+
+    local Result = EID_Descriptions[Type]
+ 
+    if not Variant then
+        return Result
+    end
+        
+    Result = EID_Descriptions[Type][Variant] 
+
+    if not SubType then
+        return Result
+    end
+            
+    return EID_Descriptions[Type][Variant][SubType]
 end
 
 
@@ -435,6 +469,20 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
             Values[1] = "["..mod:GetEIDString("HandTypeName", mod.Saved.BossBlindVarData).."]"
         end
 
+    elseif Type == mod.EID_DescType.WARNING then
+
+        local Blind = Subtype
+
+        if Blind == mod.BLINDS.BOSS_EYE then
+
+            Values[1] = "["..mod:GetEIDString("HandTypeName", mod.Saved.HandType).."]"
+
+        elseif Blind == mod.BLINDS.BOSS_MOUTH then
+
+            local AllowedHand = math.log(mod.Saved.BossBlindVarData, 2)
+
+            Values[1] = "["..mod:GetEIDString("HandTypeName", AllowedHand).."]"
+        end
     end
 
 
@@ -698,62 +746,28 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
                     Values[1] = mod:GetEIDString("Other", "NotActive")
                 end
 
-            elseif Joker == mod.Jokers.CERTIFICATE then
-
-                if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_PHD) then
-                    
-                    Values[1] = mod:GetEIDString("JokerSynergies", Joker, CollectibleType.COLLECTIBLE_PHD)
-                else
-                    Values[1] = ""
-                end
-
-                if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_FALSE_PHD) then
-                    
-                    Values[2] = mod:GetEIDString("JokerSynergies", Joker, CollectibleType.COLLECTIBLE_FALSE_PHD)
-                else
-                    Values[2] = ""
-                end
-
-            elseif Joker == mod.Jokers.MARBLE_JOKER then
-
-                if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_SMALL_ROCK) then
-                    
-                    Values[1] = mod:GetEIDString("JokerSynergies", Joker, CollectibleType.COLLECTIBLE_SMALL_ROCK)
-                else
-                    Values[1] = ""
-                end
-
-                if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_ROCK_BOTTOM) then
-                    
-                    Values[2] = mod:GetEIDString("JokerSynergies", Joker, CollectibleType.COLLECTIBLE_ROCK_BOTTOM)
-                else
-                    Values[2] = ""
-                end
-
             elseif Joker == mod.Jokers.TURTLE_BEAN 
                    or Joker == mod.Jokers.SELTZER then
 
                 Values[1] = Progress or mod:GetJokerInitialProgress(Joker, false)
                 
-            elseif Joker == mod.Jokers.CHAOS_THEORY then
 
-                if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_CHAOS) then
-                    
-                    Values[1] = mod:GetEIDString("JokerSynergies", Joker, CollectibleType.COLLECTIBLE_CHAOS)
-                else
-                    Values[1] = ""
-                end
 
-            elseif Joker == mod.Jokers._8_BALL then
-                if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_MAGIC_8_BALL) then
-                    
-                    Values[1] = mod:GetEIDString("JokerSynergies", Joker, CollectibleType.COLLECTIBLE_MAGIC_8_BALL)
-                else
-                    Values[1] = ""
-                end
             end
         end
 
+        Values.Synergy = ""
+
+        if mod:HasEIDString("JokerSynergies", Joker) then
+            
+            for Item,_ in ipairs(mod:GetEIDString("JokerSynergies", Joker, nil, true)) do
+                
+                if PlayerManager.AnyoneHasCollectible(Item) then
+                    
+                    Values.Synergy = Values.Synergy.."#{{Collectible"..Item.."}}"..mod:GetEIDString("JokerSynergies", Joker, Item)
+                end
+            end
+        end
 
     elseif Type == mod.EID_DescType.CONSUMABLE then
 
@@ -845,6 +859,8 @@ function mod:ReplaceBalatroMarkups(String, DescType, DescSubType, Tainted, Index
         end
 
         String = string.gsub(String, "%[%[VALUE%d%]%]", Values)
+
+        String = String..(Values.Synergy or "")
     end
 
     return String
@@ -1120,10 +1136,10 @@ EID:addDescriptionModifier("Balatro Inventory Overview", BalatroInventoryConditi
 local function JimboGroundPickupsCondition(descObj)
 
     if PlayerManager.AnyoneIsPlayerType(Balatro_Expansion.Characters.JimboType) 
-       and descObj.ObjType == EntityType.ENTITY_PICKUP
-       and descObj.ObjVariant == PickupVariant.PICKUP_TAROTCARD
-           or (descObj.ObjVariant == PickupVariant.PICKUP_TRINKET 
-               and ItemsConfig:GetTrinket(descObj.ObjSubType & ~mod.EditionFlag.ALL):HasCustomTag("balatro")) then
+       and (descObj.ObjType == EntityType.ENTITY_PICKUP
+           and descObj.ObjVariant == PickupVariant.PICKUP_TAROTCARD
+               or (descObj.ObjVariant == PickupVariant.PICKUP_TRINKET 
+                   and ItemsConfig:GetTrinket(descObj.ObjSubType & ~mod.EditionFlag.ALL):HasCustomTag("balatro"))) then
 
         return true
     end
@@ -1187,7 +1203,7 @@ local function BalatroExtraDescCallback(descObj)
 
     if descObj.ObjSubType <= Card.CARD_WORLD then
 
-        --BaseDesc = mod.Descriptions.Jimbo.Consumables[descObj.ObjSubType][Lang] or mod.Descriptions.Jimbo.Consumables[descObj.ObjSubType]["en_us"]
+        --BaseDesc = EID_Descriptions.Jimbo.Consumables[descObj.ObjSubType][Lang] or EID_Descriptions.Jimbo.Consumables[descObj.ObjSubType]["en_us"]
 
 
         if descObj.ObjSubType == Card.CARD_FOOL then
@@ -1248,6 +1264,35 @@ end
 EID:addDescriptionModifier("Balatro Extra descriptions", BalatroExtraDescCondition, BalatroExtraDescCallback)
 
 
+local function BalatroItemSynergyCondition(descObj)
+    if descObj.ObjType == EntityType.ENTITY_PICKUP 
+       and descObj.ObjVariant == PickupVariant.PICKUP_COLLECTIBLE
+       and PlayerManager.AnyoneIsPlayerType(Balatro_Expansion.Characters.JimboType) then
+
+        return true
+    end
+end
+local function BalatroTiemSynergyCallback(descObj)
+
+    if mod:HasEIDString("JimboSynergies", descObj.ObjSubType) then
+        
+        EID:appendToDescription(descObj, mod:GetEIDString("JimboSynergies", descObj.ObjSubType))
+    end
+
+    if mod:HasEIDString("ItemSynergies", descObj.ObjSubType) then
+            
+        for Joker,_ in ipairs(mod:GetEIDString("ItemSynergies", descObj.ObjSubType, nil, true)) do
+            
+            if mod:GetTotalTrinketAmount(Joker) > 0 then
+                
+                EID:appendToDescription(descObj, "#{{Trinket"..Joker.."}}"..mod:GetEIDString("ItemSynergies", descObj.ObjSubType, Joker))
+            end
+        end
+    end
+
+    return descObj
+end
+EID:addDescriptionModifier("Balatro Item Synergies", BalatroItemSynergyCondition, BalatroTiemSynergyCallback)
 
 
 local function BalatroOffsetCondition(descObj)
@@ -1575,7 +1620,7 @@ local function TJimboDescriptionsCallback(descObj)
 
         ObjectToDescribe.Allignment = EID_DescAllingnment.TOP
 
-        ObjectToDescribe.Position = mod:WorldToScreen(descObj.Entity.Position) + Vector(0, 13)
+        ObjectToDescribe.Position = mod:HUDWorldToScreen(descObj.Entity.Position) + Vector(0, 13)
 
 
     elseif descObj.ObjType == EntityType.ENTITY_PICKUP then
@@ -1595,7 +1640,7 @@ local function TJimboDescriptionsCallback(descObj)
                 LateralOffset = Vector(12, 0)
             end
 
-            ObjectToDescribe.Position = mod:WorldToScreen(descObj.Entity.Position) + LateralOffset
+            ObjectToDescribe.Position = mod:HUDWorldToScreen(descObj.Entity.Position) + LateralOffset
         
             Result = true
             return descObj
@@ -1761,7 +1806,7 @@ local function TJimboDescriptionsCallback(descObj)
                 LateralOffset = Vector(12, 0)
             end
 
-            ObjectToDescribe.Position = mod:WorldToScreen(descObj.Entity.Position) + LateralOffset
+            ObjectToDescribe.Position = mod:HUDWorldToScreen(descObj.Entity.Position) + LateralOffset
         end
     end
 
@@ -1871,8 +1916,7 @@ local function TJimboDescriptionsCallback(descObj)
 
     elseif ObjectToDescribe.Type & mod.EID_DescType.CONSUMABLE ~= 0 then
 
-
-        if mod.Descriptions.ConsumablesName[ObjectToDescribe.SubType] then
+        if mod:HasEIDString("ConsumablesName", ObjectToDescribe.SubType) then
             
             EID_Desc.Name = mod:GetEIDString("ConsumablesName", ObjectToDescribe.SubType)
 
@@ -1881,7 +1925,6 @@ local function TJimboDescriptionsCallback(descObj)
 
             EID_Desc.Name = Config.Name
         end
-
 
         EID_Desc.Description = mod:GetEIDString("T_Jimbo","Consumables",ObjectToDescribe.SubType)
 

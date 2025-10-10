@@ -146,6 +146,8 @@ function mod:OnGameStart(Continued)
         mod.Saved.HandsRemaining = 4
         mod.Saved.DiscardsRemaining = 4
 
+        mod.Saved.BlindHandsPlayed = 0
+        mod.Saved.BlindDiscardsUsed = 0
         mod.Saved.HandsPlayed = 0
         mod.Saved.DiscardsWasted = 0
 

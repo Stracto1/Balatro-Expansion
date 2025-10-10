@@ -19,6 +19,10 @@ local function OnSoulUse(_, card, Player, Flags)
         mod.Saved.Player[PIndex].JimboSoulCharge = mod.Saved.Player[PIndex].JimboSoulCharge + 1
     end
 
+    sfx:Play(mod.Sounds.PLASMA)
+    Game:MakeShockwave(Player.Position, 0.025, 0.025, 10)
+
+
     Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE | CacheFlag.CACHE_FIREDELAY, true)
 end
 mod:AddCallback(ModCallbacks.MC_USE_CARD, OnSoulUse)

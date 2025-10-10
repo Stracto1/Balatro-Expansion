@@ -852,7 +852,7 @@ function mod:ScoreHand(Player)
         local HandFlag = 1 << HandType
 
         if mod.Saved.BossBlindVarData ~= 0  --if no hand was played yet
-           and mod.Saved.BossBlindVarData & HandFlag == 0 then --if hand didn't get played
+           and mod.Saved.BossBlindVarData & HandFlag == 0 then --if wasn't the first to be played
            
            local MatadorIndexes = mod:GetJimboJokerIndex(Player, mod.Jokers.MATADOR)
 
@@ -875,7 +875,6 @@ function mod:ScoreHand(Player)
 
         else
             mod.Saved.BossBlindVarData = mod.Saved.BossBlindVarData | HandFlag
-
         end
 
     
@@ -1125,9 +1124,9 @@ function mod:ScoreHand(Player)
                 goto SKIP_SLOT
             end
 
-            local TimesMostUsed = mod:GetMax(mod.Saved.HandsUsed)
+            local TimesMostUsed = mod:GetMax(mod.Saved.HandsTypeUsed)
 
-            if mod.Saved.HandsUsed[HandType] >= TimesMostUsed then
+            if mod.Saved.HandsTypeUsed[HandType] >= TimesMostUsed then
                 
                 mod.Saved.Player[PIndex].Inventory[JokerIndex].Progress = 1
                 GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Reset!", mod.EffectType.JOKER, ProgressIndex)
@@ -3893,6 +3892,7 @@ local function EvaluateBlindEffect(_, BlindStarted)
     elseif mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_NEEDLE then
         
         TJimbo:AddCustomCacheTag(mod.CustomCache.HAND_NUM, true)
+        --mod.Saved.HandsRemaining = 1
 
     elseif mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_MANACLE then
         

@@ -17,7 +17,7 @@ local BaronKings = 0
 
 --local INVENTORY_RENDERING_POSITION = Vector(20,220) 
 
-function PlayerTears(Player, Tears)
+local function PlayerTears(Player, Tears)
 
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return Tears * mod.PLAYER_MULTIPLIERS.CHIPS
@@ -25,7 +25,7 @@ function PlayerTears(Player, Tears)
     return Tears
 end
 
-function PlayerDamage(Player, Damage)
+local function PlayerDamage(Player, Damage)
 
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return Damage * mod.PLAYER_MULTIPLIERS.MULT
@@ -33,7 +33,7 @@ function PlayerDamage(Player, Damage)
     return Damage
 end
 
-function PlayerMult(Player, Mult)
+local function PlayerMult(Player, Mult)
 
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return 1 + ((Mult-1) * mod.PLAYER_MULTIPLIERS.XMULT)
@@ -76,8 +76,6 @@ for Index, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
             Triggers = Triggers + 1
 
             mod:CreateBalatroEffect(Index,mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Again!",mod.EffectType.JOKER, Player)
-
-            
         end
 
     elseif Joker == mod.Jokers.DUSK then
@@ -485,7 +483,8 @@ for Index, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
 
     elseif Joker == mod.Jokers.PHOTOGRAPH then
 
-        if mod.Saved.Player[PIndex].Progress.Room.ValueUsed[mod.Values.FACE] == Triggers then --if it's the first one played
+        if mod:IsValue(Player, ShotCard, mod.Values.FACE)
+           and mod.Saved.Player[PIndex].Progress.Room.ValueUsed[mod.Values.FACE] == Triggers then --if it's the first one played
             
             local Mult = 1.2^Triggers
 
@@ -1912,12 +1911,6 @@ function mod:OnRoomClear(IsBoss, Hostile)
                     end
                 end
             end
-
-        elseif Joker == mod.Jokers.PHOTOGRAPH then
-
-            if not IsGreed or Hostile then
-                mod.Saved.Player[PIndex].Inventory[ProgressIndex].Progress = 0 --resets the champion killing ability
-            end
         end
 
         if Copied then
@@ -2807,10 +2800,10 @@ function mod:OnShopRestock(Partial)
     if Partial then
         return
     end
-    local DidSomething = false --needs to reroll a shop item to work
+    local DidSomething = false --needs to reroll an item to work
 
     for i,Pickup in ipairs(Isaac.FindByType(EntityType.ENTITY_PICKUP,-1,-1, true)) do
-        if Pickup:ToPickup():IsShopItem() then
+        if Pickup:ToPickup():IsShopItem() or Pickup.Variant == PickupVariant.PICKUP_COLLECTIBLE then
             DidSomething = true
             break
         end
@@ -2844,9 +2837,7 @@ function mod:OnShopRestock(Partial)
                 mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ADDMULT, "+"..PlayerDamage(Player, Increase),mod.EffectType.JOKER, Player)
 
                 Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, false)
-
             end
-
         end
 
         Player:EvaluateItems()
@@ -4367,6 +4358,8 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.EditionsStats)
 
 local function SecondaryNewRoom()
 
+    if not mod.GameStarted then return end
+
     for i,Player in ipairs(PlayerManager.GetPlayers()) do
 
         if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
@@ -4747,14 +4740,18 @@ mod:AddCallback(ModCallbacks.MC_PRE_USE_PILL, mod.PillUse)
 
 
 
----@param NPC EntityNPC
+---@param NPC Entity
 function mod:EnemyKill(NPC)
+
+---@diagnostic disable-next-line: cast-local-type
+    NPC = NPC:ToNPC()
+
     if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType)
-       or not mod:IsValidScalingEnemy(NPC) then
+       or not NPC then
         return
     end
 
-    local IsFirst = Game:GetRoom():IsFirstEnemyDead()
+    local IsFirst = not Game:GetRoom():IsFirstEnemyDead()
     local Triggers = 1 
 
     if NPC:IsChampion() then
@@ -4763,7 +4760,7 @@ function mod:EnemyKill(NPC)
 
     for i,Player in ipairs(PlayerManager.GetPlayers()) do
 
-        if Player:GetPlayerType() ~= mod.Characters.JimboType then
+        if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
             goto skip_player
         end
         local PIndex = Player:GetData().TruePlayerIndex
@@ -4875,15 +4872,11 @@ function mod:EnemyKill(NPC)
                 
                 if NPC:IsChampion() and IsFirst then
                     
-                    local Mult = PlayerMult(Player, 1.1^Triggers)
+                    local Mult = PlayerMult(Player, 1.2^Triggers)
 
                     mod:IncreaseJimboStats(Player, 0, Mult, 1, false, true)
 
                     mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ADDMULT, "+"..Mult,mod.EffectType.JOKER, Player)
-                    
-                    if not Copied then
-                        mod.Saved.Player[PIndex].Inventory[ProgressIndex] = 1
-                    end
 
                     Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)
                 end
@@ -4918,7 +4911,7 @@ function mod:EnemyKill(NPC)
     end
 
 end
-mod:AddCallback(ModCallbacks.MC_POST_NPC_DEATH, mod.EnemyKill)
+mod:AddCallback(ModCallbacks.MC_POST_ENTITY_KILL, mod.EnemyKill)
 
 
 
@@ -5781,7 +5774,9 @@ mod:AddCallback(ModCallbacks.MC_POST_NPC_INIT, ToDoListInit)
 
 local function ToDoListOnDeath(_, NPC)
 
-    if mod:IsValidScalingEnemy(NPC) then 
+    NPC = NPC:ToNPC()
+
+    if not NPC then 
         return
     end
 
@@ -5984,7 +5979,7 @@ mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, ExplodeCorn, mod.Effects.KER
 ---@param Source EntityRef
 local function ImmuneToPOPExp(_, Player, _,_, Source)
 
-    if Source.Entity.Type == 1000
+    if Source and Source.Entity.Type == 1000
        and Source.Entity.Variant == mod.Effects.KERNEL then
         return false
     end
@@ -6128,53 +6123,39 @@ local function OpenStrangeDoor(_, Player, Index, Door)
     local WorstIndex
 
 
-    if Player:GetPlayerType() == mod.Characters.JimboType then
-        for _, Index in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.PHOTOGRAPH)) do
+    for _, Index in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.PHOTOGRAPH)) do
 
-            if Inventory[Index].Edition <= WorstEdition then
+        if Inventory[Index].Edition <= WorstEdition then
 
-                WorstIndex = Index
-                WorstEdition = Inventory[Index].Edition + 0
-            end
+            WorstIndex = Index
+            WorstEdition = Inventory[Index].Edition + 0
         end
+    end
 
-        if WorstIndex then
+    if WorstIndex then
 
-            mod:SellJoker(Player, WorstEdition, 0)
+        mod:SellJoker(Player, WorstIndex, 0)
 
-            Door:TryUnlock(Player, true)
+        Door:TryUnlock(Player, true)
 
-            local Sprite = Door:GetSprite()
-            if WorstEdition == mod.Edition.FOIL then
-                Sprite:ReplaceSpritesheet(2, "gfx/grid/Strange_Door_TJimbo_Foil.png", true)
+        local Sprite = Door:GetSprite()
 
-            elseif WorstEdition == mod.Edition.HOLOGRAPHIC then
-                Sprite:ReplaceSpritesheet(2, "gfx/grid/Strange_Door_TJimbo_Holo.png", true)
+        Sprite:GetLayer(2):SetVisible(true)
+        Sprite:GetLayer(4):SetVisible(false)
 
-            elseif WorstEdition == mod.Edition.POLYCROME then
-                Sprite:ReplaceSpritesheet(2, "gfx/grid/Strange_Door_TJimbo_Poly.png", true)
+        if WorstEdition == mod.Edition.FOIL then
+            Sprite:ReplaceSpritesheet(2, "gfx/grid/Strange_Door_Jimbo_Foil.png", true)
 
-            elseif WorstEdition == mod.Edition.NEGATIVE then
-                Sprite:ReplaceSpritesheet(2, "gfx/grid/Strange_Door_TJimbo_Nagative.png", true)
-            end
-        end
-    else
+        elseif WorstEdition == mod.Edition.HOLOGRAPHIC then
+            Sprite:ReplaceSpritesheet(2, "gfx/grid/Strange_Door_Jimbo_Holo.png", true)
 
-        for i = 0, Player:GetMaxTrinkets() -1 do
-            
-            local Trinket = Player:GetTrinket(i) & ~mod.EditionFlag.ALL 
-            local Edition = (Player:GetTrinket(i) & mod.EditionFlag.ALL) >> mod.EDITION_FLAG_SHIFT
+        elseif WorstEdition == mod.Edition.POLYCROME then
+            Sprite:ReplaceSpritesheet(2, "gfx/grid/Strange_Door_Jimbo_Poly.png", true)
 
-            if Trinket == mod.Jokers.PHOTOGRAPH 
-               and Edition <= WorstEdition then
-
-                WorstIndex = i
-                WorstEdition = Edition
-            end
-        end
-
-        if WorstIndex then
-            Player:TryRemoveTrinket(Player:GetTrinket(WorstIndex))
+        elseif WorstEdition == mod.Edition.NEGATIVE then
+            Sprite:ReplaceSpritesheet(2, "gfx/grid/Strange_Door_Jimbo_Nagative.png", true)
+        else
+            Sprite:ReplaceSpritesheet(2, "gfx/grid/Strange_Door_Jimbo.png", true)
         end
     end
 end

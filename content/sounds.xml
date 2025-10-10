@@ -49,6 +49,25 @@
     <sound name="CARDDESELECTSFX">
         <sample weight="1" path="cardDeselect.wav" />
     </sound>
+
+    <sound name="PLASMABALANCE">
+        <sample weight="1" path="plasma_balance.wav" />
+    </sound>
+    <sound name="BALATROTIMPANI">
+        <sample weight="1" path="BalatroTimpani.wav" />
+    </sound>
+    <sound name="BALATROTAROTUSE">
+        <sample weight="1" path="BalatroTarotUse.wav" />
+    </sound>
+    <sound name="CARDREFLIP">
+        <sample weight="1" path="TarotReflip.wav" />
+    </sound>
+    <sound name="NOPE!">
+        <sample weight="1" path="Nope!.wav" />
+    </sound>
+
+
+
     <sound name="SLIPSFX">
         <sample weight="1" path="CartoonSlip1.wav" />
         <sample weight="1" path="CartoonSlip2.wav" />

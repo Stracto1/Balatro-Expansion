@@ -1538,9 +1538,9 @@ function mod:StatGiver(Player, Cache)
 
         elseif Cache & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then
 
-        local BaseTears = JIMBO_BASE_TEARS * mod:CalculateTearsValue(Player)
-        
-        mod.Saved.Player[PIndex].TrueTearsValue = BaseTears + (stats.Tears +  stats.JokerTears)
+            local BaseTears = JIMBO_BASE_TEARS * mod:CalculateTearsValue(Player)
+            
+            mod.Saved.Player[PIndex].TrueTearsValue = BaseTears + (stats.Tears +  stats.JokerTears)
         end
 
         --changing stats the next frame sadly causes some "jiggling" fpr the stats values, but it's needed due to
@@ -1557,6 +1557,14 @@ function mod:StatGiver(Player, Cache)
                 mod.Saved.Player[PIndex].TrueTearsValue = HalfStat
             end
         end
+
+        Player.Damage = mod.Saved.Player[PIndex].TrueDamageValue
+        Player.MaxFireDelay = mod:CalculateMaxFireDelay(mod.Saved.Player[PIndex].TrueTearsValue)
+
+        Isaac.CreateTimer(function ()
+            Player.Damage = mod.Saved.Player[PIndex].TrueDamageValue
+            Player.MaxFireDelay = mod:CalculateMaxFireDelay(mod.Saved.Player[PIndex].TrueTearsValue)
+        end,0,1,true)
     else
 
         if Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
@@ -1570,12 +1578,6 @@ function mod:StatGiver(Player, Cache)
         end
 
     end
-
-    Isaac.CreateTimer(function ()
-        Player.Damage = mod.Saved.Player[PIndex].TrueDamageValue
-        Player.MaxFireDelay = mod:CalculateMaxFireDelay(mod.Saved.Player[PIndex].TrueTearsValue)
-    end,0,1,true)
-
 
 end
 mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE + 5, mod.StatGiver)
@@ -1865,7 +1867,7 @@ function mod:OnTearCardCollision(Tear,Collider,_)
         local ExplodeChance = 0.2 + 0.25*NumOnix
 
         if Player:HasCollectible(CollectibleType.COLLECTIBLE_EXPLOSIVO)
-           or Player:HasCollectible(CollectibleType.COLLECTIBLE_EXPLOSIVO)
+           or Player:HasCollectible(CollectibleType.COLLECTIBLE_FIRE_MIND)
            or math.random() < ExplodeChance then
 
             local DamageMult = 0.5 + 0.4*NumOnix
@@ -1883,6 +1885,30 @@ mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mo
 mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.Tears.SUIT_TEAR_VARIANTS[mod.Suits.Heart])
 mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.Tears.SUIT_TEAR_VARIANTS[mod.Suits.Club])
 mod:AddCallback(ModCallbacks.MC_POST_TEAR_COLLISION, mod.OnTearCardCollision, mod.Tears.SUIT_TEAR_VARIANTS[mod.Suits.Diamond])
+
+
+--applies the additional effects for the card tears
+---@param Tear EntityTear
+---@param Grid GridEntity?
+function InstaKillPoops(_, Tear, Index, Grid)
+
+    if not Grid or Grid:GetType() ~= GridEntityType.GRID_POOP then
+        return
+    end
+
+    Grid = Grid:ToPoop()
+
+    if not Grid then
+        return
+    end
+
+    Grid:Destroy()
+end
+mod:AddCallback(ModCallbacks.MC_TEAR_GRID_COLLISION, InstaKillPoops, mod.Tears.CARD_TEAR_VARIANT)
+mod:AddCallback(ModCallbacks.MC_TEAR_GRID_COLLISION, InstaKillPoops, mod.Tears.SUIT_TEAR_VARIANTS[mod.Suits.Spade])
+mod:AddCallback(ModCallbacks.MC_TEAR_GRID_COLLISION, InstaKillPoops, mod.Tears.SUIT_TEAR_VARIANTS[mod.Suits.Heart])
+mod:AddCallback(ModCallbacks.MC_TEAR_GRID_COLLISION, InstaKillPoops, mod.Tears.SUIT_TEAR_VARIANTS[mod.Suits.Club])
+mod:AddCallback(ModCallbacks.MC_TEAR_GRID_COLLISION, InstaKillPoops, mod.Tears.SUIT_TEAR_VARIANTS[mod.Suits.Diamond])
 
 
 --Split is only given when called in mod:SplitTears()

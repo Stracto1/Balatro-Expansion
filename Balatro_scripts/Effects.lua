@@ -58,7 +58,7 @@ function mod:CreateBalatroEffect(Index, Colour, Sound, Text, EffectType, Player,
     local IsJimbo = Player:GetPlayerType() == mod.Characters.JimboType
 
     if EffectType ~= mod.EffectType.ENTITY and EffectType ~= mod.EffectType.NULL
-       and IsJimbo
+       and not IsJimbo
        and not IsTaintedJimbo then
         
         EffectType = mod.EffectType.ENTITY
