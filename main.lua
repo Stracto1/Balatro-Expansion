@@ -725,6 +725,7 @@ Balatro_Expansion.SkipTags = {UNCOMMON = 0,
                               ECONOMY = 22,
                               ORBITAL = 32} --USED WITH A HAND FLAG 
 
+                              --keep these with the correct values
 Balatro_Expansion.SpecialSkipTags = {KEY_PIECE_1 = 23,
                                      KEY_PIECE_2 = 24,
                                      ANTE = 25}
@@ -956,7 +957,7 @@ end
 
 Balatro_Expansion.Saved.MichelDestroyed = false
 
-Balatro_Expansion.Saved.HasDebt = false
+Balatro_Expansion.Saved.DebtAmount = 0
 Balatro_Expansion.Saved.EnableHand = false
 
 Balatro_Expansion.Saved.SmallBlind = 0
@@ -1281,6 +1282,8 @@ include("Balatro_scripts.Unlockables.Soul of Jimbo")
 include("Balatro_scripts.Unlockables.The Hand")
 include("Balatro_scripts.Unlockables.Trinket Editions")
 include("Balatro_scripts.Unlockables.Stupid Gaper")
+include("Balatro_scripts.Unlockables.chaos theory")
+
 --include("Balatro_scripts.Trinket_Callbacks")
 
 ---------------------CUSTOM UI ANIMATIONS---------------------

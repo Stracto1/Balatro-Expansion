@@ -644,22 +644,8 @@ function mod:SpectralCards(card, Player)
             
         elseif card == mod.Spectrals.WRAITH then
 
-            mod.Saved.HasDebt = false
-            Player:AddCoins(-Player:GetNumCoins()) --makes him poor 
+            mod:SetMoney(0) --makes him poor 
             
-            --[[
-            local RandomJoker = mod:RandomJoker(CardRNG, {}, true, "rare")
-
-            for i, Joker in ipairs(mod.Saved.Player[PIndex].Inventory.Jokers) do
-                if Joker == 0 then --the first empty slot
-                    mod.Saved.Player[PIndex].Inventory.Jokers[i] = RandomJoker
-                    mod.Saved.Player[PIndex].Inventory.Editions[i] = mod.Edition.BASE
-                    Isaac.RunCallback("INVENTORY_CHANGE", Player)
-                    return
-                end
-            end
-            Player:AnimateSad() --no joker for you if no slot is empty :(   ]]
-
             local RandomJoker = mod:RandomJoker(CardRNG, true, "rare", false)
             local Success = mod:AddJoker(Player, RandomJoker.Joker,RandomJoker.Edition)
 

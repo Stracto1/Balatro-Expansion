@@ -7,46 +7,57 @@ local PastCoins = 0
 ---@param Player EntityPlayer
 function mod:MoneyCounterFix(Player)
 
-
     if not mod.GameStarted then
         --print("stop money")
         PastCoins = 0
         return
     end
 
-    if not mod.Saved.HasDebt then
+    if mod.Saved.DebtAmount == 0 then
         return
     end
 
-    local CurrentCoins = Player:GetNumCoins()
-    local MoneyGained = CurrentCoins - PastCoins
+    local MoneyGained = Player:GetNumCoins() - PastCoins
 
     if MoneyGained == 0 then
+
+        if mod.Saved.DebtAmount ~= 0 then --poorify while in debt
+
+            local DebtMoney = math.floor(Player:GetMaxCoins()/2)
+            
+            Player:AddCoins(DebtMoney - Player:GetNumCoins())
+            PastCoins = Player:GetNumCoins()
+        end
+
         return
+    end    
+
+    --local TrueGain = -MoneyGained*2
+
+    if mod.Saved.DebtAmount <= MoneyGained then --if the player gains more than its debt value
+    
+        local Extra = MoneyGained - mod.Saved.DebtAmount
+    
+        mod:SetMoney(Extra)
+
+    else --still needs to cover up the debt
+
+        mod.Saved.DebtAmount = mod.Saved.DebtAmount - MoneyGained
     end
 
-    local TrueGain = -MoneyGained*2
+    if mod.Saved.DebtAmount ~= 0 then --poorify while in debt
 
-    if CurrentCoins <= -TrueGain then --if the player gains more than its debt value
-        mod.Saved.HasDebt = false
-
-        local Difference = CurrentCoins + TrueGain
-
-        Player:AddCoins((MoneyGained-CurrentCoins)*2)
-
-        PastCoins = Difference
-
-    else
-        Player:AddCoins(TrueGain)
-
-        CurrentCoins = Player:GetNumCoins()
-        PastCoins = CurrentCoins
-
+        local DebtMoney = math.floor(Player:GetMaxCoins()/2)
+    
+        Player:AddCoins(DebtMoney - Player:GetNumCoins())
     end
+
+    PastCoins = Player:GetNumCoins()
+
+    Player:AddCustomCacheTag("maxcoins", true)
 
 end
-mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, mod.MoneyCounterFix, mod.Characters.JimboType)
-mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, mod.MoneyCounterFix, mod.Characters.TaintedJimbo)
+mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, mod.MoneyCounterFix)
 
 
 
@@ -62,28 +73,26 @@ function mod:LimitShopping(Item,Player,_)
         return
     end
 
-    if mod.Saved.HasDebt then
+    if mod.Saved.DebtAmount ~= 0 then
 
         if not mod:PlayerCanAfford(Item.Price) then --surpasses the debt limit
             return true
         end
         
-        Player:AddCoins(Item.Price*2)
-        PastCoins = Player:GetNumCoins() - Item.Price
+        --mod.Saved.DebtAmount = mod.Saved.DebtAmount + Item.Price
 
     elseif Item.Price > Player:GetNumCoins() then --costs more than the current non-debt coin value
-
-        if not mod:PlayerCanAfford(Item.Price) then --surpasses the debt limit
+    
+        if not mod:PlayerCanAfford(Item.Price) then
             return
         end
         
         local Difference = Item.Price - Player:GetNumCoins()
     
-        Player:AddCoins(Difference*2)
-        PastCoins = Difference
+        mod:SetMoney(Item.Price)
 
-        mod.Saved.HasDebt = true
-        
+        PastCoins = 0
+        mod.Saved.DebtAmount = Difference
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_COLLISION, mod.LimitShopping)
@@ -98,7 +107,9 @@ function mod:NoGambleWithoutCredit(Slot,Player,_)
 ---@diagnostic disable-next-line: cast-local-type
     Player = Player:ToPlayer()
 
-    if not Player or (not mod.Saved.HasDebt and Player:GetNumCoins() ~= 0) or Slot:GetState() ~= 1 then
+    if not Player 
+       or Player:GetNumCoins() ~= 0
+       or Slot:GetState() ~= 1 then
         return
     end
 
@@ -116,15 +127,14 @@ function mod:NoGambleWithoutCredit(Slot,Player,_)
         return
     end
 
-    if Player:GetNumCoins() == 0 then
         
-        Player:AddCoins(2) --allows the player to start a debt even at 0 coins
+    --allows the player to start a debt even at 0 coins
 
-        PastCoins = Player:GetNumCoins() - 1
+    local DebtMoney = math.floor(Player:GetMaxCoins()/2)
 
-        mod.Saved.HasDebt = true
-
-    end
+    Player:AddCoins(DebtMoney)
+    PastCoins = DebtMoney - 1
+    mod.Saved.DebtAmount = 1
 
 end
 mod:AddCallback(ModCallbacks.MC_PRE_SLOT_COLLISION, mod.NoGambleWithoutCredit, SlotVariant.BATTERY_BUM)
@@ -136,38 +146,65 @@ mod:AddCallback(ModCallbacks.MC_PRE_SLOT_COLLISION, mod.NoGambleWithoutCredit, S
 mod:AddCallback(ModCallbacks.MC_PRE_SLOT_COLLISION, mod.NoGambleWithoutCredit, SlotVariant.FORTUNE_TELLING_MACHINE)
 
 
-
+--safer way to spend money, (doesn't not consider the max coin limit)
 function mod:SpendMoney(Price)
 
     local Player = Game:GetPlayer(0)
-    local Coins = Player:GetNumCoins()
 
-    local MaxShopDebt = 0
+    local HadDebt = mod.Saved.DebtAmount ~= 0
 
-    for _,Player in ipairs(PlayerManager.GetPlayers()) do
-        MaxShopDebt = MaxShopDebt + 20* #mod:GetJimboJokerIndex(Player, mod.Jokers.CREDIT_CARD)
-    end
+    if HadDebt then
 
+        mod.Saved.DebtAmount = mod.Saved.DebtAmount + Price
+        
+        if mod.Saved.DebtAmount <= 0 then --extinguished the debt
+            
+            local Extra = -mod.Saved.DebtAmount
 
+            Player:AddCoins(Extra - Player:GetNumCoins())
 
-    if mod.Saved.HasDebt or Coins >= Price  then --remains in/out of debt after buying 
-
-        if mod.Saved.HasDebt then
-            Player:AddCoins(Price)
-        else
-            Player:AddCoins(-Price)
+            mod.Saved.DebtAmount = 0
         end
-        PastCoins = Player:GetNumCoins()
-        return
+    else
+        local NewBalance = Player:GetNumCoins() - Price
+        Player:AddCoins(-Price)
+
+        if NewBalance < 0 then
+            mod.Saved.DebtAmount = -NewBalance
+            Player:AddCoins(math.floor(Player:GetMaxCoins()/2))
+        end
+
     end
 
-    --spends more then he has
-    
-    local Difference = Price - Coins
-
-    Player:AddCoins(Difference)
     PastCoins = Player:GetNumCoins()
-
-    mod.Saved.HasDebt = true
-
 end
+
+function mod:SetMoney(Balance)
+
+    local Player = Game:GetPlayer(0)
+
+    if Balance < 0 then
+        mod.Saved.DebtAmount = -Balance
+        Player:AddCoins(math.floor(Player:GetMaxCoins()/2) - Player:GetNumCoins())
+    else
+        mod.Saved.DebtAmount = 0
+
+        Player:AddCoins(Balance - Player:GetNumCoins())
+    end
+
+    Player:AddCustomCacheTag("maxcoins", true)
+    PastCoins = Player:GetNumCoins()
+end
+
+
+--technically no money cap
+local function DebtHelp(_,Player, CustomCache, Value)
+
+    if mod.Saved.DebtAmount ~= 0
+       and not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType)
+       and not PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then
+
+        return Value*10
+    end
+end
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, DebtHelp, "maxcoins")

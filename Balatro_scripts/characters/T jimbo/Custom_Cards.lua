@@ -340,7 +340,8 @@ local function TJimboUseTarot(card, Player, IsPack, UseFlags)
         AnimationInterval = ChangeSelectionParams(Player, {Enhancement = mod.Enhancement.GLASS})
 
     elseif card == Card.CARD_HERMIT then
-        local CoinsToAdd =  mod.Saved.HasDebt and 0 or math.min(Player:GetNumCoins(), 20)
+
+        local CoinsToAdd =  (mod.Saved.DebtAmount ~= 0) and 0 or math.min(Player:GetNumCoins(), 20)
          --no more then 20 coins
 
         Player:AddCoins(CoinsToAdd)
@@ -702,8 +703,7 @@ local function TJimboUseSpectral(card, Player, UseFlags)
         
     elseif card == mod.Spectrals.WRAITH then
 
-        mod.Saved.HasDebt = false
-        Player:AddCoins(-Player:GetNumCoins()) --makes him poor 
+        mod:SetMoney(0) --makes him poor 
         
         local RandomJoker = mod:RandomJoker(CardRNG, {}, true, "rare")
         local Success = mod:AddJoker(Player, RandomJoker.Joker,RandomJoker.Edition)

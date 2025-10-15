@@ -104,7 +104,7 @@ local itemData = {
         Type = "Trinket",
         Name = "Joker",
         UnlockMethod = "Unlocked by defeating Mom's Heart",
-        Description = "1 flat damage up",
+        Description = "+1 flat damage up",
         Achievement = mod.Achievements.Trinkets[mod.Jokers.JOKER]
     },
     {
@@ -113,7 +113,7 @@ local itemData = {
         Type = "Collectible",
         Name = "Horsey",
         UnlockMethod = "Unlocked by defeating Isaac",
-        Description = "Summons a horse familiar that periodically jumps, moving in an L shape and creating shockwaves that damage enemies upon landing.",
+        Description = "Horse familiar that periodically jumps, moving in an 'L' shape, creating shockwaves that damage enemies upon landing.",
         Achievement = mod.Achievements.Items[mod.Collectibles.HORSEY]
     },
     {
@@ -131,7 +131,7 @@ local itemData = {
         Type = "Collectible",
         Name = "Banana",
         UnlockMethod = "Unlocked by defeating ???",
-        Description = "When first used on every floor, shoots a devastating banana that creates a Mama Mega! type explosion, then becomes a time-charged active that spawns banana peels able to make the enemies slip and take damamage.",
+        Description = "When first used on every floor, shoots a devastating banana that creates a Mama Mega! type explosion. It then becomes a time-charged active that spawns banana peels able to make the enemies slip and take damage.",
         Achievement = mod.Achievements.Items[mod.Collectibles.BANANA]
     },
     {
@@ -158,7 +158,7 @@ local itemData = {
         Type = "Collectible",
         Name = "Baloon Puppy",
         UnlockMethod = "Unlocked by defeating ???",
-        Description = "Spawns a floating puppy as a familiar able to reflect projectiles that hit it, exploding after taking enough damage. If Isaac gets damaged the puppy starts chasing down enemies dealing contact damage",
+        Description = "floating familiar able to reflect projectiles that hit it, exploding after taking enough damage. If Isaac gets damaged the puppy starts chasing down enemies dealing contact damage",
         Achievement = mod.Achievements.Items[mod.Collectibles.BALOON_PUPPY]
     },
     {
@@ -176,7 +176,7 @@ local itemData = {
         Type = "Collectible",
         Name = "Laugh Sign",
         UnlockMethod = "Unlocked by defeating ???",
-        Description = "An audience reacts live to Isaac's actions, throwing objects into the room and making noise in the process",
+        Description = "An audience reacts live to Isaac's actions, throwing objects into the room and making some noise in the process",
         Achievement = mod.Achievements.Items[mod.Collectibles.LAUGH_SIGN]
     },
     {
@@ -194,7 +194,7 @@ local itemData = {
         Type = "Collectible",
         Name = "Funny Teeth",
         UnlockMethod = "Unlocked by defeating ???",
-        Description = "Spawns a familiar that chases enemies and deals high contact damage. Afer being active for some time, a player needs to recharge it by standing near it for a few seconds",
+        Description = "Familiar that chases enemies and deals high contact damage. Afer being active for some time, a player needs to recharge it by standing near it for a few seconds",
         Achievement = mod.Achievements.Items[mod.Collectibles.FUNNY_TEETH]
     },
     {
@@ -603,7 +603,7 @@ menu.unlockManager = {
                         Gfx = "gfx/ui/jimbo_dss_icon.png",
                         ScaleFactor = Vector.Zero,
                         Name = "Jimbo",
-                        Description = "Instead of shooting tears, Jimbo trows cards at enemies, which deal damage equal to the product of his tears and damage stat. Cards can be score a limited amount if times per room, giving him extra stats. Shops have special stocks of of jokers for jim to use.",
+                        Description = "instead of shooting tears, jimbo trows cards at enemies, dealing damage equal to the product of his tears and damage stat. Cards can be scored a limited amount of times per room, giving him extra stats. Shops have special stocks of of jokers for him to use.",
                         Unlocked = true,
                         UnlockMethod = "\"Have fun\""
                     }

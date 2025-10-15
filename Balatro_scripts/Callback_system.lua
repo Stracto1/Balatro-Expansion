@@ -221,7 +221,7 @@ function mod:OnGameStart(Continued)
         --mod.Saved.ShopIndex = 1
         --mod.Saved.BossIndex = 1
 
-        mod.Saved.HasDebt = false
+        mod.Saved.DebtAmount = 0
         mod.Saved.MichelDestroyed = false
 
         mod.Saved.CardLevels = {}
@@ -338,10 +338,10 @@ function mod:InitPlayerValues(Player)
     mod.Saved.Player[PIndex].StatsToAdd = {}
     mod.Saved.Player[PIndex].StatsToAdd.Damage = 0
     mod.Saved.Player[PIndex].StatsToAdd.Tears = 0
-    mod.Saved.Player[PIndex].StatsToAdd.Mult = 0
+    mod.Saved.Player[PIndex].StatsToAdd.Mult = 1
     mod.Saved.Player[PIndex].StatsToAdd.JokerDamage = 0
     mod.Saved.Player[PIndex].StatsToAdd.JokerTears = 0
-    mod.Saved.Player[PIndex].StatsToAdd.JokerMult = 0
+    mod.Saved.Player[PIndex].StatsToAdd.JokerMult = 1
 
     
     mod.Saved.Player[PIndex].ComedicState = 0

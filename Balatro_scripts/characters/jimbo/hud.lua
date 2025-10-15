@@ -797,13 +797,11 @@ end
 ---@param Player EntityPlayer
 function mod:DebtIndicator(_,_,_,_,Player)
 
-    if Player:GetPlayerType() ~= mod.Characters.JimboType
-       and Player:GetPlayerType() ~= mod.Characters.TaintedJimbo
-       or not mod.Saved.HasDebt then
+    if mod.Saved.DebtAmount <= 0 then
         return
     end
 
-    local Coins = Player:GetNumCoins()
+    local Coins = mod.Saved.DebtAmount
     local RenderPos = Vector(16,33) + Vector(20, 12)*Options.HUDOffset
 
     local ExtraZeros = 2

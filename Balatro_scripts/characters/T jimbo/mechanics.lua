@@ -935,7 +935,7 @@ mod:AddCallback(ModCallbacks.MC_NPC_PICK_TARGET, PreventTjimboTarget)
 
 
 
-function mod:SpawnShopItems(Rerolled)
+function mod:SpawnShopItems(Rerolled, CouponUsed)
 
     local Room = Game:GetRoom()
 
@@ -985,8 +985,10 @@ function mod:SpawnShopItems(Rerolled)
                                 Vector.Zero, nil, SubType, mod:RandomSeed(mod.RNGs.SHOP)):ToPickup()
 
 
-        ---@diagnostic disable-next-line: need-check-nil
-        Item:MakeShopItem(-2)
+        if not CouponUsed then
+            ---@diagnostic disable-next-line: need-check-nil
+            Item:MakeShopItem(-2)
+        end
 
         ::SKIP_ITEM::
     end
@@ -1133,7 +1135,7 @@ local function ShopItemChanger()
     end
 
 
-    mod:SpawnShopItems(false)
+    mod:SpawnShopItems(false, CouponTag)
 
     for i=1, 2 do
         
@@ -1143,12 +1145,9 @@ local function ShopItemChanger()
         local Booster =  Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TAROTCARD, Room:GetGridPosition(Grid),
                    Vector.Zero, nil, Pack, mod:RandomSeed(mod.RNGs.SHOP)):ToPickup()
 
----@diagnostic disable-next-line: need-check-nil
-        Booster:MakeShopItem(-2)
-
-        if CouponTag then
-        ---@diagnostic disable-next-line: need-check-nil
-            Booster.Price = PickupPrice.PRICE_FREE
+        if not CouponTag then
+            ---@diagnostic disable-next-line: need-check-nil
+            Booster:MakeShopItem(-2)
         end
     end
 
@@ -1181,17 +1180,24 @@ local function SetItemPrices(_,Variant,SubType,ShopID,Price)
     
         Cost = mod:GetJokerCost(Joker, Edition)
 
-    elseif SubType >= mod.Packs.ARCANA and SubType <= mod.Packs.MEGA_SPECTRAL then
+    elseif Variant == PickupVariant.PICKUP_TAROTCARD then
+        
+        if SubType >= mod.Packs.ARCANA and SubType <= mod.Packs.MEGA_SPECTRAL then
 
+            local QualityModule = SubType%3
 
-        local QualityModule = SubType%3 
+            if QualityModule == mod.PackQualityModule.MEGA then
+                Cost = 8
+            elseif QualityModule == mod.PackQualityModule.JUMBO then
+                Cost = 6
+            else
+                Cost = 4
+            end
 
-        if QualityModule == mod.PackQualityModule.MEGA then
-            Cost = 8
-        elseif QualityModule == mod.PackQualityModule.JUMBO then
-            Cost = 6
-        else
+        elseif SubType >= mod.Spectrals.FAMILIAR and SubType <= mod.Spectrals.SOUL then
             Cost = 4
+        else
+            Cost = 3
         end
 
     elseif Variant == mod.Pickups.PLAYING_CARD then
@@ -1449,28 +1455,30 @@ function mod:ActivateCurrentHand(Player)
     Game:MakeShockwave(TargetPosition, 0.0003*EFFECT_RANGE, 0.025, 6)
 
 
-
-
     --enemies inside the radius shown take damage twice, others only once
 
 
     local OutOfRangeMult = mod.Saved.DSS.T_Jimbo.OutOfRangeDamage
-
+    local DamageFlags = DamageFlag.DAMAGE_IGNORE_ARMOR | DamageFlag.DAMAGE_CRUSH
 
     for _, Enemy in ipairs(Isaac.FindInRadius(TargetPosition, 
                                               EFFECT_RANGE,
                                               EntityPartition.ENEMY)) do
         if Enemy:IsActiveEnemy() then
 
+            --print(Enemy:IsVulnerableEnemy())
+
             if Enemy:IsVulnerableEnemy() then
 
                 Enemy:TakeDamage(math.ceil(FullHandDamage*(1 - OutOfRangeMult)),
-                                 DamageFlag.DAMAGE_IGNORE_ARMOR, EntityRef(Player), 0)
+                                 DamageFlags, EntityRef(Player), 0)
 
                 Game:SpawnParticles(Enemy.Position, EffectVariant.BLOOD_PARTICLE, 3, 3.5, BloodColor)
 
-            elseif not Enemy:IsBoss() then --invulnerable enemies take damage only if inside the radius
+            else--if not Enemy:IsBoss() then --invulnerable enemies take damage only if inside the radius
 
+                Enemy:TakeDamage(0, DamageFlags, EntityRef(Player), 0)
+            
                 Enemy.HitPoints = Enemy.HitPoints - FullHandDamage*0.5
 
                 HitColor = Color(1.5, 1,1,1, 0.25)
@@ -1488,7 +1496,7 @@ function mod:ActivateCurrentHand(Player)
             if Enemy:IsActiveEnemy() and Enemy:IsVulnerableEnemy() then
 
                 Enemy:TakeDamage(FullHandDamage*OutOfRangeMult,
-                                 DamageFlag.DAMAGE_IGNORE_ARMOR, EntityRef(Player), 0)
+                                 DamageFlags, EntityRef(Player), 0)
 
                 local PoofScale = 0.032 * Enemy.Size
 
@@ -2549,7 +2557,7 @@ local function OnTagAdded(_, TagAdded)
 
             Isaac.CreateTimer(function ()
 
-                local Money = 5
+                local Money = 10
 
                 if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_KEY_PIECE_1) then
                     
@@ -2575,7 +2583,7 @@ local function OnTagAdded(_, TagAdded)
 
             Isaac.CreateTimer(function ()
 
-                local Money = 5
+                local Money = 10
 
                 if PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_KEY_PIECE_2) then
                         
@@ -3098,8 +3106,8 @@ function mod:InitializeAnte(NewFloor)
         end
 
 
-        --Plate = mod:SpawnBalatroPressurePlate(Room:GetGridPosition(BOSS_POSITION), mod.Grids.PlateVariant.BLIND, mod.Saved.AnteBoss)
-        Plate = mod:SpawnBalatroPressurePlate(Room:GetGridPosition(BOSS_POSITION), mod.Grids.PlateVariant.BLIND, mod.BLINDS.BOSS_SERPENT)
+        Plate = mod:SpawnBalatroPressurePlate(Room:GetGridPosition(BOSS_POSITION), mod.Grids.PlateVariant.BLIND, mod.Saved.AnteBoss)
+        --Plate = mod:SpawnBalatroPressurePlate(Room:GetGridPosition(BOSS_POSITION), mod.Grids.PlateVariant.BLIND, mod.BLINDS.BOSS_SERPENT)
         Plate.State = 3
         Plate:GetSprite():Play("Switched")
 

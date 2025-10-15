@@ -774,10 +774,10 @@ end
     ----------------------------
     if Player:HasCollectible(CollectibleType.COLLECTIBLE_MONEY_EQUALS_POWER) then
 
-        local Coins = mod.Saved.HasDebt and  0 or (Player:GetNumCoins() // 5)
+        local Coins = (mod.Saved.DebtAmount ~= 0) and 0 or (Player:GetNumCoins() // 5)
         local ItemNum = Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_MONEY_EQUALS_POWER, true)
 
-        mod:IncreaseJimboStats(Player, 0, 0.01*ItemNum*Triggers,1, false,true)
+        mod:IncreaseJimboStats(Player, 0, 0.01*Coins*ItemNum*Triggers,1, false,true)
     end
 
     mod:IncreaseJimboStats(Player, TearsToGet, 0, 1, Evaluate, true)
@@ -1839,7 +1839,7 @@ function mod:OnRoomClear(IsBoss, Hostile)
         end
 
         if Joker == mod.Jokers.VAGABOND then
-            if Player:GetNumCoins() <= 2 or mod.Saved.HasDebt then
+            if Player:GetNumCoins() <= 2 or (mod.Saved.DebtAmount ~= 0) then
                 local TrinketRNG = Player:GetTrinketRNG(mod.Jokers.VAGABOND)
 
                 local RandomTarot = TrinketRNG:RandomInt(Card.CARD_FOOL, Card.CARD_WORLD)
@@ -2088,7 +2088,7 @@ function mod:OnNewRoomJokers()
         -----------STEEL CARD BUFFS------------
         ---------------------------------------
 
-        if not Room:IsClear() then
+        if not Room:IsClear() and IsJimbo then
 
             for _,index in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
 
@@ -3405,9 +3405,11 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_ADD_HEARTS, OnHeartsChange)
 ---@param Player EntityPlayer
 function mod:ItemAddedEval(Type,_,_,_,_,Player)
 
-    if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
+    if Player:GetPlayerType() == mod.Characters.TaintedJimbo
+       or not mod.GameStarted then
         return
     end
+
     local PIndex = Player:GetData().TruePlayerIndex
 
     local Config = ItemsConfig:GetCollectible(Type)
@@ -3694,7 +3696,7 @@ function mod:TearsJokers(Player, _)
         
         if Joker == mod.Jokers.BULL then
             
-            local Coins = mod.Saved.HasDebt and 0 or Player:GetNumCoins()
+            local Coins = (mod.Saved.DebtAmount ~= 0) and 0 or Player:GetNumCoins()
 
             local Tears = Coins * 0.1
  
@@ -4020,7 +4022,7 @@ function mod:DamageJokers(Player,_)
 
         elseif Joker == mod.Jokers.BOOTSTRAP then
 
-            local Coins = mod.Saved.HasDebt and 0 or Player:GetNumCoins()
+            local Coins = (mod.Saved.DebtAmount ~= 0) and 0 or Player:GetNumCoins()
 
             local Damage = (Coins//5) * 0.05
 
@@ -4949,7 +4951,8 @@ mod:AddCallback(ModCallbacks.MC_PRE_GRID_ENTITY_DOOR_UPDATE, mod.DoorUpdate)
 
 
 function mod:HackReevaluationAdd(Item,_,_,_,_,Player)
-    if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
+    if Player:GetPlayerType() == mod.Characters.TaintedJimbo
+       or not mod.GameStarted then
         return
     end
     local PIndex = Player:GetData().TruePlayerIndex
@@ -5723,9 +5726,11 @@ local function BootstrapsCollisionDamage(_, Player, Collider)
         return
     end
 
-    if mod:JimboHasTrinket(Player, mod.Jokers.BOOTSTRAPS) then
+    local NumBoots = mod:GetPlayerTrinketAmount(Player, mod.Jokers.BOOTSTRAP)
+
+    if NumBoots then
         
-        local Damage = Player:GetNumCoins() * mod:GetPlayerTrinketAmount(Player, mod.Jokers.BOOTSTRAP)
+        local Damage = Player:GetNumCoins() * NumBoots
 
         Collider:TakeDamage(Damage, DamageFlag.DAMAGE_COUNTDOWN, EntityRef(Player), 10)
     end

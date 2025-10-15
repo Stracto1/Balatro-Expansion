@@ -252,23 +252,6 @@ local PENNY_TRINKET_POOLS = {[BackdropType.BASEMENT] = {TrinketType.TRINKET_BUTT
                                                     TrinketType.TRINKET_SWALLOWED_PENNY,
                                                     TrinketType.TRINKET_COUNTERFEIT_PENNY}}
 
-local GROUND_COLOR = {DEFAULT = Color(0.5, 0.2, 0.07),
-                      [BackdropType.CORPSE] = Color.ProjectileCorpseGreen,
-                      [BackdropType.CORPSE2] = Color.ProjectileCorpseGreen,
-                      [BackdropType.CORPSE3] = Color.ProjectileCorpseGreen,
-                      [BackdropType.CORPSE_ENTRANCE] = Color.ProjectileCorpseGreen,
-                    
-                      [BackdropType.BLUE_WOMB] = Color.ProjectileHushBlue,
-                      [BackdropType.BLUE_WOMB_PASS] = Color.ProjectileHushBlue,
-
-                      [BackdropType.CATHEDRAL] = Color.ProjectileHushBlue,
-
-                      [BackdropType.SHEOL] = Color(0.15, 0.15, 0.2),
-                      [BackdropType.DARKROOM] = Color(0.15, 0.15, 0.2),
-                      [BackdropType.MEGA_SATAN] = Color(0.15, 0.15, 0.2),
-                      [BackdropType.SACRIFICE] = Color(0.15, 0.15, 0.2),
-                        }
-
 local GROUND_PARTICLE = { DEFAULT = EffectVariant.TOOTH_PARTICLE,
                          [BackdropType.WOMB] = EffectVariant.BLOOD_PARTICLE,
                          [BackdropType.SCARRED_WOMB] = EffectVariant.BLOOD_PARTICLE,
@@ -2551,9 +2534,14 @@ local function PennySeedsPayout()
 
             local BackType = Game:GetRoom():GetBackdropType()
             local ParticleVariant = GROUND_PARTICLE[BackType] or GROUND_PARTICLE.DEFAULT
-            local ParticleColor = GROUND_COLOR[BackType] or GROUND_COLOR.DEFAULT
+
+            local Slave = Game:Spawn(mod.Entities.BALATRO_TYPE, mod.Entities.NPC_SLAVE, Player.Position, Vector.Zero, nil, mod.Entities.DIRT_COLOR_HELPER_SUBTYPE, 1):ToNPC()
+            Slave:UpdateDirtColor(true)
             
-            Game:SpawnParticles(Player.Position, ParticleVariant, 2, 2.5, ParticleColor)
+            local ParticleColor = Slave:GetDirtColor()
+            
+            Game:SpawnParticles(Player.Position, ParticleVariant, 3, 2.5, ParticleColor)
+            Game:SpawnParticles(Player.Position, ParticleVariant, 3, 0.75, ParticleColor)
 
             
             if BackType == BackdropType.WOMB
@@ -2571,7 +2559,7 @@ local function PennySeedsPayout()
                 sfx:Play(SoundEffect.SOUND_SHOVEL_DIG, 0.35, 2, false, math.random()*0.2 + 1.2)
             end
 
-        end, 3, CoinsPlanted, true)
+        end, 4, CoinsPlanted, true)
 
         end, 7, 1, true)
         
@@ -2669,7 +2657,7 @@ local function ModifyPickups(_, Pickup, Variant, SubType, ReqVariant, ReqSubType
 
     return ReturnTable
 end
-mod:AddCallback(ModCallbacks.MC_POST_PICKUP_SELECTION, ModifyPickups)
+mod:AddPriorityCallback(ModCallbacks.MC_POST_PICKUP_SELECTION, CallbackPriority.LATE, ModifyPickups)
 
 
 local function ModifyPills()

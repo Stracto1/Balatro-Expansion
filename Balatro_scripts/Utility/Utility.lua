@@ -1598,21 +1598,13 @@ function mod:PlayerCanAfford(Price)
         return true
     end
 
-    local MaxDebt = 0
-    local Coins = Game:GetPlayer(0):GetNumCoins()
+    local MaxDebt = -20 * mod:GetTotalTrinketAmount(mod.Jokers.CREDIT_CARD)
+    
+    local Balance = (mod.Saved.DebtAmount ~= 0) and -mod.Saved.DebtAmount or Game:GetPlayer(0):GetNumCoins()
 
-    for i,Player in ipairs(PlayerManager:GetPlayers()) do
-        
-        MaxDebt = MaxDebt + 20 * #mod:GetJimboJokerIndex(Player, mod.Jokers.CREDIT_CARD, true)
-    end
-
-    if not mod.Saved.HasDebt then
-        return Coins >= Price or math.abs(Coins - Price) <= MaxDebt
-    end
-
-    return Coins + Price <= MaxDebt
-
+    return Balance - Price >= MaxDebt
 end
+
 
 function mod:TEARFLAG(x)
     return x >= 64 and BitSet128(0,1<<(x-64)) or BitSet128(1<<x,0)
@@ -1821,7 +1813,7 @@ function mod:GetJokerInitialProgress(Joker, Tainted, Player)
 
                 Prog = Game:GetPlayer(0):GetNumCoins()*2
 
-                if mod.Saved.HasDebt then
+                if mod.Saved.DebtAmount ~= 0 then
                     Prog = 0
                 end
             elseif Joker == mod.Jokers.STONE_JOKER then 
@@ -1854,7 +1846,7 @@ function mod:GetJokerInitialProgress(Joker, Tainted, Player)
 
                 Prog = (Game:GetPlayer(0):GetNumCoins()//5) * 2
 
-                if mod.Saved.HasDebt then
+                if mod.Saved.DebtAmount ~= 0 then
                     Prog = 0
                 end
 
@@ -1972,7 +1964,7 @@ function mod:GetJokerInitialProgress(Joker, Tainted, Player)
 
                 Prog = Game:GetPlayer(0):GetNumCoins()*0.1
 
-                if mod.Saved.HasDebt then
+                if mod.Saved.DebtAmount ~= 0 then
                     Prog = 0
                 end
             elseif Joker == mod.Jokers.STONE_JOKER then 
@@ -2023,7 +2015,7 @@ function mod:GetJokerInitialProgress(Joker, Tainted, Player)
 
                 Prog = (Game:GetPlayer(0):GetNumCoins()//5) * 0.1
 
-                if mod.Saved.HasDebt then
+                if mod.Saved.DebtAmount ~= 0 then
                     Prog = 0
                 end
 
@@ -4701,7 +4693,7 @@ local music = MusicManager()
 function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
 
     local PIndex = Player:GetData().TruePlayerIndex
-    local IsTaintedJimbo = Player:GetPlayerType() == mod.Characters.TaintedJimbo
+    local IsTaintedJimbo = Player:GetPlayerType() == mod.Characters.TaintedJimbo --due to me sucking ass being T.Jimbo fucks up a lot of stuff, so gotta do lots of checks
 
     local OldMode = mod.SelectionParams[PIndex].Mode
     local OldPurpose = mod.SelectionParams[PIndex].Purpose
@@ -4709,9 +4701,10 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
     --mod.Counters.SinceSelect = 0
 
     --if the selection changes from an ""active"" to a ""not active"" state
-    --if (NewMode == mod.SelectionParams.Modes.NONE) ~= (OldMode == mod.SelectionParams.Modes.NONE) then
+    if (NewMode == mod.SelectionParams.Modes.NONE) ~= (OldMode == mod.SelectionParams.Modes.NONE)
+       or not IsTaintedJimbo then
         mod.SelectionParams[PIndex].Frames = 0
-    --end
+    end
 
     --creates a dummy entity to rely on for selection descriptions
     if NewMode == mod.SelectionParams.Modes.NONE then
@@ -4994,7 +4987,7 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
 
                 NewIndex = AvailableIndexes[1]
             else
-                NewIndex = math.ceil((Params.Index * #AvailableIndexes) / #Params.SelectedCards[Params.Mode])
+                NewIndex = mod:round((Params.Index * #AvailableIndexes) / #Params.SelectedCards[Params.Mode], 0)
             
                 NewIndex = AvailableIndexes[NewIndex]
 

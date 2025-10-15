@@ -1526,7 +1526,7 @@ function mod:StatGiver(Player, Cache)
 
     local stats = mod.Saved.Player[PIndex].StatsToAdd
 
-    if Player :GetPlayerType() == mod.Characters.JimboType then
+    if Player:GetPlayerType() == mod.Characters.JimboType then
         if Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
 
         local BaseDamage = Player.Damage

@@ -281,6 +281,8 @@ mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, RightMoveShader)
 ---@return integer --gives the number of lines that need to be rendered
 function mod:RenderBalatroStyle(String, Position, Params, StartFrame, Scale, Kcolor, BoxWidth, Sound)
 
+    --Position = mod:FixScreenPosition(Position)
+
     if Params & mod.StringRenderingParams.EID ~= 0 then
         --this part was taken from EID api's RenderString() to the get modified quite a lot in order to work
         --all this cools stuff probably wouldn't be here if the api wasn't so good
@@ -2563,7 +2565,7 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
     BoxWidth = NullFrame:GetScale().X * 100
     Scale = Vector.One * NullFrame:GetScale().Y * 100
 
-    if mod.Saved.HasDebt then
+    if mod.Saved.DebtAmount ~= 0 then
         K_Color = mod.EffectKColors.RED
         String = "$"..tostring(-Player:GetNumCoins())
     else
@@ -3953,6 +3955,7 @@ local function CashoutBubbleRender(_,Effect, Offset)
 
     local PlatePos = Isaac.WorldToScreen(Effect.Position)
     PlatePos.Y = PlatePos.Y + 2.5 * math.sin(Isaac.GetFrameCount()/20)
+    PlatePos = mod:FixScreenPosition(PlatePos)
 
 
     CashoutBubbleSprite:SetFrame("Bottom", 0)
@@ -4066,6 +4069,8 @@ local function BlindBubbleRender(_,Effect, Offset)
     local PlatePos = Isaac.WorldToScreen(Effect.Position)
     PlatePos.Y = PlatePos.Y + 2.5 * math.sin(Isaac.GetFrameCount()/20)
 
+    PlatePos = mod:FixScreenPosition(PlatePos)
+
     if BlindType & mod.BLINDS.BOSS ~= 0 then
         BlindBubbleSprite:SetFrame("Boss", 0)
 
@@ -4129,9 +4134,7 @@ local function BlindBubbleRender(_,Effect, Offset)
 
         TextPos = Frame:GetPos() + PlatePos + TextOffset
 
-        --rerenders the text since the first render was needed to count the lines
         mod:RenderBalatroStyle(Text, TextPos, Params, 0, TextScale, TextKcolor, Width)
-
     end
 
 

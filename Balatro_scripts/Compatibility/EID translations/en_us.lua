@@ -432,6 +432,7 @@ Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_HEAD_OF_THE_KEEPER] = "#
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_SHARD_OF_GLASS] = "#{{PlayerJimbo}} {{BalatroGlass}} Glass cards have the {{Collectible506}} Backstabber effect and always cause {{BleedingOut}} bleeding #{{PlayerJimbo}} All cards held in hand become {{BalatroGlass}} Glass cards on pickup"
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_HEAD_OF_THE_KEEPER] = "#{{PlayerJimbo}} All {{BalatroDiamond}} Diamond cards turn enemies hit in golden statues #{{PlayerJimbo}} All cards held in hand become {{BalatroDiamond}} Diamond cards on pickup"
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_MAGIC_SKIN] = "#{{PlayerJimbo}} Becomes {{ColorYellorange}}SINGLE USE #{{PlayerJimbo}} Also spawns 2 random {{BalatroJoker}} Jokers"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_DEEP_POCKETS] = "#{{PlayerJimbo}} Max coin amount is increased to 9999"
 
 
 
@@ -492,6 +493,8 @@ Descriptions.T_Jimbo.SkipName[mod.SkipTags.STANDARD] = "Standard Tag"
 Descriptions.T_Jimbo.SkipName[mod.SkipTags.TOP_UP] = "Top-Up Tag"
 Descriptions.T_Jimbo.SkipName[mod.SkipTags.UNCOMMON] = "Uncommon Tag"
 Descriptions.T_Jimbo.SkipName[mod.SkipTags.VOUCHER] = "Voucher Tag"
+Descriptions.T_Jimbo.SkipName[mod.SpecialSkipTags.KEY_PIECE_1] = "Uriel Tag"
+Descriptions.T_Jimbo.SkipName[mod.SpecialSkipTags.KEY_PIECE_2] = "Gabriel Tag"
 
 
 
@@ -520,6 +523,8 @@ Descriptions.T_Jimbo.SkipTag[mod.SkipTags.STANDARD] = "Open a {{ColorYellorange}
 Descriptions.T_Jimbo.SkipTag[mod.SkipTags.TOP_UP] = "Gain up to {{ColorYellorange}}2{{B_Black}} {{ColorChips}}Common{{B_Black}} Jokers"
 Descriptions.T_Jimbo.SkipTag[mod.SkipTags.UNCOMMON] = "The next shop contains a free {{ColorLime}}Uncommon{{B_Black}} Joker"
 Descriptions.T_Jimbo.SkipTag[mod.SkipTags.VOUCHER] = "The next shop has an additional {{ColorYellorange}}Voucher"
+Descriptions.T_Jimbo.SkipTag[mod.SpecialSkipTags.KEY_PIECE_1] = "Gain {{ColorYellorange}}10${{CR}} and the {{ColorYellorange}}Key Piece 1{{CR}} item"
+Descriptions.T_Jimbo.SkipTag[mod.SpecialSkipTags.KEY_PIECE_2] = "Gain {{ColorYellorange}}10${{CR}} and the {{ColorYellorange}}Key Piece 2{{CR}} item"
 
 
 Descriptions.T_Jimbo.Jokers = {}
@@ -1133,12 +1138,9 @@ EID:addTrinket(mod.Trinkets.PENNY_SEEDS, "{{Coin}} Gain 1 coin per 5 coin isaac 
 EID:addCollectible(mod.Collectibles.THE_HAND, "{{Card}} Up to 5 cards or runes can be stored in the active item #{{Chargeable}} Holding the item uses the cards stored in the order shown # Press [DROP] key to cycle the held cards #!!! Cards in excess will be destroyed", "The Hand",FileLanguage)		
 EID:addCard(mod.JIMBO_SOUL, "{{Timer}} For the current Room, balances Isaac's Damage and Tears stats #{{Blank}} {{ColorGray}}(Effect lasts longer if used multiple times)", "Soul of Jimbo", FileLanguage)
 EID:addTrinket(mod.Jokers.CHAOS_THEORY, "{{Collectible402}} All pickups spawned are randomised", "Chaos Theory", FileLanguage)		
-EID:addCollectible(mod.Collectibles.ERIS, "Enemies around Isaac are increasingly slowed the closer they are to him #After being slowed enough, enemies take 3% of their remaining health worth of damage 10 times per second #{{Blank}} \7 Damage dealt can't be lower than 0.1", "Eris",FileLanguage)		
+EID:addCollectible(mod.Collectibles.ERIS, "Enemies around Isaac are increasingly slowed the closer they are to him #After being slowed enough, enemies take 3% of their remaining health worth of damage per tick #{{Blank}} \7 (Damage dealt can't be lower than 0.1)", "Eris",FileLanguage)		
 EID:addCollectible(mod.Collectibles.PLANET_X, "{{Planetarium}} Gain the effect of a random Planetarium item every room clear", "Planet X",FileLanguage)		
 EID:addCollectible(mod.Collectibles.CERES, "Familiar that blocks projectiles and deals 1 contact damage per second #When hit, creates asteroid bits that can block up to 2 shots and deal twice Isaac's damage", "Ceres",FileLanguage)		
-
-
-
 
 
 

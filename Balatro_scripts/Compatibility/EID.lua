@@ -1,4 +1,4 @@
----@diagnostic disable: param-type-mismatch
+---@diagnostic disable: param-type-mismatch, cast-local-type
 local mod = Balatro_Expansion
 local Game = Game()
 local ItemsConfig = Isaac.GetItemConfig()
@@ -1296,6 +1296,7 @@ EID:addDescriptionModifier("Balatro Item Synergies", BalatroItemSynergyCondition
 
 
 local function BalatroOffsetCondition(descObj)
+    --specifically player 0 cause its in the top left
     if Game:GetPlayer(0):GetPlayerType() == mod.Characters.JimboType then 
        
         EID:addTextPosModifier("Jimbo HUD", Vector(0,10))
@@ -1310,6 +1311,24 @@ local function BalatroOffsetCallback(descObj)
 end
 
 EID:addDescriptionModifier("Balatro Descriptions Offset", BalatroOffsetCondition, BalatroOffsetCallback)
+
+
+
+local function TBalatroOffsetCondition(descObj)
+    if PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then 
+       
+        EID:addTextPosModifier("TJimbo HUD", Vector(-1000,0))
+        return true
+    else
+        EID:removeTextPosModifier("TJimbo HUD")
+    end
+end
+
+local function TBalatroOffsetCallback(descObj)
+    return descObj
+end
+
+EID:addDescriptionModifier("T Balatro Descriptions Offset", TBalatroOffsetCondition, TBalatroOffsetCallback)
 
 
 
@@ -1402,9 +1421,11 @@ local function TJimboDescriptionsCallback(descObj)
     local PIndex 
     local PlayerSelection
 
-    if not T_Jimbo then
+    if not T_Jimbo or mod.Saved.RunInfoMode ~= mod.RunInfoModes.OFF then
         goto FINISH
     end
+
+    
 
     PIndex = T_Jimbo:GetData().TruePlayerIndex
     PlayerSelection = mod.SelectionParams[PIndex]
@@ -1573,6 +1594,8 @@ local function TJimboDescriptionsCallback(descObj)
 
         EID_Desc.StartFrame = Isaac.GetFrameCount()
 
+        return descObj
+    else
         return descObj
     end
 

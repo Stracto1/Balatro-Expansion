@@ -284,19 +284,7 @@ function mod:DirectorVoucher(Item,Rng, Player, Flags,_,_)
 
         if mod:PlayerCanAfford(10) then
 
-            --local Pool = Game:GetItemPool()
-            --local Room = Game:GetRoom()
-
-            --[[
-            for i,Pedestal in ipairs(Isaac.FindByType(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COLLECTIBLE)) do
-                
-                Pedestal = Pedestal:ToPickup() or Pedestal
-                Pedestal:Morph(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COLLECTIBLE, 
-                               Pool:GetCollectible(Room:GetItemPool(Room:GetSpawnSeed()),true,Room:GetSpawnSeed()), true)
-                Game:Spawn(1000,EffectVariant.POOF01, Pedestal.Position, Vector.Zero,nil,0,1)
-            end]]
-
-            Player:UseActiveItem(CollectibleType.COLLECTIBLE_D6, UseFlag.USE_NOANIM) --easiest way to reroll
+            Player:UseActiveItem(CollectibleType.COLLECTIBLE_D6, UseFlag.USE_NOANIM|UseFlag.USE_MIMIC) --easiest way to reroll
             mod:SpendMoney(10)
 
             sfx:Play(mod.Sounds.MONEY)
@@ -318,8 +306,8 @@ function mod:DirectorVoucher(Item,Rng, Player, Flags,_,_)
                 Game:Spawn(1000,EffectVariant.POOF01, Pedestal.Position, Vector.Zero,nil,0,1)
             end]]
 
-            Player:UseActiveItem(CollectibleType.COLLECTIBLE_D100, UseFlag.USE_NOANIM) --easiest way to reroll
-            Player:AddCoins(-10)
+            Player:UseActiveItem(CollectibleType.COLLECTIBLE_D100, UseFlag.USE_NOANIM|UseFlag.USE_MIMIC) --easiest way to reroll
+            mod:SpendMoney(10)
 
             sfx:Play(mod.Sounds.MONEY)
             return true
