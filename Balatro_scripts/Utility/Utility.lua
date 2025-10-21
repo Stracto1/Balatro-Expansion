@@ -54,6 +54,24 @@ local function DirtColorHelper(_,NPC)
 end
 --mod:AddCallback(ModCallbacks.MC_NPC_UPDATE, DirtColorHelper, mod.Entities.BALATRO_TYPE)
 
+local function ApplySpriteSpeed(_, Effect)
+
+    local Data = Effect:GetData()
+
+    local Speed = Data.REG_SpriteSpeed
+    local Accel = Data.REG_SpriteAccel
+
+    if not Speed then
+        return 
+    end
+
+    Effect.SpriteOffset = Effect.SpriteOffset + Speed
+
+    Speed = Speed + (Accel or Vector.Zero)
+end
+mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, ApplySpriteSpeed)
+
+
 
 
 local EditionValue = {[mod.Edition.BASE] = 0,
@@ -556,7 +574,8 @@ end
 function mod:IsTJimboVulnerable()
 
     return not mod.AnimationIsPlaying
-           and (mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_LAMB
+           and (mod.Saved.DSS.T_Jimbo.Vulnerability
+                or mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_LAMB
                 or mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_MOTHER
                 or mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_DELIRIUM
                 or mod.Saved.BlindBeingPlayed == mod.BLINDS.BOSS_BEAST)
@@ -2290,14 +2309,15 @@ function mod:SellJoker(Player, Slot, Multiplier)
 
     local Edition = mod.Saved.Player[PIndex].Inventory[Slot].Edition + 0
 
-    mod.Saved.Player[PIndex].Inventory[Slot].Joker = 0
-
     local SellValue = mod:GetJokerCost(Trinket, Edition, Slot, Player) * (Multiplier or 1)
     SellValue = math.floor(SellValue)
 
+
+    mod.Saved.Player[PIndex].Inventory[Slot].Joker = 0
+    mod.Saved.Player[PIndex].Inventory[Slot].Edition = mod.Edition.BASE
     mod.Saved.Player[PIndex].Progress.GiftCardExtra[Slot] = 0
 
-    if mod.Saved.Player[PIndex].Inventory[Slot].Edition == mod.Edition.NEGATIVE then
+    if Edition == mod.Edition.NEGATIVE then
         --selling a negative joker reduces your inventory size
         mod:AddJimboInventorySlots(Player, -1)
         --mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.INVENTORY, mod.SelectionParams.Purposes.NONE)
@@ -2306,14 +2326,11 @@ function mod:SellJoker(Player, Slot, Multiplier)
         mod.SelectionParams[PIndex].OptionsNum = mod.SelectionParams[PIndex].OptionsNum - 1
     end
 
-    mod.Saved.Player[PIndex].Inventory[Slot].Edition = mod.Edition.BASE
-
-
     if Player:GetPlayerType() == mod.Characters.JimboType then
 
-        for i=1, SellValue do
+        Isaac.CreateTimer(function ()
             Game:Spawn(EntityType.ENTITY_PICKUP,PickupVariant.PICKUP_COIN,Player.Position,RandomVector()*2,Player,CoinSubType.COIN_PENNY,RNG():GetSeed())
-        end
+        end, 4, SellValue, true)
     else
         Player:AddCoins(SellValue)
     end
@@ -3410,6 +3427,7 @@ end
 function mod:AddSkipTag(TagAdded, Doubled)
 
     table.insert(mod.Saved.SkipTags, 1, TagAdded)
+    sfx:Play(mod.Sounds.ACTIVATE)
 
     local Interval = 8
 
@@ -3459,7 +3477,7 @@ function mod:UseSkipTag(Pos)
 
     table.remove(mod.Saved.SkipTags, Pos)
 
-    sfx:Play(mod.Sounds.SLICE) --PLACEHOLDER
+    sfx:Play(mod.Sounds.SKIP_TAG, 1, 2, false, 0.95 + math.random()*0.1)
 end
 
 
@@ -3557,6 +3575,17 @@ local function JimboAddTrinket(_, Player, Trinket, _, StopEvaluation)
 
         Isaac.CreateTimer(function ()
             Player:AnimateSad()
+
+            if Player:GetPlayerType() == mod.Characters.JimboType then
+                
+                --local Value = mod:GetJokerCost(JokerType, JokerEdition, 0, Player)
+
+                --Isaac.CreateTimer(function ()
+                --    Game:Spawn(EntityType.ENTITY_PICKUP,PickupVariant.PICKUP_COIN,Player.Position,RandomVector()*2,Player,CoinSubType.COIN_PENNY,RNG():GetSeed())
+                --end, 4, Value, true)
+
+                Isaac.RunCallback(mod.Callbalcks.JOKER_SOLD, Player, Trinket, 0)
+            end
         end,0,1,false)
         
         return false
@@ -4042,7 +4071,7 @@ function mod:FullDeckShuffle(Player)
     local PIndex = Player:GetData().TruePlayerIndex
     local PlayerRNG = Player:GetDropRNG()
 
-    
+    mod.CardFullPoss = {}
     mod.Saved.Player[PIndex].CurrentHand = {}
 
     mod.Saved.Player[PIndex].FullDeck = mod:Shuffle(mod.Saved.Player[PIndex].FullDeck, PlayerRNG)
@@ -4075,8 +4104,6 @@ function mod:FullDeckShuffle(Player)
 
         return Interval
     end
-    
-    --print("end shuffle")
 end
 
 
@@ -4507,7 +4534,7 @@ end
 
 function mod:IsHostileRoomSpawn(Type, Variant, SubType)
 
-    local Config = EntityConfig.GetEntity(Type, Variant)
+    local Config = EntityConfig.GetEntity(Type, Variant, SubType)
 
     return Config and Config:CanShutDoors() 
            and Entity.Type ~= EntityType.ENTITY_EFFECT
@@ -4532,12 +4559,16 @@ function mod:PlaceBlindRoomsForReal()
     local RoomPlaceSeed = Level:GetDungeonPlacementSeed()
     local RoomRNG = RNG(RoomPlaceSeed)
 
+    Isaac.DebugString("-------BALATRO BLIND GENERATION--------")
+
 
     local SmallDesc
     local BigDesc
     local ShopDesc
 
     repeat
+
+        Isaac.DebugString("    --------BIG BLIND-------")
 
         local BigRoom
 
@@ -4555,6 +4586,7 @@ function mod:PlaceBlindRoomsForReal()
                                                       -1,-1)
 
             if not BigRoom then
+                Isaac.DebugString("        NO ROOMS FOUND!")
                 return
             end
 
@@ -4566,8 +4598,10 @@ function mod:PlaceBlindRoomsForReal()
                 
                 local Entity = Entries:Get(i):PickEntry(0)
 
-                if mod:IsHostileRoomSpawn(Entity.Type, Entity.Variant, Entity.Subtype) then 
+                if mod:IsHostileRoomSpawn(Entity.Type, Entity.Variant, Entity.Subtype) then
                     
+                    Isaac.DebugString("        HOSTILE ("..Entity.Type.."."..Entity.Variant.."."..Entity.Subtype..")")
+
                     IsHostile = true
                     break
                 end
@@ -4579,11 +4613,9 @@ function mod:PlaceBlindRoomsForReal()
             BigDesc = Level:TryPlaceRoom(BigRoom, i, -1, nil, true, true, true)
 
             if BigDesc then
-                mod.Saved.BigBlindIndex = i
-                break
+                Isaac.DebugString("        PLACED AT "..mod.Saved.BigBlindIndex)
 
-            else
-                Isaac.DebugString("FAILED TO PLACE AT "..tostring(mod.Saved.BigBlindIndex))
+                mod.Saved.BigBlindIndex = i
             end
         end     
             
@@ -4594,6 +4626,8 @@ function mod:PlaceBlindRoomsForReal()
         local SmallRoom
 
         repeat
+
+            Isaac.DebugString("    --------SMALL BLIND-------")
 
             SmallRoom = RoomConfigHolder.GetRandomRoom( mod:RandomSeed(RoomRNG),
                                                         true, 
@@ -4607,6 +4641,7 @@ function mod:PlaceBlindRoomsForReal()
                                                         -1,-1)
 
             if not SmallRoom then
+                Isaac.DebugString("        NO ROOMS FOUND!")
                 return
             end
 
@@ -4617,10 +4652,10 @@ function mod:PlaceBlindRoomsForReal()
                 
                 local Entity = Entries:Get(i):PickEntry(0)
 
-                local Config = EntityConfig.GetEntity(Entity.Type, Entity.Variant)
-
                 if mod:IsHostileRoomSpawn(Entity.Type, Entity.Variant, Entity.Subtype) then 
                     
+                    Isaac.DebugString("        HOSTILE ("..Entity.Type.."."..Entity.Variant.."."..Entity.Subtype..")")
+
                     IsHostile = true
                     break
                 end
@@ -4633,11 +4668,10 @@ function mod:PlaceBlindRoomsForReal()
             SmallDesc = Level:TryPlaceRoom(SmallRoom, i, -1, nil, true, true, true)
             
             if SmallDesc then
+                
+                Isaac.DebugString("        PLACED AT "..mod.Saved.BigBlindIndex)
 
                 mod.Saved.SmallBlindIndex = i
-                break
-            else
-                Isaac.DebugString("FAILED TO PLACE AT "..tostring(mod.Saved.BigBlindIndex))
             end
         end
 
@@ -4723,8 +4757,7 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
         mod.SelectionParams[PIndex].Index = 1
     
         if IsTaintedJimbo then
-
-                
+  
             mod.SelectionParams[PIndex].OptionsNum = #mod.Saved.Player[PIndex].CurrentHand
             mod.SelectionParams[PIndex].MaxSelectionNum = 5
 
@@ -4997,7 +5030,7 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
 
             Params.Index = NewIndex or 1
             
-            mod.SelectionParams[PIndex].SelectionNum = mod:GetValueRepetitions(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams[PIndex].Mode], true)
+            mod.SelectionParams[PIndex].SelectionNum = mod:GetValueRepetitions(mod.SelectionParams[PIndex].SelectedCards[NewMode], true)
         else
             mod.SelectionParams[PIndex].Index = 1
         end
@@ -5040,7 +5073,7 @@ function mod:Select(Player)
     end
 
 
-    if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.NONE then
+    if false and mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.NONE then
 
         local Choice = SelectedCards[mod.SelectionParams[PIndex].Index]
             
@@ -5060,7 +5093,6 @@ function mod:Select(Player)
             SelectedCards[mod.SelectionParams[PIndex].Index] = true
 
             mod.SelectionParams[PIndex].SelectionNum = mod.SelectionParams[PIndex].SelectionNum + 1
-
         end
 
     elseif mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.HAND then
@@ -5425,7 +5457,8 @@ function mod:UseSelection(Player)
 
             local Joker = mod.Saved.Player[PIndex].Inventory[SelectedSlot].Joker
 
-            if Joker == mod.Jokers.GOLDEN_JOKER then --or Joker == mod.Jokers.GOLDEN_TICKET then
+            if Joker == mod.Jokers.GOLDEN_JOKER
+               or Joker == mod.Jokers.GOLDEN_TICKET then --or Joker == mod.Jokers.GOLDEN_TICKET then
                 for i=1, 2 do --gives money + 2 golden pennies
                     local Seed = mod:RandomSeed(Player:GetTrinketRNG(Joker))
 

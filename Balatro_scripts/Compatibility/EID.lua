@@ -307,11 +307,11 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
 
             if Joker == mod.Jokers.TO_DO_LIST then
 
+                print(Progress)
+
                 Progress = Progress or mod:GetJokerInitialProgress(Joker, true)
 
                 local Hand = mod:GetEIDString("HandTypeName", Progress)
-
-                --print(Hand)
 
                 Values[1] = Hand
 
@@ -846,7 +846,9 @@ function mod:ReplaceBalatroMarkups(String, DescType, DescSubType, Tainted, Index
 
     if Tainted then
         
-        String = String.gsub(String, "%{%{CR%}%}", "{{B_Black}}")
+        if mod.Saved.DSS.T_Jimbo.CustomEID then
+            String = String.gsub(String, "%{%{CR%}%}", "{{B_Black}}")
+        end
     end
 
     if DescType ~= mod.EID_DescType.NONE then
@@ -1266,29 +1268,45 @@ EID:addDescriptionModifier("Balatro Extra descriptions", BalatroExtraDescConditi
 
 local function BalatroItemSynergyCondition(descObj)
     if descObj.ObjType == EntityType.ENTITY_PICKUP 
-       and descObj.ObjVariant == PickupVariant.PICKUP_COLLECTIBLE
-       and PlayerManager.AnyoneIsPlayerType(Balatro_Expansion.Characters.JimboType) then
-
+       and descObj.ObjVariant == PickupVariant.PICKUP_COLLECTIBLE then
         return true
     end
 end
 local function BalatroTiemSynergyCallback(descObj)
 
-    if mod:HasEIDString("JimboSynergies", descObj.ObjSubType) then
+    if PlayerManager.AnyoneIsPlayerType(Balatro_Expansion.Characters.JimboType) then
         
-        EID:appendToDescription(descObj, mod:GetEIDString("JimboSynergies", descObj.ObjSubType))
-    end
+        if mod:HasEIDString("JimboSynergies", descObj.ObjSubType) then
 
-    if mod:HasEIDString("ItemSynergies", descObj.ObjSubType) then
-            
-        for Joker,_ in ipairs(mod:GetEIDString("ItemSynergies", descObj.ObjSubType, nil, true)) do
-            
-            if mod:GetTotalTrinketAmount(Joker) > 0 then
-                
-                EID:appendToDescription(descObj, "#{{Trinket"..Joker.."}}"..mod:GetEIDString("ItemSynergies", descObj.ObjSubType, Joker))
+            EID:appendToDescription(descObj, mod:GetEIDString("JimboSynergies", descObj.ObjSubType))
+        end
+
+        if mod:HasEIDString("ItemJokerSynergies", descObj.ObjSubType) then
+
+            for Joker,_ in pairs(mod:GetEIDString("ItemJokerSynergies", descObj.ObjSubType, nil, true)) do
+
+                if mod:GetTotalTrinketAmount(Joker) > 0 then
+
+                    EID:appendToDescription(descObj, "#{{Trinket"..Joker.."}}"..mod:GetEIDString("ItemJokerSynergies", descObj.ObjSubType, Joker))
+                end
             end
         end
     end
+
+    if mod:HasEIDString("ItemItemSynergies", descObj.ObjSubType) then
+
+        for Item,_ in pairs(mod:GetEIDString("ItemItemSynergies", descObj.ObjSubType, nil, true)) do
+
+            if PlayerManager.AnyoneHasCollectible(Item) then
+
+                EID:appendToDescription(descObj, mod:GetEIDString("ItemItemSynergies", descObj.ObjSubType, Item))
+            end
+        end
+    end
+
+
+
+
 
     return descObj
 end
@@ -1317,7 +1335,11 @@ EID:addDescriptionModifier("Balatro Descriptions Offset", BalatroOffsetCondition
 local function TBalatroOffsetCondition(descObj)
     if PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then 
        
-        EID:addTextPosModifier("TJimbo HUD", Vector(-1000,0))
+        if mod.Saved.DSS.T_Jimbo.CustomEID then
+            EID:addTextPosModifier("TJimbo HUD", Vector(-1000,0))
+        else
+            EID:addTextPosModifier("TJimbo HUD", Vector(25,15))
+        end
         return true
     else
         EID:removeTextPosModifier("TJimbo HUD")
@@ -1408,12 +1430,11 @@ local function TJimboDescriptionsCondition(descObj)
         return true
 
     else
-        EID:removeTextPosModifier("T_Jimbo HUD")
+        ResetDescription()
     end
 end
 
 local function TJimboDescriptionsCallback(descObj)
-
 
     local Result = false
     local T_Jimbo = PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo)
@@ -1421,11 +1442,12 @@ local function TJimboDescriptionsCallback(descObj)
     local PIndex 
     local PlayerSelection
 
-    if not T_Jimbo or mod.Saved.RunInfoMode ~= mod.RunInfoModes.OFF then
-        goto FINISH
+    if not T_Jimbo 
+       or mod.Saved.RunInfoMode ~= mod.RunInfoModes.OFF then
+        --goto FINISH
+        ResetDescription()
+        return descObj
     end
-
-    
 
     PIndex = T_Jimbo:GetData().TruePlayerIndex
     PlayerSelection = mod.SelectionParams[PIndex]
@@ -1997,12 +2019,16 @@ local function TJimboDescriptionsCallback(descObj)
 
     EID_Desc.StartFrame = Isaac.GetFrameCount()
 
+    if not mod.Saved.DSS.T_Jimbo.CustomEID then
+        descObj.Name = EID_Desc.Name
+        descObj.Description = EID_Desc.Description
+
+        Result = false
+    end
+
 
     if not Result then
-
         ResetDescription()
-
-        return descObj
     end
     
     return descObj -- return the modified description object
@@ -2178,6 +2204,6 @@ function mod:RenderObjectDescription()
     EID_Desc.NumLines = mod:RenderBalatroStyle(EID_Desc.Description, DescPos, Params, 0, DescScale, mod.BalatroKColorBlack, BoxWidth)
 
 end
-mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.RenderObjectDescription)
+--mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.RenderObjectDescription)
 
 

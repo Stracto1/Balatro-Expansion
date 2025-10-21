@@ -15,7 +15,6 @@ local SpecialCardsSprite = Sprite("gfx/ui/PackSpecialCards.anm2")
 local DeckSprite = Sprite("gfx/ui/Deck Stages.anm2")
 local TrinketSprite = Sprite("gfx/005.350_trinket_custom.anm2")
 TrinketSprite.Offset = Vector(0, 8)
-local SellChargeSprite = Sprite("gfx/chargebar.anm2")
 
 local BlindChipsSprite = Sprite("gfx/ui/Blind Chips.anm2")
 
@@ -140,8 +139,6 @@ local function CancelHeartsHUD(_,_,_,_,_,Player)
 end
 mod:AddPriorityCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, CallbackPriority.LATE, CancelHeartsHUD)
 
-
-
 local function CancelTrinketHUD(_,_,_,_,Player)
 
     if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
@@ -251,20 +248,15 @@ local function RightMoveShader(_,Name) --this shader makes the whole game shifte
            or (Game:IsPaused() and not Game:IsPauseMenuOpen()) then
 
             return Params
-
         else
             Params.CameraOffset = {CameraOffset.X, CameraOffset.Y}
         end
 
 
-
-        
-
         local HUD = Game:GetHUD()
-
-        HUD:SetVisible(true)
-        HUD:Render()
         HUD:SetVisible(false)
+
+        mod:RenderTJimboHUD(PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo))
 
         return Params
     end
@@ -669,7 +661,6 @@ function mod:RenderGenericButton(Position, Scale, BaseColor, Pressed, Text, Text
         
         Scale.X = math.min(Scale.X, mod.Fonts.Balatro:GetStringWidth(Text)*TextScale.X)
 
-
         local TextHeight = BALATRO_BASE_LINE_HEIGHT*TextScale.Y
 
         if SubText then
@@ -700,7 +691,20 @@ function mod:RenderGenericButton(Position, Scale, BaseColor, Pressed, Text, Text
     if Pressed then
         GenericButtonSprite.Color:SetTint(GenericButtonSprite.Color.R*0.8,GenericButtonSprite.Color.G*0.8,GenericButtonSprite.Color.B*0.8, GenericButtonSprite.Color.A)
     
-        Position = Position + Vector(1,1)
+        local WIDTH = Isaac.GetScreenWidth()
+
+        --local RelPos = mod:Clamp(Position.X, WIDTH*0.6, WIDTH*0.4) - Position.X
+        local RelPos = Position.X / WIDTH
+
+        local PressOffset = Vector(0,1)
+
+        if RelPos <= 0.4 then
+            PressOffset.X = 1
+        elseif RelPos >= 0.6 then
+            PressOffset.X = -1
+        end
+
+        Position = Position + PressOffset
     end
 
     Position = mod:FixScreenPosition(Position)
@@ -778,12 +782,18 @@ local function BRScreenWithOffset(VectorOffset)
     return Vector(Isaac.GetScreenWidth() + VectorOffset.X, Isaac.GetScreenHeight() + VectorOffset.Y)
 end
 
+---@param OffestVar number
+---@param VerticalBase number
+---@param VertMult number?
+---@param RotMult number?
+function mod:JokerWobbleEffect(OffestVar, VerticalBase, VertMult, RotMult)
 
-local function JokerWobbleEffect(OffestVar, VerticalBase)
+    VertMult = VertMult or 1
+    RotMult = RotMult or 1
 
-    return (VerticalBase or 0) + math.sin(math.rad(Isaac.GetFrameCount()*1.75+OffestVar*219)), 
+    return (VerticalBase or 0) + math.sin(math.rad(Isaac.GetFrameCount()*1.75+OffestVar*219))*VertMult, 
 
-           math.sin(math.rad(Isaac.GetFrameCount()*1.15+OffestVar*137)) * 3
+           math.sin(math.rad(Isaac.GetFrameCount()*1.15+OffestVar*137)) * 3*RotMult
 
 end
 
@@ -811,14 +821,11 @@ end
 
 --renders the player's current hand below them
 ---@param Player EntityPlayer
-local function JimboHandRender(_,_,_,_,_,Player)
+local function JimboHandRender(Player, PIndex)
 
-    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo 
-       or not mod.GameStarted or Game:IsPaused() then
+    if Game:IsPaused() then
         return
     end
-
-    local PIndex = Player:GetData().TruePlayerIndex
 
     local NumCardsInHand = #mod.Saved.Player[PIndex].CurrentHand
 
@@ -862,16 +869,13 @@ local function JimboHandRender(_,_,_,_,_,Player)
             CardColor = Color(1,1,1,0.5)
         end
     
-
-
         mod.CardFullPoss[Pointer] = mod.CardFullPoss[Pointer] or BRScreenWithOffset(DECK_RENDERING_POSITION) --check nil
-
 
 
         if not mod.Saved.EnableHand then --mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.NONE then
 
             local TimeOffset = math.max(NumCardsInHand, Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE)) - 0.75*i
-            local LerpTime = math.max(mod.Counters.SinceSelect/5 - TimeOffset, 0)
+            local LerpTime = math.max(math.abs(mod.SelectionParams[PIndex].Frames/5) - TimeOffset, 0)
 
             if LerpTime > 0 or Card.Modifiers & mod.Modifier.COVERED ~= 0 then
                 ForceCovered = true
@@ -1002,16 +1006,10 @@ local function JimboHandRender(_,_,_,_,_,Player)
     end
     
 end
-mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, JimboHandRender)
+--mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, JimboHandRender)
 
 
-local function JimboDeckRender(_,_,_,_,_,Player)
-
-    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo or not mod.Saved.Player[1] then
-        return
-    end
-
-    local PIndex = Player:GetData().TruePlayerIndex
+local function JimboDeckRender(Player, PIndex)
 
     local CardsLeft = math.max((#mod.Saved.Player[PIndex].FullDeck - mod.Saved.Player[PIndex].DeckPointer)+1, 0)
 
@@ -1024,19 +1022,14 @@ local function JimboDeckRender(_,_,_,_,_,Player)
     
     --DeckSprite:Render(PlayerScreenPos + Offset + BaseRenderOff - Vector(9.5,0))
 end
-mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, JimboDeckRender)
+--mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, JimboDeckRender)
 
 
 
 --rendere the player's current hand below them
 local ScaleMult = 1
 ---@param Player EntityPlayer
-local function JimboPlayedHandRender(_,_,_,_,_,Player)
-    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo or not mod.Saved.Player[1] then
-        return
-    end
-
-    local PIndex = Player:GetData().TruePlayerIndex
+local function JimboPlayedHandRender(Player, PIndex)
 
     if mod.SelectionParams[PIndex].Mode ~= mod.SelectionParams.Modes.NONE 
        or mod.SelectionParams[PIndex].Purpose ~= mod.SelectionParams.Purposes.HAND
@@ -1055,8 +1048,10 @@ local function JimboPlayedHandRender(_,_,_,_,_,Player)
     local IsVulnerable = mod:IsTJimboVulnerable()
 
 
-    local BaseRenderPos = Vector((Isaac.GetScreenWidth() -21*(NumPlayed - 1)), 
-                          Isaac.GetScreenHeight())/2 + CameraOffset
+    local Height = IsVulnerable and Isaac.GetScreenHeight()*3/4 or Isaac.GetScreenHeight()/2
+
+    local BaseRenderPos = Vector((Isaac.GetScreenWidth() -21*(NumPlayed - 1))/2, 
+                          Height) + CameraOffset
 
     local TargetRenderPos = BaseRenderPos + Vector.Zero
     local RenderPos = {}
@@ -1076,7 +1071,7 @@ local function JimboPlayedHandRender(_,_,_,_,_,Player)
         local CardColor
 
         if IsVulnerable then
-            CardColor = Color(1,1,1,0.5)
+            CardColor = Color(1,1,1,mod.Saved.DSS.T_Jimbo.VulnerableHandOpacity)
         end
 
         
@@ -1158,20 +1153,17 @@ local function JimboPlayedHandRender(_,_,_,_,_,Player)
 
     end
 end
-mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, JimboPlayedHandRender)
+--mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, JimboPlayedHandRender)
 
 
 local CardScale = {}
 --handles the charge bar when the player is selecting cards
 ---@param Player EntityPlayer
-local function JimboPackRender(_,_,_,_,_,Player)
+local function JimboPackRender(Player, PIndex)
 
-    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo
-       or Game:IsPaused() then
+    if Game:IsPaused() then
         return
     end
-
-    local PIndex = Player:GetData().TruePlayerIndex
 
     if mod.SelectionParams[PIndex].PackPurpose == mod.SelectionParams.Purposes.NONE then
         return
@@ -1341,18 +1333,12 @@ local function JimboPackRender(_,_,_,_,_,Player)
     CardFrame:Render(RenderPos)
 
 end
-mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, JimboPackRender)
+--mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, JimboPackRender)
 
 
 --rendered the currently held jokers
 ---@param Player EntityPlayer
-local function JimboInventoryHUD(_,_,_,_,_,Player)
-    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then  
-        return
-    end
-
-    --local IsCoop = Game:GetNumPlayers() > 1
-    local PIndex = Player:GetData().TruePlayerIndex
+local function JimboInventoryHUD(Player, PIndex)
 
     local NumJokers = 0
     for _, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
@@ -1418,7 +1404,7 @@ local function JimboInventoryHUD(_,_,_,_,_,Player)
 
         ----WOBBLE--------
         
-        RenderPos[Slot.RenderIndex].Y, TrinketSprite.Rotation = JokerWobbleEffect(Slot.RenderIndex, RenderPos[Slot.RenderIndex].Y)
+        RenderPos[Slot.RenderIndex].Y, TrinketSprite.Rotation = mod:JokerWobbleEffect(Slot.RenderIndex, RenderPos[Slot.RenderIndex].Y)
         
         
         local CardTriggerCounter = (mod.Counters.Activated[Slot.RenderIndex] or 0) * TriggerCounterMult
@@ -1529,18 +1515,12 @@ local function JimboInventoryHUD(_,_,_,_,_,Player)
         CardFrame:Render(FrameRenderPos)
     end
 end
-mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, JimboInventoryHUD)
+--mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, JimboInventoryHUD)
 
 
 local ConsumableScale = {}
 ---@param Player EntityPlayer
-local function JimboConsumableRender(_,_,_,_,_,Player)
-    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
-        return
-    end
-
-    --local IsCoop = Game:GetNumPlayers() > 1
-    local PIndex = Player:GetData().TruePlayerIndex
+local function JimboConsumableRender(Player, PIndex)
 
     local NumCards = 0
     for i, Slot in ipairs(mod.Saved.Player[PIndex].Consumables) do
@@ -1648,39 +1628,10 @@ local function JimboConsumableRender(_,_,_,_,_,Player)
     end
 
 end
-mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, JimboConsumableRender)
+--mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, JimboConsumableRender)
 
 
-
----@param Player EntityPlayer
-local function JimboChargeBarRender(_,_,_,_,_,Player)
-
-    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
-        return
-    end
-
-    local Data = Player:GetData()
-
-    if Data.ALThold ~= 0 then
-        
-        SellChargeSprite.Offset = CHARGE_BAR_OFFSET * Player.SpriteScale
-
-        local Frame = math.ceil(Data.ALThold * 1.33)
-
-        SellChargeSprite:SetFrame("Charging", Frame)
-
-        SellChargeSprite:Render(Isaac.WorldToScreen(Player.Position) + CameraOffset)
-    end
-end
---mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, JimboChargeBarRender)
-
-
-
-local function SkipTagsHUD(_,offset,_,Position,_,Player)
-
-    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
-        return
-    end
+local function SkipTagsHUD(Player, PIndex)
 
     --local PIndex = Player:GetData().TruePlayerIndex
 
@@ -1700,7 +1651,7 @@ local function SkipTagsHUD(_,offset,_,Position,_,Player)
     end
 
 end
-mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, SkipTagsHUD)
+--mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, SkipTagsHUD)
 
 
 --local LastPortraiedSprite
@@ -1713,16 +1664,13 @@ local BlindChipColor = mod.BalatroColorBlack    --= Color.Default
 
 --BIG ASS render functions
 ---@param Player EntityPlayer
-local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
+local function TJimbosLeftSideHUD(Player, PIndex)
 
-    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo
-       or BossIntroTime >= 60 then
+    if BossIntroTime >= 60 then
         return
     end
 
     local SCREEN_SHAKE = Game.ScreenShakeOffset
-
-    local PIndex = Player:GetData().TruePlayerIndex 
 
     local NullFrame
     local CenterPos
@@ -2922,13 +2870,12 @@ local function TJimbosLeftSideHUD(_,offset,_,Position,_,Player)
     end
 
 end
-mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, TJimbosLeftSideHUD)
+--mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, TJimbosLeftSideHUD)
 
 
-local function TJimboWarning(_,offset,_,Position,_,Player)
+local function TJimboWarning(Player, PIndex)
 
-    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo
-       or not mod.ScreenStrings.Warning.Type then
+    if not mod.ScreenStrings.Warning.Type then
         return
     end
 
@@ -2948,18 +2895,12 @@ local function TJimboWarning(_,offset,_,Position,_,Player)
     mod:RenderBalatroStyle(WARNING.String, Position, Params, WARNING.StartFrame, Vector(0.5, 0.5), Kcolor, Isaac.GetScreenWidth()-150)
 
 end
-mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, TJimboWarning)
+--mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, TJimboWarning)
 
 
 local DeckOverviewPos = Vector(1000, 0)
 
-local function TJimboRunInfo(_,offset,_,Position,_,Player)
-
-    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
-        return
-    end
-
-    local PIndex = Player:GetData().TruePlayerIndex
+local function TJimboRunInfo(Player, PIndex)
 
     local TargetPos
 
@@ -3091,22 +3032,23 @@ local function TJimboRunInfo(_,offset,_,Position,_,Player)
                            [mod.Suits.Diamond] = {}}
 
         local TotalSuitCount = {[mod.Suits.Spade] = 0,
-                            [mod.Suits.Heart] = 0,
-                            [mod.Suits.Club] = 0,
-                                [mod.Suits.Diamond] = 0}
+                                [mod.Suits.Heart] = 0,
+                                [mod.Suits.Club] = 0,
+                                [mod.Suits.Diamond] = 0
+                                }
 
         local TotalRankCount = {[1] = 0,
-                            [2] = 0,
-                            [3] = 0,
-                            [4] = 0,
-                            [5] = 0,
-                            [6] = 0,
-                            [7] = 0,
-                            [8] = 0,
-                            [9] = 0,
-                            [10] = 0,
-                            [mod.Values.JACK] = 0,
-                            [mod.Values.QUEEN] = 0,
+                                [2] = 0,
+                                [3] = 0,
+                                [4] = 0,
+                                [5] = 0,
+                                [6] = 0,
+                                [7] = 0,
+                                [8] = 0,
+                                [9] = 0,
+                                [10] = 0,
+                                [mod.Values.JACK] = 0,
+                                [mod.Values.QUEEN] = 0,
                                 [mod.Values.KING] = 0}
 
         --count the remaining cards in the deck
@@ -3114,7 +3056,8 @@ local function TJimboRunInfo(_,offset,_,Position,_,Player)
 
         if Pointer < mod.Saved.Player[PIndex].DeckPointer then --card is alredy in hand/used
 
-            if Card.Modifiers & mod.Modifier.COVERED ~= 0 then --player can't know what the card is so count it anyway
+            --player can't know what the card it is so count it anyway
+            if Card.Modifiers & mod.Modifier.COVERED ~= 0 then 
                 CoveredSeen = true
             else
                 goto CONTINUE --go to the next card
@@ -3271,7 +3214,13 @@ local function TJimboRunInfo(_,offset,_,Position,_,Player)
         local RenderPos = Layer:GetPos() + HUD_Pos
         RenderPos.X = RenderPos.X - Width/2
 
-        local CardStep = Width/(SuitNum + 1)
+        local CardStep
+
+        if mod.Saved.DSS.T_Jimbo.ShowUnavailableCards then
+            CardStep = Width/(#Pointers[Suit] + 1)
+        else
+            CardStep = Width/(SuitNum + 1)
+        end
 
         local ValueOffset = Vector.Zero
         local Thin = false
@@ -3289,8 +3238,15 @@ local function TJimboRunInfo(_,offset,_,Position,_,Player)
 
         for _, Pointer in ipairs(Pointers[Suit]) do
 
+            local color = Color()
+
             if Pointer < mod.Saved.Player[PIndex].DeckPointer then
-                goto CONTINUE
+
+                if mod.Saved.DSS.T_Jimbo.ShowUnavailableCards then
+                    color.A = 0.5
+                else
+                    goto CONTINUE
+                end
             end
 
             local Card = Deck[Pointer]
@@ -3308,6 +3264,7 @@ local function TJimboRunInfo(_,offset,_,Position,_,Player)
                     and MouseDistance.X <= (22 - CardStep))   then
                 
                 HoveredCard = Card
+                HoveredCard.COLOR = color
                 HoveredPos = RenderPos + Vector.Zero
 
                 goto CONTINUE --don't render it now, since glass cards would look funky
@@ -3319,16 +3276,14 @@ local function TJimboRunInfo(_,offset,_,Position,_,Player)
             local ForceCovered = false
             
 
-            mod:RenderCard(Card, RenderPos, ValueOffset, Scale, Rotation, ForceCovered, Thin)
+            mod:RenderCard(Card, RenderPos, ValueOffset, Scale, Rotation, ForceCovered, Thin, color)
 
             ::CONTINUE::
         end
         end
 
         if HoveredCard then
-
-
-            mod:RenderCard(HoveredCard, HoveredPos, Vector.Zero, Vector.One*1.1, 0, false, false)
+            mod:RenderCard(HoveredCard, HoveredPos, Vector.Zero, Vector.One*1.1, 0, false, false, HoveredCard.COLOR)
         end
 
     elseif mod.Saved.RunInfoMode == mod.RunInfoModes.BLINDS then
@@ -3931,10 +3886,33 @@ local function TJimboRunInfo(_,offset,_,Position,_,Player)
     end
 
 end
-mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, TJimboRunInfo)
+--mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, TJimboRunInfo)
 
 
 
+function mod:RenderTJimboHUD(Player)
+
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo 
+       or not mod.GameStarted then
+        return
+    end
+
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    JimboHandRender(Player, PIndex)
+    JimboDeckRender(Player, PIndex)
+    JimboPlayedHandRender(Player, PIndex)
+    JimboPackRender(Player, PIndex)
+    JimboInventoryHUD(Player, PIndex)
+    JimboConsumableRender(Player, PIndex)
+    SkipTagsHUD(Player, PIndex)
+    TJimbosLeftSideHUD(Player, PIndex)
+    TJimboWarning(Player, PIndex)
+    TJimboRunInfo(Player, PIndex)
+
+    mod:RenderEffect() --the wathever effects (has to be called here since HUD render is cancelled)
+    mod:RenderObjectDescription() --Custom balatro EID look
+end
 
 
 
@@ -4276,7 +4254,7 @@ local function PickupWobble(_, Pickup, Offset)
 
     local BaseOffset = Pickup.Variant == PickupVariant.PICKUP_TAROTCARD and -16 or -8
     
-    Pickup.SpriteOffset.Y, Pickup.SpriteRotation = JokerWobbleEffect(Pickup.InitSeed % 20, BaseOffset)
+    Pickup.SpriteOffset.Y, Pickup.SpriteRotation = mod:JokerWobbleEffect(Pickup.InitSeed % 20, BaseOffset)
 
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_RENDER, PickupWobble)

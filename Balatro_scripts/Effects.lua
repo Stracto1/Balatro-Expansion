@@ -65,11 +65,12 @@ function mod:CreateBalatroEffect(Index, Colour, Sound, Text, EffectType, Player,
         Index = Player
     end
 
+
     local IsEntity = EffectType == mod.EffectType.ENTITY
     local EffectSlot = EffectType
     local PIndex = Player:GetData().TruePlayerIndex
 
-    if IsEntity then --basically checks if it's an entity
+    if IsEntity then
 
         EffectSlot = GetPtrHash(Index)
         IsEntity = true
@@ -84,7 +85,7 @@ function mod:CreateBalatroEffect(Index, Colour, Sound, Text, EffectType, Player,
             if EffectType == Type 
                and (Type == mod.EffectType.ENTITY and EffectSlot == GetPtrHash(Params.Position.Ref)
                     or PIndex == Params.PIndex) then --entities effects are delayed only if the same entity has more than one effect
-
+                    
                 --print("posticipated")
                 Isaac.CreateTimer(function()
                                 mod:CreateBalatroEffect(Index, Colour, Sound, Text, EffectType, Player, Speed)--Source, Offset, Volume)
@@ -185,6 +186,7 @@ function mod:CreateBalatroEffect(Index, Colour, Sound, Text, EffectType, Player,
         mod.Counters.SinceCardTriggered[Index] = 1 --card trigger
     end
 
+
     EffectParams[EffectSlot].Type = EffectType
     EffectParams[EffectSlot].Speed = Speed
     EffectParams[EffectSlot].Frames = 0
@@ -196,6 +198,7 @@ function mod:CreateBalatroEffect(Index, Colour, Sound, Text, EffectType, Player,
     if Sound then
         sfx:Play(Sound, 1, 2, false, 0.95 + math.random()*0.1 + mod:Lerp(0, 2, (Speed-1)/2))
     end
+
     --print("created")
 end
 
@@ -239,6 +242,8 @@ function mod:RenderEffect(_,_,_,_,_)
                 return
             end
         else
+            --print("at: ", Params.Position)
+
             RenderPos = Params.Position + Params.Offset
         end
 

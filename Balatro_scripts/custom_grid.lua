@@ -76,6 +76,8 @@ local BALATRO_PLATE_SUFFIX = {
 }
 
 
+local NO_PLAYER_COUNTER = {}
+
 ---@param Plate GridEntityPressurePlate
 function mod:UpdateBalatroPlate(Plate,Init)
 
@@ -141,6 +143,7 @@ function mod:UpdateBalatroPlate(Plate,Init)
 
     end
 
+    local Index = Plate:GetGridIndex()
 
     local ShouldPlateBeAvailable = false
     
@@ -199,7 +202,13 @@ function mod:UpdateBalatroPlate(Plate,Init)
         ShouldPlateBeAvailable = true
     end
 
-    local AnyoneOnTop = Isaac.FindInRadius(Plate.Position, 10, EntityPartition.PLAYER)[1]
+    local AnyoneOnTop = Isaac.FindInRadius(Plate.Position, 13, EntityPartition.PLAYER)[1]
+
+    if AnyoneOnTop then
+        NO_PLAYER_COUNTER[Index] = 0
+    else
+        NO_PLAYER_COUNTER[Index] = NO_PLAYER_COUNTER[Index] and (NO_PLAYER_COUNTER[Index]+1) or 0
+    end
 
     local SomeoneIsSelecting = false
 
@@ -216,7 +225,7 @@ function mod:UpdateBalatroPlate(Plate,Init)
 
     ShouldPlateBeAvailable = ShouldPlateBeAvailable
                              and not mod.AnimationIsPlaying
-                             and not AnyoneOnTop
+                             and NO_PLAYER_COUNTER[Index] >= 10
                              and not SomeoneIsSelecting
 
 

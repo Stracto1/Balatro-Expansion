@@ -65,7 +65,9 @@
     <sound name="NOPE!">
         <sample weight="1" path="Nope!.wav" />
     </sound>
-
+    <sound name="SKIPTAG">
+        <sample weight="1" path="Skip Tag.wav" />
+    </sound>
 
 
     <sound name="SLIPSFX">

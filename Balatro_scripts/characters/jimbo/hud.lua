@@ -6,17 +6,16 @@ local ItemsConfig = Isaac.GetItemConfig()
 local sfx = SFXManager()
 
 local TrinketSprite = Sprite("gfx/005.350_trinket_custom.anm2")
-TrinketSprite.Offset = Vector(0, 8)
 local JactivateLength = TrinketSprite:GetAnimationData("Effect"):GetLength()
 local JidleLength = TrinketSprite:GetAnimationData("Idle"):GetLength()
 
+local BlindChips = Sprite("gfx/ui/Blind Chips.anm2")
 local BlindInicator = Sprite("gfx/ui/Blind_indicator.anm2")
 BlindInicator:SetFrame("Full",0)
 
 local InventoryFrame = {0,0,0}
 
 local SpecialCards = Sprite("gfx/ui/PackSpecialCards.anm2")
-local JimboCards = Sprite("gfx/ui/Card Body.anm2")
 local DeckSprite = Sprite("gfx/ui/Deck Stages.anm2")
 
 local MultCounter = Sprite("gfx/ui/Mult Counter.anm2")
@@ -61,9 +60,7 @@ local CHARGED_LOOP_ANIMATION = 5
 
 --local DECK_RENDERING_POSITION = Vector(110,15) --in screen coordinates
 local HAND_RENDERING_POSITION = Vector(40,30) --in screen coordinates
-local INVENTORY_RENDERING_POSITION = Vector(10,16)
-
-local INVENTORY_COOP_OFFSET = {[1]=Vector(-10,0), [0]=Vector(0,0)}
+local INVENTORY_RENDERING_POSITION = Vector(10,10)
 
 --local DECK_RENDERING_POSITION = Isaac.WorldToRenderPosition(Isaac.ScreenToWorld(Vector(760,745)))
 
@@ -118,19 +115,20 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
 
 
     if IsCoop then
-        BasePos = HeartPosition + INVENTORY_COOP_OFFSET[PIndex%2]
+        BasePos = HeartPosition + Vector(0,8)
 
-        if PIndex%2 == 0 then --adds heart offset
-            BasePos = BasePos + (Game:GetLevel():GetCurses()&LevelCurse.CURSE_OF_THE_UNKNOWN ~= 0 and Vector(15,0) or (math.min(12,Player:GetEffectiveMaxHearts())* Vector(5,0))) * PlayerRenderMult
+        if PIndex%2 == 1 then --adds heart offset
+            BasePos = BasePos + (Game:GetLevel():GetCurses()&LevelCurse.CURSE_OF_THE_UNKNOWN ~= 0 and Vector(15,0) or (math.min(12,Player:GetEffectiveMaxHearts())* Vector(6,0))) * PlayerRenderMult
         
         else --adds offset if player has an active
         
-            if Player:GetActiveItem(ActiveSlot.SLOT_PRIMARY) ~= 0 then
-                BasePos.X = BasePos.X -25
+            BasePos.X = BasePos.X - 4
+        
+            if Player:GetActiveItem(ActiveSlot.SLOT_PRIMARY) ~= CollectibleType.COLLECTIBLE_NULL then
+                BasePos.X = BasePos.X - 37
             end
         end
     end
-    --print(BasePos)
 
     for i,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
 
@@ -152,7 +150,6 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
             TrinketSprite:ReplaceSpritesheet(2, JokerConfig.GfxFileName, true)
 
             if mod.Counters.Activated[i] then
-                --print(mod.Counters.Activated[i], i)
 
                 TrinketSprite:SetFrame("Effect", mod.Counters.Activated[i])
 
@@ -170,12 +167,13 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
                 end
 
                 TrinketSprite:SetFrame("Idle", InventoryFrame[i])
-                --TrinketSprite:SetAnimation("Idle", false)
             end
 
             TrinketSprite:SetCustomShader(mod.EditionShaders[mod.Saved.Player[PIndex].Inventory[i].Edition])
             
         end
+
+        --RenderPos.Y = RenderPos.Y + 8*ScaleMult.Y
 
         TrinketSprite:Render(RenderPos)
 
@@ -196,7 +194,7 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
 
             RenderPos = mod.JokerFullPosition[Slot.RenderIndex]
         else
-            RenderPos = BasePos + Vector(23 * mod.SelectionParams[PIndex].Index , 0)
+            RenderPos = BasePos + Vector(23 * mod.SelectionParams[PIndex].Index , 0)*ScaleMult* PlayerRenderMult
         end
 
         CardFrame:SetFrame(HUD_FRAME.JokerFrame)
@@ -204,7 +202,7 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
         CardFrame:Render(RenderPos)
 
         --last confirm option
-        RenderPos = BasePos + Vector(23 * (#mod.Saved.Player[PIndex].Inventory + 1), 0) * ScaleMult * PlayerRenderMult
+        RenderPos = BasePos + Vector(23 * (#mod.Saved.Player[PIndex].Inventory + 1), -8) * ScaleMult * PlayerRenderMult
         
         
         if mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.SELLING then
@@ -284,7 +282,10 @@ function mod:JimboStatsHUD(offset,_,Position,_,Player)
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.JimboStatsHUD)
 
-
+local SINCE_CLEAR = {[mod.BLINDS.SMALL] = 0,
+                     [mod.BLINDS.BIG] = 0,
+                     [mod.BLINDS.BOSS] = 0}
+local BLIND_WIDTH = 22
 local function BlindProgressHUD(offset,_,Position,_,Player)
 
     --------BLIND PROGRESS-----------
@@ -300,100 +301,123 @@ local function BlindProgressHUD(offset,_,Position,_,Player)
         return
     end
 
+    local NumAvailable = 1
 
+    if SmallAvailable then
+        NumAvailable = NumAvailable + 1
+    end
     if BigAvailable then
-        
-        if SmallAvailable then
-            
-            BlindInicator:SetFrame("Full", 0)
-
-        else
-            BlindInicator:SetFrame("Big Boss", 0)
-        end
-    else
-        BlindInicator:SetFrame("Boss", 0)
+        NumAvailable = NumAvailable + 1
     end
 
 
-    local ScreenWidth = Isaac.GetScreenWidth()
-    local RenderPos = Vector(ScreenWidth - 55 ,25) + Vector(-20, 14)*Options.HUDOffset + Minimap:GetShakeOffset()
+    local BaseRenderPos = Vector(Isaac.GetScreenWidth()/2 - (BLIND_WIDTH/2)*(NumAvailable-1),13) + Vector(0, 14)*Options.HUDOffset + Minimap:GetShakeOffset()
 
-    BlindInicator:Render(RenderPos)
+    --BlindInicator:Render(RenderPos)
 
 
-    local String
-    local Position
-    local Params = mod.StringRenderingParams.Centered
-    local StartFrame = 0 --doesn't matter
-    local Scale
-    local Kcolor
-    local BoxWidth
-
-    ---SMALL BLIND
+    if SmallAvailable then --and mod.Saved.SmallCleared ~= mod.BlindProgress.DEFEATED then
     
-    if SmallAvailable then
-        BlindInicator:SetFrame(0)
-        local Frame = BlindInicator:GetNullFrame("String Positions")
+        BlindChips:SetFrame("Chips", 0)
+        
+        BlindInicator:Render(BaseRenderPos)
 
-        Position = RenderPos + Frame:GetPos()
-        Scale = Vector.One * 100 * Frame:GetScale().Y
-        BoxWidth = Frame:GetScale().X * 100
-    
+        local RenderPos = BaseRenderPos + Vector.Zero
+        local Rotation = 0
+
+        RenderPos.Y, Rotation = mod:JokerWobbleEffect(mod.BLINDS.SMALL, RenderPos.Y, 0.5)
+
+        BlindChips.Rotation = Rotation
+
+        local TriggerCounter = SINCE_CLEAR[mod.BLINDS.SMALL] * 12
+
+        BlindChips.Scale = Vector.One * (1 + math.min(0.5, 1.5*(1 - math.abs(math.cos(math.rad(TriggerCounter)))^0.5)))
+
+
+        BlindChips:Render(RenderPos)
+
         if mod.Saved.SmallCleared == mod.BlindProgress.DEFEATED then
-            Kcolor = mod.EffectKColors.YELLOW
-            String = mod:GetEIDString("Other","Cleared")
+
+            SINCE_CLEAR[mod.BLINDS.SMALL] = math.min(SINCE_CLEAR[mod.BLINDS.SMALL] + 1, 15)
+
+            BlindChips:SetCustomShader(mod.EditionShaders.DEBUFF_SMALL)
+            BlindChips:Render(RenderPos)
+            BlindChips:ClearCustomShader()
 
         else
-            Kcolor = KColor.White
-            String = mod:GetEIDString("Other","NotCleared")
+            SINCE_CLEAR[mod.BLINDS.SMALL] = 0
         end
     
-        mod:RenderBalatroStyle(String, Position, Params, StartFrame, Scale, Kcolor, BoxWidth)
+        BaseRenderPos.X = BaseRenderPos.X + BLIND_WIDTH
     end
 
 
     ---BIG BLIND
     
     if BigAvailable then
-        BlindInicator:SetFrame(1)
-        local Frame = BlindInicator:GetNullFrame("String Positions")
-
-        Position = RenderPos + Frame:GetPos()
-        Scale = Vector.One * 100 * Frame:GetScale().Y
-        BoxWidth = Frame:GetScale().X * 100
+    
+        BlindChips:SetFrame("Chips", 1)
         
-        if mod.Saved.BigCleared == mod.BlindProgress.DEFEATED then
-            Kcolor = mod.EffectKColors.YELLOW
-            String = mod:GetEIDString("Other","Cleared")
+        BlindInicator:Render(BaseRenderPos)
 
+        local RenderPos = BaseRenderPos + Vector.Zero
+        local Rotation = 0
+
+        RenderPos.Y, Rotation = mod:JokerWobbleEffect(mod.BLINDS.BIG, RenderPos.Y, 0.5)
+        
+        BlindChips.Rotation = Rotation
+
+        local TriggerCounter = SINCE_CLEAR[mod.BLINDS.BIG] * 12
+
+        BlindChips.Scale = Vector.One * (1 + math.min(0.5, 1.5*(1 - math.abs(math.cos(math.rad(TriggerCounter)))^0.5)))
+
+
+        BlindChips:Render(RenderPos)
+
+        if mod.Saved.BigCleared == mod.BlindProgress.DEFEATED then
+
+            SINCE_CLEAR[mod.BLINDS.BIG] = math.min(15, SINCE_CLEAR[mod.BLINDS.BIG] + 1)
+
+            BlindChips:SetCustomShader(mod.EditionShaders.DEBUFF_SMALL)
+            BlindChips:Render(RenderPos)
+            BlindChips:ClearCustomShader()
         else
-            Kcolor = KColor.White
-            String = mod:GetEIDString("Other","NotCleared")
+            SINCE_CLEAR[mod.BLINDS.BIG] = 0
         end
     
-        mod:RenderBalatroStyle(String, Position, Params, StartFrame, Scale, Kcolor, BoxWidth)
+        BaseRenderPos.X = BaseRenderPos.X + BLIND_WIDTH
     end
 
-    --BOSS BLINDS (always available if rendering)
-    
-    BlindInicator:SetFrame(2)
-    local Frame = BlindInicator:GetNullFrame("String Positions")
+    --BOSS BLIND (always available if rendering)
+        
+   BlindChips:SetFrame("Chips", 2)
+   
+   BlindInicator:Render(BaseRenderPos)
 
-    Position = RenderPos + Frame:GetPos()
-    Scale = Vector.One * 100 * Frame:GetScale().Y
-    BoxWidth = Frame:GetScale().X * 100
-    
-    if mod.Saved.BossCleared == mod.BlindProgress.DEFEATED then
-        Kcolor = mod.EffectKColors.YELLOW
-        String = mod:GetEIDString("Other","Cleared")
+   local RenderPos = BaseRenderPos + Vector.Zero
+   local Rotation = 0
 
-    else
-        Kcolor = KColor.White
-        String = mod:GetEIDString("Other","NotCleared")
-    end
+   RenderPos.Y, Rotation = mod:JokerWobbleEffect(mod.BLINDS.BOSS, RenderPos.Y, 0.5)
+   
+   BlindChips.Rotation = Rotation
 
-    mod:RenderBalatroStyle(String, Position, Params, StartFrame, Scale, Kcolor, BoxWidth)
+   local TriggerCounter = SINCE_CLEAR[mod.BLINDS.BOSS] * 12
 
+   BlindChips.Scale = Vector.One * (1 + math.min(0.5, 1.5*(1 - math.abs(math.cos(math.rad(TriggerCounter)))^0.5)))
+
+
+   BlindChips:Render(RenderPos)
+
+   if mod.Saved.BossCleared == mod.BlindProgress.DEFEATED then
+
+       SINCE_CLEAR[mod.BLINDS.BOSS] = math.min(15, SINCE_CLEAR[mod.BLINDS.BOSS] + 1)
+
+       BlindChips:SetCustomShader(mod.EditionShaders.DEBUFF_SMALL)
+       BlindChips:Render(RenderPos)
+       BlindChips:ClearCustomShader()
+   else
+       SINCE_CLEAR[mod.BLINDS.BOSS] = 0
+   end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, BlindProgressHUD)
 
@@ -406,6 +430,7 @@ function mod:HandBarRender(offset,_,Position,_,Player)
         return
     end
     local PIndex = Player:GetData().TruePlayerIndex
+    local PlayerRenderMult = PIndex%2 == 0 and -1 or 1
 
     --print(mod.Saved.Player[PIndex])
     if mod.Saved.Player[PIndex].FirstDeck and not Game:GetRoom():IsClear() then
@@ -418,7 +443,7 @@ function mod:HandBarRender(offset,_,Position,_,Player)
 
     local HandsRemaining = Player:GetCustomCacheValue("hands")
     local PartialHands = nil
-    local Offset = Vector(20, 12)*Options.HUDOffset
+    local Offset = Vector(0, 14)*PlayerRenderMult+ Vector(20, 12)*Options.HUDOffset
 
     while HandsRemaining > 0 do --up to 35 are displayed in 1 bar, then a sencond one appears and so on
 
@@ -443,8 +468,8 @@ function mod:HandBarRender(offset,_,Position,_,Player)
         HandsBarFilling:SetFrame(Animation:GetName(), Frame)
 
 
-        HandsBar:Render(HAND_RENDERING_POSITION + Offset)
-        HandsBarFilling:Render(HAND_RENDERING_POSITION + Offset)
+        HandsBar:Render(Position + Offset)
+        HandsBarFilling:Render(Position + Offset)
 
         HandsRemaining = HandsRemaining - PartialHands
         Offset = Offset + Vector(0,10)
@@ -466,7 +491,8 @@ function mod:JimboHandRender(Player, Offset)
     local PlayerScreenPos = Isaac.WorldToRenderPosition(Player.Position)
 
 
-    local TargetScale = 0.5
+    local TargetScale = mod.Saved.DSS.Jimbo.HandScale
+    
     if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.HAND then
         TargetScale = 1 --while selecting the the cards gets bigger
     end
@@ -475,9 +501,9 @@ function mod:JimboHandRender(Player, Offset)
         ScaleMult = mod:Lerp(1.5 - TargetScale,TargetScale, mod.SelectionParams[PIndex].Frames/5)
     end
 
-    local BaseRenderOff = Vector(-7 *(#mod.Saved.Player[PIndex].CurrentHand-1), 26 ) * ScaleMult
+    local BaseRenderPos = PlayerScreenPos + Offset + Vector(-7 *(#mod.Saved.Player[PIndex].CurrentHand-1), 26)* ScaleMult
 
-    local RenderOff = BaseRenderOff + Vector.Zero
+    local RenderPos = BaseRenderPos + Vector.Zero
     local TrueOffset = {}
 
     
@@ -486,19 +512,19 @@ function mod:JimboHandRender(Player, Offset)
         if Card then
 
             if mod.SelectionParams[PIndex].SelectedCards[i] and mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.HAND then
-                RenderOff.Y = RenderOff.Y -  8
+                RenderPos.Y = RenderPos.Y -  8
             end
              --moves up selected cards
 
 
-            mod.CardFullPoss[Pointer] = mod.CardFullPoss[Pointer] or RenderOff --check nil
+            mod.CardFullPoss[Pointer] = mod.CardFullPoss[Pointer] or RenderPos --check nil
 
-            TrueOffset[Pointer] = Vector(mod:Lerp(mod.CardFullPoss[Pointer].X, RenderOff.X, mod.Counters.SinceShift/5)
-                               ,mod:Lerp(mod.CardFullPoss[Pointer].Y, RenderOff.Y, mod.Counters.SinceSelect/1.25))
+            TrueOffset[Pointer] = Vector(mod:Lerp(mod.CardFullPoss[Pointer].X, RenderPos.X, mod.Counters.SinceShift/5)
+                               ,mod:Lerp(mod.CardFullPoss[Pointer].Y, RenderPos.Y, mod.Counters.SinceSelect/1.25))
             
 
-            if TrueOffset[Pointer].X == RenderOff.X and TrueOffset[Pointer].Y == RenderOff.Y then
-                mod.CardFullPoss[Pointer] = RenderOff + Vector.Zero
+            if TrueOffset[Pointer].X == RenderPos.X and TrueOffset[Pointer].Y == RenderPos.Y then
+                mod.CardFullPoss[Pointer] = RenderPos + Vector.Zero
             end
 
 
@@ -510,46 +536,29 @@ function mod:JimboHandRender(Player, Offset)
             local ForceCovered = false
             local Thin = false
 
-            local RenderPos = PlayerScreenPos + TrueOffset[Pointer] + Offset
-
-            mod:RenderCard(Card, RenderPos, ValueOffset, Scale,Rotation, ForceCovered, Thin)
+            mod:RenderCard(Card, TrueOffset[Pointer], ValueOffset, Scale,Rotation, ForceCovered, Thin)
         end
 
-        RenderOff = Vector(RenderOff.X + 14*ScaleMult, BaseRenderOff.Y)
+        RenderPos = Vector(RenderPos.X + 14*ScaleMult, BaseRenderPos.Y)
     end
 
     if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.HAND then
 
         --last confirm option
-        RenderOff = BaseRenderOff + Vector(14 * (#mod.Saved.Player[PIndex].CurrentHand), 0)
+        RenderPos = BaseRenderPos + Vector(14 * (#mod.Saved.Player[PIndex].CurrentHand), 0)
         CardFrame:SetFrame(HUD_FRAME.Hand)
-        CardFrame:Render(PlayerScreenPos + RenderOff + Offset)
+        CardFrame:Render(RenderPos)
 
 
-
-        RenderOff = BaseRenderOff + Vector(14 * (mod.SelectionParams[PIndex].Index - 1) * ScaleMult, 0)
+        RenderPos = BaseRenderPos + Vector(14 * (mod.SelectionParams[PIndex].Index - 1) * ScaleMult, 0)
 
         if mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams[PIndex].Index] then
-            RenderOff.Y = RenderOff.Y - 8
+            RenderPos.Y = RenderPos.Y - 8
         end
 
         CardFrame.Scale = Vector(ScaleMult, ScaleMult)
         CardFrame:SetFrame(HUD_FRAME.CardFrame)
-        CardFrame:Render(PlayerScreenPos + (TrueOffset[mod.Saved.Player[PIndex].CurrentHand[mod.SelectionParams[PIndex].Index]] or RenderOff)  + Offset)
-
-
-        --HAND TYPE TEXT RENDER--
-        --mod.Fonts.Balatro:DrawString(HAND_TYPE_NAMES[mod.Saved.HandType],DECK_RENDERING_POSITION.X + 50,DECK_RENDERING_POSITION.Y -100,KColor(1,1,1,1))
-
-        --[[allows mouse controls to be used as a way to select cards--
-        local MousePosition = Isaac.WorldToScreen(Input.GetMousePosition(true))
-        if MousePosition.X >= DECK_RENDERING_POSITION.X and MousePosition.Y >= DECK_RENDERING_POSITION.Y  then
-            local HandMousePosition = math.ceil((MousePosition.X - (DECK_RENDERING_POSITION.X))/CardHUDWidth)
-            if HandMousePosition <= mod.Saved.Player[PIndex].HandSize + 1 then
-                mod.SelectionParams[PIndex].Index = HandMousePosition
-            end
-        end]]
-
+        CardFrame:Render(RenderPos)
     else
         ------DECK RENDERING----------
 
@@ -558,19 +567,16 @@ function mod:JimboHandRender(Player, Offset)
         --shows how many cards are left in the deck
         DeckSprite:SetFrame("idle", math.ceil(CardsLeft/7))
 
-        DeckSprite.Scale = Vector.One/2
-        --local HeartsOffset = Vector(3.5 * math.min(Player:GetMaxHearts(),12),0)
+        DeckSprite.Scale = Vector.One*ScaleMult
 
-        --DeckSprite:Render(DECK_RENDERING_POSITION + Vector(20, 14)*Options.HUDOffset + HeartsOffset)
-        DeckSprite:Render(PlayerScreenPos + Offset + BaseRenderOff - Vector(9.5,0))
+        DeckSprite:Render(BaseRenderPos - Vector(18,0)*ScaleMult)
 
 
-
-        RenderOff = BaseRenderOff + Vector(14 * (#mod.Saved.Player[PIndex].CurrentHand - 1) * ScaleMult, 0)
+        RenderPos = BaseRenderPos + Vector(14 * (#mod.Saved.Player[PIndex].CurrentHand - 1) * ScaleMult, 0)
 
         CardFrame.Scale = Vector(ScaleMult, ScaleMult)
         CardFrame:SetFrame(HUD_FRAME.CardFrame)
-        CardFrame:Render(PlayerScreenPos + RenderOff + Offset)
+        CardFrame:Render(RenderPos)
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_RENDER, mod.JimboHandRender,PlayerVariant.PLAYER)
@@ -703,7 +709,7 @@ function mod:JimboBarRender(Player)
 
         local TrueMadDelay = Player:GetCustomCacheValue(mod.CustomCache.HAND_COOLDOWN)
        
-        local Firedelay = TrueMadDelay - (Player.FireDelay + 1) -- the minimum value is -1, but that would fuck up calculations
+        local Firedelay = TrueMadDelay - math.max(Player.FireDelay, 0) -- the minimum value is -1, but that would fuck up calculations
 
         local Frame = math.floor(100 * Firedelay/TrueMadDelay)
 

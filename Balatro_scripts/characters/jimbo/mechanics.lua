@@ -634,7 +634,7 @@ local function AddOneMoreShop()
         local ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_3
 
         if PlayerManager.AnyoneHasCollectible(mod.Vouchers.OverstockPlus) then
-            ShopQuality= RoomSubType.SHOP_KEEPER_LEVEL_5
+            ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_5
         elseif PlayerManager.AnyoneHasCollectible(mod.Vouchers.Overstock) then
             ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_4
         end
@@ -648,7 +648,7 @@ local function AddOneMoreShop()
         local StartIndex = Level:GetStartingRoomIndex()
         local StartPos = Vector(StartIndex % 13, StartIndex // 13)
 
-        local ValidIndexes = Level:FindValidRoomPlacementLocations(ExtraShop, Dimension.NORMAL, false)
+        local ValidIndexes = Level:FindValidRoomPlacementLocations(ExtraShop, Dimension.NORMAL, false, false)
 
 
         local RoomDesc
@@ -704,8 +704,6 @@ function mod:CalculateBlinds()
         end
     end
 
-    
-
     if mod.Saved.SmallCleared == mod.BlindProgress.NOT_CLEARED then
         BlindsSkipped = BlindsSkipped + 1
         SkippedFlag = SkippedFlag & mod.BLINDS.SMALL
@@ -720,22 +718,75 @@ function mod:CalculateBlinds()
     end
 
 
+
+
+    Isaac.CreateTimer(function ()
+        
+    local Interval = 10
+    local PACK_INTEVAL = 5
+
+    if mod.Saved.SmallCleared == mod.BlindProgress.NOT_CLEARED then
+
+        Isaac.CreateTimer(function ()
+            Isaac.CreateTimer(function ()
+
+                local Pack = mod:RandomPack(mod.RNGs.SKIP_TAGS, false)
+
+                Game:Spawn(5, 300, Jimbo.Position, RandomVector()*5, Jimbo, Pack, mod:RandomSeed(mod.RNGs.SKIP_TAGS))
+
+            end, PACK_INTEVAL, NumPacks, true)
+            sfx:Play(mod.Sounds.SKIP_TAG, 1, 2, false, 0.95 + math.random()*0.1)
+        end, Interval, 1, true)
+
+        Interval = Interval + PACK_INTEVAL*NumPacks + 15
+
+        mod:CreateBalatroEffect(Jimbo, mod.EffectColors.YELLOW ,mod.Sounds.ACTIVATE, "Skipped!", mod.EffectType.ENTITY, Jimbo)
+    end
+    if mod.Saved.BigBlind == mod.BlindProgress.NOT_CLEARED then
+
+        Isaac.CreateTimer(function ()
+            Isaac.CreateTimer(function ()
+                
+                local Pack = mod:RandomPack(mod.RNGs.SKIP_TAGS, false)
+            
+                Game:Spawn(5, 300, Jimbo.Position, RandomVector()*5, Jimbo, Pack, mod:RandomSeed(mod.RNGs.SKIP_TAGS))
+            
+            end, PACK_INTEVAL, NumPacks, true)
+
+            sfx:Play(mod.Sounds.SKIP_TAG, 1, 2, false, 0.95 + math.random()*0.1)
+        end, Interval, 1, true)
+
+        Interval = Interval + PACK_INTEVAL*NumPacks + 15
+
+        mod:CreateBalatroEffect(Jimbo, mod.EffectColors.YELLOW ,mod.Sounds.ACTIVATE, "Skipped!", mod.EffectType.ENTITY, Jimbo)
+    
+    end
+    if mod.Saved.BossCleared == mod.BlindProgress.NOT_CLEARED then
+
+        Isaac.CreateTimer(function ()
+            Isaac.CreateTimer(function ()
+                
+                local Pack = mod:RandomPack(mod.RNGs.SKIP_TAGS, false)
+            
+                Game:Spawn(5, 300, Jimbo.Position, RandomVector()*5, Jimbo, Pack, mod:RandomSeed(mod.RNGs.SKIP_TAGS))
+            
+            end, PACK_INTEVAL, NumPacks, true)
+            sfx:Play(mod.Sounds.SKIP_TAG, 1, 2, false, 0.95 + math.random()*0.1)
+        end, Interval, 1, true)
+
+        Interval = Interval + PACK_INTEVAL*NumPacks + 15
+
+        mod:CreateBalatroEffect(Jimbo, mod.EffectColors.YELLOW ,mod.Sounds.ACTIVATE, "Skipped!", mod.EffectType.ENTITY, Jimbo)
+    
+    end
+
+    end,0,1,true)
+
+
     if BlindsSkipped ~= 0 then
 
         mod.Saved.RunSkippedBlinds = mod.Saved.RunSkippedBlinds + BlindsSkipped
 
-        Isaac.CreateTimer(function ()
-        Isaac.CreateTimer(function ()
-            
-            local Pack = mod:RandomPack(mod.RNGs.SKIP_TAGS, false)
-
-            Game:Spawn(5, 300, Jimbo.Position, RandomVector()*5, Jimbo, Pack, mod:RandomSeed(mod.RNGs.SKIP_TAGS))
-
-        end, 5, BlindsSkipped * NumPacks, true)
-        end, 5, 1, true)
-
-        mod:CreateBalatroEffect(Jimbo, mod.EffectColors.YELLOW ,mod.Sounds.ACTIVATE, "Skipped!", mod.EffectType.ENTITY, Jimbo)
-    
         Isaac.RunCallback(mod.Callbalcks.BLIND_SKIP, SkippedFlag)
     end
 
@@ -745,10 +796,6 @@ function mod:CalculateBlinds()
     mod.Saved.SmallCleared = SmallAvailable and mod.BlindProgress.NOT_CLEARED or mod.BlindProgress.CLEARED
     mod.Saved.BigCleared = BigAvailable and mod.BlindProgress.NOT_CLEARED or mod.BlindProgress.CLEARED
     mod.Saved.BossCleared = BossAvailable and mod.BlindProgress.NOT_CLEARED or mod.BlindProgress.CLEARED
-
-
-
-    --Isaac.RunCallback("BLIND_STARTED", mod.BLINDS.SMALL)
 end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.CalculateBlinds)
 --mod:AddPriorityCallback(ModCallbacks.MC_POST_GAME_STARTED, CallbackPriority.LATE,mod.CalculateBlinds)
@@ -1031,6 +1078,15 @@ function mod:GiveRewards(BlindType)
         return
     end
 
+    sfx:Play(mod.Sounds.TIMPANI)
+    if BlindType == mod.BLINDS.SMALL then
+        mod.Saved.SmallCleared = mod.BlindProgress.DEFEATED
+    elseif BlindType == mod.BLINDS.BIG then
+        mod.Saved.BigCleared = mod.BlindProgress.DEFEATED
+    elseif BlindType == mod.BLINDS.BOSS then
+        mod.Saved.BossCleared = mod.BlindProgress.DEFEATED
+    end
+
     local Seed = Game:GetSeeds():GetStartSeed()
 
     --calculates the ammount of interests BEFORE giving the clear reward
@@ -1089,9 +1145,6 @@ function mod:GiveRewards(BlindType)
 
     Interests = Interests * (ToTheMoonNum+1)
 
-    --if mod.Saved.Player[PIndex].FirstDeck then
-        --Jimbo:AddCoins(2)
-    --end
 
     --gives interest
     Isaac.CreateTimer(function ()
@@ -1099,8 +1152,8 @@ function mod:GiveRewards(BlindType)
 
         for i = 1, Interests do
             Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Jimbo.Position,
-            RandomVector() * 4, PlayerManager.FirstPlayerByType(mod.Characters.JimboType),
-            CoinSubType.COIN_PENNY, Seed)
+                       RandomVector() * 4, PlayerManager.FirstPlayerByType(mod.Characters.JimboType),
+                       CoinSubType.COIN_PENNY, Seed)
 
             --Balatro_Expansion:EffectConverter(8,0,Jimbo,4) a relic from old times
         end
@@ -1418,6 +1471,10 @@ function mod:JokerStatReset(Player, Cache)
         return
     end
 
+    if not mod.Saved.Player[Player:GetData().TruePlayerIndex] then
+        return
+    end
+
     --Isaac.DebugString("-----START RESET------")
 
     --resets the jokers stat boosts every evaluation since otherwise they would infinitely stack
@@ -1427,7 +1484,7 @@ function mod:JokerStatReset(Player, Cache)
 
     --Isaac.DebugString("-----END RESET------")
 end
-mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE + 1, mod.JokerStatReset)
+mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,mod.JimboStatPriority.JOKER_RESET, mod.JokerStatReset)
 
 ---@param Player EntityPlayer
 ---@param Cache CacheFlag
@@ -1438,6 +1495,11 @@ function mod:JimboStatCalculator(Player, Cache)
     if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted then
         return
     end
+
+    if not mod.Saved.Player[Player:GetData().TruePlayerIndex] then
+        return
+    end
+
     --literally spent hours making calculations for stats just to realize that 1 single ratio is the best thing to do
 
     if Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
@@ -1449,7 +1511,7 @@ function mod:JimboStatCalculator(Player, Cache)
         Player.MaxFireDelay = mod:CalculateMaxFireDelay((mod:CalculateTears(Player.MaxFireDelay)/ 2.7272))
     end
 end
-mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE + 2, mod.JimboStatCalculator)
+mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,mod.JimboStatPriority.CALCULATE, mod.JimboStatCalculator)
 
 
 ---@param Player EntityPlayer
@@ -1462,6 +1524,10 @@ function mod:StatReset(Player, Damage, Tears, Evaluate, Jokers, Basic)
     end
 
     local PIndex = Player:GetData().TruePlayerIndex
+
+    if not mod.Saved.Player[PIndex] then
+        return
+    end
 
     if Damage then
         if Basic then
@@ -1524,12 +1590,16 @@ function mod:StatGiver(Player, Cache)
 
     local PIndex = Player:GetData().TruePlayerIndex
 
+    if not mod.Saved.Player[PIndex] then
+        return
+    end
+
     local stats = mod.Saved.Player[PIndex].StatsToAdd
 
     if Player:GetPlayerType() == mod.Characters.JimboType then
         if Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
 
-        local BaseDamage = Player.Damage
+        local BaseDamage = Player.Damage + 0
 
         --Player.Damage = (Player.Damage + (stats.Damage + stats.JokerDamage) * Player.Damage) * stats.JokerMult * stats.Mult
         mod.Saved.Player[PIndex].TrueDamageValue = (BaseDamage + stats.Damage + stats.JokerDamage) * stats.JokerMult * stats.Mult
@@ -1580,7 +1650,7 @@ function mod:StatGiver(Player, Cache)
     end
 
 end
-mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE + 5, mod.StatGiver)
+mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,mod.JimboStatPriority.GIVE, mod.StatGiver)
 
 
 function mod:IncreaseJimboStats(Player,TearsUp,DamageUp,Mult, Evaluate, Basic)
@@ -1625,7 +1695,8 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.AlwaysMaxCoins, "maxc
 
 ---@param Player EntityPlayer
 function mod:PlayCDCache(Player, Cache, Value)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted then
+    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted
+       or not mod.Saved.Player[Player:GetData().TruePlayerIndex] then
         return
     end
 
@@ -1675,7 +1746,8 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.EnsurePlayCD)
 
 ---@param Player EntityPlayer
 function mod:InventorySizeCache(Player, Cache, Value)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted then
+    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted
+       or not mod.Saved.Player[Player:GetData().TruePlayerIndex] then
         return
     end
 
@@ -1702,7 +1774,8 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.InventorySizeCache, m
 
 ---@param Player EntityPlayer
 function mod:HandSizeCache(Player, Cache, Value)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted then
+    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted
+       or not mod.Saved.Player[Player:GetData().TruePlayerIndex] then
         return
     end
 
@@ -1748,7 +1821,8 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.HandSizeCache, mod.Cu
 
 ---@param Player EntityPlayer
 function mod:DiscardNumCache(Player, Cache, Value)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted then
+    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted
+       or not mod.Saved.Player[Player:GetData().TruePlayerIndex] then
         return
     end
 
@@ -1789,6 +1863,10 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.DiscardNumCache, mod.
 ---@param Player EntityPlayer
 function mod:HandsCache(Player, Cache, Value)
     if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted then
+        return
+    end
+
+    if not mod.Saved.Player[Player:GetData().TruePlayerIndex] then
         return
     end
 

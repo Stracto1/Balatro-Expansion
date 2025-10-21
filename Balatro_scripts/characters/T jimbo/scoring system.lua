@@ -76,6 +76,7 @@ local function IncreaseChips(Player, PIndex, Amount, EffectType, Index, SpeedMul
 
             mod:CreateBalatroEffect(Index, mod.EffectColors.BLUE, mod.Sounds.CHIPS,
                                     "+"..tostring(Amount), EffectType, Player, NumEffectsToSpeed(NumEffectPlayed) * SpeedMult)
+        
         end
         
     end, IntervalTime(NumEffectPlayed, SpeedMult),1,true)
@@ -3804,6 +3805,19 @@ local function OnDamageTaken(_, Player)
             end, Interval, 1, true)
         end
 
+    end
+
+    if mod.Saved.DSS.T_Jimbo.Vulnerability then
+
+        local Money = mod.Saved.DebtAmount == 0 and Player:GetNumCoins() or 0
+
+        local Cost = math.min(math.ceil(Money/10), 15)
+
+        mod:SpendMoney(Cost)
+
+        if Cost > 0 then
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.DEBUFFED, "-"..Cost.."$", mod.EffectType.ENTITY, Player)
+        end
     end
 end
 mod:AddCallback(mod.Callbalcks.DAMAGE_TAKEN, OnDamageTaken)

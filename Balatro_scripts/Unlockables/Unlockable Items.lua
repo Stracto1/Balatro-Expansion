@@ -137,8 +137,6 @@ TeethStates.CHARGE = 2
 TeethStates.TIRED = 3
 TeethStates.START_SLEEP = 4
 
-local TEETH_RICH_PATH = "gfx/familiar/teeth_but_rich_familiar.png"
-
 
 --for whatever reason the collisionInterval in .xml does nothing by itself so gotta do stuff manually
 local FamiliarCollisionInterval = {}
@@ -560,19 +558,6 @@ function mod:FamiliarInit(Familiar)
         Familiar.MaxHitPoints = 16 * Familiar:GetMultiplier()
 
         Familiar:GetSprite():ReplaceSpritesheet(0, "gfx/familiar/familiar_Baloon_Puppy"..PuppyColorsSuffix[math.random(ColorSubType.NUM_COLORS)]..".png", true)
-    
-    elseif Familiar.Variant == mod.Familiars.TEETH then
-    
-        if Familiar.Player:HasCollectible(CollectibleType.COLLECTIBLE_MIDAS_TOUCH) then
-            Familiar:GetSprite():ReplaceSpritesheet(0, TEETH_RICH_PATH, true)
-
-        else
-            Familiar:GetSprite():Reload()
-        end
-
-        Familiar.State = TeethStates.IDLE
-        Familiar.FireCooldown = 300
-        Familiar.GridCollisionClass = EntityGridCollisionClass.GRIDCOLL_GROUND
 
     elseif Familiar.Variant == mod.Familiars.CERES then
 
@@ -583,6 +568,11 @@ function mod:FamiliarInit(Familiar)
         Familiar.FireCooldown = 0
 
         Familiar:GetSprite().PlaybackSpeed = 0.02 --orbits real slow
+
+    elseif Familiar.Variant == mod.Familiars.TEETH then
+        Familiar.State = TeethStates.IDLE
+        Familiar.FireCooldown = 300
+        Familiar.GridCollisionClass = EntityGridCollisionClass.GRIDCOLL_GROUND
     end
 end
 mod:AddCallback(ModCallbacks.MC_FAMILIAR_INIT, mod.FamiliarInit)
@@ -751,17 +741,22 @@ function mod:FamiliarUpdate(Familiar)
 
         if Familiar.State == TeethStates.IDLE
            or Familiar.State == TeethStates.CHASE then
+
+            --Familiar.FireCooldown =  math.max(Familiar.FireCooldown - 5, 0) --for tests
             
-            Familiar:PickEnemyTarget(400, 13, 8)
+            Familiar:PickEnemyTarget(400, 13, 10)
 
             if Familiar.Target then
-                Familiar:GetPathFinder():FindGridPath(Familiar.Target.Position, 1.5, 0, true)
+
+                local Speed = 1.65 + 0.4*Familiar.Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_DOG_TOOTH)
+
+                Familiar:GetPathFinder():FindGridPath(Familiar.Target.Position, Speed, 0, true)
 
                 Familiar.State = TeethStates.CHASE
 
             elseif (Familiar.Player.Position - Familiar.Position):Length() > 60 then
 
-                Familiar:GetPathFinder():FindGridPath(Familiar.Player.Position, 0.9, 0, true)
+                Familiar:GetPathFinder():FindGridPath(Familiar.Player.Position, 0.9, 0, false)
 
                 Familiar.State = TeethStates.IDLE
             else
@@ -808,8 +803,6 @@ function mod:FamiliarUpdate(Familiar)
                 sfx:Play(SoundEffect.SOUND_THUMBS_DOWN)
             end
 
-
-
         elseif Familiar.State == TeethStates.TIRED then --currently not being charged by anyone
         
 
@@ -829,11 +822,39 @@ function mod:FamiliarUpdate(Familiar)
                 
                 elseif Sprite:IsEventTriggered("OpenMouth") then
 
-                    sfx:Play(SoundEffect.SOUND_THUMBSUP, 0.9)
+                    sfx:Play(SoundEffect.SOUND_THUMBSUP, 0.7)
+
+                    if Familiar.Player:HasCollectible(CollectibleType.COLLECTIBLE_MAW_OF_THE_VOID) then
+                        
+                        local ExtraItems = Familiar.Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_MAW_OF_THE_VOID)-1
+
+                        local Laser = Familiar.Player:SpawnMawOfVoid(55 + 20*ExtraItems)
+                    
+                        Laser.Parent = Familiar
+                        Laser:SetDisableFollowParent(false)
+                        Laser:SetDamageMultiplier((0.75+0.25*ExtraItems)*Familiar:GetMultiplier())
+
+                        Laser.Radius = 45
+                    
+                    end
                 end
             end
         end
 
+        if Familiar.Player:HasCollectible(CollectibleType.COLLECTIBLE_APPLE) then
+            
+            if Game:GetFrameCount() % 17 == 0 
+               or Game:GetFrameCount() % 23 == 0 then
+                
+                local Creep = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.PLAYER_CREEP_RED, Familiar.Position,
+                                     Vector.Zero, Familiar, 0, 1):ToEffect()
+
+                Creep.SpriteScale = Vector.One * (0.65 + math.random()*0.5*Familiar:GetMultiplier())
+                Creep:Update()
+
+                Creep.CollisionDamage = 0.65*Familiar:GetMultiplier()
+            end
+        end
 
     elseif Familiar.Variant == mod.Familiars.CERES then
 
@@ -1007,11 +1028,7 @@ function mod:FamiliarCollision(Familiar, Collider,_)
                     Familiar:AddEntityFlags(EntityFlag.FLAG_NO_SPRITE_UPDATE)
                     Familiar.State = TeethStates.CHARGE
                 end
-            else
-                
             end
-
-            
 
         elseif Familiar.State == TeethStates.CHASE then
             
@@ -1021,9 +1038,53 @@ function mod:FamiliarCollision(Familiar, Collider,_)
                 return
             end
 
-            local DamageDealt = 1.45 * Familiar:GetMultiplier() + 0.15*Game:GetLevel():GetAbsoluteStage()
+            local AdditionalMult = 1 + 0.15*Familiar.Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_DOG_TOOTH)
+                                     + 0.35*Familiar.Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_TOUGH_LOVE)
+
+            local DamageDealt = 1.4 + 0.2*Game:GetLevel():GetAbsoluteStage()
+            DamageDealt = DamageDealt * Familiar:GetMultiplier() * AdditionalMult
+
+            --Familiar.CollisionDamage = DamageDealt
 
             Enemy:TakeDamage(DamageDealt, 0, EntityRef(Familiar), 0)
+
+            if Familiar.Player:HasCollectible(CollectibleType.COLLECTIBLE_JUMPER_CABLES) then
+
+                if Enemy:HasMortalDamage() 
+                   or Enemy.HitPoints <= DamageDealt then --sometimes misses idk
+                    Familiar.FireCooldown = Familiar.FireCooldown + math.min(120, math.floor(Enemy.MaxHitPoints*1.5))
+
+                    local Effect = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BATTERY, Familiar.Position + RandomVector() * 5,Vector.Zero,nil,0,1)
+
+                    sfx:Play(SoundEffect.SOUND_BATTERYCHARGE, 0.35, 2, false, 1.15)
+                    Familiar:SetColor(Color(1,1,0.6, 1, 0.15, 0.15, 0), 10, 10, true, false)
+                end
+            end
+
+            if Familiar.Player:HasCollectible(CollectibleType.COLLECTIBLE_CHARM_VAMPIRE) then
+
+                if Enemy:HasMortalDamage() and math.random() <= 0.33 then
+
+                    Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.HEART, Familiar.Player.Position + RandomVector() * 5,Vector.Zero,nil,0,1)
+
+                    sfx:Play(SoundEffect.SOUND_VAMP_GULP, 0.8)
+                end
+            end
+
+            if Familiar.Player:HasCollectible(CollectibleType.COLLECTIBLE_SERPENTS_KISS) then
+
+                if Enemy:HasMortalDamage() and math.random() <= 0.33 then
+
+                    Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_HEART, Familiar.Player.Position + RandomVector() * 5,Vector.Zero,nil,HeartSubType.HEART_BLACK,1)
+
+                    sfx:Play(SoundEffect.SOUND_VAMP_GULP, 0.8)
+                end
+
+                if math.random() < 0.01 then
+                    
+                    Enemy:AddPoison(EntityRef(Familiar), 46, DamageDealt * 2)
+                end
+            end
 
             if Familiar.Player:HasCollectible(CollectibleType.COLLECTIBLE_MIDAS_TOUCH) then
                 
@@ -1033,11 +1094,46 @@ function mod:FamiliarCollision(Familiar, Collider,_)
                 end
             end
 
-            if Familiar.Player:HasTrinket(TrinketType.TRINKET_BLACK_TOOTH) then
+            if Familiar.Player:HasCollectible(CollectibleType.COLLECTIBLE_DEAD_TOOTH) then
                 
                 if math.random() < 0.01 then
-                    
-                    Enemy:AddPoison(EntityRef(Familiar), 46, DamageDealt * 2.5)
+                    Enemy:AddPoison(EntityRef(Familiar), 46, DamageDealt * 2)
+                end
+            end
+
+            if Familiar.Player:HasCollectible(CollectibleType.COLLECTIBLE_PLAYDOUGH_COOKIE) then
+                
+                if math.random() < 0.01 then
+
+                    local EffectRoll = math.random()
+
+                    local Effect = EffectRoll//(1/8) --1/num. of effects
+
+                    if Effect == 0 then
+                        Enemy:AddBurn(EntityRef(Familiar), 23, DamageDealt)
+                    elseif Effect == 1 then
+                        Enemy:AddFreeze(EntityRef(Familiar), 20)
+                    elseif Effect == 2 then
+                        Enemy:AddCharmed(EntityRef(Familiar), 30)
+                    elseif Effect == 3 then
+                        Enemy:AddSlowing(EntityRef(Familiar), 30, 0.75, Color(0.6, 0.6, 0.6))
+                    elseif Effect == 4 then
+                        Enemy:AddIce(EntityRef(Familiar), 15)
+                    elseif Effect == 5 then
+                        Enemy:AddPoison(EntityRef(Familiar), 23, DamageDealt)
+                    elseif Effect == 6 then
+                        Enemy:AddFear(EntityRef(Familiar), 30)
+                    elseif Effect == 7 then
+                        Enemy:AddBaited(EntityRef(Familiar), 30)
+                    end
+
+                end
+            end
+
+            if Familiar.Player:HasCollectible(CollectibleType.COLLECTIBLE_ROTTEN_TOMATO) then
+                
+                if math.random() < 0.01 then
+                    Enemy:AddBaited(EntityRef(Familiar), 60)
                 end
             end
         end
@@ -1624,29 +1720,6 @@ mod:AddCallback(ModCallbacks.MC_POST_PICKUP_UPDATE, PickupUpdate)
 
 ---------GENERAL ENTITIES----------
 -----------------------------------
-
----@param Entity Entity
-function mod:EntityInit(Entity)
-
-end
---mod:AddCallback(ModCallbacks.MC_POST_NPC_INIT, mod.EntityInit, mod.Entities.BALATRO_TYPE)
-
-
----@param Entity Entity
-function mod:EntityUpdate(Entity)
-
-    
-end
---mod:AddCallback(ModCallbacks.MC_NPC_UPDATE, mod.EntityUpdate, mod.Entities.BALATRO_TYPE)
-
-
----@param Entity Entity
-function mod:EntityCollision(Entity, Collider,_)
-
-
-end
---mod:AddCallback(ModCallbacks.MC_PRE_NPC_COLLISION, mod.EntityCollision, mod.Entities.BALATRO_TYPE)
-
 
 
 ----------ITEM EFFECTS---------
@@ -2312,16 +2385,13 @@ local function OnItemAdded(_, Item, Charge, FirstTime, Slot, Var, Player)
             
             return {mod.Collectibles.UMBRELLA, 0, false, Slot, Var, Player}
         end
-
-    elseif Item == CollectibleType.COLLECTIBLE_MIDAS_TOUCH then
-
-        for _,Teeth in ipairs(Isaac.FindByType(EntityType.ENTITY_FAMILIAR, mod.Familiars.TEETH)) do
-            
-            Teeth = Teeth:ToFamiliar()
-            if Teeth.Player:GetPlayerIndex() == Player:GetPlayerIndex() then
-                Teeth:GetSprite():ReplaceSpritesheet(0, TEETH_RICH_PATH, true)
-            end
-
+    elseif Item == mod.Collectibles.HEIRLOOM then
+        if Player:HasCollectible(CollectibleType.COLLECTIBLE_TELEKINESIS) then
+            Player:AddCacheFlags(CacheFlag.CACHE_TEARFLAG, true)
+        end
+    elseif Item == CollectibleType.COLLECTIBLE_TELEKINESIS then
+        if Player:HasCollectible(mod.Collectibles.HEIRLOOM) then
+            Player:AddCacheFlags(CacheFlag.CACHE_TEARFLAG, true)
         end
     end
 end
@@ -2366,6 +2436,9 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, PocketAcesTrigger)
 mod:AddCallback(ModCallbacks.MC_POST_FIRE_BRIMSTONE, PocketAcesTrigger)
 mod:AddCallback(ModCallbacks.MC_POST_FIRE_BRIMSTONE_BALL, PocketAcesTrigger)
+mod:AddCallback(ModCallbacks.MC_POST_FIRE_TECH_LASER, PocketAcesTrigger)
+mod:AddCallback(ModCallbacks.MC_POST_FIRE_TECH_X_LASER, PocketAcesTrigger)
+
 
 
 local function EvaluateOnCandySmelt(_,_,_, Player)
@@ -2841,7 +2914,7 @@ local function StatEvaluation(_,Player, Cache)
         end
     end
 
-    if  Cache & CacheFlag.CACHE_SPEED == CacheFlag.CACHE_SPEED then
+    if Cache & CacheFlag.CACHE_SPEED == CacheFlag.CACHE_SPEED then
 
         local Trinkets = Player:GetSmeltedTrinkets()
 
@@ -2854,6 +2927,15 @@ local function StatEvaluation(_,Player, Cache)
             Player.MoveSpeed = Player.MoveSpeed + ExtraSpeed
         end
 
+    end
+
+    if Cache & CacheFlag.CACHE_TEARFLAG == CacheFlag.CACHE_TEARFLAG then
+
+        if Player:HasCollectible(CollectibleType.COLLECTIBLE_TELEKINESIS)
+           and Player:HasCollectible(mod.Collectibles.HEIRLOOM) then
+
+            Player.TearFlags = Player.TearFlags | TearFlags.TEAR_HOMING
+        end
     end
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, StatEvaluation)

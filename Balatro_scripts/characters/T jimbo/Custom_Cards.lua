@@ -140,6 +140,8 @@ function mod:PlayerIsAbleToUseCard(Player, Consumable)
 
     elseif IsTarot then
 
+        print(mod.SelectionParams[PIndex].SelectionNum)
+
         if Consumable == Card.CARD_FOOL then
 
             return mod.Saved.Player[PIndex].LastCardUsed and mod.Saved.Player[PIndex].LastCardUsed ~= Card.CARD_FOOL

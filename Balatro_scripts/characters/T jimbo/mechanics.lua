@@ -907,6 +907,46 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, SetupRoom)
 
 
+---@param Player EntityPlayer
+local function NoJokerCollision(_, Player, Collider, _)
+
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo
+       and (Player:GetPlayerType() ~= mod.Characters.JimboType
+            or mod:GetPlayerTrinketAmount(Player, mod.Jokers.CAMPFIRE) == 0)  then
+        return    
+    end
+
+    ---@type EntityPickup
+    local Pickup = Collider:ToPickup()
+
+    if not Pickup 
+       or Pickup.Variant ~= PickupVariant.PICKUP_TRINKET
+       or (Pickup.SubType & mod.EditionFlag[mod.Edition.ALL]) >> mod.EDITION_FLAG_SHIFT == mod.Edition.NEGATIVE then
+        return
+    end
+
+    local HasEmpty = false
+
+    for _,Slot in ipairs(mod.Saved.Player[Player:GetData().TruePlayerIndex].Inventory) do
+        
+        if Slot.Joker == 0 then
+            HasEmpty = true
+            break
+        end
+    end
+
+    if not HasEmpty then
+        
+        if Pickup:IsShopItem() then
+            return true
+        else
+            return false
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_COLLISION, NoJokerCollision, PlayerVariant.PLAYER)
+
+
 
 ---@param NPC EntityNPC
 ---@param Target Entity
@@ -985,7 +1025,7 @@ function mod:SpawnShopItems(Rerolled, CouponUsed)
                                 Vector.Zero, nil, SubType, mod:RandomSeed(mod.RNGs.SHOP)):ToPickup()
 
 
-        if not CouponUsed then
+        if TagActivated or not CouponUsed then
             ---@diagnostic disable-next-line: need-check-nil
             Item:MakeShopItem(-2)
         end
@@ -3461,7 +3501,7 @@ function mod:TJimboDiscardNumCache(Player, Cache, Value)
         return
     end
 
-    Value = 4 --base starting point
+    Value = mod.Saved.DSS.T_Jimbo.BaseDiscards --base starting point
 
     if Player:HasCollectible(mod.Vouchers.Wasteful) then
         Value = Value + 1
@@ -3501,7 +3541,7 @@ function mod:TJimboHandsCache(Player, Cache, Value)
         return
     end
 
-    Value = 4 --starting point
+    Value = mod.Saved.DSS.T_Jimbo.BaseHands --starting point
 
     if Player:HasCollectible(mod.Vouchers.Grabber) then
         Value = Value + 1

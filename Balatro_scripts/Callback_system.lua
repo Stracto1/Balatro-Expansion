@@ -11,7 +11,7 @@ Challenges.Balatro = Isaac.GetChallengeIdByName("Balatro")
 ---@param InitPlayer EntityPlayer
 local function PlayerIndexUpdate(InitPlayer)
 
-    --local ControllersFound = {}
+    local ControllersFound = {}
     --local TrueIndex = 1
 
     for _,Player in ipairs(PlayerManager.GetPlayers()) do
@@ -355,6 +355,19 @@ function mod:InitPlayerValues(Player)
         mod:InitJimboValues(PIndex, Player:GetPlayerType() == mod.Characters.TaintedJimbo)
 
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.NONE, mod.SelectionParams.Purposes.NONE)
+
+        if mod.GameStarted then
+    
+            mod:StatReset(Player,true,true,false,true,true)
+
+            for Name, Cache in pairs(mod.CustomCache) do
+
+                Player:AddCustomCacheTag(Cache, true)
+            end
+
+            Isaac.RunCallback("INVENTORY_CHANGE", Player) --this evaluates everithing anyway
+            --player:AddCacheFlags(CacheFlag.CACHE_ALL, true)       
+        end
     end
 end
 mod:AddCallback(ModCallbacks.MC_PLAYER_INIT_POST_LEVEL_INIT_STATS, mod.InitPlayerValues)

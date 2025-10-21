@@ -38,6 +38,10 @@ local function FirstSoulEval(_, Player, Flag)
 
     local PIndex = Player:GetData().TruePlayerIndex
 
+    if not mod.Saved.Player[Player:GetData().TruePlayerIndex] then
+        return
+    end
+
     if mod.Saved.Player[PIndex].JimboSoulCharge > 0 then
         
         Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE) --might make the damage eval happen twice but i'm not sure
@@ -56,6 +60,10 @@ local function SecondSoulEval(_, Player, Flag)
 
     local PIndex = Player:GetData().TruePlayerIndex
 
+    if not mod.Saved.Player[Player:GetData().TruePlayerIndex] then
+        return
+    end
+
     if mod.Saved.Player[PIndex].JimboSoulCharge > 0 then
         
         if Player:GetPlayerType() == mod.Characters.JimboType then
@@ -72,7 +80,7 @@ local function SecondSoulEval(_, Player, Flag)
         end
     end
 end
-mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE, CallbackPriority.LATE + 1, SecondSoulEval, CacheFlag.CACHE_DAMAGE)
+mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.JimboStatPriority.GIVE + 1, SecondSoulEval, CacheFlag.CACHE_DAMAGE)
 
 
 local function RemoveSoulEffect(_, Player)

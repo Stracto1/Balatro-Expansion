@@ -369,6 +369,13 @@ Balatro_Expansion.Characters = {}
 Balatro_Expansion.Characters.JimboType = Isaac.GetPlayerTypeByName("Jimbo", false) -- Exactly as in the xml. The second argument is if you want the Tainted variant.
 Balatro_Expansion.Characters.TaintedJimbo = Isaac.GetPlayerTypeByName("Jimbo", true)
 
+Balatro_Expansion.JimboStatPriority = {JOKER_RESET = CallbackPriority.LATE + 1,
+                                       CALCULATE = CallbackPriority.LATE + 2,
+                                       JOKER_PLUS = CallbackPriority.LATE + 3,
+                                       JOKER_TIMES = CallbackPriority.LATE + 4,
+                                       GIVE = CallbackPriority.LATE + 20}
+
+
 Balatro_Expansion.Sounds = {}
 Balatro_Expansion.Sounds.ADDMULT = Isaac.GetSoundIdByName("ADDMULTSFX")
 Balatro_Expansion.Sounds.TIMESMULT = Isaac.GetSoundIdByName("TIMESMULTSFX")
@@ -387,11 +394,12 @@ Balatro_Expansion.Sounds.PLAY = Isaac.GetSoundIdByName("CARDPLAYSFX")
 Balatro_Expansion.Sounds.SELECT = Isaac.GetSoundIdByName("CARDSELECTSFX")
 Balatro_Expansion.Sounds.DESELECT = Isaac.GetSoundIdByName("CARDDESELECTSFX")
 Balatro_Expansion.Sounds.DEBUFFED = Isaac.GetSoundIdByName("HONKSFX")
-Balatro_Expansion.Sounds.PLASMA = Isaac.GetSoundIdByName("PLASMABALNCE")
+Balatro_Expansion.Sounds.PLASMA = Isaac.GetSoundIdByName("PLASMABALANCE")
 Balatro_Expansion.Sounds.TIMPANI = Isaac.GetSoundIdByName("BALATROTIMPANI")
 Balatro_Expansion.Sounds.TAROT_USE = Isaac.GetSoundIdByName("BALATROTAROTUSE")
 Balatro_Expansion.Sounds.TAROT_UNFLIP = Isaac.GetSoundIdByName("CARDREFLIP")
 Balatro_Expansion.Sounds.NOPE = Isaac.GetSoundIdByName("NOPE!")
+Balatro_Expansion.Sounds.SKIP_TAG = Isaac.GetSoundIdByName("SKIPTAG")
 
 
 
@@ -591,7 +599,8 @@ Balatro_Expansion.EditionShaders ={
     "shaders/Holographic_effect",
     "shaders/Polychrome_effect",
     "shaders/Negative_effect_test",
-    DEBUFF = "shaders/Debuff_modifier"
+    DEBUFF = "shaders/Debuff_modifier",
+    DEBUFF_SMALL = "shaders/Debuff_modifier small"
 }
 Balatro_Expansion.EditionShaders[Balatro_Expansion.Edition.BASE] = "shaders/Nothing" --prevents extra if statements on render
 
@@ -963,8 +972,8 @@ Balatro_Expansion.Saved.EnableHand = false
 Balatro_Expansion.Saved.SmallBlind = 0
 Balatro_Expansion.Saved.BigBlind = 0
 Balatro_Expansion.Saved.ClearedRooms = 0
-Balatro_Expansion.Saved.SmallCleared = false
-Balatro_Expansion.Saved.BigCleared = false
+Balatro_Expansion.Saved.SmallCleared = 0
+Balatro_Expansion.Saved.BigCleared = 0
 Balatro_Expansion.Saved.BossCleared = 0  --0 = no | 1 = partially | 2 = yes
 Balatro_Expansion.Saved.AnteLevel = 0
 Balatro_Expansion.Saved.MaxAnteLevel = 0 --used to add correctly bosses to the pool (getting hierogliph could trigger the addition more than once)
@@ -1114,7 +1123,7 @@ Balatro_Expansion.SelectionParams.Purposes.FORCED_FLAG = 256
 Balatro_Expansion.Saved.DSS = { 
                                 Jimbo={
                                         HandHUDPosition = 1,
-                                        HandScale = 1
+                                        HandScale = 0.5
                                     }, 
                                 T_Jimbo={
                                          BaseHands = 4,
@@ -1283,6 +1292,7 @@ include("Balatro_scripts.Unlockables.The Hand")
 include("Balatro_scripts.Unlockables.Trinket Editions")
 include("Balatro_scripts.Unlockables.Stupid Gaper")
 include("Balatro_scripts.Unlockables.chaos theory")
+include("Balatro_scripts.Unlockables.teeth costumes")
 
 --include("Balatro_scripts.Trinket_Callbacks")
 

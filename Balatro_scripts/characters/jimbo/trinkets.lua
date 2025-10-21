@@ -1067,9 +1067,47 @@ function mod:OnJokerSold(Player,Joker,SlotSold)
         return
     end
 
+    local WasHeld  = SlotSold ~= 0
     local PIndex = Player:GetData().TruePlayerIndex
 
     --NOT COPIABLE JOKERS
+
+    for _,Index in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.CAMPFIRE, true)) do
+
+
+        Isaac.CreateTimer(function ()
+
+            for i=1, 8 do
+                
+                local Ember = Game:Spawn(1000, EffectVariant.EMBER_PARTICLE, Player.Position, RandomVector()*(math.random() + 1.5), nil, 2, 1):ToEffect()
+
+                Ember:SetTimeout(math.random(50, 75))
+                
+                local Data = Ember:GetData()
+
+                Data.REG_SpriteSpeed = Vector(0, -2)
+                Data.REG_SpriteAccel = Vector(-0.01, -1)
+            end        
+        end, 2, 6, false)
+
+        
+
+
+        mod.Saved.Player[PIndex].Inventory[Index].Progress = mod.Saved.Player[PIndex].Inventory[Index].Progress + 0.2
+
+        mod:CreateBalatroEffect(Index,mod.EffectColors.RED,
+                                        mod.Sounds.TIMESMULT, "+0.2X",mod.EffectType.JOKER, Player)
+
+        Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)
+    end
+
+
+    if not WasHeld then
+        --Isaac.RunCallback("INVENTORY_CHANGE", Player)
+        Player:EvaluateItems()
+        return
+    end
+
 
     if Joker == mod.Jokers.INVISIBLE_JOKER then
         if mod.Saved.Player[PIndex].Inventory[SlotSold].Progress ~= 3 then
@@ -1119,13 +1157,6 @@ function mod:OnJokerSold(Player,Joker,SlotSold)
         mod:DestroyCards(Player, mod.Saved.Player[PIndex].CurrentHand, true)
     end
 
-    for _,Index in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.CAMPFIRE, true)) do
-
-        mod.Saved.Player[PIndex].Inventory[Index].Progress = mod.Saved.Player[PIndex].Inventory[Index].Progress + 0.2
-
-        mod:CreateBalatroEffect(Index,mod.EffectColors.RED,
-                                        mod.Sounds.TIMESMULT, "+0.2X",mod.EffectType.JOKER, Player)
-    end
     
     --BP/BS CHACK
     if Joker == mod.Jokers.BLUEPRINT then
@@ -1156,15 +1187,6 @@ function mod:OnJokerSold(Player,Joker,SlotSold)
 ---@diagnostic disable-next-line: param-type-mismatch
         Player:UseActiveItem(CollectibleType.COLLECTIBLE_DIPLOPIA, UseFlag.USE_NOANIM & UseFlag.USE_MIMIC)
     end
-
---[[ INVENTORY_CHANGE evaluates every stat anyways
-    Player:AddCacheFlags(ItemsConfig:GetTrinket(Joker).CacheFlags, true)
-
-    local CustomFlags = ItemsConfig:GetTrinket(Joker):GetCustomCacheTags()
-
-    Player:AddCustomCacheTag(CustomFlags, true)]]
-
-
 
     Isaac.RunCallback("INVENTORY_CHANGE", Player)
 end
@@ -2651,7 +2673,7 @@ function mod:OnNewRoomJokers()
 
             elseif Joker == mod.Jokers.BANNER then
 
-                local pos = Room:GetRandomPosition(40)
+                local pos = Room:GetRandomPosition(55)
 
                 Game:Spawn(1000, mod.Effects.BANNER, pos, Vector.Zero, nil, 0, mod:RandomSeed())
 
@@ -2904,9 +2926,6 @@ mod:AddCallback(ModCallbacks.MC_PRE_TRIGGER_PLAYER_DEATH, mod.OnDeath)
 ---@param Player EntityPlayer
 function mod:CopyAdjustments(Player)
 
-    --Player:AddCustomCacheTag("handsize", false)
-    --Player:AddCustomCacheTag("discards", false)
-    --Player:AddCustomCacheTag("inventory", true)
     if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
         return
     end
@@ -3051,7 +3070,7 @@ function mod:CopyAdjustments(Player)
         end
     end
 
-    JokerDifference = mod:GetPlayerTrinketAmount(Player, mod.Jokers.SUPERPOSISION) - 2*mod:GetValueRepetitions(mod.Saved.Player[PIndex].InnateItems.General, CollectibleType.COLLECTIBLE_FOREVER_ALONE)
+    JokerDifference = (mod:GetPlayerTrinketAmount(Player, mod.Jokers.SUPERPOSISION) - mod:GetValueRepetitions(mod.Saved.Player[PIndex].InnateItems.General, CollectibleType.COLLECTIBLE_FOREVER_ALONE))/2
 
     if JokerDifference >= 0 then
         for i=1, JokerDifference do
@@ -3179,9 +3198,7 @@ function mod:CopyAdjustments(Player)
     end
 
 
-    Player:AddCacheFlags(CacheFlag.CACHE_ALL)
-
-    Player:EvaluateItems()
+    Player:AddCacheFlags(CacheFlag.CACHE_ALL, true)
 end
 mod:AddCallback("INVENTORY_CHANGE", mod.CopyAdjustments)
 
@@ -3664,9 +3681,9 @@ function mod:TearsJokers(Player, _)
 
     local PIndex = Player:GetData().TruePlayerIndex
 
-    --local MimeNum = #mod:GetJimboJokerIndex(Player, mod.Jokers.MIME)
-
-    --if Player:GetPlayerType() == mod.Characters.JimboType then
+    if not mod.Saved.Player[PIndex] then
+        return
+    end
 
     local IsJimbo = Player:GetPlayerType() == mod.Characters.JimboType
 
@@ -3841,7 +3858,7 @@ function mod:TearsJokers(Player, _)
         ::skip_joker::
     end
 end
-mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE + 3, mod.TearsJokers, CacheFlag.CACHE_FIREDELAY)
+mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,mod.JimboStatPriority.JOKER_PLUS, mod.TearsJokers, CacheFlag.CACHE_FIREDELAY)
 
 
 function mod:DamageJokers(Player,_)
@@ -3851,7 +3868,9 @@ function mod:DamageJokers(Player,_)
     end
     local PIndex = Player:GetData().TruePlayerIndex
 
-    --local MimeNum = #mod:GetJimboJokerIndex(Player, mod.Jokers.MIME)
+    if not mod.Saved.Player[PIndex] then
+        return
+    end
 
     local IsJimbo = Player:GetPlayerType() == mod.Characters.JimboType
 
@@ -4043,7 +4062,7 @@ function mod:DamageJokers(Player,_)
         ::skip_joker::
     end
 end
-mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE + 3, mod.DamageJokers, CacheFlag.CACHE_DAMAGE)
+mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,mod.JimboStatPriority.JOKER_PLUS, mod.DamageJokers, CacheFlag.CACHE_DAMAGE)
 
 
 ---@param Player EntityPlayer
@@ -4052,10 +4071,14 @@ function mod:DamageMultJokers(Player,_)
     if Player:GetPlayerType() == mod.Characters.TaintedJimbo or not mod.GameStarted then
         return
     end
+
+    print("numt")
     
     local PIndex = Player:GetData().TruePlayerIndex
 
-    --local MimeNum = #mod:GetJimboJokerIndex(Player, mod.Jokers.MIME)
+    if not mod.Saved.Player[PIndex] then
+        return
+    end
 
     local IsJimbo = Player:GetPlayerType() == mod.Characters.JimboType
 
@@ -4326,7 +4349,7 @@ function mod:DamageMultJokers(Player,_)
     end
     
 end
-mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,CallbackPriority.LATE + 4, mod.DamageMultJokers, CacheFlag.CACHE_DAMAGE)
+mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE,mod.JimboStatPriority.JOKER_TIMES, mod.DamageMultJokers, CacheFlag.CACHE_DAMAGE)
 
 
 
@@ -4336,6 +4359,10 @@ function mod:EditionsStats(Player, Flags)
     end
 
     local PIndex = Player:GetData().TruePlayerIndex
+
+    if not mod.Saved.Player[PIndex] then
+        return
+    end
 
     for i,Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
         if Flags & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
@@ -4347,7 +4374,7 @@ function mod:EditionsStats(Player, Flags)
         end
         if Flags & CacheFlag.CACHE_FIREDELAY == CacheFlag.CACHE_FIREDELAY then
             if Slot.Edition == mod.Edition.FOIL then
-                mod:IncreaseJimboStats(Player,3.5, 0, 1, false, false)
+                mod:IncreaseJimboStats(Player,3, 0, 1, false, false)
             end
         end
     end
@@ -4434,7 +4461,8 @@ local function SecondaryPEffect(_, Player)
         ---@diagnostic disable-next-line: need-check-nil
             Creep:GetSprite().Color:SetTint(0, 0.5, 0.8, 1)
 
-            Creep.Scale = CreepScale
+            Creep.SpriteScale = Vector.One*CreepScale
+            Creep:Update()
         end
     end
 end
@@ -4444,6 +4472,10 @@ mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, SecondaryPEffect)
 ---@param Player EntityPlayer
 function mod:FlightEval(Player,_)
     if Player:GetPlayerType() == mod.Characters.TaintedJimbo or not mod.GameStarted then
+        return
+    end
+
+    if not mod.Saved.Player[Player:GetData().TruePlayerIndex] then
         return
     end
 
@@ -5030,6 +5062,10 @@ function mod:JimboLuckStat(Player,_)
         return
     end
 
+    if not mod.Saved.Player[Player:GetData().TruePlayerIndex] then
+        return
+    end
+
     Player.Luck = Player.Luck + 5 * mod:GetPlayerTrinketAmount(Player, mod.Jokers.SCHOLAR)
 
 end
@@ -5037,7 +5073,12 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.JimboLuckStat, CacheFlag.CAC
 
 ---@param Player EntityPlayer
 function mod:JimboSpeedStat(Player,_)
+
     if Player:GetPlayerType() == mod.Characters.TaintedJimbo or not mod.GameStarted then
+        return
+    end
+
+    if not mod.Saved.Player[Player:GetData().TruePlayerIndex] then
         return
     end
 
@@ -5360,6 +5401,10 @@ function mod:OnCostumeModify(Config, Player)
     end
     local PIndex = Player:GetData().TruePlayerIndex
 
+    if not mod.Saved.Player[PIndex] then
+        return
+    end
+
     local NumActiveCostumes = 0
     for _,LayerMap in ipairs(Player:GetCostumeLayerMap()) do
     
@@ -5635,15 +5680,13 @@ local function BannerStatsUp(_, Player)
 
         if IsInside then
 
-            if Player:GetPlayerType() == mod.Characters.JimboType then
-                mod:IncreaseJimboStats(Player, 3, 0, 1, false, false)
-            else
-                Player.MaxFireDelay = Player.MaxFireDelay - mod:CalculateTearsUp(Player.MaxFireDelay, 3*mod.PLAYER_MULTIPLIERS)
-            end
+            print("inside")
+
+            mod:IncreaseJimboStats(Player, PlayerTears(Player, 3), 0, 1, false, false)
         end
     end
 end
-mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, BannerStatsUp, CacheFlag.CACHE_FIREDELAY)
+mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.JimboStatPriority.JOKER_PLUS, BannerStatsUp, CacheFlag.CACHE_FIREDELAY)
 
 
 
@@ -5996,6 +6039,10 @@ local function WeeSizeDown(_, Player)
 
     if not mod.GameStarted then return end
 
+    if not mod.Saved.Player[Player:GetData().TruePlayerIndex] then
+        return
+    end
+
     local WeeScale = 0.8 ^ mod:GetPlayerTrinketAmount(Player, mod.Jokers.WEE_JOKER)
 
     Player.SpriteScale = Player.SpriteScale * WeeScale
@@ -6008,6 +6055,10 @@ local function BallShotSpeed(_, Player)
 
     if not mod.GameStarted then return end
 
+    if not mod.Saved.Player[Player:GetData().TruePlayerIndex] then
+        return
+    end
+
     local ExtraSpeed = 0.16 * mod:GetPlayerTrinketAmount(Player, mod.Jokers._8_BALL)
 
     Player.ShotSpeed = Player.ShotSpeed + ExtraSpeed
@@ -6019,6 +6070,10 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, BallShotSpeed, CacheFlag.CACHE_S
 local function JokerFamiliarCache(_, Player)
 
     if not mod.GameStarted then return end
+
+    if not mod.Saved.Player[Player:GetData().TruePlayerIndex] then
+        return
+    end
 
     local NumRamenWorms = mod:GetPlayerTrinketAmount(Player, mod.Jokers.RAMEN)
 
@@ -6183,6 +6238,13 @@ local function EggFamiliarUpdate(_, Egg)
     --Egg:FollowPosition(Egg.Player.Position)
 end
 mod:AddCallback(ModCallbacks.MC_FAMILIAR_UPDATE, EggFamiliarUpdate, mod.Familiars.EGG)
+
+---@param Egg EntityFamiliar
+local function EggFamiliarPriority(_, Egg)
+
+    return FollowerPriority.DEFENSIVE
+end
+mod:AddCallback(ModCallbacks.MC_GET_FOLLOWER_PRIORITY, EggFamiliarUpdate, mod.Familiars.EGG)
 
 
 ------------EXAMPLE JOKER FUNCTION----------

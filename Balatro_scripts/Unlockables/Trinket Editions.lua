@@ -349,6 +349,10 @@ local function FoilStatBoost(_, Player)
 
     local PIndex = Player:GetData().TruePlayerIndex
 
+    if not mod.Saved.Player[PIndex] then
+        return
+    end
+
     local NumFoil = 0
 
     for i = 1, #mod.Saved.Player[PIndex].Inventory do
@@ -374,6 +378,10 @@ local function HoloStatBoost(_, Player)
 
     local PIndex = Player:GetData().TruePlayerIndex
 
+    if not mod.Saved.Player[Player:GetData().TruePlayerIndex] then
+        return
+    end
+
     local NumHolo = 0
 
     for i = 1, #mod.Saved.Player[PIndex].Inventory do
@@ -398,6 +406,10 @@ local function PolyStatBoost(_, Player)
     end
 
     local PIndex = Player:GetData().TruePlayerIndex
+
+    if not mod.Saved.Player[Player:GetData().TruePlayerIndex] then
+        return
+    end
 
     local NumPoly = 0
 

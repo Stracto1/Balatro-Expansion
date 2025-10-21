@@ -403,36 +403,36 @@ menu.regambledJimboSettings = {
     title = "jimbo settings",
     buttons = {
         {   str = 'hand card scale',
-            choices = {'100%','150%','200%',},
+            choices = {'50%','100%'},
             setting = 1,
             variable = 'ragambledHandScale',
 
             load = function ()
-                return mod.Saved.DSS.Jimbo.HandScale or 1
+                return mod.Saved.DSS.Jimbo.HandScale and (mod.Saved.DSS.Jimbo.HandScale*2) or 1
             end,
 
             store = function (var)
-                mod.Saved.DSS.Jimbo.HandScale = var
+                mod.Saved.DSS.Jimbo.HandScale = var/2
             end,
 
-            tooltip = {strset = {"which do you", "prefer?"}}
+            tooltip = {strset = {"how big?"}}
         },
 
-        {   str = 'hand hud position',
-            choices = {'player','hearts',},
-            setting = 1,
-            variable = 'ragambledHandPosition',
+        --{   str = 'hand hud position',
+        --    choices = {'player','hearts',},
+        --    setting = 1,
+        --    variable = 'ragambledHandPosition',
 
-            load = function ()
-                return mod.Saved.DSS.Jimbo.HandHUDPosition or 1
-            end,
-
-            store = function (var)
-                mod.Saved.DSS.Jimbo.HandHUDPosition = var
-            end,
-
-            tooltip = {strset = {"which do you", "prefer?"}}
-        },
+        --    load = function ()
+        --        return mod.Saved.DSS.Jimbo.HandHUDPosition or 1
+        --    end,
+   
+        --    store = function (var)
+        --        mod.Saved.DSS.Jimbo.HandHUDPosition = var
+        --    end,
+   
+        --    tooltip = {strset = {"which do you", "prefer?"}}
+        --},
 
     }
 }
@@ -440,23 +440,28 @@ menu.regambledJimboSettings = {
 menu.regambledTaintedJimboSettings = {
     title = "t.jimbo settings",
     buttons = {
-        {   str = 'Custom Desc',
+        {   str = 'custom eid desc',
             choices = {'disabled','enabled'},
             setting = 2,
             variable = 'ragambledTJimboDesc',
 
             load = function ()
+
+                if mod.Saved.DSS.T_Jimbo.CustomEID == nil then
+                    return 2
+                end
+
                 return mod.Saved.DSS.T_Jimbo.CustomEID and 2 or 1
             end,
 
             store = function (var)
-                mod.Saved.DSS.T_Jimbo.CustomEID = var == 2
+                mod.Saved.DSS.T_Jimbo.CustomEID = var==2
             end,
 
             tooltip = {strset = {"eid", "required!"}}
         },
 
-        {   str = 'Hand combat opacity',
+        {   str = 'hand combat opacity',
             choices = {'0.25','0.5','0.75','1',},
             setting = 2,
             variable = 'ragambledTJimboOpacity',
@@ -472,7 +477,7 @@ menu.regambledTaintedJimboSettings = {
             tooltip = {strset = {"which do you", "prefer?"}}
         },
 
-        {   str = 'Show full deck',
+        {   str = 'show full deck',
             choices = {'disabled','enabled',},
             setting = 1,
             variable = 'ragambledTJimboFullDeck',
@@ -482,7 +487,7 @@ menu.regambledTaintedJimboSettings = {
             end,
 
             store = function (var)
-                mod.Saved.DSS.T_Jimbo.VulnerableHandOpacity = var == 2
+                mod.Saved.DSS.T_Jimbo.ShowUnavailableCards = var == 2
             end,
 
             tooltip = {strset = {"show used", "cards in","run info"}}
@@ -490,7 +495,7 @@ menu.regambledTaintedJimboSettings = {
 
         LINE_BREAK,
 
-        {   str = 'Base hands',
+        {   str = 'base hands',
             choices = {'1','2','3','4','5','6',},
             setting = 4,
             variable = 'ragambledTJimboBaseHands',
@@ -501,12 +506,16 @@ menu.regambledTaintedJimboSettings = {
 
             store = function (var)
                 mod.Saved.DSS.T_Jimbo.BaseHands = var
+
+                for _,Player in ipairs(PlayerManager.GetPlayers()) do 
+                    Player:AddCustomCacheTag(mod.CustomCache.HAND_NUM, true)
+                end
             end,
 
             tooltip = {strset = {"how", "many?"}}
         },
-        {   str = 'Base discards',
-            choices = {'1','2','3','4','5','6',},
+        {   str = 'base discards',
+            choices = {'1','2','3','4','5','6'},
             setting = 4,
             variable = 'ragambledTJimboBaseDiscards',
 
@@ -516,11 +525,15 @@ menu.regambledTaintedJimboSettings = {
 
             store = function (var)
                 mod.Saved.DSS.T_Jimbo.BaseDiscards = var
+
+                for _,Player in ipairs(PlayerManager.GetPlayers()) do 
+                    Player:AddCustomCacheTag(mod.CustomCache.DISCARD_NUM, true)
+                end
             end,
 
             tooltip = {strset = {"how", "many?"}}
         },
-        {   str = 'Out of range damage',
+        {   str = 'outer damage',
             choices = {'0%','25%','50%','75%','100%'},
             setting = 4,
             variable = 'ragambledTJimboOoRDamage',
@@ -535,8 +548,8 @@ menu.regambledTaintedJimboSettings = {
 
             tooltip = {strset = {"how", "much?"}}
         },
-        {   str = 'Constant vulnerability',
-            choices = {'disabled','enabled'},
+        {   str = 'vulnerability',
+            choices = {'when needed','always'},
             setting = 4,
             variable = 'ragambledTJimboVulnerability',
 
