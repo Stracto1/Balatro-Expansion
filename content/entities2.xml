@@ -346,7 +346,7 @@
     </entity>
 
     <entity name="Banana Peel" anm2path="banana_peel_familiar.anm2" id="1000" variant="2601" 
-    	friction="1" collisionRadius="9">
+    	friction="1" collisionRadius="11" gridCollision="ground">
     </entity>
 
     <entity name="Thrown Tomato" anm2path="thrown_tomato_effect.anm2" id="1000" variant="2602" 
@@ -357,7 +357,7 @@
     	friction="1" collisionRadius="11" gridCollision="walls">
     </entity>
     <entity name="Player Umbrella" anm2path="player_umbrella_effect.anm2" id="1000" variant="2604" 
-    	friction="1" collisionRadius="11" collisionRadiusXMulti="1.75" collisionRadiusXMulti="1.1">
+    	friction="1" collisionRadius="12" collisionRadiusXMulti="1.8">
     </entity>
 
     <entity name="Heirloom Upgrade" anm2path="heirloom_trigger.anm2" id="1000" variant="2605"/>

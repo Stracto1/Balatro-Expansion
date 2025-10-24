@@ -2148,7 +2148,7 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
             end
 
             Tear.Scale = (Player.SpriteScale.Y + Player.SpriteScale.X) / 2
-            Tear.Scale = mod:Clamp(Tear.Scale, 3, 0.75)
+            Tear.Scale = mod:Clamp(Tear.Scale, 0.75, 3)
 
             Isaac.CreateTimer(function ()
                 if #mod.Saved.Player[PIndex].CurrentHand > Player:GetCustomCacheValue("handsize")

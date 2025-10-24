@@ -18,7 +18,7 @@ local BLACKLIST = {PickupVariant.PICKUP_BED,
 local PUSH_VARIANTS = {PickupVariant.PICKUP_BOMBCHEST,
                        PickupVariant.PICKUP_COLLECTIBLE,
                        PickupVariant.PICKUP_MEGACHEST,
-                       PickupVariant.PICKUP_TRINKET --makes things easier 
+                       PickupVariant.PICKUP_HEART --makes things easier 
                        }
 
 
@@ -33,17 +33,20 @@ local CHEST_VARIANTS = {PickupVariant.PICKUP_CHEST,
                         PickupVariant.PICKUP_ETERNALCHEST,
                         }
 
+local WISP_HEIGHT_OFFSET = 14
+local BASE_WISP_VELOCITY = 5.5
+
 
 
 ---@param Player EntityPlayer
 ---@param Rng RNG
 local function ActiveUse(_, Item, Rng, Player, Flags, Slot, Data)
-
-    local ReturnTable = {Discharge = false,
-                         Remove = false,
-                         ShowAnim = false}
                          
     if Item == mod.Collectibles.THE_HAND then
+
+        local ReturnTable = {Discharge = false,
+                             Remove = false,
+                             ShowAnim = false}
 
         if Player:GetItemState() == mod.Collectibles.THE_HAND then
 
@@ -223,10 +226,8 @@ local function HandInputs(_, Player)
         Player:SetItemState(CollectibleType.COLLECTIBLE_NULL)
 
         local SwingRotation = ((ShootDirection:GetAngleDegrees() + 45) // 90)*90 - 90
-        local SwingDirection = Vector.FromAngle(SwingRotation + 90)
 
-
-        local Swing = Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.HAND_SWING, Player.Position + SwingDirection*5,
+        local Swing = Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.HAND_SWING, Player.Position + ShootDirection*Player.Size,
                                  Vector.Zero, Player, 0, 1):ToEffect()
 
         sfx:Play(SoundEffect.SOUND_SHELLGAME)
@@ -237,10 +238,38 @@ local function HandInputs(_, Player)
         Swing.SpriteRotation = SwingRotation
         Swing.SpriteScale = Player.SpriteScale
         Swing:GetSprite():Play("Swing")
+
+        if Player:HasCollectible(CollectibleType.COLLECTIBLE_BOOK_OF_VIRTUES) then
+            
+            local CardsHeld = 0
+            for i,card in ipairs(mod.Saved.Player[Player:GetData().TruePlayerIndex].HandyCards) do
+                if card ~= Card.CARD_NULL then
+                    CardsHeld = CardsHeld + 1
+                end
+            end
+
+            for i=1, CardsHeld do
+                
+                local Wisp = Player:AddWisp(mod.Collectibles.THE_HAND, Swing.Position + ShootDirection)
+                --Wisp:ClearEntityFlags(EntityFlag.FLAG_APPEAR) wisps are invisible if the flag is cleared, don't really like how it looks but idfk dude
+
+                local Jiggle = 2*(CardsHeld)
+                Wisp.Velocity = ShootDirection:Rotated(math.random(-Jiggle,Jiggle))
+                Wisp.Velocity = Wisp.Velocity:Resized(BASE_WISP_VELOCITY + math.random()*4)
+
+                Wisp.SpriteRotation = Wisp.Velocity:GetAngleDegrees()-90
+
+                Wisp.SpriteOffset = Vector(0, -WISP_HEIGHT_OFFSET) 
+                                    + WISP_HEIGHT_OFFSET*(Wisp.Velocity:Normalized())
+
+                Wisp.FireCooldown = math.random(15, 30)
+            end
+        end
     end
 
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, HandInputs, PlayerVariant.PLAYER)
+
 
 
 ---@param Effect EntityEffect
@@ -250,6 +279,7 @@ local function HandPickupCollision(_, Effect)
         Effect:Remove()
         return
     end
+
 
     local Player = Effect.SpawnerEntity:ToPlayer()
 
@@ -290,9 +320,7 @@ local function HandPickupCollision(_, Effect)
                 
                 table.remove(HandyCards, EmptySpace)
                 table.insert(HandyCards, 1, Pickup.SubType)
-            
             else
-
                 HandyCards[1] = Pickup.SubType
             end
 
@@ -300,6 +328,7 @@ local function HandPickupCollision(_, Effect)
 
             CardSprite:Play("Collect")
             Pickup:PlayPickupSound()
+            Pickup:GetData().REG_HandPicked = true
             
             local AnimLength = CardSprite:GetAnimationData("Collect"):GetLength()
 
@@ -308,12 +337,8 @@ local function HandPickupCollision(_, Effect)
             Game:GetHUD():ShowItemText(CardConfig.Name, CardConfig.Description)
 
             Isaac.CreateTimer(function ()
-
                 Pickup:Remove()
-                
-            end, AnimLength, 1, false)
-
-            
+            end, AnimLength-7, 1, false)
 
         else
 
@@ -337,7 +362,7 @@ local function HandPickupCollision(_, Effect)
                    and Pickup.Variant ~= PickupVariant.PICKUP_OLDCHEST
                    and Pickup.Variant ~= PickupVariant.PICKUP_ETERNALCHEST) or Player:GetNumKeys() >= 1 then
                 
-                    Pickup:TryOpenChest()
+                    Pickup:TryOpenChest(Player)
                 end
 
                 Pickup:AddVelocity((Pickup.Position - Player.Position):Resized(7.5))
@@ -345,6 +370,56 @@ local function HandPickupCollision(_, Effect)
             elseif mod:Contained(PUSH_VARIANTS, Pickup.Variant) then
 
                 Pickup:AddVelocity((Pickup.Position - Player.Position):Resized(7.5))
+
+            elseif Pickup.Variant == PickupVariant.PICKUP_PILL then
+
+                local Sprite = Pickup:GetSprite()
+                local AnimLength = Sprite:GetAnimationData("Collect"):GetLength()
+
+            
+                Pickup:PlayPickupSound()
+                Sprite:Play("Collect", true)
+
+                Pickup.EntityCollisionClass = EntityCollisionClass.ENTCOLL_NONE
+                Player:AddPill(Pickup.SubType)
+
+                Pickup:GetData().REG_HandPicked = true
+
+                Isaac.CreateTimer(function ()
+                    Pickup:Remove()
+                end, AnimLength-7, 1, false)
+
+            elseif Pickup.Variant == PickupVariant.PICKUP_TRINKET then
+
+                local Sprite = Pickup:GetSprite()
+                local AnimLength = Sprite:GetAnimationData("Collect"):GetLength()
+
+                Pickup.EntityCollisionClass = EntityCollisionClass.ENTCOLL_NONE
+                Pickup:PlayPickupSound()
+                Sprite:Play("Collect", true)
+
+
+                local HasRoom = false
+
+                for i=0, Player:GetMaxTrinkets()-1 do
+                    if Player:GetTrinket(i) == TrinketType.TRINKET_NULL then
+                        HasRoom = true
+                        break
+                    end
+                end
+
+                if not HasRoom then
+                    Player:DropTrinket(Player.Position, false)
+                end
+
+                mod.Saved.Player[Player:GetData().TruePlayerIndex].LastTouchedTrinket = Pickup.SubType
+                Player:AddTrinket(Pickup.SubType & ~mod.EditionFlag.ALL)
+
+                Pickup:GetData().REG_HandPicked = true
+
+                Isaac.CreateTimer(function ()
+                    Pickup:Remove()
+                end, AnimLength-7, 1, false)
 
             else --teleport the pickup to the player and set its offset to look like it didn't move
 
@@ -368,16 +443,16 @@ local function HandPickupCollision(_, Effect)
 
 
 
-    local HandDamage = Player.SpriteScale:Length() + 5
+    local HandDamage = Player.SpriteScale:Length()*1.5 + 4
 
     if Player:HasCollectible(CollectibleType.COLLECTIBLE_MIDAS_TOUCH) then
         
-        HandDamage = HandDamage + 3.5 + 0.2*Player:GetNumCoins()
+        HandDamage = HandDamage + 0.25*(mod.Saved.DebtAmount==0 and Player:GetNumCoins() or 0)
     end
-    if Player:HasCollectible(CollectibleType.COLLECTIBLE_MOMS_HEELS) then
+    --if Player:HasCollectible(CollectibleType.COLLECTIBLE_MOMS_HEELS) then
         
         HandDamage = HandDamage + 12
-    end
+    --end
     if Player:HasCollectible(CollectibleType.COLLECTIBLE_KNOCKOUT_DROPS) then
 
         HandDamage = HandDamage * 2
@@ -391,13 +466,14 @@ local function HandPickupCollision(_, Effect)
         if Enemy:IsActiveEnemy() and not mod:Contained(EffectData.HandHitList, EnemyHash) then
 
             EffectData.HandHitList[#EffectData.HandHitList+1] = EnemyHash
+            sfx:Play(SoundEffect.SOUND_PUNCH)
 
             if Player:HasCollectible(CollectibleType.COLLECTIBLE_KNOCKOUT_DROPS) then
                     
-                Enemy:AddKnockback(EntityRef(Player), (Enemy.Position - Player.Position):Resized(10), 100, true)
-                sfx:Play(SoundEffect.SOUND_PUNCH)
+                Enemy:AddKnockback(EntityRef(Player), (Enemy.Position - Player.Position):Resized(12), 100, true)
             else
-                Enemy:AddVelocity((Enemy.Position - Player.Position):Resized(8))
+                Enemy.Velocity = Enemy.Velocity * 0.6
+                Enemy:AddVelocity((Enemy.Position - Player.Position):Resized(9.5))
             end
 
             if Enemy:IsVulnerableEnemy() then
@@ -508,7 +584,7 @@ local function MoveHeartsSprite(_, Offset, HeartSprite, Position,_, Player)
             VanillaCardsSprite:SetFrame("Small", HandyCard)
             VanillaCardsSprite:Render(RenderPos)
 
-        else --crazy how i need to use 2 XMLnodes to get a card's back
+        else --crazy how I need to use 2 XMLnodes just to get a card's back
 
             local Config = ItemsConfig:GetCard(HandyCard)
 
@@ -536,5 +612,44 @@ end
 mod:AddPriorityCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, CallbackPriority.LATE, MoveHeartsSprite)
 
 
+--to be sure the used pickups don't remain after exiting the room too soon
+local function RemoveUnwantedPickups()
+
+    for i, Pickup in ipairs(Isaac.FindByType(5)) do
+
+        if Pickup:GetData().REG_HandPicked then
+            Pickup:Remove()
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_ROOM_EXIT, RemoveUnwantedPickups)
 
 
+local function RemoveWisps()
+
+    for i, Pickup in ipairs(Isaac.FindByType(3, FamiliarVariant.WISP, mod.Collectibles.THE_HAND)) do
+        Pickup:Remove()
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_ROOM_EXIT, RemoveWisps)
+
+
+
+---@param Wisp EntityFamiliar
+local function WispUpdate(_, Wisp)
+
+    if Wisp.SubType ~= mod.Collectibles.THE_HAND then
+        return
+    end
+
+    Wisp.CollisionDamage = 2.5 --apparently needs to be forced every update
+
+    Wisp.FireCooldown = Wisp.FireCooldown - 1
+
+    Wisp.Velocity = Wisp.Velocity*0.95
+
+    if Wisp.FireCooldown <= 0 then
+        Wisp:Kill()
+    end
+end
+mod:AddCallback(ModCallbacks.MC_FAMILIAR_UPDATE, WispUpdate, FamiliarVariant.WISP)

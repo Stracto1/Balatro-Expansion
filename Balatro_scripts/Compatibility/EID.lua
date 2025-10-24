@@ -1331,6 +1331,30 @@ end
 EID:addDescriptionModifier("Balatro Descriptions Offset", BalatroOffsetCondition, BalatroOffsetCallback)
 
 
+local function JimboGroundPickupsCondition(descObj)
+
+    if descObj.ObjType == EntityType.ENTITY_PICKUP
+       or descObj.ObjVariant == PickupVariant.PICKUP_TRINKET then
+
+        return true
+    end
+end
+
+local function JimboGroundPickupsCallback(descObj)
+
+    local Edition = (descObj.ObjSubType & mod.EditionFlag.ALL) >> mod.EDITION_FLAG_SHIFT
+    
+    descObj.Description = descObj.Description..mod:GetEIDString("TrinketEdition", Edition)
+    
+    return descObj
+end
+EID:addDescriptionModifier("Balatro Jimbo ground pickups", JimboGroundPickupsCondition, JimboGroundPickupsCallback)
+
+
+
+
+
+
 
 local function TBalatroOffsetCondition(descObj)
     if PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then 

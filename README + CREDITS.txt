@@ -7,6 +7,9 @@
 
 -the base concept of this mod (LocalThunk and the hit game Balatro obv)
 
+-rain on umbrella sound effect taken from Zapsplat (https://www.zapsplat.com/music/medium-rain-falling-on-umbrella/)
+
+
 also i tried as much as possible to differ from the Balatro Jokers mod in terms of joker's general effects, but gotta say being a translator for said mod didn't quite help my imagination to flourish
 
 BTW if you're here to look at the mod's code then you're most likely be hit with shitty organisation and readability

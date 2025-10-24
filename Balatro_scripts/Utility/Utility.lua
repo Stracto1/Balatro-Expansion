@@ -6,6 +6,15 @@ local sfx = SFXManager()
 local Level = Game:GetLevel()
 
 local MAX_SEED_VALUE = 2^32 - 1
+local EPSILON = 1e-3
+
+---@class CollisionCapsule
+---@field Position Vector
+---@field Size Vector
+---@field SizeMulti Vector
+---@field Base Vector
+---@field Tip Vector
+---@field Radius number
 
 local DoorSides = {}
 DoorSides.LEFT = 0
@@ -67,7 +76,7 @@ local function ApplySpriteSpeed(_, Effect)
 
     Effect.SpriteOffset = Effect.SpriteOffset + Speed
 
-    Speed = Speed + (Accel or Vector.Zero)
+    Data.REG_SpriteSpeed = Data.REG_SpriteSpeed + (Accel or Vector.Zero)
 end
 mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, ApplySpriteSpeed)
 
@@ -356,12 +365,12 @@ end
 
 
 function mod:Lerp(a, b, t)
-    t = mod:Clamp(math.abs(t), 1,0)
+    t = mod:Clamp(math.abs(t), 0,1)
     return a + (b - a) * t
 end
 
 function mod:CoolLerp(a, b, t)
-    t = mod:Clamp(math.abs(t), 1,0)
+    t = mod:Clamp(math.abs(t), 0,1)
 
     t = t/(t^2 - 0.4*t + 0.4)
 
@@ -369,7 +378,7 @@ function mod:CoolLerp(a, b, t)
 end
 
 function mod:ExponentLerp(a, b, t, exp)
-    t = mod:Clamp(math.abs(t), 1,0)
+    t = mod:Clamp(math.abs(t), 0,1)
     exp = exp or 1
 
     return a + (b - a) * t^exp
@@ -402,12 +411,12 @@ end
 
 
 function mod:VectorLerp(vec1, vec2, percent)
-    percent = mod:Clamp(math.abs(percent), 1,0)
+    percent = mod:Clamp(math.abs(percent), 0,1)
     return vec1 * (1 - percent) + vec2 * percent
 end
 
 function mod:CoolVectorLerp(vec1, vec2, percent)
-    percent = mod:Clamp(math.abs(percent), 1,0)
+    percent = mod:Clamp(math.abs(percent), 0,1)
 
     --percent = percent + math.sin(math.rad(percent*180)) * 0.6
     percent = percent/(percent^2 - 0.4*percent + 0.4)
@@ -425,7 +434,7 @@ function mod:FixScreenPosition(V)
 end
 
 
-function mod:Clamp(Num,Max,Min)
+function mod:Clamp(Num,Min,Max)
     return math.max(Min,math.min(Num, Max))
 end
 
@@ -640,7 +649,7 @@ function mod:CalculateStageHP(StageHP)
 
     local Stage = Game:GetLevel():GetAbsoluteStage()
 
-    return StageHP * (math.min(4, Stage) + 0.8*mod:Clamp(Stage - 5, 5, 0))
+    return StageHP * (math.min(4, Stage) + 0.8*mod:Clamp(Stage - 5, 0, 5))
 
 end
 
@@ -811,7 +820,7 @@ function mod:RenderCoolCircle(Position, Radius, Kcolor, Rotate, Bounce, RoomClam
     local NumSides = (Radius // 60)*2 + 6 --number of actually drawn lines
     local Step = 90 / NumSides
 
-    local RadiusWiggle = math.sin(FrameCount/8) * mod:Clamp(Radius/15, 5.5, 1.5)
+    local RadiusWiggle = math.sin(FrameCount/8) * mod:Clamp(Radius/15, 1.5, 5.5)
 
     if Bounce then
         Radius = mod:CoolLerp(5, Radius + RadiusWiggle, FrameCount / 20)
@@ -868,6 +877,230 @@ end
 --mod:AddCallback(ModCallbacks.MC_POST_SLOT_INIT, effectTest)
 
 
+
+------GOT THESE FROM "THE SHERIFF" (which also got it from another place but whathever)-----
+
+--- https://arrowinmyknee.com/2021/03/15/some-math-about-capsule-collision/
+--- Computes closest points C1 and C2 of S1(s)=P1+s*(Q1-P1) and
+--- S2(t)=P2+t*(Q2-P2), returning s and t. Function result is squared
+--- distance between between S1(s) and S2(t)
+--- (whatever that means)
+local function closestPtSegmentSegment(p1, q1, p2, q2, s, t, c1, c2)
+    local d1 = q1 - p1
+    local d2 = q2 - p2
+    local r = p1 - p2
+    local a = d1:Dot(d1)
+    local e = d2:Dot(d2)
+    local f = d2:Dot(r)
+
+    if a < EPSILON and e < EPSILON then
+        s = 0
+        t = 0
+        c1 = p1
+        c2 = p2
+        return (c1 - c2):Dot(c1 - c2)
+    end
+
+    if a < EPSILON then
+        s = 0
+        t = f / e
+        t = mod:Clamp(t, 0, 1)
+    else
+        local c = d1:Dot(r)
+        if e < EPSILON then
+            t = 0
+            s = mod:Clamp(-c / a, 0, 1)
+        else
+            local b = d1:Dot(d2)
+            local denominator = (a * e) - (b * b)
+
+            if denominator ~= 0 then
+                s = mod:Clamp(((b * f) - (c * e)) / denominator, 0, 1)
+            else
+                s = 0
+            end
+
+            t = (b * s + f) / e
+
+            if (t < 0) then
+                t = 0
+                s = mod:Clamp(-c / a, 0, 1)
+            elseif t > 1 then
+                t = 1
+                s = mod:Clamp((b - c) / a, 0, 1)
+            end
+        end
+    end
+
+    c1 = p1 + d1 * s
+    c2 = p2 + d2 * t
+    return (c1 - c2):Dot(c1 - c2)
+end
+
+--- https://arrowinmyknee.com/2021/03/15/some-math-about-capsule-collision/
+--- I think this returns the collision point i dont know math is hard im scared
+---@param c Vector
+---@param a Vector
+---@param b Vector
+local function closestPtPointSegment(c, a, b)
+    local caAngle = (c - a):Dot(b - a)
+    local cbAngle = (c - b):Dot(a - b)
+
+    if caAngle > 0 and cbAngle > 0 then
+        local x = c.X
+        local y = c.Y
+        local x1 = a.X
+        local y1 = a.Y
+        local x2 = b.X
+        local y2 = b.Y
+
+        local numerator = math.abs((x2-x1)*(y1-y)-(x1-x)*(y2-y1))
+        local denominator = (x2-x1)^2 + (y2-y1)^2
+        local distance = (numerator ^ 2) / denominator
+
+        return distance, c
+    elseif caAngle > 0 then
+        return c:DistanceSquared(b), c
+    elseif cbAngle > 0 then
+        return c:DistanceSquared(a), c
+    end
+
+    local ab = b - a
+
+    -- Project c onto ab, but deferring divide by Dot(ab, ab)
+    local t = (c - a):Dot(ab)
+
+    if t <= 0 then
+        -- c projects outside the [a,b] interval, on the a side; clamp to a
+        return 0, a
+    else
+        local denom = ab:LengthSquared()
+        if t >= denom then
+            -- c projects outside the [a,b] interval, on the b side; clamp to b
+            return 1, b
+        else
+            -- c projects inside the [a,b] interval; must do deferred divide now
+            return t / denom, a + t * ab
+        end
+    end
+end
+
+
+--- https://arrowinmyknee.com/2021/03/15/some-math-about-capsule-collision/
+---@param capsule CollisionCapsule
+---@param circle CollisionCapsule
+---@return boolean intersects, Vector? intersectionPoint
+local function tryCollisionCapsuleCircle(capsule, circle)
+    local capNormal = (capsule.Tip - capsule.Base):Normalized()
+    local capLineOffset = capNormal * capsule.Radius
+    local capA = capsule.Base + capLineOffset
+    local capB = capsule.Tip - capLineOffset
+
+    local dist2, point = closestPtPointSegment(circle.Position, capA, capB)
+    local radius = capsule.Radius + circle.Radius
+
+    if dist2 <= radius ^ 2 then
+        return true, point
+    else
+        return false, nil
+    end
+end
+
+-- https://wickedengine.net/2020/04/26/capsule-collision-detection/
+function mod:CreateCapsule(position, size, sizeMulti)
+    local sizeWithMulti = size * sizeMulti
+
+    if sizeMulti.X > sizeMulti.Y then
+        --The hitbox is horizontal
+        local base = position + Vector(sizeWithMulti.X, 0)
+        local tip = position - Vector(sizeWithMulti.X, 0)
+        local radius = sizeWithMulti.Y
+
+        local capsule = {
+            Position = position,
+            Base = base,
+            Tip = tip,
+            Radius = radius,
+            Size = size,
+            SizeMulti = sizeMulti
+        }
+
+        return capsule
+    elseif sizeMulti.Y > sizeMulti.X then
+        --The hitbox is vertical
+        local base = position + Vector(0, sizeWithMulti.Y)
+        local tip = position - Vector(0, sizeWithMulti.Y)
+        local radius = sizeWithMulti.X
+
+        local capsule = {
+            Position = position,
+            Base = base,
+            Tip = tip,
+            Radius = radius,
+            Size = size,
+            SizeMulti = sizeMulti
+        }
+
+        return capsule
+    else
+        --Hitbox is a circle mleb
+        --The same as the horizontal one for now idk
+        local base = position + Vector(sizeWithMulti.X, 0)
+        local tip = position - Vector(sizeWithMulti.X, 0)
+        local radius = sizeWithMulti.Y
+
+        local capsule = {
+            Position = position,
+            Base = base,
+            Tip = tip,
+            Radius = radius,
+            Size = size,
+            SizeMulti = sizeMulti
+        }
+
+        return capsule
+    end
+end
+
+
+-- Checks if two collision capsules intersect.
+---@param capsule1 CollisionCapsule
+---@param capsule2 CollisionCapsule
+---@return boolean intersects, Vector? intersectionPoint Returns true if they collide.
+function mod:TryCollision(capsule1, capsule2)
+    -- Check if any capsule is actually a circle
+    local isCap1Circle = math.abs(capsule1.SizeMulti.X - capsule1.SizeMulti.Y) < 0.01
+    local isCap2Circle = math.abs(capsule2.SizeMulti.X - capsule2.SizeMulti.Y) < 0.01
+
+    if isCap1Circle and isCap2Circle then
+        --Both capsules are circles
+        local distance = capsule1.Position:DistanceSquared(capsule2.Position)
+        local radius = capsule1.Radius + capsule2.Radius
+
+        if distance <= radius ^ 2 then
+            --We assume the collision is at the half point, thats close enough
+            local halfPoint = capsule1.Position + (capsule1.Position - capsule2.Position) / 2
+            return true, halfPoint
+        else
+            return false, nil
+        end
+    elseif isCap1Circle then
+        --Capsule 1 is a circle
+        return tryCollisionCapsuleCircle(capsule2, capsule1)
+    elseif isCap2Circle then
+        --Capsule 2 is a circle
+        return tryCollisionCapsuleCircle(capsule1, capsule2)
+    end
+
+    local s, t, c1, c2
+    local dist2 = closestPtSegmentSegment(capsule1.Tip, capsule1.Base, capsule2.Tip, capsule2.Base, s, t, c1, c2)
+    local radius = capsule1.Radius + capsule2.Radius
+
+    return dist2 <= radius * radius
+end
+------------------------------------------------------
+
+
 -------------JIMBO FUNCTIONS------------
 ---------------------------------------
 
@@ -916,7 +1149,7 @@ function mod:RoundBalatroStyle(Value, MaxFigures)
 end
 
 
---determines the corresponding poker hand basing on the hand given
+--determines the corresponding poker hand
 function mod:DeterminePokerHand(Player)
 
     local ElegibleHandTypes = mod.HandFlags.NONE
@@ -2419,26 +2652,23 @@ function mod:RandomJoker(Rng, PlaySound, ForcedRarity, AllowDuplicates, Amount)
     local Exeptions = {} --jokers to remove from the pool
 
     local HasShowman = false
-    for i, Player in ipairs(PlayerManager.GetPlayers()) do
-        if mod:JimboHasTrinket(Player, mod.Jokers.SHOWMAN) then
-            HasShowman = true
-        end
+
+    if mod:GetTotalTrinketAmount(mod.Jokers.SHOWMAN) > 0 then
+        HasShowman = true
     end
+    
 
     AllowDuplicates = AllowDuplicates or HasShowman
 
     if not AllowDuplicates then --add to exeptions jokers held and in the room
     
         for i, Player in ipairs(PlayerManager.GetPlayers()) do
-            if Player:GetPlayerType() == mod.Characters.JimboType 
-            or Player:GetPlayerType() == mod.Characters.TaintedJimbo then
 
-                local PIndex = Player:GetData().TruePlayerIndex
+            local PIndex = Player:GetData().TruePlayerIndex
 
-                for _, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
-                    if Slot.Joker ~= 0 then
-                        Exeptions[#Exeptions+1] = Slot.Joker
-                    end
+            for _, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+                if Slot.Joker ~= 0 then
+                    Exeptions[#Exeptions+1] = Slot.Joker
                 end
             end
         end
@@ -2481,6 +2711,24 @@ function mod:RandomJoker(Rng, PlaySound, ForcedRarity, AllowDuplicates, Amount)
     end
 
 
+    local HasEnh = {false, false, false, false, false, false, false, false, false}
+    for _, Player in ipairs(PlayerManager.GetPlayers()) do
+        
+        local Type = Player:GetPlayerType()
+
+        if Type == mod.Characters.JimboType
+           or Type == mod.Characters.TaintedJimbo then
+
+            local PIndex = Player:GetData().TruePlayerIndex
+
+            for _, card in ipairs(mod.saved.Player[PIndex].FullDeck) do
+                HasEnh[card.Enhancement] = true
+            end
+
+        end
+    end
+
+
 
     local ReturnTable = {}
 
@@ -2508,6 +2756,11 @@ function mod:RandomJoker(Rng, PlaySound, ForcedRarity, AllowDuplicates, Amount)
 
         until (Trinket.Joker ~= mod.Jokers.GROS_MICHAEL or not mod.Saved.MichelDestroyed) --if it's michel, check if it was destroyed
               and (Trinket.Joker ~= mod.Jokers.CAVENDISH or mod.Saved.MichelDestroyed) --if it's cavendish do the same but opposite
+              and (Trinket.Joker ~= mod.Jokers.GLASS_JOKER or HasEnh[mod.Enhancement.GLASS])
+              and (Trinket.Joker ~= mod.Jokers.GOLDEN_TICKET or HasEnh[mod.Enhancement.GOLDEN])
+              and (Trinket.Joker ~= mod.Jokers.STEEL_JOKER or HasEnh[mod.Enhancement.STEEL])
+              and (Trinket.Joker ~= mod.Jokers.LUCKY_CAT or HasEnh[mod.Enhancement.LUCKY])
+              and (Trinket.Joker ~= mod.Jokers.STONE_JOKER or HasEnh[mod.Enhancement.STONE])
               and (JokerAchievement == mod.Achievements.PERMA_LOCK --(almost) all jokers
                    or Isaac.GetPersistentGameData():Unlocked(JokerAchievement)) --currently only for Chaos Theory
 
@@ -5024,7 +5277,7 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
             
                 NewIndex = AvailableIndexes[NewIndex]
 
-                NewIndex = mod:Clamp(NewIndex, #Params.SelectedCards[NewMode], 1)
+                NewIndex = mod:Clamp(NewIndex, 1, #Params.SelectedCards[NewMode])
             end
 
 

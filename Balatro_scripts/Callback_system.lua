@@ -288,7 +288,7 @@ mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED ,mod.OnGameStart)
 
 --Counter = 60
 --Counter2 = 36
-
+---@param Player EntityPlayer
 function mod:InitPlayerValues(Player)
 
     local PIndex = Player:GetData().TruePlayerIndex
@@ -296,6 +296,7 @@ function mod:InitPlayerValues(Player)
         PlayerIndexUpdate(Player)
         PIndex = Player:GetData().TruePlayerIndex
     end
+
 
     --print(PIndex)
 
@@ -369,6 +370,22 @@ function mod:InitPlayerValues(Player)
             --player:AddCacheFlags(CacheFlag.CACHE_ALL, true)       
         end
     end
+
+
+
+    --(tried to) modify the function that gets the amount of coins held to make it debt-compatible
+    --do
+    --    local OldGetCoins = Player.GetNumCoins
+    --    local GetNumCoins = function (self)
+    --                            return mod.Saved.DebtAmount == 0 and OldGetCoins(self) or 0
+    --                        end
+
+    --    Player.GetNumCoins = 
+
+    --    --Player.GetNumCoins = function (self)
+    --        
+    --    end
+    --end
 end
 mod:AddCallback(ModCallbacks.MC_PLAYER_INIT_POST_LEVEL_INIT_STATS, mod.InitPlayerValues)
 

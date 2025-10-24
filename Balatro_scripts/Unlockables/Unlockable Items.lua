@@ -104,7 +104,10 @@ AnvilStates.REFLECTED = 30
 
 local ANVIL_FOLLOW_TIME = 35
 local ANVIL_START_HEIGHT = -1200
-local UMBRELLA_HEIGHT = -31
+local UMBRELLA_HEIGHT = -42 --no idea why it needs to be doubled, the position looked fine to me but it aparently wasn't
+local UMBRELLA_VAR = {OPENED = 1, CLOSED = 0}
+--local UMBRELLA_CAPSULE = {MULTI = Vector(4.5, 2.5), SIZE = 10}
+
 
 local MAX_LOLLYPOP_COOLDOWN = 600
 local LollypopPicker = WeightedOutcomePicker()
@@ -864,14 +867,9 @@ function mod:FamiliarUpdate(Familiar)
 
         Familiar.FireCooldown = math.max(Familiar.FireCooldown - 1, 0)
 
-        local OrbitPosition = Familiar:GetOrbitPosition(Familiar.Player.Position) + Vector(2, 0)
+        local OrbitPosition = Familiar:GetOrbitPosition(Familiar.Player.Position) + Vector(2, 0) --slight off center like the actual planet's orbit
 
         Familiar:AddVelocity((OrbitPosition - Familiar.Position)*0.2)
-
-
-        --if Game:GetFrameCount() % 50 == 0 then
-        --    Familiar:GetSprite():Update()
-        --end
     end
 end
 mod:AddCallback(ModCallbacks.MC_FAMILIAR_UPDATE, mod.FamiliarUpdate)
@@ -1251,7 +1249,7 @@ function mod:EffectInit(Effect)
         Effect.SortingLayer = SortingLayer.SORTING_BACKGROUND
         Effect:AddEntityFlags(EntityFlag.FLAG_NO_SPRITE_UPDATE)
 
-    elseif Effect.Variant == mod.Effects.ANVIL then
+    --elseif Effect.Variant == mod.Effects.ANVIL then
         --Effect.PositionOffset = Vector(0, -1750)
 
     end
@@ -1356,12 +1354,14 @@ function mod:EffectUpdate(Effect)
 
             local Data = Effect:GetData()
             
-            Effect.SpriteOffset.Y = math.min(Effect.SpriteOffset.Y + Data.ZSpeed,0)
-            Data.ZSpeed = Data.ZSpeed + Data.ZAcceleration
+            Effect.SpriteOffset.Y = math.min(Effect.SpriteOffset.Y,0)
 
             if Effect.SpriteOffset.Y == 0 then
                 Effect.State = BananaState.IDLE
                 sfx:Play(SoundEffect.SOUND_MEAT_IMPACTS)
+
+                Data.REG_SpriteSpeed = nil
+                Data.REG_SpriteAccel = nil
 
                 Effect:AddVelocity(-Effect.Velocity)
                 Effect:GetSprite():Play("land")
@@ -1413,11 +1413,7 @@ function mod:EffectUpdate(Effect)
 
         local Data = Effect:GetData()
 
-        Effect.SpriteOffset.Y = Effect.SpriteOffset.Y + Data.FallingSpeed
-        Data.FallingSpeed = Data.FallingSpeed + Data.FallingAcceleration
-
-
-        --for whaterver reason shadows can be rendered only if an effect has 2 or more as the timeout??
+        --for whaterver reason shadows can be rendered only if an effect has 2 or more as the timeout(??)
         --alr also works if it's less than 0 but still wtf
         Effect:SetTimeout(math.max(Effect.Timeout, 2))
 
@@ -1430,25 +1426,41 @@ function mod:EffectUpdate(Effect)
                 Effect.IsFollowing = true
             end
 
-            for _,Umbrella in ipairs(Isaac.FindInCapsule(Effect:GetCollisionCapsule(), EntityPartition.EFFECT)) do
-                
-                if Umbrella.Variant == mod.Effects.UMBRELLA
-                   and Effect.SpriteOffset.Y > UMBRELLA_HEIGHT * Umbrella.SpriteScale.Y then
+            local AnvilCapsule = mod:CreateCapsule(Effect.Position, Effect.Size, Effect.SizeMulti)
+            AnvilCapsule.Position = AnvilCapsule.Position + Isaac.ScreenToWorldDistance(Effect.SpriteOffset)
+            AnvilCapsule.Position.Y = AnvilCapsule.Position.Y
 
+
+            for _,Umbrella in ipairs(Isaac.FindInCapsule(Effect:GetCollisionCapsule(), EntityPartition.EFFECT)) do
+
+                if Umbrella.Variant ~= mod.Effects.UMBRELLA then
+                    goto CONTINUE
+                end
+
+                local UmbrellaCapsule = mod:CreateCapsule(Umbrella.Position + Vector(0, UMBRELLA_HEIGHT*Umbrella.SizeMulti.Y), 
+                                                          Umbrella.Size, 
+                                                          Umbrella.SizeMulti)
+                
+                --UmbrellaCapsule.Position = UmbrellaCapsule.Position + Isaac.ScreenToWorldDistance(Umbrella.SpriteOffset)
+                --UmbrellaCapsule.Position = UmbrellaCapsule.Position + Vector(0, UMBRELLA_HEIGHT) WHY TF DOESN?T THIS MOVE THE HITBOX DUDE
+
+                Isaac.FindInRadius(UmbrellaCapsule.Position, 20)
+                Isaac.FindInRadius(AnvilCapsule.Position, 20)
+
+                if mod:TryCollision(UmbrellaCapsule, AnvilCapsule) then--mod:TryCollision(UmbrellaCapsule, AnvilCapsule) then
+                
                     Umbrella:GetSprite():Play("Bounce", true)
                     sfx:Play(SoundEffect.SOUND_JELLY_BOUNCE)
 
-
                     local Enemies = Isaac.FindInRadius(Effect.Position, 240, EntityPartition.ENEMY)
 
-                    Data.FallingSpeed = -6 - math.random()*4
-                    Data.FallingAcceleration = 0.75 + math.random()*0.5
+                    Data.REG_SpriteSpeed = Vector(0,-6 - math.random()*4)
+                    Data.REG_SpriteAccel = Vector(0,0.75 + math.random()*0.5)
 
                     if next(Enemies) then
                         local Target = mod:GetRandom(Enemies)
 
                         local FlightTime = ((Data.FallingSpeed^2 + 2*Data.FallingAcceleration*Effect.SpriteOffset.Y)^0.5 - Data.FallingSpeed)*2/Data.FallingAcceleration
-
 
                         Effect.Velocity = (Target.Position + Target.Velocity - Effect.Position)/FlightTime
 
@@ -1459,6 +1471,8 @@ function mod:EffectUpdate(Effect)
                     Effect.State = AnvilStates.REFLECTED
                     return
                 end
+
+                ::CONTINUE::
             end
 
             if Effect.SpriteOffset.Y < 0 then
@@ -1499,11 +1513,13 @@ function mod:EffectUpdate(Effect)
 
                 Shock:SetRadii(10,25)
 
+                Isaac.CreateTimer(function ()
+                    Shock = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.SHOCKWAVE, Effect.Position,
+                                       Vector.Zero, nil, 0, 1):ToEffect()
 
-                Shock = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.SHOCKWAVE, Effect.Position,
-                                   Vector.Zero, nil, 0, 1):ToEffect()
-
-                Shock:SetRadii(35,75)
+                    Shock:SetRadii(35,75)
+                end, 10, 1, false)
+                    
                 --Shock.Parent = Effect.SpawnerEntity
             end
 
@@ -1578,6 +1594,47 @@ function mod:EffectUpdate(Effect)
     elseif Effect.Variant == mod.Effects.UMBRELLA then
 
         local Sprite = Effect:GetSprite()
+
+        if not Sprite:IsPlaying("Retreat") then
+
+            local UmbrellaData = Effect:GetData()
+
+            local AnvilSpawnFrame = UmbrellaData.REG_AnvilFrame or 0
+            
+            if Effect.FrameCount >= AnvilSpawnFrame then
+                
+                local Anvil = Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.ANVIL, Effect.Position, 
+                                         Vector.Zero, Effect.Parent, 0, 1):ToEffect()
+
+                Anvil:FollowParent(Effect.Parent)
+                Anvil:SetTimeout(ANVIL_FOLLOW_TIME) --will follow the player for this many frames
+
+                Anvil.State = AnvilStates.FALLING
+                Anvil.SpriteOffset = Vector(0, ANVIL_START_HEIGHT)
+
+                local Data = Anvil:GetData()
+                Data.REG_SpriteSpeed = Vector(0, 15)
+
+
+                UmbrellaData.REG_AnvilFrame = AnvilSpawnFrame + math.random(90, 150)+60*Effect.SubType
+
+
+                local Player = Effect.Parent and Effect.Parent:ToPlayer() or nil
+
+                for i=ActiveSlot.SLOT_PRIMARY, ActiveSlot.SLOT_POCKET2 do
+                    
+                    if Player:GetActiveItem(i) == mod.Collectibles.UMBRELLA then
+                        Player:AddActiveCharge(1, i, true, false, true)
+                    end
+                end
+
+                if Player and Player:HasCollectible(CollectibleType.COLLECTIBLE_BOOK_OF_VIRTUES) then
+
+                    Player:AddWisp(mod.Collectibles.UMBRELLA, Effect.Position)
+                end
+            end
+
+        end
 
         if Sprite:IsEventTriggered("open") then
             
@@ -1654,7 +1711,7 @@ local function EffectRender(_,Effect)
         end
 
     elseif Effect.Variant == mod.Effects.ANVIL then
-        --Effect:SetShadowSize(mod:Lerp(0.25, 1, Effect.SpriteOffset.Y/ANVIL_START_HEIGHT))
+
         Effect:SetShadowSize(mod:ExponentLerp(0.25, 0.8, Effect.SpriteOffset.Y/ANVIL_START_HEIGHT, 2))
         Effect:RenderShadowLayer(Vector.Zero)
     end
@@ -1716,11 +1773,6 @@ local function PickupUpdate(_, Pickup)
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PICKUP_UPDATE, PickupUpdate)
-
-
----------GENERAL ENTITIES----------
------------------------------------
-
 
 ----------ITEM EFFECTS---------
 -------------------------------
@@ -1833,11 +1885,19 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE, mod.ChooseRoomCrayonColor2)
 
 
+local function IsPlayersUmbrella(Player, Umbrella)
+
+    local Player2 = Umbrella.Parent and Umbrella.Parent:ToPlayer() or nil
+
+    return GetPtrHash(Player) == GetPtrHash(Player2)
+end
+
+
 ---@param Player EntityPlayer
 ---@param Rng RNG
-function mod:ActiveUse(Item, Rng, Player, Flags, Slot, Data)
+function mod:ActiveUse(Item, Rng, Player, Flags, Slot, VarData)
 
-    local ReturnTable = {Discharge = false,
+    local ReturnTable = {Discharge = true,
                          Remove = false,
                          ShowAnim = false}
                          
@@ -1852,6 +1912,8 @@ function mod:ActiveUse(Item, Rng, Player, Flags, Slot, Data)
             Player:SetItemState(mod.Collectibles.BANANA)
             Player:AnimateCollectible(mod.Collectibles.BANANA, "LiftItem")
         end
+
+        ReturnTable.Discharge = false
         return ReturnTable
 
     elseif Item == mod.Collectibles.EMPTY_BANANA then
@@ -1869,63 +1931,104 @@ function mod:ActiveUse(Item, Rng, Player, Flags, Slot, Data)
 
         Banan.State = BananaState.FLYING
 
-        Data.ZSpeed = -math.random()*10 - 6
-        Data.ZAcceleration = 1 or math.random()*1.5 + 1
+        Data.REG_SpriteSpeed = Vector(0,-math.random()*10 - 6)
+        Data.REG_SpriteAccel = 1 or math.random()*1.5 + 1
+
+        --local RotOffset = (Game:GetFrameCount()%360)/360
+
+        if Player:HasCollectible(CollectibleType.COLLECTIBLE_BOOK_OF_VIRTUES) then
+            
+            for i=1, 2 do
+                
+                local Wisp = Player:AddWisp(mod.Collectibles.EMPTY_BANANA, Banan.Position)
+
+                ---@diagnostic disable-next-line: assign-type-mismatch
+                Wisp.Parent = Banan
+
+                Wisp:AddToOrbit(7094)
+                --Wisp.OrbitAngleOffset = RotOffset + 0.5*i
+            end
+        end
 
     elseif Item == mod.Collectibles.UMBRELLA then
 
-        local Anvil = Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.ANVIL, Player.Position, 
-                               Vector.Zero, Player, 0, 1):ToEffect()
-
-        Anvil:FollowParent(Player)
-        Anvil:SetTimeout(ANVIL_FOLLOW_TIME) --will follow the player for thim many frames
-    
-        Anvil.State = AnvilStates.FALLING
-        Anvil.SpriteOffset = Vector(0, ANVIL_START_HEIGHT)
-
-        local Data = Anvil:GetData()
-        Data.FallingSpeed = 15
-        Data.FallingAcceleration = 0
-
-
-        if Flags & UseFlag.USE_MIMIC == 0 then
-            Player:AddCollectible(mod.Collectibles.OPENED_UMBRELLA, 0,  false, Slot)
-
-            local Umbrella = Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.UMBRELLA, Player.Position, 
-                       Vector.Zero, Player, 0, 1):ToEffect()
-
-            Umbrella.SpriteScale = Player.SpriteScale
-            Umbrella.DepthOffset = 10
-            Umbrella.EntityCollisionClass = EntityCollisionClass.ENTCOLL_PLAYERONLY
-            Umbrella:FollowParent(Player)
-            
-            Umbrella:SetSize(Umbrella.Size, Umbrella.SizeMulti*Umbrella.SpriteScale, 12)
-            Umbrella:AddEntityFlags(EntityFlag.FLAG_PERSISTENT)
+        local TrueVar 
+        if Slot ~= -1 then
+            TrueVar = Player:GetActiveItemDesc(Slot).VarData --idk Callback's value is always 0
         end
 
-        Isaac.CreateTimer(function ()
-            if Player:Exists() and not Player:IsDead()
-               and Player:HasCollectible(mod.Collectibles.OPENED_UMBRELLA) then
-                
-                Player:UseActiveItem(mod.Collectibles.UMBRELLA, UseFlag.USE_NOANIM | UseFlag.USE_MIMIC)
+        if not TrueVar 
+           or TrueVar == UMBRELLA_VAR.CLOSED then
+
+            local NumUmbrellas = 0
+
+            for UmbSlot=ActiveSlot.SLOT_PRIMARY, ActiveSlot.SLOT_POCKET2 do
+
+                if Player:GetActiveItem(UmbSlot) == mod.Collectibles.UMBRELLA then
+                    Player:SetActiveVarData(UMBRELLA_VAR.OPENED, UmbSlot)
+                    Player:DischargeActiveItem(UmbSlot)
+
+                    NumUmbrellas = NumUmbrellas + 1
+                end
             end
-        end, math.random(150, 210), 1, true)
 
-    elseif Item == mod.Collectibles.OPENED_UMBRELLA then
+            for i = 1, NumUmbrellas do
 
-        for _,Umbrella in ipairs(Isaac.FindInRadius(Player.Position, 1, EntityPartition.EFFECT)) do
-            
-            if Umbrella.Variant == mod.Effects.UMBRELLA then
-                
-                Umbrella:GetSprite():Play("Retreat")
+                Isaac.CreateTimer(function ()
+
+                    local Umbrella = Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.UMBRELLA, Player.Position, 
+                                                Vector.Zero, Player, i, 1):ToEffect()
+
+                    local SizeMult = 1.3^(i-1)
+
+
+                    Umbrella.SpriteScale = Player.SpriteScale*SizeMult
+                    Umbrella.DepthOffset = 10 + i
+                    
+                    Umbrella.Parent = Player
+                    Umbrella:FollowParent(Player)
+
+                    Umbrella:SetSize(Umbrella.Size, Umbrella.SizeMulti*SizeMult, 12)
+
+                    if Flags & UseFlag.USE_MIMIC == 0 then
+                        Umbrella:AddEntityFlags(EntityFlag.FLAG_PERSISTENT)
+                    end
+
+                    if i == NumUmbrellas then
+                        Umbrella.EntityCollisionClass = EntityCollisionClass.ENTCOLL_PLAYERONLY
+                    end
+                end, 10*(i-1), 1, Flags & UseFlag.USE_MIMIC ~= 0)
+            end
+
+        elseif TrueVar == UMBRELLA_VAR.OPENED then
+
+            for UmbSlot=ActiveSlot.SLOT_PRIMARY, ActiveSlot.SLOT_POCKET2 do
+
+                if Player:GetActiveItem(UmbSlot) == mod.Collectibles.UMBRELLA then
+                    Player:SetActiveVarData(UMBRELLA_VAR.CLOSED, UmbSlot)
+                    Player:DischargeActiveItem(UmbSlot)
+                end
+            end
+
+            local MaxSubType = 0
+            local Umbrellas = {}
+
+            for _,Umbrella in ipairs(Isaac.FindByType(1000, mod.Effects.UMBRELLA)) do
+
+                if IsPlayersUmbrella(Player, Umbrella) then
+
+                    MaxSubType = math.max(MaxSubType, Umbrella.SubType)
+                    Umbrellas[#Umbrellas+1] = Umbrella
+                end
+            end
+
+            for _, Umbrella in ipairs(Umbrellas) do
+
+                Isaac.CreateTimer(function ()
+                    Umbrella:GetSprite():Play("Retreat")
+                end, 10*(MaxSubType - Umbrella.SubType), 1, true)
             end
         end
-
-        if Flags & UseFlag.USE_MIMIC == 0 then
-            Player:AddCollectible(mod.Collectibles.UMBRELLA, 0,  false, Slot)
-        end
-
-
     end
 end
 mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.ActiveUse)
@@ -1944,7 +2047,8 @@ local function OnPlayerUpdate(_,Player)
         Player:SetItemState(CollectibleType.COLLECTIBLE_NULL)
 
         Player:AddCollectible(mod.Collectibles.EMPTY_BANANA, 0, true, Player:GetActiveItemSlot(mod.Collectibles.BANANA))
-        Player:DischargeActiveItem()
+        Player:SetActiveCharge(0, ActiveSlot.SLOT_PRIMARY)
+        --Player:DischargeActiveItem() this would also activate book of virtuef
         
         local Tear = Game:Spawn(EntityType.ENTITY_TEAR, mod.Tears.BANANA_VARIANT, Player.Position, ShootDirection*Player.ShotSpeed*2.75, Player, 0, 1):ToTear()
         Tear.Parent = Player
@@ -1954,6 +2058,13 @@ local function OnPlayerUpdate(_,Player)
         sfx:Play(SoundEffect.SOUND_PLOP)
         Tear.CollisionDamage = 0
         Tear.FallingAcceleration = 0
+
+        if Player:HasCollectible(CollectibleType.COLLECTIBLE_BOOK_OF_VIRTUES) then
+
+            for i=1, 8 do
+                Player:AddWisp(mod.Collectibles.BANANA, Player.Position, true)
+            end
+        end
 
     end
 end
@@ -2026,7 +2137,7 @@ function mod:ResetBananaCharge()
         end
     end
 end
-mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.ResetBananaCharge)
+--mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.ResetBananaCharge)
 
 
 ---@param Entity Entity
@@ -2360,31 +2471,32 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_PICKUP_RENDER, PickupThrowParabola)
 
 
-local function OnItemLoss(_, Player, Item)
-
-    if Item == mod.Collectibles.OPENED_UMBRELLA then
-
-        for _,Umbrella in ipairs(Isaac.FindInRadius(Player.Position, 1, EntityPartition.EFFECT)) do
-            
-            if Umbrella.Variant == mod.Effects.UMBRELLA then
-                
-                Umbrella:GetSprite():Play("Retreat")
-            end
-        end
-    end
-end
-mod:AddCallback(ModCallbacks.MC_POST_TRIGGER_COLLECTIBLE_REMOVED, OnItemLoss)
-
 
 ---@param Player EntityPlayer
 local function OnItemAdded(_, Item, Charge, FirstTime, Slot, Var, Player)
 
-    if Item == mod.Collectibles.OPENED_UMBRELLA then
+    if Item == mod.Collectibles.UMBRELLA then
 
         if not Player:HasCollectible(mod.Collectibles.UMBRELLA) then
+
+            local Return = {mod.Collectibles.UMBRELLA, Charge, FirstTime, Slot, UMBRELLA_VAR.CLOSED}
             
-            return {mod.Collectibles.UMBRELLA, 0, false, Slot, Var, Player}
+            for i=ActiveSlot.SLOT_PRIMARY, ActiveSlot.SLOT_POCKET2 do
+                
+                local ItemDesc = Player:GetActiveItemDesc(i)
+
+                if ItemDesc and ItemDesc.Item == mod.Collectibles.UMBRELLA then
+                    
+                    Return[2] = ItemDesc.Charge
+                    Return[5] = ItemDesc.VarData
+
+                    break
+                end
+            end
+
+            return Return
         end
+
     elseif Item == mod.Collectibles.HEIRLOOM then
         if Player:HasCollectible(CollectibleType.COLLECTIBLE_TELEKINESIS) then
             Player:AddCacheFlags(CacheFlag.CACHE_TEARFLAG, true)
@@ -2498,7 +2610,7 @@ local function ErisAreaEffect(_, Player)
             Data.CurrentErisSlowValue = Data.CurrentErisSlowValue - 0.01*(1+Data.ErisUnfreezeTime*0.05) 
         end
 
-        Data.CurrentErisSlowValue = mod:Clamp(Data.CurrentErisSlowValue, 0.95, 0)
+        Data.CurrentErisSlowValue = mod:Clamp(Data.CurrentErisSlowValue, 0, 0.95)
 
         local SlowValue = Data.CurrentErisSlowValue
     
@@ -3022,3 +3134,41 @@ local function GuaranteeBeggarPayout(_, Slot, Player)
 
 end
 mod:AddCallback(ModCallbacks.MC_PRE_SLOT_COLLISION, GuaranteeBeggarPayout)
+
+
+---@param Wisp EntityFamiliar
+local function WispUpdate(_, Wisp)
+
+    local Item = Wisp.SubType
+
+    if Item == mod.Collectibles.EMPTY_BANANA then
+
+        local Target = Wisp.Parent or Wisp.Player
+
+        Wisp.OrbitDistance = Vector(20, 20)
+        Wisp.OrbitSpeed = 0.05
+        
+        
+        --Wisp.Position = 
+
+        Wisp.Velocity = (Wisp:GetOrbitPosition(Target.Position) - Wisp.Position)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_FAMILIAR_UPDATE, WispUpdate, FamiliarVariant.WISP)
+
+
+local function RemoveUnwantedEntities()
+
+    for i, Wisp in ipairs(Isaac.FindByType(EntityType.ENTITY_FAMILIAR, FamiliarVariant.WISP, mod.Collectibles.EMPTY_BANANA)) do
+        Wisp:Remove()
+    end
+
+    for i, Umbrella in ipairs(Isaac.FindByType(1000, mod.Effects.UMBRELLA)) do
+        if not Umbrella:HasEntityFlags(EntityFlag.FLAG_PERSISTENT) then
+            
+            Umbrella:GetSprite():Play("Retreat")
+            Umbrella:AddEntityFlags(EntityFlag.FLAG_PERSISTENT)
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_ROOM_EXIT, RemoveUnwantedEntities)

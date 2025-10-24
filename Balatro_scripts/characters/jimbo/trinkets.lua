@@ -1410,8 +1410,8 @@ function mod:OnBlindClear(BlindType)
 
                 Banan.State = 2
 
-                Data.ZSpeed = -math.random()*10 - 6
-                Data.ZAcceleration = 1 or math.random()*1.5 + 1
+                Data.REG_SpriteSpeed = Vector(0,-math.random()*10 - 6)
+                Data.REG_SpriteAccel = 1 or math.random()*1.5 + 1
             end
 
         elseif Joker == mod.Jokers.CAVENDISH then
@@ -1442,8 +1442,8 @@ function mod:OnBlindClear(BlindType)
 
                 Banan.State = 2
 
-                Data.ZSpeed = -math.random()*10 - 6
-                Data.ZAcceleration = 1 or math.random()*1.5 + 1
+                Data.REG_SpriteSpeed = Vector(0,-math.random()*10 - 6)
+                Data.REG_SpriteAccel = 1 or math.random()*1.5 + 1
             end
 
         elseif Joker == mod.Jokers.SACRIFICIAL_DAGGER then

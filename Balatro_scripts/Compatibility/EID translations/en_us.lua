@@ -113,40 +113,38 @@ Descriptions.T_Jimbo = {}
 
 --EID:addTrinket(mod.Jokers.JOKER, "\1 {{ColorMult}}+1.2{{CR}} Damage", "Joker", FileLanguage)
 
-Descriptions.Jimbo.Enhancement = {}
-Descriptions.Jimbo.Enhancement[mod.Enhancement.NONE]  = ""
-Descriptions.Jimbo.Enhancement[mod.Enhancement.BONUS] = "#{{BalatroBonus}} {{ColorChips}}Bonus Card{{CR}}: Gives {{ColorChips}}+0.75{{CR}} Tears when scored"
-Descriptions.Jimbo.Enhancement[mod.Enhancement.MULT]  = "#{{BalatroMult}} {{ColorMult}}Mult Card{{CR}}:Gives {{ColorMult}}+0.05{{CR}} Damage when scored"
-Descriptions.Jimbo.Enhancement[mod.Enhancement.GOLDEN] = "#{{BalatroGold}} {{ColorYellorange}}Gold Card{{CR}}: Holding it when a {{ColorYellorange}}blind{{CR}} is cleared gives {{ColorYellorange}}2${{CR}}"
-Descriptions.Jimbo.Enhancement[mod.Enhancement.GLASS] = "#{{BalatroGlass}} {{ColorGlass}}Glass Card{{CR}}: Gives {{ColorMult}}x1.2{{CR}} Damage Multiplier when scored #!!! When scored {{ColorMint}}[[CHANCE]]/10 Chance{{CR}} to get destroyed"
-Descriptions.Jimbo.Enhancement[mod.Enhancement.LUCKY] = "#{{BalatroLucky}} {{ColorMint}}Lucky Card{{CR}}: {{ColorMint}}[[CHANCE]]/5 Chance{{CR}} to give {{ColorMult}}+0.2{{CR}} damage and {{ColorMint}}[[CHANCE]]/20 Chance{{CR}} to give {{ColorYellorange}}10 {{Coin}} Pennies{{CR}}"
-Descriptions.Jimbo.Enhancement[mod.Enhancement.STEEL] = "#{{BalatroSteel}} {{ColorSilver}}Steel Card{{CR}}: Gives {{ColorMult}}X1.2{{CR}} Damage Multiplier when {{ColorYellorange}}held{{CR}} in hand as an hostile room is entered"
-Descriptions.Jimbo.Enhancement[mod.Enhancement.WILD]  = "#{{BalatroWild}} {{ColorRainbow}}Wild Card{{CR}}: Is considered as every suit"
-Descriptions.Jimbo.Enhancement[mod.Enhancement.STONE] = "#{{BalatroStone}} {{ColorGray}}Stone Card{{CR}}: Gives {{ColorChips}}+1.25{{CR}} Tears when scored #!!! Has no Rank or Suit"
+Descriptions.Jimbo.Enhancement = {[mod.Enhancement.NONE]  = "",
+                                  [mod.Enhancement.BONUS] = "#{{BalatroBonus}} {{ColorChips}}Bonus Card{{CR}}: Gives {{ColorChips}}+0.75{{CR}} Tears when scored",
+                                  [mod.Enhancement.MULT]  = "#{{BalatroMult}} {{ColorMult}}Mult Card{{CR}}:Gives {{ColorMult}}+0.05{{CR}} Damage when scored",
+                                  [mod.Enhancement.GOLDEN] = "#{{BalatroGold}} {{ColorYellorange}}Gold Card{{CR}}: Holding it when a {{ColorYellorange}}blind{{CR}} is cleared gives {{ColorYellorange}}2${{CR}}",
+                                  [mod.Enhancement.GLASS] = "#{{BalatroGlass}} {{ColorGlass}}Glass Card{{CR}}: Gives {{ColorMult}}x1.2{{CR}} Damage Multiplier when scored #!!! When scored {{ColorMint}}[[CHANCE]]/10 Chance{{CR}} to get destroyed",
+                                  [mod.Enhancement.LUCKY] = "#{{BalatroLucky}} {{ColorMint}}Lucky Card{{CR}}: {{ColorMint}}[[CHANCE]]/5 Chance{{CR}} to give {{ColorMult}}+0.2{{CR}} damage and {{ColorMint}}[[CHANCE]]/20 Chance{{CR}} to give {{ColorYellorange}}10 {{Coin}} Pennies{{CR}}",
+                                  [mod.Enhancement.STEEL] = "#{{BalatroSteel}} {{ColorSilver}}Steel Card{{CR}}: Gives {{ColorMult}}X1.2{{CR}} Damage Multiplier when {{ColorYellorange}}held{{CR}} in hand as an hostile room is entered",
+                                  [mod.Enhancement.WILD]  = "#{{BalatroWild}} {{ColorRainbow}}Wild Card{{CR}}: Is considered as every suit",
+                                  [mod.Enhancement.STONE] = "#{{BalatroStone}} {{ColorGray}}Stone Card{{CR}}: Gives {{ColorChips}}+1.25{{CR}} Tears when scored #!!! Has no Rank or Suit"
+                                  }
 
-Descriptions.Jimbo.Seal = {}
-Descriptions.Jimbo.Seal[mod.Seals.NONE] = ""
-Descriptions.Jimbo.Seal[mod.Seals.RED] = "# {{ColorMult}}Red Seal{{CR}}: This card's abilities are {{ColorYellorange}}Retriggered{{CR}} once"
-Descriptions.Jimbo.Seal[mod.Seals.BLUE] = "# {{ColorCyan}}Blue Seal{{CR}}: Spawns the card's respective {{ColorCyan}}Planet{{CR}} card when holding this as a Blind is cleared #!!! {{ColorGray}}(Must have at least 1 scoring card)"
-Descriptions.Jimbo.Seal[mod.Seals.GOLDEN] = "# {{ColorYellorange}}Golden Seal{{CR}}: spawns a {{Coin}} {{ColorYellorange}}Temporary Penny{{CR}} when scored"
-Descriptions.Jimbo.Seal[mod.Seals.PURPLE] = "# {{ColorPink}}Purple Seal{{CR}}: Spawns a random {{ColorPink}}Tarot{{CR}} card when {{ColorRed}}Discarded{{CR}}  #!!! {{ColorMint}}Lower chance{{CR}} if multiple are discarded {{ColorYellorange}}at once{{CR}}"
+Descriptions.Jimbo.Seal = {[mod.Seals.NONE] = "",
+                           [mod.Seals.RED] = "# {{ColorMult}}Red Seal{{CR}}: This card's abilities are {{ColorYellorange}}Retriggered{{CR}} once",
+                           [mod.Seals.BLUE] = "# {{ColorCyan}}Blue Seal{{CR}}: Spawns the card's respective {{ColorCyan}}Planet{{CR}} card when holding this as a Blind is cleared #!!! {{ColorGray}}(Must have at least 1 scoring card)",
+                           [mod.Seals.GOLDEN] = "# {{ColorYellorange}}Golden Seal{{CR}}: spawns a {{Coin}} {{ColorYellorange}}Temporary Penny{{CR}} when scored",
+                           [mod.Seals.PURPLE] = "# {{ColorPink}}Purple Seal{{CR}}: Spawns a random {{ColorPink}}Tarot{{CR}} card when {{ColorRed}}Discarded{{CR}}  #!!! {{ColorMint}}Lower chance{{CR}} if multiple are discarded {{ColorYellorange}}at once{{CR}}",
+                           }
 
-Descriptions.Jimbo.CardEdition = {}
-Descriptions.Jimbo.CardEdition[mod.Edition.BASE] = ""
-Descriptions.Jimbo.CardEdition[mod.Edition.FOIL] = "#{{Tears}} {{ColorChips}}Foil{{CR}}: {{ColorChips}}+1.25{{CR}} Tears when scored"
-Descriptions.Jimbo.CardEdition[mod.Edition.HOLOGRAPHIC] = "#{{Damage}} {{ColorMult}}Holographic{{CR}}: {{ColorMult}}+0.25{{CR}} Damage when scored"
-Descriptions.Jimbo.CardEdition[mod.Edition.POLYCROME] = "#{{Damage}} {{ColorRainbow}}Polychrome{{CR}}: {{ColorMult}}x1.2{{CR}} Damage Multiplier when scored"
-Descriptions.Jimbo.CardEdition[mod.Edition.NEGATIVE] = "#\1  {{ColorGray}}{{ColorFade}}Negative{{CR}}: scemo chi legge (how tf did u even get this)"
+Descriptions.Jimbo.CardEdition = {[mod.Edition.BASE] = "",
+                                  [mod.Edition.FOIL] = "#{{Tears}} {{ColorChips}}Foil{{CR}}: {{ColorChips}}+1.25{{CR}} Tears when scored",
+                                  [mod.Edition.HOLOGRAPHIC] = "#{{Damage}} {{ColorMult}}Holographic{{CR}}: {{ColorMult}}+0.25{{CR}} Damage when scored",
+                                  [mod.Edition.POLYCROME] = "#{{Damage}} {{ColorRainbow}}Polychrome{{CR}}: {{ColorMult}}x1.2{{CR}} Damage Multiplier when scored",
+                                  [mod.Edition.NEGATIVE] = "#\1  {{ColorGray}}{{ColorFade}}Negative{{CR}}: scemo chi legge (how tf did u even get this)"
+                                }
 
-
-Descriptions.Jimbo.JokerEdition = {}
-Descriptions.Jimbo.JokerEdition[mod.Edition.NOT_CHOSEN] = ""
-Descriptions.Jimbo.JokerEdition[mod.Edition.BASE] = ""
-Descriptions.Jimbo.JokerEdition[mod.Edition.FOIL] = "#{{Tears}} {{ColorChips}}Foil{{CR}}: {{ColorChips}}+3.5{{CR}} Tears while held"
-Descriptions.Jimbo.JokerEdition[mod.Edition.HOLOGRAPHIC] = "#{{Damage}} {{ColorMult}}Holographic{{CR}}: {{ColorMult}}+0.5{{CR}} Damage while held"
-Descriptions.Jimbo.JokerEdition[mod.Edition.POLYCROME] = "#{{Damage}} {{ColorRainbow}}Polychrome{{CR}}: {{ColorMult}}X1.25{{CR}} Damage Multiplier while held"
-Descriptions.Jimbo.JokerEdition[mod.Edition.NEGATIVE] = "#\1  {{ColorGray}}{{ColorFade}}Negative{{CR}}: {{ColorYellorange}}+1{{CR}} Joker Slot while held"
-
+Descriptions.Jimbo.JokerEdition = {[mod.Edition.NOT_CHOSEN] = "",
+                                   [mod.Edition.BASE] = "",
+                                   [mod.Edition.FOIL] = "#{{Tears}} {{ColorChips}}Foil{{CR}}: {{ColorChips}}+3.5{{CR}} Tears while held",
+                                   [mod.Edition.HOLOGRAPHIC] = "#{{Damage}} {{ColorMult}}Holographic{{CR}}: {{ColorMult}}+0.5{{CR}} Damage while held",
+                                   [mod.Edition.POLYCROME] = "#{{Damage}} {{ColorRainbow}}Polychrome{{CR}}: {{ColorMult}}X1.25{{CR}} Damage Multiplier while held",
+                                   [mod.Edition.NEGATIVE] = "#\1  {{ColorGray}}{{ColorFade}}Negative{{CR}}: {{ColorYellorange}}+1{{CR}} Joker Slot while held"
+                                   }
 
 
 Descriptions.Jimbo.Jokers = {}
@@ -344,6 +342,9 @@ Descriptions.JokerSynergies[mod.Jokers.GOLDEN_JOKER][CollectibleType.COLLECTIBLE
 
 Descriptions.JokerSynergies[mod.Jokers.GOLDEN_TICKET] = {}
 Descriptions.JokerSynergies[mod.Jokers.GOLDEN_TICKET][CollectibleType.COLLECTIBLE_SMELTER] = Descriptions.JokerSynergies[mod.Jokers.GOLDEN_JOKER][CollectibleType.COLLECTIBLE_SMELTER]
+
+Descriptions.JokerSynergies[mod.Jokers.CREDIT_CARD] = {}
+Descriptions.JokerSynergies[mod.Jokers.CREDIT_CARD][CollectibleType.COLLECTIBLE_MONEY_EQUALS_POWER] = "{{Coin}} being in debt counts as having half of the maximum amount of coins #{{Colorgray}} (it's not a bug, but a feature)" --ye ok it's actually a bug
 
 
 --inverts the table to make collectible synergy descriptions lookup faster
@@ -1115,7 +1116,7 @@ EID:addCollectible(mod.Vouchers.TarotTycoon, "{{PlayerJimbo}} Every pickup has a
 
 EID:addCollectible(mod.Collectibles.BALOON_PUPPY, "Familiar that reflects enemy shots and deals 5 contact damage per second #Explodes dealing 3 x Isaac's Damage after taking enough damage #If Isaac takes damage, starts chasing down enemies", "Baloon Puppy",FileLanguage)		
 EID:addCollectible(mod.Collectibles.BANANA, "Isaac shoots a devastating banana that creates a {{Collectible483}} Mama Mega! explosion on contact #!!! Upon use becomes {{Collectible"..mod.Collectibles.EMPTY_BANANA.."}} Empty Banana", "Banana",FileLanguage)		
-EID:addCollectible(mod.Collectibles.EMPTY_BANANA, "Leaves a banana peel on the ground #Enemies that slip on the peels take damage basing on how fast they were moving #!!! Entring a new floor recharges it to {{Collectible"..mod.Collectibles.BANANA.."}} Banana", "Empty Banana",FileLanguage)		
+EID:addCollectible(mod.Collectibles.EMPTY_BANANA, "Leaves a banana peel on the ground #Enemies that slip on the peels take damage basing on how fast they were moving", "Empty Banana",FileLanguage)		
 EID:addCollectible(mod.Collectibles.CLOWN, "When taking damage, every enemy in the room has a 66% chance to get either {{Fear}} Fear or {{Charm}} Charm applied", "Clown Costume",FileLanguage)		
 EID:addCollectible(mod.Collectibles.CRAYONS, "While moving, create a trail of crayon dust that applies status effects #Effects applied change basing the dust's color #!!! Dust color changes every new room", "Box of Crayons",FileLanguage)		
 EID:addCollectible(mod.Collectibles.FUNNY_TEETH, "Spawns a familiar that chases enemies dealing 15 damage per second #{{Chargeable}} Needs to be recharged by standing near it after being active for some time", "Funny Teeth",FileLanguage)		
@@ -1125,7 +1126,6 @@ EID:addCollectible(mod.Collectibles.LOLLYPOP, "{{Timer}} A lollypop spawns on th
 EID:addCollectible(mod.Collectibles.POCKET_ACES, "{{Luck}} Tears have an 8% chance to become Ace cards #Ace cards deal the product of Isaac's {{Damage}} Damage and {{Tears}} Tears stat worth of damage", "Pocket Aces",FileLanguage)		
 EID:addCollectible(mod.Collectibles.TRAGICOMEDY, "40% chance to wear a comedy or tragedy mask upon clearing a room #\1 The comedy mask grants: {{Tears}} +1 Firedelay, {{Speed}} +0.2 Speed and {{Luck}} +2 Luck #\1 Wearing a tragedy mask grants: {{Tears}} +0.5 Firedelay, {{Damage}} +1 Flat Damage and {{Range}} +2.5 Range #!!! both mask can be worn at once", "Tragicomedy",FileLanguage)		
 EID:addCollectible(mod.Collectibles.UMBRELLA, "Isaac opens an umbrella, causing anvils to fall on top of him every 5 ~ 7 seconds #Anvils create damaging shockwaves when landing #Anvils can be reflected by the umbrella, sending them thorwards a near enemy #!!! Using the item again stops the anvils from falling", "Umbrella",FileLanguage)		
-EID:addCollectible(mod.Collectibles.OPENED_UMBRELLA, "Isaac opens an umbrella, causing anvils to fall on top of him every 5 ~ 7 seconds #anvils create damaging shockwaves when landing #Anvils can be reflected by the umbrella, sending them thorwards a near enemy #!!! Using the item again closes the umbrella", "Umbrella",FileLanguage)		
 
 for i = 1, Balatro_Expansion.TastyCandyNum do --puts every candy stage
 
@@ -1135,7 +1135,7 @@ end
 
 EID:addCollectible(mod.Collectibles.HEIRLOOM, "{{Coin}} All coins have a chance to get their value upgraded #{{Coin}} All pickups are more likely to turn into their golden variant", "Heirloom",FileLanguage)		
 EID:addTrinket(mod.Trinkets.PENNY_SEEDS, "{{Coin}} Gain 1 coin per 5 coin isaac has every floor #Very low chance for the coins spawned to be a penny trinket or {{Collectible74}} The quarter", "Penny Seeds",FileLanguage)		
-EID:addCollectible(mod.Collectibles.THE_HAND, "{{Card}} Up to 5 cards or runes can be stored in the active item #{{Chargeable}} Holding the item uses the cards stored in the order shown # Press [DROP] key to cycle the held cards #!!! Cards in excess will be destroyed", "The Hand",FileLanguage)		
+EID:addCollectible(mod.Collectibles.THE_HAND, "{{Card}} Up to 5 cards or runes can be stored in the active item #!!! Cards in excess will be destroyed #{{Chargeable}} Holding the item uses the cards stored in the order shown # Press [DROP] key to cycle the held cards # Also collects pickups and deals damage to enemies hit", "The Hand",FileLanguage)		
 EID:addCard(mod.JIMBO_SOUL, "{{Timer}} For the current Room, balances Isaac's Damage and Tears stats #{{Blank}} {{ColorGray}}(Effect lasts longer if used multiple times)", "Soul of Jimbo", FileLanguage)
 EID:addTrinket(mod.Jokers.CHAOS_THEORY, "{{Collectible402}} All pickups spawned are randomised", "Chaos Theory", FileLanguage)		
 EID:addCollectible(mod.Collectibles.ERIS, "Enemies around Isaac are increasingly slowed the closer they are to him #After being slowed enough, enemies take 3% of their remaining health worth of damage per tick #{{Blank}} \7 (Min. 0.1)", "Eris",FileLanguage)		
@@ -1158,6 +1158,21 @@ Descriptions.ItemItemSynergies[mod.Collectibles.FUNNY_TEETH] = {[CollectibleType
                                                                 [CollectibleType.COLLECTIBLE_MAW_OF_THE_VOID] = "# When recharged, fires a smaller {{Collectible399}} Maw of the void ring"}
 Descriptions.ItemItemSynergies[mod.Collectibles.HEIRLOOM] = {[CollectibleType.COLLECTIBLE_TELEKINESIS] = "# Gain {{Collectible2}} Homing shots",
                                                             }
+Descriptions.ItemItemSynergies[mod.Collectibles.THE_HAND] = {[CollectibleType.COLLECTIBLE_BOOK_OF_VIRTUES] = "# Shoots a wisp per card held when swung",
+                                                             [CollectibleType.COLLECTIBLE_MIDAS_TOUCH] = "# Deals +0.25 damage per {{Coin}} coin held to enemie and has a chance to turn them in golden statues",
+                                                             [CollectibleType.COLLECTIBLE_KNOCKOUT_DROPS] = "# Doubles damage dealt to enemies and increases the knockback strength",
+                                                             [CollectibleType.COLLECTIBLE_SERPENTS_KISS] = "# Chance to poinson enemies hit",
+                                                             [CollectibleType.COLLECTIBLE_VIRUS] = "# Chance to poison enemies hit",
+                                                             [CollectibleType.COLLECTIBLE_TELEKINESIS] = "# Deflects projectiles hit",
+                                                             [mod.Collectibles.THE_HAND] = "# 5 more cards can be held at once",
+                                                            }
+Descriptions.ItemItemSynergies[mod.Collectibles.BANANA] = {[CollectibleType.COLLECTIBLE_BOOK_OF_VIRTUES] = "# Create 8 wisps with high chance to shoot explosive tears"}
+Descriptions.ItemItemSynergies[mod.Collectibles.EMPTY_BANANA] = {[CollectibleType.COLLECTIBLE_BOOK_OF_VIRTUES] = "# 2 wisps orbit the peels thrown"}
+Descriptions.ItemItemSynergies[mod.Collectibles.UMBRELLA] = {[CollectibleType.COLLECTIBLE_BOOK_OF_VIRTUES] = "# Gain an outer ring wisp with chance of {{Confsion}} concussing tears per anvil fallen",
+                                                             [mod.Collectibles.UMBRELLA] = "# All umbrellas are opened at the same time, increasing the anvils falling and the cover's size"}
+Descriptions.ItemItemSynergies[mod.Vouchers.Director] = {[CollectibleType.COLLECTIBLE_BOOK_OF_VIRTUES] = "# Creates outer ring wisps that devolve enemies on contact"}
+Descriptions.ItemItemSynergies[mod.Vouchers.Retcon] = {[CollectibleType.COLLECTIBLE_BOOK_OF_VIRTUES] = "# Creates outer ring wisps that devolve enemies on contact"}
+
 
 
 
@@ -1181,6 +1196,14 @@ for Item, ItemSynergies in pairs(Descriptions.ItemItemSynergies) do
         Descriptions.ItemItemSynergies[Item][Item2] = string.gsub(SynString, "#", Prefix)
     end
 end
+
+
+Descriptions.TrinketEdition = {[mod.Edition.BASE] = "",
+                               [mod.Edition.FOIL] = "#{{Tears}} {{ColorChips}}+1{{CR}} Fire rate",
+                               [mod.Edition.HOLOGRAPHIC] = "#{{Damage}} {{ColorMult}}+1.5{{CR}} Flat Damage",
+                               [mod.Edition.POLYCROME] = "#{{Damage}} {{ColorMult}}x1.2{{CR}} Damage Multiplier",
+                               [mod.Edition.NEGATIVE] = "#{{Collectible479}} Immediantly smelted when picked up"
+                             }
 
 
 

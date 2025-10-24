@@ -577,7 +577,7 @@ function mod:RenderBalatroStyle(String, Position, Params, StartFrame, Scale, Kco
 
             local FramesInRendering = FrameCount - StartFrame --how long the word has been rendering for
 
-            local EnlargedScale = math.sin(mod:Clamp((FramesInRendering - i*2)/4, math.pi, 0))*0.33 --*Scale.Y
+            local EnlargedScale = math.sin(mod:Clamp((FramesInRendering - i*2)/4, 0, math.pi))*0.33 --*Scale.Y
 
             Scale = BaseScale * (1 + EnlargedScale)
 
@@ -3941,7 +3941,7 @@ local function CashoutBubbleRender(_,Effect, Offset)
     CashoutBubbleSprite.Offset = Vector.Zero
     CashoutBubbleSprite:Render(PlatePos)
 
-    local MiddleScale = (mod:Clamp(NumStrings-1, 5, 1) * BALATRO_BASE_LINE_HEIGHT * 1.5 + BALATRO_BASE_LINE_HEIGHT*0.25)/10 --maximum of 4 strings at a time
+    local MiddleScale = (mod:Clamp(NumStrings-1, 1, 5) * BALATRO_BASE_LINE_HEIGHT * 1.5 + BALATRO_BASE_LINE_HEIGHT*0.25)/10 --maximum of 4 strings at a time
 
     local TopPos = PlatePos - Vector(0, BASE_BUBBLE_HEIGHT * MiddleScale)
 

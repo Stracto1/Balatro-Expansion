@@ -17,7 +17,7 @@ local sfx = SFXManager()
 --prevents duplicate vouchers to be chosen/picked up in a run (2 players can have the same vouchers)
 --also prevents upgraded vouchers from being taken without having their normal version
 ---@param Player EntityPlayer
-function mod:VoucherPool(Type,_,_,_,_,Player)
+local function VoucherPool(_,Type,_,_,_,_,Player)
     if Player:GetPlayerType() ~= mod.Characters.JimboType
        and Player:GetPlayerType() ~= mod.Characters.TaintedJimbo
         or not ItemsConfig:GetCollectible(Type):HasCustomTag("balatro") then
@@ -72,10 +72,10 @@ function mod:VoucherPool(Type,_,_,_,_,Player)
 
     return Type
 end
-mod:AddCallback(ModCallbacks.MC_PRE_ADD_COLLECTIBLE, mod.VoucherPool)
+mod:AddCallback(ModCallbacks.MC_PRE_ADD_COLLECTIBLE, VoucherPool)
 
 ---@param Player EntityPlayer
-function mod:VoucherPool2(Player, Type)
+local function VoucherPool2(_,Player, Type)
     if Player:GetPlayerType() ~= mod.Characters.JimboType
        and Player:GetPlayerType() ~= mod.Characters.TaintedJimbo
         or not ItemsConfig:GetCollectible(Type):HasCustomTag("balatro") then
@@ -105,11 +105,11 @@ function mod:VoucherPool2(Player, Type)
 
     
 end
-mod:AddCallback(ModCallbacks.MC_POST_TRIGGER_COLLECTIBLE_REMOVED, mod.VoucherPool2)
+mod:AddCallback(ModCallbacks.MC_POST_TRIGGER_COLLECTIBLE_REMOVED, VoucherPool2)
 
 
 --vouchers cannot get rerolled in any way
-function mod:NoRerolls(Pickup,Type,Variant,SubType)
+local function NoRerolls(_,Pickup,Type,Variant,SubType)
     if Pickup.Variant ~= PickupVariant.PICKUP_COLLECTIBLE then
         return
     end
@@ -119,12 +119,12 @@ function mod:NoRerolls(Pickup,Type,Variant,SubType)
     end
 
 end
-mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_MORPH, mod.NoRerolls)
+mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_MORPH, NoRerolls)
 
 
 
 ---@param Player EntityPlayer
-function mod:VouchersAdded(Item,_,_,_,_,Player)
+local function VouchersAdded(_,Item,_,_,_,_,Player)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
@@ -133,10 +133,10 @@ function mod:VouchersAdded(Item,_,_,_,_,Player)
         Player:UseActiveItem(CollectibleType.COLLECTIBLE_FORGET_ME_NOW, UseFlag.USE_NOANIM|UseFlag.USE_MIMIC)
     end
 end
-mod:AddPriorityCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE,CallbackPriority.LATE, mod.VouchersAdded)
+mod:AddPriorityCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE,CallbackPriority.LATE, VouchersAdded)
 
 
-function mod:VouchersRemoved(Player, Item)
+local function VouchersRemoved(_,Player, Item)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
@@ -154,10 +154,10 @@ function mod:VouchersRemoved(Player, Item)
 
 
 end
-mod:AddPriorityCallback(ModCallbacks.MC_POST_TRIGGER_COLLECTIBLE_REMOVED,CallbackPriority.LATE, mod.VouchersRemoved)
+mod:AddPriorityCallback(ModCallbacks.MC_POST_TRIGGER_COLLECTIBLE_REMOVED,CallbackPriority.LATE, VouchersRemoved)
 
 
-function mod:RerollVoucher(Partial)
+local function RerollVoucher(_,Partial)
     if Partial or not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
         return
     end
@@ -195,11 +195,11 @@ function mod:RerollVoucher(Partial)
     end
     
 end
-mod:AddCallback(ModCallbacks.MC_POST_RESTOCK_SHOP, mod.RerollVoucher)
+mod:AddCallback(ModCallbacks.MC_POST_RESTOCK_SHOP, RerollVoucher)
 
 
 
-function mod:PackSkipVouchers(Player,Pack)
+local function PackSkipVouchers(_,Player,Pack)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
@@ -224,7 +224,7 @@ function mod:PackSkipVouchers(Player,Pack)
     
 
 end
-mod:AddCallback("PACK_SKIPPED", mod.PackSkipVouchers)
+mod:AddCallback("PACK_SKIPPED", PackSkipVouchers)
 
 
 
@@ -242,7 +242,7 @@ local PlanetariumToValue = {
     CollectibleType.COLLECTIBLE_SOL}
 
 ---@param Player EntityPlayer
-function mod:CardShotVouchers(Player,ShotCard,Evaluate)
+local function CardShotVouchers(_,Player,ShotCard,Evaluate)
     if not Evaluate then 
         return
     end
@@ -268,13 +268,13 @@ function mod:CardShotVouchers(Player,ShotCard,Evaluate)
     end
 
 end
-mod:AddCallback("CARD_SHOT", mod.CardShotVouchers)
+mod:AddCallback("CARD_SHOT", CardShotVouchers)
 
 
 
 ---@param Rng RNG
 ---@param Player EntityPlayer
-function mod:DirectorVoucher(Item,Rng, Player, Flags,_,_)
+local function DirectorVoucher(_,Item,Rng, Player, Flags,_,_)
 
     if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
         return
@@ -288,21 +288,61 @@ function mod:DirectorVoucher(Item,Rng, Player, Flags,_,_)
             mod:SpendMoney(5)
 
             sfx:Play(mod.Sounds.MONEY)
+
+            Player:AddWisp(Item, Player.Position)
+
             return true
         end
 
+        return false
+
     elseif Item == mod.Vouchers.Retcon then
-        if Player:GetNumCoins() >= 5 then
+        if mod:PlayerCanAfford(5) then
 
             Player:UseActiveItem(CollectibleType.COLLECTIBLE_D100, UseFlag.USE_NOANIM|UseFlag.USE_MIMIC) --easiest way to reroll
             mod:SpendMoney(5)
 
             sfx:Play(mod.Sounds.MONEY)
+
+            Player:AddWisp(Item, Player.Position)
+
             return true
         end
+
+        return false
 
     end
 
 end
-mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.DirectorVoucher)
+mod:AddCallback(ModCallbacks.MC_USE_ITEM, DirectorVoucher)
+
+
+
+---@param Familiar EntityFamiliar
+local function VoucherWispCollision(_, Familiar,  Collider)
+
+    local PtrHash = GetPtrHash(Collider)
+
+    local Data = Familiar:GetData()
+    Data.REG_HitList = Data.REG_HitList or {}
+
+    if Familiar.SubType ~= mod.Vouchers.Director
+       and Familiar.SubType ~= mod.Vouchers.Retcon
+       or mod:Contained(Data.REG_HitList, PtrHash) then
+        return
+    end
+
+    ---@type EntityNPC?
+    Collider = Collider:ToNPC()
+
+    if not Collider
+       or not Collider:IsActiveEnemy() then
+        return    
+    end
+
+    Data.REG_HitList[#Data.REG_HitList+1] = PtrHash
+
+    Game:DevolveEnemy(Collider)
+end
+mod:AddCallback(ModCallbacks.MC_POST_FAMILIAR_COLLISION, VoucherWispCollision, FamiliarVariant.WISP)
 

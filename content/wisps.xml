@@ -89,11 +89,11 @@
 	<color name="tear_vengeful" r="380" g="380" b="380" or="200"/>
 	
 
-    <wisp id="19" hp="2" damage="3" layer="2" flameColor="flame_orange" coreColor="core_orange" coreGfx="REG_director.png" tearColor="tear_orange" canShoot="false" priority="5"/>
-    <wisp id="20" hp="4" damage="3" layer="2" flameColor="flame_orange" coreColor="core_orange" coreGfx="REG_director.png" tearColor="tear_orange" canShoot="false" priority="5"/>
-    <wisp id="35" hp="3" damage="4.5" layer="1" flameColor="flame_yellow" coreColor="core_yellow" tearColor="tear_yellow" count = "12" tearFlags2="12" procChance="0.1"/>
-    <wisp id="36" hp="2" damage="3" layer="-1" flameColor="flame_yellow" coreColor="core_yellow" coreGfx="REG_banana.png" tearColor="tear_yellow" count = "0"/>
-    <wisp id="42" hp="2" damage="3" layer="1" flameColor="flame_black" coreColor="core_black" coreGfx="REG_anvil.png" tearColor="tear_black" count="0" tearFlags2="14" procChance="0.05"/>
-    <wisp id="0" hp="2" damage="3" layer="1" flameColor="flame_blue" coreColor="core_blue" coreGfx="card.png" tearColor="tear_blue" count="0" tearFlags2="64" procChance="0.05"/>
+    <wisp id="19" hp="2" damage="3" layer="2" flameColor="flame_orange" coreColor="core_orange" coreGfx="REG_director.png" tearColor="tear_orange" canShoot="false" count="0" priority="5"/>
+    <wisp id="20" hp="3" damage="3" layer="2" flameColor="flame_orange" coreColor="core_orange" coreGfx="REG_director.png" tearColor="tear_orange" canShoot="false" count="0" priority="5"/>
+    <wisp id="35" hp="5" damage="4" layer="1" flameColor="flame_yellow" coreColor="core_yellow" tearColor="tear_yellow" count="0" fireDelay="60" tearFlags="12"/>
+    <wisp id="36" hp="1" damage="3" layer="-1" flameColor="flame_yellow" coreColor="core_yellow" coreGfx="REG_banana.png" tearColor="tear_yellow" count="0" canShoot="false"/>
+    <wisp id="42" hp="2" damage="3" layer="2" flameColor="flame_grey" coreColor="core_grey" coreGfx="REG_anvil.png" tearColor="tear_grey" count="0" tearFlags2="14" procChance="0.05"/>
+    <wisp id="0" hp="1" damage="3" layer="-1" flameColor="flame_blue" coreColor="core_blue" coreGfx="card.png" tearColor="tear_blue" count="0" canShoot="false"/>
 
 </wisps>

@@ -11,7 +11,7 @@ EditionPicker:AddOutcomeFloat(mod.Edition.HOLOGRAPHIC, 1)
 EditionPicker:AddOutcomeFloat(mod.Edition.POLYCROME, 0.3)
 
 local EDITION_CHANCE = 0.02
-local NEGATIVE_CHANCE = 0.003 --this is fixed regardless of vouchers
+local NEGATIVE_CHANCE = 0.003 
 
 local EditionSound = {[mod.Edition.BASE] = 0,
                       [mod.Edition.FOIL] = mod.Sounds.FOIL,
@@ -31,14 +31,11 @@ local DisableChecks = false
 local function TrinketSlotToInventory(i)
 
     if i == 0 then
+        return 2
+    elseif i == 1 then
         return 1
-
     else
-        if i > 1 then
-            return i
-        else
-            return 0
-        end
+        return i
     end
 end
 
@@ -215,7 +212,7 @@ function mod:RegisterEditionRemoved(Player, Trinket)
         return
     end
 
-    if Player:GetMaxTrinkets() == 2 and TrinketSlot == 2 then
+    if Player:GetMaxTrinkets() == 2 and TrinketSlot == 1 then
         
         mod.Saved.Player[PIndex].Inventory[2], mod.Saved.Player[PIndex].Inventory[1] = 
         mod.Saved.Player[PIndex].Inventory[1], mod.Saved.Player[PIndex].Inventory[2]
@@ -339,7 +336,7 @@ mod:AddCallback(ModCallbacks.MC_PRE_USE_ITEM, OnSmelterUse)
 
 local FOIL_BOOST = 1
 local HOLO_BOOST = 1.5
-local POLY_MULT = 1.15
+local POLY_MULT = 1.2
 
 local function FoilStatBoost(_, Player)
 
