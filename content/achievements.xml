@@ -1,7 +1,7 @@
 <achievements gfxroot="gfx/ui/achievement/">
 
     <achievement name="PermaLocked" hidden="true"/>
-    <achievement name="RagambledTJimboUnlock" gfx="achievement_tainted_jimbo.png"/>
+    <achievement name="RagambledTJimboUnlock" gfx="achievement_tjimbo.png"/>
 
     <achievement name="HorseyUnlock" gfx="achievement_horsey.png"/>
     <achievement name="CrayonsUnlock" gfx="achievement_box_crayons.png"/>
