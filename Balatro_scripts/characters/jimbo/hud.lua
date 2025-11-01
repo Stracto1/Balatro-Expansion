@@ -24,28 +24,10 @@ MultCounter:SetFrame("Idle",0)
 ChipsCounter:SetFrame("Idle",0)
 
 local DiscardChargeSprite = Sprite("gfx/chargebar.anm2")
-local HandChargeSprite = Sprite("gfx/chargebar.anm2")
+DiscardChargeSprite.Offset = Vector(-17,-25)
 
---charge bars color modifiers
-do
-    --SETS THE COLOR FOR THE DISCARD CHARGE BAR
-    local DiscardProgressBar = DiscardChargeSprite:GetLayer(1)
-    
-    ---@diagnostic disable-next-line: need-check-nil
-    local BarColor = DiscardProgressBar:GetColor()
-    BarColor.BO = -1
-    BarColor.GO = -0.8
-    BarColor.RO = 1
-
-    ---@diagnostic disable-next-line: need-check-nil
-    DiscardProgressBar:SetColor(BarColor)
-    DiscardChargeSprite.Offset = Vector(-20,-20)
-
-    --SETS THE COLOR FOR THE HAND CHARGE BAR
-    local HandProgressBar = HandChargeSprite:GetLayer(1)
-
-end
-local CHARGE_BAR_OFFSET = Vector(17,-30)
+local HandChargeSprite = Sprite("gfx/ui/chargebar_the_hand.anm2")
+local CHARGE_BAR_OFFSET = Vector(17,-25)
 
 
 
@@ -59,7 +41,7 @@ local CHARGED_ANIMATION = 11 --the length of an animation for chargebars
 local CHARGED_LOOP_ANIMATION = 5
 
 --local DECK_RENDERING_POSITION = Vector(110,15) --in screen coordinates
-local HAND_RENDERING_POSITION = Vector(40,30) --in screen coordinates
+--local HAND_RENDERING_POSITION = Vector(40,30) --in screen coordinates
 local INVENTORY_RENDERING_POSITION = Vector(10,10)
 
 --local DECK_RENDERING_POSITION = Isaac.WorldToRenderPosition(Isaac.ScreenToWorld(Vector(760,745)))
@@ -74,10 +56,6 @@ HUD_FRAME.Skip = 5
 
 local CardHUDWidth = 13
 local PACK_CARD_DISTANCE = 10
-
-local ENHANCEMENTS_ANIMATIONS = {"Base","Mult","Bonus","Wild","Glass","Steel","Stone","Golden","Lucky"}
-
-
 
 
 --------------HUD RENDER-----------------
@@ -217,7 +195,6 @@ end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.JimboInventoryHUD)
 
 
---renders the deck on top of the screen and the blind progress
 ---@param Player EntityPlayer
 function mod:JimboStatsHUD(offset,_,Position,_,Player)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
@@ -228,15 +205,8 @@ function mod:JimboStatsHUD(offset,_,Position,_,Player)
 
     -------STATS COUNTER RENDERING---------
     
-    local ChipsPos = Vector(24,108) + Vector(20, 13)*Options.HUDOffset
+    local ChipsPos = Vector(18,108) + Vector(20, 13)*Options.HUDOffset
     local MultPos = ChipsPos + Vector(0,12)
-
-
-    --local ChipsPos = Vector(44,122)
-    --local MultPos = Vector(44,134)
-
-    ChipsCounter:Render(ChipsPos)
-    MultCounter:Render(MultPos)
 
     local MultString
     local ChipsString
@@ -258,6 +228,18 @@ function mod:JimboStatsHUD(offset,_,Position,_,Player)
             ChipsString = tostring(mod:round(mod.Saved.Player[PIndex].TrueTearsValue /10^Log, 1)).." e"..tostring(Log)
         end
 
+        local pos = string.find(ChipsString, ".", nil, true)
+
+        if not pos then
+            ChipsString = ChipsString..".00"
+        else
+            for i=1, 2 + pos - string.len(ChipsString) do
+
+                ChipsString = ChipsString.."0"
+            end
+        end
+
+
         Log = math.floor(math.log(mod.Saved.Player[PIndex].TrueDamageValue, 10))
 
         if Log <= 0 then --ex. 5.05
@@ -273,14 +255,43 @@ function mod:JimboStatsHUD(offset,_,Position,_,Player)
         else
             MultString = tostring(mod:round(mod.Saved.Player[PIndex].TrueDamageValue /10^Log, 1)).." e"..tostring(Log)
         end
+
+        local pos = string.find(MultString, ".", nil, true)
+
+        if not pos then
+            MultString = MultString..".00"
+        else
+            for i=1, 2 + pos - string.len(MultString) do
+
+                MultString = MultString.."0"
+            end
+        end
     end
+
+    local ChipsScale
+    local MultScale
+
+    do
+        local String = math.floor(mod:CalculateTearsValue(Player))..".00"
+        ChipsScale = Vector(math.max(mod.Fonts.luamini:GetStringWidth(String)),8)
+
+        String = math.floor(Player.Damage)..".00"
+        MultScale = Vector(math.max(mod.Fonts.luamini:GetStringWidth(String)),8)
+    end
+
+
+    mod:RenderGenericButton(ChipsPos, ChipsScale, mod.EffectColors.BLUE, false, ChipsString, Vector(0.5,0.5), true, 0)
+    mod:RenderGenericButton(MultPos, MultScale, mod.EffectColors.RED, false, MultString, Vector(0.5,0.5), true, 0)
+
    
 
-    mod.Fonts.Balatro:DrawStringScaled(ChipsString, ChipsPos.X-6,ChipsPos.Y-3,0.5,0.5,KColor.White)
-    mod.Fonts.Balatro:DrawStringScaled(MultString, MultPos.X-6,MultPos.Y-3,0.5,0.5,KColor.White)
+    --mod.Fonts.Balatro:DrawStringScaled(ChipsString, ChipsPos.X-6,ChipsPos.Y-3,0.5,0.5,KColor.White)
+    --mod.Fonts.Balatro:DrawStringScaled(MultString, MultPos.X-6,MultPos.Y-3,0.5,0.5,KColor.White)
 
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.JimboStatsHUD)
+
+
 
 local SINCE_CLEAR = {[mod.BLINDS.SMALL] = 0,
                      [mod.BLINDS.BIG] = 0,

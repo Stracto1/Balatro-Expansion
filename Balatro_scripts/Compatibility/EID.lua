@@ -178,7 +178,7 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
 
     local PIndex = T_Jimbo:GetData().TruePlayerIndex
 
-    Values = {}
+    local Values = {}
 
     if Type == mod.EID_DescType.JOKER then
 
@@ -506,7 +506,7 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
 
     local PIndex = Jimbo:GetData().TruePlayerIndex
 
-    Values = {}
+    local Values = {}
 
     if Type == mod.EID_DescType.JOKER then
 
@@ -1331,25 +1331,6 @@ end
 EID:addDescriptionModifier("Balatro Descriptions Offset", BalatroOffsetCondition, BalatroOffsetCallback)
 
 
-local function JimboGroundPickupsCondition(descObj)
-
-    if descObj.ObjType == EntityType.ENTITY_PICKUP
-       or descObj.ObjVariant == PickupVariant.PICKUP_TRINKET then
-
-        return true
-    end
-end
-
-local function JimboGroundPickupsCallback(descObj)
-
-    local Edition = (descObj.ObjSubType & mod.EditionFlag.ALL) >> mod.EDITION_FLAG_SHIFT
-    
-    descObj.Description = descObj.Description..mod:GetEIDString("TrinketEdition", Edition)
-    
-    return descObj
-end
-EID:addDescriptionModifier("Balatro Jimbo ground pickups", JimboGroundPickupsCondition, JimboGroundPickupsCallback)
-
 
 
 
@@ -1696,7 +1677,17 @@ local function TJimboDescriptionsCallback(descObj)
 
         if ObjectToDescribe.Entity == GetPtrHash(descObj.Entity) then --caches the previous variables to save time
         
-            local RenderLeft = T_Jimbo.Position.X > descObj.Entity.Position.X
+            local Histeresys = 12
+        
+            local RenderLeft
+
+            if ObjectToDescribe.Allignment & EID_DescAllingnment.RIGHT ~= 0 then
+
+                RenderLeft = T_Jimbo.Position.X < descObj.Entity.Position.X - Histeresys
+            else --if ObjectToDescribe.Allignment & EID_DescAllingnment.LEFT ~= 0 then
+
+                RenderLeft = T_Jimbo.Position.X > descObj.Entity.Position.X + Histeresys
+            end
 
             local LateralOffset
 

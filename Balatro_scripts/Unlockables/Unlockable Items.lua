@@ -272,6 +272,9 @@ local GROUND_PARTICLE = { DEFAULT = EffectVariant.TOOTH_PARTICLE,
                          [BackdropType.GREED_SHOP] = EffectVariant.WOOD_PARTICLE}
 
 
+local CLOWN_RANGE = 110
+
+
 do --specific backdorps
 
     PENNY_TRINKET_POOLS.DEFAULT = {TrinketType.TRINKET_FLAT_PENNY,
@@ -488,8 +491,9 @@ local function GetHorseyGridTarget(Familiar, Force)
                     if Force 
                        and TargetGrid ~= LastGrid
                        --and (math.abs(TargetCollum-LastCollum) > 1 or math.abs(TargetRow-LastRow) > 1)
-                       and TargetCollum ~= 1 and math.abs(TargetCollum - RoomWidth) > 2 --can't go on the room's borders
-                       and TargetRow ~= 1 and math.abs(TargetRow - Room:GetGridHeight()) > 2 then
+                       and TargetCollum > 1 and math.abs(TargetCollum - RoomWidth) > 2 --can't go on the room's borders
+                       and TargetRow > 1 and math.abs(TargetRow - Room:GetGridHeight()) > 2
+                       and Room:IsPositionInRoom(Room:GetGridPosition(TargetGrid), 40) then
                         --cannot go back to where it came from 
 
                         PossibleGrids[#PossibleGrids+1] = TargetGrid
@@ -624,7 +628,7 @@ function mod:FamiliarUpdate(Familiar)
                                          Familiar, 0, 1):ToEffect()
 
                 ---@diagnostic disable-next-line: need-check-nil
-                Shock:SetRadii(15,30)
+                Shock:SetRadii(15, 20 + 20*Familiar:GetMultiplier())
                 --Shock.CollisionDamage = 1 or Familiar.Player.Damage*1.5 + 1 :( no work
 
                 Shock.Parent = Familiar.Player
@@ -1237,8 +1241,8 @@ function mod:EffectInit(Effect)
     --print(Effect.Variant, Effect.SubType)
 
     if Effect.Variant == mod.Effects.CRAYON_POWDER then
+        
         local Sprite = Effect:GetSprite()
-
 
         Sprite:SetFrame(math.random(0, Sprite:GetAnimationData("Idle"):GetLength()))
 
@@ -1249,9 +1253,11 @@ function mod:EffectInit(Effect)
         Effect.SortingLayer = SortingLayer.SORTING_BACKGROUND
         Effect:AddEntityFlags(EntityFlag.FLAG_NO_SPRITE_UPDATE)
 
-    --elseif Effect.Variant == mod.Effects.ANVIL then
+    elseif Effect.Variant == mod.Effects.UMBRELLA then
         --Effect.PositionOffset = Vector(0, -1750)
-
+        Effect:GetData().REG_SinceDrop = 100 --just a random high number
+        Effect:GetData().REG_RainPitch = 1
+        Effect:GetData().REG_RainVolume = 0
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT, mod.EffectInit)
@@ -1601,7 +1607,7 @@ function mod:EffectUpdate(Effect)
 
             local AnvilSpawnFrame = UmbrellaData.REG_AnvilFrame or 0
             
-            if Effect.FrameCount >= AnvilSpawnFrame then
+            if Effect.FrameCount >= AnvilSpawnFrame and false then
                 
                 local Anvil = Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.ANVIL, Effect.Position, 
                                          Vector.Zero, Effect.Parent, 0, 1):ToEffect()
@@ -1634,6 +1640,58 @@ function mod:EffectUpdate(Effect)
                 end
             end
 
+            -----COOL RAINDROP SOUND------
+
+            local UmbrellaHeight = UMBRELLA_HEIGHT*Effect.SizeMulti.Y
+
+            local CloseDistance = Effect.Size*Effect.SizeMulti.X + 7
+            local FarDistance = CloseDistance + 20
+
+            local CloseDrops = 0
+            local FarDrops = 0
+
+            for _,Rain in ipairs(Isaac.FindByType(1000, EffectVariant.RAIN_DROP)) do
+
+                local Distance = Rain.Position:Distance(Effect.Position)
+
+                if Distance <= CloseDistance then
+
+                    CloseDrops = CloseDrops + 1
+
+                    local Height = 260 -26.5*Rain:GetSprite():GetFrame()
+
+                    if Height <= UmbrellaHeight then
+                        Rain:Remove()
+                    end
+
+                elseif Distance <= FarDistance then
+
+                    FarDrops = FarDrops + 1
+                end
+            end
+
+            
+            local Volume = 0.4 + 0.08*CloseDrops
+            local Pitch = math.min(0.8 + 0.05*UmbrellaData.REG_SinceDrop, 1)
+
+            if CloseDrops == 0 then
+                Volume = math.min(0.2 + 0.05*FarDrops, Volume)
+            end
+
+            if sfx:IsPlaying(mod.Sounds.UMBRELLA_RAIN) then
+
+                if FarDrops == 0 then
+                    
+                    sfx:Stop(mod.Sounds.UMBRELLA_RAIN)
+                else
+                    sfx:AdjustVolume(mod.Sounds.UMBRELLA_RAIN, Volume)
+                    sfx:AdjustPitch(mod.Sounds.UMBRELLA_RAIN, Pitch)
+                end
+
+            elseif CloseDrops ~= 0 then
+                --sfx:SetAmbientSound(mod.Sounds.UMBRELLA_RAIN, Volume, Pitch)
+                sfx:Play(mod.Sounds.UMBRELLA_RAIN, Volume, 0, true, Pitch)
+            end
         end
 
         if Sprite:IsEventTriggered("open") then
@@ -1972,6 +2030,10 @@ function mod:ActiveUse(Item, Rng, Player, Flags, Slot, VarData)
                 end
             end
 
+            if Flags & UseFlag.USE_CARBATTERY ~= 0 then
+                NumUmbrellas = NumUmbrellas *2
+            end
+
             for i = 1, NumUmbrellas do
 
                 Isaac.CreateTimer(function ()
@@ -2067,6 +2129,40 @@ local function OnPlayerUpdate(_,Player)
         end
 
     end
+
+
+    if Player:HasCollectible(mod.Collectibles.CLOWN) then
+        
+        local TotalModule = 4
+
+        if Player:HasCollectible(CollectibleType.COLLECTIBLE_BOZO) then
+            TotalModule = 2
+        end
+
+
+        for _,Enemy in ipairs(Isaac.FindInRadius(Player.Position, CLOWN_RANGE, EntityPartition.ENEMY)) do
+            
+            if Enemy:IsVulnerableEnemy()
+               and Enemy:IsActiveEnemy() then
+                
+                local FakeRoll = Enemy.InitSeed%TotalModule
+
+                if FakeRoll == 0 then
+                    
+                    Enemy:AddCharmed(EntityRef(Player), 65)
+                    --Enemy:SetCharmedCountdown(math.min(Enemy:GetCharmedCountdown(), 120))
+
+                elseif FakeRoll == 1 then
+                    
+                    Enemy:AddFear(EntityRef(Player), 65)
+                    --Enemy:SetFearCountdown(math.min(Enemy:GetFearCountdown(), 120))
+                end
+            end
+        end
+
+    end
+
+
 end
 mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, OnPlayerUpdate)
 
@@ -2199,11 +2295,13 @@ local function OnPlayerTakeDamage(_,Entity)
 
     end
     if Player:HasCollectible(mod.Collectibles.CLOWN) then
+
         sfx:Play(mod.Sounds.CLOWN_HONK,1,2,false, 0.75 + math.random()*0.5)
         Isaac.CreateTimer(function ()
             sfx:Stop(SoundEffect.SOUND_ISAAC_HURT_GRUNT)
         end,0,1, true)
 
+        --[[
         for _, Enemy in ipairs(Isaac.GetRoomEntities()) do
             
             Enemy = Enemy:ToNPC()
@@ -2220,7 +2318,7 @@ local function OnPlayerTakeDamage(_,Entity)
 
                 end
             end
-        end
+        end]]
     end
 
 end
@@ -2542,7 +2640,6 @@ local function PocketAcesTrigger(_, Tear)
         local Multiplier = math.max(1, Player.Damage * mod:CalculateTears(Player.MaxFireDelay)/Laser.CollisionDamage)
         Laser:SetDamageMultiplier(Laser:GetDamageMultiplier() * Multiplier)
         Tear.CollisionDamage = Player.Damage * mod:CalculateTears(Player.MaxFireDelay)
-    
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, PocketAcesTrigger)
@@ -2642,7 +2739,7 @@ local function ErisAreaEffect(_, Player)
         ::SKIP_ENEMY::
     end
 end
-mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, ErisAreaEffect)
+mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, ErisAreaEffect)
 
 
 local function PennySeedsPayout()
@@ -3172,3 +3269,4 @@ local function RemoveUnwantedEntities()
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_ROOM_EXIT, RemoveUnwantedEntities)
+

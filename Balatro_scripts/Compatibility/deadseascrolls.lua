@@ -149,7 +149,7 @@ local itemData = {
         Type = "Collectible",
         Name = "Clown Costume",
         UnlockMethod = "Unlocked by defeating ???",
-        Description = "When taking damage, every enemy has a 33% chance to get either fear or charm effect applied",
+        Description = "50% of enemies get fear or charm applied when standing close to isaac",
         Achievement = mod.Achievements.Items[mod.Collectibles.CLOWN]
     },
     {
@@ -713,9 +713,9 @@ menu.unlockManager = {
                             ToggleFunction = function (bool)
 
                                 if bool then
-                                    Isaac.GetPersistentGameData():TryUnlock(Sheriff.RepentogonAchievements.Tainted)
+                                    Isaac.GetPersistentGameData():TryUnlock(data.Achievement)
                                 else
-                                    Isaac.ExecuteCommand("lockachievement " .. Sheriff.RepentogonAchievements.Tainted)
+                                    Isaac.ExecuteCommand("lockachievement " .. data.Achievement)
                                 end
                             end
                         }

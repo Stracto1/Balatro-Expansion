@@ -231,7 +231,7 @@
     <familiar id="43" name="Baloon Puppy" cache="familiars" quality="2" craftquality="2" gfx="baloon_puppy_item.png" description="My dream buddy" achievement="BaloonPuppyUnlock" tags="offensive"/>
     <passive id="44" name="Pocket Aces" quality="3" craftquality="3" gfx="pocket_aces_item.png" description="A trick up my sleeve" achievement="PocketAcesUnlock" tags="offensive"/>
 
-    <active id="0" name="The hand" chargetype="special" maxcharges="0" quality="2" craftquality="2" gfx="the_hand_active.png" description="Need a hand?" achievement="TheHandUnlock" tags="nocantrip nometronome offensive"/>
+    <active id="0" name="The hand" chargetype="special" maxcharges="0" quality="2" craftquality="2" gfx="the_hand_active.png" description="Need a hand?" achievement="TheHandUnlock" addcostumeonpickup="true" tags="nocantrip nometronome offensive"/>
     <passive id="45" name="Heirloom" quality="3" craftquality="4" gfx="heirloom_item.png" description="500$ for this" achievement="HeirloomUnlock" tags="offensive"/>
     <passive id="46" name="Ceres" cache="familiars" quality="3" craftquality="3" gfx="ceres_item.png" description="Your inner dwarf" achievement="BalatroPlanetsUnlock" tags="stars"/>
     <passive id="47" name="Planet X" quality="2" craftquality="2" gfx="planex_x_item.png" description="Ignote destination" achievement="BalatroPlanetsUnlock" tags="offensive stars"/>

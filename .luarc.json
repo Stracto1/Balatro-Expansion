@@ -245,7 +245,8 @@
         "EID",
         "dssmod",
         "Ephiphany",
-        "Epiphany"
+        "Epiphany",
+        "StageAPI"
 	],
     "diagnostics.disable": [
     ]}

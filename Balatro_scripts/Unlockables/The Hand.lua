@@ -4,6 +4,13 @@ local Game = Game()
 local ItemsConfig = Isaac.GetItemConfig()
 local sfx = SFXManager()
 
+local HandChargeBar = Sprite("gfx/ui/chargebar_the_hand.anm2", true)
+HandChargeBar.Offset = Vector(-17, -25) --the player offset
+
+local CHARGE_LENGTH = HandChargeBar:GetAnimationData("Charging"):GetLength()
+local DISAPPEAR_LENGTH = HandChargeBar:GetAnimationData("Disappear"):GetLength()
+
+
 local VanillaCardsSprite = Sprite("gfx/ui/The_hand_vanilla_cards.anm2", true)
 
 local MAX_HOLD_TIME = 45
@@ -111,12 +118,22 @@ local function UseHandyCards(Player)
     local NumCards = #HandyCards
 
     for i = 1, NumCards do
+
+        if HandyCards[i] == 0 then
+
+            if i == 1 then
+                sfx:Play(SoundEffect.SOUND_BOSS2INTRO_ERRORBUZZ)
+            end
+            return
+        end
+
         Isaac.CreateTimer(function ()
 
             UseSingleHandyCard(Player)
 
         end, i*10, 1, true)
     end
+
 end
 
 
@@ -175,22 +192,35 @@ local function HandInputs(_, Player)
     end
 
     local PData = Player:GetData()
+    PData.REG_HandHoldTime = PData.REG_HandHoldTime or 0
 
     local IsHoldingHand = Input.IsActionPressed(ButtonAction.ACTION_ITEM, Player.ControllerIndex)
                           and Player:GetItemState() == mod.Collectibles.THE_HAND
 
+
     if IsHoldingHand then
 
-        PData.THE_HAND_HoldTime = PData.THE_HAND_HoldTime or 0
-        PData.THE_HAND_HoldTime = PData.THE_HAND_HoldTime + 1
+        PData.REG_HandHoldTime = math.max(1, PData.REG_HandHoldTime + 1)
 
-        if PData.THE_HAND_HoldTime == MAX_HOLD_TIME then
-            print("use")
+        if PData.REG_HandHoldTime == MAX_HOLD_TIME + mod.HOLD_THRESHOLD then
+
             UseHandyCards(Player)
+
+            Player:AnimateCollectible(mod.Collectibles.THE_HAND, "HideItem")
             Player:SetItemState(CollectibleType.COLLECTIBLE_NULL)
+
+            PData.REG_HandHoldTime = -1
+        end
+
+    elseif PData.REG_HandHoldTime < 0 then --disappearing
+
+        PData.REG_HandHoldTime = PData.REG_HandHoldTime - 1
+
+        if -PData.REG_HandHoldTime > DISAPPEAR_LENGTH+1 then
+            PData.REG_HandHoldTime = 0
         end
     else
-        PData.THE_HAND_HoldTime = 0
+        PData.REG_HandHoldTime = 0
     end
 
     if IsHoldingHand then
@@ -248,9 +278,11 @@ local function HandInputs(_, Player)
                 end
             end
 
+            local BaseVelocity = Player:GetTearMovementInheritance(ShootDirection) 
+
             for i=1, CardsHeld do
                 
-                local Wisp = Player:AddWisp(mod.Collectibles.THE_HAND, Swing.Position + ShootDirection)
+                local Wisp = Player:AddWisp(mod.Collectibles.THE_HAND, Swing.Position + BaseVelocity)
                 --Wisp:ClearEntityFlags(EntityFlag.FLAG_APPEAR) wisps are invisible if the flag is cleared, don't really like how it looks but idfk dude
 
                 local Jiggle = 2*(CardsHeld)
@@ -268,7 +300,7 @@ local function HandInputs(_, Player)
     end
 
 end
-mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, HandInputs, PlayerVariant.PLAYER)
+mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, HandInputs)
 
 
 
@@ -443,7 +475,7 @@ local function HandPickupCollision(_, Effect)
 
 
 
-    local HandDamage = Player.SpriteScale:Length()*1.5 + 4
+    local HandDamage = Player.SpriteScale:Length()*2 + 4
 
     if Player:HasCollectible(CollectibleType.COLLECTIBLE_MIDAS_TOUCH) then
         
@@ -451,7 +483,7 @@ local function HandPickupCollision(_, Effect)
     end
     --if Player:HasCollectible(CollectibleType.COLLECTIBLE_MOMS_HEELS) then
         
-        HandDamage = HandDamage + 12
+        --HandDamage = HandDamage + 12
     --end
     if Player:HasCollectible(CollectibleType.COLLECTIBLE_KNOCKOUT_DROPS) then
 
@@ -612,6 +644,44 @@ end
 mod:AddPriorityCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, CallbackPriority.LATE, MoveHeartsSprite)
 
 
+local function ChargeBar(_, Offset, HeartSprite, Position,_, Player)
+
+    if not Player:HasCollectible(mod.Collectibles.THE_HAND) then
+        return
+    end
+
+    local HoldTime = Player:GetData().REG_HandHoldTime or 0
+
+    
+    if HoldTime > 0 then --charging up to use the cards
+
+        if HoldTime < mod.HOLD_THRESHOLD then
+            return
+        end
+
+        HoldTime = HoldTime - mod.HOLD_THRESHOLD + 1
+
+
+        local Frame = math.floor((HoldTime/MAX_HOLD_TIME)*CHARGE_LENGTH)
+
+        HandChargeBar:Play("Charging", true)
+        HandChargeBar:SetFrame("Charging", Frame)
+
+        HandChargeBar:Render(Isaac.WorldToScreen(Player.Position))
+        
+    elseif HoldTime < 0 then
+
+        local Frame = -HoldTime - 1
+
+        HandChargeBar:SetFrame("Disappear", Frame)
+        HandChargeBar:Render(Isaac.WorldToScreen(Player.Position))
+    end
+
+end
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, ChargeBar)
+
+
+
 --to be sure the used pickups don't remain after exiting the room too soon
 local function RemoveUnwantedPickups()
 
@@ -642,7 +712,7 @@ local function WispUpdate(_, Wisp)
         return
     end
 
-    Wisp.CollisionDamage = 2.5 --apparently needs to be forced every update
+    Wisp.CollisionDamage = 3.5 --apparently needs to be forced every update
 
     Wisp.FireCooldown = Wisp.FireCooldown - 1
 
@@ -653,3 +723,95 @@ local function WispUpdate(_, Wisp)
     end
 end
 mod:AddCallback(ModCallbacks.MC_FAMILIAR_UPDATE, WispUpdate, FamiliarVariant.WISP)
+
+---@param Wisp EntityFamiliar
+local function WispDeath(_, Wisp)
+
+    if Wisp.Variant ~= FamiliarVariant.WISP
+       or Wisp.SubType ~= mod.Collectibles.THE_HAND then
+        return
+    end
+
+    sfx:AdjustVolume(SoundEffect.SOUND_STEAM_HALFSEC, 0.33)
+end
+mod:AddCallback(ModCallbacks.MC_POST_ENTITY_KILL, WispDeath, EntityType.ENTITY_FAMILIAR)
+
+
+
+
+local DOUBLE_HAND_COSTUME = Isaac.GetCostumeIdByPath("gfx/characters/double_hand_costume.anm2")
+
+local HAND_COSTUME_SCHOOL = Isaac.GetCostumeIdByPath("gfx/characters/hand_schoolbag_costume.anm2")
+local DOUBLE_HAND_COSTUME_SCHOOL = Isaac.GetCostumeIdByPath("gfx/characters/double_hand_schoolbag_costume.anm2") --made this cause player is most likerly to get 2 copies through schoolbag
+
+
+---@param Player EntityPlayer
+local function CostumeHandle1(_, Item, _, _,_, VarData, Player)
+
+    if Item ~= mod.Collectibles.THE_HAND
+       and Item ~= CollectibleType.COLLECTIBLE_SCHOOLBAG then
+        return
+    end
+
+    local NumHands = Player:GetCollectibleNum(mod.Collectibles.THE_HAND, true)
+
+    if NumHands > 1 then
+
+        if Player:IsItemCostumeVisible(ItemsConfig:GetCollectible(CollectibleType.COLLECTIBLE_SCHOOLBAG), PlayerSpriteLayer.SPRITE_BODY) then
+            
+            Player:AddNullCostume(DOUBLE_HAND_COSTUME_SCHOOL)
+            Player:TryRemoveNullCostume(DOUBLE_HAND_COSTUME)
+        else
+            Player:AddNullCostume(DOUBLE_HAND_COSTUME)
+            Player:TryRemoveNullCostume(DOUBLE_HAND_COSTUME_SCHOOL)
+        end
+        
+    else
+
+        if NumHands == 1
+           and Player:IsItemCostumeVisible(ItemsConfig:GetCollectible(CollectibleType.COLLECTIBLE_SCHOOLBAG), PlayerSpriteLayer.SPRITE_BODY) then
+            
+            Player:AddNullCostume(HAND_COSTUME_SCHOOL)
+        end
+
+        Player:TryRemoveNullCostume(DOUBLE_HAND_COSTUME)
+        Player:TryRemoveNullCostume(DOUBLE_HAND_COSTUME_SCHOOL)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE, CostumeHandle1)
+
+local function CostumeHandle2(_,Player, Item)
+
+    if Item ~= mod.Collectibles.THE_HAND
+       and Item ~= CollectibleType.COLLECTIBLE_SCHOOLBAG then
+        return
+    end
+
+    local NumHands = Player:GetCollectibleNum(mod.Collectibles.THE_HAND, true)
+
+    if NumHands > 1 then
+
+        if Player:IsItemCostumeVisible(ItemsConfig:GetCollectible(CollectibleType.COLLECTIBLE_SCHOOLBAG), PlayerSpriteLayer.SPRITE_BODY) then
+            
+            Player:AddNullCostume(DOUBLE_HAND_COSTUME_SCHOOL)
+            Player:TryRemoveNullCostume(DOUBLE_HAND_COSTUME)
+        else
+            Player:AddNullCostume(DOUBLE_HAND_COSTUME)
+            Player:TryRemoveNullCostume(DOUBLE_HAND_COSTUME_SCHOOL)
+        end
+    else
+
+        if NumHands == 1
+           and Player:IsItemCostumeVisible(ItemsConfig:GetCollectible(CollectibleType.COLLECTIBLE_SCHOOLBAG), PlayerSpriteLayer.SPRITE_BODY) then
+            
+            Player:AddNullCostume(HAND_COSTUME_SCHOOL)
+        else
+            Player:TryRemoveNullCostume(HAND_COSTUME_SCHOOL)
+        end
+
+        Player:TryRemoveNullCostume(DOUBLE_HAND_COSTUME)
+        Player:TryRemoveNullCostume(DOUBLE_HAND_COSTUME_SCHOOL)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_TRIGGER_COLLECTIBLE_REMOVED, CostumeHandle2)
+

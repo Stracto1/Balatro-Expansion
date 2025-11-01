@@ -68,6 +68,9 @@
     <sound name="SKIPTAG">
         <sample weight="1" path="Skip Tag.wav" />
     </sound>
+    <sound name="DEBUFFSFX">
+        <sample weight="1" path="cancel.wav" />
+    </sound>
 
 
     <sound name="SLIPSFX">
@@ -107,6 +110,6 @@
         <sample weight="1" path="foos_eat.wav" />
     </sound>
     <sound name="UMBRELLARAINSFX">
-        <sample weight="1" path="UmbrellaRainLoop.wav" />
+        <sample weight="1" path="UmbrellaRainLoop2.wav" />
     </sound>
 </sounds>

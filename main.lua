@@ -392,7 +392,7 @@ Balatro_Expansion.Sounds.EXPLOSION = Isaac.GetSoundIdByName("EXPLOSIONSFX")
 Balatro_Expansion.Sounds.PLAY = Isaac.GetSoundIdByName("CARDPLAYSFX")
 Balatro_Expansion.Sounds.SELECT = Isaac.GetSoundIdByName("CARDSELECTSFX")
 Balatro_Expansion.Sounds.DESELECT = Isaac.GetSoundIdByName("CARDDESELECTSFX")
-Balatro_Expansion.Sounds.DEBUFFED = Isaac.GetSoundIdByName("HONKSFX")
+Balatro_Expansion.Sounds.DEBUFFED = Isaac.GetSoundIdByName("DEBUFFSFX")
 Balatro_Expansion.Sounds.PLASMA = Isaac.GetSoundIdByName("PLASMABALANCE")
 Balatro_Expansion.Sounds.TIMPANI = Isaac.GetSoundIdByName("BALATROTIMPANI")
 Balatro_Expansion.Sounds.TAROT_USE = Isaac.GetSoundIdByName("BALATROTAROTUSE")
@@ -658,8 +658,8 @@ Balatro_Expansion.Tears.BANANA_VARIANT = Isaac.GetEntityVariantByName("Tear Bana
 
 
 ---
-Balatro_Expansion.Challenges = {}
-Balatro_Expansion.Challenges.Balatro = Isaac.GetChallengeIdByName("Balatro")
+--Balatro_Expansion.Challenges = {}
+--Balatro_Expansion.Challenges.Balatro = Isaac.GetChallengeIdByName("Balatro")
 ---
 Balatro_Expansion.AllCurses = {}
 Balatro_Expansion.NormalCurses = {}
@@ -774,19 +774,16 @@ if not loaded then
     Balatro_Expansion.Fonts.Balatro:Load("mods/balatro_expansion_3308293502/resources/font/Balatro_Font4.fnt")
 end
 
-
-Balatro_Expansion.Fonts.Balatro_Small, loaded = Font("mods/balatro_expansion/resources/font/Balatro_Font3.fnt")
-
-if not loaded then
-    Balatro_Expansion.Fonts.Balatro_Small:Load("mods/balatro_expansion_3308293502/resources/font/Balatro_Font3.fnt")
-end
-
----print(Balatro_Expansion.Fonts.Balatro:GetLineHeight(), Balatro_Expansion.Fonts.Balatro:GetBaselineHeight())
-
-
+--Balatro_Expansion.Fonts.Balatro_Small, loaded = Font("mods/balatro_expansion/resources/font/Balatro_Font3.fnt")
+--
+--if not loaded then
+--    Balatro_Expansion.Fonts.Balatro_Small:Load("mods/balatro_expansion_3308293502/resources/font/Balatro_Font3.fnt")
+--end
 end
 ---@diagnostic disable-next-line: redundant-parameter
 Balatro_Expansion.Fonts.pftempest = Font("font/pftempestasevencondensed.fnt")
+Balatro_Expansion.Fonts.luamini = Font("font/luaminioutlined.fnt")
+
 
 ---------------------
 local Game = Game()
@@ -1312,10 +1309,11 @@ include("Balatro_scripts.Callback_system")
 
 
 
-------------------EID----------------------
--------------------------------------------
-include("Balatro_scripts.Compatibility.EID")
+------------------MODS COMPATIBILITY----------------------
+----------------------------------------------------------
 
--------------DSS MENU -------------
-------------------------------------------
+include("Balatro_scripts.Compatibility.future")
+include("Balatro_scripts.Compatibility.stageapi")
+
 include("Balatro_scripts.Compatibility.deadseascrolls")
+include("Balatro_scripts.Compatibility.EID")

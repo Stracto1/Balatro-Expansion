@@ -320,6 +320,18 @@ function mod:OnItemPickup(Type, _,FirstTime,_,_, Player)
         mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Clensed!", mod.EffectType.ENTITY, Player)
 
         mod:DestroyCards(Player, Spades, true, false)
+
+    elseif Type == mod.Collectibles.POCKET_ACES then
+
+        local AceRNG = Player:GetCollectibleRNG(mod.Collectibles.POCKET_ACES)
+
+        for i=1, 2 do
+            
+            local Ace = mod:RandomPlayingCard(AceRNG, true, 1, nil, -1, -1, -1)
+
+            mod:AddCardToDeck(Player, Ace, 1, true)
+        end
+
     else
         Any = false
     end

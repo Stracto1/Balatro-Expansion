@@ -23,6 +23,13 @@ local SkipTagsSprite = Sprite("gfx/ui/Skip Tags.anm2")
 --local JactivateLength = TrinketSprite:GetAnimationData("Effect"):GetLength()
 local JidleLength = TrinketSprite:GetAnimationData("Idle"):GetLength()
 
+local HeartIndicator = Sprite("gfx/Max HP indicator.anm2")
+local HEART_START_LENGTH = HeartIndicator:GetAnimationData("Start"):GetLength()
+local HEART_LEAVE_LENGTH = HeartIndicator:GetAnimationData("Leave"):GetLength()
+local HEART_IDLE_LENGTH = HeartIndicator:GetAnimationData("Idle"):GetLength()
+
+
+
 local TriggerAnimationLength = 30
 local TriggerCounterMult = 180 / TriggerAnimationLength
 
@@ -116,7 +123,6 @@ local JOKER_AREA_WIDTH = 125
 local CONSUMABLE_CENTER_OFFSET = 150
 local CONSUMABLE_AREA_WIDTH = 75
 local CARD_AREA_WIDTH = 175
-local CHARGE_BAR_OFFSET = Vector(17,-30)
 
 local ItemsConfig = Isaac.GetItemConfig()
 
@@ -652,14 +658,14 @@ end
 function mod:RenderGenericButton(Position, Scale, BaseColor, Pressed, Text, TextScale, AdaptToTextSize, TextParams, TextKcolor, SubText)
 
     TextParams = TextParams or 0
-    TextParams = TextParams | mod.StringRenderingParams.Centered
+    --TextParams = TextParams | mod.StringRenderingParams.Centered
     TextKcolor = TextKcolor or KColor.White
 
     TextScale = TextScale or (Vector.One/2)
 
     if Text and AdaptToTextSize then
         
-        Scale.X = math.min(Scale.X, mod.Fonts.Balatro:GetStringWidth(Text)*TextScale.X)
+        Scale.X = math.max(Scale.X, mod.Fonts.Balatro:GetStringWidth(Text)*TextScale.X + 2)
 
         local TextHeight = BALATRO_BASE_LINE_HEIGHT*TextScale.Y
 
@@ -668,8 +674,11 @@ function mod:RenderGenericButton(Position, Scale, BaseColor, Pressed, Text, Text
             TextHeight = TextHeight + BALATRO_LINE_HEIGHT*0.75 + BALATRO_BASE_LINE_HEIGHT*0.5
         end
 
-        Scale.Y = math.max(Scale.Y, TextHeight + 5)
+        Scale.Y = math.max(Scale.Y, TextHeight + 4)
     end
+
+    Scale.Y = math.ceil(Scale.Y)
+    Scale.X = math.ceil(Scale.X)
 
     local BorderSize
 
@@ -706,6 +715,16 @@ function mod:RenderGenericButton(Position, Scale, BaseColor, Pressed, Text, Text
 
         Position = Position + PressOffset
     end
+
+    local AllignOffset = Vector.Zero
+
+    if TextParams & mod.StringRenderingParams.RightAllinged ~= 0 then
+        AllignOffset.X = AllignOffset.X - (Scale.X - BorderSize)/2
+    
+    elseif TextParams & mod.StringRenderingParams.Centered == 0 then
+        AllignOffset.X = AllignOffset.X + (Scale.X - BorderSize)/2
+    end
+    GenericButtonSprite.Offset = AllignOffset
 
     Position = mod:FixScreenPosition(Position)
 
@@ -1654,8 +1673,7 @@ end
 --mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, SkipTagsHUD)
 
 
---local LastPortraiedSprite
---local LastPortraiedEnemy
+local LastHPEnemy
 
 local PreviousBlindDuration = 0
 local PreviousBlindType
@@ -1671,6 +1689,7 @@ local function TJimbosLeftSideHUD(Player, PIndex)
     end
 
     local SCREEN_SHAKE = Game.ScreenShakeOffset
+    LeftSideHUD.Offset = -SCREEN_SHAKE
 
     local NullFrame
     local CenterPos
@@ -1744,193 +1763,11 @@ local function TJimbosLeftSideHUD(Player, PIndex)
     else
         LeftSideHUD:GetLayer(LeftSideLayers.Base):SetColor(mod.BalatroColorBlack)
     end
-    LeftSideHUD:RenderLayer(LeftSideLayers.Base, -SCREEN_SHAKE)
+    LeftSideHUD:RenderLayer(LeftSideLayers.Base, Vector.Zero)
 
 
     end
     
-    --------FIXED COLOR HUD---------
-    --------------------------------
-
-    do
-        
-    LeftSideHUD:GetLayer(LeftSideLayers.Lines):SetColor(BlindChipColor)
-    LeftSideHUD:RenderLayer(LeftSideLayers.Lines, -SCREEN_SHAKE)
-
-    
-    LeftSideHUD:RenderLayer(LeftSideLayers.Fixed_Color, -SCREEN_SHAKE)
-
-
-    LeftSideHUD:SetFrame(LeftSideStringFrames.RunInfo)
-
-    NullFrame = LeftSideHUD:GetNullFrame("String Positions")
-
-    CenterPos = NullFrame:GetPos()
-    --BoxWidth = NullFrame:GetScale().X * 100
-    Scale = NullFrame:GetScale() * 100
-    local Pressed = mod.Saved.RunInfoMode ~= mod.RunInfoModes.OFF
-
-    Params = mod.StringRenderingParams.Centered | mod.StringRenderingParams.Wrap
-
-    String = mod:GetEIDString("T_Jimbo", "LeftHUD", "RunInfo")
-
-    mod:RenderGenericButton(CenterPos, Scale, mod.EffectColors.RED, Pressed, String, nil, nil, Params)
-    --mod:RenderBalatroStyle(String, CenterPos, Params, StartFrame, Scale, KColor.White, BoxWidth)
-
-
-
-    LeftSideHUD:SetFrame(LeftSideStringFrames.Options)
-
-    NullFrame = LeftSideHUD:GetNullFrame("String Positions")
-
-    NullFrame = LeftSideHUD:GetNullFrame("String Positions")
-
-    CenterPos = NullFrame:GetPos()
-    --BoxWidth = NullFrame:GetScale().X * 100
-    Scale = NullFrame:GetScale() * 100
-    Pressed = Game:IsPaused()
-
-    --Params = mod.StringRenderingParams.Centered | mod.StringRenderingParams.Wrap
-
-    String = mod:GetEIDString("T_Jimbo", "LeftHUD", "Options")
-
-    mod:RenderGenericButton(CenterPos, Scale, mod.EffectColors.YELLOW, Pressed, String)
-
-    --mod:RenderBalatroStyle(String, CenterPos, Params, StartFrame, Scale, KColor.White, BoxWidth)
-
-
-    local HasCovered = false
-
-    
-    if mod.Saved.EnableHand then
-
-        for i, Chosen in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
-
-            if Chosen then
-
-                local Card = mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]]
-
-                if Card and Card.Modifiers & mod.Modifier.COVERED ~= 0 then
-
-                    HasCovered = true
-                    break
-                end
-            end
-        end
-
-        HasCovered = HasCovered and mod.Saved.HandType ~= mod.HandTypes.NONE --no need to hide the nothingness
-    end
-
-    local StatToShow = {}
-
-    --local ShouldRenderStats = mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.HAND and mod.SelectionParams[PIndex].PackPurpose == mod.SelectionParams.Purposes.NONE
-    --                          or mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.NONE and (mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.HAND or mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.AIMING)
-    --                          or mod.SelectionParams[PIndex].PackPurpose == mod.SelectionParams.Purposes.CelestialPack
-
-    if HasCovered then
-        StatToShow.Mult = "???"
-        StatToShow.Chips = "???"
-    else
-        StatToShow.Mult = mod.Saved.MultValue
-        StatToShow.Chips = mod.Saved.ChipsValue
-    end
-
-    
-    local MultString
-    local ChipsString
-
-    --in certain cases the value is a string (planet upgrade animations mostly)
-    if type(StatToShow.Chips) == "string" then
-
-        ChipsString = StatToShow.Chips
-    else
-
-        ChipsString = mod:RoundBalatroStyle(StatToShow.Chips, 10)
-    end
-
-    if type(StatToShow.Mult) == "string" then
-
-        MultString = StatToShow.Mult
-    else
-
-        MultString = mod:RoundBalatroStyle(StatToShow.Mult, 10)
-    end
-
-    LeftSideHUD:SetFrame(LeftSideStringFrames.Chips)
-
-    NullFrame = LeftSideHUD:GetNullFrame("String Positions")
-
-    CenterPos = NullFrame:GetPos()
-    BoxWidth = NullFrame:GetScale().X * 100
-    Scale = Vector.One * NullFrame:GetScale().Y * 100
-    StartFrame = Isaac.GetFrameCount() - SinceChipChange
-
-    Params = mod.StringRenderingParams.Enlarge | mod.StringRenderingParams.RightAllinged
-
-    String = ChipsString
-
-
-    ---@diagnostic disable-next-line: param-type-mismatch
-    mod:RenderBalatroStyle(String, CenterPos, Params, StartFrame, Scale, KColor.White, BoxWidth)
-
-
-
-    LeftSideHUD:SetFrame(LeftSideStringFrames.Mult)
-
-    NullFrame = LeftSideHUD:GetNullFrame("String Positions")
-
-    CenterPos = NullFrame:GetPos()
-    BoxWidth = NullFrame:GetScale().X * 100
-    Scale = Vector.One * NullFrame:GetScale().Y * 100
-    StartFrame = Isaac.GetFrameCount() - SinceMultChange
-
-    Params = mod.StringRenderingParams.Enlarge
-
-    String = MultString
-
-
----@diagnostic disable-next-line: param-type-mismatch
-    mod:RenderBalatroStyle(String, CenterPos, Params, StartFrame, Scale, KColor.White, BoxWidth)
-
-
-
-
-    LeftSideHUD:SetFrame(LeftSideStringFrames.HandType)
-
-    NullFrame = LeftSideHUD:GetNullFrame("String Positions")
-
-    CenterPos = NullFrame:GetPos()
-    BoxWidth = NullFrame:GetScale().X * 100
-    Scale = Vector.One * NullFrame:GetScale().Y * 100
-    StartFrame = Isaac.GetFrameCount() - SinceHandTypeChange
-
-    Params = mod.StringRenderingParams.Swoosh | mod.StringRenderingParams.Enlarge | mod.StringRenderingParams.Centered
-
-
-
-    if HasCovered then
-
-        String = "?????"
-    
-    elseif mod.Saved.HandType ~= mod.HandTypes.NONE then
-
-        local LV = mod:GetEIDString("Other", "LV")
-
-        local Hand = mod:GetEIDString("HandTypeName", mod.Saved.HandType)
-
-        String = Hand.." "..LV..tostring(mod.Saved.HandLevels[mod.Saved.HandType])
-    else
-        String = ""
-    end
-
-
-
----@diagnostic disable-next-line: param-type-mismatch
-    mod:RenderBalatroStyle(String, CenterPos, Params, StartFrame, Scale, KColor.White, BoxWidth)
-    
-
-    end
-
     --------------BLIND INFO-------------
     -------------------------------------
     
@@ -1952,7 +1789,7 @@ local function TJimbosLeftSideHUD(Player, PIndex)
         end
 
         if mod.Saved.BlindBeingPlayed & mod.BLINDS.WAITING_CASHOUT == 0 then
-            LeftSideHUD:RenderLayer(LeftSideLayers.Blind_Info, BlindInfoOffset-SCREEN_SHAKE)
+            LeftSideHUD:RenderLayer(LeftSideLayers.Blind_Info, BlindInfoOffset)
         end
 
         
@@ -1982,6 +1819,10 @@ local function TJimbosLeftSideHUD(Player, PIndex)
             local Pos = LeftSideHUD:GetNullFrame("String Positions"):GetPos() + BlindInfoOffset
 
             BlindChipsSprite:Render(Pos -SCREEN_SHAKE)
+
+
+            LeftSideHUD:SetFrame(1)
+            LeftSideHUD:RenderLayer(LeftSideLayers.Fixed_Color, BlindInfoOffset)
 
 
 
@@ -2031,66 +1872,26 @@ local function TJimbosLeftSideHUD(Player, PIndex)
 
             mod:RenderBalatroStyle(String, CenterPos, Params, StartFrame, Scale, K_Color, BoxWidth)
 
-            --[[ small enemy portrait 
+            --small enemy portrait 
             if MaxHPEnemy then
 
-                --print("Toughest Enemy:","("..tostring(MaxHPEnemy.Type).."."..tostring(MaxHPEnemy.Variant).."."..tostring(MaxHPEnemy.SubType)..")")
+                if not LastHPEnemy or GetPtrHash(MaxHPEnemy) ~= GetPtrHash(LastHPEnemy) then
 
-                LeftSideHUD:SetFrame(LeftSideStringFrames.EnemyPortrait)
+                    MaxHPEnemy:GetData().REG_HeartCounter = 0
 
-                NullFrame = LeftSideHUD:GetNullFrame("String Positions")
-                CenterPos = NullFrame:GetPos() + BlindInfoOffset
-
-                local MaxScale = NullFrame:GetScale()*100
-
-                --use the cached sprite object if the enemy is the same (this render callback already has too much shit)
-                if not LastPortraiedEnemy or GetPtrHash(MaxHPEnemy) ~= GetPtrHash(LastPortraiedEnemy) then
-
-                    if LastPortraiedEnemy then
-                        LastPortraiedEnemy.Color = Color.Default
+                    if LastHPEnemy then
+                        LastHPEnemy:GetData().REG_HeartCounter = -1
+                        LastHPEnemy.Color = Color.Default
                     end
-                    
-                    LastPortraiedEnemy = MaxHPEnemy
-                    LastPortraiedSprite = MaxHPEnemy:GetSprite()
+
+                    LastHPEnemy = MaxHPEnemy
                 end
 
-                
 
-                local OldScale = LastPortraiedSprite.Scale + Vector.Zero
+                local sin = math.sin(Isaac.GetFrameCount()/12)^2
 
-                local Frame
-                
-                for i = 0, LastPortraiedSprite:GetLayerCount()-1 do
-                    
-                    Frame = LastPortraiedSprite:GetLayerFrameData(i)
-
-                    if Frame then --gets the frame of the lowest layer possible
-                        break
-                    end
-                end
-
-                --local EnemyScale = Vector(Frame:GetWidth(), Frame:GetHeight())*Frame:GetScale()
-                local EnemyScale = Vector(MaxHPEnemy.Size, MaxHPEnemy.Size) * 2.5
-
-                if EnemyScale.X ~= 0 and EnemyScale.Y ~= 0 then
-
-                    EnemyScale.X = math.min(EnemyScale.X, EnemyScale.Y)
-                    EnemyScale.Y = math.min(EnemyScale.X, EnemyScale.Y)
-
-                    LastPortraiedSprite.Scale = MaxScale / EnemyScale --adapts the sprite size to the icon's max size
-
-                    LastPortraiedEnemy.Color = Color.Default
-
-                    LastPortraiedSprite:Render(CenterPos)
-
-                    local sin = math.sin(Isaac.GetFrameCount()/12)^2
-
-                    LastPortraiedEnemy.Color = Color(1 + sin, 1,1,1, sin*0.1) --modifies R tint and R offset
-
-                end
-
-                LastPortraiedSprite.Scale = OldScale
-            end]]
+                LastHPEnemy.Color = Color(1 + sin, 1,1,1, sin*0.1) --modifies R tint and R offset
+            end
 
 
 
@@ -2221,7 +2022,7 @@ local function TJimbosLeftSideHUD(Player, PIndex)
         end
 
         if PreviousBlindType & mod.BLINDS.WAITING_CASHOUT == 0 then
-            LeftSideHUD:RenderLayer(LeftSideLayers.Blind_Info, PreviousBlindInfoOffset -SCREEN_SHAKE)
+            LeftSideHUD:RenderLayer(LeftSideLayers.Blind_Info, PreviousBlindInfoOffset)
         end
 
         
@@ -2251,7 +2052,10 @@ local function TJimbosLeftSideHUD(Player, PIndex)
 
             BlindChipsSprite:SetFrame("Chips",mod:GetBLindChipFrame(PreviousBlindType))
 
-            BlindChipsSprite:Render(Pos -SCREEN_SHAKE)
+            BlindChipsSprite:Render(Pos)
+
+            LeftSideHUD:SetFrame(1)
+            LeftSideHUD:RenderLayer(LeftSideLayers.Fixed_Color, PreviousBlindInfoOffset)
 
 
 
@@ -2388,6 +2192,188 @@ local function TJimbosLeftSideHUD(Player, PIndex)
 
     end
 
+
+    --------FIXED COLOR HUD---------
+    --------------------------------
+
+    do
+        
+    --LeftSideHUD:GetLayer(LeftSideLayers.Lines):SetColor(BlindChipColor)
+    --LeftSideHUD:RenderLayer(LeftSideLayers.Lines, -SCREEN_SHAKE)
+
+    LeftSideHUD:SetFrame(0)
+    LeftSideHUD:RenderLayer(LeftSideLayers.Fixed_Color, Vector.Zero)
+
+
+    LeftSideHUD:SetFrame(LeftSideStringFrames.RunInfo)
+
+    NullFrame = LeftSideHUD:GetNullFrame("String Positions")
+
+    CenterPos = NullFrame:GetPos()
+    --BoxWidth = NullFrame:GetScale().X * 100
+    Scale = NullFrame:GetScale() * 100
+    local Pressed = mod.Saved.RunInfoMode ~= mod.RunInfoModes.OFF
+
+    Params = mod.StringRenderingParams.Centered | mod.StringRenderingParams.Wrap
+
+    String = mod:GetEIDString("T_Jimbo", "LeftHUD", "RunInfo")
+
+    mod:RenderGenericButton(CenterPos, Scale, mod.EffectColors.RED, Pressed, String, nil, nil, Params)
+    --mod:RenderBalatroStyle(String, CenterPos, Params, StartFrame, Scale, KColor.White, BoxWidth)
+
+
+
+    LeftSideHUD:SetFrame(LeftSideStringFrames.Options)
+
+    NullFrame = LeftSideHUD:GetNullFrame("String Positions")
+
+    NullFrame = LeftSideHUD:GetNullFrame("String Positions")
+
+    CenterPos = NullFrame:GetPos()
+    --BoxWidth = NullFrame:GetScale().X * 100
+    Scale = NullFrame:GetScale() * 100
+    Pressed = Game:IsPaused()
+    Params = mod.StringRenderingParams.Centered
+
+    String = mod:GetEIDString("T_Jimbo", "LeftHUD", "Options")
+
+    mod:RenderGenericButton(CenterPos, Scale, mod.EffectColors.YELLOW, Pressed, String, nil, nil, Params)
+
+    --mod:RenderBalatroStyle(String, CenterPos, Params, StartFrame, Scale, KColor.White, BoxWidth)
+
+
+    local HasCovered = false
+
+    
+    if mod.Saved.EnableHand then
+
+        for i, Chosen in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
+
+            if Chosen then
+
+                local Card = mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].CurrentHand[i]]
+
+                if Card and Card.Modifiers & mod.Modifier.COVERED ~= 0 then
+
+                    HasCovered = true
+                    break
+                end
+            end
+        end
+
+        HasCovered = HasCovered and mod.Saved.HandType ~= mod.HandTypes.NONE --no need to hide the nothingness
+    end
+
+    local StatToShow = {}
+
+    --local ShouldRenderStats = mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.HAND and mod.SelectionParams[PIndex].PackPurpose == mod.SelectionParams.Purposes.NONE
+    --                          or mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.NONE and (mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.HAND or mod.SelectionParams[PIndex].Purpose == mod.SelectionParams.Purposes.AIMING)
+    --                          or mod.SelectionParams[PIndex].PackPurpose == mod.SelectionParams.Purposes.CelestialPack
+
+    if HasCovered then
+        StatToShow.Mult = "???"
+        StatToShow.Chips = "???"
+    else
+        StatToShow.Mult = mod.Saved.MultValue
+        StatToShow.Chips = mod.Saved.ChipsValue
+    end
+
+    
+    local MultString
+    local ChipsString
+
+    --in certain cases the value is a string (planet upgrade animations mostly)
+    if type(StatToShow.Chips) == "string" then
+
+        ChipsString = StatToShow.Chips
+    else
+
+        ChipsString = mod:RoundBalatroStyle(StatToShow.Chips, 10)
+    end
+
+    if type(StatToShow.Mult) == "string" then
+
+        MultString = StatToShow.Mult
+    else
+
+        MultString = mod:RoundBalatroStyle(StatToShow.Mult, 10)
+    end
+
+    LeftSideHUD:SetFrame(LeftSideStringFrames.Chips)
+
+    NullFrame = LeftSideHUD:GetNullFrame("String Positions")
+
+    CenterPos = NullFrame:GetPos()
+    BoxWidth = NullFrame:GetScale().X * 100
+    Scale = Vector.One * NullFrame:GetScale().Y * 100
+    StartFrame = Isaac.GetFrameCount() - SinceChipChange
+
+    Params = mod.StringRenderingParams.Enlarge | mod.StringRenderingParams.RightAllinged
+
+    String = ChipsString
+
+
+    ---@diagnostic disable-next-line: param-type-mismatch
+    mod:RenderBalatroStyle(String, CenterPos, Params, StartFrame, Scale, KColor.White, BoxWidth)
+
+
+
+    LeftSideHUD:SetFrame(LeftSideStringFrames.Mult)
+
+    NullFrame = LeftSideHUD:GetNullFrame("String Positions")
+
+    CenterPos = NullFrame:GetPos()
+    BoxWidth = NullFrame:GetScale().X * 100
+    Scale = Vector.One * NullFrame:GetScale().Y * 100
+    StartFrame = Isaac.GetFrameCount() - SinceMultChange
+
+    Params = mod.StringRenderingParams.Enlarge
+
+    String = MultString
+
+
+---@diagnostic disable-next-line: param-type-mismatch
+    mod:RenderBalatroStyle(String, CenterPos, Params, StartFrame, Scale, KColor.White, BoxWidth)
+
+
+
+
+    LeftSideHUD:SetFrame(LeftSideStringFrames.HandType)
+
+    NullFrame = LeftSideHUD:GetNullFrame("String Positions")
+
+    CenterPos = NullFrame:GetPos()
+    BoxWidth = NullFrame:GetScale().X * 100
+    Scale = Vector.One * NullFrame:GetScale().Y * 100
+    StartFrame = Isaac.GetFrameCount() - SinceHandTypeChange
+
+    Params = mod.StringRenderingParams.Swoosh | mod.StringRenderingParams.Enlarge | mod.StringRenderingParams.Centered
+
+
+
+    if HasCovered then
+
+        String = "?????"
+    
+    elseif mod.Saved.HandType ~= mod.HandTypes.NONE then
+
+        local LV = mod:GetEIDString("Other", "LV")
+
+        local Hand = mod:GetEIDString("HandTypeName", mod.Saved.HandType)
+
+        String = Hand.." "..LV..tostring(mod.Saved.HandLevels[mod.Saved.HandType])
+    else
+        String = ""
+    end
+
+
+
+---@diagnostic disable-next-line: param-type-mismatch
+    mod:RenderBalatroStyle(String, CenterPos, Params, StartFrame, Scale, KColor.White, BoxWidth)
+    
+
+    end
+
     --------------GENERAL INFO----------------
     ------------------------------------------
     
@@ -2399,7 +2385,7 @@ local function TJimbosLeftSideHUD(Player, PIndex)
         LeftSideHUD:GetLayer(LeftSideLayers.General_Info):SetColor(mod.BalatroColorBlack)
     end
 
-    LeftSideHUD:RenderLayer(LeftSideLayers.General_Info, -SCREEN_SHAKE)
+    LeftSideHUD:RenderLayer(LeftSideLayers.General_Info, Vector.Zero)
 
 
     LeftSideHUD:SetFrame(LeftSideStringFrames.Score)
@@ -2785,8 +2771,8 @@ local function TJimbosLeftSideHUD(Player, PIndex)
         E_Layer:SetColor(StartColor)
     end
 
-    LeftSideHUD:RenderLayer(LeftSideLayers.Q_Button, Q_Offset -SCREEN_SHAKE)
-    LeftSideHUD:RenderLayer(LeftSideLayers.E_Button, E_Offset -SCREEN_SHAKE)
+    LeftSideHUD:RenderLayer(LeftSideLayers.Q_Button, Q_Offset)
+    LeftSideHUD:RenderLayer(LeftSideLayers.E_Button, E_Offset)
     
     if Q_ActionString then
 
@@ -2865,12 +2851,54 @@ local function TJimbosLeftSideHUD(Player, PIndex)
     do
 
     LeftSideHUD:GetLayer(LeftSideLayers.Lines):SetColor(BlindChipColor)
-    LeftSideHUD:RenderLayer(LeftSideLayers.Lines, -SCREEN_SHAKE)
+    LeftSideHUD:RenderLayer(LeftSideLayers.Lines, Vector.Zero)
 
     end
 
 end
 --mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, TJimbosLeftSideHUD)
+
+---@param NPC EntityNPC
+local function MaxHPEnemyRender(_, NPC)
+
+    local Data = NPC:GetData()
+
+    if not Data.REG_HeartCounter then
+        return
+    end
+
+    local Frame
+    local Animation
+
+    if Data.REG_HeartCounter >= 0 then
+
+        if Data.REG_HeartCounter > HEART_START_LENGTH then
+            Animation = "Idle"
+            Frame = (NPC.FrameCount - HEART_START_LENGTH) % HEART_IDLE_LENGTH
+        else
+            Animation = "Idle"
+            Frame = (NPC.FrameCount - HEART_START_LENGTH) % HEART_IDLE_LENGTH
+        end
+
+        if Isaac.GetFrameCount() % 2 == 0 then
+            Data.REG_HeartCounter = Data.REG_HeartCounter + 1
+        end
+    else
+    
+        Frame = -Data.REG_HeartCounter
+        Animation = "Leave"
+
+        if Isaac.GetFrameCount() % 2 == 0 then
+            Data.REG_HeartCounter = Data.REG_HeartCounter - 1
+        end
+    end
+
+
+    HeartIndicator:SetFrame(Animation, Frame)
+    HeartIndicator:Render(Isaac.WorldToScreen(NPC.Position) + NPC:GetNullOffset("OverlayEffect"))
+end
+mod:AddCallback(ModCallbacks.MC_POST_NPC_RENDER, MaxHPEnemyRender)
+
 
 
 local function TJimboWarning(Player, PIndex)

@@ -434,6 +434,7 @@ Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_SHARD_OF_GLASS] = "#{{Pl
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_HEAD_OF_THE_KEEPER] = "#{{PlayerJimbo}} All {{BalatroDiamond}} Diamond cards turn enemies hit in golden statues #{{PlayerJimbo}} All cards held in hand become {{BalatroDiamond}} Diamond cards on pickup"
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_MAGIC_SKIN] = "#{{PlayerJimbo}} Becomes {{ColorYellorange}}SINGLE USE #{{PlayerJimbo}} Also spawns 2 random {{BalatroJoker}} Jokers"
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_DEEP_POCKETS] = "#{{PlayerJimbo}} Max coin amount is increased to 9999"
+Descriptions.JimboSynergies[mod.Collectibles.POCKET_ACES] = "#{{PlayerJimbo}} Adds 2 aces with a random {{ColorYellorange}}Enhancement{{CR}}, {{ColorYellorange}}Seal{{CR}} and {{ColorYellorange}}Edition{{CR}} to the deck on pickup"
 
 
 
@@ -1117,7 +1118,7 @@ EID:addCollectible(mod.Vouchers.TarotTycoon, "{{PlayerJimbo}} Every pickup has a
 EID:addCollectible(mod.Collectibles.BALOON_PUPPY, "Familiar that reflects enemy shots and deals 5 contact damage per second #Explodes dealing 3 x Isaac's Damage after taking enough damage #If Isaac takes damage, starts chasing down enemies", "Baloon Puppy",FileLanguage)		
 EID:addCollectible(mod.Collectibles.BANANA, "Isaac shoots a devastating banana that creates a {{Collectible483}} Mama Mega! explosion on contact #!!! Upon use becomes {{Collectible"..mod.Collectibles.EMPTY_BANANA.."}} Empty Banana", "Banana",FileLanguage)		
 EID:addCollectible(mod.Collectibles.EMPTY_BANANA, "Leaves a banana peel on the ground #Enemies that slip on the peels take damage basing on how fast they were moving", "Empty Banana",FileLanguage)		
-EID:addCollectible(mod.Collectibles.CLOWN, "When taking damage, every enemy in the room has a 66% chance to get either {{Fear}} Fear or {{Charm}} Charm applied", "Clown Costume",FileLanguage)		
+EID:addCollectible(mod.Collectibles.CLOWN, "50% of enemies get either the {{Charm}} Charm or {{Fear}} Fear effect applied when standing close to Isaac", "Clown Costume",FileLanguage)		
 EID:addCollectible(mod.Collectibles.CRAYONS, "While moving, create a trail of crayon dust that applies status effects #Effects applied change basing the dust's color #!!! Dust color changes every new room", "Box of Crayons",FileLanguage)		
 EID:addCollectible(mod.Collectibles.FUNNY_TEETH, "Spawns a familiar that chases enemies dealing 15 damage per second #{{Chargeable}} Needs to be recharged by standing near it after being active for some time", "Funny Teeth",FileLanguage)		
 EID:addCollectible(mod.Collectibles.HORSEY, "Spawns a familiar that jumps in an L pattern, creating damaging shockwaves upon landing #!!! The shockwaves cannot hurt Isaac", "Horsey",FileLanguage)		
@@ -1156,6 +1157,10 @@ Descriptions.ItemItemSynergies[mod.Collectibles.FUNNY_TEETH] = {[CollectibleType
                                                                 [CollectibleType.COLLECTIBLE_DOG_TOOTH] = "# Gains more speed and damage",
                                                                 [CollectibleType.COLLECTIBLE_TOUGH_LOVE] = "# Deals 35% more damage",
                                                                 [CollectibleType.COLLECTIBLE_MAW_OF_THE_VOID] = "# When recharged, fires a smaller {{Collectible399}} Maw of the void ring"}
+Descriptions.ItemItemSynergies[mod.Collectibles.CLOWN] = {[CollectibleType.COLLECTIBLE_BOZO] = "# All enemies are affected",
+                                                            }
+Descriptions.ItemItemSynergies[mod.Collectibles.HORSEY] = {[CollectibleType.COLLECTIBLE_BFFS] = "# Increased shockwave range",
+                                                            }
 Descriptions.ItemItemSynergies[mod.Collectibles.HEIRLOOM] = {[CollectibleType.COLLECTIBLE_TELEKINESIS] = "# Gain {{Collectible2}} Homing shots",
                                                             }
 Descriptions.ItemItemSynergies[mod.Collectibles.THE_HAND] = {[CollectibleType.COLLECTIBLE_BOOK_OF_VIRTUES] = "# Shoots a wisp per card held when swung",
@@ -1191,7 +1196,16 @@ for Item, ItemSynergies in pairs(Descriptions.ItemItemSynergies) do
     
     for Item2, SynString in pairs(ItemSynergies) do
 
-        local Prefix = "#{{Collectible"..Item2.."}}"
+        local Prefix
+
+        if Item == CollectibleType.COLLECTIBLE_BOOK_OF_VIRTUES
+           or Item2 == CollectibleType.COLLECTIBLE_BOOK_OF_VIRTUES then
+            
+            Prefix = "#{{VirtuesCollectible"..Item2.."}}"
+        else
+            Prefix = "#{{Collectible"..Item2.."}}"
+        end
+        
         
         Descriptions.ItemItemSynergies[Item][Item2] = string.gsub(SynString, "#", Prefix)
     end

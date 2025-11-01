@@ -871,10 +871,11 @@ end
 
 
 local function effectTest(_, Effect)
+
     
-    print(Effect.Type, Effect.Variant, Effect.SubType, EntityConfig.GetEntity(Effect.Type, Effect.Variant, Effect.SubType):GetName())
+        print(Effect.Type, Effect.Variant, Effect.SubType, EntityConfig.GetEntity(Effect.Type, Effect.Variant, Effect.SubType):GetName())
 end
---mod:AddCallback(ModCallbacks.MC_POST_SLOT_INIT, effectTest)
+--mod:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT, effectTest)
 
 
 
@@ -2721,7 +2722,7 @@ function mod:RandomJoker(Rng, PlaySound, ForcedRarity, AllowDuplicates, Amount)
 
             local PIndex = Player:GetData().TruePlayerIndex
 
-            for _, card in ipairs(mod.saved.Player[PIndex].FullDeck) do
+            for _, card in ipairs(mod.Saved.Player[PIndex].FullDeck) do
                 HasEnh[card.Enhancement] = true
             end
 
@@ -4790,12 +4791,13 @@ function mod:IsHostileRoomSpawn(Type, Variant, SubType)
     local Config = EntityConfig.GetEntity(Type, Variant, SubType)
 
     return Config and Config:CanShutDoors() 
-           and Entity.Type ~= EntityType.ENTITY_EFFECT
-           and Entity.Type ~= EntityType.ENTITY_SLOT
-           and Entity.Type ~= StbGridType.PRESSURE_PLATE --the "puzzle" plates
-           and Entity.Type ~= EntityType.ENTITY_PICKUP --why tf is this even needed
-           and Entity.Type ~= EntityType.ENTITY_RAGLING
+           and Type ~= EntityType.ENTITY_EFFECT
+           and Type ~= EntityType.ENTITY_SLOT
+           and Type ~= StbGridType.PRESSURE_PLATE --the "puzzle" plates
+           and Type ~= EntityType.ENTITY_PICKUP --why tf is this even needed
+           and Type ~= EntityType.ENTITY_RAGLING
 end
+
 
 function mod:PlaceBlindRoomsForReal()
 
@@ -4869,6 +4871,7 @@ function mod:PlaceBlindRoomsForReal()
                 Isaac.DebugString("        PLACED AT "..mod.Saved.BigBlindIndex)
 
                 mod.Saved.BigBlindIndex = i
+                break
             end
         end     
             
@@ -4925,6 +4928,7 @@ function mod:PlaceBlindRoomsForReal()
                 Isaac.DebugString("        PLACED AT "..mod.Saved.BigBlindIndex)
 
                 mod.Saved.SmallBlindIndex = i
+                break
             end
         end
 
@@ -4966,6 +4970,204 @@ function mod:PlaceBlindRoomsForReal()
     until ShopDesc
 
 end
+
+--I tried ok...
+--[[
+function mod:PlaceBlindRoomsForReal()
+
+    local Level = Game:GetLevel()
+
+    if StageAPI then
+        
+        local StageRoomList = StageAPI.GetCurrentStage().Rooms[RoomType.ROOM_DEFAULT]
+
+    else
+        local StageID = Isaac.GetCurrentStageConfigId()
+
+        if StageID == StbType.VOID then --throws an error so just get a random floor you've seen
+    
+        StageID =  StbType.BASEMENT --aparently the room chosen doesn't care about the StbType as long as it's not VOID
+        end
+
+        local RoomPlaceSeed = Level:GetDungeonPlacementSeed()
+        local RoomRNG = RNG(RoomPlaceSeed)
+
+        Isaac.DebugString("-------BALATRO BLIND GENERATION--------")
+
+
+        local SmallDesc
+        local BigDesc
+        local ShopDesc
+
+        repeat
+
+        Isaac.DebugString("    --------BIG BLIND-------")
+
+        local BigRoom
+
+        repeat
+
+            BigRoom = RoomConfigHolder.GetRandomRoom( mod:RandomSeed(RoomRNG),
+                                                      true, 
+                                                      StageID,
+                                                      RoomType.ROOM_DEFAULT,
+                                                      RoomShape.ROOMSHAPE_2x2,
+                                                      -1, -1,
+                                                      2,
+                                                      10,
+                                                      0,
+                                                      -1,-1)
+
+            if not BigRoom then
+                Isaac.DebugString("        NO ROOMS FOUND!")
+                return
+            end
+
+
+            local Entries = BigRoom.Spawns
+            local IsHostile = false
+
+            for i = 0, Entries.Size-1 do
+                
+                local Entity = Entries:Get(i):PickEntry(0)
+
+                if mod:IsHostileRoomSpawn(Entity.Type, Entity.Variant, Entity.Subtype) then
+                    
+                    Isaac.DebugString("        HOSTILE ("..Entity.Type.."."..Entity.Variant.."."..Entity.Subtype..")")
+
+                    IsHostile = true
+                    break
+                end
+            end
+        until IsHostile
+
+        for i = 3, 168 do
+
+            BigDesc = Level:TryPlaceRoom(BigRoom, i, -1, nil, true, true, true)
+
+            if BigDesc then
+                Isaac.DebugString("        PLACED AT "..mod.Saved.BigBlindIndex)
+
+                mod.Saved.BigBlindIndex = i
+                break
+            end
+        end     
+            
+        until BigDesc
+
+        repeat
+
+        local SmallRoom
+
+        repeat
+
+            Isaac.DebugString("    --------SMALL BLIND-------")
+
+            SmallRoom = RoomConfigHolder.GetRandomRoom( mod:RandomSeed(RoomRNG),
+                                                        true, 
+                                                        StageID,
+                                                        RoomType.ROOM_DEFAULT,
+                                                        RoomShape.ROOMSHAPE_1x1,
+                                                        -1, -1,
+                                                        2,
+                                                        10,
+                                                        0,
+                                                        -1,-1)
+
+            if not SmallRoom then
+                Isaac.DebugString("        NO ROOMS FOUND!")
+                return
+            end
+
+            local Entries = SmallRoom.Spawns
+            local IsHostile
+
+            for i = 0, Entries.Size-1 do
+                
+                local Entity = Entries:Get(i):PickEntry(0)
+
+                if mod:IsHostileRoomSpawn(Entity.Type, Entity.Variant, Entity.Subtype) then 
+                    
+                    Isaac.DebugString("        HOSTILE ("..Entity.Type.."."..Entity.Variant.."."..Entity.Subtype..")")
+
+                    IsHostile = true
+                    break
+                end
+            end
+
+        until IsHostile --makes sure the room has at least 1 enemy
+
+        for i = 0, 168 do
+
+            SmallDesc = Level:TryPlaceRoom(SmallRoom, i, -1, nil, true, true, true)
+            
+            if SmallDesc then
+                
+                Isaac.DebugString("        PLACED AT "..mod.Saved.BigBlindIndex)
+
+                mod.Saved.SmallBlindIndex = i
+                break
+            end
+        end
+
+        until SmallDesc
+
+        SmallDesc:AddRestrictedGridIndex(67)
+
+
+        if mod.Saved.ShopIndex then
+        return
+        end
+
+        repeat
+
+        local ShopRoom = RoomConfigHolder.GetRandomRoom(mod:RandomSeed(RoomRNG),
+                                                        false,
+                                                        StbType.SPECIAL_ROOMS,
+                                                        RoomType.ROOM_SHOP,
+                                                        RoomShape.NUM_ROOMSHAPES,
+                                                        -1, -1,
+                                                        0,
+                                                        10,
+                                                        0, RoomSubType.SHOP_KEEPER_LEVEL_2, -1)
+
+        for i = 6, 168 do
+
+            ShopDesc = Level:TryPlaceRoom(ShopRoom, i, -1, nil, true, true, true)
+            
+            if ShopDesc then
+
+                mod.Saved.ShopIndex = i
+                break
+
+            else
+                Isaac.DebugString("FAILED TO PLACE AT "..tostring(mod.Saved.BigBlindIndex))
+            end
+        end
+
+        until ShopDesc
+    end
+
+
+    ---@param roomList RoomsList
+    ---@param seed? integer
+    ---@param shape? RoomShape
+    ---@param rtype? RoomType
+    ---@param requireRoomType? RoomType
+    ---@param ignoreDoors? boolean
+    ---@param doors? boolean[]
+    ---@param disallowIDs? any[]
+    ---@return RoomLayout?
+    ---@return integer? listId
+    ---@overload fun(args: GetValidRoomsForLayout.Args)
+    StageAPI.ChooseRoomLayout(roomList, seed, shape, rtype, requireRoomType, ignoreDoors, doors, disallowIDs)
+
+end]]
+
+
+
+
+
 
 
 --VV sorry, didn't put many comments on these functions and I'm too lazy to do so now (I'll def regret this)

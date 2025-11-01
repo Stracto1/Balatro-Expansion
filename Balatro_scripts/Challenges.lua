@@ -1,3 +1,8 @@
+if true then --this sucked ass probably so just left it out
+    return
+end
+
+
 local mod = Balatro_Expansion
 local Game  = Game()
 local ItemsConfig = Isaac.GetItemConfig()

@@ -912,7 +912,7 @@ local function NoJokerCollision(_, Player, Collider, _)
 
     if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo
        and (Player:GetPlayerType() ~= mod.Characters.JimboType
-            or mod:GetPlayerTrinketAmount(Player, mod.Jokers.CAMPFIRE) == 0)  then
+            or mod:GetPlayerTrinketAmount(Player, mod.Jokers.CAMPFIRE) ~= 0)  then
         return    
     end
 
@@ -921,7 +921,7 @@ local function NoJokerCollision(_, Player, Collider, _)
 
     if not Pickup 
        or Pickup.Variant ~= PickupVariant.PICKUP_TRINKET
-       or (Pickup.SubType & mod.EditionFlag[mod.Edition.ALL]) >> mod.EDITION_FLAG_SHIFT == mod.Edition.NEGATIVE then
+       or (Pickup.SubType & mod.EditionFlag.ALL) >> mod.EDITION_FLAG_SHIFT == mod.Edition.NEGATIVE then
         return
     end
 
@@ -2827,6 +2827,7 @@ function mod:InitializeAnte(NewFloor)
         end
 
         return
+        
     end
 
     

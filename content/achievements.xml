@@ -26,7 +26,7 @@
 
     <achievement name="ChaosTheoryUnlock" gfx="achievement_chaos_theory.png"/>
     <achievement name="PennySeedsUnlock" gfx="achievement_penny_seeds.png"/>
-    <achievement name="TrinketEditionsUnlock" gfx="achievement_trinket_editions.png"/>
+    <achievement name="TrinketEditionsUnlock" gfx="achievement_trinket_edition.png"/>
     <achievement name="AStupidIdeaUnlock" gfx="achievement_stupid_idea.png"/>
 
 

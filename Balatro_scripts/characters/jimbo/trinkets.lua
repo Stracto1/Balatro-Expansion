@@ -699,7 +699,7 @@ end
 
         if mod:TryGamble(Player, PlayerRNG, BreakChance) then
 
-            mod:DestroyCards(Player, ShotCard.Index, true)
+            mod:DestroyCards(Player, {ShotCard.Index}, true)
 
             --PLACEHOLDER sound
             mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "BROKEN!", mod.EffectType.ENTITY, Player)
@@ -4072,7 +4072,6 @@ function mod:DamageMultJokers(Player,_)
         return
     end
 
-    print("numt")
     
     local PIndex = Player:GetData().TruePlayerIndex
 
@@ -4379,7 +4378,7 @@ function mod:EditionsStats(Player, Flags)
         end
     end
 end
-mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.EditionsStats)
+mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.JimboStatPriority.JOKER_PLUS, mod.EditionsStats)
 
 
 -----JOKERS SECONDARY EFFECTS---------
@@ -5805,7 +5804,7 @@ local function ToDoListInit(_, NPC)
             
             FoundEnemies = FoundEnemies + 1
 
-            if Entity:GetData().ToDoListCoinCounter then
+            if Entity:GetData().REG_CoinCounter then
                 FoundCoins = FoundCoins + 1
             end
         end
@@ -5814,7 +5813,7 @@ local function ToDoListInit(_, NPC)
     local MaxCoins = (FoundEnemies // 10) + NumLists
 
     if FoundCoins < MaxCoins then
-        NPC:GetData().ToDoListCoinCounter = 0
+        NPC:GetData().REG_CoinCounter = 0
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_NPC_INIT, ToDoListInit)
@@ -5828,7 +5827,7 @@ local function ToDoListOnDeath(_, NPC)
         return
     end
 
-    local NPCCounter = NPC:GetData().ToDoListCoinCounter
+    local NPCCounter = NPC:GetData().REG_CoinCounter
 
     local HadCoin = NPCCounter and (NPCCounter >= 0)
 
@@ -5840,12 +5839,12 @@ local function ToDoListOnDeath(_, NPC)
 
             if mod:IsValidScalingEnemy(Entity) then
 
-                local EntityCounter = Entity:GetData().ToDoListCoinCounter
+                local EntityCounter = Entity:GetData().REG_CoinCounter
 
                 if not EntityCounter then
 
                     FoundPoorEnemy = true
-                    Entity:GetData().ToDoListCoinCounter = 0
+                    Entity:GetData().REG_CoinCounter = 0
 
                     break
                 end
@@ -5861,11 +5860,11 @@ local function ToDoListOnDeath(_, NPC)
     else
         for _, Entity in ipairs(Isaac.GetRoomEntities()) do
 
-            local EntityCounter = Entity:GetData().ToDoListCoinCounter
+            local EntityCounter = Entity:GetData().REG_CoinCounter
 
             if EntityCounter and EntityCounter >= 0 then
 
-                Entity:GetData().ToDoListCoinCounter = -1
+                Entity:GetData().REG_CoinCounter = -1
             end
         end
     end
@@ -5882,7 +5881,7 @@ local COIN_LEAVE_LENGTH = ToDoCoin:GetAnimationData("Leave"):GetLength()
 ---@param NPC EntityNPC
 local function ToDoListRender(_, NPC)
 
-    local NPCCounter = NPC:GetData().ToDoListCoinCounter
+    local NPCCounter = NPC:GetData().REG_CoinCounter
 
     if not NPCCounter then
         return
@@ -5899,7 +5898,7 @@ local function ToDoListRender(_, NPC)
 
 
         if Frame == COIN_LEAVE_LENGTH then
-            NPC:GetData().ToDoListCoinCounter = nil
+            NPC:GetData().REG_CoinCounter = nil
             return
         end
 
@@ -5938,11 +5937,11 @@ mod:AddCallback(ModCallbacks.MC_POST_NPC_RENDER, ToDoListRender)
 ---@param NPC EntityNPC
 local function ToDoListUpdate(_, NPC)
 
-    local NPCCounter = NPC:GetData().ToDoListCoinCounter
+    local NPCCounter = NPC:GetData().REG_CoinCounter
 
     if NPCCounter then
 
-        NPC:GetData().ToDoListCoinCounter = NPCCounter >= 0 and (NPCCounter + 1) or (NPCCounter - 1)
+        NPC:GetData().REG_CoinCounter = NPCCounter >= 0 and (NPCCounter + 1) or (NPCCounter - 1)
     end
 end
 mod:AddCallback(ModCallbacks.MC_NPC_UPDATE, ToDoListUpdate)
