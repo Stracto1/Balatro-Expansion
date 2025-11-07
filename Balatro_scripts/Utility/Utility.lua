@@ -3912,7 +3912,16 @@ function mod:AddCardToDeck(Player, CardTable,Amount, PutInHand)
     local PIndex = Player:GetData().TruePlayerIndex
 
     for i=1, Amount do
-        table.insert(mod.Saved.Player[PIndex].FullDeck,1, CardTable) --adds it to pos 1 so it can't be seen again
+
+        local AddedCard = CardTable
+
+        if Player:HasCollectible(CollectibleType.COLLECTIBLE_CANDY_HEART)
+           and AddedCard.Enhancement == mod.Enhancement.NONE then
+            
+            AddedCard.Enhancement = Player:GetCollectibleRNG(CollectibleType.COLLECTIBLE_CANDY_HEART):RandomInt(mod.Enhancement.MULT, mod.Enhancement.LUCKY)
+        end
+
+        table.insert(mod.Saved.Player[PIndex].FullDeck,1, AddedCard) --adds it to pos 1 so it can't be seen again
     end
 
     --fixes the jump made by table.insert in a lot of poiter-storing variables

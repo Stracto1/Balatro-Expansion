@@ -2118,6 +2118,12 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
             if math.random() <= Chance then
                 Tear:AddTearFlags(TearFlags.TEAR_CHARM)
             end
+
+            if Player:HasCollectible(CollectibleType.COLLECTIBLE_HYPERCOAGULATION) then
+                
+                Tear:AddTearFlags(TearFlags.TEAR_QUADSPLIT)
+            end
+
         end
         if CompatibleSuits[mod.Suits.Club] then
             --Tear:AddTearFlags(TearFlags.TEAR_BACKSTAB)

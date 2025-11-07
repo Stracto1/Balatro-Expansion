@@ -246,7 +246,8 @@
         "dssmod",
         "Ephiphany",
         "Epiphany",
-        "StageAPI"
+        "StageAPI",
+        "TheFuture"
 	],
     "diagnostics.disable": [
     ]}

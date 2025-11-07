@@ -396,21 +396,6 @@ Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_STAR_OF_BETHLEHEM] = "#{
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_POUND_OF_FLESH] = "#{{PlayerJimbo}} {{BalatroDiamond}} Diamond and {{BalatroHeart}} Heart are considered as the same suit"
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_TMTRAINER] = "#{{PlayerJimbo}} All cards in the deck get randomised on pickup"
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_CUPIDS_ARROW] = "#{{PlayerJimbo}} {{BalatroSpade}} Spade cards have a 50% chance to {{Charm}} Charm enemies"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_ABADDON] = "#{{PlayerJimbo}} {{BalatroSpade}} Spade cards deal 10% more damage"
-
-mod.EVIL_ITEMS = {CollectibleType.COLLECTIBLE_ABADDON,
-                  CollectibleType.COLLECTIBLE_BLACK_CANDLE,
-                  CollectibleType.COLLECTIBLE_CEREMONIAL_ROBES,
-                  CollectibleType.COLLECTIBLE_GOAT_HEAD,
-                  CollectibleType.COLLECTIBLE_BLACK_CANDLE,
-                  CollectibleType.COLLECTIBLE_MATCH_BOOK,
-                  CollectibleType.COLLECTIBLE_MISSING_NO,
-                  CollectibleType.COLLECTIBLE_FALSE_PHD,
-                  CollectibleType.COLLECTIBLE_SAFETY_PIN}
-for _,v in ipairs(mod.EVIL_ITEMS) do
-    Descriptions.JimboSynergies[v] = Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_ABADDON]
-end
-
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_HALO] = "#{{PlayerJimbo}} {{BalatroDiamond}} Diamond cards gain a {{Collectible331}} God Head-like aura #{{BalatroDiamond}} All cads held in hand become Diamond cards on pickup"
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_MONEY_EQUALS_POWER] = "#{{PlayerJimbo}} {{BalatroDiamond}} Diamond cards give {{ColorMult}}+0.01{{CR}} Damage per {{ColoraYellorange}}5{{CR}} coins held when scored"
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_MITRE] = "#{{PlayerJimbo}} Tears given by {{BalatroBonus}} {{ColorYellorange}}Bouns enhancements{{CR}} are doubled"
@@ -435,7 +420,24 @@ Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_HEAD_OF_THE_KEEPER] = "#
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_MAGIC_SKIN] = "#{{PlayerJimbo}} Becomes {{ColorYellorange}}SINGLE USE #{{PlayerJimbo}} Also spawns 2 random {{BalatroJoker}} Jokers"
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_DEEP_POCKETS] = "#{{PlayerJimbo}} Max coin amount is increased to 9999"
 Descriptions.JimboSynergies[mod.Collectibles.POCKET_ACES] = "#{{PlayerJimbo}} Adds 2 aces with a random {{ColorYellorange}}Enhancement{{CR}}, {{ColorYellorange}}Seal{{CR}} and {{ColorYellorange}}Edition{{CR}} to the deck on pickup"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_HYPERCOAGULATION] = "#{{PlayerJimbo}} {{BalatroHeart}} Heart cards fired gain the {{Collectible224}} Cricket's body split effect"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_CANDY_HEART] = "#{{PlayerJimbo}} {{BalatroHeart}} Heart cards added gain a random {{ColorYellorange}}Enhancement{{CR}} if they didn't have one"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_WHORE_OF_BABYLON] = "#{{PlayerJimbo}} Damage given by {{BalatroMult}} {{ColorYellorange}}Mult enhancements{{CR}} are doubled"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_ABADDON] = "#{{PlayerJimbo}} {{BalatroSpade}} Spade cards deal 10% more damage"
 
+
+mod.EVIL_ITEMS = {CollectibleType.COLLECTIBLE_ABADDON,
+                  CollectibleType.COLLECTIBLE_BLACK_CANDLE,
+                  CollectibleType.COLLECTIBLE_CEREMONIAL_ROBES,
+                  CollectibleType.COLLECTIBLE_GOAT_HEAD,
+                  CollectibleType.COLLECTIBLE_BLACK_CANDLE,
+                  CollectibleType.COLLECTIBLE_MATCH_BOOK,
+                  CollectibleType.COLLECTIBLE_MISSING_NO,
+                  CollectibleType.COLLECTIBLE_FALSE_PHD,
+                  CollectibleType.COLLECTIBLE_SAFETY_PIN}
+for _,v in ipairs(mod.EVIL_ITEMS) do
+    Descriptions.JimboSynergies[v] = Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_ABADDON]
+end
 
 
 

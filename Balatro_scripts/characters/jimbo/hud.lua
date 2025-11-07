@@ -18,10 +18,6 @@ local InventoryFrame = {0,0,0}
 local SpecialCards = Sprite("gfx/ui/PackSpecialCards.anm2")
 local DeckSprite = Sprite("gfx/ui/Deck Stages.anm2")
 
-local MultCounter = Sprite("gfx/ui/Mult Counter.anm2")
-local ChipsCounter = Sprite("gfx/ui/Chips Counter.anm2")
-MultCounter:SetFrame("Idle",0)
-ChipsCounter:SetFrame("Idle",0)
 
 local DiscardChargeSprite = Sprite("gfx/chargebar.anm2")
 DiscardChargeSprite.Offset = Vector(-17,-25)
@@ -203,11 +199,14 @@ function mod:JimboStatsHUD(offset,_,Position,_,Player)
 
     local PIndex = Player:GetData().TruePlayerIndex
 
+    local IsPlayer2 = PIndex == 2
+
     -------STATS COUNTER RENDERING---------
     
     local ChipsPos = Vector(18,108) + Vector(20, 13)*Options.HUDOffset
     local MultPos = ChipsPos + Vector(0,12)
 
+    
     local MultString
     local ChipsString
 
@@ -277,6 +276,11 @@ function mod:JimboStatsHUD(offset,_,Position,_,Player)
 
         String = math.floor(Player.Damage)..".00"
         MultScale = Vector(math.max(mod.Fonts.luamini:GetStringWidth(String)),8)
+    end
+
+    if IsPlayer2 then
+        ChipsPos = ChipsPos + Vector(8, 10)
+        MultPos = MultPos + Vector(8, 10)
     end
 
 

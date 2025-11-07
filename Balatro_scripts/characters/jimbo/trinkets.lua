@@ -680,7 +680,11 @@ end
     if ShotCard.Enhancement == mod.Enhancement.STONE then
         TearsToGet = 1.25 * Triggers
     elseif ShotCard.Enhancement == mod.Enhancement.MULT then
-        mod:IncreaseJimboStats(Player, 0, 0.05 * Triggers,1, false,true) 
+
+        local Multiplier = 1
+        Multiplier = Multiplier + Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_WHORE_OF_BABYLON)
+
+        mod:IncreaseJimboStats(Player, 0, 0.05 * Triggers * Multiplier,1, false,true) 
 
     elseif ShotCard.Enhancement == mod.Enhancement.BONUS then
 
