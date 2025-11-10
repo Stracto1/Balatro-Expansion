@@ -33,8 +33,8 @@ local HandsBarFilling = Sprite("gfx/Cards_Bar_Filling.anm2")
 local CardFrame = Sprite("gfx/ui/CardSelection.anm2")
 CardFrame:SetAnimation("Frame")
 
-local CHARGED_ANIMATION = 11 --the length of an animation for chargebars
-local CHARGED_LOOP_ANIMATION = 5
+local CHARGED_ANIMATION = HandChargeSprite:GetAnimationData("StartCharged"):GetLength() - 1 --the length of an animation for chargebars
+local CHARGED_LOOP_ANIMATION = HandChargeSprite:GetAnimationData("Charged"):GetLength() - 1
 
 --local DECK_RENDERING_POSITION = Vector(110,15) --in screen coordinates
 --local HAND_RENDERING_POSITION = Vector(40,30) --in screen coordinates
@@ -203,7 +203,7 @@ function mod:JimboStatsHUD(offset,_,Position,_,Player)
 
     -------STATS COUNTER RENDERING---------
     
-    local ChipsPos = Vector(18,108) + Vector(20, 13)*Options.HUDOffset
+    local ChipsPos = Vector(18,108) + Vector(20, 12)*Options.HUDOffset
     local MultPos = ChipsPos + Vector(0,12)
 
     
@@ -272,10 +272,10 @@ function mod:JimboStatsHUD(offset,_,Position,_,Player)
 
     do
         local String = math.floor(mod:CalculateTearsValue(Player))..".00"
-        ChipsScale = Vector(math.max(mod.Fonts.luamini:GetStringWidth(String)),8)
+        ChipsScale = Vector(math.max(mod.Fonts.luamini:GetStringWidth(String)),9)
 
         String = math.floor(Player.Damage)..".00"
-        MultScale = Vector(math.max(mod.Fonts.luamini:GetStringWidth(String)),8)
+        MultScale = Vector(math.max(mod.Fonts.luamini:GetStringWidth(String)),9)
     end
 
     if IsPlayer2 then
@@ -283,9 +283,9 @@ function mod:JimboStatsHUD(offset,_,Position,_,Player)
         MultPos = MultPos + Vector(8, 10)
     end
 
-
-    mod:RenderGenericButton(ChipsPos, ChipsScale, mod.EffectColors.BLUE, false, ChipsString, Vector(0.5,0.5), true, 0)
-    mod:RenderGenericButton(MultPos, MultScale, mod.EffectColors.RED, false, MultString, Vector(0.5,0.5), true, 0)
+    --TODO fix line
+    mod:RenderGenericButton(ChipsPos, ChipsScale, mod.EffectColors.BLUE, false, ChipsString, Vector(0.5,0.5), false, 0)
+    mod:RenderGenericButton(MultPos, MultScale, mod.EffectColors.RED, false, MultString, Vector(0.5,0.5), false, 0)
 
    
 
@@ -457,8 +457,8 @@ function mod:HandBarRender(offset,_,Position,_,Player)
     end
 
     local HandsRemaining = Player:GetCustomCacheValue("hands")
-    local PartialHands = nil
-    local Offset = Vector(0, 14)*PlayerRenderMult+ Vector(20, 12)*Options.HUDOffset
+    local PartialHands
+    local Offset = Vector(0, 14)*PlayerRenderMult + Vector(3, 2)*Options.HUDOffset
 
     while HandsRemaining > 0 do --up to 35 are displayed in 1 bar, then a sencond one appears and so on
 
@@ -501,6 +501,10 @@ function mod:JimboHandRender(Player, Offset)
     if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.Saved.Player[1] then
         return
     end
+
+    --if true then return end
+
+    
     local PIndex = Player:GetData().TruePlayerIndex
 
     local PlayerScreenPos = Isaac.WorldToRenderPosition(Player.Position)
@@ -530,7 +534,6 @@ function mod:JimboHandRender(Player, Offset)
                 RenderPos.Y = RenderPos.Y -  8
             end
              --moves up selected cards
-
 
             mod.CardFullPoss[Pointer] = mod.CardFullPoss[Pointer] or RenderPos --check nil
 
@@ -580,7 +583,7 @@ function mod:JimboHandRender(Player, Offset)
         local CardsLeft = math.max((#mod.Saved.Player[PIndex].FullDeck - mod.Saved.Player[PIndex].DeckPointer)+1, 0)
 
         --shows how many cards are left in the deck
-        DeckSprite:SetFrame("idle", math.ceil(CardsLeft/7))
+        DeckSprite:SetFrame("idle", math.ceil(CardsLeft/8))
 
         DeckSprite.Scale = Vector.One*ScaleMult
 
@@ -711,9 +714,13 @@ local ChargeBarWeaponTypes = WeaponModifier.CHOCOLATE_MILK | WeaponModifier.MONS
 ---@param Player EntityPlayer
 function mod:JimboBarRender(Player)
 
-    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+    if Player:GetPlayerType() ~= mod.Characters.JimboType
+       or not Options.ChargeBars then
         return
     end
+
+    --if true then return end
+
     local PIndex = Player:GetData().TruePlayerIndex
 
     local Weapon = Player:GetWeapon(1)
@@ -742,22 +749,24 @@ function mod:JimboBarRender(Player)
 
             HandChargeSprite:Render(Isaac.WorldToScreen(Player.Position))
 
-            if Game:GetFrameCount()%2 == 0 then
+            if Game:GetFrameCount()%2 == 0 and not Game:IsPaused() then
                 --HandChargeSprite:Update()
                 HandChargeSprite:SetFrame(HandChargeSprite:GetFrame()+1) --for whatever reson Update() doesn't do the job
             end
 
-            if HandChargeSprite:GetFrame() >= CHARGED_ANIMATION then
+            if HandChargeSprite:GetFrame() == CHARGED_ANIMATION then
                 HandChargeSprite:SetAnimation("Charged")
             end
 
         else
-            if HandChargeSprite:GetFrame() >= CHARGED_LOOP_ANIMATION then --again Update() is lazy so i loop over ir myself
+            if HandChargeSprite:GetFrame() == CHARGED_LOOP_ANIMATION then --again Update() is lazy so i loop over ir myself
                 HandChargeSprite:SetFrame(0)
 
-            elseif Game:GetFrameCount()%2 == 0 then
-                HandChargeSprite:SetFrame(HandChargeSprite:GetFrame()+1)
+            elseif Game:GetFrameCount()%2 == 0 and not Game:IsPaused() then
+                HandChargeSprite:SetFrame(HandChargeSprite:GetFrame()+1) --for whatever reson Update() doesn't do the job
             end
+
+
             
             HandChargeSprite:Render(Isaac.WorldToScreen(Player.Position))
         end

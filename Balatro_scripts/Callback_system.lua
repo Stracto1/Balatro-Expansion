@@ -283,8 +283,7 @@ function mod:OnGameStart(Continued)
     end
 
 end
-mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED ,mod.OnGameStart)
-                                        --btw putting IMPORTANT as the prioriry here makes it not happen
+mod:AddPriorityCallback(ModCallbacks.MC_POST_GAME_STARTED, CallbackPriority.IMPORTANT - 1,mod.OnGameStart)
 
 --Counter = 60
 --Counter2 = 36

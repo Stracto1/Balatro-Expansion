@@ -3379,7 +3379,8 @@ mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, mod.MischeviousThingsBasedE
 ---@param Player EntityPlayer
 local function OnHeartsChange(_,Player, Amount, HpType, _)
 
-    if Amount == 0 or Player:GetPlayerType() == mod.Characters.TaintedJimbo then
+    if Amount == 0 or Player:GetPlayerType() == mod.Characters.TaintedJimbo
+       or not mod.GameStarted then
         return
     end
 

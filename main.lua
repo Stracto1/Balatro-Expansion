@@ -771,7 +771,11 @@ local loaded
 Balatro_Expansion.Fonts.Balatro, loaded = Font("mods/balatro_expansion/resources/font/Balatro_Font4.fnt")
 
 if not loaded then
-    Balatro_Expansion.Fonts.Balatro:Load("mods/balatro_expansion_3308293502/resources/font/Balatro_Font4.fnt")
+    Balatro_Expansion.Fonts.Balatro, loaded = Font("mods/balatro_expansion_3308293502/resources/font/Balatro_Font4.fnt")
+end
+
+if not loaded and REPENTANCE_PLUS then
+    Balatro_Expansion.Fonts.Balatro = Font("font/upheavalmini.fnt") --basically a placeholder until I understand how to make it work anywayproperly
 end
 
 --Balatro_Expansion.Fonts.Balatro_Small, loaded = Font("mods/balatro_expansion/resources/font/Balatro_Font3.fnt")
@@ -783,7 +787,6 @@ end
 ---@diagnostic disable-next-line: redundant-parameter
 Balatro_Expansion.Fonts.pftempest = Font("font/pftempestasevencondensed.fnt")
 Balatro_Expansion.Fonts.luamini = Font("font/luaminioutlined.fnt")
-
 
 ---------------------
 local Game = Game()

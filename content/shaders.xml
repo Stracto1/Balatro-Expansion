@@ -31,9 +31,12 @@
                 
                 CameraOffsetOut = CameraOffset;
 
-                Position.x = Position.x + CameraOffset.x;
+//literally the only thing the shader does, commenting this uot makes everything work
+//also tried using manual casting with float() on both addends but nope
+                //Position.x = Position.x + CameraOffset.x; 
 
                 gl_Position = Transform * vec4(Position.xyz, 1.0);
+                gl_Position = gl_Position + vec4(CameraOffset.x, CameraOffset.y, 0.0,0.0);
             }
 
         ]]></vertex>

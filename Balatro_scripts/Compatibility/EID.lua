@@ -25,7 +25,7 @@ local EID_DescAllingnment = {TOP = 1,
                              CENTER = 0}
 
 
-EID_Descriptions = {}
+local EID_Descriptions = {}
 
 mod.EIDSupportedLanguages = {"en_us"}
 
@@ -59,46 +59,6 @@ for _, LanguageCode in ipairs(mod.EIDSupportedLanguages) do
         end
     end
 end
-
-
----@diagnostic disable: need-check-nil
-if not EID then
-    return
-end
-
-EID:addEntity(1000, mod.Effects.DESC_HELPER, 0, "", "")
-EID:addEntity(1000, mod.Effects.DESC_HELPER, mod.Effects.PLATE_HELPER_SUBTYPE, "", "")
-
-
-
-do
-    local CoopMenu = Sprite("gfx/ui/hud_eid_jimbo.anm2")
-
-    EID:addIcon("PlayerJimbo","Idle",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroSpade","Spade",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroHeart","Heart",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroClub","Club",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroDiamond","Diamond",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroBonus","Bonus",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroMult","Mult",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroGlass","Glass",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroSteel","Steel",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroGold","Gold",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroWild","Wild",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroStone","Stone",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroLucky","Lucky",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroJoker","Joker",0,8,8,6,7, CoopMenu)
-
-end
-
-EID:addColor("B_Black", mod.BalatroKColorBlack)
-
-EID:addColor("ColorMint", mod.EffectKColors.GREEN)--KColor(0.36, 0.87, 0.51, 1)) --taken from the Balatro Jokers mod
-EID:addColor("ColorYellorange", mod.EffectKColors.YELLOW)--KColor(238/255, 186/255, 49/255, 1))
-EID:addColor("ColorChips",  mod.EffectKColors.BLUE)--KColor(49/255, 140/255, 238/255, 1))
-EID:addColor("ColorMult", mod.EffectKColors.RED)-- KColor(238/255, 49/255, 66/255, 1))
-EID:addColor("ColorGlass", KColor(0.85, 0.85, 1, 0.6))
-EID:addColor("ColorSpade", KColor(33/255, 6/255, 54/255, 1))
 
 
 function mod:GetFilteredEIDString(EIDstr)
@@ -169,6 +129,50 @@ function mod:HasEIDString(Type, Variant, SubType)
             
     return EID_Descriptions[Type][Variant][SubType]
 end
+
+
+
+
+---@diagnostic disable: need-check-nil
+if not EID then
+    return
+end
+
+EID:addEntity(1000, mod.Effects.DESC_HELPER, 0, "", "")
+EID:addEntity(1000, mod.Effects.DESC_HELPER, mod.Effects.PLATE_HELPER_SUBTYPE, "", "")
+
+
+
+do
+    local CoopMenu = Sprite("gfx/ui/hud_eid_jimbo.anm2")
+
+    EID:addIcon("PlayerJimbo","Idle",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroSpade","Spade",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroHeart","Heart",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroClub","Club",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroDiamond","Diamond",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroBonus","Bonus",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroMult","Mult",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroGlass","Glass",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroSteel","Steel",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroGold","Gold",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroWild","Wild",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroStone","Stone",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroLucky","Lucky",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroJoker","Joker",0,8,8,6,7, CoopMenu)
+
+end
+
+EID:addColor("B_Black", mod.BalatroKColorBlack)
+
+EID:addColor("ColorMint", mod.EffectKColors.GREEN)--KColor(0.36, 0.87, 0.51, 1)) --taken from the Balatro Jokers mod
+EID:addColor("ColorYellorange", mod.EffectKColors.YELLOW)--KColor(238/255, 186/255, 49/255, 1))
+EID:addColor("ColorChips",  mod.EffectKColors.BLUE)--KColor(49/255, 140/255, 238/255, 1))
+EID:addColor("ColorMult", mod.EffectKColors.RED)-- KColor(238/255, 49/255, 66/255, 1))
+EID:addColor("ColorGlass", KColor(0.85, 0.85, 1, 0.6))
+EID:addColor("ColorSpade", KColor(33/255, 6/255, 54/255, 1))
+
+
 
 
 ---@return table ([[VALUE"X"]] = string)

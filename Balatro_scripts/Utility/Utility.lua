@@ -4349,6 +4349,8 @@ function mod:FullDeckShuffle(Player)
             mod.Saved.Player[PIndex].CurrentHand[i] = i
         end
 
+        mod.Saved.Player[PIndex].DeckPointer = Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) + 1
+
         Isaac.RunCallback("DECK_SHIFT", Player)
     
     elseif IsTaintedJimbo then

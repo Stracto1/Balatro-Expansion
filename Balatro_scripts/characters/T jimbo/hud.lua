@@ -218,11 +218,6 @@ local function MoveCameraToRightBorder()
         
         BossIntroTime = BossIntroTime + 1
 
-        --CameraOffset = mod:VectorLerp(CameraOffset, Vector.Zero, BossIntroTime/60)
-
-        --Params.CameraOffset = {CameraOffset.X, CameraOffset.Y}
-
-        --return Params
     else
         BossIntroTime = 0
     end
@@ -231,23 +226,14 @@ local function MoveCameraToRightBorder()
     CameraOffset.X = math.ceil(CameraOffset.X)
     CameraOffset.Y = math.ceil(CameraOffset.Y)
 
-    
-
-    --local ScreenCenter = Vector(Isaac.GetScreenWidth()/2, Isaac.GetScreenHeight()/2)
-    --local CurrentCameraPos = Isaac.ScreenToWorld(ScreenCenter) * mod.SCREEN_TO_WORLD_RATIO
-
-    
-    --Game:GetRoom():GetCamera():SnapToPosition(CurrentCameraPos + CameraOffset)
-
 end
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, MoveCameraToRightBorder)
 
-local TJIMBO_SHADER = "Right Border Shift"
 
 local function RightMoveShader(_,Name) --this shader makes the whole game shifted closer to the right screen border, this allows for larger HUDs on the left side
-    if Name == TJIMBO_SHADER then
+    if Name == "Right Border Shift" then
 
-        local Params = {CameraOffset = {0,0}}
+        local Params = {CameraOffset = {0.0,0.0}}
 
         if not PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo)
            or mod:BossIntroIsPlaying()
@@ -255,7 +241,7 @@ local function RightMoveShader(_,Name) --this shader makes the whole game shifte
 
             return Params
         else
-            Params.CameraOffset = {CameraOffset.X, CameraOffset.Y}
+            Params.CameraOffset = {CameraOffset.X / Isaac.GetScreenWidth(), CameraOffset.Y / Isaac.GetScreenHeight()}
         end
 
 
@@ -728,7 +714,7 @@ function mod:RenderGenericButton(Position, Scale, BaseColor, Pressed, Text, Text
 
     Position = mod:FixScreenPosition(Position)
 
-
+    do
     --GenericButtonSprite.Scale.X = Scale.X/10
     GenericButtonSprite.Scale = (Scale - Vector.One*BorderSize)/10
 
@@ -776,6 +762,7 @@ function mod:RenderGenericButton(Position, Scale, BaseColor, Pressed, Text, Text
 
     AngleOffset.X = -AngleOffset.X
     GenericButtonSprite:RenderLayer(2, Position + AngleOffset) --top left part
+    end
 
     if Text then
 
@@ -1033,7 +1020,7 @@ local function JimboDeckRender(Player, PIndex)
     local CardsLeft = math.max((#mod.Saved.Player[PIndex].FullDeck - mod.Saved.Player[PIndex].DeckPointer)+1, 0)
 
     --shows how many cards are left in the deck
-    DeckSprite:SetFrame("idle", math.ceil(CardsLeft/7))
+    DeckSprite:SetFrame("idle", math.ceil(CardsLeft/8))
     --local HeartsOffset = Vector(3.5 * math.min(Player:GetMaxHearts(),12),0)
 
     DeckSprite:Render(BRScreenWithOffset(DECK_RENDERING_POSITION))
@@ -3924,6 +3911,8 @@ function mod:RenderTJimboHUD(Player)
        or not mod.GameStarted then
         return
     end
+
+    if true then return end
 
     local PIndex = Player:GetData().TruePlayerIndex
 
