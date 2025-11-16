@@ -2171,7 +2171,7 @@ local function OnUpdate()
 
     if PlayerManager.AnyoneHasCollectible(mod.Collectibles.LAUGH_SIGN) then
         
-        if math.random() <= 0.001 then
+        if math.random() <= 0.00001 then
             mod:LaughSignEffect(LaughEffectType.RANDOM)
         end
     end
@@ -2385,28 +2385,27 @@ local function OnRoomClear(_, Player)
 
     end
 
-    if Player:HasCollectible(mod.Collectibles.PLANET_X) then
 
-        local PIndex = Player:GetData().TruePlayerIndex
+    local PlanetX_Items = mod.Saved.Player[PIndex].InnateItems.Planet_X
 
-        local PlanetX_Items = mod.Saved.Player[PIndex].InnateItems.Planet_X
+    for _, Item in ipairs(PlanetX_Items) do
 
-        for _, Item in ipairs(PlanetX_Items) do
-
-            Player:AddInnateCollectible(Item, -1)
-        end
-
-        PlanetX_Items = {}
-
-        for i = 1, Player:GetCollectibleNum(mod.Collectibles.PLANET_X) do
-
-            local PickedItem = PLANET_X_PICKER:PickOutcome(Player:GetCollectibleRNG(mod.Collectibles.PLANET_X))
-            
-            PlanetX_Items[i] = PickedItem
-
-            Player:AddInnateCollectible(PickedItem, 1)
-        end
+        Player:AddInnateCollectible(Item, -1)
+        Player:RemoveCostume(ItemsConfig:GetCollectible(Item))
     end
+
+    mod.Saved.Player[PIndex].InnateItems.Planet_X = {}
+
+    for i = 1, Player:GetCollectibleNum(mod.Collectibles.PLANET_X) do
+
+        local PickedItem = PLANET_X_PICKER:PickOutcome(Player:GetCollectibleRNG(mod.Collectibles.PLANET_X))
+        
+        PlanetX_Items[i] = PickedItem
+
+        Player:AddInnateCollectible(PickedItem, 1)
+        mod.Saved.Player[PIndex].InnateItems.Planet_X[i] = PickedItem
+    end
+    
 
 
     for i = 0, Player:GetMaxTrinkets() - 1 do
@@ -2503,6 +2502,7 @@ function mod:LaughSignEffect(Type, Player)
         end
 
     elseif Type == LaughEffectType.GASP then
+
         sfx:Play(mod.Sounds.GASP, 1, 120)
 
     elseif Type == LaughEffectType.LAUGH then

@@ -1,3 +1,4 @@
+---@diagnostic disable: need-check-nil
 local mod = Balatro_Expansion
 local ItemsConfig = Isaac.GetItemConfig()
 local sfx = SFXManager()
@@ -1950,6 +1951,14 @@ function mod:OnTearCardCollision(Tear,Collider,_)
 
             local DamageMult = 0.5 + 0.4*NumOnix
             local RadiusMult = 0.5 + 0.25*NumOnix
+
+            local BombFlags = Player:GetBombFlags()
+            if Player:HasCollectible(CollectibleType.COLLECTIBLE_GHOST_BOMBS) then
+                local Ghost = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.HUNGRY_SOUL, Tear.Position, Vector.Zero, Player, 1, mod:RandomSeed(Tear:GetDropRNG())):ToEffect()
+                Ghost.Parent = Player
+                Ghost:SetTimeout(120)
+
+            end
 
             Game:BombExplosionEffects(Tear.Position, Tear.CollisionDamage * DamageMult, Player:GetBombFlags(), mod.EffectColors.BLUE, Tear.Parent, RadiusMult)
             --Isaac.Explode(Tear.Position, Tear, Tear.CollisionDamage / 2)

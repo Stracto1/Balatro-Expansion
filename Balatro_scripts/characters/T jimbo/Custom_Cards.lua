@@ -135,12 +135,15 @@ function mod:PlayerIsAbleToUseCard(Player, Consumable)
     local IsPlanet = Consumable >= mod.Planets.PLUTO and Consumable <= mod.Planets.ERIS
     local IsSpectral = Consumable >= mod.Spectrals.FAMILIAR and Consumable <= mod.Spectrals.SOUL
 
+    local HandSelectNum = mod:GetValueRepetitions(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND], true)
+
+
     if IsPlanet then
         return true
 
     elseif IsTarot then
 
-        --print(mod.SelectionParams[PIndex].SelectionNum)
+        --print(HandSelectNum)
 
         if Consumable == Card.CARD_FOOL then
 
@@ -166,8 +169,8 @@ function mod:PlayerIsAbleToUseCard(Player, Consumable)
 
         elseif TarotMaxSelection[Consumable]
                and (not mod.Saved.EnableHand --is selection is impossible
-                    or (mod.SelectionParams[PIndex].SelectionNum > TarotMaxSelection[Consumable] or mod.SelectionParams[PIndex].SelectionNum <= 0
-                         or (Consumable == Card.CARD_DEATH and mod.SelectionParams[PIndex].SelectionNum ~= 2))) then --if the wrong number of cards is selected
+                    or (HandSelectNum > TarotMaxSelection[Consumable] or HandSelectNum <= 0
+                         or (Consumable == Card.CARD_DEATH and HandSelectNum ~= 2))) then --if the wrong number of cards is selected
                    
             return false
         end
@@ -195,7 +198,7 @@ function mod:PlayerIsAbleToUseCard(Player, Consumable)
 
         elseif SpectralMaxSelection[Consumable]
                and (not mod.Saved.EnableHand --if selection is impossible
-                    or (mod.SelectionParams[PIndex].SelectionNum > SpectralMaxSelection[Consumable] 
+                    or (HandSelectNum > SpectralMaxSelection[Consumable] 
                          or mod.SelectionParams[PIndex].SelectionNum <= 0)) then
                    
             return false

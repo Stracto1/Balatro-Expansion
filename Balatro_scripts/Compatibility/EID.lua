@@ -1,4 +1,4 @@
----@diagnostic disable: param-type-mismatch, cast-local-type
+---@diagnostic disable: param-type-mismatch, cast-local-type, need-check-nil
 local mod = Balatro_Expansion
 local Game = Game()
 local ItemsConfig = Isaac.GetItemConfig()
@@ -61,31 +61,6 @@ for _, LanguageCode in ipairs(mod.EIDSupportedLanguages) do
 end
 
 
-function mod:GetFilteredEIDString(EIDstr)
-
-    local FilteredStr = ""
-
-    EIDstr = EID:replaceShortMarkupStrings(EIDstr)
-	local textPartsTable = EID:filterColorMarkup(EIDstr, KColor.White)
-	for i, textPart in ipairs(textPartsTable) do
-
-		local PartialStr = EID:filterIconMarkup(textPart[1], false)
-
-		if PartialStr then -- prevent possible crash when strFiltered is nil
-
-            --print(i, PartialStr)
-
-            FilteredStr = FilteredStr..PartialStr
-		end
-	end
-
-    FilteredStr = string.gsub(FilteredStr, "#", " ")
-
-    --print(FilteredStr)
-
-    return FilteredStr
-end
-
 ---@param Type string
 ---@param Variant string|number?
 ---@param SubType string|number?
@@ -129,49 +104,6 @@ function mod:HasEIDString(Type, Variant, SubType)
             
     return EID_Descriptions[Type][Variant][SubType]
 end
-
-
-
-
----@diagnostic disable: need-check-nil
-if not EID then
-    return
-end
-
-EID:addEntity(1000, mod.Effects.DESC_HELPER, 0, "", "")
-EID:addEntity(1000, mod.Effects.DESC_HELPER, mod.Effects.PLATE_HELPER_SUBTYPE, "", "")
-
-
-
-do
-    local CoopMenu = Sprite("gfx/ui/hud_eid_jimbo.anm2")
-
-    EID:addIcon("PlayerJimbo","Idle",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroSpade","Spade",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroHeart","Heart",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroClub","Club",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroDiamond","Diamond",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroBonus","Bonus",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroMult","Mult",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroGlass","Glass",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroSteel","Steel",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroGold","Gold",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroWild","Wild",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroStone","Stone",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroLucky","Lucky",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroJoker","Joker",0,8,8,6,7, CoopMenu)
-
-end
-
-EID:addColor("B_Black", mod.BalatroKColorBlack)
-
-EID:addColor("ColorMint", mod.EffectKColors.GREEN)--KColor(0.36, 0.87, 0.51, 1)) --taken from the Balatro Jokers mod
-EID:addColor("ColorYellorange", mod.EffectKColors.YELLOW)--KColor(238/255, 186/255, 49/255, 1))
-EID:addColor("ColorChips",  mod.EffectKColors.BLUE)--KColor(49/255, 140/255, 238/255, 1))
-EID:addColor("ColorMult", mod.EffectKColors.RED)-- KColor(238/255, 49/255, 66/255, 1))
-EID:addColor("ColorGlass", KColor(0.85, 0.85, 1, 0.6))
-EID:addColor("ColorSpade", KColor(33/255, 6/255, 54/255, 1))
-
 
 
 
@@ -487,6 +419,22 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
 
             Values[1] = "["..mod:GetEIDString("HandTypeName", AllowedHand).."]"
         end
+
+    elseif Type == mod.EID_DescType.PLATE then
+
+        local Tag = Subtype
+
+        if Tag == mod.SkipTags.SPEED then
+            Values[1] = tostring(5 * (mod.Saved.NumBlindsSkipped+1))
+
+        elseif Tag == mod.SkipTags.GARBAGE then
+            Values[1] = tostring(mod.Saved.DiscardsWasted)
+
+        elseif Tag == mod.SkipTags.HANDY then
+            Values[1] = tostring(mod.Saved.HandsPlayed)
+        end
+
+
     end
 
 
@@ -500,8 +448,6 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
 
     return Values
 end
-
-
 
 ---@return table ([[VALUE"X"]] = string)
 local function GetJimboDescriptionValues(Type, Subtype, Index)
@@ -831,6 +777,7 @@ end
 
 
 
+
 ---@param String string
 ---@param DescType integer
 ---@param DescSubType integer
@@ -873,6 +820,72 @@ function mod:ReplaceBalatroMarkups(String, DescType, DescSubType, Tainted, Index
 end
 
 
+--Isaac.DebugString("EID STRING INIT")
+
+---@diagnostic disable: need-check-nil
+if  EID then
+
+
+EID:addEntity(1000, mod.Effects.DESC_HELPER, 0, "", "")
+EID:addEntity(1000, mod.Effects.DESC_HELPER, mod.Effects.PLATE_HELPER_SUBTYPE, "", "")
+
+
+
+do
+    local CoopMenu = Sprite("gfx/ui/hud_eid_jimbo.anm2")
+
+    EID:addIcon("PlayerJimbo","Idle",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroSpade","Spade",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroHeart","Heart",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroClub","Club",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroDiamond","Diamond",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroBonus","Bonus",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroMult","Mult",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroGlass","Glass",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroSteel","Steel",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroGold","Gold",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroWild","Wild",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroStone","Stone",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroLucky","Lucky",0,8,8,6,7, CoopMenu)
+    EID:addIcon("BalatroJoker","Joker",0,8,8,6,7, CoopMenu)
+
+end
+
+EID:addColor("B_Black", mod.BalatroKColorBlack)
+
+EID:addColor("ColorMint", mod.EffectKColors.GREEN)--KColor(0.36, 0.87, 0.51, 1)) --taken from the Balatro Jokers mod
+EID:addColor("ColorYellorange", mod.EffectKColors.YELLOW)--KColor(238/255, 186/255, 49/255, 1))
+EID:addColor("ColorChips",  mod.EffectKColors.BLUE)--KColor(49/255, 140/255, 238/255, 1))
+EID:addColor("ColorMult", mod.EffectKColors.RED)-- KColor(238/255, 49/255, 66/255, 1))
+EID:addColor("ColorGlass", KColor(0.85, 0.85, 1, 0.6))
+EID:addColor("ColorSpade", KColor(33/255, 6/255, 54/255, 1))
+
+
+
+function mod:GetFilteredEIDString(EIDstr)
+
+    local FilteredStr = ""
+
+    EIDstr = EID:replaceShortMarkupStrings(EIDstr)
+	local textPartsTable = EID:filterColorMarkup(EIDstr, KColor.White)
+	for i, textPart in ipairs(textPartsTable) do
+
+		local PartialStr = EID:filterIconMarkup(textPart[1], false)
+
+		if PartialStr then -- prevent possible crash when strFiltered is nil
+
+            --print(i, PartialStr)
+
+            FilteredStr = FilteredStr..PartialStr
+		end
+	end
+
+    FilteredStr = string.gsub(FilteredStr, "#", " ")
+
+    --print(FilteredStr)
+
+    return FilteredStr
+end
 
 
 --uses a hacky entity to simulate the options being described, no idea if this is an optimal way or not
@@ -1339,8 +1352,6 @@ EID:addDescriptionModifier("Balatro Descriptions Offset", BalatroOffsetCondition
 
 
 
-
-
 local function TBalatroOffsetCondition(descObj)
     if PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then 
        
@@ -1681,17 +1692,19 @@ local function TJimboDescriptionsCallback(descObj)
 
         if ObjectToDescribe.Entity == GetPtrHash(descObj.Entity) then --caches the previous variables to save time
         
-            local Histeresys = 12
+            local Histeresys = 15
         
             local RenderLeft
 
+
             if ObjectToDescribe.Allignment & EID_DescAllingnment.RIGHT ~= 0 then
 
-                RenderLeft = T_Jimbo.Position.X < descObj.Entity.Position.X - Histeresys
+                RenderLeft = T_Jimbo.Position.X > descObj.Entity.Position.X - Histeresys
             else --if ObjectToDescribe.Allignment & EID_DescAllingnment.LEFT ~= 0 then
 
                 RenderLeft = T_Jimbo.Position.X > descObj.Entity.Position.X + Histeresys
             end
+
 
             local LateralOffset
 
@@ -1812,7 +1825,6 @@ local function TJimboDescriptionsCallback(descObj)
                 ObjectToDescribe.Params = {Joker = descObj.ObjSubType & ~mod.EditionFlag.ALL,
                                            Edition = (descObj.ObjSubType & mod.EditionFlag.ALL) >> mod.EDITION_FLAG_SHIFT,
                                            Modifiers = 0}
-
                 
                 --[[
                 if ObjectToDescribe.Entity then
@@ -1840,6 +1852,8 @@ local function TJimboDescriptionsCallback(descObj)
                 ObjectToDescribe.SubType = descObj.ObjSubType --not really needed
 
                 Result = true
+            else
+                print("not balatrational")
             end
 
 
@@ -1855,7 +1869,6 @@ local function TJimboDescriptionsCallback(descObj)
         end
 
         if Result then
-            --ObjectToDescribe.Position = Vector(92,42)
 
             local RenderLeft = T_Jimbo.Position.X > descObj.Entity.Position.X
 
@@ -1970,6 +1983,8 @@ local function TJimboDescriptionsCallback(descObj)
             local Config = ItemsConfig:GetTrinket(ObjectToDescribe.Params.Joker)
 
             EID_Desc.Name = Config.Name
+
+
 
             EID_Desc.Description = mod:GetEIDString("T_Jimbo","Jokers", ObjectToDescribe.Params.Joker)..mod:GetEIDString("T_Jimbo","Edition", Slot.Edition)
 
@@ -2224,5 +2239,16 @@ function mod:RenderObjectDescription()
 
 end
 --mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.RenderObjectDescription)
+
+else --END EID EXCLUSIVE
+
+--empty function so I don't have to put an extra if in a render callback
+
+function mod:RenderObjectDescription()
+end
+
+end 
+
+
 
 

@@ -246,7 +246,7 @@ function mod:OnGameStart(Continued)
             mod.Saved.ShopEntered = false
         end
 
-        mod.Saved.LastJokerRenderIndex = 6
+        mod.Saved.LastJokerRenderIndex = 1
     end
 
     mod.GameStarted = true

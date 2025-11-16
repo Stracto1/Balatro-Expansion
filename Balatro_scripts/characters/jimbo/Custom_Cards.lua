@@ -15,7 +15,8 @@ local PlanetCardToItem = {[mod.Planets.PLUTO] = CollectibleType.COLLECTIBLE_PLUT
                           [mod.Planets.NEPTUNE] = CollectibleType.COLLECTIBLE_NEPTUNUS,
                           [mod.Planets.PLANET_X] = mod.Collectibles.PLANET_X,
                           [mod.Planets.ERIS] = mod.Collectibles.ERIS,
-                          [mod.Planets.CERES] = mod.Collectibles.CERES}
+                          [mod.Planets.CERES] = mod.Collectibles.CERES,
+                          [mod.Planets.SUN] = CollectibleType.COLLECTIBLE_SOL}
 
 local MegaChance = 0.15 --0.10 originally
 local JumboChance = 0.55 --0.4 originally

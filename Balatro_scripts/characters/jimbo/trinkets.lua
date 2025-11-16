@@ -4538,16 +4538,18 @@ mod:AddCallback(ModCallbacks.MC_POST_ENTITY_KILL, mod.DelayedGrat, EntityType.EN
 ---@param Entity EntityNPC
 function mod:NPCInit(Entity)
 
-    if not Entity:IsActiveEnemy() then
+    if not mod:IsValidScalingEnemy(Entity) then
         return
     end
 
-    for _, Player in ipairs(PlayerManager.GetPlayers()) do
-        for i = 1, mod:GetPlayerTrinketAmount(Player, mod.Jokers.PAREIDOLIA) do
+    if EntityConfig.GetEntity(Entity.Type, Entity.Variant, Entity.SubType):CanBeChampion() then
+        for _, Player in ipairs(PlayerManager.GetPlayers()) do
+            for i = 1, mod:GetPlayerTrinketAmount(Player, mod.Jokers.PAREIDOLIA) do
 
-            if mod:TryGamble(Player, Player:GetTrinketRNG(mod.Jokers.PAREIDOLIA), 0.2) then
+                if mod:TryGamble(Player, Player:GetTrinketRNG(mod.Jokers.PAREIDOLIA), 0.2) then
 
-                Entity:MakeChampion(Entity.InitSeed)
+                    Entity:MakeChampion(Entity.InitSeed)
+                end
             end
         end
     end
@@ -4620,15 +4622,23 @@ function mod:NPCInit(Entity)
 
             elseif Joker == mod.Jokers.CANIO then
 
-                if Entity:IsChampion() and not GotKilled then
+                if Entity:IsChampion() and not GotKilled
+                   and not Entity:IsBoss() then
 
-                    Entity:AddEntityFlags(EntityFlag.FLAG_EXTRA_GORE)
-                    Entity:Kill()
+                    Isaac.CreateTimer(function ()
 
-                    --Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.)
+                        Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.CLEAVER_SLASH, Entity.Position, Vector.Zero, nil, 0, 1)
 
-                    mod:CreateBalatroEffect(Entity, mod.EffectColors.RED, mod.Sounds.ACTIVATE,
-                    "No Comedy!",mod.EffectType.JOKER, Player)
+                        Isaac.CreateTimer(function ()
+                            mod:CreateBalatroEffect(Entity, mod.EffectColors.RED, mod.Sounds.ACTIVATE,
+                                                    "No Comedy!",mod.EffectType.ENTITY, Player)
+                        end, 0, 1, false)
+
+                        Isaac.CreateTimer(function ()
+                            Entity:AddEntityFlags(EntityFlag.FLAG_EXTRA_GORE)
+                            Entity:Kill()
+                        end, 7, 1, false)
+                    end, 0, 1, false)
                 end
             end
         end

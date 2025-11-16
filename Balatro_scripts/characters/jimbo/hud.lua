@@ -447,6 +447,8 @@ function mod:HandBarRender(offset,_,Position,_,Player)
     local PIndex = Player:GetData().TruePlayerIndex
     local PlayerRenderMult = PIndex%2 == 0 and -1 or 1
 
+    ----if true then return end
+
     --print(mod.Saved.Player[PIndex])
     if mod.Saved.Player[PIndex].FirstDeck and not Game:GetRoom():IsClear() then
         --HandsBar:SetFrame("Charge On", Frame)

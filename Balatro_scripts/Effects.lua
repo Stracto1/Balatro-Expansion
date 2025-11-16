@@ -71,9 +71,7 @@ function mod:CreateBalatroEffect(Index, Colour, Sound, Text, EffectType, Player,
     local PIndex = Player:GetData().TruePlayerIndex
 
     if IsEntity then
-
         EffectSlot = GetPtrHash(Index)
-        IsEntity = true
     end
 
     if not IsTaintedJimbo then --with normal jimbo the effetcs get delayed if put on top of one another
@@ -133,7 +131,16 @@ function mod:CreateBalatroEffect(Index, Colour, Sound, Text, EffectType, Player,
 
     end
 
-    EffectParams[EffectSlot] = {}
+    EffectParams[EffectSlot] = {Type = EffectType,
+                                Speed = Speed,
+                                Frames = 0,
+                                Color = Colour,
+                                Text = Text,
+                                Rotation = math.random(90),
+                                PIndex = PIndex,
+                                Position = nil,
+                                Offset = nil,
+                                LastPos = nil}
     if IsEntity then
 
         EffectParams[EffectSlot].Position = EntityPtr(Index)
@@ -187,14 +194,6 @@ function mod:CreateBalatroEffect(Index, Colour, Sound, Text, EffectType, Player,
     end
 
 
-    EffectParams[EffectSlot].Type = EffectType
-    EffectParams[EffectSlot].Speed = Speed
-    EffectParams[EffectSlot].Frames = 0
-    EffectParams[EffectSlot].Color = Colour
-    EffectParams[EffectSlot].Text = Text
-    EffectParams[EffectSlot].Rotation = math.random(90)
-    EffectParams[EffectSlot].PIndex = PIndex
-
     if Sound then
         sfx:Play(Sound, 1, 2, false, 0.95 + math.random()*0.1 + mod:Lerp(0, 2, (Speed-1)/2))
     end
@@ -234,9 +233,20 @@ function mod:RenderEffect(_,_,_,_,_)
             ---@type Entity
             local Entity = Params.Position.Ref
 
-            if Entity:Exists() then
+            if not Entity then
+
+                RenderPos = EffectParams[Slot].LastPos
+
+                if not RenderPos then
+                    EffectParams[Slot] = nil
+                    return
+                end
+
+            elseif Entity:Exists() then
 
                 RenderPos = Entity.SpriteOffset + Isaac.WorldToScreen(Entity.Position + Entity.PositionOffset) + Params.Offset
+            
+                EffectParams[Slot].LastPos = RenderPos
             else
                 EffectParams[Slot] = nil
                 return

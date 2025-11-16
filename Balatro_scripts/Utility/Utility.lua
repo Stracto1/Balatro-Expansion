@@ -26,11 +26,15 @@ DoorSides.DOWN = 3
 
 mod.SCREEN_TO_WORLD_RATIO = Vector.One --from what i understood, Isaac.ScreenToWorld uses the monitor's coordinates instead of normal coordinates (wtf nicalis fr)
 local function FindScreenToWorldRatio()
+
+    if not Options.MouseControl then
+        Isaac.CenterCursor()
+    end
     
     local NormalCoord = Isaac.WorldToScreen(Input.GetMousePosition(true)) --the actual game's screen coords
     local FuckedCoord = Input.GetMousePosition(false) --the monitor's screen coords
 
-    if NormalCoord.X ~= 0 and NormalCoord.Y ~= 0 then
+    if NormalCoord.X > 10 and NormalCoord.Y > 10 then
         mod.SCREEN_TO_WORLD_RATIO =  FuckedCoord/NormalCoord 
     end
 end
@@ -839,8 +843,8 @@ function mod:RenderCoolCircle(Position, Radius, Kcolor, Rotate, Bounce, RoomClam
         local Finish
 
         if RoomClamp then
-            Start = Isaac.WorldToScreen(Room:GetClampedPosition(Isaac.ScreenToWorld(mod.SCREEN_TO_WORLD_RATIO * (Position + FirstPoint)), 0))
-            Finish = Isaac.WorldToScreen(Room:GetClampedPosition(Isaac.ScreenToWorld(mod.SCREEN_TO_WORLD_RATIO * (Position + SecondPoint)), 0))
+            Start = Isaac.WorldToScreen(Room:GetClampedPosition(Isaac.ScreenToWorld((Position + FirstPoint)*mod.SCREEN_TO_WORLD_RATIO), 0))
+            Finish = Isaac.WorldToScreen(Room:GetClampedPosition(Isaac.ScreenToWorld((Position + SecondPoint)*mod.SCREEN_TO_WORLD_RATIO), 0))
         else
             Start = Position + FirstPoint
             Finish = Position + SecondPoint
@@ -853,8 +857,8 @@ function mod:RenderCoolCircle(Position, Radius, Kcolor, Rotate, Bounce, RoomClam
         FirstPoint = SecondPoint:Rotated(Step)
 
         if RoomClamp then
-            Start = Isaac.WorldToScreen(Room:GetClampedPosition(Isaac.ScreenToWorld(mod.SCREEN_TO_WORLD_RATIO * (Position + FirstPoint)), 0))
-            Finish = Isaac.WorldToScreen(Room:GetClampedPosition(Isaac.ScreenToWorld(mod.SCREEN_TO_WORLD_RATIO * (Position + SecondPoint)), 0))
+            Start = Isaac.WorldToScreen(Room:GetClampedPosition(Isaac.ScreenToWorld((Position + FirstPoint)*mod.SCREEN_TO_WORLD_RATIO), 0))
+            Finish = Isaac.WorldToScreen(Room:GetClampedPosition(Isaac.ScreenToWorld((Position + SecondPoint)*mod.SCREEN_TO_WORLD_RATIO), 0))
         else
             Start = Position + FirstPoint
             Finish = Position + SecondPoint
@@ -1287,6 +1291,8 @@ function mod:IsStraight(Player, HandTable)
         if card.Enhancement ~= mod.Enhancement.STONE then
 
             ValueTable[i] = card.Value
+        else 
+            ValueTable[i] = mod.Values.FACE --higher tha anything else
         end
     end
 
@@ -1561,7 +1567,8 @@ function mod:GetScoringCards(Player, HandType)
         for i, card in ipairs(PlayerHand) do
             if card.Enhancement ~= mod.Enhancement.STONE then
 
-                ValueTable[i] = card.Value
+                ValueTable[#ValueTable+1] = card.Value
+            
             end
         end
 
@@ -1659,7 +1666,7 @@ function mod:GetScoringCards(Player, HandType)
         for i, card in ipairs(PlayerHand) do
             if card.Enhancement ~= mod.Enhancement.STONE then
 
-                ValueTable[i] = card.Value
+                ValueTable[#ValueTable+1] = card.Value
             end
         end
 
@@ -4041,7 +4048,7 @@ function mod:DestroyCards(Player, DeckIndexes, DoEffects, BlockSubstitution)
         table.remove(mod.Saved.Player[PIndex].FullDeck, DestroyedPointer)
         
         if DoEffects then
-            mod:CardRipEffect(CardParams, IsTaintedJimbo and Isaac.ScreenToWorld(mod.CardFullPoss[DestroyedPointer]) * mod.SCREEN_TO_WORLD_RATIO or Player.Position)
+            mod:CardRipEffect(CardParams, IsTaintedJimbo and Isaac.ScreenToWorld(mod.CardFullPoss[DestroyedPointer] * mod.SCREEN_TO_WORLD_RATIO) or Player.Position)
         end
     end
 
@@ -5472,8 +5479,6 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
                     end
                 end
 
-
-
                 for i = 1, Params.OptionsNum do
                     AvailableIndexes[i] = i
                 end
@@ -5486,7 +5491,7 @@ function mod:SwitchCardSelectionStates(Player,NewMode,NewPurpose)
 
                 NewIndex = AvailableIndexes[1]
             else
-                NewIndex = mod:round((Params.Index * #AvailableIndexes) / #Params.SelectedCards[Params.Mode], 0)
+                NewIndex = math.ceil((Params.Index * #AvailableIndexes) / #Params.SelectedCards[Params.Mode])
             
                 NewIndex = AvailableIndexes[NewIndex]
 

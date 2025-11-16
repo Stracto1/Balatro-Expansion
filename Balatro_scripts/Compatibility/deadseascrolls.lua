@@ -533,17 +533,17 @@ menu.regambledTaintedJimboSettings = {
 
             tooltip = {strset = {"how", "many?"}}
         },
-        {   str = 'outer damage',
-            choices = {'0%','25%','50%','75%','100%'},
+        {   str = 'inner mutiplier',
+            choices = {'1','1.25','1.50','1.75','2'},
             setting = 4,
             variable = 'ragambledTJimboOoRDamage',
 
             load = function ()
-                return mod.Saved.DSS.T_Jimbo.OutOfRangeDamage/0.25 + 1
+                return  (mod.Saved.DSS.T_Jimbo.InnerRangeDamage // 0.25) - 3
             end,
 
             store = function (var)
-                mod.Saved.DSS.T_Jimbo.OutOfRangeDamage = (var-1)*0.25
+                mod.Saved.DSS.T_Jimbo.OutOfRangeDamage = 1 + (var-1)*0.25
             end,
 
             tooltip = {strset = {"how", "much?"}}

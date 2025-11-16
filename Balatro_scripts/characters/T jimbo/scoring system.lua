@@ -226,7 +226,7 @@ local function TriggerCard(Player, CardPointer, CardIndex)
 
     if Card.Modifiers & mod.Modifier.DEBUFFED ~= 0 then
         
-        GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.CLOWN_HONK, "Debuffed!", mod.EffectType.HAND, CardPointer)
+        GeneralBalatroEffect(Player, PIndex, mod.EffectColors.RED, mod.Sounds.DEBUFFED, "Debuffed!", mod.EffectType.HAND, CardPointer)
 
         return
     end
@@ -271,8 +271,10 @@ local function TriggerCard(Player, CardPointer, CardIndex)
         end
 
         if Joker == mod.Jokers.HANG_CHAD then
+
+            print(2^CardIndex, mod:GetBitMaskMin(mod.SelectionParams[PIndex].ScoringCards))
             
-            if 2^CardIndex == mod:GetBitMaskMin(mod.SelectionParams[PIndex].ScoringCards) then
+            if 2^(CardIndex-1) == mod:GetBitMaskMin(mod.SelectionParams[PIndex].ScoringCards) then
                 TriggersLeft = TriggersLeft + 2
                 table.insert(TriggerCauses, 1, mod.EffectType.HAND_FROM_JOKER | JokerIndex)
                 table.insert(TriggerCauses, 1, mod.EffectType.HAND_FROM_JOKER | JokerIndex)
@@ -311,6 +313,18 @@ local function TriggerCard(Player, CardPointer, CardIndex)
 
 
     repeat
+
+        if TriggerCauses[TriggersLeft] == mod.EffectType.HAND then --red seal
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Again!", mod.EffectType.HAND, CardPointer)
+        
+        elseif TriggerCauses[TriggersLeft] ~= mod.EffectType.NULL then --any joker
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Again!", mod.EffectType.JOKER, TriggerCauses[TriggersLeft])
+        end
+
+        TriggersLeft = TriggersLeft - 1
+
+
+
         local BaseChips = mod:GetValueScoring(Card.Value)
 
         if Card.Enhancement == mod.Enhancement.BONUS then
@@ -525,15 +539,14 @@ local function TriggerCard(Player, CardPointer, CardIndex)
 
             elseif Joker == mod.Jokers.PHOTOGRAPH then
 
-            
-            
+
             if mod:IsValue(Player, Card, mod.Values.FACE) then
 
                 local IsFirstFace = false
 
                 for _,Pointer in ipairs(mod.SelectionParams[PIndex].PlayedCards) do
 
-                    if mod:IsValue(Player, mod.Saved.Player[PIndex].FulDeck[Pointer], mod.Values.FACE) then
+                    if mod:IsValue(Player, mod.Saved.Player[PIndex].FullDeck[Pointer], mod.Values.FACE) then
                         
                         IsFirstFace = CardPointer == Pointer
 
@@ -623,13 +636,6 @@ local function TriggerCard(Player, CardPointer, CardIndex)
             AddMoney(Player, 3, mod.EffectType.HAND, CardPointer)
         end
 
-        if TriggerCauses[TriggersLeft] == mod.EffectType.HAND then --red seal
-            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Again!", mod.EffectType.HAND, CardPointer)
-        
-        elseif TriggerCauses[TriggersLeft] ~= mod.EffectType.NULL then --any joker
-            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Again!", mod.EffectType.JOKER, TriggerCauses[TriggersLeft])
-        end
-
 
         for _, Index in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.CHAOS_THEORY)) do
 
@@ -643,7 +649,7 @@ local function TriggerCard(Player, CardPointer, CardIndex)
         end
 
 
-        TriggersLeft = TriggersLeft - 1
+        
 
     until TriggersLeft <= 0
 
@@ -662,7 +668,6 @@ local function HeldCardEffect(Player, CardPointer, CardIndex, LowestPointer)
     end
 
 
-
     local TriggersLeft = 1
     local TriggerCauses = {mod.EffectType.NULL}
 
@@ -677,7 +682,27 @@ local function HeldCardEffect(Player, CardPointer, CardIndex, LowestPointer)
         table.insert(TriggerCauses, 1, mod.EffectType.HAND_FROM_JOKER | MimeIndex)
     end
 
+
+    local DidSomething = false
+
     repeat
+
+        if TriggerCauses[TriggersLeft] == mod.EffectType.HAND then --red seal
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Again!", mod.EffectType.HAND, CardPointer)
+        
+        elseif TriggerCauses[TriggersLeft] ~= mod.EffectType.NULL then --red seal
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Again!", mod.EffectType.JOKER, TriggerCauses[TriggersLeft])        
+        end
+
+        TriggersLeft = TriggersLeft - 1
+
+
+
+        if Card.Enhancement == mod.Enhancement.STEEL then
+
+            MultiplyMult(Player, PIndex, 1.5, mod.EffectType.HAND, CardPointer)
+            DidSomething = true
+        end
 
         for JokerIndex, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
 
@@ -712,22 +737,23 @@ local function HeldCardEffect(Player, CardPointer, CardIndex, LowestPointer)
                 if CardPointer == LowestPointer then
 
                     IncreaseMult(Player, PIndex, 2*mod:GetCardActualValue(Card.Value), mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                    DidSomething = true
                 end
-
 
             elseif Joker == mod.Jokers.SHOOT_MOON then
 
                 if mod:IsValue(Player, Card, mod.Values.QUEEN) then
 
                     IncreaseMult(Player, PIndex, 13, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                    DidSomething = true
                 end
-
 
             elseif Joker == mod.Jokers.BARON then
 
                 if mod:IsValue(Player, Card, mod.Values.KING) then
 
                     MultiplyMult(Player, PIndex, 1.5, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                    DidSomething = true
                 end
 
             elseif Joker == mod.Jokers.RESERVED_PARK then
@@ -736,6 +762,7 @@ local function HeldCardEffect(Player, CardPointer, CardIndex, LowestPointer)
                    and Player:GetTrinketRNG(mod.Jokers.RESERVED_PARK):RandomFloat() <= 0.5 then
 
                     AddMoney(Player, 1, mod.EffectType.HAND_FROM_JOKER | JokerIndex, CardPointer)
+                    DidSomething = true
                 end
             end
 
@@ -744,14 +771,9 @@ local function HeldCardEffect(Player, CardPointer, CardIndex, LowestPointer)
             ::SKIP_SLOT::
         end
 
-        if TriggerCauses[TriggersLeft] == mod.EffectType.HAND then --red seal
-            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Again!", mod.EffectType.HAND, CardPointer)
-        
-        elseif TriggerCauses[TriggersLeft] ~= mod.EffectType.NULL then --red seal
-            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Again!", mod.EffectType.JOKER, TriggerCauses[TriggersLeft])
+        if not DidSomething then
+            break
         end
-
-        TriggersLeft = TriggersLeft - 1
 
     until TriggersLeft <= 0
 end
@@ -2546,7 +2568,11 @@ local function OnBlindClear(_,BlindType)
     for CardIndex, Pointer in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
         local card = mod.Saved.Player[PIndex].FullDeck[Pointer]
 
-        for i = #TriggerCauses, 1, -1 do
+        if card.Seal == mod.Seals.RED then
+            table.insert(TriggerCauses, #TriggerCauses, mod.EffectType.HAND)
+        end
+
+        for i = TriggersLeft, 1, -1 do
 
             if card.Seal == mod.Seals.BLUE then
 
@@ -2563,8 +2589,7 @@ local function OnBlindClear(_,BlindType)
 
                 IncreaseInterval(8)
             
-            elseif card.Seal == mod.Seals.RED then
-                table.insert(TriggerCauses, #TriggerCauses, mod.EffectType.HAND)
+
             end
 
             if card.Enhancement == mod.Enhancement.GOLDEN then
@@ -2579,6 +2604,8 @@ local function OnBlindClear(_,BlindType)
             elseif TriggerCauses[i] ~= mod.EffectType.NULL then --any joker
                 GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Again!", mod.EffectType.JOKER, TriggerCauses[TriggersLeft])
             end
+
+            TriggersLeft = TriggersLeft - 1
         end
     end
 
@@ -3389,7 +3416,7 @@ local function OnConsumableSold(_, Player, Consumable)
 
     --NOT COPIABLE JOKERS
 
-    for _,Index in mod:GetJimboJokerIndex(Player, mod.Jokers.CAMPFIRE, true) do
+    for _,Index in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.CAMPFIRE, true)) do
 
         IncreaseJokerProgress(Player, PIndex, Index, 0.25, mod.EffectColors.RED, false)
     end

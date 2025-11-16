@@ -1491,15 +1491,38 @@ function mod:ActivateCurrentHand(Player)
 
     local PoofScale = 0.45 * BaseHandMult
     mod:TrueBloodPoof(TargetPosition, PoofScale, HAND_POOF_COLOR)
-
     Game:MakeShockwave(TargetPosition, 0.0003*EFFECT_RANGE, 0.025, 6)
+
+    local Effectiveness = math.min(5,FullHandDamage/mod:GetBlindScoreRequirement(mod.Saved.BlindBeingPlayed))
+
+    Game:ShakeScreen(math.ceil(Effectiveness*10))
+    Game:GetRoom():EmitBloodFromWalls(10, math.ceil(Effectiveness*12))
 
 
     --enemies inside the radius shown take damage twice, others only once
 
-
-    local OutOfRangeMult = mod.Saved.DSS.T_Jimbo.OutOfRangeDamage
+    local InnerRangeMult = mod.Saved.DSS.T_Jimbo.InnerRangeDamage
     local DamageFlags = DamageFlag.DAMAGE_IGNORE_ARMOR | DamageFlag.DAMAGE_CRUSH
+
+
+
+    --first
+    Isaac.CreateTimer(function ()
+        for _,Enemy in ipairs(Isaac.GetRoomEntities()) do
+
+            if Enemy:IsActiveEnemy() and Enemy:IsVulnerableEnemy() then
+
+                Enemy:TakeDamage(FullHandDamage,
+                                 DamageFlags, EntityRef(Player), 0)
+
+                local PoofScale = 0.032 * Enemy.Size
+
+                mod:TrueBloodPoof(Enemy.Position, PoofScale, HAND_POOF_COLOR)
+
+            end
+        end
+    end, 2, 1, true)
+
 
     for _, Enemy in ipairs(Isaac.FindInRadius(TargetPosition, 
                                               EFFECT_RANGE,
@@ -1510,7 +1533,7 @@ function mod:ActivateCurrentHand(Player)
 
             if Enemy:IsVulnerableEnemy() then
 
-                Enemy:TakeDamage(math.ceil(FullHandDamage*(1 - OutOfRangeMult)),
+                Enemy:TakeDamage(math.ceil(FullHandDamage*(1 - InnerRangeMult)),
                                  DamageFlags, EntityRef(Player), 0)
 
                 Game:SpawnParticles(Enemy.Position, EffectVariant.BLOOD_PARTICLE, 3, 3.5, BloodColor)
@@ -1527,24 +1550,6 @@ function mod:ActivateCurrentHand(Player)
             end
         end
     end
-
-
-    --second damage tick
-    Isaac.CreateTimer(function ()
-        for _,Enemy in ipairs(Isaac.GetRoomEntities()) do
-
-            if Enemy:IsActiveEnemy() and Enemy:IsVulnerableEnemy() then
-
-                Enemy:TakeDamage(FullHandDamage*OutOfRangeMult,
-                                 DamageFlags, EntityRef(Player), 0)
-
-                local PoofScale = 0.032 * Enemy.Size
-
-                mod:TrueBloodPoof(Enemy.Position, PoofScale, HAND_POOF_COLOR)
-
-            end
-        end
-    end, 2, 1, true)
 
     
 
@@ -1988,7 +1993,7 @@ local function MoveHandTarget(_,Effect)
 
     local Radius = BASE_HAND_RADIUS *mod.Saved.HandsStat[HandHype].Mult
 
-    mod:RenderCoolCircle(Isaac.WorldToScreen(Effect.Position), Radius, mod.EffectKColors.BLUE, true, true, Effect.FrameCount)
+    mod:RenderCoolCircle(Isaac.WorldToScreen(Effect.Position), Radius, mod.EffectKColors.BLUE, true, true, true, Effect.FrameCount)
 
 
     for _, Enemy in ipairs(Isaac.FindInRadius(Effect.Position, Radius, EntityPartition.ENEMY)) do
@@ -3205,7 +3210,7 @@ local function EnemyHPScaling()
 
         if mod:IsValidScalingEnemy(Enemy) then
 
-            --print("Found Enemy With",Enemy.MaxHitPoints, "MaxHP,","("..tostring(Enemy.Type).."."..tostring(Enemy.Variant).."."..tostring(Enemy.SubType)..")")
+            Isaac.DebugString("REG:Found Enemy With "..Enemy.MaxHitPoints.." MaxHP, ("..Enemy.Type.."."..Enemy.Variant.."."..Enemy.SubType..")")
 
             HighestEnemyHP = HighestEnemyHP and math.max(Enemy.MaxHitPoints, HighestEnemyHP) or Enemy.MaxHitPoints
         end

@@ -190,7 +190,7 @@ function mod:BossIntroIsPlaying()
 end
 
 function mod:HUDWorldToScreen(Position)
-    return Isaac.WorldToScreen(Position) + CameraOffset
+    return Isaac.WorldToScreen(Position) + CameraOffset/2
 end
 
 local function MoveCameraToRightBorder()
@@ -3912,8 +3912,8 @@ function mod:RenderTJimboHUD(Player)
         return
     end
 
-    if true then return end
-
+    --if true then return end
+    
     local PIndex = Player:GetData().TruePlayerIndex
 
     JimboHandRender(Player, PIndex)

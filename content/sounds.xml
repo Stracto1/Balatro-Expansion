@@ -88,7 +88,7 @@
         <sample weight="1" path="crowd_boo3.wav" />
     </sound>
     <sound name="GASPSFX">
-        <sample weight="1" path="crowd_gasp1.wav" />
+        <sample weight="1" path="crowd_gasp1wav.wav" />
     </sound>
     <sound name="LAUGHSFX">
         <sample weight="1" path="crowd_laugh1.wav" />
