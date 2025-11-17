@@ -1,5 +1,5 @@
-if true then --this sucked ass probably so just left it out
-    return
+if true then --this probably sucked ass so I just left it out
+    return 
 end
 
 
@@ -13,60 +13,15 @@ local ItemsConfig = Isaac.GetItemConfig()
 
 -----------CALLBACK SYSTEM/CHALLENGE FUNCTIONALITY--------------------
 
---restores the callbacks for the curses
-function mod:ChallengeSetup(Continued)
-    --challenge functionality reset
-    mod:RemoveCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, mod.ChallengeRoomClear)
-    mod:RemoveCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.ChallengeRoomEntrance)
-    mod:RemoveCallback(ModCallbacks.MC_GET_SHOP_ITEM_PRICE, mod.ShopItems)
-    mod:RemoveCallback(ModCallbacks.MC_GET_CARD, mod.ChallengeCards)
-    mod:RemoveCallback(ModCallbacks.MC_GET_TRINKET, mod.ChallengeTrinkets)
-    mod:RemoveCallback(ModCallbacks.MC_PRE_GRID_ENTITY_DOOR_UPDATE, mod.DoorBehaviour)
-    mod:RemoveCallback(ModCallbacks.MC_POST_PICKUP_INIT, mod.CoinWaveSpawn, PickupVariant.PICKUP_COIN)
-
-    --curse functions reset
-    mod:RemoveCallback(ModCallbacks.MC_POST_NPC_INIT, mod.CurseNPCInit)
-    mod:RemoveCallback(ModCallbacks.MC_PRE_NPC_UPDATE, mod.CurseNPCUpdate)
-
-    --only adds the required callbacks if it's a challenge
-    if mod:Contained(mod.Challenges, Game.Challenge) then
-        --sets starting money
-        if not Continued then
-            Game:GetPlayer(0):AddCoins(4)
-        end
-        mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, mod.ChallengeRoomClear)
-        mod:AddCallback(ModCallbacks.MC_GET_SHOP_ITEM_PRICE, mod.ShopItems)
-        mod:AddCallback(ModCallbacks.MC_GET_TRINKET, mod.ChallengeTrinkets)
-        mod:AddCallback(ModCallbacks.MC_GET_CARD, mod.ChallengeCards)
-        mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.ChallengeRoomEntrance)
-        mod:AddCallback(ModCallbacks.MC_PRE_GRID_ENTITY_DOOR_UPDATE, mod.DoorBehaviour)
-        mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT, mod.CoinWaveSpawn, PickupVariant.PICKUP_COIN)
-        
-        local CurrentCurse = Game:GetLevel():GetCurses()
-        if CurrentCurse == mod.AllCurses.THE_WALL then
-            mod:AddCallback(ModCallbacks.MC_POST_NPC_INIT, mod.CurseNPCInit)
-            mod:AddCallback(ModCallbacks.MC_PRE_NPC_UPDATE, mod.CurseNPCUpdate)
-        end      
-    end
-end
-mod:AddPriorityCallback(ModCallbacks.MC_POST_GAME_STARTED, CallbackPriority.LATE ,mod.ChallengeSetup)
 
 --chooses a random custom curse when needed
 function mod:ChooseChallengeCurse(_)
     --print("curse eval")
     if mod:Contained(mod.Challenges, Game.Challenge) then
-        --curses callbacks reset
-        mod:RemoveCallback(ModCallbacks.MC_POST_NPC_INIT, mod.CurseNPCInit)
-        mod:RemoveCallback(ModCallbacks.MC_PRE_NPC_UPDATE, mod.CurseNPCUpdate)
 
         local RNG = RNG( Game:GetSeeds():GetStartSeed() )
         local ChosenCurse = RNG:RandomInt(1, #mod.NormalCurses)
-        --only adds the required callbacks to make the curse function
-        if mod.NormalCurses[ChosenCurse] == mod.AllCurses.THE_WALL then
-            --print("wall chosen")
-            mod:AddCallback(ModCallbacks.MC_POST_NPC_INIT, mod.CurseNPCInit)
-            mod:AddCallback(ModCallbacks.MC_PRE_NPC_UPDATE, mod.CurseNPCUpdate)
-        end
+
         return mod.NormalCurses[ChosenCurse]
     end
 end
@@ -135,18 +90,18 @@ function mod:ChallengeRoomClear()
         end, 21, 1, true)
     end
 end
---mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, mod.ChallengeRoomClear)
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, mod.ChallengeRoomClear)
 
 function mod:ChallengeRoomEntrance()
     local Room =  Game:GetRoom()
-    if Room:GetType() == RoomType.ROOM_SHOP and not mod.Saved.ShopEntered then
-        Room:ShopRestockFull()
-    elseif Room:GetType() == RoomType.ROOM_GREED_EXIT then
+    --if Room:GetType() == RoomType.ROOM_SHOP and not mod.Saved.ShopEntered then
+    --    Room:ShopRestockFull()
+    if Room:GetType() == RoomType.ROOM_GREED_EXIT then
         --for some reason it's bugges and the trapdoor for the next floor won't spawn
         Isaac.GridSpawn(GridEntityType.GRID_TRAPDOOR, 0, Room:GetCenterPos())
     end
 end
---mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.ChallengeRoomEntrance)
+mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.ChallengeRoomEntrance)
 
 --this part is kind of complicated, so hope i explained it well in the code
 
@@ -262,4 +217,4 @@ function mod:ChallengeCards(Rng, SelectedCard, CanBeSuit, CanBeRunes, OnlyRunes)
         return SelectedCard
     end
 end
---mod:AddCallback(ModCallbacks.MC_GET_CARD, mod.ChallengeCards)
+mod:AddCallback(ModCallbacks.MC_GET_CARD, mod.ChallengeCards)

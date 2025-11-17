@@ -907,23 +907,27 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, SetupRoom)
 
 
----@param Player EntityPlayer
-local function NoJokerCollision(_, Player, Collider, _)
+---@param Pickup EntityPickup
+local function NoJokerCollision(_, Pickup, Collider, _)
 
-    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo
+    ---@type EntityPlayer
+    local Player = Collider:ToPlayer()
+
+    if Player
+       and Player:GetPlayerType() ~= mod.Characters.TaintedJimbo
        and (Player:GetPlayerType() ~= mod.Characters.JimboType
-            or mod:GetPlayerTrinketAmount(Player, mod.Jokers.CAMPFIRE) ~= 0)  then
+            or mod:JimboHasTrinket(Player, mod.Jokers.CAMPFIRE))  then
         return    
     end
 
-    ---@type EntityPickup
-    local Pickup = Collider:ToPickup()
-
+    
     if not Pickup 
        or Pickup.Variant ~= PickupVariant.PICKUP_TRINKET
        or (Pickup.SubType & mod.EditionFlag.ALL) >> mod.EDITION_FLAG_SHIFT == mod.Edition.NEGATIVE then
         return
     end
+
+    
 
     local HasEmpty = false
 
@@ -944,7 +948,7 @@ local function NoJokerCollision(_, Player, Collider, _)
         end
     end
 end
-mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_COLLISION, NoJokerCollision, PlayerVariant.PLAYER)
+mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_COLLISION, NoJokerCollision)
 
 
 

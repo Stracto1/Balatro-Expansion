@@ -658,8 +658,8 @@ Balatro_Expansion.Tears.BANANA_VARIANT = Isaac.GetEntityVariantByName("Tear Bana
 
 
 ---
---Balatro_Expansion.Challenges = {}
---Balatro_Expansion.Challenges.Balatro = Isaac.GetChallengeIdByName("Balatro")
+Balatro_Expansion.Challenges = {}
+Balatro_Expansion.Challenges.Balatro = Isaac.GetChallengeIdByName("Fool's gambit")
 ---
 Balatro_Expansion.AllCurses = {}
 Balatro_Expansion.NormalCurses = {}

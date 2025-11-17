@@ -1089,13 +1089,13 @@ function mod:OnJokerSold(Player,Joker,SlotSold)
                 
                 local Data = Ember:GetData()
 
-                Data.REG_SpriteSpeed = Vector(0, -2)
-                Data.REG_SpriteAccel = Vector(-0.01, -1)
-            end        
+                Data.REG_SpriteSpeed = Vector(0, -1)
+                Data.REG_SpriteAccel = Vector(0, -0.15)
+            end   
         end, 2, 6, false)
 
         
-
+        sfx:Play(SoundEffect.SOUND_FIRE_RUSH)
 
         mod.Saved.Player[PIndex].Inventory[Index].Progress = mod.Saved.Player[PIndex].Inventory[Index].Progress + 0.2
 
@@ -5975,10 +5975,12 @@ local function POPcorn(_, Player)
         
         ChanceMult = ChanceMult + mod.Saved.Player[Player:GetData().TruePlayerIndex].Inventory[v].Progress
     end
+
+    ChanceMult = ChanceMult^0.75
     
-    if math.random() <= (0.025 * ChanceMult) then
+    if math.random() <= (0.04 * ChanceMult) then
         
-        local KernelSpeed = RandomVector()*(math.random()*2.5 + 3)
+        local KernelSpeed = RandomVector()*(math.random()*2.5 + 3.75)
         KernelSpeed = KernelSpeed + Player:GetTearMovementInheritance(KernelSpeed)
 
         local SubType
@@ -6001,8 +6003,8 @@ local function POPcorn(_, Player)
 
         local Data = Kernel:GetData()
 
-        Data.ZSpeed = -math.random()*9 - 5
-        Data.ZAcceleration = 1 or math.random()*1.25 + 1
+        Data.REG_SpriteSpeed = Vector(0,-math.random()*9 - 4.5)
+        Data.REG_SpriteAccel = Vector(0,math.random()*0.25 + 1)
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, POPcorn)
@@ -6015,14 +6017,14 @@ local function ExplodeCorn(_, Kernel)
 
     Kernel.SpriteRotation = Kernel.SpriteRotation + Kernel.Velocity:Length()*3
 
-    local Data = Kernel:GetData()
-    
-    Kernel.SpriteOffset.Y = math.min(Kernel.SpriteOffset.Y + Data.ZSpeed,0)
-    Data.ZSpeed = Data.ZSpeed + Data.ZAcceleration
 
-    if Kernel.SpriteOffset.Y == 0 or Isaac.FindInCapsule(Kernel:GetCollisionCapsule(), EntityPartition.ENEMY)[1] then
+    if Kernel.SpriteOffset.Y >= 0 or Isaac.FindInCapsule(Kernel:GetCollisionCapsule(), EntityPartition.ENEMY)[1] then
 
         Kernel.Velocity = Vector.Zero
+
+        local Data = Kernel:GetData()
+        Data.REG_SpriteSpeed = nil
+        Data.REG_SpriteAccel = nil
 
         if Kernel.SubType ~= 0 then
 

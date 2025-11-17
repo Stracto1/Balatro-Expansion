@@ -331,7 +331,7 @@ function mod:CardPacks(card, Player,_)
             if EditionRoll <= JumboChance then
 
                 if EditionRoll <= MegaChance then
-                    mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.PackPurposes.MegaFlag
+                    mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.Purposes.MegaFlag
                     mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!", mod.EffectType.ENTITY, Player)
                 
                 else

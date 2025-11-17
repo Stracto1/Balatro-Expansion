@@ -2188,7 +2188,6 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
             if not ForceCard then
 
                 if not Game:GetRoom():IsClear()
-                   and mod.Saved.Player[PIndex].FirstDeck
                    and (mod.Saved.Player[PIndex].Progress.Room.Shots < Player:GetCustomCacheValue("hands")
                         or mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR)) then
 
@@ -2198,7 +2197,9 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
 
                     if (mod.Saved.Player[PIndex].Progress.Room.Shots == Player:GetCustomCacheValue("hands")
                         and not mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR)) --with burglar you can play all your deck
-                        or not mod.Saved.Player[PIndex].FirstDeck then 
+                        or 
+                        (not mod.Saved.Player[PIndex].FirstDeck
+                         and mod.Saved.Player[PIndex].Progress.Room.Shots == #mod.Saved.Player[PIndex].FullDeck) then 
 
                         Player:AnimateSad()
                     end
@@ -2282,11 +2283,10 @@ function mod:AdjustCardRotation(Tear)
     local TearSprite = Tear:GetSprite()
     Tear.Color = Color.Default
 
-    Data.Counter = Data.Counter or 2
 
-    if Data.Counter ~= 2 then
-        Data.Counter = Data.Counter + 1
-        TearSprite.Rotation = Data.LastRotation or TearSprite.Rotation
+    if Tear.FrameCount % 2 == 0 then
+
+        TearSprite.Rotation = Data.REG_LastRotation or TearSprite.Rotation
         return
     end
 
@@ -2295,8 +2295,7 @@ function mod:AdjustCardRotation(Tear)
         
         TearSprite.Rotation = (Tear.Velocity + Vector(0,math.min(Tear.FallingSpeed, 0))):GetAngleDegrees()
 
-        Data.LastRotation = TearSprite.Rotation
-        Data.Counter = 0
+        Data.REG_LastRotation = TearSprite.Rotation
 
     elseif Tear.WaitFrames == 86 then --just shot with anti-gravity
 
@@ -2304,13 +2303,14 @@ function mod:AdjustCardRotation(Tear)
 
     
 ---@diagnostic disable-next-line: need-check-nil
-        Data.LastRotation = Player:GetAimDirection():GetAngleDegrees()
-        TearSprite.Rotation = Data.LastRotation
+        Data.REG_LastRotation = Player:GetAimDirection():GetAngleDegrees()
+        TearSprite.Rotation = Data.REG_LastRotation
 
     else --stopped in mid-air with anti-gravity
-        TearSprite.Rotation = Data.LastRotation or TearSprite.Rotation
+        TearSprite.Rotation = Data.REG_LastRotation or TearSprite.Rotation
     end
 end
+mod:AddCallback(ModCallbacks.MC_PRE_TEAR_RENDER, mod.AdjustCardRotation, mod.Tears.BANANA_VARIANT)
 mod:AddCallback(ModCallbacks.MC_PRE_TEAR_RENDER, mod.AdjustCardRotation, mod.Tears.CARD_TEAR_VARIANT)
 mod:AddCallback(ModCallbacks.MC_PRE_TEAR_RENDER, mod.AdjustCardRotation, mod.Tears.SUIT_TEAR_VARIANTS[mod.Suits.Spade])
 mod:AddCallback(ModCallbacks.MC_PRE_TEAR_RENDER, mod.AdjustCardRotation, mod.Tears.SUIT_TEAR_VARIANTS[mod.Suits.Heart])

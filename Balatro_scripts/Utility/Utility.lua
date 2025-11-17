@@ -1403,7 +1403,6 @@ function mod:GetScoringCards(Player, HandType)
     end
 
     if mod:JimboHasTrinket(Player, mod.Jokers.SPLASH) then
-        print("all scoring!")
         return math.maxinteger
     end
 
@@ -3835,15 +3834,12 @@ local function JimboAddTrinket(_, Player, Trinket, _, StopEvaluation)
     if not EmptySlot then
 
         Isaac.CreateTimer(function ()
-            Player:AnimateSad()
+
+            if not mod:JimboHasTrinket(Player, mod.Jokers.CAMPFIRE) then
+                Player:AnimateSad()
+            end
 
             if Player:GetPlayerType() == mod.Characters.JimboType then
-                
-                --local Value = mod:GetJokerCost(JokerType, JokerEdition, 0, Player)
-
-                --Isaac.CreateTimer(function ()
-                --    Game:Spawn(EntityType.ENTITY_PICKUP,PickupVariant.PICKUP_COIN,Player.Position,RandomVector()*2,Player,CoinSubType.COIN_PENNY,RNG():GetSeed())
-                --end, 4, Value, true)
 
                 Isaac.RunCallback(mod.Callbalcks.JOKER_SOLD, Player, Trinket, 0)
             end

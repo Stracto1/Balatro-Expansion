@@ -834,20 +834,38 @@ EID:addEntity(1000, mod.Effects.DESC_HELPER, mod.Effects.PLATE_HELPER_SUBTYPE, "
 do
     local CoopMenu = Sprite("gfx/ui/hud_eid_jimbo.anm2")
 
-    EID:addIcon("PlayerJimbo","Idle",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroSpade","Spade",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroHeart","Heart",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroClub","Club",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroDiamond","Diamond",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroBonus","Bonus",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroMult","Mult",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroGlass","Glass",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroSteel","Steel",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroGold","Gold",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroWild","Wild",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroStone","Stone",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroLucky","Lucky",0,8,8,6,7, CoopMenu)
-    EID:addIcon("BalatroJoker","Joker",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Jimbo","Idle",0,8,8,6,7, CoopMenu)
+
+    EID:addIcon("REG_Spade","Spade",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Heart","Heart",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Club","Club",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Diamond","Diamond",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Retrigger","Retrigger",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Face","Face",0,8,8,6,7, CoopMenu)
+
+    EID:addIcon("REG_Bonus","Bonus",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Mult","Mult",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Glass","Glass",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Steel","Steel",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Gold","Gold",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Wild","Wild",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Stone","Stone",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Lucky","Lucky",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Joker","Joker",0,8,8,6,7, CoopMenu)
+
+    EID:addIcon("REG_Foil","Foil",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Holo","Holo",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Poly","Poly",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Nega","Nega",0,8,8,6,7, CoopMenu)
+
+    EID:addIcon("REG_Red","Red",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Purple","Purple",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Golden","Golden",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Blue","Blue",0,8,8,6,7, CoopMenu)
+    
+
+    EID:addIcon("REG_Planet","Planet",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Spectral","Spectral",0,8,8,6,7, CoopMenu)
 
 end
 

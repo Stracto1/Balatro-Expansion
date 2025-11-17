@@ -26,8 +26,8 @@ local HandChargeSprite = Sprite("gfx/ui/chargebar_the_hand.anm2")
 local CHARGE_BAR_OFFSET = Vector(17,-25)
 
 
-
 local HandsBar = Sprite("gfx/Cards_Bar.anm2")
+local HandsBarV2 = Sprite("gfx/Cards_Bar V2.anm2")
 local HandsBarFilling = Sprite("gfx/Cards_Bar_Filling.anm2")
 
 local CardFrame = Sprite("gfx/ui/CardSelection.anm2")
@@ -492,8 +492,56 @@ function mod:HandBarRender(offset,_,Position,_,Player)
         Offset = Offset + Vector(0,10)
     end
 end
-mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.HandBarRender)
+--mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.HandBarRender)
 
+function mod:HandBarV2Render(offset,_,Position,_,Player)
+
+    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+        return
+    end
+    local PIndex = Player:GetData().TruePlayerIndex
+    local PlayerRenderMult = PIndex%2 == 0 and -1 or 1
+
+    ----if true then return end
+    
+    local Offset = Vector(0, 14)*PlayerRenderMult-- + Vector(2, 2)*Options.HUDOffset
+
+    local TotalHands = Player:GetCustomCacheValue(mod.CustomCache.HAND_NUM)
+    local RemainingHands = mod:GetJimboTriggerableCards(Player)
+
+    if mod.Saved.Player[PIndex].FirstDeck 
+       and not Game:GetRoom():IsClear() then
+
+        HandsBarV2.Color = mod.EffectColors.BLUE
+    else
+        HandsBarV2.Color = mod.EffectColors.RED
+
+        if mod.Saved.Player[PIndex].FirstDeck then
+            RemainingHands = TotalHands
+        end
+    end
+
+
+    for Partial = 0, TotalHands-1, 5 do
+
+        local Frame = RemainingHands - Partial
+        if mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR) then
+            Frame = 5
+        end
+
+        
+        if Frame <= 0 then
+            break
+        end
+
+        HandsBarV2:SetFrame("Idle", Frame)
+
+        HandsBarV2:Render(Position + Offset)
+
+        Offset = Offset + Vector(10,0)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.HandBarV2Render)
 
 
 --rendere the player's current hand below them
