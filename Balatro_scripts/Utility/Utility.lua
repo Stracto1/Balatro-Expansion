@@ -1933,9 +1933,11 @@ function mod:IsSuit(Player, Card, WantedSuit)
             GoodSuits[mod.Suits.Club] = true
         end
         if Player:HasCollectible(CollectibleType.COLLECTIBLE_PYROMANIAC) --clubs count as hearts
-           and Card.Suit == mod.Suits.Club then
+           and (Card.Suit == mod.Suits.Club
+                or Card.Suit == mod.Suits.Heart) then
 
             GoodSuits[mod.Suits.Heart] = true
+            GoodSuits[mod.Suits.Club] = true
         end
         if Player:HasCollectible(CollectibleType.COLLECTIBLE_POUND_OF_FLESH) --clubs count as hearts
            and Card.Suit % 2 == 0 then
@@ -1969,7 +1971,8 @@ function mod:IsSuit(Player, Card, WantedSuit)
             return true
         end
         if Player:HasCollectible(CollectibleType.COLLECTIBLE_PYROMANIAC) --clubs count as hearts
-           and Card.Suit == mod.Suits.Club and WantedSuit == mod.Suits.Heart then
+           and (Card.Suit == mod.Suits.Club and WantedSuit == mod.Suits.Heart
+                or Card.Suit == mod.Suits.Heart and WantedSuit == mod.Suits.Club) then
 
             return true
         end

@@ -105,11 +105,12 @@ local function OnCardHit(_,Tear,Collider)
 
         if mod:IsSuit(Player, TearData.Params, mod.Suits.Club, false) then
             
-            Bomb.ExplosionDamage = Tear.CollisionDamage * 4
-            Bomb.RadiusMultiplier = 1.25
+            Bomb.ExplosionDamage = Tear.CollisionDamage * 2
+            Bomb.RadiusMultiplier = 1.2
         else
 
-            Bomb.ExplosionDamage = Tear.CollisionDamage * 2.5
+            Bomb.ExplosionDamage = Tear.CollisionDamage
+            Bomb.RadiusMultiplier = 0.8
         end
 
     end
@@ -263,7 +264,8 @@ function mod:OnItemPickup(Type, _,FirstTime,_,_, Player)
            or Type == CollectibleType.COLLECTIBLE_HOT_BOMBS or Type == CollectibleType.COLLECTIBLE_SAD_BOMBS
            or Type == CollectibleType.COLLECTIBLE_BUTT_BOMBS or Type == CollectibleType.COLLECTIBLE_GHOST_BOMBS
            or Type == CollectibleType.COLLECTIBLE_NANCY_BOMBS or Type == CollectibleType.COLLECTIBLE_STICKY_BOMBS
-           or Type == CollectibleType.COLLECTIBLE_SCATTER_BOMBS or Type == CollectibleType.COLLECTIBLE_BRIMSTONE_BOMBS then
+           or Type == CollectibleType.COLLECTIBLE_SCATTER_BOMBS or Type == CollectibleType.COLLECTIBLE_BRIMSTONE_BOMBS
+           or Type == CollectibleType.COLLECTIBLE_DR_FETUS then
 
         for _,Pointer in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
             mod.Saved.Player[PIndex].FullDeck[Pointer].Suit = mod.Suits.Club

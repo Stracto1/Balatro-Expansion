@@ -6,7 +6,6 @@ local Game = Game()
 local ItemsConfig = Isaac.GetItemConfig()
 local sfx = SFXManager()
 
-local TimerFixerVariable = 0
 local BlindGotCleared = false --prevents blind clear callback to be called multiple times in the same frame
 
 local MAX_BOSSRUSH_WAVES = 5
@@ -29,8 +28,6 @@ mod.FullDoorSlot = {[RoomShape.ROOMSHAPE_1x1] = 1 << DoorSlot.LEFT0 | 1 << DoorS
                     [RoomShape.ROOMSHAPE_IIV] = 1 << DoorSlot.DOWN0,
                     FULL = 1 << DoorSlot.LEFT0 | 1 << DoorSlot.DOWN0 | 1 << DoorSlot.RIGHT0 | 1 << DoorSlot.LEFT1 | 1 << DoorSlot.DOWN1 | 1 << DoorSlot.RIGHT1}
 
-
-local SCREEN_TO_WORLD_RATIO = 4
 
 local BASE_HAND_RADIUS = 30 --this gets increased by the handtype's base mult value (considering planet upgrades)
 
@@ -195,7 +192,7 @@ mod:AddPriorityCallback(ModCallbacks.MC_POST_PLAYER_ADD_CARD,CallbackPriority.IM
 
 local function SetCustomCurses(Curses)
 
-    return 0 --PLACEHOLDER
+    return 0
 end
 mod:AddCallback(ModCallbacks.MC_POST_CURSE_EVAL, SetCustomCurses)
 
@@ -1143,13 +1140,11 @@ local function ShopItemChanger()
 ---@diagnostic disable-next-line: need-check-nil
         Voucher:MakeShopItem(-2)
 
-    else --removes everything exept for the booster packs and the ante voucher
+    else --removes everything exept for the ante voucher
         for _,Entity in ipairs(Isaac.FindByType(EntityType.ENTITY_PICKUP)) do
         
-            if (Entity.Variant ~= PickupVariant.PICKUP_TAROTCARD 
-                or not mod:Contained(mod.Packs, Entity.SubType))
-               and (Entity.Variant ~= PickupVariant.PICKUP_COLLECTIBLE
-                    or Entity.SubType ~= mod.Saved.AnteVoucher) then
+            if Entity.Variant ~= PickupVariant.PICKUP_COLLECTIBLE
+               or Entity.SubType ~= mod.Saved.AnteVoucher then
 
                 Entity:Remove()
             end

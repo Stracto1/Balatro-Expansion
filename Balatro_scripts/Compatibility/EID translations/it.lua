@@ -9,10 +9,10 @@ Descriptions.Other = {}
 Descriptions.Other.Name = "Guida Inventario"
 Descriptions.Other.LV = "LV." --abbreviation of LEVEL
 
-Descriptions.Other.ConfirmName = "{{ColorSilver}}Conferma{{CR}}"
+Descriptions.Other.ConfirmName = "{{ColorSilver}}Conferma"
 Descriptions.Other.ConfirmDesc = "Conferma la selezione"
 
-Descriptions.Other.SkipName = "{{ColorSilver}}Salta{{CR}}"
+Descriptions.Other.SkipName = "{{ColorSilver}}Salta"
 Descriptions.Other.SkipDesc = "Salta le opzioni rimanenti"
 
 Descriptions.Other.SellJoker = "Vendi il Jolly selezionato"
@@ -44,12 +44,12 @@ Descriptions.Other.Cleared = "Sconfitti"
 Descriptions.Other.NotCleared = "Imminente"
 
 
-Descriptions.Other.Active = "{{ColorYellorange}}Attivo!{{CR}}"
-Descriptions.Other.NotActive = "{{ColorRed}}Non attivo!{{CR}}"
-Descriptions.Other.Compatible = "{{ColorMint}}Compatibile{{CR}}"
-Descriptions.Other.Incompatible = "{{ColorMult}}Incompatibile{{CR}}"
-Descriptions.Other.Ready = "{{ColorYellorange}}Pronto!{{CR}}"
-Descriptions.Other.NotReady = "{{ColorRed}}Non pronto!{{CR}}"
+Descriptions.Other.Active = "{{ColorYellorange}}Attivo!"
+Descriptions.Other.NotActive = "{{ColorRed}}Non attivo!"
+Descriptions.Other.Compatible = "{{ColorMint}}Compatibile"
+Descriptions.Other.Incompatible = "{{ColorMult}}Incompatibile"
+Descriptions.Other.Ready = "{{ColorYellorange}}Pronto!"
+Descriptions.Other.NotReady = "{{ColorRed}}Non pronto!"
 
 Descriptions.Other.Rounds = "Round"
 Descriptions.Other.HandSize = "Carte in mano" --as in the Balatro stat
@@ -80,7 +80,7 @@ Descriptions.EnhancementName = {}
 --Descriptions.Other.Enhancement[mod.Enhancement.LUCKY] 
 --Descriptions.Other.Enhancement[mod.Enhancement.STEEL] 
 --Descriptions.Other.Enhancement[mod.Enhancement.WILD]  
-Descriptions.EnhancementName[mod.Enhancement.STONE] = "{{ColorGray}}Carta di Pietra{{CR}}"
+Descriptions.EnhancementName[mod.Enhancement.STONE] = "{{ColorGray}}Carta di Pietra"
 
 
 
@@ -96,10 +96,10 @@ Descriptions.BasicEnhancementName[mod.Enhancement.STONE] = "Carta di Pietra"
 
 
 Descriptions.Rarity = {}
-Descriptions.Rarity["common"] = "{{ColorChips}}comune{{CR}}"
-Descriptions.Rarity["uncommon"] = "{{ColorMint}}non comune{{CR}}"
-Descriptions.Rarity["rare"] = "{{ColorMult}}raro{{CR}}"
-Descriptions.Rarity["legendary"] = "{{ColorRainbow}}leggendario{{CR}}"
+Descriptions.Rarity["common"] = "{{ColorChips}}comune"
+Descriptions.Rarity["uncommon"] = "{{ColorMint}}non comune"
+Descriptions.Rarity["rare"] = "{{ColorMult}}raro"
+Descriptions.Rarity["legendary"] = "{{ColorRainbow}}leggendario"
 
 
 
@@ -119,9 +119,9 @@ Descriptions.Jimbo.Enhancement = {[mod.Enhancement.NONE]  = "",
                                   [mod.Enhancement.MULT]  = "#{{REG_Mult}} {{ColorYellorange}}Carta Molt{{CR}}: #{{IND}}{{Damage}} {{ColorMult}}+0.05{{CR}} Danno quando attivata",
                                   [mod.Enhancement.GOLDEN] = "#{{REG_Gold}} {{ColorYellorange}}Carta Dorata{{CR}}: #{{IND}}{{Coin}} {{ColorYellorange}}+2${{CR}} se tenuta in mano quando un {{ColorYellorange}}Buio{{CR}} viene sconfitto",
                                   [mod.Enhancement.GLASS] = "#{{REG_Glass}} {{ColorYellorange}}Carta di Vetro{{CR}}: #{{IND}}{{Damage}} {{ColorMult}}x1.2{{CR}} Molt. di Danno quando attivata ##{{IND}}!!! {{ColorMint}}[[CHANCE]] probabilità su 10{{CR}} di venir distrutta quando attivata",
-                                  --[mod.Enhancement.LUCKY] = "#{{REG_Lucky}} {{ColorMint}}Lucky Card{{CR}}: {{ColorMint}}[[CHANCE]]/5 Chance{{CR}} to give {{ColorMult}}+0.2{{CR}} damage and {{ColorMint}}[[CHANCE]]/20 Chance{{CR}} to give {{ColorYellorange}}10 {{Coin}} Pennies{{CR}}",
-                                  [mod.Enhancement.LUCKY] = "#{{REG_Lucky}} {{ColorYellorange}}Carta Fortunata{{CR}}: #{{IND}}{{Damage}} {{ColorMint}}[[CHANCE]] probabilità su 5{{CR}} di dare {{ColorMult}}+0.2{{CR}} Danno #{{IND}}{{Coin}} {{ColorMint}}[[CHANCE]] probabilità su 20{{CR}} di dare {{ColorYellorange}}10 Pennies{{CR}}",
-                                  [mod.Enhancement.STEEL] = "#{{REG_Steel}} {{ColorYellorange}}Carta d'Acciaio{{CR}}: #{{IND}}{{Damage}} {{ColorMult}}X1.2{{CR}} Damage Mult. when {{ColorYellorange}}held{{CR}} in hand as an hostile room is entered",
+                                  --[mod.Enhancement.LUCKY] = "#{{REG_Lucky}} {{ColorMint}}Lucky Card{{CR}}: {{ColorMint}}[[CHANCE]]/5 Chance{{CR}} to give {{ColorMult}}+0.2{{CR}} damage and {{ColorMint}}[[CHANCE]]/20 Chance{{CR}} to give {{ColorYellorange}}10 {{Coin}} Pennies",
+                                  [mod.Enhancement.LUCKY] = "#{{REG_Lucky}} {{ColorYellorange}}Carta Fortunata{{CR}}: #{{IND}}{{Damage}} {{ColorMint}}[[CHANCE]] probabilità su 5{{CR}} di dare {{ColorMult}}+0.2{{CR}} Danno #{{IND}}{{Coin}} {{ColorMint}}[[CHANCE]] probabilità su 20{{CR}} di dare {{ColorYellorange}}10 Pennies",
+                                  [mod.Enhancement.STEEL] = "#{{REG_Steel}} {{ColorYellorange}}Carta d'Acciaio{{CR}}: #{{IND}}{{Damage}} {{ColorMult}}X1.2{{CR}} Damage Molt. when {{ColorYellorange}}held{{CR}} in hand as an hostile room is entered",
                                   [mod.Enhancement.WILD]  = "#{{REG_Wild}} {{ColorYellorange}}Carta Multiuso{{CR}}: #{{IND}} Considerata come di ogni seme",
                                   [mod.Enhancement.STONE] = "#{{REG_Stone}} {{ColorYellorange}}Carta di Pietra{{CR}}: #{{IND}}{{Tears}} {{ColorChips}}+1.25{{CR}} Lacrime quando attivata ##{{IND}}!!! Non ha valore o seme"
                                   }
@@ -130,7 +130,7 @@ Descriptions.Jimbo.Seal = {[mod.Seals.NONE] = "",
                            [mod.Seals.RED] = "#{{REG_Red}} {{ColorYellorange}}Sigillo Rosso{{CR}}: #{{IND}}{{REG_Retrigger}} {{ColorYellorange}}Riattiva{{CR}} le abilità della carta",
                            [mod.Seals.BLUE] = "#{{REG_Blue}} {{ColorYellorange}}Sigillo Blu{{CR}}:  #{{IND}}{{REG_Planet}} Crea il corrispettivo {{ColorCyan}}Pianeta{{CR}} se tenuta in mano quando un {{ColorYellorange}}Buio{{CR}} è sconfitto",
                            [mod.Seals.GOLDEN] = "#{{REG_Golden}} {{ColorYellorange}}Sigillo Dorato{{CR}}: #{{IND}}{{Coin}} Crea una {{ColorYellorange}}Moneta Temporanea{{CR}} quando attivata",
-                           [mod.Seals.PURPLE] = "#{{REG_Purple}} {{ColorYellorange}}Sigillo Viola{{CR}}: #{{IND}}{{Card}} Crea un {{ColorPink}}Tarocco{{CR}} casuale quando {{ColorRed}}Scartata{{CR}} #{{IND}}!!! {{ColorMint}}Minore probabilità{{CR}} se più sono scartate {{ColorYellorange}}insieme{{CR}}",
+                           [mod.Seals.PURPLE] = "#{{REG_Purple}} {{ColorYellorange}}Sigillo Viola{{CR}}: #{{IND}}{{Card}} Crea un {{ColorPink}}Tarocco{{CR}} casuale quando {{ColorRed}}Scartata{{CR}} #{{IND}}!!! {{ColorMint}}Minore probabilità{{CR}} se più sono scartate {{ColorYellorange}}insieme",
                            }
 
 Descriptions.Jimbo.CardEdition = {[mod.Edition.BASE] = "",
@@ -152,17 +152,17 @@ Descriptions.Jimbo.JokerEdition = {[mod.Edition.NOT_CHOSEN] = "",
 Descriptions.Jimbo.Jokers = {}
 do
 Descriptions.Jimbo.Jokers[mod.Jokers.JOKER] = "{{Damage}} {{ColorMult}}+0.2{{CR}} Danno"
-Descriptions.Jimbo.Jokers[mod.Jokers.BULL] = "{{Lacrime}} {{ColorChips}}+0.1{{CR}} Lacrime per {{Coin}} {{ColorYellorange}}monete{{CR}} avuta {{ColorGray}}#{{Blank}} {{ColorGray}} (Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}} Lacrime)"
+Descriptions.Jimbo.Jokers[mod.Jokers.BULL] = "{{Tears}} {{ColorChips}}+0.1{{CR}} Lacrime per {{Coin}} {{ColorYellorange}}monete{{CR}} avuta #{{Blank}} {{ColorGray}} (Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}} Lacrime)"
 Descriptions.Jimbo.Jokers[mod.Jokers.INVISIBLE_JOKER] = "Vendere questo Jolly dopo {{ColorYellorange}}3{{CR}} Bui sconfitti duplica un Jolly tenuto [[VALUE2]] #{{Blank}} {{ColorGray}}(Attualmente [[VALUE1]]) #{{Confusion}} I nemici rimangono confusi per 2.5 secondi entrando in una stanza"
 Descriptions.Jimbo.Jokers[mod.Jokers.ABSTRACT_JOKER] = "{{Damage}} {{ColorMult}}+0.15{{CR}} Danno per Jolly tanuto #{{Damage}} {{ColorMult}}+0.03{{CR}} Danno per Oggetto avuto #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{CR}} Danno)"
-Descriptions.Jimbo.Jokers[mod.Jokers.MISPRINT] = "{{Damage}} {{ColorMult}}+0-1{{CR}} Danno casuale ogni stanza #{{Collectible721}} {{ColorMint}}[[CHANCE]] probabilità su 10{{CR}} di rendere un oggetto {{ColorYellorange}}glitchato{{CR}}"
+Descriptions.Jimbo.Jokers[mod.Jokers.MISPRINT] = "{{Damage}} {{ColorMult}}+0-1{{CR}} Danno casuale ogni stanza #{{Collectible721}} {{ColorMint}}[[CHANCE]] probabilità su 10{{CR}} di rendere un oggetto {{ColorYellorange}}glitchato"
 Descriptions.Jimbo.Jokers[mod.Jokers.JOKER_STENCIL] = "{{Damage}} {{ColorMult}}X0.75{{CR}} Molt. di Danno per ogni slot Jolly {{ColorYellorange}}vuoto{{CR}} #!!! {{ColorYellorange}}Forma di Jolly{{CR}} inclusa #{{Damage}} {{ColorMult}}X0.25{{CR}} Molt. di Danno se nonsi ha un {{ColorYellorange}}{{Collectible}} oggetto attivo{{CR}} #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt. di Danno)"
-Descriptions.Jimbo.Jokers[mod.Jokers.STONE_JOKER] = "{{Lacrime}} {{ColorChips}}+1.25{{CR}} Lacrime per {{ColorYellorange}}Carta di Pietra{{CR}} nel mazzo intero #{{Lacrime}} {{ColorChips}}+0.05{{CR}} Lacrime per roccia nella stanza{{ColorGray}}#{{Blank}} (Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}} Lacrime)"
-Descriptions.Jimbo.Jokers[mod.Jokers.ICECREAM] = "{{Lacrime}} {{ColorChips}}+[[VALUE1]]{{CR}} Lacrime#!!! Perde {{ColorChips}}-0.25{{CR}} Lacrime ogni stanza completata #Crea una scia di pozze rallentanti #{{IND}}{{Freezing}} I nemici uccisi sopra essa vengono congelati"
+Descriptions.Jimbo.Jokers[mod.Jokers.STONE_JOKER] = "{{Tears}} {{ColorChips}}+1.25{{CR}} Lacrime per {{ColorYellorange}}Carta di Pietra{{CR}} nel mazzo completo #{{Tears}} {{ColorChips}}+0.05{{CR}} Lacrime per roccia nella stanza#{{Blank}} {{ColorGray}}(Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}} Lacrime)"
+Descriptions.Jimbo.Jokers[mod.Jokers.ICECREAM] = "{{Tears}} {{ColorChips}}+[[VALUE1]]{{CR}} Lacrime#!!! Perde {{ColorChips}}-0.25{{CR}} Lacrime ogni stanza completata #Crea una scia di pozze rallentanti #{{IND}}{{Freezing}} I nemici uccisi sopra essa vengono congelati"
 Descriptions.Jimbo.Jokers[mod.Jokers.POPCORN] = "{{Damage}} {{ColorMult}}+[[VALUE1]]{{CR}} Danno #!!! Parde {{ColorMult}}-0.2{{CR}} Danno ogni buio sconfitto #Casualmente lancia popcorn esplosivo"
-Descriptions.Jimbo.Jokers[mod.Jokers.RAMEN] = "{{Damage}} {{ColorMult}}X[[VALUE1]]{{CR}}Molt. di Danno#!!! Perde {{ColorMult}}-0.01X{{CR}} Molt. di Danno ogni carta scartata"
+Descriptions.Jimbo.Jokers[mod.Jokers.RAMEN] = "{{Damage}} {{ColorMult}}X[[VALUE1]]{{CR}}Molt. di Danno#!!! Perde {{ColorMult}}-0.01X{{CR}} Molt. di Danno ogni carta scartata #{{Collectible682}} Ottieni una versione indebilita di Worm Friend"
 Descriptions.Jimbo.Jokers[mod.Jokers.ROCKET] = "{{Coin}} {{ColorYellorange}}+[[VALUE1]] {{Coin}} Monete{{CR}} quando un Buio viene sconfitto#{{IND}}{{Coin}} La ricompensa aumenta di {{ColorYellorange}}1{{CR}} quando un {{ColorYellorange}}Buio Boss{{CR}} viene sconfitto #{{Collectible583}} Dà l'effetto di Rocket in Jar"
-Descriptions.Jimbo.Jokers[mod.Jokers.ODDTODD] = "{{Lacrime}} Le carte {{ColorYellorange}}Dispari{{CR}} danno {{ColorChips}}+0.31{{CR}} Lacrime quando attivate#{{Lacrime}} {{ColorChips}}+0.15{{CR}} Lacrime per oggetto avuto se il numero totale è dispari"
+Descriptions.Jimbo.Jokers[mod.Jokers.ODDTODD] = "{{Tears}} Le carte {{ColorYellorange}}Dispari{{CR}} danno {{ColorChips}}+0.31{{CR}} Lacrime quando attivate#{{Tears}} {{ColorChips}}+0.15{{CR}} Lacrime per oggetto avuto se il numero totale è dispari"
 Descriptions.Jimbo.Jokers[mod.Jokers.EVENSTEVEN] = "{{Damage}} Le carte {{ColorYellorange}}Pari{{CR}} danno {{ColorMult}}+0.04{{CR}} Danno quando attivata #{{Damage}} {{ColorMult}}+0.02{{CR}} Danno per oggetto tenuto se il numero totale è pari"
 Descriptions.Jimbo.Jokers[mod.Jokers.HALLUCINATION] = "{{Card}} {{ColorMint}}[[CHANCE]] probabilità su 2{{CR}} to creare un {{ColorPink}}Tarocco{{CR}} casuale aprendo un {{ColorYellorange}}Pacco di Espansione{{CR}} #{{Collectible431}} Dà l'effetto di Multidimensional Baby"
 Descriptions.Jimbo.Jokers[mod.Jokers.GREEN_JOKER] = "{{Damage}}{{ColorMult}}+0.04{{CR}} Danno per stanza completata #{{Damage}}{{ColorMult}}-0.16{{CR}}Danno ogni mano scartata #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Danno)"
@@ -175,178 +175,177 @@ Descriptions.Jimbo.Jokers[mod.Jokers.BLUEPRINT] = "{{REG_Retrigger}} Copia il Jo
 Descriptions.Jimbo.Jokers[mod.Jokers.BRAINSTORM] = "{{REG_Retrigger}} Copia il Jolly più a sinistra"
 Descriptions.Jimbo.Jokers[mod.Jokers.MADNESS] = "Distrugge un altro Jolly casuale e ottiene {{ColorMult}}X0.1{{CR}} Molt. di Danno ogni {{ColorYellorange}}Piccolo e Grande Buio{{CR}} sconfitti#{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt. di Danno)"
 Descriptions.Jimbo.Jokers[mod.Jokers.MR_BONES] = "Resuscuta a cuori pieni se solo {{ColorYellorange}}1{{CR}} Buio non è sconfitto #!!! I Bui non disponibili contano come sconfitti #{{ColorMint}}[[CHANCE]] probabilità su 5{{CR}} di attivare {{Collectible545}} Book of the Dead completando una stanza"
-Descriptions.Jimbo.Jokers[mod.Jokers.ONIX_AGATE] = "{{Damage}} Le carte di {{ColorChips}}Fiori{{CR}} danno {{ColorMult}}+0.07{{CR}} Danno quando attivate #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Danno) #{{Bomb}} Le esplosioni di {{ColorClub}}Fiori{{CR}} sono più frequenti, più grandi infliggono più danno"
-Descriptions.Jimbo.Jokers[mod.Jokers.ARROWHEAD] = "{{Lacrime}} Le carte di {{ColorSpade}}Picche{{CR}} danno {{ColorChips}}+0.5{{CR}} Lacrime quando attivate #{{Blank}} {{ColorGray}}(Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}} Lacrime) #{{Confusion}} Le varte di {{ColorSpade}}Picche{{CR}} hanno il 50% di possibilità di rallentare e confondere"
-Descriptions.Jimbo.Jokers[mod.Jokers.BLOODSTONE] = "{{Damage}} {{ColorMult}}Heart{{CR}} cards have a {{ColorMint}} [[CHANCE]]/2{{CR}} to give {{ColorMult}}X1.05{{CR}} Molt. di Danno quando attivata #{{Charm}} {{ColorMult}}Heart{{CR}} cards gain 10% chance to charm"
-Descriptions.Jimbo.Jokers[mod.Jokers.ROUGH_GEM] = "{{Coin}} {{ColorYellorange}}Diamond{{CR}} cards have a {{ColorMint}} [[CHANCE]]/2{{CR}} to spawn a {{ColorYellorange}}temporary {{Coin}}Penny{{CR}} quando attivata #{{Collectible506}} {{ColorYellorange}}Diamond{{CR}} cards also have the {{ColorYellorange}}Backstabber{{CR}} effect"
+Descriptions.Jimbo.Jokers[mod.Jokers.ONIX_AGATE] = "{{Damage}} Le carte di {{REG_Club}} {{ColorChips}}Fiori{{CR}} danno {{ColorMult}}+0.07{{CR}} Danno quando attivate #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Danno) #{{Bomb}} Le esplosioni di {{ColorClub}}Fiori{{CR}} sono più frequenti, più grandi infliggono più danno"
+Descriptions.Jimbo.Jokers[mod.Jokers.ARROWHEAD] = "{{Tears}} Le carte di {{REG_Spade}} {{ColorSpade}}Picche{{CR}} danno {{ColorChips}}+0.5{{CR}} Lacrime quando attivate #{{Blank}} {{ColorGray}}(Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}} Lacrime) #{{Confusion}} Le carte di {{ColorSpade}}Picche{{CR}} hanno il 50% di possibilità di rallentare e confondere"
+Descriptions.Jimbo.Jokers[mod.Jokers.BLOODSTONE] = "{{Damage}} Le carte di {{REG_Heart}} {{ColorMult}}Cuori{{CR}} hanno {{ColorMint}}[[CHANCE]] probabilità su 2{{CR}} di dare {{ColorMult}}X1.05{{CR}} Molt. di Danno quando attivate #{{REG_Heart}} Le carte di {{ColorMult}}Cuori{{CR}} hanno il 10% di porbabilità di {{Charm}} ammaliare"
+Descriptions.Jimbo.Jokers[mod.Jokers.ROUGH_GEM] = "{{Coin}} Le carte di {{REG_Diamond}} {{ColorYellorange}}Quadri{{CR}} hannoa {{ColorMint}}[[CHANCE]] probabilità su 2{{CR}} di creare una {{Coin}} {{ColorYellorange}}Moneta Temporanea{{CR}} quando attivate #{{Collectible506}} Le carte di  {{REG_Diamond}} {{ColorYellorange}}Quadri{{CR}} hanno anche l'effetto di {{ColorYellorange}}Backstabber"
 
 Descriptions.Jimbo.Jokers[mod.Jokers.GROS_MICHAEL] = "{{Damage}} {{ColorMult}}+0.75{{CR}} Danno #{{Warning}} {{ColorMint}}[[CHANCE]] probabilità su 6{{CR}} di distruggersi quando un Buio viene sconfitto"
-Descriptions.Jimbo.Jokers[mod.Jokers.CAVENDISH] = "{{Damage}} {{ColorMult}}X1.5{{CR}} Mult. di Danno #{{Warning}} {{ColorMint}}[[CHANCE]] probabilità su 1000{{CR}} di distruggersi quando un Buio viene sconfitto"
+Descriptions.Jimbo.Jokers[mod.Jokers.CAVENDISH] = "{{Damage}} {{ColorMult}}X1.5{{CR}} Molt. di Danno #{{Warning}} {{ColorMint}}[[CHANCE]] probabilità su 1000{{CR}} di distruggersi quando un Buio viene sconfitto"
 Descriptions.Jimbo.Jokers[mod.Jokers.FLASH_CARD] = "{{Damage}} {{ColorMult}}+0.02{{CR}} Danno per {{RestockMachine}} Restock machine attivata #{{Collectible105}} {{Damage}} {{ColorMult}}+0.02{{CR}} Danno per {{ColorYellorange}}Dado{{CR}} usato #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Danno)"
 Descriptions.Jimbo.Jokers[mod.Jokers.SACRIFICIAL_DAGGER] = "Distrugge il Jolly alla sua destra e ottiene {{ColorMult}}+0.08 x il suo valore di vendita{{CR}} in Danno qunado un Buio viene sconfitto #{{Blank}} {{colorGray}}(Attualmente {{ColorMukt}}+[[VALUE1]]{{ColorGray}} Danno) #{{Collectible705}} Attiva Dark Arts per 2.5 secondi entrando in una stanza ostile"
-Descriptions.Jimbo.Jokers[mod.Jokers.CLOUD_NINE] = "{{Coin}} {{ColorYellorange}}+1${{CR}} per {{ColorYellorange}}9{{CR}} nel tuo mazzo intero #{{Blank}} {{ColorGray}}(Attualmente  {{ColorYellorange}}[[VALUE1]]{{ColorGray}} Coins){{CR}} #{{Seraphim}} Dà volo"
+Descriptions.Jimbo.Jokers[mod.Jokers.CLOUD_NINE] = "{{Coin}} {{ColorYellorange}}+1${{CR}} per {{ColorYellorange}}9{{CR}} nel tuo mazzo completo #{{Blank}} {{ColorGray}}(Attualmente  {{ColorYellorange}}[[VALUE1]]{{ColorGray}} Coins){{CR}} #{{Seraphim}} Dà volo"
 Descriptions.Jimbo.Jokers[mod.Jokers.SWASHBUCKLER] = "{{Damage}} {{ColorMult}}+0.07 X il valore di vendita totale dei Jolly avuto{{CR}} in Danno"
-Descriptions.Jimbo.Jokers[mod.Jokers.CARTOMANCER] = "{{Card}} Crea un {{ColorPink}}Tarocco{{CR}} casuale quando un Buio viene sconfitto #{{Card}} {{ColorMint}}[[CHANCE]] probabilità su 20{{CR}} per ogni pickup di essere un {{ColorPink}}Tarocco{{CR}}"
-Descriptions.Jimbo.Jokers[mod.Jokers.LOYALTY_CARD] = "{{Damage}} {{ColorMult}}X2{{CR}} Mult. di Danno ogni 6 stanze completate #{{Blank}} {{ColorGray}} [[VALUE1]]"
+Descriptions.Jimbo.Jokers[mod.Jokers.CARTOMANCER] = "{{Card}} Crea un {{ColorPink}}Tarocco{{CR}} casuale quando un Buio viene sconfitto #{{Card}} {{ColorMint}}[[CHANCE]] probabilità su 20{{CR}} per ogni pickup di essere un {{ColorPink}}Tarocco"
+Descriptions.Jimbo.Jokers[mod.Jokers.LOYALTY_CARD] = "{{Damage}} {{ColorMult}}X2{{CR}} Molt. di Danno ogni 6 stanze completate #{{Blank}} {{ColorGray}} [[VALUE1]]"
 Descriptions.Jimbo.Jokers[mod.Jokers.SUPERNOVA] = "{{Damage}} Le carte attivate danno {{ColorMult}}+0.01{{CR}} Danno per volta che carte con lo stesso {{ColorYellorange}}Valore{{CR}} sono state attivate nella stanza corrente"
 Descriptions.Jimbo.Jokers[mod.Jokers.DELAYED_GRATIFICATION] = "{{Coin}} {{ColorYellorange}}+1 Moneta{{CR}} per {{Heart}} cuore quando si completa una stanza a {{ColorYellorange}}vita piena{{CR}} #{{Timer}} Le porte per {{BossRoom}} Bossrush e {{Hush}} Hush vangono aperte a prescindere dal timer di gioco"
 Descriptions.Jimbo.Jokers[mod.Jokers.EGG] = "{{Coin}} Il suo valore di vendita aumenta di {{ColorYellorange}}3 monete{{CR}} ogni Buio sconfitto #Ottieni un famiglio difensivo"
 Descriptions.Jimbo.Jokers[mod.Jokers.DNA] = "Se la {{ColorYellorange}}Prima{{CR}} carta giocata di un {{ColorYellorange}}Buio{{CR}} colpisce un nemico, ne viene aggiunta una copia al mazzo #{{Blank}} {{ColorGray}}(Attualmente: [[VALUE1]]{{ColorGray}}) #{{Collectible658}} Crea un Mini-Isaac completando una stanza"
-Descriptions.Jimbo.Jokers[mod.Jokers.SMEARED_JOKER] = "{{ColorMult}}Cuori{{CR}} e {{ColorYellorange}}Quadri{{CR}} contano come lo stesso seme #{{ColorSpade}}Picche{{CR}} e {{ColorBlue}}Fiori{{CR}} contano come lo stesso seme"
+Descriptions.Jimbo.Jokers[mod.Jokers.SMEARED_JOKER] = " {{REG_Heart}} {{ColorMult}}Cuori{{CR}} e {{REG_Diamond}} {{ColorYellorange}}Quadri{{CR}} contano come lo stesso seme # {{REG_Spade}} {{ColorSpade}}Picche{{CR}} e {{REG_Club}} {{ColorBlue}}Fiori{{CR}} contano come lo stesso seme"
 
-Descriptions.Jimbo.Jokers[mod.Jokers.SLY_JOKER] = "{{Lacrime}} {{ColorChips}}+5{{CR}} Lacrime if a {{ColorYellorange}}Pair{{CR}} is held when entering a room"
-Descriptions.Jimbo.Jokers[mod.Jokers.WILY_JOKER] = "{{Lacrime}} {{ColorChips}}+10{{CR}} Lacrime if a {{ColorYellorange}}Three of a kind{{CR}} is held when entering a room"
-Descriptions.Jimbo.Jokers[mod.Jokers.CLEVER_JOKER] = "{{Lacrime}} {{ColorChips}}+7{{CR}} Lacrime if a {{ColorYellorange}}Two-pair{{CR}} is held when entering a room"
-Descriptions.Jimbo.Jokers[mod.Jokers.DEVIOUS_JOKER] = "{{Lacrime}} {{ColorChips}}+15{{CR}} Lacrime if a {{ColorYellorange}}Straight{{CR}} is held when entering a room"
-Descriptions.Jimbo.Jokers[mod.Jokers.CRAFTY_JOKER] = "{{Lacrime}} {{ColorChips}}+12{{CR}} Lacrime if a {{ColorYellorange}}Flush{{CR}} is held when entering a room"
-Descriptions.Jimbo.Jokers[mod.Jokers.JOLLY_JOKER] = "{{Damage}} {{ColorMult}}+1{{CR}} Danno if a {{ColorYellorange}}Pair{{CR}} is held when entering a room"
-Descriptions.Jimbo.Jokers[mod.Jokers.ZANY_JOKER] = "{{Damage}} {{ColorMult}}+2{{CR}} Danno if a {{ColorYellorange}}Three of a kind{{CR}} is held when entering a room"
-Descriptions.Jimbo.Jokers[mod.Jokers.MAD_JOKER] = "{{Damage}} {{ColorMult}}+1.75{{CR}} Danno if a {{ColorYellorange}}Two-pair{{CR}} is held when entering a room"
-Descriptions.Jimbo.Jokers[mod.Jokers.CRAZY_JOKER] = "{{Damage}} {{ColorMult}}+3{{CR}} Danno if a {{ColorYellorange}}Straight{{CR}} is held when entering a room"
-Descriptions.Jimbo.Jokers[mod.Jokers.DROLL_JOKER] = "{{Damage}} {{ColorMult}}+2.25{{CR}} Danno if a {{ColorYellorange}}Flush{{CR}} is held when entering a room"
+Descriptions.Jimbo.Jokers[mod.Jokers.SLY_JOKER] = "{{Tears}} {{ColorChips}}+5{{CR}} Lacrime se una {{ColorYellorange}}Coppia{{CR}} è tenuta in mano entrando in una stanza"
+Descriptions.Jimbo.Jokers[mod.Jokers.WILY_JOKER] = "{{Tears}} {{ColorChips}}+10{{CR}} Lacrime se un {{ColorYellorange}}Tris{{CR}} è tenuto in mano entrando in una stanza"
+Descriptions.Jimbo.Jokers[mod.Jokers.CLEVER_JOKER] = "{{Tears}} {{ColorChips}}+7{{CR}} Lacrime se una {{ColorYellorange}}Doppia Coppia{{CR}} è tenuta in mano entrando in una stanza"
+Descriptions.Jimbo.Jokers[mod.Jokers.DEVIOUS_JOKER] = "{{Tears}} {{ColorChips}}+15{{CR}} Lacrime se una {{ColorYellorange}}Scala{{CR}} è tenuta in mano entrando in una stanza"
+Descriptions.Jimbo.Jokers[mod.Jokers.CRAFTY_JOKER] = "{{Tears}} {{ColorChips}}+12{{CR}} Lacrime se un {{ColorYellorange}}Colore{{CR}} è tenuto in mano entrando in una stanza"
+Descriptions.Jimbo.Jokers[mod.Jokers.JOLLY_JOKER] = "{{Damage}} {{ColorMult}}+1{{CR}} Danno se una {{ColorYellorange}}Coppia{{CR}} è tenuta in mano entrando in una stanza"
+Descriptions.Jimbo.Jokers[mod.Jokers.ZANY_JOKER] = "{{Damage}} {{ColorMult}}+2{{CR}} Danno se un {{ColorYellorange}}Tris{{CR}} è tenuta in mano entrando in una stanza"
+Descriptions.Jimbo.Jokers[mod.Jokers.MAD_JOKER] = "{{Damage}} {{ColorMult}}+1.75{{CR}} Danno se una {{ColorYellorange}}Doppia Coppia{{CR}} è tenuta in mano entrando in una stanza"
+Descriptions.Jimbo.Jokers[mod.Jokers.CRAZY_JOKER] = "{{Damage}} {{ColorMult}}+3{{CR}} Danno se una {{ColorYellorange}}Scala{{CR}} è tenuta in mano entrando in una stanza"
 
-Descriptions.Jimbo.Jokers[mod.Jokers.MIME] = "{{ColorYellorange}}Retriggers{{CR}} all {{ColorYellorange}}held in hand{{CR}} effects #{{ColorMint}}[[CHANCE]] probabilità su 5{{CR}} to copy the effect of an Active Item used"
-Descriptions.Jimbo.Jokers[mod.Jokers.FOUR_FINGER] = "{{ColorYellorange}}Flushes{{CR}} and {{ColorYellorange}}Straights{{CR}} only require 4 cards #Every fifth {{ColorYellorange}}non-boss{{CR}} enemy spawned gets killed immediantly"
-Descriptions.Jimbo.Jokers[mod.Jokers.LUSTY_JOKER] = "{{Damage}} {{ColorMult}}Heart{{CR}} cards give {{ColorMult}}+0.03{{CR}} Danno quando attivata"
-Descriptions.Jimbo.Jokers[mod.Jokers.GREEDY_JOKER] = "{{Damage}} {{ColorYellorange}}Diamond{{CR}} cards give {{ColorMult}}+0.03{{CR}} Danno quando attivata"
-Descriptions.Jimbo.Jokers[mod.Jokers.WRATHFUL_JOKER] = "{{Damage}} {{ColorSpade}}Spade{{CR}} cards give {{ColorMult}}+0.03{{CR}} Danno quando attivata"
-Descriptions.Jimbo.Jokers[mod.Jokers.GLUTTONOUS_JOKER] = "{{Damage}} {{ColorChips}}Club{{CR}} cards give {{ColorMult}}+0.03{{CR}} Danno quando attivata"
-Descriptions.Jimbo.Jokers[mod.Jokers.MERRY_ANDY] = "\1  {{ColorYellorange}}+2{{CR}} {{Heart}} Hp #\2  {{ColorMult}}-2{{CR}} Hand size"
-Descriptions.Jimbo.Jokers[mod.Jokers.HALF_JOKER] = "{{Damage}} {{ColorMult}}+1.5{{CR}} Danno when {{ColorYellorange}}5 or less{{CR}} card have been played in the current room #{{ColorMult}}+1{{CR}} Danno when having {{ColorYellorange}}3 or less{{CR}} cards in hand #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Danno)"
-Descriptions.Jimbo.Jokers[mod.Jokers.CREDIT_CARD] = "Allows to go in {{ColorYellorange}}debt{{CR}} #{{Shop}} Items on sale can only be bought with a maximum of {{ColorMult}}-20${{CR}} debt #!!! {{ColorYellorange}}Interest{{CR}} and {{ColorYellorange}}coin held-based{{CR}} effects cannot trigger while in debt"
+Descriptions.Jimbo.Jokers[mod.Jokers.MIME] = "{{REG_Retrigger}} {{ColorYellorange}}Riattiva{{CR}} le abilità {{ColorYellorange}}tenute in mano{{CR}} #{{ColorMint}}[[CHANCE]] probabilità su 5{{CR}} di copiare l'effetto di un Oggetto Attivo usato"
+Descriptions.Jimbo.Jokers[mod.Jokers.FOUR_FINGER] = "{{ColorYellorange}}Colori{{CR}} e {{ColorYellorange}}Scale{{CR}} richiedono solo 4 carte #Ogni quinto nemico {{ColorYellorange}}(non boss){{CR}} creato viene ucciso immediatamente"
+Descriptions.Jimbo.Jokers[mod.Jokers.LUSTY_JOKER] = "{{Damage}} Le carte di {{REG_Heart}} {{ColorMult}}Cuori{{CR}} danno {{ColorMult}}+0.03{{CR}} Danno quando attivate"
+Descriptions.Jimbo.Jokers[mod.Jokers.GREEDY_JOKER] = "{{Damage}} Le carte di {{REG_Diamond}} {{ColorYellorange}}Quadri{{CR}} danno {{ColorMult}}+0.03{{CR}} Danno quando attivate"
+Descriptions.Jimbo.Jokers[mod.Jokers.WRATHFUL_JOKER] = "{{Damage}} Le carte di {{REG_Spade}} {{ColorSpade}}Picche{{CR}} danno {{ColorMult}}+0.03{{CR}} Danno quando attivate"
+Descriptions.Jimbo.Jokers[mod.Jokers.GLUTTONOUS_JOKER] = "{{Damage}} Le carte di {{REG_Club}} {{ColorChips}}Fiori{{CR}} danno {{ColorMult}}+0.03{{CR}} Danno quando attivate"
+Descriptions.Jimbo.Jokers[mod.Jokers.MERRY_ANDY] = "{{Heart}} {{ColorYellorange}}+2{{CR}} Hp #{{REG_HSize}}  {{ColorMult}}-2{{CR}} Carte in mano #{{Heart}} Cura un cuore aggiuntivo completando una stanza"
+Descriptions.Jimbo.Jokers[mod.Jokers.HALF_JOKER] = "{{Damage}} {{ColorMult}}+1.5{{CR}} Danno se {{ColorYellorange}}fino a 5{{CR}} sono state giocate nella stanza #{{ColorMult}}+1{{CR}} Danno havendo {{ColorYellorange}}fino a 3{{CR}} carte in mano #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Danno)"
+Descriptions.Jimbo.Jokers[mod.Jokers.CREDIT_CARD] = "Permette di andare in {{ColorYellorange}}debito{{CR}} #{{Shop}} Oggetti in vendita possono essere comprati con massimo {{ColorMult}}-20${{CR}} in debito #!!! Gli {{ColorYellorange}}Interessi{{CR}} e effetti {{ColorYellorange}}basati sulle monete{{CR}} non sono attivi se in debito"
 
-Descriptions.Jimbo.Jokers[mod.Jokers.BANNER] = "{{Lacrime}} {{ColorChips}}+1.5{{CR}} Lacrime per {{Heart}} {{ColorYellorange}}full heart{{CR}}#{{Blank}} {{ColorGray}}(Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}} Lacrime) #A banner spawns as an hostile room is entered #{{Lacrime}} Standing close to the banner gives {{ColorChips}}+3{{CR}} Lacrime"
-Descriptions.Jimbo.Jokers[mod.Jokers.MYSTIC_SUMMIT] = "{{Damage}} {{ColorMult}}+1.5{{CR}} Danno while having only {{ColorYellorange}}1{{CR}} full Heart #{{Collectible335}} Grants a {{ColorYellorange}}repelling aura{{CR}} while active"
-Descriptions.Jimbo.Jokers[mod.Jokers.MARBLE_JOKER] = "Adds a {{ColorYellorange}}Stone card{{CR}} to the deck on blind clear # {{ColorMint}}[[CHANCE]] probabilità su 100{{CR}} for rocks to be replaced with {{ColorYellorange}}Tinted Rocks"
-Descriptions.Jimbo.Jokers[mod.Jokers._8_BALL] = "{{ColorYellorange}}8s{{CR}} have a {{ColorMint}}[[CHANCE]] probabilità su 8{{CR}} to spawn a random {{Card}} {{ColorPink}}Tarot{{CR}} card scored #{{Shotspeed}} +0.16 Shot Speed"
-Descriptions.Jimbo.Jokers[mod.Jokers.DUSK] = "The {{ColorYellorange}}last 10{{CR}} scoring cards get {{ColorYellorange}}Retriggered #{{Blank}} {{ColorGray}}(Attualmente [[VALUE1]]{{ColorGray}})"
-Descriptions.Jimbo.Jokers[mod.Jokers.RAISED_FIST] = "Gives {{ColorMult}}0.05{{CR}} Danno {{ColorYellorange}}X the Rank{{CR}} of the lowest card {{ColorYellorange}}held{{CR}} #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Danno)"
-Descriptions.Jimbo.Jokers[mod.Jokers.CHAOS_CLOWN] = "{{Collectible376}} All Shops and Treasure rooms visited have an additional Restock Machine"
-Descriptions.Jimbo.Jokers[mod.Jokers.FIBONACCI] = "{{Damage}} {{ColorYellorange}}Aces{{CR}}, {{ColorYellorange}}2s{{CR}}, {{ColorYellorange}}3s{{CR}}, {{ColorYellorange}}5s{{CR}} and {{ColorYellorange}}8s{{CR}} give {{ColorMult}}+0.08{{CR}} Danno quando attivata #{{Damage}} {{ColorMult}}+0.05{{CR}} Danno per {{Collectible}} collectible held if the total amount is a {{ColorYellorange}}Fibonacci number#{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Danno)"
-Descriptions.Jimbo.Jokers[mod.Jokers.STEEL_JOKER] = "{{Damage}} This gains {{ColorMult}}X0.15{{CR}} Molt. di Danno per {{ColorSilver}}Steel card{{CR}} in your deck#{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt. di Danno)"
-Descriptions.Jimbo.Jokers[mod.Jokers.SCARY_FACE] = "{{Lacrime}} {{ColorYellorange}}Face{{CR}} cards give {{ColorChips}}+0.3{{CR}} Lacrime quando attivata #{{Lacrime}} Killing a {{ColorYellorange}}Champion{{CR}} gives {{ColorChips}}+1{{CR}} Lacrime"
-Descriptions.Jimbo.Jokers[mod.Jokers.HACK] = "{{ColorYellorange}}Retriggers{{CR}} played {{ColorYellorange}}2s{{CR}}, {{ColorYellorange}}3s{{CR}}, {{ColorYellorange}}4s{{CR}} and {{ColorYellorange}}5s{{CR}} #\1 Gain an additional copy of every {{Quality0}} and {{Quality1}} Item held"
-Descriptions.Jimbo.Jokers[mod.Jokers.PAREIDOLIA] = "Every card counts as a {{ColorYellorange}}Face{{CR}} card #{{ColorMint}}[[CHANCE]] probabilità su 5{{CR}} for any non-boss enemy to become a {{ColorYellorange}}Champion{{CR}}"
+Descriptions.Jimbo.Jokers[mod.Jokers.BANNER] = "{{Tears}} {{ColorChips}}+1.5{{CR}} Lacrime per {{Heart}} {{ColorYellorange}}Cuore pieno #{{Blank}} {{ColorGray}}(Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}} Lacrime) #Uno stendardo appare entrando in una stanza #{{IND}}{{Tears}} Stare vicino allo stendardo dà {{ColorChips}}+3{{CR}} Lacrime"
+Descriptions.Jimbo.Jokers[mod.Jokers.MYSTIC_SUMMIT] = "{{Damage}} {{ColorMult}}+1.5{{CR}} Danno avendo solo {{ColorYellorange}}1{{CR}} {{Heart}} cuore pieno #{{Heart}} Crea cuori invece di curarti a fine stanza #{{Collectible335}} Attiva un'{{ColorYellorange}}aura repellente{{CR}} mentre attivo"
+Descriptions.Jimbo.Jokers[mod.Jokers.MARBLE_JOKER] = "{{REG_Stone}} Aggiunge una {{ColorYellorange}}Carta di Pietra{{CR}} al mazzo ogni {{ColorYellorange}}Buio{{CR}} sconfitto #{{ColorMint}}[[CHANCE]] probabilità su 100{{CR}} aggiuntiva di generare delle {{ColorYellorange}}Tinted Rock"
+Descriptions.Jimbo.Jokers[mod.Jokers._8_BALL] = "{{Card}} Gli {{ColorYellorange}}8{{CR}} hanno {{ColorMint}}[[CHANCE]] probabilità su 8{{CR}} di creare un {{Card}} {{ColorPink}}Tarot{{CR}} tarocco casuale quando attivati #{{Shotspeed}} +0.16 Shot Speed"
+Descriptions.Jimbo.Jokers[mod.Jokers.DUSK] = "{{REG_Retrigger}} {{ColorYellorange}}Riattiva{{CR}} le {{ColorYellorange}}ultime 10{{CR}} carte giocabili #{{Blank}} {{ColorGray}}(Attualmente [[VALUE1]]{{ColorGray}})"
+Descriptions.Jimbo.Jokers[mod.Jokers.RAISED_FIST] = "{{Damage}} {{ColorMult}}+0.05{{CR}} Danno {{ColorYellorange}}X il Valore{{CR}} più basso delle carte {{ColorYellorange}}tenute in mano{{CR}} #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Danno)"
+Descriptions.Jimbo.Jokers[mod.Jokers.CHAOS_CLOWN] = "{{Collectible376}} Tutti gli {{Shop}} Shop e {{Treasure}} Treasure hanno una Restock Machine aggiuntiva"
+Descriptions.Jimbo.Jokers[mod.Jokers.FIBONACCI] = "{{Damage}} Gli {{ColorYellorange}}Assi{{CR}}, {{ColorYellorange}}2{{CR}}, {{ColorYellorange}}3{{CR}}, {{ColorYellorange}}5{{CR}} e {{ColorYellorange}}8{{CR}} danno {{ColorMult}}+0.08{{CR}} Danno quando attivati #{{Damage}} {{ColorMult}}+0.05{{CR}} Danno per {{Collectible}} oggetto avuto se ilò numero totale è nella sequanza di {{ColorYellorange}}Fibonacci #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Danno)"
+Descriptions.Jimbo.Jokers[mod.Jokers.STEEL_JOKER] = "{{Damage}} Ottiene {{ColorMult}}X0.15{{CR}} Molt. di Danno per {{ColorSilver}}Carta d'Acciaio{{CR}} nel mazzo completo #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt. di Danno)"
+Descriptions.Jimbo.Jokers[mod.Jokers.SCARY_FACE] = "{{Tears}} Le {{REG_Face}} {{ColorYellorange}}Figure{{CR}} danno {{ColorChips}}+0.3{{CR}} Lacrime quando attivate #{{Tears}} Uccidere un {{ColorYellorange}}Champion{{CR}} dà {{ColorChips}}+1{{CR}} Lacrime"
+Descriptions.Jimbo.Jokers[mod.Jokers.HACK] = "{{REG_Retrigger}} {{ColorYellorange}}Riattiva{{CR}} i {{ColorYellorange}}2{{CR}}, {{ColorYellorange}}3{{CR}}, {{ColorYellorange}}4{{CR}} e {{ColorYellorange}}5{{CR}} giocati #\1 Ottieni una copia degli oggetti {{Quality0}} e {{Quality1}} avuti"
+Descriptions.Jimbo.Jokers[mod.Jokers.PAREIDOLIA] = "{{REG_Face}} Ogni carta conta come {{ColorYellorange}}Figure{{CR}} #{{ColorMint}}[[CHANCE]] probabilità su 5{{CR}} aggiuntiva per ongi nemico non boss di essere un {{ColorYellorange}}Champion"
 
-Descriptions.Jimbo.Jokers[mod.Jokers.SCHOLAR] = "\1  {{ColorYellorange}}Aces{{CR}} give {{ColorMult}}+0.04{{CR}} Danno and {{ColorChips}}+0.2{{CR}} Lacrime quando attivata #{{Luck}} {{ColorMint}}+5{{CR}} Luck"
-Descriptions.Jimbo.Jokers[mod.Jokers.BUSINESS_CARD] = "{{Coin}} {{ColorYellorange}}Face{{CR}} cards have a {{ColorMint}}[[CHANCE]] probabilità su 2{{CR}} to spawn {{ColorYellorange}}2 temporary {{Coin}} Pennies{{CR}} quando attivata #Gain the {{Collectible602}} Member Card effect"
-Descriptions.Jimbo.Jokers[mod.Jokers.RIDE_BUS] = "{{Damage}} {{ColorMult}}+0.01{{CR}} Danno per consecutive {{ColorYellorange}}non-Face{{CR}} card played #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Danno)"
-Descriptions.Jimbo.Jokers[mod.Jokers.SPACE_JOKER] = "\1 {{ColorMint}}[[CHANCE]] probabilità su 20{{CR}} to upgrade the {{ColorYellorange}}played card Rank{{CR}}'s level #Gains an additional {{ColorMint}}{{[[CHANCE]]/20{{CR}} per {{ColorYellorange}}Star-related{{CR}} Item held"
-Descriptions.Jimbo.Jokers[mod.Jokers.BURGLAR] = "!!! Sets your Hp to {{ColorRed}}2{{CR}} Hearts #\1 Cards can be scored until the deck gets {{ColorYellorange}}reshuffled{{CR}}"
-Descriptions.Jimbo.Jokers[mod.Jokers.BLACKBOARD] = "{{Damage}} {{ColorMult}}X2{{CR}} Molt. di Danno if all cards held are {{ColorSpade}}Picche{{CR}} or {{ColorChips}}Fiori{{CR}}"
-Descriptions.Jimbo.Jokers[mod.Jokers.RUNNER] = "{{Lacrime}} Gains {{ColorChips}}+1.5{{CR}} Lacrime when entering an {{ColorYellorange}}unexplored{{CR}} room while holding a {{ColorYellorange}}Straight{{CR}} #{{Lacrime}} Gives {{ColorChips}}+Lacrime{{CR}} equal to double your {{Speed}} Speed stat#{{Blank}}(Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}} Chips) #{{Speed}} +0.1 Speed"
-Descriptions.Jimbo.Jokers[mod.Jokers.SPLASH] = "\1 Scores all cards in hand upon entering an {{ColorYellorange}}hostile{{CR}} room"
-Descriptions.Jimbo.Jokers[mod.Jokers.BLUE_JOKER] = "{{Lacrime}} {{ColorChips}}+0.2{{CR}} Lacrime per remaining card in your deck#{{Blank}} {{ColorGray}}(Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}} Lacrime)"
-Descriptions.Jimbo.Jokers[mod.Jokers.SIXTH_SENSE] = "{{Card}} If the {{ColorYellorange}}First{{CR}} card played in a {{ColorYellorange}}Blind{{CR}} is a {{ColorYellorange}}6{{CR}} and hits an enemy, destroy it and spawn a {{ColorBlue}}Spectral Pack{{CR}} #{{Collectible3}} 1 every 4 tears shot gains homing"
-Descriptions.Jimbo.Jokers[mod.Jokers.CONSTELLATION] = "{{Damage}} This Jokers gains {{ColorMult}}+0.05X{{CR}} Molt. di Danno every time a {{ColorCyan}}Planet Card{{CR}} is used while holding it #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt. di Danno) #{{Collectible}} {{ColorYellorange}}Star-related{{CR}} items held give {{ColorMult}}X1.1{{CR}} Molt. di Danno"
-Descriptions.Jimbo.Jokers[mod.Jokers.HIKER] = "{{Coin}} Cards gain a {{ColorYellorange}}permanent{{CR}} {{ColorMult}}+0.02{{CR}} Lacrime upgrade quando attivata"
-Descriptions.Jimbo.Jokers[mod.Jokers.FACELESS] = "{{Coin}} Gain {{ColorYellorange}}3 Pennies{{CR}} when discarding at least {{ColorYellorange}}2{{CR}} Face cards at once #If only {{ColorYellorange}}champion{{CR}} enemies are left in the room, they are {{ColorYellorange}}killed instantly{{CR}} spawning a {{ColorYellorvanishing penny{{CR}}}"
-Descriptions.Jimbo.Jokers[mod.Jokers.SUPERPOSISION] = "{{Card}} Entering an {{ColorYellorange}}unexplored{{CR}} room while holding a {{ColorYellorange}}Straight{{CR}} and an {{ColorYellorange}}Ace{{CR}} spawns an {{ColorPink}}Arcana Pack{{CR}} #Grants 2 {{Collectible128}} Forever Alone Flies"
+Descriptions.Jimbo.Jokers[mod.Jokers.SCHOLAR] = "\1 Gli {{ColorYellorange}}Assi{{CR}} danno {{ColorChips}}+0.2{{CR}} Lacrime e {{ColorMult}}+0.04{{CR}} Danno quando attivati #{{Luck}} {{ColorMint}}+5{{CR}} Fortuna"
+Descriptions.Jimbo.Jokers[mod.Jokers.BUSINESS_CARD] = "{{Coin}} Le {{ColorYellorange}}Figure{{CR}} hanno {{ColorMint}}[[CHANCE]] probabilità su 2{{CR}} di creare {{ColorYellorange}}2 Monete Temporanee{{CR}} quando attivate #{{Collectible602}} Ottieni l'effetto di Member Card"
+Descriptions.Jimbo.Jokers[mod.Jokers.RIDE_BUS] = "{{Damage}} {{ColorMult}}+0.01{{CR}} Danno per carte {{ColorYellorange}}non Figura{{CR}} giocate consecutivamente #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Danno)"
+Descriptions.Jimbo.Jokers[mod.Jokers.SPACE_JOKER] = "{{REG_Planet}} {{ColorMint}}[[CHANCE]] probabilità su 20{{CR}} di potenziare il livello del {{ColorYellorange}}Valore{{CR}} attivato # {{ColorMint}}[[CHANCE]] probabilità su 20{{CR}} per oggetto {{ColorYellorange}}Stellare{{CR}} avuto"
+Descriptions.Jimbo.Jokers[mod.Jokers.BURGLAR] = "!!! Fissa gli Hp a {{ColorRed}}2{{CR}} Cuori #\1 Le carte sono giocabili fino al {{ColorYellorange}}rimischio{{CR}} del mazzo"
+Descriptions.Jimbo.Jokers[mod.Jokers.BLACKBOARD] = "{{Damage}} {{ColorMult}}X2{{CR}} Molt. di Danno se tutte le carte in mano sono di {{ColorSpade}}Picche{{CR}} o {{ColorChips}}Fiori"
+Descriptions.Jimbo.Jokers[mod.Jokers.RUNNER] = "{{Tears}} Ottiene {{ColorChips}}+1.5{{CR}} Lacrime entrando in una stanza ostile {{ColorYellorange}}inesplorata{{CR}} tenendo una {{ColorYellorange}}Scala{{CR}} #{{Tears}} Gives {{ColorChips}}+Lacrime{{CR}} equal to double your {{Speed}} Speed stat#{{Blank}}(Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}} Fiches) #{{Speed}} +0.1 Speed"
+Descriptions.Jimbo.Jokers[mod.Jokers.SPLASH] = "{{REG_Retrigger}} Attiva le carte tenute in mano entrando in una stanza {{ColorYellorange}}ostile"
+Descriptions.Jimbo.Jokers[mod.Jokers.BLUE_JOKER] = "{{Tears}} {{ColorChips}}+0.2{{CR}} Lacrime per carta rimenente nel mazzo #{{Blank}} {{ColorGray}}(Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}} Lacrime)"
+Descriptions.Jimbo.Jokers[mod.Jokers.SIXTH_SENSE] = "{{Card}} Se la {{ColorYellorange}}prima{{CR}} carta attivata di un {{ColorYellorange}}Buio{{CR}} è un {{ColorYellorange}}6{{CR}} e colpisce un nemico, si distrugge e crea una {{ColorBlue}}Busta Spettrale{{CR}} #{{Collectible3}} 1 lacrima ogni 4 ottiene homing"
+Descriptions.Jimbo.Jokers[mod.Jokers.CONSTELLATION] = "{{Damage}} Ottiene {{ColorMult}}+0.05X{{CR}} Molt. di Danno ogni {{ColorCyan}}Carta Pianeta{{CR}} uasta #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt. di Danno) #{{Collectible}} Gli oggetti {{ColorYellorange}}Stellari{{CR}} avuti danno {{ColorMult}}X1.1{{CR}} Molt. di Danno"
+Descriptions.Jimbo.Jokers[mod.Jokers.HIKER] = "{{Coin}} Le carte ottengono {{ColorMult}}+0.02{{CR}} Lacrime {{ColorYellorange}}permanenti{{CR}} quando attivate"
+Descriptions.Jimbo.Jokers[mod.Jokers.FACELESS] = "{{Coin}} {{ColorYellorange}}+3 Monete{{CR}} scartando almeno {{ColorYellorange}}2{{CR}} {{REG_Face}} Figure insieme #Se solo nemici {{ColorYellorange}}champion{{CR}} sono presenti, vengono tutti {{ColorYellorange}}uccisi istantaneamente{{CR}} #{{IND}}{{Coin}} I nemici uccisi creano una {{ColorYellorange}}moneta temporanea"
+Descriptions.Jimbo.Jokers[mod.Jokers.SUPERPOSISION] = "{{Card}} Entrando in una stanza ostile {{ColorYellorange}}inesplorata{{CR}} tenendo una {{ColorYellorange}}Scala{{CR}} ed un {{ColorYellorange}}Asso{{CR}} crea un {{ColorPink}}Pacco Arcano{{CR}} #{{Collectible128}} +2 mosche Forever Alone"
 --Descriptions.Jimbo.Jokers[mod.Jokers.TO_DO_LIST] = "{{ColorYellorange}}[[VALUE1]]s{{CR}} spawn a {{ColorYellorange}}temporary {{Coin}} penny{{R}} quando attivata #!!! {{ColorGray}}(Rank changes every room)"
-Descriptions.Jimbo.Jokers[mod.Jokers.TO_DO_LIST] = "{{Coin}} Killing enemies in the {{ColorYellorange}}order{{CR}} dictated by the {{Coin}} above them awards with a penny"
+Descriptions.Jimbo.Jokers[mod.Jokers.TO_DO_LIST] = "{{Coin}} Uccidere i nemici nell'{{ColorYellorange}}ordine{{CR}} indicato dalla {{Coin}} sopra di essi ricompensa con una moneta"
 
 
-Descriptions.Jimbo.Jokers[mod.Jokers.CARD_SHARP] = "{{Damage}} Gives {{ColorMult}}X1.1{{CR}} Molt. di Danno when playing 2 cards with the same rank {{ColorYellorange}}consecutevely{{CR}} #!!! {{ColorYellorange}}Stone cards{{CR}} are considered as a separete renk #{{Collectible665}} Allows to see the content of {{ColorYellorange}}chests{{CR}} and {{ColorYellorange}}sacks{{CR}}"
-Descriptions.Jimbo.Jokers[mod.Jokers.SQUARE_JOKER] = "{{Lacrime}} Gives {{ColorChips}}+4{{CR}} Lacrime to every fourth card shot #{{Pill}} Gains {{ColorChips}}+0.4{{CR}} Lacrime every time a {{ColorYellorange}}Retro Vision{{CR}} pill is used #{{Blank}} {{ColorGray}}(Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}} Lacrime)"
-Descriptions.Jimbo.Jokers[mod.Jokers.SEANCE] = "Spawns a {{ColorYellorange}}Spectral Pack{{CR}} if a {{ColorYellorange}}Straight Flush{{CR}} is held when entering a room #{{Collectible727}} {{ColorMint}}1/6 chance{{CR}} to spawn a {{ColorYellorange}}Hungry Soul{{CR}} when killing an enemy"
-Descriptions.Jimbo.Jokers[mod.Jokers.VAMPIRE] = "{{Damage}} When an {{ColorYellorange}}Enhanced{{CR}} card is Played, this gains {{ColorMult}}X0.02{{CR}} Molt. di Danno and removes the {{ColorYellorange}}Enhancement{{CR}} #{{Blank}} {{ColorGray}}(Currenlty {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt. di Danno)"
-Descriptions.Jimbo.Jokers[mod.Jokers.SHORTCUT] = "Allows {{ColorYellorange}}Straights{{CR}} to be made with gaps of {{ColorYellorange}}1 rank{{CR}} #{{Collectible84}} Creates a {{ColorYellorange}}Crawl space{{CR}} in a random room every floor #{{Collectible84}} immediantly opens all {{ColorYellorange}}Secret Room{{CR}} doors"
-Descriptions.Jimbo.Jokers[mod.Jokers.HOLOGRAM] = "{{Damage}} Gains {{ColorMult}}X0.1{{CR}} Molt. di Danno when a card gets {{ColorYellorange}}Added{{CR}} to the deck #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt. di Danno)"
+Descriptions.Jimbo.Jokers[mod.Jokers.CARD_SHARP] = "{{Damage}} {{ColorMult}}X1.1{{CR}} Molt. di Danno giocando 2 carte con lo stesso valore {{ColorYellorange}}di fila{{CR}} #{{IND}}!!! Le {{ColorYellorange}}Carte di Pietra{{CR}} non hanno alcun effetto #{{Collectible665}} Permette di vedere i contenu di {{ColorYellorange}}casse{{CR}} e {{ColorYellorange}}sacchette"
+Descriptions.Jimbo.Jokers[mod.Jokers.SQUARE_JOKER] = "{{Tears}} {{ColorChips}}+4{{CR}} Lacrime ogni quarta carta giocata #{{Pill}} Ottiene {{ColorChips}}+0.4{{CR}} Lacrime ogni uso della pillola {{ColorYellorange}}Retro Vision{{CR}} #{{Blank}} {{ColorGray}}(Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}} Lacrime)"
+Descriptions.Jimbo.Jokers[mod.Jokers.SEANCE] = "{{REG_Spectral}} Crea una {{ColorYellorange}}Busta Spettrale{{CR}} entrando in una stanza ostile {{ColorYellorange}}inesplorata{{CR}} avendo una {{ColorYellorange}}Scala Colore{{CR}} in mano #{{Collectible727}} {{ColorMint}}[[CHANCE]] possibilità su 6{{CR}} di creare una {{ColorYellorange}}Hungry Soul{{CR}} uccidendo un nemico"
+Descriptions.Jimbo.Jokers[mod.Jokers.VAMPIRE] = "{{Damage}} Quando una carta {{ColorYellorange}}Potenziata{{CR}} è giocata, ottiene {{ColorMult}}X0.02{{CR}} Molt. di Danno e rimuove il {{ColorYellorange}}Potenziamento {{CR}} #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt. di Danno)"
+Descriptions.Jimbo.Jokers[mod.Jokers.SHORTCUT] = "Le {{ColorYellorange}}Scale{{CR}} possono contenere salti si {{ColorYellorange}}1 Valore{{CR}} #{{Collectible84}} Crea un {{ColorYellorange}}Crawl space{{CR}} in una stanza casuale di ogni piano #{{Collectible84}} Apre tutte le {{ColorYellorange}}Stanze Segrete"
+Descriptions.Jimbo.Jokers[mod.Jokers.HOLOGRAM] = "{{Damage}} Ottiene {{ColorMult}}X0.1{{CR}} Molt. di Danno quando una carta viene {{ColorYellorange}}aggiunta{{CR}} al mazzo #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt. di Danno)"
 
-Descriptions.Jimbo.Jokers[mod.Jokers.BARON] = "{{Damage}} {{ColorYellorange}}Kings{{CR}} held in hand give {{ColorMult}}X1.2{{CR}} Molt. di Danno when entering an hostile room #{{Quality4}} Gives {{ColorMult}}X1.25{{CR}} Molt. di Danno per Q4 item held#{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt. di Danno)"
-Descriptions.Jimbo.Jokers[mod.Jokers.OBELISK] = "{{Damage}} Gains {{ColorMult}}X0.05{{CR}} Molt. di Danno per {{ColorYellorange}}consecutive{{CR}} card played with a different {{ColorYellorange}}Suit{{CR}} from the last #!!! {{ColorYellorange}}Stone cards{{CR}} have no effect #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt. di Danno)"
-Descriptions.Jimbo.Jokers[mod.Jokers.MIDAS] = "{{Coin}} {{ColorYellorange}}Face{{CR}} cards {{ColorYellorange}}Played{{CR}} become {{ColorYellorange}}Golden{{CR}}#{{ColorYellorange}}Champion{{CR}} enemies are breifly turned into golden statues when spawning"
-Descriptions.Jimbo.Jokers[mod.Jokers.LUCHADOR] = "{{Shop}} {{ColorYellorange}}Selling{{CR}} this Joker causes a {{Collectible483}}Mama Mega! explosion and {{Weakness}} weakens all {{ColorYellorange}}Bosses{{CR}} in the room"
-Descriptions.Jimbo.Jokers[mod.Jokers.PHOTOGRAPH] = "{{Damage}} The first {{ColorYellorange}}Face{{CR}} card {{ColorYellorange}}Played{{CR}} every room gives {{ColorMult}}X1.2{{CR}} Molt. di Danno quando attivata #{{Damage}} If the first room enemy killed is a {{ColorYellorange}}Champion{{CR}}, gives {{ColorMult}}X1.2{{CR}} Molt. di Danno #Can open {{ColorYellorange}}A Strange Door{{CR}}"
-Descriptions.Jimbo.Jokers[mod.Jokers.GIFT_CARD] = "{{Coin}} Every Joker held gains {{ColorYellorange}}+1${{CR}} selling value on blind clear #{{Shop}} All items cost {{ColorYellorange}}1$ less"
-Descriptions.Jimbo.Jokers[mod.Jokers.TURTLE_BEAN] = "\1 {{ColorYellorange}}+[[VALUE1]]{{CR}} Hand Size #!!! Bonus is decreased by {{ColorRed}}-1{{CR}} on blind clear #{{Collectible594}} Grants the Jupiter effect"
-Descriptions.Jimbo.Jokers[mod.Jokers.EROSION] = "{{Damage}} Gains {{ColorMult}}+0.15{{CR}} Danno when a card gets {{ColorYellorange}}Destroyed{{CR}} #This gains {{ColorMult}}+0.05{{CR}} Danno per {{ColorYellorange}}Tinted{{CR}} Rock {{ColorYellorange}}Destroyed{{CR}} #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Danno)"
-Descriptions.Jimbo.Jokers[mod.Jokers.RESERVED_PARK] = "{{Coin}} {{ColorYellorange}}Face{{CR}} cards held in hand have a {{ColorMint}}[[CHANCE]] probabilità su 4{{CR}} to spawn a penny on blind clear #When killing an enemy, other {{ColorYellorange}}Champions{{CR}} create a {{ColorYellorange}}Vanishong penny{{CR}}"
+Descriptions.Jimbo.Jokers[mod.Jokers.BARON] = "{{Damage}} I {{ColorYellorange}}Re{{CR}} tenuti in mano danno {{ColorMult}}X1.2{{CR}} Molt. di Danno entrando in una stanza ostile #{{Quality4}} {{ColorMult}}X1.25{{CR}} Molt. di Danno per oggetto Q4 avuto #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt. di Danno)"
+Descriptions.Jimbo.Jokers[mod.Jokers.OBELISK] = "{{Damage}} Ottiene {{ColorMult}}X0.1{{CR}} Molt. di Danno per carta giocata con un {{ColorYellorange}}Seme{{CR}} diverso dalla precedente {{ColorYellorange}}di fila{{CR}} #{{IND}}!!! Azzerato ogni stanza completata #{{IND}}!!! {{ColorYellorange}}Stone cards{{CR}} have no effect #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt. di Danno)"
+Descriptions.Jimbo.Jokers[mod.Jokers.MIDAS] = "{{REG_Gold}} Le {{REG_Face}} {{ColorYellorange}}Figure attivate{{CR}} diventano {{ColorYellorange}}Dorate{{CR}} #I nemici {{ColorYellorange}}Champion{{CR}} rimangono dorati per un po' quando creati"
+Descriptions.Jimbo.Jokers[mod.Jokers.LUCHADOR] = "{{Shop}} {{ColorYellorange}}Vandere{{CR}} questo Jolly crea un'esplosione {{Collectible483}} Mama Mega! e {{Weakness}} indebolisce tutti i {{ColorYellorange}}Boss{{CR}} nella stanza"
+Descriptions.Jimbo.Jokers[mod.Jokers.PHOTOGRAPH] = "{{Damage}} La prima {{REG_Face}} {{ColorYellorange}}Figura attivata{{CR}} della stanza dà {{ColorMult}}X1.25{{CR}} Molt. di Danno quando attivata #{{Damage}} {{ColorMult}}X1.5{{CR}} Molt. di Danno se il primo neico ucciso della stanza è un {{ColorYellorange}}Champion #{{Collectible327}} Può aprire la {{ColorYellorange}}Srange Door"
+Descriptions.Jimbo.Jokers[mod.Jokers.GIFT_CARD] = "{{Coin}} Ogni Jolly avuto ottieno {{ColorYellorange}}+1{{CR}} valore di vednita quando un Buio viene sconfitto #{{Shop}} I prezzi sono ridotti di {{ColorYellorange}}1 Moneta"
+Descriptions.Jimbo.Jokers[mod.Jokers.TURTLE_BEAN] = "{{REG_HSize}} {{ColorYellorange}}+[[VALUE1]]{{CR}} Carte in mano #{{IND}}!!! Ottiene {{ColorRed}}-1{{CR}} Carte in mano quando un Buio viene sconfitto #{{Collectible594}} Ottieni l'effetto do Jupiter"
+Descriptions.Jimbo.Jokers[mod.Jokers.EROSION] = "{{Damage}} Ottiene {{ColorMult}}+0.15{{CR}} Danno ad ongi carta {{ColorYellorange}}Distrutta{{CR}} #{{Damage}} Ottiene {{ColorMult}}+0.05{{CR}} Danno per {{ColorYellorange}}Tinted Rock{{CR}} {{ColorYellorange}}Distrutta{{CR}} #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Danno)"
+Descriptions.Jimbo.Jokers[mod.Jokers.RESERVED_PARK] = "{{Coin}} Le {{REG_Face}} {{ColorYellorange}}Figure{{CR}} tanute in manoo hanno {{ColorMint}}[[CHANCE]] probabilità su 4{{CR}} di creare una moneta completando una stanza #{{Coin}} Uccidendo un nemico, gli altri {{ColorYellorange}}Champion{{CR}} creano una {{ColorYellorange}}Moneta Temporanea"
 
-Descriptions.Jimbo.Jokers[mod.Jokers.MAIL_REBATE] = "{{Coin}} Gain {{ColorYellorange}}2 pennies{{CR}} per {{ColorYellorange}}[[VALUE1]]{{CR}} discarded #{{Blank}} {{ColorGray}}(Rank changes every room)"
-Descriptions.Jimbo.Jokers[mod.Jokers.TO_THE_MOON] = "{{Coin}} {{colorYellow}}Interests{{CR}} earned are {{ColorYellorange}}Doubled{{CR}}"
-Descriptions.Jimbo.Jokers[mod.Jokers.JUGGLER] = "\1  {{ColorYellorange}}+1{{CR}} Hand Size #\1  {{ColorYellorange}}+1{{CR}} consumable slot"
-Descriptions.Jimbo.Jokers[mod.Jokers.DRUNKARD] = "{{Heart}} {{ColorMult}}+1{{CR}} Health up #{{Heart}} Heal one extra heart on room clear"
-Descriptions.Jimbo.Jokers[mod.Jokers.LUCKY_CAT] = "{{Damage}} Gains {{ColorMult}}X0.02{{CR}} Molt. di Danno when a {{ColorYellorange}}Lucky Card{{CR}} triggers {{ColorMint}}Succesfully{{CR}} or when a {{Slotmachine}} Slot pays out #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt. di Danno)"
-Descriptions.Jimbo.Jokers[mod.Jokers.BASEBALL] = "{{Damage}} Gives {{ColorMult}}X1.25{{CR}} Molt. di Danno per {{ColorMint}}Uncommon{{CR}} Joker held #{{Damage}} Gives {{ColorMult}}X1.1{{CR}} Molt. di Danno per {{Quality2}} Item held #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}[[VALUE1]]{{ColorGray}} Molt. di Danno)"
-Descriptions.Jimbo.Jokers[mod.Jokers.DIET_COLA] = "{{Shop}} Copies the {{Collectible347}} Diplopia effect when {{ColorYellorange}}Sold{{CR}}"
+Descriptions.Jimbo.Jokers[mod.Jokers.MAIL_REBATE] = "{{Coin}} {{ColorYellorange}}+2 Monete{{CR}} per {{ColorYellorange}}[[VALUE1]]{{CR}} scartato #{{Blank}} {{ColorGray}}(Valore cambia ogni stanza)"
+Descriptions.Jimbo.Jokers[mod.Jokers.TO_THE_MOON] = "{{Coin}} Gli {{colorYellow}}Interessi{{CR}} sono {{ColorYellorange}}Raddoppiati"
+Descriptions.Jimbo.Jokers[mod.Jokers.JUGGLER] = "{{REG_HSize}} {{ColorYellorange}}+1{{CR}} Carte in mano #\1 {{ColorYellorange}}+1{{CR}} slot consumabili"
+Descriptions.Jimbo.Jokers[mod.Jokers.DRUNKARD] = "{{Heart}} {{ColorYellorange}}+1{{CR}} Health up #{{Heart}} Cura di un cuore aggiuntivo completando una stanza"
+Descriptions.Jimbo.Jokers[mod.Jokers.LUCKY_CAT] = "{{Damage}} Ottiene {{ColorMult}}X0.02{{CR}} Molt. di Danno quando una {{ColorYellorange}}Carta Fortunata{{CR}} si attiva con {{ColorMint}}Successo{{CR}} o quando una {{Slotmachine}} Slot dà un premio #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt. di Danno)"
+Descriptions.Jimbo.Jokers[mod.Jokers.BASEBALL] = "{{Damage}} {{ColorMult}}X1.25{{CR}} Molt. di Danno per Jolly {{ColorMint}}non comune{{CR}} avuto #{{Damage}} {{ColorMult}}X1.1{{CR}} Molt. di Danno per oggetto {{Quality2}} avuto #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}[[VALUE1]]{{ColorGray}} Molt. di Danno)"
+Descriptions.Jimbo.Jokers[mod.Jokers.DIET_COLA] = "{{Shop}} {{ColorYellorange}}Vendere{{CR}} questo Jolly attiva l'effetto di {{Collectible347}} Diplopia"
 
-Descriptions.Jimbo.Jokers[mod.Jokers.TRADING_CARD] = "{{Shop}} {{ColorYellorange}}Selling{{CR}} this Joker {{ColorYellorange}}Destroys{{CR}} every card held in hand #{{Coins}} Gives {{ColorYellorange}}2 pennies{{CR}} per card destroyed {{ColorYellorange}}this way"
-Descriptions.Jimbo.Jokers[mod.Jokers.SPARE_TROUSERS] = "{{Damage}} Gains {{ColorMult}}+0.25{{CR}} Danno if a {{ColorYellorange}}Two-pair{{CR}} is held when entering a room #Gives {{ColorMult}}+0.1{{CR}} Danno per active {{ColorYellorange}}costume{{CR}} #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Danno)"
-Descriptions.Jimbo.Jokers[mod.Jokers.ANCIENT_JOKER] = "#{{Damage}} [[VALUE1]]{{CR}} cards give {{ColorMult}}X1.05{{CR}} Molt. di Danno quando attivata #{{ColorGray}}(Suit changes every room)"
-Descriptions.Jimbo.Jokers[mod.Jokers.WALKIE_TALKIE] = "\1 {{ColorYellorange}}10s{{CR}} and {{ColorYellorange}}4s{{CR}} give {{ColorChips}}+0.1{{CR}} Lacrime and {{ColorMult}}+0.04{{CR}} Danno quando attivata"
-Descriptions.Jimbo.Jokers[mod.Jokers.SELTZER] = "\1  {{ColorYellorange}}Retriggers{{CR}} the next {{ColorYellorange}}[[VALUE1]]{{CR}} played cards"
-Descriptions.Jimbo.Jokers[mod.Jokers.SMILEY_FACE] = "{{Damage}} {{ColorYellorange}}Face{{CR}} cards give {{ColorMult}}+0.05{{CR}} Danno quando attivata #Killing a {{ColorYellorange}}Champion{{CR}} gives {{ColorMult}}+0.15{{CR}} Danno #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Danno)"
-Descriptions.Jimbo.Jokers[mod.Jokers.CAMPFIRE] = "{{Damage}} Gains {{ColorMult}}X0.2{{CR}} Molt. di Danno per sold Joker this {{ColorYellorange}}Floor{{CR}} #!!! Jokers gotten with full inventory are sold automatically without giving any coin #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt. di Danno)"
-Descriptions.Jimbo.Jokers[mod.Jokers.CASTLE] = "{{Lacrime}} Gains {{ColorChips}}+0.04{{CR}} Lacrime per {{ColorYellorange}}[[VALUE1]]{{CR}} discarded #{{Blank}} {{ColorGray}}(Attualmente {{ColorChips}}+[[VALUE2]]{{ColorGray}} Lacrime)"
-Descriptions.Jimbo.Jokers[mod.Jokers.GOLDEN_TICKET] = "{{Coin}} {{ColorYellorange}}Golden cards{{CR}} give {{ColorYellorange}}1 penny{{CR}} quando attivata #{{Collectible202}} Every pickup has a {{ColorMint}}[[CHANCE]] probabilità su 25 chance{{CR}} to become its {{ColorYellorange}}Golden{{CR}} variant"
-Descriptions.Jimbo.Jokers[mod.Jokers.ACROBAT] = "{{Damage}} The {{ColorYellorange}}Last 5{{CR}} scoring cards give {{ColorMult}}X1.1{{CR}} Danno Mult quando attivata #{{Damage}} Gives {{ColorMult}}X1.5{{CR}} Danno multiplier during any {{Boss}} bossfight #{{Blank}} {{ColorGray}}(Attualmente [[VALUE1]] {{ColorGray}})"
-Descriptions.Jimbo.Jokers[mod.Jokers.SOCK_BUSKIN] = '\1  {{ColorYellorange}}Retriggers{{CR}} played {{ColorYellorange}}Face{{CR}} cards #\1  {{ColorYellorange}}Retriggers{{CR}} "on champion kill" Joker effects'
-Descriptions.Jimbo.Jokers[mod.Jokers.TROUBADOR] = "\1  {{ColorYellorange}}+2{{CR}} Hand Size #\2  {{ColorBlue}}-5{{CR}} scoring cards"
-Descriptions.Jimbo.Jokers[mod.Jokers.THROWBACK] = "{{Damage}} Gains {{ColorMult}}X0.1{{CR}} Molt. di Danno per {{ColorYellorange}}Blind{{CR}} skipped this run #{{Damage}} Gains {{ColorMult}}X0.02{{CR}} Molt. di Danno per {{ColorYellorange}}Special room{{CR}} skipped this run #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt. di Danno)"
-Descriptions.Jimbo.Jokers[mod.Jokers.CERTIFICATE] = "\1 Adds a card with {{ColorYellorange}}Random Seal{{CR}} to the deck on blind clear #{{Collectible75}} Grants the PHD effect"
-Descriptions.Jimbo.Jokers[mod.Jokers.HANG_CHAD] = "\1  {{ColorYellorange}}Retriggers 3{{CR}} times the {{ColorYellorange}}first{{CR}} played card in a room #{{Card}} The {{ColorYellorange}}first{{CR}} card used every floor spawns a copy of itself"
-Descriptions.Jimbo.Jokers[mod.Jokers.GLASS_JOKER] = "{{Damage}} Gains {{ColorMult}}X0.2{{CR}} Molt. di Danno per destroyed {{ColorYellorange}}Glass Card{{CR}} #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorYellorange}} Molt. di Danno) #!!! {{ColorMint}}Doubles{{CR}} the Glass card's breaking chance"
-Descriptions.Jimbo.Jokers[mod.Jokers.SHOWMAN] = "{{ColorYellorange}}Items{{CR}}, {{ColorYellorange}}Joker{{CR}}, {{ColorPink}}Tarot{{CR}}, {{ColorCyan}}Planet{{CR}} and {{ColorBlue}}Spectral{{CR}} cards may appear multiple times"
-Descriptions.Jimbo.Jokers[mod.Jokers.FLOWER_POT] = "{{Damage}} {{ColorMult}}X2{{CR}} Molt. di Danno if every {{ColorYellorange}}Suit{{CR}} is held in hand when entering an hostile room #Spawns 3 charming flowers in hostile rooms"
-Descriptions.Jimbo.Jokers[mod.Jokers.WEE_JOKER] = "{{Lacrime}} Gains {{ColorChips}}+0.04{{CR}} Lacrime when a {{ColorYellorange}}2{{CR}} is scored #\1 Reduces Isaac's size and hitbox #{{Blank}} {{ColorGray}}(Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}} Lacrime)"
-Descriptions.Jimbo.Jokers[mod.Jokers.OOPS_6] = "{{Luck}} Every {{ColorMint}}Listed{{CR}} is Doubled #{{Collectible46}} Grants the Lucky foot effect"
-Descriptions.Jimbo.Jokers[mod.Jokers.IDOL] = "{{Damage}} [[VALUE1]]{{CR}} give {{ColorMult}}X1.1{{CR}} Molt. di Danno quando attivata #{{ColorGray}} (Card changes every room) #{{Damage}} {{ColorMult}}X2{{CR}} Molt. di Danno per {{ColorYellorange}} {{Collectible[[VALUE2]]}} [[VALUE3]]{{CR}} held"
-Descriptions.Jimbo.Jokers[mod.Jokers.SEE_DOUBLE] = "{{Damage}} {{ColorMult}}X1.2{{CR}} Molt. di Danno if both a {{ColorClub}}Club{{CR}} and a {{ColorYellorange}}Not-club{{CR}} card are held in hand when entering an hostile room#{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}[[VALUE1]]{{CR}})"
-Descriptions.Jimbo.Jokers[mod.Jokers.MATADOR] = "{{Coin}} Gain {{ColorYellorange}}3 pennies{{CR}} when taking Danno from a {{ColorYellorange}}Boss{{CR}}"
-Descriptions.Jimbo.Jokers[mod.Jokers.HIT_ROAD] = "{{Damage}} Gains {{ColorMult}}X0.2{{CR}} Molt. di Danno per {{ColorYellorange}}Jack{{CR}} discarded #!!! Resets every {{ColorYellorange}}Room{{CR}} #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt. di Danno)"
-Descriptions.Jimbo.Jokers[mod.Jokers.DUO] = "{{Damage}} {{ColorMult}}X1.25{{CR}} Danno Mutiplier if a {{ColorYellorange}}Pair{{CR}} is held when entering an hostile room #{{Blank}} {{ColorGray}}(Attualmente: [[VALUE1]]{{ColorGray}})"
-Descriptions.Jimbo.Jokers[mod.Jokers.TRIO] = "{{Damage}} {{ColorMult}}X1.5{{CR}} Danno Mutiplier if a {{ColorYellorange}}Three of a Kind{{CR}} is held when entering an hostile room #{{Blank}} {{ColorGray}}(Attualmente: [[VALUE1]]{{ColorGray}})"
-Descriptions.Jimbo.Jokers[mod.Jokers.FAMILY] = "{{Damage}} {{ColorMult}}X2{{CR}} Danno Mutiplier if a {{ColorYellorange}}Four of a Kind{{CR}} is held when entering an hostile room #{{Blank}} {{ColorGray}}(Attualmente: [[VALUE1]]{{ColorGray}})"
-Descriptions.Jimbo.Jokers[mod.Jokers.ORDER] = "{{Damage}} {{ColorMult}}X2.5{{CR}} Danno Mutiplier if a {{ColorYellorange}}Straight{{CR}} is held when entering an hostile room #{{Blank}} {{ColorGray}}(Attualmente: [[VALUE1]]{{ColorGray}})"
-Descriptions.Jimbo.Jokers[mod.Jokers.TRIBE] = "{{Damage}} {{ColorMult}}X1.55{{CR}} Danno Mutiplier if a {{ColorYellorange}}Flush{{CR}} is held when entering an hostile room #{{Blank}} {{ColorGray}}(Attualmente: [[VALUE1]]{{ColorGray}})"
-Descriptions.Jimbo.Jokers[mod.Jokers.STUNTMAN] = "{{Lacrime}} {{ColorMult}}+12.5{{CR}} Lacrime #\2  {{ColorMult}}-2{{CR}} Hand Size"
-Descriptions.Jimbo.Jokers[mod.Jokers.SATELLITE] = "{{Coin}} Gain {{ColorYellorange}}1 Coin{{CR}} per unique {{ColorCyan}}Planet{{CR}} card used this run on blind clear #(Attualmente {{ColorYellorange}}[[VALUE1]]{{ColorGray}} Coins) #A light beam is shot per unique {{ColorCyan}}Planet{{CR}} card used when entering an hostile room"
-Descriptions.Jimbo.Jokers[mod.Jokers.SHOOT_MOON] = "{{Damage}} {{ColorYellorange}}Queens{{CR}} held in hand give {{ColorMult}}+0.7{{CR}} Danno when entering an hostile room"
-Descriptions.Jimbo.Jokers[mod.Jokers.DRIVER_LICENSE] = "{{Damage}} {{ColorMult}}X1.5{{CR}} Molt. di Danno if there are at least {{ColorYellorange}}18{{CR}} Enhanced cards in your full deck #Having either the {{Adult}} Adult, {{Mom}} Mom or {{Bob}} Bob transformation also activates the effect #{{Blank}} {{ColorGray}}(Attualmente [[VALUE1]])"
-Descriptions.Jimbo.Jokers[mod.Jokers.ASTRONOMER] = "{{Shop}} {{ColorCyan}}Planet{{CR}} cards,{{ColorCyan}}Celestial Packs{{CR}} and {{ColorYellorange}}Star-themed{{CR}} items are free #{{Planetarium}} {{ColorYellorange}}+20%{{CR}} planetarium chance {{ColorGray}}(halves every time one is visited) #{{Planetarium}} Planetariums can spawns on any normal floor"
-Descriptions.Jimbo.Jokers[mod.Jokers.BURNT_JOKER] = "\1 Upgrades the {{ColorCyan}}level{{CR}} of {{ColorYellorange}}discarded{{CR}} if they hit an enemy"
-Descriptions.Jimbo.Jokers[mod.Jokers.BOOTSTRAP] = "{{Damage}} {{ColorMult}}+0.05{{CR}} Danno per {{ColorYellorange}}5 {{Coin}} Coins{{CR}} held {{ColorGray}}#{{Blank}} (Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Danno) #Gain {{ColorYellorange}}Collision Danno{{CR}} equal to the amount of coins held"
+Descriptions.Jimbo.Jokers[mod.Jokers.TRADING_CARD] = "{{Shop}} {{ColorYellorange}}Vendendo{{CR}} questo Jolly, tutte le carte in mano vengono {{ColorYellorange}}Distrutte{{CR}} e danno danno {{ColorYellorange}}+2 {{Coin}} Monete"
+Descriptions.Jimbo.Jokers[mod.Jokers.SPARE_TROUSERS] = "{{Damage}} Ottiene {{ColorMult}}+0.25{{CR}} Danno se una {{ColorYellorange}}Doppia Coppia{{CR}} è tenuta entrando in una stanza ostile #{{Damage}} {{ColorMult}}+0.1{{CR}} Danno per {{ColorYellorange}}costume{{CR}} visibile #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Danno)"
+Descriptions.Jimbo.Jokers[mod.Jokers.ANCIENT_JOKER] = "#{{Damage}} Le Carte di [[VALUE1]]{{CR}} danno {{ColorMult}}X1.05{{CR}} Molt. di Danno quando attivate #{{ColorGray}}(Seme cambia ogni stanza)"
+Descriptions.Jimbo.Jokers[mod.Jokers.WALKIE_TALKIE] = "\1 I {{ColorYellorange}}10{{CR}} e {{ColorYellorange}}4{{CR}} danno {{ColorChips}}+0.1{{CR}} Lacrime e {{ColorMult}}+0.04{{CR}} Danno quando attivati"
+Descriptions.Jimbo.Jokers[mod.Jokers.SELTZER] = "{{REG_Retrigger}} {{ColorYellorange}}Riattiva{{CR}} le prossime {{ColorYellorange}}[[VALUE1]]{{CR}} carte giocate"
+Descriptions.Jimbo.Jokers[mod.Jokers.SMILEY_FACE] = "{{Damage}} Le {{REG_Face}} {{ColorYellorange}}Figure{{CR}} danno {{ColorMult}}+0.05{{CR}} Danno quando attivate #{{Damage}} Uccidere un {{ColorYellorange}}Champion{{CR}} dà {{ColorMult}}+0.15{{CR}} Danno #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Danno)"
+Descriptions.Jimbo.Jokers[mod.Jokers.CAMPFIRE] = "{{Damage}} Ottiene {{ColorMult}}X0.2{{CR}} Molt. di Danno per Jolly venduto nel {{ColorYellorange}}Piano corrente #!!! I Jolly possono essere presi anche ad inventario pieno, ma sono venduti automaticamente senza monete in cambio #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt. di Danno)"
+Descriptions.Jimbo.Jokers[mod.Jokers.CASTLE] = "{{Tears}} Ottiene {{ColorChips}}+0.04{{CR}} Lacrime per {{ColorYellorange}}[[VALUE1]]{{CR}} scartato #{{ColorGray}}(Valore cambia ongi stanza) #{{Blank}} {{ColorGray}}(Attualmente {{ColorChips}}+[[VALUE2]]{{ColorGray}} Lacrime)"
+Descriptions.Jimbo.Jokers[mod.Jokers.GOLDEN_TICKET] = "{{REG_Gold}} Le {{ColorYellorange}}Carte Dorate{{CR}} danno {{ColorYellorange}}+1 {{Coin}} Moneta{{CR}} quando attivate #{{Collectible202}} Ogni pickup ha {{ColorMint}}[[CHANCE]] probabilità su 25{{CR}} di diventare la sua variante {{ColorYellorange}}dorata"
+Descriptions.Jimbo.Jokers[mod.Jokers.ACROBAT] = "{{Damage}} Le {{ColorYellorange}}Ultime 5{{CR}} carte giocabili {{ColorMult}}X1.1{{CR}} Molt. di Danno quando attivate #{{Damage}} {{ColorMult}}X1.5{{CR}} Molt. di Danno durante le {{Boss}} bossfight #{{Blank}} {{ColorGray}}(Attualmente [[VALUE1]] {{ColorGray}})"
+Descriptions.Jimbo.Jokers[mod.Jokers.SOCK_BUSKIN] = '{{REG_Retrigger}} {{ColorYellorange}}Riattiva{{CR}} le {{REG_Face}} {{ColorYellorange}}Figure{{CR}} giocate #{{REG_Retrigger}} {{ColorYellorange}}Riattiva{{CR}} gli effetti Jolly ad "Uccisione di Champion"'
+Descriptions.Jimbo.Jokers[mod.Jokers.TROUBADOR] = "{{REG_HSize}} {{ColorYellorange}}+2{{CR}} Carte in mano #{{REG_Hand}} {{ColorBlue}}-5{{CR}} carte giocabili"
+Descriptions.Jimbo.Jokers[mod.Jokers.THROWBACK] = "{{Damage}} {{ColorMult}}X0.1{{CR}} Molt. di Danno per {{ColorYellorange}}Buio{{CR}} slatato questa partita #{{Damage}} {{ColorMult}}X0.02{{CR}} Molt. di Danno per {{ColorYellorange}}Stanza Speciale{{CR}} saltata questa partita #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt. di Danno)"
+Descriptions.Jimbo.Jokers[mod.Jokers.CERTIFICATE] = "{{REG_Red}} Aggiunge una carta con un {{ColorYellorange}}Sigillo Casuale{{CR}} al mazzo qunado un Buio viene sconfitto #{{Collectible75}} Ottieni l'effetto do PHD"
+Descriptions.Jimbo.Jokers[mod.Jokers.HANG_CHAD] = "{{REG_Retrigger}} {{ColorYellorange}}Riattiva{{CR}} 3 volte la {{ColorYellorange}}carta{{CR}} giocata in una stanza #{{Card}} La {{ColorYellorange}}prima{{CR}} carta usata di un piano crea una copia di sè stessa qunado usata"
+Descriptions.Jimbo.Jokers[mod.Jokers.GLASS_JOKER] = "{{Damage}} Ottiene {{ColorMult}}X0.2{{CR}} Molt. di Danno per {{ColorYellorange}}Carta di Vetro{{CR}} distrutta  #{{IND}}!!! {{ColorMint}}Raddioppia{{CR}} la possibilità di rottura #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorYellorange}} Molt. di Danno)"
+Descriptions.Jimbo.Jokers[mod.Jokers.SHOWMAN] = "{{ColorYellorange}}Oggetti{{CR}}, {{ColorYellorange}}Jolly{{CR}} e {{ColorYellorange}}Carte{{CR}} possono apparire molteplici volte"
+Descriptions.Jimbo.Jokers[mod.Jokers.FLOWER_POT] = "{{Damage}} {{ColorMult}}X2{{CR}} Molt. di Danno se ogni {{ColorYellorange}}Seme{{CR}} è tenuto in mano entrando in una stanza ostile #{{Charm}} Crea 3 fiori ammalianti nelle stanze ostili"
+Descriptions.Jimbo.Jokers[mod.Jokers.WEE_JOKER] = "{{Tears}} Ottiene {{ColorChips}}+0.04{{CR}} Lacrime quando un {{ColorYellorange}}2{{CR}} viene attivato #\1 Size down #{{Blank}} {{ColorGray}}(Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}} Lacrime)"
+Descriptions.Jimbo.Jokers[mod.Jokers.OOPS_6] = "{{Luck}} Ogni {{ColorMint}}Probabilità{{CR}} è raddoppiata #{{Collectible46}} Ottieni l'effetto di Lucky Foot"
+Descriptions.Jimbo.Jokers[mod.Jokers.IDOL] = "{{Damage}} [[VALUE1]]{{CR}} dà {{ColorMult}}X1.1{{CR}} Molt. di Danno quando attivato #{{ColorGray}} (Carta cambia ongi stanza) #{{Damage}} {{ColorMult}}X2{{CR}} Molt. di Danno per {{ColorYellorange}} {{Collectible[[VALUE2]]}} [[VALUE3]]{{CR}} avuto"
+Descriptions.Jimbo.Jokers[mod.Jokers.SEE_DOUBLE] = "{{Damage}} {{ColorMult}}X1.2{{CR}} Molt. di Danno se sia una carta di {{ColorClub}}Fiori{{CR}} che una {{ColorYellorange}}non di Fiori{{CR}} sono tenute entrando in una stanza ostile#{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}[[VALUE1]]{{CR}})"
+Descriptions.Jimbo.Jokers[mod.Jokers.MATADOR] = "{{Coin}} {{ColorYellorange}}+4 monete{{CR}} subendo danno da un {{ColorYellorange}}Boss"
+Descriptions.Jimbo.Jokers[mod.Jokers.HIT_ROAD] = "{{Damage}} Ottiene {{ColorMult}}X0.2{{CR}} Molt. di Danno per {{ColorYellorange}}Jack{{CR}} scartato #{{IND}}!!! {{ColorYellorange}}(Azzerato ogni stanza) #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt. di Danno)"
+Descriptions.Jimbo.Jokers[mod.Jokers.DUO] = "{{Damage}} {{ColorMult}}X1.25{{CR}} Molt. di Danno se una {{ColorYellorange}}Coppia{{CR}} è tenuta entrando in una stanza #{{Blank}} {{ColorGray}}(Attualmente: [[VALUE1]]{{ColorGray}})"
+Descriptions.Jimbo.Jokers[mod.Jokers.TRIO] = "{{Damage}} {{ColorMult}}X1.5{{CR}} Molt. di Danno se un {{ColorYellorange}}Tris{{CR}} è tenuto entrando in una stanza #{{Blank}} {{ColorGray}}(Attualmente: [[VALUE1]]{{ColorGray}})"
+Descriptions.Jimbo.Jokers[mod.Jokers.FAMILY] = "{{Damage}} {{ColorMult}}X2{{CR}} Molt. di Danno se un {{ColorYellorange}}Poker{{CR}} è tenuto entrando in una stanza #{{Blank}} {{ColorGray}}(Attualmente: [[VALUE1]]{{ColorGray}})"
+Descriptions.Jimbo.Jokers[mod.Jokers.ORDER] = "{{Damage}} {{ColorMult}}X2.5{{CR}} Molt. di Danno se una {{ColorYellorange}}Scala{{CR}} è tenuta entrando in una stanza #{{Blank}} {{ColorGray}}(Attualmente: [[VALUE1]]{{ColorGray}})"
+Descriptions.Jimbo.Jokers[mod.Jokers.TRIBE] = "{{Damage}} {{ColorMult}}X1.55{{CR}} Molt. di Danno se un {{ColorYellorange}}Colore{{CR}} è tenuto entrando in una stanza #{{Blank}} {{ColorGray}}(Attualmente: [[VALUE1]]{{ColorGray}})"
+Descriptions.Jimbo.Jokers[mod.Jokers.STUNTMAN] = "{{Tears}} {{ColorMult}}+12.5{{CR}} Lacrime #{{REG_HSize}} {{ColorMult}}-2{{CR}} Carte in mano"
+Descriptions.Jimbo.Jokers[mod.Jokers.SATELLITE] = "{{Coin}} {{ColorYellorange}}+1 Moneta{{CR}} per {{ColorCyan}}Carta Pianeta{{CR}} diversa usata questa partita quando un Buio viene sconfitto #(Attualmente {{ColorYellorange}}[[VALUE1]]{{ColorGray}} Monete) #Un raggio di luce colpisce le stanze ostili entrate per ogni {{ColorCyan}}Carta Pianeta{{CR}} usata"
+Descriptions.Jimbo.Jokers[mod.Jokers.SHOOT_MOON] = "{{Damage}} Le {{ColorYellorange}}Regine{{CR}} tenute in mano danno {{ColorMult}}+0.7{{CR}} Danno entrando in una stanza ostile"
+Descriptions.Jimbo.Jokers[mod.Jokers.DRIVER_LICENSE] = "{{Damage}} {{ColorMult}}X1.5{{CR}} Molt. di Danno se si hanno almeno {{ColorYellorange}}18{{CR}} carte {{ColorYellorange}}potenziate{{CR}} nel mazzo intero #Essere trasformato in {{Adult}} Adult, {{Mom}} Mom o {{Bob}} Bob raddoppia l'effetto #{{Blank}} {{ColorGray}}(Attualmente [[VALUE1]])"
+Descriptions.Jimbo.Jokers[mod.Jokers.ASTRONOMER] = "{{Shop}} Le {{ColorCyan}}Carte Planet{{CR}}, {{ColorCyan}}Buste Celestiali{{CR}} e gli oggetti {{ColorYellorange}}Stellari{{CR}} sono gratuiti #{{Planetarium}} {{ColorYellorange}}+20%{{CR}} possibilità del planetario {{ColorGray}}(Dimezzata per ogni planetario visitato) #{{Planetarium}} I Planetari possono apparire in ogni piano normale"
+Descriptions.Jimbo.Jokers[mod.Jokers.BURNT_JOKER] = "\1 Potenzia il {{ColorCyan}}livello{{CR}} delle carte {{ColorYellorange}}scartate{{CR}} che colpiscono un nemico"
+Descriptions.Jimbo.Jokers[mod.Jokers.BOOTSTRAP] = "{{Damage}} {{ColorMult}}+0.05{{CR}} Danno per ogni {{ColorYellorange}}5 {{Coin}} Monete{{CR}} avute #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Danno) #Ottieni {{ColorYellorange}}Danno da contatto{{CR}} uguale al numero di monete avute"
 
-Descriptions.Jimbo.Jokers[mod.Jokers.CANIO] = "Gains {{ColorMult}}X0.25{{CR}} Molt. di Danno when a {{ColorYellorange}}Face{{CR}} card is {{ColorYellorange}}Destroyed{{CR}}#{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{CR}} Molt. di Danno) #{{DeathMark}} {{ColorYellorange}}Champion{{CR}} enemies are immediantly killed"
-Descriptions.Jimbo.Jokers[mod.Jokers.TRIBOULET] = "{{ColorYellorange}}Kings{{CR}} and {{ColorYellorange}}Queens{{CR}} give {{ColorMult}}X1.2{{CR}} Molt. di Danno quando attivata"
-Descriptions.Jimbo.Jokers[mod.Jokers.YORICK] = "Gains {{ColorMult}}+0.25X{{CR}} Molt. di Danno every {{ColorYellorange}}23{{CR}} cards discarded #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt. di Danno)"
-Descriptions.Jimbo.Jokers[mod.Jokers.CHICOT] = "{{Weakness}} Every {{ColorYellorange}}Boss{{CR}} is permanently weakened #Disables every curse"
-Descriptions.Jimbo.Jokers[mod.Jokers.PERKEO] = "{{Card}} Spawns a duplicate of every {{ColorYellorange}}Consumable{{CR}} held upon entering a {{Shop}} shop or a new floor"
+Descriptions.Jimbo.Jokers[mod.Jokers.CANIO] = "{{Damage}} Ottiene {{ColorMult}}X0.25{{CR}} Molt. di Danno quandu una {{REG_Face}} {{ColorYellorange}}Figura{{CR}} viene {{ColorYellorange}}Distrutta #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{CR}} Molt. di Danno) #{{DeathMark}} I nemici {{ColorYellorange}}Champion{{CR}} vengono uccisi immediatamente"
+Descriptions.Jimbo.Jokers[mod.Jokers.TRIBOULET] = "{{Damage}} I {{ColorYellorange}}Re{{CR}} e le {{ColorYellorange}}Regine{{CR}} danno {{ColorMult}}X1.2{{CR}} Molt. di Danno quando attivati"
+Descriptions.Jimbo.Jokers[mod.Jokers.YORICK] = "{{Damage}} Ottiene {{ColorMult}}X0.25{{CR}} Molt. di Danno ogni {{ColorYellorange}}23{{CR}} carte scartate #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt. di Danno)"
+Descriptions.Jimbo.Jokers[mod.Jokers.CHICOT] = "{{Weakness}} Ogni {{ColorYellorange}}Boss{{CR}} permanentemente indebolito #Rimuove ogni maledizione"
+Descriptions.Jimbo.Jokers[mod.Jokers.PERKEO] = "{{Card}} Crea una copia di ogni {{ColorYellorange}}Consumabile{{CR}} quando un {{ColorYellorange}}Buio{{CR}} viene sconfitto"
 
-Descriptions.Jimbo.Jokers[mod.Jokers.CHAOS_THEORY] = "After being scored, cards are {{ColorYellorange}}randomly{{CR}} rerolled #!!! {{ColorGray}} The new card generated depends on the starting one "
+Descriptions.Jimbo.Jokers[mod.Jokers.CHAOS_THEORY] = "Dopo essere giocate, le cards vengono cambiate {{ColorYellorange}}casualmente{{CR}} #{{IND}}!!! {{ColorGray}}(La nuova carta generata dipende da quella di partenza)"
 
 end
 
 Descriptions.JokerSynergies = {}
 Descriptions.JokerSynergies[mod.Jokers.CERTIFICATE] = {}
-Descriptions.JokerSynergies[mod.Jokers.CERTIFICATE][CollectibleType.COLLECTIBLE_PHD] = "Cards added also have a random {{ColorYellorange}}Edition{{CR}}"
-Descriptions.JokerSynergies[mod.Jokers.CERTIFICATE][CollectibleType.COLLECTIBLE_FALSE_PHD] = "Cards added also have a random {{ColorYellorange}}Enhancement{{CR}}"
+Descriptions.JokerSynergies[mod.Jokers.CERTIFICATE][CollectibleType.COLLECTIBLE_PHD] = "Le carte aggiunte hanno anche un'{{ColorYellorange}}Edizione{{CR}} garantita"
+Descriptions.JokerSynergies[mod.Jokers.CERTIFICATE][CollectibleType.COLLECTIBLE_FALSE_PHD] = "Le carte aggiunte hanno anche un {{ColorYellorange}}Potenziamento{{CR}} garantito"
 
 Descriptions.JokerSynergies[mod.Jokers.MARBLE_JOKER] = {}
-Descriptions.JokerSynergies[mod.Jokers.MARBLE_JOKER][CollectibleType.COLLECTIBLE_SMALL_ROCK] = "Cards added also have a random {{ColorYellorange}}Seal{{CR}}"
-Descriptions.JokerSynergies[mod.Jokers.MARBLE_JOKER][CollectibleType.COLLECTIBLE_ROCK_BOTTOM] = "Cards added also have a random {{ColorYellorange}}Edition{{CR}}"
+Descriptions.JokerSynergies[mod.Jokers.MARBLE_JOKER][CollectibleType.COLLECTIBLE_SMALL_ROCK] = "Le carte aggiunte hanno anche un {{ColorYellorange}}Sigillo{{CR}} garantito"
+Descriptions.JokerSynergies[mod.Jokers.MARBLE_JOKER][CollectibleType.COLLECTIBLE_ROCK_BOTTOM] = "Le carte aggiunte hanno anche un'{{ColorYellorange}}Edizione{{CR}} garantita"
 
 Descriptions.JokerSynergies[mod.Jokers.CHAOS_THEORY] = {}
-Descriptions.JokerSynergies[mod.Jokers.CHAOS_THEORY][CollectibleType.COLLECTIBLE_CHAOS] = "Cards generated are guaranteed to have an {{ColorYellorange}}Enhancement{{CR}},{{ColorYellorange}}Seal{{CR}} or {{ColorYellorange}}Edition{{CR}} if the starting card had one"
+Descriptions.JokerSynergies[mod.Jokers.CHAOS_THEORY][CollectibleType.COLLECTIBLE_CHAOS] = "Le carte generate avranno un {{ColorYellorange}}Potenziamento{{CR}}, {{ColorYellorange}}Sigillo{{CR}} o {{ColorYellorange}}Edizione{{CR}} se la carta di partenza ne aveva"
 
 Descriptions.JokerSynergies[mod.Jokers._8_BALL] = {}
-Descriptions.JokerSynergies[mod.Jokers._8_BALL][CollectibleType.COLLECTIBLE_MAGIC_8_BALL] = "{{ColorMint}}Trigger{{CR}} doubled!"
+Descriptions.JokerSynergies[mod.Jokers._8_BALL][CollectibleType.COLLECTIBLE_MAGIC_8_BALL] = "{{ColorMint}}Probabilità{{CR}} raddoppiata!"
 
 Descriptions.JokerSynergies[mod.Jokers.MISPRINT] = {}
-Descriptions.JokerSynergies[mod.Jokers.MISPRINT][CollectibleType.COLLECTIBLE_TMTRAINER] = "Stats given range from {{ColorMult}}-1{{CR}} to {{CR}} {{ColorMult}}4{{CR}} Danno #{{Blank}} {{ColorGray}}(Stats can't go lower than their base value)"
+Descriptions.JokerSynergies[mod.Jokers.MISPRINT][CollectibleType.COLLECTIBLE_TMTRAINER] = "Il danno dato è compreso tra {{ColorMult}}-0.5{{CR}} e {{ColorMult}}+2.5"
 
 Descriptions.JokerSynergies[mod.Jokers.ARROWHEAD] = {}
-Descriptions.JokerSynergies[mod.Jokers.ARROWHEAD][CollectibleType.COLLECTIBLE_CUPIDS_ARROW] = "{{REG_Spade}} Spade charm becomes guaranteed"
+Descriptions.JokerSynergies[mod.Jokers.ARROWHEAD][CollectibleType.COLLECTIBLE_CUPIDS_ARROW] = "{{REG_Spade}} L'effetto di ammaliamento dei {{ColorSpade}}Picche{{CR}} diventa garantito"
 
 Descriptions.JokerSynergies[mod.Jokers.GOLDEN_JOKER] = {}
-Descriptions.JokerSynergies[mod.Jokers.GOLDEN_JOKER][CollectibleType.COLLECTIBLE_SMELTER] = "{{Coin}} Also gives 2 {{ColorYellorange}}Golden pennies{{CR}} when sold this way"
+Descriptions.JokerSynergies[mod.Jokers.GOLDEN_JOKER][CollectibleType.COLLECTIBLE_SMELTER] = "{{Coin}} Dà anche 2 {{ColorYellorange}}Monete dorate{{CR}} quando vednuto in questo modo"
 
 Descriptions.JokerSynergies[mod.Jokers.GOLDEN_TICKET] = {}
 Descriptions.JokerSynergies[mod.Jokers.GOLDEN_TICKET][CollectibleType.COLLECTIBLE_SMELTER] = Descriptions.JokerSynergies[mod.Jokers.GOLDEN_JOKER][CollectibleType.COLLECTIBLE_SMELTER]
 
 Descriptions.JokerSynergies[mod.Jokers.CREDIT_CARD] = {}
-Descriptions.JokerSynergies[mod.Jokers.CREDIT_CARD][CollectibleType.COLLECTIBLE_MONEY_EQUALS_POWER] = "{{Coin}} being in debt counts as having half of the maximum amount of coins #{{Colorgray}} (it's not a bug, but a feature)" --ye ok it's actually a bug
+Descriptions.JokerSynergies[mod.Jokers.CREDIT_CARD][CollectibleType.COLLECTIBLE_MONEY_EQUALS_POWER] = "{{Coin}} Essere in debito conta come avere la metà delle monete massime #{{Colorgray}} (Non è un bug, ma una peculiarità ;) )" --ye ok it's actually a bug
 
 
 --inverts the table to make collectible synergy descriptions lookup faster
@@ -362,70 +361,70 @@ end
 
 
 Descriptions.JimboSynergies = {}
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_BRIMSTONE] = "#{{PlayerJimbo}} When hitting an enemy, cards shoot 1 blood laser that deal 50% the card's Danno in a random direction #{{REG_Spade}} Spade cards shoot an extra laser #{{REG_Spade}} All cads held in hand become Spade cards on pickup #\2 +50% card fire cooldown"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_TECHNOLOGY] = "#{{PlayerJimbo}} When hitting an enemy, cards shoot 1 laser that deal 50% the card's Danno in a random direction #{{REG_Heart}} Heart cards shoot an extra laser"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_DR_FETUS] = "#{{PlayerJimbo}} When hitting an enemy, cards leave a bomb #The bombs deal 250% of the card's Danno and inherit his bomb upgrades #{{REG_Club}} Club card's bombs are bigger and deal more Danno"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_SMELTER] = "#{{PlayerJimbo}} On use allows to sell a Joker for double the normal amount of coins #{{Blank}}(used automatically when selling at full charge)"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_MOMS_BOX] = "#{{PlayerJimbo}} Has {{Battery}} 12 max charges #{{PlayerJimbo}} Also gains 2 charges when using a {{RestockMachine}} Restock machine"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_DOLLAR] = "#{{PlayerJimbo}} Change all your deck's cards suit to {{REG_Diamond}} Diamond"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_PYRO] = "#{{PlayerJimbo}} Change all your deck's cards suit to {{REG_Club}} Club"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_SKELETON_KEY] = "#{{PlayerJimbo}} Change all your deck's cards suit to {{REG_Spade}} Spade"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_BINGE_EATER] = "#{{PlayerJimbo}} Change all your deck's cards suit to {{REG_Heart}} Heart"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_HEART] = "#{{PlayerJimbo}} All cards held in hand become {{REG_Spade}} Heart cards on pickup"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_QUARTER] = "#{{PlayerJimbo}} All cards held in hand become {{REG_Diamond}} Diamond cards on pickup"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_BOOM] = "#{{PlayerJimbo}} All cards held in hand become {{REG_Club}} Club cards on pickup"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_GLITTER_BOMBS] = "#{{PlayerJimbo}} All cards held in hand become {{REG_Club}} Club cards on pickup"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_BOMBER_BOY] = "#{{PlayerJimbo}} All cards held in hand become {{REG_Club}} Club cards on pickup"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_HOT_BOMBS] = "#{{PlayerJimbo}} All cards held in hand become {{REG_Club}} Club cards on pickup"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_BUTT_BOMBS] = "#{{PlayerJimbo}} All cards held in hand become {{REG_Club}} Club cards on pickup"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_NANCY_BOMBS] = "#{{PlayerJimbo}} All cards held in hand become {{REG_Club}} Club cards on pickup"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_SCATTER_BOMBS] = "#{{PlayerJimbo}} All cards held in hand become {{REG_Club}} Club cards on pickup"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_BLOOD_BOMBS] = "#{{PlayerJimbo}} All cards held in hand become {{REG_Heart}} Heart cards on pickup #{{REG_Heart}} Heart cards are also considered as {{REG_Club}} Club cards"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_FAST_BOMBS] = "#{{PlayerJimbo}} All cards held in hand become {{REG_Club}} Club cards on pickup"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_BOBBY_BOMB] = "#{{PlayerJimbo}} All cards held in hand become {{REG_Club}} Club cards on pickup"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_SAD_BOMBS] = "#{{PlayerJimbo}} All cards held in hand become {{REG_Club}} Club cards on pickup"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_GHOST_BOMBS] = "#{{PlayerJimbo}} All cards held in hand become {{REG_Club}} Club cards on pickup"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_STICKY_BOMBS] = "#{{PlayerJimbo}} All cards held in hand become {{REG_Club}} Club cards on pickup"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_BRIMSTONE_BOMBS] = "#{{PlayerJimbo}} All cards held in hand become {{REG_Club}} Club cards on pickup"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_SHARP_KEY] = "#{{PlayerJimbo}} {{REG_Spade}} Spade cards can be used to open doors #{{REG_Spade}} All cards held in hand become Spade cards on pickup"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_C_SECTION] = "#{{PlayerJimbo}} Cards fire a fetus as they land #{{REG_Heart}} Heart cards fire an additional fetus #{{REG_Heart}} All cards held in hand become heart cards on pickup"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_TECH_X] = "#{{PlayerJimbo}} Cards are surrounded by a laser ring that deals 50% of its Danno per tick"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_MOMS_KNIFE] = "#{{PlayerJimbo}} Cards gain spectral and piercing, dealing 30% of its Danno per tick"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_TRISAGION] = "#{{PlayerJimbo}} Cards gain piercing, dealing 20% of its Danno per tick"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_SPIRIT_SWORD] = "#{{PlayerJimbo}} The sword is applied on top of the usual card shooting"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_HALLOWED_GROUND] = "#{{PlayerJimbo}} The sword is applied on top of the usual card shooting"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_STAR_OF_BETHLEHEM] = "#{{PlayerJimbo}} The sword is applied on top of the usual card shooting"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_POUND_OF_FLESH] = "#{{PlayerJimbo}} {{REG_Diamond}} Diamond and {{REG_Heart}} Heart are considered as the same suit"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_TMTRAINER] = "#{{PlayerJimbo}} All cards in the deck get randomised on pickup"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_CUPIDS_ARROW] = "#{{PlayerJimbo}} {{REG_Spade}} Spade cards have a 50% chance to {{Charm}} Charm enemies"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_HALO] = "#{{PlayerJimbo}} {{REG_Diamond}} Diamond cards gain a {{Collectible331}} God Head-like aura #{{REG_Diamond}} All cads held in hand become Diamond cards on pickup"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_MONEY_EQUALS_POWER] = "#{{PlayerJimbo}} {{REG_Diamond}} Diamond cards give {{ColorMult}}+0.01{{CR}} Danno per {{ColoraYellorange}}5{{CR}} coins held quando attivata"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_MITRE] = "#{{PlayerJimbo}} Lacrime given by {{REG_Bonus}} {{ColorYellorange}}Bouns enhancements{{CR}} are doubled"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_BRIMSTONE] = "#{{REG_Jimbo}} Le carte sparano 1 brimstone in una direzione casule quando colpiscono un nemico #{{IND}} I brimstone infliggono il 50% del danno della carta #{{IND}}{{REG_Spade}} I {{ColorSpade}}Picche{{CR}} sparando un brim. aggiuntivo #\2 +50% Tempo di ricarica carte #{{REG_Spade}} Le carte in mano diventano di {{ColorSpade}}Picche{{CR}} quando preso"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_TECHNOLOGY] = "#{{REG_Jimbo}} Le carte sparano 1 laser in una direzione casuale qunado colpiscono una nemico #{{IND}} I laser infliggono il 50% del danno della carta #{{IND}}{{REG_Heart}} I {{ColorMult}}Cuori{{CR}} sparano un laser aggiuntivo"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_DR_FETUS] = "#{{REG_Jimbo}} Le carte rilasciano una bomba quando colpiscono un nemico #{{IND}} le bombe infliggono il 100% del Danno della carta e mantangono i modificatori del giocatore #{{IND}}{{REG_Club}} Le bombe di {{ColorChips}}Fiori{{CR}} hanno raggio e danno maggiori #{{REG_Club}} Le carte in mano diventano di {{ColorChips}}Fiori{{CR}} quando preso"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_SMELTER] = "#{{REG_Jimbo}} Permette di vendere un Jolly per il doppio de valore normale #{{Blank}}(usato automaticamente vendendo se carico)"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_MOMS_BOX] = "#{{REG_Jimbo}} Richiede {{Battery}} 12 cariche #{{REG_Jimbo}} Ottiene 2 cariche attivando una {{RestockMachine}} Restock machine"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_DOLLAR] = "#{{REG_Jimbo}} Cambia tutto il mazzo in {{REG_Diamond}} {{ColorYellorange}}Quadri"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_PYRO] = "#{{REG_Jimbo}} Cambia tutto il mazzo in {{REG_Club}} {{ColorChips}}Fiori"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_SKELETON_KEY] = "#{{REG_Jimbo}} Cambia tutto il mazzo in {{REG_Spade}} {{ColorSpade}}Picche"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_BINGE_EATER] = "#{{REG_Jimbo}} Cambia tutto il mazzo in {{REG_Heart}} {{ColorMult}}Cuori"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_HEART] = "#{{REG_Jimbo}} Le carte in mano diventano di {{REG_Heart}} {{ColorMult}}Cuori{{CR}} quando preso"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_QUARTER] = "#{{REG_Jimbo}} Le carte in mano diventano di {{REG_Diamond}} {{ColorYellorange}}Quadri{{CR}} quando preso"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_BOOM] = "#{{REG_Jimbo}} Le carte in mano diventano di {{REG_Club}}{{ColorChips}}Fiori{{CR}}quando preso"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_GLITTER_BOMBS] = "#{{REG_Jimbo}} Le carte in mano diventano di {{REG_Club}}{{ColorChips}}Fiori{{CR}}quando preso"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_BOMBER_BOY] = "#{{REG_Jimbo}} Le carte in mano diventano di {{REG_Club}} {{ColorChips}}Fiori{{CR}} quando preso"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_HOT_BOMBS] = "#{{REG_Jimbo}} Le carte in mano diventano di {{REG_Club}} {{ColorChips}}Fiori{{CR}} quando preso"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_BUTT_BOMBS] = "#{{REG_Jimbo}} Le carte in mano diventano di {{REG_Club}} {{ColorChips}}Fiori{{CR}} quando preso"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_NANCY_BOMBS] = "#{{REG_Jimbo}} Le carte in mano diventano di {{REG_Club}} {{ColorChips}}Fiori{{CR}} quando preso"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_SCATTER_BOMBS] = "#{{REG_Jimbo}} Le carte in mano diventano di {{REG_Club}} {{ColorChips}}Fiori{{CR}} quando preso"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_BLOOD_BOMBS] = "#{{REG_Jimbo}} Le carte in mano diventano di {{REG_Heart}} {{ColorMult}}Cuori{{CR}} quando preso #I {{REG_Heart}} {{ColorMult}}Cuori{{CR}} sono considerati anche come {{REG_Club}} {{ColorChips}}Fiori{{CR}} "
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_FAST_BOMBS] = "#{{REG_Jimbo}} Le carte in mano diventano di {{REG_Club}} {{ColorChips}}Fiori{{CR}} quando preso"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_BOBBY_BOMB] = "#{{REG_Jimbo}} Le carte in mano diventano di {{REG_Club}} {{ColorChips}}Fiori{{CR}} quando preso"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_SAD_BOMBS] = "#{{REG_Jimbo}} Le carte in mano diventano di {{REG_Club}} {{ColorChips}}Fiori{{CR}} quando preso"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_GHOST_BOMBS] = "#{{REG_Jimbo}} Le carte in mano diventano di {{REG_Club}} {{ColorChips}}Fiori{{CR}} quando preso"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_STICKY_BOMBS] = "#{{REG_Jimbo}} Le carte in mano diventano di {{REG_Club}} {{ColorChips}}Fiori{{CR}} quando preso"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_BRIMSTONE_BOMBS] = "#{{REG_Jimbo}} Le carte in mano diventano di {{REG_Club}} {{ColorChips}}Fiori{{CR}} quando preso"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_SHARP_KEY] = "#{{REG_Jimbo}} Le carte di {{REG_Spade}} {{ColorSpade}}Picche{{CR}} possono aprire le porte #{{REG_Spade}} Le carte in mano diventano di {{ColorSpade}}Picche{{CR}} quando preso"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_C_SECTION] = "#{{REG_Jimbo}} Le carte sparano un feto quando atterrano #{{IND}}{{REG_Heart}} Le carte di {{ColorMult}}Cuori{{CR}} sparano un fato in più #{{REG_Heart}} Le carte in mano diventano di {{ColorMult}}Cuori{{CR}} quando preso"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_TECH_X] = "#{{REG_Jimbo}} Le carte sono circondate da un cerchio di laser che infligge il 50% del suo danno"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_MOMS_KNIFE] = "#{{REG_Jimbo}} Le carte diventano spettrali e perforanti, infliggendo il 30% del loro danno ogni tick"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_TRISAGION] = "#{{REG_Jimbo}} Le carte diventano perforanti, infliggendo il 20% del loro danno ogni tick"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_SPIRIT_SWORD] = "#{{REG_Jimbo}} La spada è applicata assieme allo sparare carte"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_HALLOWED_GROUND] = "#{{REG_Jimbo}} le carte giocate vengono {{REG_Retrigger}} {{ColorYellorange}}Riattivate{{CR}} mentre si è all'interno dell'aura"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_STAR_OF_BETHLEHEM] = "#{{REG_Jimbo}} le carte giocate vengono {{REG_Retrigger}} {{ColorYellorange}}Riattivate{{CR}} mentre si è all'interno dell'aura"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_POUND_OF_FLESH] = "#{{REG_Jimbo}} {{REG_Diamond}} {{ColorYellorange}}Quadri{{CR}} e {{REG_Heart}} {{ColorMult}}Cuori{{CR}} sono considerati come lo stesso seme"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_TMTRAINER] = "#{{REG_Jimbo}} Tutte le carte del mazzo vengono cambiate casualmente"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_CUPIDS_ARROW] = "#{{REG_Jimbo}} Le carte di {{REG_Spade}} {{ColorSpade}}Picche{{CR}} hanno il 50% di possibilità di {{Charm}} ammaliare i nemici"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_HALO] = "#{{REG_Jimbo}} Le carte di {{REG_Diamond}} {{ColorYellorange}}Quadri{{CR}} Ottengono una aura come {{Collectible331}} God Head #{{REG_Diamond}} Le carte in mano diventano {{ColorYellorange}}Quadri{{CR}} quando preso"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_MONEY_EQUALS_POWER] = "#{{REG_Jimbo}} Le carte di {{REG_Diamond}} {{ColorYellorange}}Quadri{{CR}} danno {{ColorMult}}+0.01{{CR}} Danno per ogni {{ColoraYellorange}}5{{CR}} monete avute quando attivate"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_MITRE] = "#{{REG_Jimbo}} Le Lacrime date dai {{REG_Bonus}} {{ColorYellorange}}Potenziamenti Bonus{{CR}} sono raddoppiate"
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_SOUL] = Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_MITRE]
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_SCAPULAR] = Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_MITRE]
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_KEEPERS_KIN] = "#{{PlayerJimbo}} when landing, {{REG_Stone}} {{ColorYellorange}}Stone cards{{CR}} spawn 1-3 {{ColorYellorange}}Blue Spiders"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_CRYSTAL_BALL] = "#{{PlayerJimbo}} Also gives the {{Collectible"..mod.Vouchers.Crystal.."}} Crystal ball effect while held"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_LOST_CONTACT] = "#{{PlayerJimbo}} Cards fired still block projectiles but can't disappear #{{ColorGray}} (Suit tears behave as usual)"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_PYROMANIAC] = "#{{PlayerJimbo}} All cards held in hand become {{REG_Club}} Club cards on pickup #{{REG_Club}} Club cards are also considered as Heart cards"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_BOGO_BOMBS] = "#{{PlayerJimbo}} {{REG_Club}} Club cards added to your deck are doubled"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_IRON_BAR] = "#{{PlayerJimbo}} {{REG_Steel}} Steel cards cause {{Confusion}} Confusion to enemies hit"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_MIDAS_TOUCH] = "#{{PlayerJimbo}} {{REG_Gold}} Gold cards turn enemies hit into golden statues"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_FRUIT_CAKE] = "#{{PlayerJimbo}} All cards held in hand become {{REG_Wild}} Wild cards on pickup #{{Blank}} {{ColorGray}}(can't overwrite existing enhancements) #{{REG_Wild}} Wild cards gain additional random tear effects"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_KEEPERS_KIN] = "#{{REG_Jimbo}} Quando atterrano, le {{REG_Stone}} {{ColorYellorange}}Carte di Pietra{{CR}} creano 1-3 {{ColorYellorange}}Ragni blu"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_CRYSTAL_BALL] = "#{{REG_Jimbo}} Dà l'effetto del {{Collectible"..mod.Vouchers.Crystal.."}} Voucher Palla di Cristallo mentre tenuto"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_LOST_CONTACT] = "#{{REG_Jimbo}} Le carte non scompaiono bloccando i proiettili #{{ColorGray}} (Lacrime seme non incluse)"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_PYROMANIAC] = "#{{REG_Jimbo}} Le carte in mano diventano di {{REG_Club}} {{ColorChips}}Fiori{{CR}} qunado preso # {{REG_Club}} {{ColorChips}}Fiori{{CR}} e {{REG_Heart}} {{ColorMult}}Cuori{{CR}} sono considerati come lo stesso seme"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_BOGO_BOMBS] = "#{{REG_Jimbo}} Le carte di {{REG_Club}} {{ColorChips}}Fiori{{CR}} aggiunte al mazzo sono raddoppiate"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_IRON_BAR] = "#{{REG_Jimbo}} Le {{REG_Steel}} {{ColorYellorange}}Carte d'Acciaio{{CR}} causano {{Confusion}} Confusione"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_MIDAS_TOUCH] = "#{{REG_Jimbo}} Le {{REG_Gold}} {{ColorYellorange}}Carte Dorate{{CR}} trasformano i nemici colpiti in statue d'oro"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_FRUIT_CAKE] = "#{{REG_Jimbo}} Le carte in mano diventano {{REG_Wild}} {{ColorYellorange}}Carte Multiuso{{CR}} quando preso #{{Blank}} {{ColorGray}}(non sovrascrive potenziamenti esistenti) #{{REG_Wild}} Le {{ColorYellorange}}Carte Multiuso{{CR}} ottengono effetti casuali aggiuntivi"
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_PLAYDOUGH_COOKIE] = Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_FRUIT_CAKE]
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_3_DOLLAR_BILL] = "#{{PlayerJimbo}} {{REG_Yellorange}}3s{{CR}} fired gain 3 additional tear effects"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_GODHEAD] = "#{{PlayerJimbo}} All {{REG_Spade}} Spade cards in your deck are destroyed #{{REG_Wild}} All other cards become {{ColroYellorange}}Wild Cards#{{Blank}} {{ColorGray}}(Can't overide existing enhancements)"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_EXPLOSIVO] = "#{{PlayerJimbo}} {{REG_Club}} Club cards are guaranteed to trigger their explosion"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_3_DOLLAR_BILL] = "#{{REG_Jimbo}} I {{REG_Yellorange}}3{{CR}} lanciati ottengono 3 effetti casuali aggiuntivi"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_GODHEAD] = "#{{REG_Jimbo}} Tutti le carte puramente di {{REG_Spade}} {{ColorSpade}}Picche{{CR}} nel mazzo vengono distrutte quando preso #{{REG_Wild}} Le altre carte diventano {{ColorYellorange}}Carte Multiuso #{{Blank}} {{ColorGray}}(non sovrascrive potenziamenti esistenti)"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_EXPLOSIVO] = "#{{REG_Jimbo}} La carte di {{REG_Club}} {{ColorChips}}Fiori{{CR}} esplodono sempre"
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_FIRE_MIND] = Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_EXPLOSIVO]
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_HEAD_OF_THE_KEEPER] = "#{{PlayerJimbo}} All {{REG_Diamond}} Diamond cards spawn vanishing penny when hitting an enemy #{{PlayerJimbo}} All cards held in hand become {{REG_Diamond}} Diamond cards on pickup"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_SHARD_OF_GLASS] = "#{{PlayerJimbo}} {{REG_Glass}} Glass cards have the {{Collectible506}} Backstabber effect and always cause {{BleedingOut}} bleeding #{{PlayerJimbo}} All cards held in hand become {{REG_Glass}} Glass cards on pickup"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_HEAD_OF_THE_KEEPER] = "#{{PlayerJimbo}} All {{REG_Diamond}} Diamond cards turn enemies hit in golden statues #{{PlayerJimbo}} All cards held in hand become {{REG_Diamond}} Diamond cards on pickup"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_MAGIC_SKIN] = "#{{PlayerJimbo}} Becomes {{ColorYellorange}}SINGLE USE #{{PlayerJimbo}} Also spawns 2 random {{REG_Joker}} Jokers"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_DEEP_POCKETS] = "#{{PlayerJimbo}} Max coin amount is increased to 9999"
-Descriptions.JimboSynergies[mod.Collectibles.POCKET_ACES] = "#{{PlayerJimbo}} Adds 2 aces with a random {{ColorYellorange}}Enhancement{{CR}}, {{ColorYellorange}}Seal{{CR}} and {{ColorYellorange}}Edition{{CR}} to the deck on pickup"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_HYPERCOAGULATION] = "#{{PlayerJimbo}} {{REG_Heart}} Heart cards fired gain the {{Collectible224}} Cricket's body split effect"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_CANDY_HEART] = "#{{PlayerJimbo}} {{REG_Heart}} Heart cards added gain a random {{ColorYellorange}}Enhancement{{CR}} if they didn't have one"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_WHORE_OF_BABYLON] = "#{{PlayerJimbo}} Danno given by {{REG_Mult}} {{ColorYellorange}}Mult enhancements{{CR}} are doubled"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_ABADDON] = "#{{PlayerJimbo}} {{REG_Spade}} Spade cards deal 10% more Danno"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_HEAD_OF_THE_KEEPER] = "#{{REG_Jimbo}} Le carte di {{REG_Diamond}} {{ColorYellorange}}Quadri{{CR}} creano una moneta temporanes quando colpiscono un nemico #{{REG_Jimbo}} Le carte in mano diventano di {{REG_Diamond}} {{ColorYellorange}}Quadri{{CR}} quando preso"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_SHARD_OF_GLASS] = "#{{REG_Jimbo}} Le {{REG_Glass}} {{ColorYellorange}}Carte di Vetro{{CR}} hanno l'effetto di {{Collectible506}} Backstabber e causano {{BleedingOut}} sanguinamento #{{REG_Jimbo}} Le carte in mano diventano {{REG_Glass}} {{ColorYellorange}}Carte di Vetro{{CR}} quando preso"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_EYE_OF_GREED] = "#{{REG_Jimbo}} Le carte di {{REG_Diamond}} {{ColorYellorange}}Quadri{{CR}} rendono i nemici delle statue dorate #{{REG_Jimbo}} Le carte in mano diventano di {{REG_Diamond}} {{ColorYellorange}}Quadri{{CR}} quando preso"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_MAGIC_SKIN] = "#{{REG_Jimbo}} {{ColorYellorange}}USO SINGOLO #{{REG_Jimbo}} Crea anche 2 {{REG_Joker}} Jolly"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_DEEP_POCKETS] = "#{{REG_Jimbo}} Limite massimo aumentato a 9999"
+Descriptions.JimboSynergies[mod.Collectibles.POCKET_ACES] = "#{{REG_Jimbo}} Aggiunge 2 Assi con {{ColorYellorange}}Potenziamento{{CR}}, {{ColorYellorange}}Sigillo{{CR}} ed {{ColorYellorange}}Edizione{{CR}} garantiti al mazzo quando preso"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_HYPERCOAGULATION] = "#{{REG_Jimbo}} Le carte di {{REG_Heart}} {{ColorMult}}Cuori{{CR}} cards ottengono l'effetto di {{Collectible224}} Cricket's body"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_CANDY_HEART] = "#{{REG_Jimbo}} Le carte di {{REG_Heart}} {{ColorMult}}Cuori{{CR}} aggiunte ottengono un {{ColorYellorange}}Potenziamento{{CR}} casuale se non avevano uno"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_WHORE_OF_BABYLON] = "#{{REG_Jimbo}} Il danno dato dai {{REG_Mult}} {{ColorYellorange}}Potensiamenti Molt{{CR}} è raddoppiato"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_ABADDON] = "#{{REG_Jimbo}} Le carte di {{REG_Spade}} {{ColorSpade}}Picche{{CR}} infliggono 10% di danno aggiuntivo"
 
 
 mod.EVIL_ITEMS = {CollectibleType.COLLECTIBLE_ABADDON,
@@ -445,264 +444,267 @@ end
 
 Descriptions.T_Jimbo.Enhancement = {}
 Descriptions.T_Jimbo.Enhancement[mod.Enhancement.NONE]  = ""
-Descriptions.T_Jimbo.Enhancement[mod.Enhancement.BONUS] = "# {{ColorChips}}+30{{CR}} Chips"
-Descriptions.T_Jimbo.Enhancement[mod.Enhancement.MULT]  = "# {{ColorMult}}+4{{CR}} Mult"
-Descriptions.T_Jimbo.Enhancement[mod.Enhancement.GOLDEN] = "# {{ColorYellorange}}+3${{CR}} when held at the end of round"
-Descriptions.T_Jimbo.Enhancement[mod.Enhancement.GLASS] = "# {{ColorMult}}X2{{CR}} Mult # {{ColorMint}}[[CHANCE]] in 4{{CR}} to break when played"
-Descriptions.T_Jimbo.Enhancement[mod.Enhancement.LUCKY] = "# {{ColorMint}}[[CHANCE]] probabilità su 5{{CR}} to give +{{ColorMult}}20{{CR}} Mult # {{ColorMint}}[[CHANCE]] probabilità su 20{{CR}} to give {{ColorYellorange}}+20${{CR}}"
-Descriptions.T_Jimbo.Enhancement[mod.Enhancement.STEEL] = "# {{ColorMult}}X1.5{{CR}} Mult When held in hand"
-Descriptions.T_Jimbo.Enhancement[mod.Enhancement.WILD]  = "# Is considered as being every {{ColorYellorange}}Suit{{CR}}"
-Descriptions.T_Jimbo.Enhancement[mod.Enhancement.STONE] = "{{ColorChips}}+50{{CR}} Chips #Doesn't have a {{ColorYellorange}}Rank{{CR}} or {{ColorYellorange}}Suit{{CR}}"
+Descriptions.T_Jimbo.Enhancement[mod.Enhancement.BONUS] = "# {{ColorChips}}+30{{CR}} Fiches"
+Descriptions.T_Jimbo.Enhancement[mod.Enhancement.MULT]  = "# {{ColorMult}}+4{{CR}} Molt"
+Descriptions.T_Jimbo.Enhancement[mod.Enhancement.GOLDEN] = "# {{ColorYellorange}}+3${{CR}} se tenuta in mano alla fine del round"
+Descriptions.T_Jimbo.Enhancement[mod.Enhancement.GLASS] = "# {{ColorMult}}X2{{CR}} Molt # {{ColorMint}}[[CHANCE]] probabilità su 4{{CR}} di rompersi quando giocata"
+Descriptions.T_Jimbo.Enhancement[mod.Enhancement.LUCKY] = "# {{ColorMint}}[[CHANCE]] possibilità su 5{{CR}} di {{ColorMult}}+20{{CR}} Molt #{{ColorMint}}[[CHANCE]] probabilità su 20{{CR}} di {{ColorYellorange}}+20$"
+Descriptions.T_Jimbo.Enhancement[mod.Enhancement.STEEL] = "# {{ColorMult}}X1.5{{CR}} Molt quando tenuta in mano"
+Descriptions.T_Jimbo.Enhancement[mod.Enhancement.WILD]  = "# Considerata come di ogni {{ColorYellorange}}Seme"
+Descriptions.T_Jimbo.Enhancement[mod.Enhancement.STONE] = "#{{ColorChips}}+50{{CR}} Fiches #Non ha un {{ColorYellorange}}Valore{{CR}} o {{ColorYellorange}}Seme"
 
 
 
 Descriptions.T_Jimbo.Seal = {}
 Descriptions.T_Jimbo.Seal[mod.Seals.NONE] = ""
-Descriptions.T_Jimbo.Seal[mod.Seals.RED] = "# {{ColorYellorange}}Retriggered{{CR}} once"
-Descriptions.T_Jimbo.Seal[mod.Seals.BLUE] = "# Create {{ColorYellorange}}winning{{CR}} hand's {{ColorCyan}}Planet{{CR}} if held"
-Descriptions.T_Jimbo.Seal[mod.Seals.GOLDEN] = "# Earn {{ColorYellorange}}1${{CR}}"
-Descriptions.T_Jimbo.Seal[mod.Seals.PURPLE] = "# Creates {{ColorPink}}Tarot{{CR}} when {{ColorRed}}Discarded{{CR}}"
+Descriptions.T_Jimbo.Seal[mod.Seals.RED] = "# {{ColorYellorange}}Riattivata{{CR}} una volta"
+Descriptions.T_Jimbo.Seal[mod.Seals.BLUE] = "# Crea il {{ColorCyan}}Planet{{CR}} della mano {{ColorYellorange}}vincente{{CR}} se tenuta in mano"
+Descriptions.T_Jimbo.Seal[mod.Seals.GOLDEN] = "# Guadagni {{ColorYellorange}}1$"
+Descriptions.T_Jimbo.Seal[mod.Seals.PURPLE] = "# Crea un {{ColorPink}}Tarocco{{CR}} quando {{ColorRed}}Scartata"
 
 
 Descriptions.T_Jimbo.Edition = {}
 Descriptions.T_Jimbo.Edition[mod.Edition.BASE] = ""
-Descriptions.T_Jimbo.Edition[mod.Edition.FOIL] = "#{{ColorChips}}+50{{CR}} Chips"
-Descriptions.T_Jimbo.Edition[mod.Edition.HOLOGRAPHIC] = "#{{ColorMult}}+10{{CR}} Mult"
-Descriptions.T_Jimbo.Edition[mod.Edition.POLYCROME] = "#{{ColorMult}}X1.5{{CR}} Mult"
-Descriptions.T_Jimbo.Edition[mod.Edition.NEGATIVE] = "#{{ColorYellorange}}+1{{CR}} Joker Slot"
-Descriptions.T_Jimbo.ConsumableNEGATIVE = "#{{ColorYellorange}}+1{{CR}} Consumable Slot"
-Descriptions.T_Jimbo.CardNEGATIVE = "#{{ColorYellorange}}+1{{CR}} Hand Size"
+Descriptions.T_Jimbo.Edition[mod.Edition.FOIL] = "#{{ColorChips}}+50{{CR}} Fiches"
+Descriptions.T_Jimbo.Edition[mod.Edition.HOLOGRAPHIC] = "#{{ColorMult}}+10{{CR}} Molt"
+Descriptions.T_Jimbo.Edition[mod.Edition.POLYCROME] = "#{{ColorMult}}X1.5{{CR}} Molt"
+Descriptions.T_Jimbo.Edition[mod.Edition.NEGATIVE] = "#{{ColorYellorange}}+1{{CR}} Slot Jolly"
+Descriptions.T_Jimbo.ConsumableNEGATIVE = "#{{ColorYellorange}}+1{{CR}} Slot Consumabili"
+Descriptions.T_Jimbo.CardNEGATIVE = "#{{ColorYellorange}}+1{{CR}} Carte in mano"
 
 
 Descriptions.T_Jimbo.SkipName = {}
-Descriptions.T_Jimbo.SkipName[mod.SkipTags.BOSS] = "Boss Tag"
-Descriptions.T_Jimbo.SkipName[mod.SkipTags.BUFFON] = "Buffon Tag"
-Descriptions.T_Jimbo.SkipName[mod.SkipTags.CHARM] = "Charm Tag"
-Descriptions.T_Jimbo.SkipName[mod.SkipTags.COUPON] = "Coupon Tag"
-Descriptions.T_Jimbo.SkipName[mod.SkipTags.D6] = "D6 Tag"
-Descriptions.T_Jimbo.SkipName[mod.SkipTags.DOUBLE] = "Double Tag"
-Descriptions.T_Jimbo.SkipName[mod.SkipTags.ECONOMY] = "Economy Tag"
-Descriptions.T_Jimbo.SkipName[mod.SkipTags.ETHEREAL] = "Ethereal Tag"
-Descriptions.T_Jimbo.SkipName[mod.SkipTags.FOIL] = "Foil Tag"
-Descriptions.T_Jimbo.SkipName[mod.SkipTags.GARBAGE] = "Garbage Tag"
-Descriptions.T_Jimbo.SkipName[mod.SkipTags.HANDY] = "Handy Tag"
-Descriptions.T_Jimbo.SkipName[mod.SkipTags.HOLO] = "Holographic Tag"
-Descriptions.T_Jimbo.SkipName[mod.SkipTags.INVESTMENT] = "Investment Tag"
-Descriptions.T_Jimbo.SkipName[mod.SkipTags.JUGGLE] = "Juggle Tag"
-Descriptions.T_Jimbo.SkipName[mod.SkipTags.METEOR] = "Meteor Tag"
-Descriptions.T_Jimbo.SkipName[mod.SkipTags.NEGATIVE] = "Negative Tag"
-Descriptions.T_Jimbo.SkipName[mod.SkipTags.ORBITAL] = "Orbital Tag"
-Descriptions.T_Jimbo.SkipName[mod.SkipTags.POLYCHROME] = "Polychrome Tag"
-Descriptions.T_Jimbo.SkipName[mod.SkipTags.RARE] = "Rare Tag"
-Descriptions.T_Jimbo.SkipName[mod.SkipTags.SPEED] = "Speed Tag"
-Descriptions.T_Jimbo.SkipName[mod.SkipTags.STANDARD] = "Standard Tag"
-Descriptions.T_Jimbo.SkipName[mod.SkipTags.TOP_UP] = "Top-Up Tag"
-Descriptions.T_Jimbo.SkipName[mod.SkipTags.UNCOMMON] = "Uncommon Tag"
-Descriptions.T_Jimbo.SkipName[mod.SkipTags.VOUCHER] = "Voucher Tag"
-Descriptions.T_Jimbo.SkipName[mod.SpecialSkipTags.KEY_PIECE_1] = "Uriel Tag"
-Descriptions.T_Jimbo.SkipName[mod.SpecialSkipTags.KEY_PIECE_2] = "Gabriel Tag"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.BOSS] = "Patto Boss"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.BUFFON] = "Patto Buffone"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.CHARM] = "Patto Magico"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.COUPON] = "Patto Coupon"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.D6] = "Patto D6"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.DOUBLE] = "Patto Doppio"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.ECONOMY] = "Patto Economia"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.ETHEREAL] = "Patto Etereo"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.FOIL] = "Patto Foil"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.GARBAGE] = "Patto Spazzatura"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.HANDY] = "Patto Manesco"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.HOLO] = "Patto Olografico"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.INVESTMENT] = "Patto Investimento"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.JUGGLE] = "Patto Giocoliere"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.METEOR] = "Patto Meteora"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.NEGATIVE] = "Patto Negativo"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.ORBITAL] = "Patto Orbitale"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.POLYCHROME] = "Patto Policroma"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.RARE] = "Patto Raro"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.SPEED] = "Patto Veloce"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.STANDARD] = "Patto Standard"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.TOP_UP] = "Patto Ricarica"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.UNCOMMON] = "Patto Non comune"
+Descriptions.T_Jimbo.SkipName[mod.SkipTags.VOUCHER] = "Patto Buoni"
+Descriptions.T_Jimbo.SkipName[mod.SpecialSkipTags.KEY_PIECE_1] = "Patto Uriel"
+Descriptions.T_Jimbo.SkipName[mod.SpecialSkipTags.KEY_PIECE_2] = "Patto Gabriel"
 
 
 
 Descriptions.T_Jimbo.SkipTag = {}
-Descriptions.T_Jimbo.SkipTag[mod.SkipTags.BOSS] = "{{ColorYellorange}}Reroll{{CR}} this ante's boss blind"
-Descriptions.T_Jimbo.SkipTag[mod.SkipTags.BUFFON] = "Open a {{ColorYellorange}}Mega Buffon Pack{{CR}}"
-Descriptions.T_Jimbo.SkipTag[mod.SkipTags.CHARM] = "Open a {{ColorYellorange}}Mega Arcana Pack{{CR}}"
-Descriptions.T_Jimbo.SkipTag[mod.SkipTags.COUPON] = "Initial jokers and boosters in the next shops are {{ColorYellorange}}Free"
-Descriptions.T_Jimbo.SkipTag[mod.SkipTags.D6] = "Rerolls in the next shop start at {{ColorYellorange}}0$"
-Descriptions.T_Jimbo.SkipTag[mod.SkipTags.DOUBLE] = "Duplicates the next skip tag taken {{ColorGray}}(except Double Tag)"
-Descriptions.T_Jimbo.SkipTag[mod.SkipTags.ECONOMY] = "Double your money # {{ColorGray}}(Max 40$)"
-Descriptions.T_Jimbo.SkipTag[mod.SkipTags.ETHEREAL] = "Open a {{ColorYellorange}}Spectral Pack{{CR}}"
-Descriptions.T_Jimbo.SkipTag[mod.SkipTags.FOIL] = "The next shop contains a free {{ColorChips}}Foil{{CR}} Joker"
-Descriptions.T_Jimbo.SkipTag[mod.SkipTags.GARBAGE] = "Gain {{ColorYellorange}}1${{CR}} per unused {{ColorMult}}Discard #{{ColorGray}}([[VALUE1]]$)"
-Descriptions.T_Jimbo.SkipTag[mod.SkipTags.HANDY] = "Gain {{ColorYellorange}}1${{CR}} per played {{ColorChips}}Hand{{ColorGray}} #([[VALUE1]]$)"
-Descriptions.T_Jimbo.SkipTag[mod.SkipTags.HOLO] = "The next shop contains a free {{ColorMult}}Holographic{{CR}} Joker"
-Descriptions.T_Jimbo.SkipTag[mod.SkipTags.INVESTMENT] = "Gain {{ColorYellorange}}25${{CR}} after defeating thid ante's boss"
-Descriptions.T_Jimbo.SkipTag[mod.SkipTags.JUGGLE] = "Gain {{ColorYellorange}}+3{{CR}} hand size for the next blind"
-Descriptions.T_Jimbo.SkipTag[mod.SkipTags.METEOR] = "Open a {{ColorYellorange}}Mega Celestial Pack{{CR}}"
-Descriptions.T_Jimbo.SkipTag[mod.SkipTags.NEGATIVE] = "The next shop contains a free {{ColorBlack}}Negative{{CR}} Joker"
-Descriptions.T_Jimbo.SkipTag[mod.SkipTags.ORBITAL] = "Upgrade {{ColorYellorange}}[[VALUE1]]{{CR}} by 3 levels"
-Descriptions.T_Jimbo.SkipTag[mod.SkipTags.POLYCHROME] = "The next shop contains a free {{ColorRainbow}}Polychrome{{CR}} Joker"
-Descriptions.T_Jimbo.SkipTag[mod.SkipTags.RARE] = "The next shop contains a free {{ColorMult}}Rare{{CR}} Joker"
-Descriptions.T_Jimbo.SkipTag[mod.SkipTags.SPEED] = "Gain {{ColorYellorange}}5${{CR}} per blind skipped this run #{{ColorGray}}([[VALUE1]]$)"
-Descriptions.T_Jimbo.SkipTag[mod.SkipTags.STANDARD] = "Open a {{ColorYellorange}}Mega Standard Pack{{CR}}"
-Descriptions.T_Jimbo.SkipTag[mod.SkipTags.TOP_UP] = "Gain up to {{ColorYellorange}}2{{CR}} {{ColorChips}}Common{{CR}} Jokers"
-Descriptions.T_Jimbo.SkipTag[mod.SkipTags.UNCOMMON] = "The next shop contains a free {{ColorLime}}Uncommon{{CR}} Joker"
-Descriptions.T_Jimbo.SkipTag[mod.SkipTags.VOUCHER] = "The next shop has an additional {{ColorYellorange}}Voucher"
-Descriptions.T_Jimbo.SkipTag[mod.SpecialSkipTags.KEY_PIECE_1] = "Gain {{ColorYellorange}}10${{CR}} and the {{ColorYellorange}}Key Piece 1{{CR}} item"
-Descriptions.T_Jimbo.SkipTag[mod.SpecialSkipTags.KEY_PIECE_2] = "Gain {{ColorYellorange}}10${{CR}} and the {{ColorYellorange}}Key Piece 2{{CR}} item"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.BOSS] = "Cambia il {{ColorYellorange}}Buio Boss{{CR}} dell'ante"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.BUFFON] = "Apri una {{ColorYellorange}}Busta Buffone Mega"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.CHARM] = "Apri una {{ColorYellorange}}Busta Arcana Mega"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.COUPON] = "Le carte e buste iniziali del prssimo negozio sono {{ColorYellorange}}Gratuite"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.D6] = "Il costo dei cambi inizia a {{ColorYellorange}}0$"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.DOUBLE] = "Duplica il prossimo patto ottenuto #{{ColorGray}}(Patto Doppio escluso)"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.ECONOMY] = "raddoppia i soldi avuti #{{ColorGray}}(Max 40$)"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.ETHEREAL] = "Apri una {{ColorYellorange}}Busta Spettrale"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.FOIL] = "Il prossimo negozio ha un Jolly {{ColorChips}}Foil{{CR}} gratutito"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.GARBAGE] = "Guadagna {{ColorYellorange}}1${{CR}} per {{ColorMult}}scarto{{CR}} sprecato #{{ColorGray}}([[VALUE1]]$)"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.HANDY] = "Guadagna {{ColorYellorange}}1${{CR}} per {{ColorChips}}mano{{ColorGray}} giocata #([[VALUE1]]$)"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.HOLO] = "Il prossimo negozio ha un Jolly {{ColorMult}}Olografico{{CR}} gratuito"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.INVESTMENT] = "Guadagna {{ColorYellorange}}25${{CR}} dopo aver sconfitto il prossimo {{ColorYellorange}}Buio Boss"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.JUGGLE] = "{{ColorYellorange}}+3{{CR}} carte in mano per il prossimo Buio"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.METEOR] = "Apri una {{ColorYellorange}}Busta Celestiale Mega"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.NEGATIVE] = "Il prossimo negozio ha un Jolly {{ColorBlack}}Negativo{{CR}} gratuito"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.ORBITAL] = "Potenzia {{ColorYellorange}}[[VALUE1]]{{CR}} di 3 livelli"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.POLYCHROME] = "Il prossimo negozio ha un Jolly {{ColorRainbow}}Policroma{{CR}} gratuito"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.RARE] = "Il prossimo negozio ha un Jolly {{ColorMult}}Raro{{CR}} gratuito"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.SPEED] = "Guadagna {{ColorYellorange}}5${{CR}} per Buio saltato #{{ColorGray}}([[VALUE1]]$)"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.STANDARD] = "Apri una {{ColorYellorange}}Busta Standard Mega"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.TOP_UP] = "Crea fino a {{ColorYellorange}}2{{CR}} Jolly {{ColorChips}}Comuni"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.UNCOMMON] = "Il prossimo negozio ha un Jolly {{ColorLime}}Non comunq{{CR}} gratuito"
+Descriptions.T_Jimbo.SkipTag[mod.SkipTags.VOUCHER] = "Il prossimo negozio ha un {{ColorYellorange}}Buono{{CR}} aggiuntivo"
+Descriptions.T_Jimbo.SkipTag[mod.SpecialSkipTags.KEY_PIECE_1] = "Ottieni {{ColorYellorange}}10${{CR}} e il {{ColorYellorange}}Key Piece 1"
+Descriptions.T_Jimbo.SkipTag[mod.SpecialSkipTags.KEY_PIECE_2] = "Ottieni {{ColorYellorange}}10${{CR}} e il {{ColorYellorange}}Key Piece 2"
 
 
 Descriptions.T_Jimbo.Jokers = {}
 do
-Descriptions.T_Jimbo.Jokers[mod.Jokers.JOKER] = "{{ColorMult}}+4{{CR}} Mult"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.BULL] = " {{ColorChips}}+2{{CR}} Chips per {{ColorYellorange}}1${{CR}} you have# {{ColorGray}}(Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}} Chips)"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.INVISIBLE_JOKER] = "After {{ColorYellorange}}2{{CR}} rounds, sell this Joker to {{ColorYellorange}}Duplicate{{CR}} a random Joker {{ColorGray}}[[VALUE2]]#(Attualmente [[VALUE1]])"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.ABSTRACT_JOKER] = "{{ColorMult}}+3{{CR}} Mult per Joker card# {{ColorGray}} (Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Mult)"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.MISPRINT] = " {{ColorMult}}+0-23{{CR}} Mult"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.JOKER_STENCIL] = "{{ColorMult}}X1{{CR}} Mult per empty Joker slot#{{CR}}Joker Stencil included# {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Mult)"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.STONE_JOKER] = " {{ColorChips}}+25{{CR}} Chips per {{ColorYellorange}}Stone card{{CR}} in your {{ColorYellorange}}Full deck{{CR}} {{ColorGray}}#(Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}}Chips)"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.ICECREAM] = " {{ColorChips}}+[[VALUE1]]{{CR}} Chips#Loses {{ColorChips}}-5{{CR}} Chips every hand played"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.POPCORN] = " {{ColorMult}}+[[VALUE1]]{{CR}} Mult #Loses {{ColorMult}}-4{{CR}} Mult every round"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.RAMEN] = " {{ColorMult}}X[[VALUE1]]{{CR}} Mult#loses {{ColorMult}}-0.01X{{CR}} per card discarded #{{Collectible682}} Gain a weaker copy of Worm Friend"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.ROCKET] = "{{Coin}} Earn {{ColorYellorange}}[[VALUE1]]${{CR}} at the end of round#Payout increases by {{ColorYellorange}}2${{CR}} when a boss blind is defeated"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.ODDTODD] = "{{Damage}} Played cards with {{ColorYellorange}}odd{{CR}} rank give {{ColorChips}}+31{{CR}} Chips quando attivata"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.EVENSTEVEN] = "{{Lacrime}} Played cards with {{ColorYellorange}}even{{CR}} rank give {{ColorChips}}+4{{CR}} Mult quando attivata"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.JOKER] = "{{ColorMult}}+4{{CR}} Molt"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.BULL] = "{{ColorChips}}+2{{CR}} Fiches per {{ColorYellorange}}1${{CR}} avuto # {{ColorGray}}(Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}} Fiches)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.INVISIBLE_JOKER] = "Dopo {{ColorYellorange}}2{{CR}} round, vendere questo Jolly {{ColorYellorange}}Duplica{{CR}} duplica un'altro Jolly avuto {{ColorGray}}[[VALUE2]]#(Attualmente [[VALUE1]])"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.ABSTRACT_JOKER] = "{{ColorMult}}+3{{CR}} Molt per Jolly # {{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Molt)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.MISPRINT] = " {{ColorMult}}+0-23{{CR}} Molt"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.JOKER_STENCIL] = "{{ColorMult}}X1{{CR}} Molt per slot Jolly vuoto #{{ColorGray}}(Forma di Jolly inclusa) #{{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.STONE_JOKER] = " {{ColorChips}}+25{{CR}} Fiches per {{ColorYellorange}}Carta di Pietra{{CR}} nel tuo {{ColorYellorange}}mazzo intero #{{ColorGray}}(Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}} Fiches)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.ICECREAM] = " {{ColorChips}}+[[VALUE1]]{{CR}} Fiches#Perde {{ColorChips}}-5{{CR}} Fiches ogni mano giocata"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.POPCORN] = " {{ColorMult}}+[[VALUE1]]{{CR}} Molt #Perde {{ColorMult}}-4{{CR}} Molt ogni round"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.RAMEN] = " {{ColorMult}}X[[VALUE1]]{{CR}} Molt#Perde {{ColorMult}}-0.01X{{CR}} ogni carta scartata"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.ROCKET] = "Guadagna {{ColorYellorange}}[[VALUE1]]${{CR}} at the end of round#Payout increases by {{ColorYellorange}}2${{CR}} when a boss blind is defeated"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.ODDTODD] = "Le carte con valore {{ColorYellorange}}dispari{{CR}} danno {{ColorChips}}+31{{CR}} Fiches quando attivate"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.EVENSTEVEN] = "Le carte con valore {{ColorYellorange}}pari{{CR}} danno {{ColorChips}}+4{{CR}} Molt quando attivate"
 Descriptions.T_Jimbo.Jokers[mod.Jokers.HALLUCINATION] = "{{ColorMint}}[[CHANCE]] probabilità su 2{{CR}} to create a{{ColorPink}}Tarot{{CR}} card when opening a {{ColorYellorange}}Pacco di Espansione"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.GREEN_JOKER] = "This gains {{ColorMult}}+1{{CR}} Mult per hand played#{{ColorMult}}-1{{CR}} Mult per discard #{{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Mult)"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.RED_CARD] = "{{ColorMult}}+3{{CR}} Mult per {{ColorYellorange}}Pacco di Espansione{{CR}}#{{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Mult)"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.VAGABOND] = "Creates a{{ColorPink}}Tarot{{CR}} card when a hand is played with {{ColorYellorange}}4${{CR}} or less"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.RIFF_RAFF] = "When a{{ColorYellorange}}Blind{{CR}} is selected, creates up to 2 {{ColorChips}}common{{ColorYellorange}}Jokers{{CR}}"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.GOLDEN_JOKER] = "Earn {{ColorYellorange}}4${{CR}} at the end of round"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.FORTUNETELLER] = "{{ColorMult}}+1{{CR}}Mult per {{ColorPink}}Tarot{{CR}} card used this run # {{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}}Mult)"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.BLUEPRINT] = "Copies the effect of the {{ColorYellorange}}Joker{{CR}} to its right#{{ColorGray}}([[VALUE1]]{{ColorGray}})"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.BRAINSTORM] = "Copies the effect of the leftmost held {{ColorYellorange}}Joker{{CR}}#{{ColorGray}}([[VALUE1]]{{ColorGray}})"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.MADNESS] = "When a {{ColorYellorange}}Small{{CR}} or {{ColorYellorange}}Big Blind{{CR}} is selected, destroys another random Joker and gains {{ColorMult}}X0.5{{CR}} Mult# {{ColorMult}}(Attualmente X[[VALUE1]]{{ColorGray}} Mult)"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.MR_BONES] = "{{ColorMult}}Prevents Death{{CR}} and {{ColorYellorange}}self desctructs{{CR}} if the enemy with the most HP has up to{{ColorYellorange}}75% of the blind's base size"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.ONIX_AGATE] = "{{ColorChips}}Club{{CR}} cards give{{ColorMult}}+7{{CR}} Mult quando attivata"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.ARROWHEAD] = "{{ColorSpade}}Spade{{CR}} cards give{{ColorChips}}+50{{CR}}Chips quando attivata"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.BLOODSTONE] = "{{ColorMult}}Heart{{CR}} card have a{{ColorMint}}[[CHANCE]] probabilità su 2 chance{{CR}} to give {{ColorMult}}X1.5{{CR}} Mult quando attivata"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.ROUGH_GEM] = "{{ColorYellorange}}Diamond{{CR}} cards give {{ColorYellorange}}1${{CR}} quando attivata"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.GREEN_JOKER] = "Ottiene {{ColorMult}}+1{{CR}} Molt ongi mano giocata#{{ColorMult}}-1{{CR}} Molt ogni scarto usato #{{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Molt)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.RED_CARD] = "Ottiene {{ColorMult}}+3{{CR}} Molt ogni {{ColorYellorange}}Busta di Espansione{{CR}} saltata #{{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Molt)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.VAGABOND] = "Crea un {{ColorPink}}Tarocco{{CR}} giocando una mano avendo {{ColorYellorange}}4${{CR}} o meno"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.RIFF_RAFF] = "Quando un {{ColorYellorange}}Buio{{CR}} viene selezionato, crea fino a 2 Jolly {{ColorChips}}comuni"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.GOLDEN_JOKER] = "Guadagna {{ColorYellorange}}4${{CR}} alla fine del round"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.FORTUNETELLER] = "{{ColorMult}}+1{{CR}} Molt per {{ColorPink}}Tarocco{{CR}} usato questa partita #{{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}}Molt)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.BLUEPRINT] = "Copia l'effetto del {{ColorYellorange}}Jolly{{CR}} alla sua destra #{{ColorGray}}([[VALUE1]]{{ColorGray}})"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.BRAINSTORM] = "Copia l'effetto del {{ColorYellorange}}Jolly{{CR}} più a sinistra #{{ColorGray}}([[VALUE1]]{{ColorGray}})"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.MADNESS] = "Quando un {{ColorYellorange}}Piccolo{{CR}} o {{ColorYellorange}}Grande Buio{{CR}} viene selezionato, distrugge un altro Jolly e ottiene {{ColorMult}}X0.5{{CR}} Molt# {{ColorMult}}(Attualmente X[[VALUE1]]{{ColorGray}} Molt)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.MR_BONES] = "{{ColorMult}}Previene la morte{{CR}} e si {{ColorYellorange}}autodistrugge{{CR}} se il nemico con più HP non supera il {{ColorYellorange}}75% del punteggio base del buio"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.ONIX_AGATE] = "Le carte di {{ColorChips}}Fiori{{CR}} danno {{ColorMult}}+7{{CR}} Molt quando attivate"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.ARROWHEAD] = "Le carte di {{ColorSpade}}Picche{{CR}} danno {{ColorChips}}+50{{CR}} Fiches quando attivate"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.BLOODSTONE] = "Le carte di {{ColorMult}}Cuori{{CR}} hanno {{ColorMint}}[[CHANCE]] probabilità su 2{{CR}} di {{ColorMult}}X1.5{{CR}} Molt quando attivate"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.ROUGH_GEM] = "Le carte di {{ColorYellorange}}Quadri{{CR}} danno {{ColorYellorange}}+1${{CR}} quando attivate"
 
-Descriptions.T_Jimbo.Jokers[mod.Jokers.GROS_MICHAEL] = " {{ColorMult}}+15{{CR}}Mult #{{ColorMint}}[[CHANCE]] probabilità su 6 chance{{CR}} of getting destoroyed every round"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.CAVENDISH] = " {{ColorMult}}X3{{CR}}Mult # {{ColorMint}}[[CHANCE]] probabilità su 1000 chance{{CR}} of getting destroyed every round"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.FLASH_CARD] = "This gains {{ColorMult}}+2{{CR}} Mult every {{ColorYellorange}}Shop{{ColorMint}}Reroll #{{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}})"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.SACRIFICIAL_DAGGER] = "When a blind is selcted, destroys the Joker to its right and gains {{ColorMult}}+double its sell value{{CR}} Mult #{{ColorGrey}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}})"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.CLOUD_NINE] = "Earn {{ColorYellorange}}1${{CR}} per {{ColorYellorange}}9{{CR}} in your {{ColorYellorange}}Full Deck{{CR}} at the end of round"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.SWASHBUCKLER] = "Adds the sell value of other owned{{ColorYellorange}}Jokers{{CR}}# {{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Mult)"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.CARTOMANCER] = "When a {{ColorYellorange}}blind{{CR}} is selected creates a{{ColorPink}}Tarot{{CR}} card"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.LOYALTY_CARD] = " {{ColorMult}}X4{{CR}} Mult once every {{ColorYellorange}}6{{CR}}hands played # {{ColorGray}}([[VALUE1]]{{ColorGray}})"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.SUPERNOVA] = "Adds ne number of times {{ColorYellorange}}Poker hand{{CR}} was played to {{ColorMult}}Mult"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.DELAYED_GRATIFICATION] = "Earn {{ColorYellorange}}2${{CR}} per {{ColorMult}}Discard{{CR}} if none were used at the end of round"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.EGG] = "The sell value of this Joker increases by {{ColorYellorange}}2${{CR}} every {{ColorYellorange}}Blind{{CR}} cleared"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.DNA] = "If the {{ColorYellorange}}First hand{{CR}} of round only contains {{ColorYellorange}}1{{CR}} card, add a copy to your {{ColorYellorange}}Deck{{CR}} and draw it in hand #{{ColorGray}}[[VALUE1]]"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.SMEARED_JOKER] = "{{ColorMult}}Hearts{{CR}} and {{ColorYellorange}}Quadri{{CR}} count as the same suit #{{ColorSpade}}Picche{{CR}} and {{ColorBlue}}Fiori{{CR}} count as the same suit"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.GROS_MICHAEL] = "{{ColorMult}}+15{{CR}}Molt #{{ColorMint}}[[CHANCE]] probabilità su 6{{CR}} of getting destoroyed every round"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.CAVENDISH] = " {{ColorMult}}X3{{CR}}Molt # {{ColorMint}}[[CHANCE]] probabilità su 1000{{CR}} of getting destroyed every round"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.FLASH_CARD] = "Ottiene {{ColorMult}}+2{{CR}} Molt ogni {{ColorMint}}Cambio{{CR}} del {{ColorYellorange}}Negozio #{{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}})"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.SACRIFICIAL_DAGGER] = "Quando un {{ColorYellorange}}buio{{CR}} viene selezionato, distrugge il Jolly alla sua destra e guadagna {{ColorMult}}+2 volte il suo valore di vendita{{CR}} Molt #{{ColorGrey}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}})"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.CLOUD_NINE] = "Guadagna {{ColorYellorange}}1${{CR}} per ogni {{ColorYellorange}}9{{CR}} nel tuo {{ColorYellorange}}mazzo intero{{CR}} alla fine del round"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.SWASHBUCKLER] = "Aggiunge il valore di {{ColorYellorange}}vendita{{CR}} degli altri Jolly a {{ColotMult}}Molt# {{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Molt)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.CARTOMANCER] = "Quando un {{ColorYellorange}}buio{{CR}} viene selezionato, crea un {{ColorPink}}Tarocco"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.LOYALTY_CARD] = "{{ColorMult}}X4{{CR}} Molt ogni {{ColorYellorange}}6{{CR}} mani giocate # {{ColorGray}}([[VALUE1]]{{ColorGray}})"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.SUPERNOVA] = "Aggiunge il numero di volte che la {{ColorYellorange}}Mano di Poker[{CR}} è stata giocata a {{ColorMult}}Molt"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.DELAYED_GRATIFICATION] = "Guadagna {{ColorYellorange}}2${{CR}} per ogni {{ColorMult}}Scarto{{CR}} rimasto se non ne sono stati usati alla fine del round"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.EGG] = "Il valore di vendita di questo Jolly aumenta di {{ColorYellorange}}3${{CR}} ogni {{ColorYellorange}}buio{{CR}} sconfitto"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.DNA] = "Se la {{ColorYellorange}}prima mano{{CR}} del round contiene solo {{ColorYellorange}}1{{CR}} carta, aggiungine una copia al {{ColorYellorange}}Mazzo{{CR}} e pescala in mano#{{ColorGray}}[[VALUE1]]"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.SMEARED_JOKER] = "{{ColorMult}}Cuori{{CR}} e {{ColorYellorange}}Quadri{{CR}} sono considerati lo stesso seme#{{ColorSpade}}Picche{{CR}} e {{ColorBlue}}Fiori{{CR}} sono considerati lo stesso seme"
 
-Descriptions.T_Jimbo.Jokers[mod.Jokers.SLY_JOKER] = "{{ColorChips}}+50{{CR}}Chips if hand played contains a {{ColorYellorange}}Pair{{CR}}"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.WILY_JOKER] = "{{ColorChips}}+100 {{CR}}Chips if hand played contains a {{ColorYellorange}}Three of a Kind{{CR}}"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.CLEVER_JOKER] = "{{ColorChips}}+80 {{CR}}Chips if hand played contains a {{ColorYellorange}}Two Pair{{CR}}"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.DEVIOUS_JOKER] = "{{ColorChips}}+100 {{CR}}Chips if hand played contains a {{ColorYellorange}}Striaght{{CR}}"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.CRAFTY_JOKER] = "{{ColorChips}}+80 {{CR}}Chips if hand played contains a {{ColorYellorange}}Flush{{CR}}"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.JOLLY_JOKER] = "{{ColorMult}}+8 {{CR}}Mult if hand played contains a {{ColorYellorange}}Pair{{CR}}"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.ZANY_JOKER] = "{{ColorMult}}+12 {{CR}}Mult if hand played contains a {{ColorYellorange}}Three of a Kind{{CR}}"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.MAD_JOKER] = "{{ColorMult}}+10 {{CR}}Mult if hand played contains a {{ColorYellorange}}Two Pair{{CR}}"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.CRAZY_JOKER] = "{{ColorMult}}+12 {{CR}}Mult if hand played contains a {{ColorYellorange}}Straight{{CR}}"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.DROLL_JOKER] = "{{ColorMult}}+10 {{CR}}Mult if hand played contains a {{ColorYellorange}}Flush{{CR}}"
+---CONTROLLA 
 
-Descriptions.T_Jimbo.Jokers[mod.Jokers.MIME] = "{{ColorYellorange}}Retriggers{{CR}} all {{ColorYellorange}}held in hand{{CR}} abilities"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.FOUR_FINGER] = "{{ColorYellorange}}Flushes{{CR}} and {{ColorYellorange}}Straights{{CR}} only need 4 cards"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.LUSTY_JOKER] = "{{ColorMult}}Heart{{CR}} cards give {{ColorMult}}+3{{CR}}Mult quando attivata"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.GREEDY_JOKER] = "{{ColorYellorange}}Diamond{{CR}} cards give {{ColorMult}}+3{{CR}}Mult quando attivata"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.WRATHFUL_JOKER] = "{{ColorSpade}}Spade{{CR}} cards give {{ColorMult}}+3{{CR}}Mult quando attivata"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.GLUTTONOUS_JOKER] = "{{ColorChips}}Club{{CR}} cards give {{ColorMult}}+3 {{CR}}Mult quando attivata"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.MERRY_ANDY] = "{{ColorYellorange}}+3{{CR}} Discards #{{ColorMult}}-1{{CR}} Hand size ##{{Heart}} Heal one extra heart on room clear"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.HALF_JOKER] = "{{ColorMult}}+20{{CR}}Mult when hand played has {{ColorYellorange}}3 or less{{CR}} cards"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.CREDIT_CARD] = "Shop items can be bought with up to {{ColorMult}}-20${{CR}} in debt #{{ColorGray}}(Effect is stackable)"
 
-Descriptions.T_Jimbo.Jokers[mod.Jokers.BANNER] = "{{ColorChips}}+30{{CR}}Chips per remaining{{ColorYellorange}}Discard{{CR}}"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.MYSTIC_SUMMIT] = "{{ColorMult}}+15{{CR}} when with {{ColorYellorange}}0{{CR}} discards remaining"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.MARBLE_JOKER] = "When a {{ColorYellorange}}Blind{{CR}} is selected, adds a {{ColorYellorange}}Stone card{{CR}} to the deck"
-Descriptions.T_Jimbo.Jokers[mod.Jokers._8_BALL] = "{{ColorMint}}[[CHANCE]] probabilità su 4{{CR}} to create a{{ColorPink}}Tarot{{CR}}card when an {{ColorYellorange}}8{{CR}} is scored"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.DUSK] = "{{ColorYellorange}}Retriggers{{CR}} last hand of round"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.RAISED_FIST] = "Adds {{ColorYellorange}}double{{CR}} the rank of the {{ColorYellorange}}lowest{{CR}} ranked card held in hand to {{ColorMult}}Mult"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.CHAOS_CLOWN] = "{{ColorYellorange}}1{{CR}} free {{ColorMint}}Reroll{{CR}} per shop"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.FIBONACCI] = "Every {{ColorYellorange}}Ace{{CR}}, {{ColorYellorange}}2{{CR}}, {{ColorYellorange}}3{{CR}}, {{ColorYellorange}}5{{CR}} and {{ColorYellorange}}8{{CR}} gives {{ColorMult}}+8{{CR}}Mult quando attivata"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.STEEL_JOKER] = "This gains {{ColorMult}}X0.2{{CR}}Mult per {{ColorYellorange}}Steel card{{CR}} in your full deck"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.SCARY_FACE] = "{{ColorYellorange}}Face cards{{CR}} give {{ColorChips}}+30{{CR}}Chips quando attivata"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.HACK] = "Retriggers {{ColorYellorange}}2, 3, 4 and 5{{CR}} played"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.PAREIDOLIA] = "Every card counts as a {{ColorYellorange}}Face card{{CR}}"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.SLY_JOKER] = "{{ColorChips}}+50{{CR}} Fiches se la mano giocata contiene una {{ColorYellorange}}Coppia"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.WILY_JOKER] = "{{ColorChips}}+100{{CR}} Fiches se la mano giocata contiene un {{ColorYellorange}}Tris"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.CLEVER_JOKER] = "{{ColorChips}}+80{{CR}} Fiches se la mano giocata contiene una {{ColorYellorange}}Doppia Coppia"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.DEVIOUS_JOKER] = "{{ColorChips}}+100{{CR}} Fiches se la mano giocata contiene una {{ColorYellorange}}Scala"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.CRAFTY_JOKER] = "{{ColorChips}}+80{{CR}} Fiches se la mano giocata contiene un {{ColorYellorange}}Colore"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.JOLLY_JOKER] = "{{ColorMult}}+8{{CR}} Molt se la mano giocata contiene una {{ColorYellorange}}Coppia"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.ZANY_JOKER] = "{{ColorMult}}+12{{CR}} Molt se la mano giocata contiene un {{ColorYellorange}}Tris"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.MAD_JOKER] = "{{ColorMult}}+10{{CR}}Molt se la mano giocata contiene una {{ColorYellorange}}Doppia Coppia"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.CRAZY_JOKER] = "{{ColorMult}}+12{{CR}} Molt se la mano giocata contiene una {{ColorYellorange}}Scala"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.DROLL_JOKER] = "{{ColorMult}}+10{{CR}} Molt se la mano giocata contiene un {{ColorYellorange}}Colore"
 
-Descriptions.T_Jimbo.Jokers[mod.Jokers.SCHOLAR] = "{{ColorYellorange}}Aces{{CR}} give {{ColorMult}}+4{{CR}} Mult and {{ColorChips}}+20{{CR}} Chips quando attivata"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.BUSINESS_CARD] = "{{ColorYellorange}}Face cards{{CR}} have a {{ColorMint}}[[CHANCE]] probabilità su 2{{CR}} to give{{ColorYellorange}}2${{CR}} quando attivata"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.RIDE_BUS] = "{{ColorMult}}+1{{CR}}Mult per consecutive hand played without a {{ColorYellorange}}scoring Face card#{{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{CR}})"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.SPACE_JOKER] = "{{ColorMint}}[[CHANCE]] probabilità su 4{{CR}} to upgrade level of played {{ColorYellorange}}Poker hand"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.BURGLAR] = "After a round starts, removes all {{ColorMult}}Discards{{CR}} and gain {{ColorChips}}+3{{CR}} hands"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.BLACKBOARD] = "{{ColorMult}}X3{{CR}}Mult if all cards held in hand are {{ColorSpade}}Picche{{CR}} or {{ColorChips}}Fiori{{CR}}"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.RUNNER] = "This gains {{ColorChips}}+15{{CR}} Chips when played hand contains a {{ColorYellorange}}Straight#{{ColorGray}}(Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}})"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.SPLASH] = "All {{ColorYellorange}}played cards{{CR}} are considered in scoring"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.BLUE_JOKER] = "{{ColorChips}}+2{{CR}}Chips per remaining card in your deck # {{ColorGray}}(Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}}Chips)"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.SIXTH_SENSE] = "If the {{ColorYellorange}}First{{CR}} hand played is a single {{ColorYellorange}}6{{CR}}, destroy it and create a {{ColorBlue}}Spectral{{CR}} card"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.CONSTELLATION] = "This Jokers gains {{ColorMult}}X0.1{{CR}} Mult every time a {{ColorCyan}}Planet{{CR}} card is used#{{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}})"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.HIKER] = "Cards gain {{ColorChips}}+5{{CR}} permanent Chips quando attivata"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.FACELESS] = "Gain {{ColorYellorange}}5${{CR}} when discarding {{ColorYellorange}}3 or more Face cards{{CR}} at once"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.SUPERPOSISION] = "Create a {{ColorPink}}Tarot{{CR}} card when played hand contains a {{ColorYellorange}}Straight{{CR}} and an {{ColorYellorange}}Ace{{CR}}"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.TO_DO_LIST] = "Gain {{ColorYellorange}}4${{CR}} when played hand is a {{ColorYellorange}}[[VALUE1]]{{CR}}#(Hand changes every round)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.MIME] = "{{ColorYellorange}}Riattiva{{CR}} le abilità {{ColorYellorange}}tenute in mano"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.FOUR_FINGER] = "I {{ColorYellorange}}Colori{{CR}} e {{ColorYellorange}}Scale{{CR}} richiedono solo 4 carte"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.LUSTY_JOKER] = "Le carte di {{ColorMult}}Cuori{{CR}} danno {{ColorMult}}+3{{CR}} Molt quando attivate"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.GREEDY_JOKER] = "Le carte di {{ColorYellorange}}Quadri{{CR}} danno {{ColorMult}}+3{{CR}} Molt quando attivate"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.WRATHFUL_JOKER] = "Le carte di {{ColorSpade}}Picche{{CR}} danno {{ColorMult}}+3{{CR}} Molt quando attivate"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.GLUTTONOUS_JOKER] = "Le carte di {{ColorChips}}Fiori{{CR}} danno {{ColorMult}}+3{{CR}} Molt quando attivate"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.MERRY_ANDY] = "{{ColorYellorange}}+3{{CR}} scarti #{{ColorMult}}-1{{CR}} Carte in mano"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.HALF_JOKER] = "{{ColorMult}}+20{{CR}} Molt se la mano giocata ha fino a {{ColorYellorange}}3{{CR}} carte"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.CREDIT_CARD] = "Puoi comprare oggetti fino a {{ColorMult}}-20${{CR}} in debito #{{ColorGray}}(effetto cumulabile)"
 
-Descriptions.T_Jimbo.Jokers[mod.Jokers.CARD_SHARP] = "{{ColorChips}}X3{{CR}} Mult if {{ColorYellorange}}Poker hand{{CR}} was alredy played this round"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.SQUARE_JOKER] = "This gains {{ColorChips}}+4{{CR}} Chips if hand played contains exactly {{ColorYellorange}}4{{CR}} cards#{{ColorGray}}(Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}}Chips)"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.SEANCE] = "Creates a {{ColorYellorange}}Spectral{{CR}} card If a {{ColorYellorange}}Straight Flush{{CR}} is played"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.VAMPIRE] = "When a card with an {{ColorYellorange}}Enhancement{{CR}} is scored, this gains {{ColorChips}}X0.1{{CR}} Mult and removes the card's {{ColorYellorange}}Enhancement{{CR}}#{{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}}Mult)"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.SHORTCUT] = "Allows {{ColorYellorange}}Straights{{CR}} to be made with gaps of {{ColorYellorange}}1 rank{{CR}}"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.HOLOGRAM] = "This gains {{ColorMult}}X0.25{{CR}}Mult when a card gets {{ColorYellorange}}added{{CR}} to the deck#{{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}}Mult)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.BANNER] = "{{ColorChips}}+30{{CR}} Fiches per {{ColorYellorange}}Scarto{{CR}} rimenente"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.MYSTIC_SUMMIT] = "{{ColorMult}}+15{{CR}} molt when with {{ColorYellorange}}0{{CR}} discards remaining"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.MARBLE_JOKER] = "Quando un {{ColorYellorange}}buio{{CR}} viene selezionato, aggiunge una {{ColorYellorange}}Carta di Pietra{{CR}} al mazzo"
+Descriptions.T_Jimbo.Jokers[mod.Jokers._8_BALL] = "Gli {{ColorYellorange}}8{{CR}} hanno {{ColorMint}}[[CHANCE]] probabilità su 4{{CR}} di creare un {{ColorPink}}Tarocco{{CR}} qunado attivati"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.DUSK] = "{{ColorYellorange}}Riattiva{{CR}} l'ultima mano del round"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.RAISED_FIST] = "Aggiunge il {{ColorYellorange}}doppio{{CR}} del valore {{ColorYellorange}}minore{{CR}} tenuto in mano a {{ColorMult}}Molt"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.CHAOS_CLOWN] = "{{ColorYellorange}}1 {{ColorMint}}Cambio{{CR}} gratutio per negozio"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.FIBONACCI] = "Ogni {{ColorYellorange}}Asso{{CR}}, {{ColorYellorange}}2{{CR}}, {{ColorYellorange}}3{{CR}}, {{ColorYellorange}}5{{CR}} e {{ColorYellorange}}8{{CR}} dà {{ColorMult}}+8{{CR}} Molt quando attivato"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.STEEL_JOKER] = "Ottiene {{ColorMult}}X0.2{{CR}} Molt per ogni {{ColorYellorange}}Carta d'Acciaio{{CR}} nel tuo mazzo intero"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.SCARY_FACE] = "Le {{ColorYellorange}}Figure{{CR}} danno {{ColorChips}}+30{{CR}} Fiches quando attivate"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.HACK] = "Riattiva i {{ColorYellorange}}2, 3, 4 e 5{{CR}} giocati"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.PAREIDOLIA] = "Ogni carta è considerata come una {{ColorYellorange}}Fiugra"
 
-Descriptions.T_Jimbo.Jokers[mod.Jokers.BARON] = "Every {{ColorYellorange}}King{{CR}} held in hand gives {{ColorMult}}X1.5{{CR}} Mult"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.OBELISK] = "This gains {{ColorMult}}+0.2X{{CR}} Mult per {{ColorYellorange}}consecutive{{CR}} hand played without playing you most played {{ColorYellorange}}Poker hand{{CR}}#{{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}}Mult)"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.MIDAS] = "Every scoring {{ColorYellorange}}Face card{{CR}} becomes {{ColorYellorange}}Golden{{CR}}"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.LUCHADOR] = "{{ColorYellorange}}Selling{{CR}} this Joker disables all {{ColorYellorange}}Boss abilities"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.PHOTOGRAPH] = "First Scoring {{ColorYellorange}}Face card{{CR}} gives {{ColorMult}}X2{{CR}} Mult when {{ColorYellorange}}Scored{{CR}}"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.GIFT_CARD] = "Every Joker and consumable held gains {{ColorYellorange}}1${{CR}} selling value at the end of round"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.TURTLE_BEAN] = "Gain {{ColorCyan}}+[[VALUE1]]{{CR}} Hand Size #Loses {{ColorMult}}-1{{CR}} Hand size every round"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.EROSION] = "{{ColorChips}}+4{{CR}} Mult per card below {{ColorYellorange}}52{{CR}} in your {{ColorYellorange}}Full deck# {{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Mult)"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.RESERVED_PARK] = "Each {{ColorYellorange}}Face card{{CR}} held in hand has a {{ColorMint}}[[CHANCE]] probabilità su 4{{CR}} to give {{ColorYellorange}}1$"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.SCHOLAR] = "Gli {{ColorYellorange}}Assi{{CR}} danno {{ColorMult}}+4{{CR}} Molt e {{ColorChips}}+20{{CR}} Fiches quando attivati"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.BUSINESS_CARD] = "Le {{ColorYellorange}}Figure{{CR}} hanno {{ColorMint}}[[CHANCE]] probabilità su 2{{CR}} di dare {{ColorYellorange}}+2${{CR}} quando attivate"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.RIDE_BUS] = "{{ColorMult}}+1{{CR}} Molt per mano giocata senza una {{ColorYellorange}}Figura attivata#{{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{CR}} Molt)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.SPACE_JOKER] = "{{ColorMint}}[[CHANCE]] probabilità su 4{{CR}} di potenziare la {{ColorYellorange}}Mano di POker{{CR}} giocata"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.BURGLAR] = "All'inizio del round, perdi tutti gli {{ColorMult}}Scarti{{CR}} e ottieni {{ColorChips}}+3{{CR}} mani"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.BLACKBOARD] = "{{ColorMult}}X3{{CR}} Molt se tutte le carte in mano sono di {{ColorSpade}}Picche{{CR}} o {{ColorChips}}Fiori"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.RUNNER] = "Ottiene {{ColorChips}}+15{{CR}} Fiches se la mano giocata contiene una {{ColorYellorange}}Scala#{{ColorGray}}(Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}} Fiches)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.SPLASH] = "Tutte le {{ColorYellorange}}carte giocate{{CR}} assegnano punti"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.BLUE_JOKER] = "{{ColorChips}}+2{{CR}} Fiches per carta rimanente nel mazzo # {{ColorGray}}(Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}}Fiches)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.SIXTH_SENSE] = "Se la {{ColorYellorange}}prima{{CR}}mano giocata è un singolo {{ColorYellorange}}6{{CR}}, distruggilo e crea una carta {{ColorBlue}}Spettrale"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.CONSTELLATION] = "Ottiene {{ColorMult}}X0.1{{CR}} Molt ogni volta che un {{ColorCyan}}Pianeta{{CR}} viene usato#{{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.HIKER] = "Le carte ottengono {{ColorChips}}+5{{CR}} Fiches permanenti quando attivate"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.FACELESS] = "Guadagna {{ColorYellorange}}5${{CR}} se uno scarto contiene almeno {{ColorYellorange}}3 Figure"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.SUPERPOSISION] = "Crea un {{ColorPink}}Tarocco{{CR}} se la mano giocata contiene una {{ColorYellorange}}Scala{{CR}} e un {{ColorYellorange}}Asso"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.TO_DO_LIST] = "Guadagna {{ColorYellorange}}4${{CR}} se la mano giocata è {{ColorYellorange}}[[VALUE1]]{{CR}}#(mano cambia ogni round)"
 
-Descriptions.T_Jimbo.Jokers[mod.Jokers.MAIL_REBATE] = "Earn {{ColorYellorange}}5${{CR}} per {{ColorYellorange}}[[VALUE1]]{{CR}} discarded #(Rank changes every round)"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.TO_THE_MOON] = "Interests earned are {{ColorYellorange}}Doubled"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.JUGGLER] = "{{ColorYellorange}}+1{{CR}} Hand Size"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.DRUNKARD] = "{{ColorMult}}+1{{CR}} discard"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.LUCKY_CAT] = "This gains {{ColorMult}}X0.25{{CR}} Mult per {{ColorMint}}Successful{{ColorYellorange}}Lucky Card{{CR}} trigger#{{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Mult)"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.BASEBALL] = "{{ColorMint}}Uncommon{{CR}} Jokers give {{ColorMult}}X1.5{{CR}} Mult"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.DIET_COLA] = "{{ColorYellorange}}Selling{{CR}} this creates a {{ColorYellorange}}Double tag"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.CARD_SHARP] = "{{ColorChips}}X3{{CR}} Molt se la {{ColorYellorange}}Mano di Poker{{CR}} era già stata giocata questo round"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.SQUARE_JOKER] = "Ottiene {{ColorChips}}+4{{CR}} Fiches se la mano giocata contiene esattamente {{ColorYellorange}}4{{CR}} carte#{{ColorGray}}(Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}} Fiches)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.SEANCE] = "crea una carta {{ColorYellorange}}Spettrale{{CR}} quando una {{ColorYellorange}}Scala Reale{{CR}} viene giocata"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.VAMPIRE] = "Quando una carta {{ColorYellorange}}Potenziata{{CR}} viene attivata, ottiene {{ColorChips}}X0.1{{CR}} Molt e rimuove il {{ColorYellorange}}Potenziamento{{CR}}#{{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}}Molt)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.SHORTCUT] = "Le {{ColorYellorange}}Scale{{CR}} possono avere salti di {{ColorYellorange}}1 rank"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.HOLOGRAM] = "Ottiene {{ColorMult}}X0.25{{CR}} Molt quando una carta viene {{ColorYellorange}}aggiunta{{CR}} al mazzo#{{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}}Molt)"
 
-Descriptions.T_Jimbo.Jokers[mod.Jokers.TRADING_CARD] = "If first discard of round contains a {{ColorYellorange}}single{{CR}} card, destroy it and gain {{ColotYellor}}3$"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.SPARE_TROUSERS] = "This gains {{ColorMult}}+2{{CR}} Mult if hand played caontains a {{ColorYellorange}}Two-pair{{CR}}#{{ColorGray}}(Attualmente{{ColorMult}}+[[VALUE1]]{{ColorGray}}Mult)"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.ANCIENT_JOKER] = "[[VALUE1]]{{CR}} cards give {{ColorMult}}X1.5{{CR}}Mult quando attivata#(suit changes every round)"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.WALKIE_TALKIE] = "{{ColorYellorange}}10s{{CR}} and {{ColorYellorange}}4s{{CR}} give {{ColorChips}}+10{{CR}}Chips and {{ColorMult}}+4{{CR}} Mult quando attivata"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.SELTZER] = "{{ColorYellorange}}Retriggers{{CR}} all played cards# {{ColorGray}}({{ColorYellorange}}[[VALUE1]]{{ColorGray}} hands remaining)"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.SMILEY_FACE] = "{{ColorYellorange}}Face cards{{CR}} give {{ColorMult}}+5{{CR}} Mult quando attivata"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.CAMPFIRE] = "This gains {{ColorMult}}X0.25{{CR}} Mult per card {{ColorYellorange}}sold{{CR}} this Ante #{{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Mult)"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.CASTLE] = "This gains {{ColorChips}}+3{{CR}} Chips per [[VALUE1]]{{CR}} card discarded #{{ColorGray}}(Attualmente {{ColorChips}}+[[VALUE2]]{{ColorGray}} Chips)"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.GOLDEN_TICKET] = "{{ColorYellorange}}Golden{{CR}} cards give {{ColorYellorange}}4${{CR}} quando attivata"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.ACROBAT] = "Gives {{ColorMult}}X3{{CR}} Mult on {{ColorYellorange}}last{{CR}} hand of round"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.SOCK_BUSKIN] = "{{ColorYellorange}}Retriggers{{CR}} played {{ColorYellorange}}Face{{CR}} cards"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.TROUBADOR] = "{{ColorYellorange}}+2{{CR}} Hand Size #{{ColorMult}}-1{{CR}} Hands"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.THROWBACK] = "This gains {{ColorMult}}X0.25{{CR}} Mult per blind {{ColorYellorange}}skipped{{CR}} in this run# {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}})"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.BARON] = "I {{ColorYellorange}}King{{CR}} tenuti in mano danno {{ColorMult}}X1.5{{CR}} Molt"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.OBELISK] = "Ottiene {{ColorMult}}X0.2{{CR}} Molt per mano {{ColorYellorange}}consecutiva{{CR}} giocata senza giocare la tua {{ColorYellorange}}mano di poker{{CR}} più giocata#{{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}}Molt)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.MIDAS] = "Le {{ColorYellorange}}Figure{{CR}} che assegnano punti diventano {{ColorYellorange}}Carte Dorate"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.LUCHADOR] = "{{ColorYellorange}}Vendere{{CR}} questo Jolly disabilita il {{ColorYellorange}}Boss{{CR}} attuale"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.PHOTOGRAPH] = "La prima {{ColorYellorange}}Figura{{CR}} ad assegnare punti dà {{ColorMult}}X2{{CR}} Molt quando attivata"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.GIFT_CARD] = "Ogni Jolly e consumabile avuto ottiene {{ColorYellorange}}+1${{CR}} valore di vendta a fine round"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.TURTLE_BEAN] = "{{ColorCyan}}+[[VALUE1]]{{CR}} Carte in mano #Perde {{ColorMult}}-1{{CR}} carte in mano ogni round"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.EROSION] = "{{ColorChips}}+4{{CR}} Molt per carta sotto {{ColorYellorange}}52{{CR}} nel tuo {{ColorYellorange}}mazzo intero# {{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Molt)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.RESERVED_PARK] = "Le {{ColorYellorange}}Figure{{CR}} tenute in mano hanno {{ColorMint}}[[CHANCE]] probabilità su 4{{CR}} di dare {{ColorYellorange}}1$"
+
+Descriptions.T_Jimbo.Jokers[mod.Jokers.MAIL_REBATE] = "Guadagna {{ColorYellorange}}5${{CR}} per ogni {{ColorYellorange}}[[VALUE1]]{{CR}} scartato #(Valore cambia ogni round)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.TO_THE_MOON] = "Guadagna {{ColorYellorange}}1${{CR}} aggiuntivo per ogni {{ColorYellorange}}5${{CR}} avuti come interesse"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.JUGGLER] = "{{ColorYellorange}}+1{{CR}} Carte in mano"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.DRUNKARD] = "{{ColorMult}}+1{{CR}} scato"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.LUCKY_CAT] = "Ottiene {{ColorMult}}X0.25{{CR}} Molt per attivazione con {{ColorMint}}successo{{CR}} di una {{ColorYellorange}}Carta Fourtunata#{{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.BASEBALL] = "I Jolly {{ColorMint}}Non comuni{{CR}} danno {{ColorMult}}X1.5{{CR}} Molt"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.DIET_COLA] = "{{ColorYellorange}}Vednere{{CR}} quadto Jolly crea un {{ColorYellorange}}Patto Poppio"
+
+Descriptions.T_Jimbo.Jokers[mod.Jokers.TRADING_CARD] = "Se lo primo scrto del round contiene una {{ColorYellorange}}singola{{CR}} carta, distruggila e guadagna {{ColotYellor}}3$"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.SPARE_TROUSERS] = "Ottiene {{ColorMult}}+2{{CR}} Molt se la mano giocata contiene una {{ColorYellorange}}Doppia Coppia#{{ColorGray}}(Attualmente{{ColorMult}}+[[VALUE1]]{{ColorGray}}Molt)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.ANCIENT_JOKER] = "Le carte di [[VALUE1]]{{CR}} danno {{ColorMult}}X1.5{{CR}}Molt quando attivate#{{ColorGray}}(Seme cambia ogni round)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.WALKIE_TALKIE] = "I {{ColorYellorange}}10{{CR}} e {{ColorYellorange}}4{{CR}} danno {{ColorChips}}+10{{CR}}Fiches e {{ColorMult}}+4{{CR}} Molt quando attivati"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.SELTZER] = "{{ColorYellorange}}Riattiva{{CR}} tutte le carte giocate# {{ColorGray}}({{ColorYellorange}}[[VALUE1]]{{ColorGray}} mani rimanenti)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.SMILEY_FACE] = "Le {{ColorYellorange}}Figure{{CR}} danno {{ColorMult}}+5{{CR}} Molt quando attivate"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.CAMPFIRE] = "Ottiene {{ColorMult}}X0.25{{CR}} Molt per carta {{ColorYellorange}}venduta{{CR}} quasta Ante #{{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.CASTLE] = "Ottiene {{ColorChips}}+3{{CR}} Fiches ogni carta di [[VALUE1]]{{CR}} scartata #{{ColorGray}}(Attualmente {{ColorChips}}+[[VALUE2]]{{ColorGray}} Fiches)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.GOLDEN_TICKET] = "Le {{ColorYellorange}}Carte Dorate{{CR}} danno {{ColorYellorange}}4${{CR}} quando attivate"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.ACROBAT] = "{{ColorMult}}X3{{CR}} Molt all'{{ColorYellorange}}ultima{{CR}} mano del round"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.SOCK_BUSKIN] = "{{ColorYellorange}}Riattiva{{CR}} le {{ColorYellorange}}Figure{{CR}} giocate"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.TROUBADOR] = "{{ColorYellorange}}+2{{CR}} Carte in mano #{{ColorMult}}-1{{CR}} mano"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.THROWBACK] = "Ottiene {{ColorMult}}X0.25{{CR}} Molt per buio {{ColorYellorange}}saltato{{CR}} questa partita# {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}})"
 Descriptions.T_Jimbo.Jokers[mod.Jokers.CERTIFICATE] = "When a blind is {{ColorYellorange}}selected{{CR}}, adds a card with a random{{ColorYellorange}}Seal{{B_Black} to the deck and drawn to hand"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.HANG_CHAD] = "{{ColorYellorange}}First{{CR}} scoring card played is {{ColorYellorange}}retriggered{{CR}} twice"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.GLASS_JOKER] = "This gains {{ColorMult}}X0.75{{CR}} per {{ColorYellorange}}Glass Card{{CR}} destroyed#{{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{Co}})"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.SHOWMAN] = "{{ColorYellorange}}Joker{{CR}},{{ColorPink}}Tarot{{CR}},{{ColorCyan}}Planet{{CR}} and {{ColorBlue}}Spectral{{CR}} cards may appear multiple times"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.FLOWER_POT] = "{{ColorChips}}X3{{CR}} Mult if {{oOlorYellorange}}scoring{{CR}} cards contain all{{COlorYellorange}}Suits"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.WEE_JOKER] = "This gains {{ColorChips}}+8{{CR}} Chips per {{ColorYellorange}}2{{CR}} scored#{{ColorGray}}(Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}}Chips)"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.OOPS_6] = "Every {{ColorMint}}Listed{{CR}} is Doubled"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.IDOL] = "[[VALUE1]]{{CR}} give {{ColorMult}}X2{{CR}} Mult quando attivata #(Card changes every round)"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.SEE_DOUBLE] = "{{ColorMult}}X2{{CR}} Mult if hand played contains both a {{ColorYellorange}}scoring{{ColorChips}}club{{CR}} and {{ColorYellorange}}not-club{{CR}} card"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.MATADOR] = "Earn {{ColorYellorange}}+8${{CR}} when hand played triggers the {{ColorYellorange}}Boss blind{{CR}} effect"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.HIT_ROAD] = "This gains {{ColorMult}}X0.5{{CR}} Mult per {{ColorYellorange}}Jack{{CR}} discarded this round#{{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}}Mult)"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.DUO] = "{{ColorMult}}X2{{CR}} Mult if hand played contains a {{ColorYellorange}}Pair "
-Descriptions.T_Jimbo.Jokers[mod.Jokers.TRIO] = "{{ColorMult}}X3{{CR}} Mult if hand played contains a {{ColorYellorange}}Three of a Kind"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.FAMILY] = "{{ColorMult}}X4{{CR}} Mult if hand played contains a {{ColorYellorange}}Four of a Kind"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.ORDER] = "{{ColorMult}}X3{{CR}} Mult if hand played contains a {{ColorYellorange}}Straight"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.TRIBE] = "{{ColorMult}}X2{{CR}} Mult if hand played contains a {{ColorYellorange}}Flush"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.STUNTMAN] = "{{ColorMult}}+250{{CR}} Chips #{{ColorMult}}-s{B_Black}} Hand Size"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.SATELLITE] = "Earn {{ColorYellorange}}1${{CR}} per unique {{ColorCyan}}Planet{{CR}} card used this run# {{ColorGray}}(Attualmente {{ColorYellorange}}[[VALUE1]]${{ColorGray}})"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.SHOOT_MOON] = "{{ColorMult}}+13{{CR}} Mult per {{ColorYellorange}}Queen{{CR}} held in hand"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.DRIVER_LICENSE] = "{{ColorMult}}X3{{CR}} Mult if you have at least {{ColorYellorange}}16 Enhanced cards{{CR}} in your full deck # {{ColorGray}}(Attualmente {{ColorYellorange}}[[VALUE1]]{{ColorGray}} Enhanced cards)"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.ASTRONOMER] = "Every {{ColorCyan}}Planet{{CR}} card and {{ColorCyan}}Celestial{{CR}} pack is free"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.BURNT_JOKER] = "{{ColorYellorange}}Upgrades{{CR}} the level first discarded {{ColorYellorange}}Poker hand{{CR}} every round"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.BOOTSTRAP] = "{{ColorMult}}+2{{CR}} Mult per {{ColorYellorange}}5${{CR}} you have# {{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}})"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.HANG_CHAD] = "La {{ColorYellorange}}prima{{CR}} carta che assegna punti viene {{ColorYellorange}}riattivata{{CR}} 2 volte"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.GLASS_JOKER] = "Ottiene {{ColorMult}}X0.75{{CR}} ogni {{ColorYellorange}}Carta di vetro{{CR}} distrutta#{{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}}Molt)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.SHOWMAN] = "Le carte {{ColorYellorange}}Jolly{{CR}},{{ColorPink}}Tarocche{{CR}},{{ColorCyan}}Pianeta{{CR}} e {{ColorBlue}}Spettrali{{CR}} possono apparire più volte"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.FLOWER_POT] = "{{ColorChips}}X3{{CR}} Molt se la {{ColorYellorange}}Mano fi Poker{{CR}} contiene tutti i {{ColorYellorange}}Semi"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.WEE_JOKER] = "Ottieni {{ColorChips}}+8{{CR}} Fiches per ogni {{ColorYellorange}}2{{CR}} attivato#{{ColorGray}}(Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}}Fiches)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.OOPS_6] = "Ogni {{ColorMint}}probabilità{{CR}} è rsddoppiata"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.IDOL] = "[[VALUE1]]{{CR}} dà {{ColorMult}}X2{{CR}} Molt quando attivata #(Carta cambia ogni round)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.SEE_DOUBLE] = "{{ColorMult}}X2{{CR}} Molt se la {{ColorYellorange}}Mano di Poker{{CR}} contiene una carta di {{ColorChips}}Flub{{CR}} e una {{ColorYellorange}}non di {{ColorChips}}Fiori"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.MATADOR] = "Guadagna {{ColorYellorange}}8${{CR}} quando la mano giocata attiva l'abilità del {{ColorYellorange}}Buio Boss"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.HIT_ROAD] = "Ottiene {{ColorMult}}X0.5{{CR}} Molt ogni {{ColorYellorange}}Jack{{CR}} scartato questo round#{{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}}Molt)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.DUO] = "{{ColorMult}}X2{{CR}} Molt se la mano giocata contiene una {{ColorYellorange}}Coppia"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.TRIO] = "{{ColorMult}}X3{{CR}} Molt se la mano giocata contiene un {{ColorYellorange}}Tris"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.FAMILY] = "{{ColorMult}}X4{{CR}} Molt se la mano giocata contiene un {{ColorYellorange}}Poker"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.ORDER] = "{{ColorMult}}X3{{CR}} Molt se la mano giocata contiene una {{ColorYellorange}}Scala"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.TRIBE] = "{{ColorMult}}X2{{CR}} Molt se la mano giocata contiene un {{ColorYellorange}}Colore"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.STUNTMAN] = "{{ColorMult}}+250{{CR}} Fiches #{{ColorMult}}-2{{CR}} Carte in mano"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.SATELLITE] = "Guadagna {{ColorYellorange}}1${{CR}} per {{ColorCyan}}Pianeta{{CR}} diverso usato questa partita# {{ColorGray}}(Attualmente {{ColorYellorange}}[[VALUE1]]${{ColorGray}})"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.SHOOT_MOON] = "{{ColorMult}}+13{{CR}} Molt per {{ColorYellorange}}Regina{{CR}} tenuta in mano"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.DRIVER_LICENSE] = "{{ColorMult}}X3{{CR}} Molt se hai {{ColorYellorange}}16 carte potenziate{{CR}} nel mazzo intero# {{ColorGray}}(Attualmente {{ColorYellorange}}[[VALUE1]]{{ColorGray}} Enhanced cards)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.ASTRONOMER] = "Ogni {{ColorCyan}}Carta Pianeta{{CR}} e {{ColorCyan}}Busta Celestiale{{CR}} è gratuita"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.BURNT_JOKER] = "{{ColorYellorange}}Potenzia{{CR}} la prima {{ColorYellorange}}Mano di Poker{{CR}} scartata del round"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.BOOTSTRAP] = "{{ColorMult}}+2{{CR}} Molt per ogni {{ColorYellorange}}5${{CR}} avuti# {{ColorGray}}(Attualmente {{ColorMult}}+[[VALUE1]]{{ColorGray}} Molt)"
 
-Descriptions.T_Jimbo.Jokers[mod.Jokers.CANIO] = "This gains {{ColorMult}}X1{{CR}} Mult per a {{ColorYellorange}}Face{{CR}} card is {{ColorYellorange}}Destroyed{{CR}}#{{ColorGray}}(Attualmente {{ColroMult}}X[[VALUE1]]{{ColorGray}} Mult)"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.TRIBOULET] = "{{ColorYellorange}}Kings{{CR}} and {{ColorYellorange}}Queens{{CR}} give {{ColorMult}}X2{{CR}} Mult when triggered"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.YORICK] = "This gains {{ColorMult}}X1{{CR}} Mult once every {{ColorYellorange}}23{{CR}} cards discarded#{{ColorGray}}([[VALUE2]] Remaining) #{{ColorGray}}(Attualmente {{ColroMult}}X[[VALUE1]]{{ColorGray}} Mult)"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.CHICOT] = "Disables all {{ColorYellorange}}Boss blind{{CR}} abilities"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.PERKEO] = "When exiting a {{ColorYellorange}}Shop{{CR}}, creates a {{ColorSpade}}Negative{{CR}} copy of a random consumable you have"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.CANIO] = "Ottiene {{ColorMult}}X1{{CR}} Molt ogni {{ColorYellorange}}Figura{{CR}} distrutta#{{ColorGray}}(Attualmente {{ColroMult}}X[[VALUE1]]{{ColorGray}} Molt)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.TRIBOULET] = "{{ColorYellorange}}Re{{CR}} e {{ColorYellorange}}Regine{{CR}} danno {{ColorMult}}X2{{CR}} Molt quando attivati"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.YORICK] = "Ottiene {{ColorMult}}X1{{CR}} Molt once every {{ColorYellorange}}23{{CR}} cards discarded#{{ColorGray}}([[VALUE2]] Remaining) #{{ColorGray}}(Attualmente {{ColroMult}}X[[VALUE1]]{{ColorGray}} Molt)"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.CHICOT] = "Disabilita le abilità dei {{ColorYellorange}}Bui Boss"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.PERKEO] = "Uscendo dal {{ColorYellorange}}Negozio{{CR}}, crea una copia {{ColorSpade}}Negativa{{CR}} di un condìsumabile avuto casuale"
 
-Descriptions.T_Jimbo.Jokers[mod.Jokers.CHAOS_THEORY] = "After being scored, cards are {{ColorYellorange}}randomly{{CR}} rerolled #!!! {{ColorGray}} The new card generated depends on the starting one "
+Descriptions.T_Jimbo.Jokers[mod.Jokers.CHAOS_THEORY] = "Dopo essere attivate, le carte vengono combiate {{ColorYellorange}}casualmente #{{ColorGray}}(La nuova carta dipende da quella di partenza) "
 
 
 end
 
 
-Descriptions.T_Jimbo.Debuffed = "All abilitied are disabled"
+Descriptions.T_Jimbo.Debuffed = "Tutte le abilità sono disattivate"
 
 
 ---------------------------------------
@@ -710,78 +712,78 @@ Descriptions.T_Jimbo.Debuffed = "All abilitied are disabled"
 ---------------------------------------
 
 Descriptions.Jimbo.Consumables = {}
-Descriptions.Jimbo.Consumables[Card.CARD_FOOL] = "Spawns copy of your last used card #!!! Cannot spawn itself #[[VALUE1]] Attualmente: [[VALUE2]]"
-Descriptions.Jimbo.Consumables[Card.CARD_MAGICIAN] = "Turn {{ColorYellorange}}up to 2{{CR}} cards from your hand into {{ColorMint}}Lucky Cards{{CR}}"
-Descriptions.Jimbo.Consumables[Card.CARD_HIGH_PRIESTESS] = "Spawns {{ColorYellorange}}2{{CR}} random {{ColorCyan}}Planet Cards{{CR}}"
-Descriptions.Jimbo.Consumables[Card.CARD_EMPRESS] = "Turn {{ColorYellorange}}up to 2{{CR}} cards from your hand into {{ColorMult}}Mult Cards{{CR}}"
-Descriptions.Jimbo.Consumables[Card.CARD_EMPEROR] = "Spawns {{ColorYellorange}}2{{CR}} random {{ColorPink}}Tarot Cards{{CR}} #!!! Cannot spawn itself"
-Descriptions.Jimbo.Consumables[Card.CARD_HIEROPHANT] = "Turn {{ColorYellorange}}up to 2{{CR}} cards from your hand into {{ColorChips}}Bonus Cards{{CR}}"
-Descriptions.Jimbo.Consumables[Card.CARD_LOVERS] = "Turn {{ColorYellorange}}1{{CR}} card from your hand into a {{ColorRainbow}}Wild Card{{CR}}"
-Descriptions.Jimbo.Consumables[Card.CARD_CHARIOT] = "Turn {{ColorYellorange}}1{{CR}} card from your hand into a {{ColorSilver}}Steel Card{{CR}}"
-Descriptions.Jimbo.Consumables[Card.CARD_JUSTICE] = "Turn {{ColorYellorange}}1{{CR}} card from your hand into a {{ColorGlass}}Glass Card{{CR}}"
-Descriptions.Jimbo.Consumables[Card.CARD_HERMIT] = "Doubles you current money #!!! Can give up to {{ColorYellorange}}20${{CR}}"
-Descriptions.Jimbo.Consumables[Card.CARD_WHEEL_OF_FORTUNE] = "{{ColorMint}}25% chance{{CR}} to give a random {{ColorRainbow}}Edition{{CR}} to a joker in your inventory #!!! Cannot replace an Edition a Joker already has"
-Descriptions.Jimbo.Consumables[Card.CARD_STRENGTH] = "Raise the Rank of {{ColorYellorange}}up to 2{{CR}} cards by 1 #!!! Kings chosen become Aces"
-Descriptions.Jimbo.Consumables[Card.CARD_HANGED_MAN] = "Removes from the deck {{ColorYellorange}}up to 2{{CR}} cards"
-Descriptions.Jimbo.Consumables[Card.CARD_DEATH] = "Choose {{ColorYellorange}}2{{CR}} cards, the {{ColorYellorange}}Second{{CR}} card chosen becomes the {{ColorYellorange}}First{{CR}}"
-Descriptions.Jimbo.Consumables[Card.CARD_TEMPERANCE] = "Gives the total {{ColorYellorange}}Sell value{{CR}} of you Jokers in {{Coin}}Pennies"
-Descriptions.Jimbo.Consumables[Card.CARD_DEVIL] = "Turn {{ColorYellorange}}1{{CR}} card from your hand into a {{ColorYellorange}}Gold Card{{CR}}"
-Descriptions.Jimbo.Consumables[Card.CARD_TOWER] = "Turn {{ColorYellorange}}1{{CR}} card from your hand into a {{ColorGray}}Stone Card{{CR}}"
-Descriptions.Jimbo.Consumables[Card.CARD_STARS] = "Set the Suit of {{ColorYellorange}}up to 3{{CR}} cards from your hand into {{ColorYellorange}}Quadri{{CR}}"
-Descriptions.Jimbo.Consumables[Card.CARD_MOON] = "Sets the Suit of {{ColorYellorange}}up to 3{{CR}} cards from your hand into {{ColorChips}}Fiori{{CR}}"
-Descriptions.Jimbo.Consumables[Card.CARD_SUN] = "Sets the Suit of {{ColorYellorange}}up to 3{{CR}} cards from your hand into {{ColorMult}}Hearts{{CR}}"
-Descriptions.Jimbo.Consumables[Card.CARD_JUDGEMENT] = "Gives a random {{ColorYellorange}}Joker{{CR}} #!!! Requires an empty Inventory slot"
-Descriptions.Jimbo.Consumables[Card.CARD_WORLD] = "Set the Suit of {{ColorYellorange}}up to 3{{CR}} cards from your hand into {{ColorSpade}}Picche{{CR}}"
+Descriptions.Jimbo.Consumables[Card.CARD_FOOL] = "Crea una copia dell'ultima carta usata #{{IND}}!!! Eccetto sè stessa #[[VALUE1]] Attualmente: [[VALUE2]]"
+Descriptions.Jimbo.Consumables[Card.CARD_MAGICIAN] = "{{REG_Lucky}} Cambia fino a {{ColorYellorange}}2{{CR}} carte nella tua mano in {{ColorYellorange}}Carte Fortunate"
+Descriptions.Jimbo.Consumables[Card.CARD_HIGH_PRIESTESS] = "{{REG_Planet}} Crea {{ColorYellorange}}2 carte {{ColorCyan}}Pianeta{{CR}} casuali"
+Descriptions.Jimbo.Consumables[Card.CARD_EMPRESS] = "{{REG_Mult}} Cambia fino a {{ColorYellorange}}2{{CR}} carte nella tua mano in {{ColorYellorange}}Carte Mult"
+Descriptions.Jimbo.Consumables[Card.CARD_EMPEROR] = "{{Card}} Crea {{ColorYellorange}}2{{CR}} {{ColorPink}}Tarocchi{{CR}} casuali #{{IND}}!!! Eccetto sè stesso"
+Descriptions.Jimbo.Consumables[Card.CARD_HIEROPHANT] = "{{REG_Bonus}} Cambia fino a {{ColorYellorange}}2{{CR}} carte nella tua mano in {{ColorYellorange}}Carte Bonus"
+Descriptions.Jimbo.Consumables[Card.CARD_LOVERS] = "{{REG_Wild}} Cambia {{ColorYellorange}}1{{CR}} carta nella tua mano in {{ColorYellorange}}Carta Multiuso"
+Descriptions.Jimbo.Consumables[Card.CARD_CHARIOT] = "{{REG_Steel}} Cambia {{ColorYellorange}}1{{CR}} carta nella tua mano in {{ColorYellorange}}Carta d'Acciaio"
+Descriptions.Jimbo.Consumables[Card.CARD_JUSTICE] = "{{REG_Glass}} Cambia {{ColorYellorange}}1{{CR}} carta nella tua mano in {{ColorYellorange}}Carta di Vetro"
+Descriptions.Jimbo.Consumables[Card.CARD_HERMIT] = "Raddoppia i tuoi soldi #{{IND}}!!! Massimo {{ColorYellorange}}20$"
+Descriptions.Jimbo.Consumables[Card.CARD_WHEEL_OF_FORTUNE] = "{{ColorMint}}25% Chance{{CR}} di dare un'{{ColorYellorange}}Edizione{{CR}} ad un Jolly avuto #{{IND}}!!! Non può rimpiazzare edizioni già esistenti"
+Descriptions.Jimbo.Consumables[Card.CARD_STRENGTH] = "Aumenta il valore di fino a {{ColorYellorange}}2{{CR}} carte di 1 #{{IND}}!!! I re diventano assi"
+Descriptions.Jimbo.Consumables[Card.CARD_HANGED_MAN] = "Distrugge fino a {{ColorYellorange}}2{{CR}} carte tenute in mano"
+Descriptions.Jimbo.Consumables[Card.CARD_DEATH] = "Scegli {{ColorYellorange}}2{{CR}} carte, la {{ColorYellorange}}seconda{{CR}} diventa una copia della {{ColorYellorange}}prima"
+Descriptions.Jimbo.Consumables[Card.CARD_TEMPERANCE] = "{{Coin}} Dà il {{ColorYellorange}}valore di vendita{{CR}} totale dei Jolly avuti in {{Coin}} Monete"
+Descriptions.Jimbo.Consumables[Card.CARD_DEVIL] = "{{REG_Gold}} Cambia {{ColorYellorange}}1{{CR}} carta nella tua mano in {{ColorYellorange}}Carte Dorate"
+Descriptions.Jimbo.Consumables[Card.CARD_TOWER] = "{{REG_Stone}} Cambia {{ColorYellorange}}1{{CR}} carta nella tua mano in {{ColorYellorange}}Carte di Pietra"
+Descriptions.Jimbo.Consumables[Card.CARD_STARS] = "{{REG_Diamond}} Cambia il seme di fino a {{ColorYellorange}}3{{CR}} carte nella tua mano in {{ColorYellorange}}Quadri"
+Descriptions.Jimbo.Consumables[Card.CARD_MOON] = "{{REG_Club}} Cambia il seme di fino a {{ColorYellorange}}3{{CR}} carte nella tua mano in {{ColorChips}}Fiori"
+Descriptions.Jimbo.Consumables[Card.CARD_SUN] = "{{REG_Heart}} Cambia il seme di fino a {{ColorYellorange}}3{{CR}} carte nella tua mano in {{ColorMult}}Cuori"
+Descriptions.Jimbo.Consumables[Card.CARD_JUDGEMENT] = "{{REG_Joker}} Dà un {{ColorYellorange}}Jolly{{CR}} casuale #{{IND}}!!! Serve spazio nell'invetario"
+Descriptions.Jimbo.Consumables[Card.CARD_WORLD] = "{{REG_Spade}} Cambia il seme di fino a {{ColorYellorange}}3{{CR}} carte nella tua mano in {{ColorSpade}}Picche"
 
 
 Descriptions.T_Jimbo.Consumables = {}
-Descriptions.T_Jimbo.Consumables[Card.CARD_FOOL] = "Creates copy of your last used {{ColorPink}}Tarot{{CR}} or {{ColorCyan}}Planet{{CR}} used#{{ColorGray}}(exept The Fool)#[[VALUE1]]"
-Descriptions.T_Jimbo.Consumables[Card.CARD_MAGICIAN] = "Turn up to {{ColorYellorange}}2{{CR}} cards into {{ColorMint}}Lucky Cards{{CR}}"
-Descriptions.T_Jimbo.Consumables[Card.CARD_HIGH_PRIESTESS] = "Create {{ColorYellorange}}2{{CR}} {{ColorCyan}}Planet{{CR}} cards#{{ColorGray}}(Must have room)"
-Descriptions.T_Jimbo.Consumables[Card.CARD_EMPRESS] = "Turn up to {{ColorYellorange}}2{{CR}} cards into {{ColorMult}}Mult Cards{{CR}}"
-Descriptions.T_Jimbo.Consumables[Card.CARD_EMPEROR] = "Creates {{ColorYellorange}}2{{CR}} {{ColorPink}}Tarot{{CR}} cards #{{ColorGray}}(Must have room)"
-Descriptions.T_Jimbo.Consumables[Card.CARD_HIEROPHANT] = "Turn up to {{ColorYellorange}}2{{CR}} cards into {{ColorChips}}Bonus Cards{{CR}}"
-Descriptions.T_Jimbo.Consumables[Card.CARD_LOVERS] = "Turn {{ColorYellorange}}1{{CR}} card into a {{ColorRainbow}}Wild Card{{CR}}"
-Descriptions.T_Jimbo.Consumables[Card.CARD_CHARIOT] = "Turn {{ColorYellorange}}1{{CR}} card into a {{ColorSilver}}Steel Card{{CR}}"
-Descriptions.T_Jimbo.Consumables[Card.CARD_JUSTICE] = "Turn {{ColorYellorange}}1{{CR}} card into a {{ColorSilver}}Glass Card{{CR}}"
-Descriptions.T_Jimbo.Consumables[Card.CARD_HERMIT] = "Doubles you current money #{{ColorGray}}(Max 20$){{CR}}"
-Descriptions.T_Jimbo.Consumables[Card.CARD_WHEEL_OF_FORTUNE] = "{{ColorMint}}[[CHANCE]] probabilità su 4{{CR}} to give a random {{ColorRainbow}}Edition{{CR}} to a joker in your inventory #!!! Cannot replace an Edition a Joker already has"
-Descriptions.T_Jimbo.Consumables[Card.CARD_STRENGTH] = "Raise the Rank of up to {{ColorYellorange}}2{{CR}} cards by 1 #{{ColorGray}}(Kings chosen become Aces)"
-Descriptions.T_Jimbo.Consumables[Card.CARD_HANGED_MAN] = "Destroy up to {{ColorYellorange}}2{{CR}} cards"
+Descriptions.T_Jimbo.Consumables[Card.CARD_FOOL] = "Crea un copia dell'ultimo {{ColorPink}}Tarocco{{CR}} o {{ColorCyan}}Pianeta{{CR}} usato #{{ColorGray}}(Eccetto The Fool)#[[VALUE1]]"
+Descriptions.T_Jimbo.Consumables[Card.CARD_MAGICIAN] = "Cambia fino a {{ColorYellorange}}2{{CR}} carte in {{ColorYellorange}}Carte Fourtunate"
+Descriptions.T_Jimbo.Consumables[Card.CARD_HIGH_PRIESTESS] = "Crea {{ColorYellorange}}2{{CR}} carte {{ColorCyan}}Pianeta{{CR}} casuali #{{ColorGray}}(Serve spazio)"
+Descriptions.T_Jimbo.Consumables[Card.CARD_EMPRESS] = "Cambia fino a {{ColorYellorange}}2{{CR}} carte in {{ColorYellorange}}Carte Molt"
+Descriptions.T_Jimbo.Consumables[Card.CARD_EMPEROR] = "Creates {{ColorYellorange}}2{{CR}} {{ColorPink}}Tarot{{CR}} cards #{{ColorGray}}(Serve spazio)"
+Descriptions.T_Jimbo.Consumables[Card.CARD_HIEROPHANT] = "Cambia fino a {{ColorYellorange}}2{{CR}} carte in {{ColorYellorange}}Carte Bonus"
+Descriptions.T_Jimbo.Consumables[Card.CARD_LOVERS] = "Cambia {{ColorYellorange}}1{{CR}} carta in {{ColorYellorange}}Carta Multiuso"
+Descriptions.T_Jimbo.Consumables[Card.CARD_CHARIOT] = "Cambia {{ColorYellorange}}1{{CR}} carta in {{ColorYellorange}}Carta d'Acciaio"
+Descriptions.T_Jimbo.Consumables[Card.CARD_JUSTICE] = "Cambia {{ColorYellorange}}1{{CR}} carta in {{ColorYellorange}}Carta di Vero"
+Descriptions.T_Jimbo.Consumables[Card.CARD_HERMIT] = "Raddoppia i tuoi soldi  #{{ColorGray}}(Max 20$)"
+Descriptions.T_Jimbo.Consumables[Card.CARD_WHEEL_OF_FORTUNE] = "{{ColorMint}}[[CHANCE]] probabilità su 4{{CR}} di dara un'{{ColorYellorange}}Edizione{{CR}} ad un Jolly avuto #{{ColorGray}}(Non cambia edizioni esistenti)"
+Descriptions.T_Jimbo.Consumables[Card.CARD_STRENGTH] = "Aumenta il valore di fino a {{ColorYellorange}}2{{CR}} carte di 1 #{{ColorGray}}(I re divenano assi)"
+Descriptions.T_Jimbo.Consumables[Card.CARD_HANGED_MAN] = "Distruggi fino a {{ColorYellorange}}2{{CR}} carte"
 Descriptions.T_Jimbo.Consumables[Card.CARD_DEATH] = "Choose {{ColorYellorange}}2{{CR}} cards, the {{ColorYellorange}}Left{{CR}} card becomes a copy of the {{ColorYellorange}}Right{{CR}} card"
-Descriptions.T_Jimbo.Consumables[Card.CARD_TEMPERANCE] = "Gives the total {{ColorYellorange}}Sell value{{CR}} of your Jokers#{{ColorGray}}(Attualmente {{ColorYellor}}[[VALUE1]]${{ColorGray}})"
-Descriptions.T_Jimbo.Consumables[Card.CARD_DEVIL] = "Turn {{ColorYellorange}}1{{CR}} card into a {{ColorYellorange}}Gold Card{{CR}}"
-Descriptions.T_Jimbo.Consumables[Card.CARD_TOWER] = "Turn {{ColorYellorange}}1{{CR}} card into a {{ColorGray}}Stone Card{{CR}}"
-Descriptions.T_Jimbo.Consumables[Card.CARD_STARS] = "Set the Suit of up to {{ColorYellorange}}3{{CR}} cards into {{ColorYellorange}}Quadri{{CR}}"
-Descriptions.T_Jimbo.Consumables[Card.CARD_MOON] = "Set the Suit of up to {{ColorYellorange}}3{{CR}} cards into {{ColorChips}}Fiori{{CR}}"
-Descriptions.T_Jimbo.Consumables[Card.CARD_SUN] = "Set the Suit of up to {{ColorYellorange}}3{{CR}} cards into {{ColorMult}}Hearts{{CR}}"
-Descriptions.T_Jimbo.Consumables[Card.CARD_JUDGEMENT] = "Creates a random {{ColorYellorange}}Joker{{CR}} #{{ColorGray}}(Must have room)"
-Descriptions.T_Jimbo.Consumables[Card.CARD_WORLD] = "Set the Suit of up to {{ColorYellorange}}3{{CR}} cards into {{ColorSpade}}Picche{{CR}}"
+Descriptions.T_Jimbo.Consumables[Card.CARD_TEMPERANCE] = "Guadagna il {{ColorYellorange}}valore di vendita{{CR}} totale dei tuoi Jolly #{{ColorGray}}(Attualmente {{ColorYellorange}}[[VALUE1]]${{ColorGray}})"
+Descriptions.T_Jimbo.Consumables[Card.CARD_DEVIL] = "Cambia {{ColorYellorange}}1{{CR}} carta in {{ColorYellorange}}Carta Dorata"
+Descriptions.T_Jimbo.Consumables[Card.CARD_TOWER] = "Cambia {{ColorYellorange}}1{{CR}} carta in {{ColorYellorange}}Carta di Pietra"
+Descriptions.T_Jimbo.Consumables[Card.CARD_STARS] = "Cambia il seme di fino a {{ColorYellorange}}3{{CR}} carte in {{ColorYellorange}}Quadri"
+Descriptions.T_Jimbo.Consumables[Card.CARD_MOON] = "Cambia il seme di fino a {{ColorYellorange}}3{{CR}} carte in {{ColorChips}}Fiori"
+Descriptions.T_Jimbo.Consumables[Card.CARD_SUN] = "Cambia il seme di fino a {{ColorYellorange}}3{{CR}} carte in {{ColorMult}}Cuori"
+Descriptions.T_Jimbo.Consumables[Card.CARD_JUDGEMENT] = "Crea un {{ColorYellorange}}Jolly{{CR}} casuale #{{ColorGray}}(Serve spazio)"
+Descriptions.T_Jimbo.Consumables[Card.CARD_WORLD] = "Cambia il seme di fino a {{ColorYellorange}}3{{CR}} carte in {{ColorSpade}}Picche"
 
 
 Descriptions.ConsumablesName = {}
-Descriptions.ConsumablesName[Card.CARD_FOOL] = "The Fool"
-Descriptions.ConsumablesName[Card.CARD_MAGICIAN] = "The Magician"
-Descriptions.ConsumablesName[Card.CARD_HIGH_PRIESTESS] = "The High Priestess"
-Descriptions.ConsumablesName[Card.CARD_EMPRESS] = "The Empress"
-Descriptions.ConsumablesName[Card.CARD_EMPEROR] = "The Emperor"
-Descriptions.ConsumablesName[Card.CARD_HIEROPHANT] = "The Hierophant"
-Descriptions.ConsumablesName[Card.CARD_LOVERS] = "The Lovers"
-Descriptions.ConsumablesName[Card.CARD_CHARIOT] = "The Chariot"
-Descriptions.ConsumablesName[Card.CARD_JUSTICE] = "Justice"
-Descriptions.ConsumablesName[Card.CARD_HERMIT] =  "The Hermith"
-Descriptions.ConsumablesName[Card.CARD_WHEEL_OF_FORTUNE] = "Weel of Fortune"
-Descriptions.ConsumablesName[Card.CARD_STRENGTH] = "Strength"
-Descriptions.ConsumablesName[Card.CARD_HANGED_MAN] = "The Hanged Man"
-Descriptions.ConsumablesName[Card.CARD_DEATH] = "Death"
-Descriptions.ConsumablesName[Card.CARD_TEMPERANCE] = "Temperance"
-Descriptions.ConsumablesName[Card.CARD_DEVIL] = "The Davil"
-Descriptions.ConsumablesName[Card.CARD_TOWER] = "The Tower"
-Descriptions.ConsumablesName[Card.CARD_STARS] = "The Stars"
-Descriptions.ConsumablesName[Card.CARD_MOON] = "The Moon"
-Descriptions.ConsumablesName[Card.CARD_SUN] = "The Sun"
-Descriptions.ConsumablesName[Card.CARD_JUDGEMENT] = "Judgement"
-Descriptions.ConsumablesName[Card.CARD_WORLD] ="The World"
+Descriptions.ConsumablesName[Card.CARD_FOOL] = "Il Matto"
+Descriptions.ConsumablesName[Card.CARD_MAGICIAN] = "Il Mago"
+Descriptions.ConsumablesName[Card.CARD_HIGH_PRIESTESS] = "La Papesse"
+Descriptions.ConsumablesName[Card.CARD_EMPRESS] = "L'Imperatrice"
+Descriptions.ConsumablesName[Card.CARD_EMPEROR] = "L'Imperatore"
+Descriptions.ConsumablesName[Card.CARD_HIEROPHANT] = "Il Papa"
+Descriptions.ConsumablesName[Card.CARD_LOVERS] = "Gli Amanti"
+Descriptions.ConsumablesName[Card.CARD_CHARIOT] = "Il Carro"
+Descriptions.ConsumablesName[Card.CARD_JUSTICE] = "Giustizia"
+Descriptions.ConsumablesName[Card.CARD_HERMIT] =  "L'Eremita"
+Descriptions.ConsumablesName[Card.CARD_WHEEL_OF_FORTUNE] = "Ruota della fortuna"
+Descriptions.ConsumablesName[Card.CARD_STRENGTH] = "Forza"
+Descriptions.ConsumablesName[Card.CARD_HANGED_MAN] = "L'Appeso"
+Descriptions.ConsumablesName[Card.CARD_DEATH] = "Morte"
+Descriptions.ConsumablesName[Card.CARD_TEMPERANCE] = "Temperanza"
+Descriptions.ConsumablesName[Card.CARD_DEVIL] = "Il Diavolo"
+Descriptions.ConsumablesName[Card.CARD_TOWER] = "La Torre"
+Descriptions.ConsumablesName[Card.CARD_STARS] = "Le Stelle"
+Descriptions.ConsumablesName[Card.CARD_MOON] = "La Luna"
+Descriptions.ConsumablesName[Card.CARD_SUN] = "Il Sole"
+Descriptions.ConsumablesName[Card.CARD_JUDGEMENT] = "Giudizio"
+Descriptions.ConsumablesName[Card.CARD_WORLD] ="Il Mondo"
 
 
 
@@ -789,78 +791,78 @@ Descriptions.ConsumablesName[Card.CARD_WORLD] ="The World"
 -------------####PLANETS####------------
 -----------------------------------------
 
-Descriptions.Jimbo.Consumables[mod.Planets.PLUTO] = "{{ColorYellorange}}Aces{{CR}} triggered give an additional {{ColorChips}}+0.02 Lacrime{{CR}} and {{ColorMult}}+0.02 Danno{{CR}} quando attivata"
-Descriptions.Jimbo.Consumables[mod.Planets.MERCURY] = "{{ColorYellorange}}2s{{CR}} triggered give an additional {{ColorChips}}+0.02 Lacrime{{CR}} and {{ColorMult}}+0.02 Danno{{CR}} quando attivata"
-Descriptions.Jimbo.Consumables[mod.Planets.URANUS] = "{{ColorYellorange}}3s{{CR}} triggered give an additional {{ColorChips}}+0.02 Lacrime{{CR}} and {{ColorMult}}+0.02 Danno{{CR}} quando attivata"
-Descriptions.Jimbo.Consumables[mod.Planets.VENUS] = "{{ColorYellorange}}4s{{CR}} triggered give an additional {{ColorChips}}+0.02 Lacrime{{CR}} and {{ColorMult}}+0.02 Danno{{CR}} quando attivata"
-Descriptions.Jimbo.Consumables[mod.Planets.SATURN] = "{{ColorYellorange}}5s{{CR}} triggered give an additional {{ColorChips}}+0.02 Lacrime{{CR}} and {{ColorMult}}+0.02 Danno{{CR}} quando attivata"
-Descriptions.Jimbo.Consumables[mod.Planets.JUPITER] = "{{ColorYellorange}}6s{{CR}} triggered give an additional {{ColorChips}}+0.02 Lacrime{{CR}} and {{ColorMult}}+0.02 Danno{{CR}} quando attivata"
-Descriptions.Jimbo.Consumables[mod.Planets.EARTH] = "{{ColorYellorange}}7s{{CR}} triggered give an additional {{ColorChips}}+0.02 Lacrime{{CR}} and {{ColorMult}}+0.02 Danno{{CR}} quando attivata"
-Descriptions.Jimbo.Consumables[mod.Planets.MARS] = "{{ColorYellorange}}8s{{CR}} triggered give an additional {{ColorChips}}+0.02 Lacrime{{CR}} and {{ColorMult}}+0.02 Danno{{CR}} quando attivata"
-Descriptions.Jimbo.Consumables[mod.Planets.NEPTUNE] = "{{ColorYellorange}}9s{{CR}} triggered give an additional {{ColorChips}}+0.02 Lacrime{{CR}} and {{ColorMult}}+0.02 Danno{{CR}} quando attivata"
-Descriptions.Jimbo.Consumables[mod.Planets.PLANET_X] = "{{ColorYellorange}}10s{{CR}} triggered give an additional {{ColorChips}}+0.02 Lacrime{{CR}} and {{ColorMult}}+0.02 Danno{{CR}} quando attivata"
-Descriptions.Jimbo.Consumables[mod.Planets.CERES] = "{{ColorYellorange}}Jacks{{CR}} triggered give an additional {{ColorChips}}+0.02 Lacrime{{CR}} and {{ColorMult}}+0.02 Danno{{CR}} quando attivata"
-Descriptions.Jimbo.Consumables[mod.Planets.ERIS] = "{{ColorYellorange}}Queens{{CR}} triggered give an additional {{ColorChips}}+0.02 Lacrime{{CR}} and {{ColorMult}}+0.02 Danno{{CR}} quando attivata"
-Descriptions.Jimbo.Consumables[mod.Planets.SUN] = "{{ColorYellorange}}Kings{{CR}} triggered give an additional {{ColorChips}}+0.02 Lacrime{{CR}} and {{ColorMult}}+0.02 Danno{{CR}} quando attivata"
+Descriptions.Jimbo.Consumables[mod.Planets.PLUTO] = "Gli {{ColorYellorange}}Assi{{CR}} attivati danno {{ColorChips}}+0.02{{CR}} Lacrime e {{ColorMult}}+0.02{{CR}} Danno quando attivati"
+Descriptions.Jimbo.Consumables[mod.Planets.MERCURY] = "I {{ColorYellorange}}2{{CR}} attivati danno {{ColorChips}}+0.02{{CR}} Lacrime and {{ColorMult}}+0.02{{CR}} Danno quando attivati"
+Descriptions.Jimbo.Consumables[mod.Planets.URANUS] = "I {{ColorYellorange}}3{{CR}} attivati danno {{ColorChips}}+0.02{{CR}} Lacrime and {{ColorMult}}+0.02{{CR}} Danno quando attivati"
+Descriptions.Jimbo.Consumables[mod.Planets.VENUS] = "I {{ColorYellorange}}4{{CR}} attivati danno {{ColorChips}}+0.02{{CR}} Lacrime and {{ColorMult}}+0.02{{CR}} Danno quando attivati"
+Descriptions.Jimbo.Consumables[mod.Planets.SATURN] = "I {{ColorYellorange}}5{{CR}} attivati danno {{ColorChips}}+0.02{{CR}} Lacrime and {{ColorMult}}+0.02{{CR}} Danno quando attivati"
+Descriptions.Jimbo.Consumables[mod.Planets.JUPITER] = "I {{ColorYellorange}}6{{CR}} attivati danno {{ColorChips}}+0.02{{CR}} Lacrime and {{ColorMult}}+0.02{{CR}} Danno quando attivati"
+Descriptions.Jimbo.Consumables[mod.Planets.EARTH] = "I {{ColorYellorange}}7{{CR}} attivati danno {{ColorChips}}+0.02{{CR}} Lacrime and {{ColorMult}}+0.02{{CR}} Danno quando attivati"
+Descriptions.Jimbo.Consumables[mod.Planets.MARS] = "Gli {{ColorYellorange}}8{{CR}} attivati danno {{ColorChips}}+0.02{{CR}} Lacrime and {{ColorMult}}+0.02{{CR}} Danno quando attivati"
+Descriptions.Jimbo.Consumables[mod.Planets.NEPTUNE] = "I {{ColorYellorange}}9{{CR}} attivati danno {{ColorChips}}+0.02{{CR}} Lacrime and {{ColorMult}}+0.02{{CR}} Danno quando attivati"
+Descriptions.Jimbo.Consumables[mod.Planets.PLANET_X] = "I {{ColorYellorange}}10{{CR}} attivati danno {{ColorChips}}+0.02{{CR}} Lacrime and {{ColorMult}}+0.02{{CR}} Danno quando attivati"
+Descriptions.Jimbo.Consumables[mod.Planets.CERES] = "I {{ColorYellorange}}Jack{{CR}} attivati danno {{ColorChips}}+0.02{{CR}} Lacrime and {{ColorMult}}+0.02{{CR}} Danno quando attivati"
+Descriptions.Jimbo.Consumables[mod.Planets.ERIS] = "Le {{ColorYellorange}}Regine{{CR}} attivati danno {{ColorChips}}+0.02{{CR}} Lacrime and {{ColorMult}}+0.02{{CR}} Danno quando attivate"
+Descriptions.Jimbo.Consumables[mod.Planets.SUN] = "I {{ColorYellorange}}Re{{CR}} attivati danno {{ColorChips}}+0.02{{CR}} Lacrime and {{ColorMult}}+0.02{{CR}} Danno quando attivati"
 
 
-Descriptions.T_Jimbo.Consumables[mod.Planets.PLUTO] = "Level up {{ColorYellorange}}High card#{{ColorMult}}+1{{CR}} Mult#{{ColorChips}}+10{{CR}} Chips"
-Descriptions.T_Jimbo.Consumables[mod.Planets.MERCURY] = "Level up {{ColorYellorange}}Pair#{{ColorMult}}+1{{CR}} Mult#{{ColorChips}}+15{{CR}} Chips"
-Descriptions.T_Jimbo.Consumables[mod.Planets.URANUS] = "Level up {{ColorYellorange}}Two Pair#{{ColorMult}}+1{{CR}} Mult#{{ColorChips}}+20{{CR}} Chips"
-Descriptions.T_Jimbo.Consumables[mod.Planets.VENUS] = "Level up {{ColorYellorange}}Three of a Kind#{{ColorMult}}+2{{CR}} Mult#{{ColorChips}}+20{{CR}} Chips"
-Descriptions.T_Jimbo.Consumables[mod.Planets.SATURN] = "Level up {{ColorYellorange}}Straight#{{ColorMult}}+3{{CR}} Mult#{{ColorChips}}+35{{CR}} Chips"
-Descriptions.T_Jimbo.Consumables[mod.Planets.JUPITER] = "Level up {{ColorYellorange}}Flush#{{ColorMult}}+2{{CR}} Mult#{{ColorChips}}+15{{CR}} Chips"
-Descriptions.T_Jimbo.Consumables[mod.Planets.EARTH] = "Level up {{ColorYellorange}}Full House#{{ColorMult}}+2{{CR}} Mult#{{ColorChips}}+25{{CR}} Chips"
-Descriptions.T_Jimbo.Consumables[mod.Planets.MARS] = "Level up {{ColorYellorange}}Four of a Kind#{{ColorMult}}+3{{CR}} Mult#{{ColorChips}}+30{{CR}} Chips"
-Descriptions.T_Jimbo.Consumables[mod.Planets.NEPTUNE] = "Level up {{ColorYellorange}}Straight Flush#{{ColorMult}}+4{{CR}} Mult#{{ColorChips}}+40{{CR}} Chips"
-Descriptions.T_Jimbo.Consumables[mod.Planets.PLANET_X] = "Level up {{ColorYellorange}}Five of a Kind#{{ColorMult}}+3{{CR}} Mult#{{ColorChips}}+35{{CR}} Chips"
-Descriptions.T_Jimbo.Consumables[mod.Planets.CERES] = "Level up {{ColorYellorange}}Flush House#{{ColorMult}}+4{{CR}} Mult#{{ColorChips}}+40{{CR}} Chips"
-Descriptions.T_Jimbo.Consumables[mod.Planets.ERIS] = "Level up {{ColorYellorange}}Flush Five#{{ColorMult}}+3{{CR}} Mult#{{ColorChips}}+50{{CR}} Chips"
+Descriptions.T_Jimbo.Consumables[mod.Planets.PLUTO] = "Potenzia {{ColorYellorange}}Carta Alta#{{ColorMult}}+1{{CR}} Molt#{{ColorChips}}+10{{CR}} Fiches"
+Descriptions.T_Jimbo.Consumables[mod.Planets.MERCURY] = "Potenzia {{ColorYellorange}}Coppia#{{ColorMult}}+1{{CR}} Molt#{{ColorChips}}+15{{CR}} Fiches"
+Descriptions.T_Jimbo.Consumables[mod.Planets.URANUS] = "Potenzia {{ColorYellorange}}Doppia Coppia#{{ColorMult}}+1{{CR}} Molt#{{ColorChips}}+20{{CR}} Fiches"
+Descriptions.T_Jimbo.Consumables[mod.Planets.VENUS] = "Potenzia {{ColorYellorange}}Tris#{{ColorMult}}+2{{CR}} Molt#{{ColorChips}}+20{{CR}} Fiches"
+Descriptions.T_Jimbo.Consumables[mod.Planets.SATURN] = "Potenzia {{ColorYellorange}}Scala#{{ColorMult}}+3{{CR}} Molt#{{ColorChips}}+35{{CR}} Fiches"
+Descriptions.T_Jimbo.Consumables[mod.Planets.JUPITER] = "Potenzia {{ColorYellorange}}Colore#{{ColorMult}}+2{{CR}} Molt#{{ColorChips}}+15{{CR}} Fiches"
+Descriptions.T_Jimbo.Consumables[mod.Planets.EARTH] = "Potenzia {{ColorYellorange}}Fulle#{{ColorMult}}+2{{CR}} Molt#{{ColorChips}}+25{{CR}} Fiches"
+Descriptions.T_Jimbo.Consumables[mod.Planets.MARS] = "Potenzia {{ColorYellorange}}Poker#{{ColorMult}}+3{{CR}} Molt#{{ColorChips}}+30{{CR}} Fiches"
+Descriptions.T_Jimbo.Consumables[mod.Planets.NEPTUNE] = "Potenzia {{ColorYellorange}}Scala Flush#{{ColorMult}}+4{{CR}} Molt#{{ColorChips}}+40{{CR}} Fiches"
+Descriptions.T_Jimbo.Consumables[mod.Planets.PLANET_X] = "Potenzia {{ColorYellorange}}Pokerissimo#{{ColorMult}}+3{{CR}} Molt#{{ColorChips}}+35{{CR}} Fiches"
+Descriptions.T_Jimbo.Consumables[mod.Planets.CERES] = "Potenzia {{ColorYellorange}}Full Colore#{{ColorMult}}+4{{CR}} Molt#{{ColorChips}}+40{{CR}} Fiches"
+Descriptions.T_Jimbo.Consumables[mod.Planets.ERIS] = "Potenzia {{ColorYellorange}}Colore Perfetto#{{ColorMult}}+3{{CR}} Molt#{{ColorChips}}+50{{CR}} Fiches"
 
 
 ----------------------------------------
 -------------####SPECTRALS####------------
 -----------------------------------------
 
-Descriptions.Jimbo.Consumables[mod.Spectrals.FAMILIAR] = "{{PlayerJimbo}} {{ColorYellorange}}Destroys{{CR}} one random card from your hand and adds {{ColorYellorange}}3{{CR}} random {{ColorYellorange}}Enhanced Face cards{{CR}} to your deck"
-Descriptions.Jimbo.Consumables[mod.Spectrals.GRIM] = "{{PlayerJimbo}} {{ColorYellorange}}Destroys{{CR}} one random card from your hand and adds {{ColorYellorange}}2{{CR}} random {{ColorYellorange}}Enhanced Aces cards{{CR}} to your deck"
-Descriptions.Jimbo.Consumables[mod.Spectrals.INCANTATION] = "{{PlayerJimbo}} {{ColorYellorange}}Destroys{{CR}} one random card from your hand and adds {{ColorYellorange}}4{{CR}} random {{ColorYellorange}}Enhanced Numbered cards{{CR}} to your deck"
-Descriptions.Jimbo.Consumables[mod.Spectrals.TALISMAN] = "{{PlayerJimbo}} Put a {{ColorYellorange}}Golden Seal{{CR}} on one selected card"
-Descriptions.Jimbo.Consumables[mod.Spectrals.AURA] = "{{PlayerJimbo}} Give a random {{ColorRainbow}}Edition{{CR}} to a selected card"
-Descriptions.Jimbo.Consumables[mod.Spectrals.WRAITH] = "{{PlayerJimbo}} Sets your money to {{ColorYellorange}}0{{CR}} and gives a random {{ColorMult}}Rare Joker{{CR}}#!!! Requires an empty Inventory slot"
-Descriptions.Jimbo.Consumables[mod.Spectrals.SIGIL] = "{{PlayerJimbo}} Turns all the cards in your hand to the same random {{ColorYellorange}}Suit{{CR}}"
-Descriptions.Jimbo.Consumables[mod.Spectrals.OUIJA] = "{{PlayerJimbo}} Turns all the cards in your hand to the same random {{ColorYellorange}}Rank{{CR}}"
-Descriptions.Jimbo.Consumables[mod.Spectrals.ECTOPLASM] = "{{PlayerJimbo}} Turns a random Joker {{ColorGray}}{{ColorFade}}Negative{{CR}} and gives {{ColorRed}}-1{{CR}} Hand size #!!! Cannot replace any {{ColorYellorange}}Edition{{CR}} a Joker alredy has #!!! The effect won't occur if hand size cannot be lowered"
-Descriptions.Jimbo.Consumables[mod.Spectrals.IMMOLATE] = "{{PlayerJimbo}} {{ColorYellorange}}Destroys{{CR}} up to {{ColorYellorange}}3{{CR}} cards from your hand and gives {{ColorYellorange}}4${{CR}} per card destroyed"
-Descriptions.Jimbo.Consumables[mod.Spectrals.ANKH] = "{{PlayerJimbo}} Gives a copy a of random Joker held and destroys all the others #!!! Removes the {{ColorGray}}{{ColorFade}}Negative{{CR}} Edition from the copied Joker"
-Descriptions.Jimbo.Consumables[mod.Spectrals.DEJA_VU] = "{{PlayerJimbo}} Put a {{ColorRed}}Red Seal{{CR}} on one selected card"
-Descriptions.Jimbo.Consumables[mod.Spectrals.HEX] = "{{PlayerJimbo}} Gives the {{ColorRainbow}}Polychrome{{CR}} Edition to random Joker held and destroys all the others"
-Descriptions.Jimbo.Consumables[mod.Spectrals.TRANCE] = "{{PlayerJimbo}} Put a {{ColorCyan}}Blue Seal{{CR}} on one selected card"
-Descriptions.Jimbo.Consumables[mod.Spectrals.MEDIUM] = "{{PlayerJimbo}} Put a {{ColorPink}}Purple Seal{{CR}} on one selected card"
-Descriptions.Jimbo.Consumables[mod.Spectrals.CRYPTID] = "{{PlayerJimbo}} Add {{ColorYellorange}}2{{CR}} copies of a selected card to your deck"
-Descriptions.Jimbo.Consumables[mod.Spectrals.BLACK_HOLE] = "{{PlayerJimbo}} {{ColorYellorange}}All Cards{{CR}} triggered give an additional {{ColorChips}}+0.02 Lacrime{{CR}} and {{ColorMult}}+0.02 Danno{{CR}}"
-Descriptions.Jimbo.Consumables[mod.Spectrals.SOUL] = "{{PlayerJimbo}} Gives a random {{ColorRainbow}}Legendary{{CR}} Joker#!!! Requires an empty Inventory slot"
+Descriptions.Jimbo.Consumables[mod.Spectrals.FAMILIAR] = "{{REG_Jimbo}} {{ColorYellorange}}Distrugge{{CR}} una carta in mano casuale e aggiunge {{ColorYellorange}}3 {{REG_Face}} Figure Potenziate{{CR}} casuali al mazzo"
+Descriptions.Jimbo.Consumables[mod.Spectrals.GRIM] = "{{REG_Jimbo}} {{ColorYellorange}}Distrugge{{CR}} una carta in mano casuale e aggiunge {{ColorYellorange}}2 Assi Potenziati{{CR}} casuali al mazzo"
+Descriptions.Jimbo.Consumables[mod.Spectrals.INCANTATION] = "{{REG_Jimbo}} {{ColorYellorange}}Distrugge{{CR}} una carta in mano casuale e aggiunge {{ColorYellorange}}4 carte numerate potenziate{{CR}} casuali al mazzo"
+Descriptions.Jimbo.Consumables[mod.Spectrals.TALISMAN] = "{{REG_Jimbo}} Metti un {{REG_Golden}} {{ColorYellorange}}Sigillo Dorato{{CR}} su una carta selezionata"
+Descriptions.Jimbo.Consumables[mod.Spectrals.AURA] = "{{REG_Jimbo}} Dai un'{{ColorYellorange}}Edition{{CR}} casuale ad una carta scelta"
+Descriptions.Jimbo.Consumables[mod.Spectrals.WRAITH] = "{{REG_Jimbo}} Fissa le monete avute a {{ColorYellorange}}0 #{{REG_Joker}} Ottieni un {{ColorMult}}Jolly Raro{{CR}}#{{IND}}!!! Serve spazio nell'inventario"
+Descriptions.Jimbo.Consumables[mod.Spectrals.SIGIL] = "{{REG_Jimbo}} Cambia tutte le carte in mano in uno stesso {{ColorYellorange}}Seme{{CR}} casuale"
+Descriptions.Jimbo.Consumables[mod.Spectrals.OUIJA] = "{{REG_Jimbo}} Cambia tutte le carte in mano in uno stesso {{ColorYellorange}}Valore{{CR}} casuale"
+Descriptions.Jimbo.Consumables[mod.Spectrals.ECTOPLASM] = "{{REG_Jimbo}} Rende un Jolly casuale {{ColorGray}}{{ColorFade}}Negativo #{{IND}}!!! Non rimpiazza edizioni già presenti #{{REG_HSize}} {{ColorRed}}-1{{CR}} Carte in mano #{{IND}}!!! Nessun effetto se le carte in mano nono possono essere diminuite"
+Descriptions.Jimbo.Consumables[mod.Spectrals.IMMOLATE] = "{{REG_Jimbo}} {{ColorYellorange}}Distrugge{{CR}} fino a {{ColorYellorange}}3{{CR}} carte nella mano #{{Coin}} Guadagna {{ColorYellorange}}4${{CR}} per ogni carta distrutta"
+Descriptions.Jimbo.Consumables[mod.Spectrals.ANKH] = "{{REG_Jimbo}} Crea un copia di un Jolly avuto e distrugge gli altri #!!! Rimuove {{ColorGray}}{{ColorFade}}Negativo{{CR}} dalla copia"
+Descriptions.Jimbo.Consumables[mod.Spectrals.DEJA_VU] = "{{REG_Jimbo}} Metti un {{ColorRed}}Sigillo Rosso{{CR}} su una carta selezionata"
+Descriptions.Jimbo.Consumables[mod.Spectrals.HEX] = "{{REG_Jimbo}} Rende un Jolly casuale {{ColorRainbow}}Policroma{{CR}} e distrugge gli altri"
+Descriptions.Jimbo.Consumables[mod.Spectrals.TRANCE] = "{{REG_Jimbo}} Metti un {{ColorCyan}}Sigillo Blu{{CR}} su una carta selezionata"
+Descriptions.Jimbo.Consumables[mod.Spectrals.MEDIUM] = "{{REG_Jimbo}} Metti un {{ColorPink}}Sigillo Viola{{CR}} su una carta selezionata"
+Descriptions.Jimbo.Consumables[mod.Spectrals.CRYPTID] = "{{REG_Jimbo}} Aggiunge {{ColorYellorange}}2{{CR}} copie di una carta selezionata al mazzo"
+Descriptions.Jimbo.Consumables[mod.Spectrals.BLACK_HOLE] = "{{REG_Jimbo}} {{ColorYellorange}}Tutte le carte{{CR}} attivate danno {{ColorChips}}+0.02{{CR}} Lacrime e {{ColorMult}}+0.02{{CR}} Danno"
+Descriptions.Jimbo.Consumables[mod.Spectrals.SOUL] = "{{REG_Jimbo}} Ottieni un Jolly {{ColorRainbow}}Loggendario{{CR}} casuale #{{IND}}!!! Serve spazio nell'inventario"
 
 
 
-Descriptions.T_Jimbo.Consumables[mod.Spectrals.FAMILIAR] = "{{ColorYellorange}}Destroy{{CR}} a random card and add {{ColorYellorange}}3{{CR}} random {{ColorYellorange}}Enhanced Face{{CR}} cards to your deck"
-Descriptions.T_Jimbo.Consumables[mod.Spectrals.GRIM] = "{{ColorYellorange}}Destroy{{CR}} a random card and add {{ColorYellorange}}2{{CR}} random {{ColorYellorange}}Enhanced Aces{{CR}} to your deck"
-Descriptions.T_Jimbo.Consumables[mod.Spectrals.INCANTATION] = "{{ColorYellorange}}Destroy{{CR}} a random card and add {{ColorYellorange}}4{{CR}} random {{ColorYellorange}}Enhanced Numbered cards{{CR}} to your deck"
-Descriptions.T_Jimbo.Consumables[mod.Spectrals.TALISMAN] = "Put a {{ColorYellorange}}Golden Seal{{CR}} on a selected card"
-Descriptions.T_Jimbo.Consumables[mod.Spectrals.AURA] = "Give a random {{ColorYellorange}}Edition{{CR}} to a selected card"
-Descriptions.T_Jimbo.Consumables[mod.Spectrals.WRAITH] = "Set your money to {{ColorYellorange}}0${{CR}} and create a random {{ColorMult}}Rare{{CR}} Joker"
-Descriptions.T_Jimbo.Consumables[mod.Spectrals.SIGIL] = "Turn all cards in your hand to the same random {{ColorYellorange}}Suit{{CR}}"
-Descriptions.T_Jimbo.Consumables[mod.Spectrals.OUIJA] = "Turn all cards in your hand to the same random {{ColorYellorange}}Rank#{{ColorMult}}-1{{CR}} Hand size"
-Descriptions.T_Jimbo.Consumables[mod.Spectrals.ECTOPLASM] = "Turn a random Joker {{ColorSpade}}Negative#{{ColorRed}}-[[VALUE1]]{{CR}} Hand size"
-Descriptions.T_Jimbo.Consumables[mod.Spectrals.IMMOLATE] = "Destroy {{ColorYellorange}}5{{CR}} cards from your hand and earn {{ColorYellorange}}20${{CR}}"
-Descriptions.T_Jimbo.Consumables[mod.Spectrals.ANKH] = "Duplicate random {{ColorYellorange}}Joker{{CR}} #Destroy all other Jokers held [[VALUE1]]"
-Descriptions.T_Jimbo.Consumables[mod.Spectrals.DEJA_VU] = "Put a {{ColorRed}}Red Seal{{CR}} on a selected card"
-Descriptions.T_Jimbo.Consumables[mod.Spectrals.HEX] = "Turn a random Joker {{ColoorRainbow}}Polychrome{{CR}} and destroys all the others"
-Descriptions.T_Jimbo.Consumables[mod.Spectrals.TRANCE] = "Put a {{ColorCyan}}Blue Seal{{CR}} on a selected card"
-Descriptions.T_Jimbo.Consumables[mod.Spectrals.MEDIUM] = "Put a {{ColorPink}}Purple Seal{{CR}} on a selected card"
-Descriptions.T_Jimbo.Consumables[mod.Spectrals.CRYPTID] = "Add {{ColorYellorange}}2{{CR}} copies of a selected card to your deck"
-Descriptions.T_Jimbo.Consumables[mod.Spectrals.BLACK_HOLE] = "Level up all {{ColorYellorange}}Poker hands"
-Descriptions.T_Jimbo.Consumables[mod.Spectrals.SOUL] = "Create a random {{ColorRainbow}}Legendary{{CR}} Joker"
+Descriptions.T_Jimbo.Consumables[mod.Spectrals.FAMILIAR] = "{{ColorYellorange}}Distrugge{{CR}} una carta in mano casuale, aggiunge {{ColorYellorange}}3 Figure Potenziate{{CR}} cauali al mazzo"
+Descriptions.T_Jimbo.Consumables[mod.Spectrals.GRIM] = "{{ColorYellorange}}Distrugge{{CR}} una carta casuale in mano, aggiunge {{ColorYellorange}}2 Assi Potenziati{{CR}} casuali al mazzo"
+Descriptions.T_Jimbo.Consumables[mod.Spectrals.INCANTATION] = "{{ColorYellorange}}Distrugge{{CR}} una carta casuale in mano, aggiunge {{ColorYellorange}}4 Carte Numerate Potenziate{{CR}} casuali al mazzo"
+Descriptions.T_Jimbo.Consumables[mod.Spectrals.TALISMAN] = "Metti un {{ColorYellorange}}Sigillo Dorato{{CR}} su una carta selezionata"
+Descriptions.T_Jimbo.Consumables[mod.Spectrals.AURA] = "Dà un'{{ColorYellorange}}Edizione{{CR}} casuale ad una carta scelta"
+Descriptions.T_Jimbo.Consumables[mod.Spectrals.WRAITH] = "Fissa i soldi avuti a {{ColorYellorange}}0${{CR}}, creates a random {{ColorMult}}Rare{{CR}} Joker"
+Descriptions.T_Jimbo.Consumables[mod.Spectrals.SIGIL] = "Cambia tutte le carte in mano in uno stesso {{ColorYellorange}}Seme{{CR}} casuale"
+Descriptions.T_Jimbo.Consumables[mod.Spectrals.OUIJA] = "Cambia tutte le carte in mano in uno stesso {{ColorYellorange}}Valore{{CR}} casuale #{{ColorMult}}-1{{CR}} Carte in mano"
+Descriptions.T_Jimbo.Consumables[mod.Spectrals.ECTOPLASM] = "Rende un Jolly casuale {{ColorSpade}}Negativo #{{ColorRed}}-[[VALUE1]]{{CR}} Carte in mano"
+Descriptions.T_Jimbo.Consumables[mod.Spectrals.IMMOLATE] = "Distrugge {{ColorYellorange}}5{{CR}} carte casuali dalla tua mano, guadagna {{ColorYellorange}}20$"
+Descriptions.T_Jimbo.Consumables[mod.Spectrals.ANKH] = "Duplica un {{ColorYellorange}}Jolly{{CR}} casuale avuto, distrugge gli altri [[VALUE1]]"
+Descriptions.T_Jimbo.Consumables[mod.Spectrals.DEJA_VU] = "Metti un {{ColorYellorange}}Sigillo Rosso{{CR}} su una carta selezionata"
+Descriptions.T_Jimbo.Consumables[mod.Spectrals.HEX] = "Rendi un Jolly casuale {{ColoorRainbow}}Polychroma{{CR}}, distrugge gli altri"
+Descriptions.T_Jimbo.Consumables[mod.Spectrals.TRANCE] = "Metti un {{ColorYellorange}}Sigillo Blu{{CR}} su una carta selezionata"
+Descriptions.T_Jimbo.Consumables[mod.Spectrals.MEDIUM] = "Metti un {{ColorYellorange}}Sigillo Viola{{CR}} su una carta selezionata"
+Descriptions.T_Jimbo.Consumables[mod.Spectrals.CRYPTID] = "Aggiunge {{ColorYellorange}}2{{CR}} copie di una carta selezionata al mazzo"
+Descriptions.T_Jimbo.Consumables[mod.Spectrals.BLACK_HOLE] = "Potenzia tutte le {{ColorYellorange}}Mani di Poker"
+Descriptions.T_Jimbo.Consumables[mod.Spectrals.SOUL] = "Crea un Jolly {{ColorRainbow}}Leggendario{{CR}} casuale #{{ColorGray}}(Serve spazio)"
 
 
 ---------------------------------------
@@ -868,30 +870,30 @@ Descriptions.T_Jimbo.Consumables[mod.Spectrals.SOUL] = "Create a random {{ColorR
 ---------------------------------------
 
 Descriptions.Jimbo.Boosters = {}
-Descriptions.Jimbo.Boosters[mod.Packs.ARCANA] = "Choose 1 {{ColorPink}}Tarot{{CR}} card out of {{ColorYellorange}}3{{CR}} to get immediantly"
-Descriptions.Jimbo.Boosters[mod.Packs.CELESTIAL] = "Choose 1 {{ColorCyan}}Planet{{CR}} card out of {{ColorYellorange}}3{{CR}} to get immediantly"
-Descriptions.Jimbo.Boosters[mod.Packs.STANDARD] = "Choose 1 {{ColorYellorange}}Playing{{CR}} card out of {{ColorYellorange}}3{{CR}} to add to your deck"
-Descriptions.Jimbo.Boosters[mod.Packs.BUFFON] = "Choose 1 {{ColorYellorange}}Joker{{CR}} out of {{ColorYellorange}}2{{CR}} to get immediantly"
-Descriptions.Jimbo.Boosters[mod.Packs.SPECTRAL] =  "Choose 1 {{ColorBlue}}Spectral{{CR}} card out of {{ColorYellorange}}2{{CR}} to use immediantly"
+Descriptions.Jimbo.Boosters[mod.Packs.ARCANA] = "Scegli 1 {{ColorPink}}Tarocco{{CR}} fra {{ColorYellorange}}3{{CR}} da ricevere subito"
+Descriptions.Jimbo.Boosters[mod.Packs.CELESTIAL] = "Scegli 1 carta {{ColorCyan}}Pianeta{{CR}} fra {{ColorYellorange}}3{{CR}} da ricevere subito"
+Descriptions.Jimbo.Boosters[mod.Packs.STANDARD] = "Scegli 1 {{ColorYellorange}}carta da gioco{{CR}} fra {{ColorYellorange}}3{{CR}} da aggiungere al mazzo"
+Descriptions.Jimbo.Boosters[mod.Packs.BUFFON] = "Scegli 1 {{ColorYellorange}}Jolly{{CR}} fra {{ColorYellorange}}2{{CR}} da ricevere subito"
+Descriptions.Jimbo.Boosters[mod.Packs.SPECTRAL] =  "Scegli 1 carta {{ColorBlue}}Spettrale{{CR}} fra {{ColorYellorange}}2{{CR}} da ricevere subito"
 
 
 
 Descriptions.T_Jimbo.Boosters = {}
-Descriptions.T_Jimbo.Boosters[mod.Packs.ARCANA] = "Choose 1 {{ColorPink}}Tarot{{CR}} card out of {{ColorYellorange}}3{{CR}} to use immediantly"
-Descriptions.T_Jimbo.Boosters[mod.Packs.JUMBO_ARCANA] = "Choose 1 {{ColorPink}}Tarot{{CR}} card out of {{ColorYellorange}}5{{CR}} to use immediantly"
-Descriptions.T_Jimbo.Boosters[mod.Packs.MEGA_ARCANA] = "Choose up to 2 {{ColorPink}}Tarot{{CR}} card out of {{ColorYellorange}}5{{CR}} to use immediantly"
-Descriptions.T_Jimbo.Boosters[mod.Packs.CELESTIAL] = "Choose 1 {{ColorCyan}}Planet{{CR}} card out of {{ColorYellorange}}3{{CR}} to use immediantly"
-Descriptions.T_Jimbo.Boosters[mod.Packs.JUMBO_CELESTIAL] = "Choose 1 {{ColorCyan}}Planet{{CR}} card out of {{ColorYellorange}}5{{CR}} to use immediantly"
-Descriptions.T_Jimbo.Boosters[mod.Packs.MEGA_CELESTIAL] = "Choose up to 2 {{ColorCyan}}Planet{{CR}} card out of {{ColorYellorange}}5{{CR}} to use immediantly"
-Descriptions.T_Jimbo.Boosters[mod.Packs.STANDARD] = "Choose 1 {{ColorYellorange}}Playing{{CR}} card out of {{ColorYellorange}}3{{CR}} to add to your deck"
-Descriptions.T_Jimbo.Boosters[mod.Packs.JUMBO_STANDARD] = "Choose 1 {{ColorYellorange}}Playing{{CR}} card out of {{ColorYellorange}}5{{CR}} to add to your deck"
-Descriptions.T_Jimbo.Boosters[mod.Packs.MEGA_STANDARD] = "Choose up to 2 {{ColorYellorange}}Playing{{CR}} card out of {{ColorYellorange}}5{{CR}} to add to your deck"
-Descriptions.T_Jimbo.Boosters[mod.Packs.BUFFON] = "Choose 1 {{ColorYellorange}}Joker{{CR}} out of {{ColorYellorange}}2{{CR}} to get immediantly"
-Descriptions.T_Jimbo.Boosters[mod.Packs.JUMBO_BUFFON] = "Choose 1 {{ColorYellorange}}Joker{{CR}} out of {{ColorYellorange}}4{{CR}} to get immediantly"
-Descriptions.T_Jimbo.Boosters[mod.Packs.MEGA_BUFFON] = "Choose up to 2 {{ColorYellorange}}Joker{{CR}} out of {{ColorYellorange}}4{{CR}} to get immediantly"
-Descriptions.T_Jimbo.Boosters[mod.Packs.SPECTRAL] =  "Choose 1 {{ColorBlue}}Spectral{{CR}} card out of {{ColorYellorange}}2{{CR}} to use immediantly"
-Descriptions.T_Jimbo.Boosters[mod.Packs.JUMBO_SPECTRAL] = "Choose 1 {{ColorBlue}}Spectral{{CR}} card out of {{ColorYellorange}}4{{CR}} to use immediantly"
-Descriptions.T_Jimbo.Boosters[mod.Packs.MEGA_SPECTRAL] = "Choose up to 2 {{ColorBlue}}Spectral{{CR}} card out of {{ColorYellorange}}4{{CR}} to use immediantly"
+Descriptions.T_Jimbo.Boosters[mod.Packs.ARCANA] = "Scegli 1 {{ColorPink}}Tarocco{{CR}} fra {{ColorYellorange}}3{{CR}} da usare subito"
+Descriptions.T_Jimbo.Boosters[mod.Packs.JUMBO_ARCANA] = "Scegli 1 {{ColorPink}}Tarocco{{CR}} fra {{ColorYellorange}}5{{CR}} da usare subito"
+Descriptions.T_Jimbo.Boosters[mod.Packs.MEGA_ARCANA] = "Scegli fino a 2 {{ColorPink}}Tarocccchi{{CR}} fra {{ColorYellorange}}5{{CR}} da usare subito"
+Descriptions.T_Jimbo.Boosters[mod.Packs.CELESTIAL] = "Scegli 1 carta {{ColorCyan}}Pianeta{{CR}} fra {{ColorYellorange}}3{{CR}} da usare subito"
+Descriptions.T_Jimbo.Boosters[mod.Packs.JUMBO_CELESTIAL] = "Scegli 1 carta {{ColorCyan}}Pianeta{{CR}} fra {{ColorYellorange}}5{{CR}} da usare subito"
+Descriptions.T_Jimbo.Boosters[mod.Packs.MEGA_CELESTIAL] = "Scegli fino a 2 carte {{ColorCyan}}Pianeta{{CR}} fra {{ColorYellorange}}5{{CR}} da usare subito"
+Descriptions.T_Jimbo.Boosters[mod.Packs.STANDARD] = "Scegli 1 carta {{ColorYellorange}}da gioco{{CR}} fra {{ColorYellorange}}3{{CR}} da aggiungere al mazzo"
+Descriptions.T_Jimbo.Boosters[mod.Packs.JUMBO_STANDARD] = "Scegli 1 carta {{ColorYellorange}}da gioco{{CR}} fra {{ColorYellorange}}5{{CR}} da aggiungere al mazzo"
+Descriptions.T_Jimbo.Boosters[mod.Packs.MEGA_STANDARD] = "Scegli fino a 2 carte {{ColorYellorange}}da gioco{{CR}} fra {{ColorYellorange}}5{{CR}} da aggiungere al mazzo"
+Descriptions.T_Jimbo.Boosters[mod.Packs.BUFFON] = "Scegli 1 {{ColorYellorange}}Jolly{{CR}} fra {{ColorYellorange}}2{{CR}} da ricevere subito"
+Descriptions.T_Jimbo.Boosters[mod.Packs.JUMBO_BUFFON] = "Scegli 1 {{ColorYellorange}}Jolly{{CR}} fra {{ColorYellorange}}4{{CR}} da ricevere subito"
+Descriptions.T_Jimbo.Boosters[mod.Packs.MEGA_BUFFON] = "Scegli fino a 2 {{ColorYellorange}}Jolly{{CR}} fra {{ColorYellorange}}4{{CR}} da ricevere subito"
+Descriptions.T_Jimbo.Boosters[mod.Packs.SPECTRAL] =  "Scegli 1 carta {{ColorBlue}}Spettrale{{CR}} fra {{ColorYellorange}}2{{CR}} da usare subito"
+Descriptions.T_Jimbo.Boosters[mod.Packs.JUMBO_SPECTRAL] = "Scegli 1 carta {{ColorBlue}}Spettrale{{CR}} fra {{ColorYellorange}}4{{CR}} da usare subito"
+Descriptions.T_Jimbo.Boosters[mod.Packs.MEGA_SPECTRAL] = "Scegli fino a 2 carte {{ColorBlue}}Spettrali{{CR}} fra {{ColorYellorange}}4{{CR}} da usare subito"
 
 
 
@@ -900,63 +902,63 @@ Descriptions.T_Jimbo.Boosters[mod.Packs.MEGA_SPECTRAL] = "Choose up to 2 {{Color
 -------------------------------------
 
     
-Descriptions.BlindNames = {[mod.BLINDS.SMALL] = "Small blind",
-                           [mod.BLINDS.BIG] = "Big blind",
-                           [mod.BLINDS.BOSS] = "Boss Blind",
-                           [mod.BLINDS.BOSS_ACORN] = "Amber acorn",
-                           [mod.BLINDS.BOSS_ARM] = "The Arm",
-                           [mod.BLINDS.BOSS_BELL] = "Cerulean Bell",
-                           [mod.BLINDS.BOSS_CLUB] = "The club",
-                           [mod.BLINDS.BOSS_EYE] = "The eye",
-                           [mod.BLINDS.BOSS_FISH] = "The fish",
-                           [mod.BLINDS.BOSS_FLINT] = "The flint",
-                           [mod.BLINDS.BOSS_GOAD] = "The goad",
-                           [mod.BLINDS.BOSS_HEAD] = "The head",
-                           [mod.BLINDS.BOSS_HEART] = "Crimson heart ",
-                           [mod.BLINDS.BOSS_HOOK] = "The hook",
-                           [mod.BLINDS.BOSS_HOUSE] = "The house",
-                           [mod.BLINDS.BOSS_LEAF] = "Verdant leaf",
-                           [mod.BLINDS.BOSS_MANACLE] = "The manacle",
-                           [mod.BLINDS.BOSS_MARK] = "The mark",
-                           [mod.BLINDS.BOSS_MOUTH] = "The mouth",
-                           [mod.BLINDS.BOSS_NEEDLE] = "The needle",
-                           [mod.BLINDS.BOSS_OX] = "The ox",
-                           [mod.BLINDS.BOSS_PILLAR] = "The pillar",
-                           [mod.BLINDS.BOSS_PLANT] = "The plant",
-                           [mod.BLINDS.BOSS_PSYCHIC] = "The psychic",
-                           [mod.BLINDS.BOSS_SERPENT] = "The serpent",
-                           [mod.BLINDS.BOSS_TOOTH] = "The tooth",
-                           [mod.BLINDS.BOSS_VESSEL] = "Violet Vessel",
-                           [mod.BLINDS.BOSS_WALL] = "The wall",
-                           [mod.BLINDS.BOSS_WATER] = "The water",
-                           [mod.BLINDS.BOSS_WHEEL] = "The wheel",
-                           [mod.BLINDS.BOSS_WINDOW] = "The window",
-                           [mod.BLINDS.BOSS_LAMB] = "The lamb",
-                           [mod.BLINDS.BOSS_MOTHER] = "The mother",
-                           [mod.BLINDS.BOSS_DELIRIUM] = "The delirium",
-                           [mod.BLINDS.BOSS_BEAST] = "The beast",
+Descriptions.BlindNames = {[mod.BLINDS.SMALL] = "Piccolo buio",
+                           [mod.BLINDS.BIG] = "Grande buio",
+                           [mod.BLINDS.BOSS] = "Buio boss",
+                           [mod.BLINDS.BOSS_ACORN] = "Ghinda d'ambra",
+                           [mod.BLINDS.BOSS_ARM] = "Il braccio",
+                           [mod.BLINDS.BOSS_BELL] = "Campana cerulea",
+                           [mod.BLINDS.BOSS_CLUB] = "Il fiore",
+                           [mod.BLINDS.BOSS_EYE] = "L'occhio",
+                           [mod.BLINDS.BOSS_FISH] = "Il pesce",
+                           [mod.BLINDS.BOSS_FLINT] = "La selce",
+                           [mod.BLINDS.BOSS_GOAD] = "Il gomito",
+                           [mod.BLINDS.BOSS_HEAD] = "La testa",
+                           [mod.BLINDS.BOSS_HEART] = "Cuore cremisi",
+                           [mod.BLINDS.BOSS_HOOK] = "Il gancio",
+                           [mod.BLINDS.BOSS_HOUSE] = "La casa",
+                           [mod.BLINDS.BOSS_LEAF] = "Foglia verde",
+                           [mod.BLINDS.BOSS_MANACLE] = "Il manubrio",
+                           [mod.BLINDS.BOSS_MARK] = "Il merchio",
+                           [mod.BLINDS.BOSS_MOUTH] = "la bocca",
+                           [mod.BLINDS.BOSS_NEEDLE] = "L'ago",
+                           [mod.BLINDS.BOSS_OX] = "Il bue",
+                           [mod.BLINDS.BOSS_PILLAR] = "Il pilastro",
+                           [mod.BLINDS.BOSS_PLANT] = "La pianta",
+                           [mod.BLINDS.BOSS_PSYCHIC] = "Lo psichico",
+                           [mod.BLINDS.BOSS_SERPENT] = "Il serpente",
+                           [mod.BLINDS.BOSS_TOOTH] = "Il dente",
+                           [mod.BLINDS.BOSS_VESSEL] = "Calice violetto",
+                           [mod.BLINDS.BOSS_WALL] = "Il muro",
+                           [mod.BLINDS.BOSS_WATER] = "L'acqua",
+                           [mod.BLINDS.BOSS_WHEEL] = "La ruota",
+                           [mod.BLINDS.BOSS_WINDOW] = "La finestra",
+                           [mod.BLINDS.BOSS_LAMB] = "L'agnello",
+                           [mod.BLINDS.BOSS_MOTHER] = "La madre",
+                           [mod.BLINDS.BOSS_DELIRIUM] = "Il delirio",
+                           [mod.BLINDS.BOSS_BEAST] = "La bestia",
                            HUSH = "Hush",
                            BOSSRUSH = "Bossrush",
                             }
 
-Descriptions.Warning = {Title = "Hand will not score!",
-                        [mod.BLINDS.BOSS_MOUTH] = "Can only play [[VALUE1]] this round",
-                        [mod.BLINDS.BOSS_EYE] = "[[VALUE1]] was already played",
-                        [mod.BLINDS.BOSS_PSYCHIC] = "Hand needs to contain at least 5 cards",}
+Descriptions.Warning = {Title = "La mano non assegnerà punti!",
+                        [mod.BLINDS.BOSS_MOUTH] = "Puoi giocare solo [[VALUE1]] questo round",
+                        [mod.BLINDS.BOSS_EYE] = "[[VALUE1]] è stata già giocata",
+                        [mod.BLINDS.BOSS_PSYCHIC] = "La mano deve contenere 5 carte",}
 
 
-Descriptions.BossEffects = {[mod.BLINDS.SMALL] = "No additional effect",
-                            [mod.BLINDS.BIG] = "No additional effect",
-                            [mod.BLINDS.BOSS] = "No additional effect",
-                            [mod.BLINDS.BOSS_ACORN] = "Covers and shuffles all Jokers",
-                            [mod.BLINDS.BOSS_ARM] = "Decreases level of hand played",
-                            [mod.BLINDS.BOSS_BELL] = "Forces one card to be selected",
-                            [mod.BLINDS.BOSS_CLUB] = "All club cards are debuffed",
+Descriptions.BossEffects = {[mod.BLINDS.SMALL] = "Nessun effetto",
+                            [mod.BLINDS.BIG] = "Nessun effetto",
+                            [mod.BLINDS.BOSS] = "Nessun effetto",
+                            [mod.BLINDS.BOSS_ACORN] = "Copre e mischia tutti i Jolly",
+                            [mod.BLINDS.BOSS_ARM] = "Depotenzia la Mano di Poker giocata",
+                            [mod.BLINDS.BOSS_BELL] = "Forza una carta ad essere selzionata",
+                            [mod.BLINDS.BOSS_CLUB] = "Tutti i {{ColorChips}}Fiori{{CR}}sono disattivati",
                             [mod.BLINDS.BOSS_EYE] = "Cannot repeat hand types",
                             [mod.BLINDS.BOSS_FISH] = "Cards drawn after hand play are covered",
                             [mod.BLINDS.BOSS_FLINT] = "Halfes base chips and mult",
-                            [mod.BLINDS.BOSS_GOAD] = "All spade cards are debuffed",
-                            [mod.BLINDS.BOSS_HEAD] = "All heart cards are debuffed",
+                            [mod.BLINDS.BOSS_GOAD] = "All{{ColorSpade}}Picche{{CR}}cards are debuffed",
+                            [mod.BLINDS.BOSS_HEAD] = "All{{ColorMult}}Cuori{{CR}}cards are debuffed",
                             [mod.BLINDS.BOSS_HEART] = "One random Joker is disabled every hand",
                             [mod.BLINDS.BOSS_HOOK] = "Discard 2 cards on hand play",
                             [mod.BLINDS.BOSS_HOUSE] = "Starting hand is drawn face down",
@@ -975,7 +977,7 @@ Descriptions.BossEffects = {[mod.BLINDS.SMALL] = "No additional effect",
                             [mod.BLINDS.BOSS_WALL] = "Very large blind",
                             [mod.BLINDS.BOSS_WATER] = "Start with 0 discards",
                             [mod.BLINDS.BOSS_WHEEL] = "1 in 7 cards are drawn face down",
-                            [mod.BLINDS.BOSS_WINDOW] = "All diamond cards are debuffed",
+                            [mod.BLINDS.BOSS_WINDOW] = "All{{ColorYellorange}}Quadri{{CR}}cards are debuffed",
                             [mod.BLINDS.BOSS_LAMB] = "Getting hit debuffs a random card held",
                             [mod.BLINDS.BOSS_MOTHER] = "Getting hit covers a random card held",
                             [mod.BLINDS.BOSS_DELIRIUM] = "Getting hit changes suit and rank of a random card held",
@@ -1052,60 +1054,60 @@ Descriptions.T_Jimbo.Vouchers[mod.Vouchers.MoneyTree] = "Raise the Interest cap 
 Descriptions.T_Jimbo.Vouchers[mod.Vouchers.Blank] = "{{ColorGray}}Does nothing?"
 Descriptions.T_Jimbo.Vouchers[mod.Vouchers.Antimatter] = "{{ColorSpade}}+1{{CR}} Joker slot"
 Descriptions.T_Jimbo.Vouchers[mod.Vouchers.MagicTrick] = "{{ColorYellorange}}Playing cards{{CR}} can appear in shop"
-Descriptions.T_Jimbo.Vouchers[mod.Vouchers.Illusion] = "{{ColorYellorange}}Playing cards{{CR}} in shop can have and {{ColorYellorange}}Enhancement{{CR}},{{ColorYellorange}}Edition{{CR}} and/or {{ColorYellorange}}Seal{{CR}}"
+Descriptions.T_Jimbo.Vouchers[mod.Vouchers.Illusion] = "{{ColorYellorange}}Playing cards{{CR}} in shop can have and {{ColorYellorange}}Enhancement{{CR}},{{ColorYellorange}}Edition{{CR}} and/or {{ColorYellorange}}Seal"
 Descriptions.T_Jimbo.Vouchers[mod.Vouchers.Hieroglyph] = "{{ColorYellorange}}-1{{CR}} Ante#{{ColorChips}}-1{{CR}} Hand every round"
 Descriptions.T_Jimbo.Vouchers[mod.Vouchers.Petroglyph] = "{{ColorYellorange}}-1{{CR}} Ante#{{ColorMult}}-1{{CR}} Discard every round"
 Descriptions.T_Jimbo.Vouchers[mod.Vouchers.Director] = "{{ColorPink}}Reroll{{CR}} boss blind {{ColorYellorange}}Once{{CR}} per Ante#({{ColorYellorange}}10${{CR}} per reroll)"
 Descriptions.T_Jimbo.Vouchers[mod.Vouchers.Retcon] = "{{ColorPink}}Reroll{{CR}} boss blind {{ColorYellorange}}Unlimited{{CR}} times per Ante#({{ColorYellorange}}10${{CR}} per reroll)"
 
 if EID then
-    EID:addCollectible(mod.Vouchers.Grabber, "{{PlayerJimbo}} {{ColorBlue}} +5 playable cards{{CR}} every room", "Grabber", FileLanguage)
-    EID:addCollectible(mod.Vouchers.NachoTong, "{{PlayerJimbo}} {{ColorBlue}} +5 additional playable cards{{CR}} every room", "Nacko Tong", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Grabber, "{{REG_Jimbo}} {{ColorBlue}} +5 playable cards{{CR}} every room", "Grabber", FileLanguage)
+    EID:addCollectible(mod.Vouchers.NachoTong, "{{REG_Jimbo}} {{ColorBlue}} +5 additional playable cards{{CR}} every room", "Nacko Tong", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.Wasteful, "{{PlayerJimbo}} {{Heart}}{{ColorBlue}} +1 Health up{{CR}}", "Wasteful", FileLanguage)
-    EID:addCollectible(mod.Vouchers.Recyclomancy, "{{PlayerJimbo}} {{Heart}}{{ColorBlue}} +1 Health up{{CR}}", "Recyclomancy", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Wasteful, "{{REG_Jimbo}} {{Heart}}{{ColorBlue}} +1 Health up", "Wasteful", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Recyclomancy, "{{REG_Jimbo}} {{Heart}}{{ColorBlue}} +1 Health up", "Recyclomancy", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.Overstock, "{{PlayerJimbo}} Every future shop will have 1 additional Joker for sale", "Overstock", FileLanguage)
-    EID:addCollectible(mod.Vouchers.OverstockPlus, "{{PlayerJimbo}} Every future shop will have 1 additional Joker for sale", "Overstock Plus", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Overstock, "{{REG_Jimbo}} Every future shop will have 1 additional Joker for sale", "Overstock", FileLanguage)
+    EID:addCollectible(mod.Vouchers.OverstockPlus, "{{REG_Jimbo}} Every future shop will have 1 additional Joker for sale", "Overstock Plus", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.Clearance, "{{PlayerJimbo}} Everything is discounted by {{ColorYellorange}} 25%{{CR}} #!!! Prices are rounded down", "Clearance Sale", FileLanguage)
-    EID:addCollectible(mod.Vouchers.Liquidation, "{{PlayerJimbo}} Everything is discounted by {{ColorYellorange}} 50%{{CR}} #!!! Prices are rounded down", "Liquidation", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Clearance, "{{REG_Jimbo}} Everything is discounted by {{ColorYellorange}} 25%{{CR}} #!!! Prices are rounded down", "Clearance Sale", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Liquidation, "{{REG_Jimbo}} Everything is discounted by {{ColorYellorange}} 50%{{CR}} #!!! Prices are rounded down", "Liquidation", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.Hone, "{{PlayerJimbo}} Special {{ColorRainbow}}Editions{{CR}} become {{ColorYellorange}}2x{{CR}} more likely to appear", "Hone", FileLanguage)
-    EID:addCollectible(mod.Vouchers.GlowUp, "{{PlayerJimbo}} Special {{ColorRainbow}}Editions{{CR}} become {{ColorYellorange}}4x{{CR}} more likely to appear", "Glow Up", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Hone, "{{REG_Jimbo}} Special {{ColorRainbow}}Editions{{CR}} become {{ColorYellorange}}2x{{CR}} more likely to appear", "Hone", FileLanguage)
+    EID:addCollectible(mod.Vouchers.GlowUp, "{{REG_Jimbo}} Special {{ColorRainbow}}Editions{{CR}} become {{ColorYellorange}}4x{{CR}} more likely to appear", "Glow Up", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.RerollSurplus, "{{PlayerJimbo}} Activating a {{RestockMachine}} Restock Machine gives back {{ColorYellorange}}1 {{Coin}} Coins{{CR}}", "Reroll Surplus", FileLanguage)
-    EID:addCollectible(mod.Vouchers.RerollGlut, "{{PlayerJimbo}} Activating a {{RestockMachine}} Restock Machine gives back {{ColorYellorange}}2 {{Coin}} Coins{{CR}}", "Reroll Glut", FileLanguage)
+    EID:addCollectible(mod.Vouchers.RerollSurplus, "{{REG_Jimbo}} Activating a {{RestockMachine}} Restock Machine gives back {{ColorYellorange}}1 {{Coin}} Coins", "Reroll Surplus", FileLanguage)
+    EID:addCollectible(mod.Vouchers.RerollGlut, "{{REG_Jimbo}} Activating a {{RestockMachine}} Restock Machine gives back {{ColorYellorange}}2 {{Coin}} Coins", "Reroll Glut", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.Crystal, "{{PlayerJimbo}} Every {{ColorYellorange}}Pacco di Espansione{{CR}} has 1 more option to choose from", "Crystal Ball", FileLanguage)
-    EID:addCollectible(mod.Vouchers.Omen, "{{PlayerJimbo}} {{ColorPink}}Arcana Packs{{CR}} may contain spectral cards", "Omen Globe", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Crystal, "{{REG_Jimbo}} Every {{ColorYellorange}}Pacco di Espansione{{CR}} has 1 more option to choose from", "Crystal Ball", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Omen, "{{REG_Jimbo}} {{ColorPink}}Arcana Packs{{CR}} may contain spectral cards", "Omen Globe", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.Telescope, "{{PlayerJimbo}} Skipping a {{ColorCyan}}Celestial Pack{{CR}} creates {{ColorYellorange}}2{{CR}} additional random {{ColorCyan}}Planet Cards{{CR}}", "Telescope", FileLanguage)
-    EID:addCollectible(mod.Vouchers.Observatory, "{{PlayerJimbo}} Triggering a card while holding it's respective {{ColorCyan}}Planet Card{{CR}} gives {{Damage}}{{ColorMult}} X1.15{{CR}} Molt. di Danno#{{Planetarium}} Having the respective Planetarium item also counts", "Observatory", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Telescope, "{{REG_Jimbo}} Skipping a {{ColorCyan}}Celestial Pack{{CR}} creates {{ColorYellorange}}2{{CR}} additional random {{ColorCyan}}Planet Cards", "Telescope", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Observatory, "{{REG_Jimbo}} Triggering a card while holding it's respective {{ColorCyan}}Planet Card{{CR}} gives {{Damage}}{{ColorMult}} X1.15{{CR}} Molt. di Danno#{{Planetarium}} Having the respective Planetarium item also counts", "Observatory", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.Blank, "{{PlayerJimbo}} {{ColorFade}}Nothing?{{CR}}", "Blank", FileLanguage)
-    EID:addCollectible(mod.Vouchers.Antimatter, "{{PlayerJimbo}} Adds a permanent {{ColorYellorange}}Joker Slot{{CR}} to the inventorycon pickup", "Antimatter", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Blank, "{{REG_Jimbo}} {{ColorFade}}Nothing?", "Blank", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Antimatter, "{{REG_Jimbo}} Adds a permanent {{ColorYellorange}}Joker Slot{{CR}} to the inventorycon pickup", "Antimatter", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.Brush, "{{PlayerJimbo}} Gives {{ColorChips}}+1 Hand Size{{CR}}", "Brush", FileLanguage)
-    EID:addCollectible(mod.Vouchers.Palette, "{{PlayerJimbo}} Gives {{ColorChips}}+1 additional Hand Size{{CR}}", "Palette", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Brush, "{{REG_Jimbo}} Gives {{ColorChips}}+1 Hand Size", "Brush", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Palette, "{{REG_Jimbo}} Gives {{ColorChips}}+1 additional Hand Size", "Palette", FileLanguage)
 
     EID:addCollectible(mod.Vouchers.Director, "{{Coin}} Triggers the {{Collectible105}} D6 effect for 5 coins", "Director's Cut", FileLanguage)
     EID:addCollectible(mod.Vouchers.Retcon, "{{Coin}} Triggers the {{Collectible283}} D100 effect for 5 coins", "Retcon", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.Hieroglyph, "{{PlayerJimbo}} Activates the {{Collectible127}} Forget Me Now! effect upon pickup", "Hieroglyph", FileLanguage)
-    EID:addCollectible(mod.Vouchers.Petroglyph, "{{PlayerJimbo}} Activates the {{Collectible127}} Forget Me Now! effect upon pickup", "Petroglyph", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Hieroglyph, "{{REG_Jimbo}} Activates the {{Collectible127}} Forget Me Now! effect upon pickup", "Hieroglyph", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Petroglyph, "{{REG_Jimbo}} Activates the {{Collectible127}} Forget Me Now! effect upon pickup", "Petroglyph", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.MagicTrick, "{{PlayerJimbo}} {{ColorMint}} 25% chance{{CR}} to be able to choose one more option from a pack #Can trigger Multiple times", "Magic Trick", FileLanguage)
-    EID:addCollectible(mod.Vouchers.Illusion, "{{PlayerJimbo}} Every pack opened has a{{ColorMint}} 55% chance{{CR}} to contain {{ColorYellorange}}2{{CR}} more options and a {{ColorMint}} 15% chance{{CR}} to let the player choose {{ColorYellorange}}1{{CR}} more option", "Observatory", FileLanguage)
+    EID:addCollectible(mod.Vouchers.MagicTrick, "{{REG_Jimbo}} {{ColorMint}} 25% Chance{{CR}} to be able to choose one more option from a pack #Can trigger Multiple times", "Magic Trick", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Illusion, "{{REG_Jimbo}} Every pack opened has a{{ColorMint}} 55% Chance{{CR}} to contain {{ColorYellorange}}2{{CR}} more options and a {{ColorMint}} 15% Chance{{CR}} to let the player choose {{ColorYellorange}}1{{CR}} more option", "Observatory", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.MoneySeed, "{{PlayerJimbo}} Maximum interest increased to {{ColorYellorange}}10${{CR}}", "Money Seed", FileLanguage)
-    EID:addCollectible(mod.Vouchers.MoneyTree, "{{PlayerJimbo}} Maximum interest increased to {{ColorYellorange}}20${{CR}}", "Money Tree", FileLanguage)
+    EID:addCollectible(mod.Vouchers.MoneySeed, "{{REG_Jimbo}} Maximum interest increased to {{ColorYellorange}}10$", "Money Seed", FileLanguage)
+    EID:addCollectible(mod.Vouchers.MoneyTree, "{{REG_Jimbo}} Maximum interest increased to {{ColorYellorange}}20$", "Money Tree", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.PlanetMerch, "{{PlayerJimbo}} Every pickup has a {{ColorMint}}7% chance{{CR}} to be replaced with a random {{ColorCyan}}Planet Card{{CR}}", "Planet Merchant", FileLanguage)
-    EID:addCollectible(mod.Vouchers.PlanetTycoon, "{{PlayerJimbo}} Every pickup has an additional {{ColorMint}}10% chance{{CR}} to be replaced with a random {{ColorCyan}}Planet Card{{CR}}", "Planet Tycoon", FileLanguage)
+    EID:addCollectible(mod.Vouchers.PlanetMerch, "{{REG_Jimbo}} Every pickup has a {{ColorMint}}7% Chance{{CR}} to be replaced with a random {{ColorCyan}}Planet Card", "Planet Merchant", FileLanguage)
+    EID:addCollectible(mod.Vouchers.PlanetTycoon, "{{REG_Jimbo}} Every pickup has an additional {{ColorMint}}10% Chance{{CR}} to be replaced with a random {{ColorCyan}}Planet Card", "Planet Tycoon", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.TarotMerch, "{{PlayerJimbo}} Every pickup has a {{ColorMint}}7% chance{{CR}} to be replaced with a random {{ColorPink}}Tarot Card{{CR}}", "Tarot Merchant", FileLanguage)
-    EID:addCollectible(mod.Vouchers.TarotTycoon, "{{PlayerJimbo}} Every pickup has an additional {{ColorMint}}10% chance{{CR}} to be replaced with a random {{ColorPink}}Tarot Card{{CR}}", "Tarot Tycoon", FileLanguage)
+    EID:addCollectible(mod.Vouchers.TarotMerch, "{{REG_Jimbo}} Every pickup has a {{ColorMint}}7% Chance{{CR}} to be replaced with a random {{ColorPink}}Tarot Card", "Tarot Merchant", FileLanguage)
+    EID:addCollectible(mod.Vouchers.TarotTycoon, "{{REG_Jimbo}} Every pickup has an additional {{ColorMint}}10% Chance{{CR}} to be replaced with a random {{ColorPink}}Tarot Card", "Tarot Tycoon", FileLanguage)
 end
 
 
@@ -1125,8 +1127,8 @@ EID:addCollectible(mod.Collectibles.FUNNY_TEETH, "Spawns a familiar that chases 
 EID:addCollectible(mod.Collectibles.HORSEY, "Spawns a familiar that jumps in an L pattern, creating damaging shockwaves upon landing #!!! The shockwaves cannot hurt Isaac", "Horsey",FileLanguage)		
 EID:addCollectible(mod.Collectibles.LAUGH_SIGN, "An audience reacts live to Isaac's actions #{{BossRoom}} Clearing a boss room rewards the player with random pickups #Taking Danno launches tomatoes that leave a damaging creep and apply {{Bait}} Bait upon landing", "Laugh Sign",FileLanguage)		
 EID:addCollectible(mod.Collectibles.LOLLYPOP, "{{Timer}} A lollypop spawns on the ground every 25 seconds spent in an uncleared room #{{Collectible93}} Picking up the lollypops grants the Gamekid! effect for 5.5 seconds #!!! A maximum of 3 lollypops can be on the ground at once", "Lollypop",FileLanguage)		
-EID:addCollectible(mod.Collectibles.POCKET_ACES, "{{Luck}} Lacrime have an 8% chance to become Ace cards #Ace cards deal the product of Isaac's {{Damage}} Danno and {{Lacrime}} Lacrime stat worth of Danno", "Pocket Aces",FileLanguage)		
-EID:addCollectible(mod.Collectibles.TRAGICOMEDY, "40% chance to wear a comedy or tragedy mask upon clearing a room #\1 The comedy mask grants: {{Lacrime}} +1 Firedelay, {{Speed}} +0.2 Speed and {{Luck}} +2 Luck #\1 Wearing a tragedy mask grants: {{Lacrime}} +0.5 Firedelay, {{Damage}} +1 Flat Danno and {{Range}} +2.5 Range #!!! both mask can be worn at once", "Tragicomedy",FileLanguage)		
+EID:addCollectible(mod.Collectibles.POCKET_ACES, "{{Luck}} Lacrime have an 8% Chance to become Ace cards #Ace cards deal the product of Isaac's {{Damage}} Danno and {{Tears}} Lacrime stat worth of Danno", "Pocket Aces",FileLanguage)		
+EID:addCollectible(mod.Collectibles.TRAGICOMEDY, "40% Chance to wear a comedy or tragedy mask upon clearing a room #\1 The comedy mask grants: {{Tears}} +1 Firedelay, {{Speed}} +0.2 Speed and {{Luck}} +2 Luck #\1 Wearing a tragedy mask grants: {{Tears}} +0.5 Firedelay, {{Damage}} +1 Flat Danno and {{Range}} +2.5 Range #!!! both mask can be worn at once", "Tragicomedy",FileLanguage)		
 EID:addCollectible(mod.Collectibles.UMBRELLA, "Isaac opens an umbrella, causing anvils to fall on top of him every 5 ~ 7 seconds #Anvils create damaging shockwaves when landing #Anvils can be reflected by the umbrella, sending them thorwards a near enemy #!!! Using the item again stops the anvils from falling", "Umbrella",FileLanguage)		
 
 for i = 1, Balatro_Expansion.TastyCandyNum do --puts every candy stage
@@ -1135,8 +1137,8 @@ for i = 1, Balatro_Expansion.TastyCandyNum do --puts every candy stage
 end
 
 
-EID:addCollectible(mod.Collectibles.HEIRLOOM, "{{Coin}} All coins have a chance to get their value upgraded #{{Coin}} All pickups are more likely to turn into their golden variant", "Heirloom",FileLanguage)		
-EID:addTrinket(mod.Trinkets.PENNY_SEEDS, "{{Coin}} Gain 1 coin per 5 coin isaac has every floor #Very low chance for the coins spawned to be a penny trinket or {{Collectible74}} The quarter", "Penny Seeds",FileLanguage)		
+EID:addCollectible(mod.Collectibles.HEIRLOOM, "{{Coin}} All coins have a Chance to get their value upgraded #{{Coin}} All pickups are more likely to turn into their golden variant", "Heirloom",FileLanguage)		
+EID:addTrinket(mod.Trinkets.PENNY_SEEDS, "{{Coin}} Gain 1 coin per 5 coin isaac has every floor #Very low Chance for the coins spawned to be a penny trinket or {{Collectible74}} The quarter", "Penny Seeds",FileLanguage)		
 EID:addCollectible(mod.Collectibles.THE_HAND, "{{Card}} Up to 5 cards or runes can be stored in the active item #!!! Cards in excess will be destroyed #{{Chargeable}} Holding the item uses the cards stored in the order shown # Press [DROP] key to cycle the held cards # Also collects pickups and deals Danno to enemies hit", "The Hand",FileLanguage)		
 EID:addCard(mod.JIMBO_SOUL, "{{Timer}} For the current Room, balances Isaac's Danno and Lacrime stats #{{Blank}} {{ColorGray}}(Effect lasts longer if used multiple times)", "Soul of Jimbo", FileLanguage)
 EID:addTrinket(mod.Jokers.CHAOS_THEORY, "{{Collectible402}} All pickups spawned are randomised", "Chaos Theory", FileLanguage)		
@@ -1152,7 +1154,7 @@ Descriptions.ItemItemSynergies[mod.Collectibles.FUNNY_TEETH] = {[CollectibleType
                                                                 [CollectibleType.COLLECTIBLE_ROTTEN_TOMATO] = "# Chance to apply {{Bait}} Bait to enemies",
                                                                 [CollectibleType.COLLECTIBLE_MIDAS_TOUCH] = "# Chance to {{Coin}} Goldify enemies",
                                                                 [CollectibleType.COLLECTIBLE_DEAD_TOOTH] = "# Chance to {{Poison}} Poison enemies",
-                                                                [CollectibleType.COLLECTIBLE_CHARM_VAMPIRE] = "# Chance to heal its owner FOR {{HalfHeart}} half red heart when killing an enemy",
+                                                                [CollectibleType.COLLECTIBLE_CHARM_VAMPIRE] = "# Chance to heal its owner FOR {{HalfHeart}} half red{{ColorMult}}Cuori{{CR}}when killing an enemy",
                                                                 [CollectibleType.COLLECTIBLE_SERPENTS_KISS] = "# Chance to {{Poison}} Poison enemies and to drop a {{BlackHeart}} on every kill",
                                                                 [CollectibleType.COLLECTIBLE_DOG_TOOTH] = "# Gains more speed and Danno",
                                                                 [CollectibleType.COLLECTIBLE_TOUGH_LOVE] = "# Deals 35% more Danno",
@@ -1164,16 +1166,16 @@ Descriptions.ItemItemSynergies[mod.Collectibles.HORSEY] = {[CollectibleType.COLL
 Descriptions.ItemItemSynergies[mod.Collectibles.HEIRLOOM] = {[CollectibleType.COLLECTIBLE_TELEKINESIS] = "# Gain {{Collectible2}} Homing shots",
                                                             }
 Descriptions.ItemItemSynergies[mod.Collectibles.THE_HAND] = {[CollectibleType.COLLECTIBLE_BOOK_OF_VIRTUES] = "# Shoots a wisp per card held when swung",
-                                                             [CollectibleType.COLLECTIBLE_MIDAS_TOUCH] = "# Deals +0.25 Danno per {{Coin}} coin held to enemie and has a chance to turn them in golden statues",
+                                                             [CollectibleType.COLLECTIBLE_MIDAS_TOUCH] = "# Deals +0.25 Danno per {{Coin}} coin held to enemie and has a Chance to turn them in golden statues",
                                                              [CollectibleType.COLLECTIBLE_KNOCKOUT_DROPS] = "# Doubles Danno dealt to enemies and increases the knockback strength",
                                                              [CollectibleType.COLLECTIBLE_SERPENTS_KISS] = "# Chance to poinson enemies hit",
                                                              [CollectibleType.COLLECTIBLE_VIRUS] = "# Chance to poison enemies hit",
                                                              [CollectibleType.COLLECTIBLE_TELEKINESIS] = "# Deflects projectiles hit",
                                                              [mod.Collectibles.THE_HAND] = "# 5 more cards can be held at once",
                                                             }
-Descriptions.ItemItemSynergies[mod.Collectibles.BANANA] = {[CollectibleType.COLLECTIBLE_BOOK_OF_VIRTUES] = "# Create 8 wisps with high chance to shoot explosive tears"}
+Descriptions.ItemItemSynergies[mod.Collectibles.BANANA] = {[CollectibleType.COLLECTIBLE_BOOK_OF_VIRTUES] = "# Create 8 wisps with high Chance to shoot explosive tears"}
 Descriptions.ItemItemSynergies[mod.Collectibles.EMPTY_BANANA] = {[CollectibleType.COLLECTIBLE_BOOK_OF_VIRTUES] = "# 2 wisps orbit the peels thrown"}
-Descriptions.ItemItemSynergies[mod.Collectibles.UMBRELLA] = {[CollectibleType.COLLECTIBLE_BOOK_OF_VIRTUES] = "# Gain an outer ring wisp with chance of {{Confsion}} concussing tears per anvil fallen",
+Descriptions.ItemItemSynergies[mod.Collectibles.UMBRELLA] = {[CollectibleType.COLLECTIBLE_BOOK_OF_VIRTUES] = "# Gain an outer ring wisp with Chance of {{Confsion}} concussing tears per anvil fallen",
                                                              [mod.Collectibles.UMBRELLA] = "# All umbrellas are opened at the same time, increasing the anvils falling and the cover's size"}
 Descriptions.ItemItemSynergies[mod.Vouchers.Director] = {[CollectibleType.COLLECTIBLE_BOOK_OF_VIRTUES] = "# Creates outer ring wisps that devolve enemies on contact"}
 Descriptions.ItemItemSynergies[mod.Vouchers.Retcon] = {[CollectibleType.COLLECTIBLE_BOOK_OF_VIRTUES] = "# Creates outer ring wisps that devolve enemies on contact"}
@@ -1213,7 +1215,7 @@ end
 
 
 Descriptions.TrinketEdition = {[mod.Edition.BASE] = "",
-                               [mod.Edition.FOIL] = "#{{Lacrime}} {{ColorChips}}+1{{CR}} Fire rate",
+                               [mod.Edition.FOIL] = "#{{Tears}} {{ColorChips}}+1{{CR}} Fire rate",
                                [mod.Edition.HOLOGRAPHIC] = "#{{Damage}} {{ColorMult}}+1.5{{CR}} Flat Danno",
                                [mod.Edition.POLYCROME] = "#{{Damage}} {{ColorMult}}x1.2{{CR}} Molt. di Danno",
                                [mod.Edition.NEGATIVE] = "#{{Collectible479}} Immediantly smelted when picked up"

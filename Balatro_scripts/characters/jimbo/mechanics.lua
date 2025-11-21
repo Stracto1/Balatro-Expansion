@@ -1009,10 +1009,26 @@ function mod:AddRoomsCleared(IsBoss, Hostile)
                     Player:SetFullHearts()
                 else
 
-                    local Hearts = 2
+                    local Hearts = 1
 
-                    Hearts = Hearts + 2*#mod:GetJimboJokerIndex(Player, mod.Jokers.DRUNKARD)
-                    Hearts = Hearts + 2*#mod:GetJimboJokerIndex(Player, mod.Jokers.MERRY_ANDY)
+                    Hearts = Hearts + #mod:GetJimboJokerIndex(Player, mod.Jokers.DRUNKARD)
+                    Hearts = Hearts + #mod:GetJimboJokerIndex(Player, mod.Jokers.MERRY_ANDY)
+
+
+                    if mod:JimboHasTrinket(Player, mod.Jokers.MYSTIC_SUMMIT) then
+                        
+                        local Room = Game:GetRoom()
+
+                        for i=1, Hearts do
+
+                            local Pos = Room:FindFreePickupSpawnPosition(Player.Position, 40)
+
+                            Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_HEART, Pos, Vector.Zero, Player, HeartSubType.HEART_FULL, mod:RandomSeed(Player:GetDropRNG()))
+                        end
+                    else
+                        Player:AddHearts(Hearts*2)
+                    end
+
 
                     Player:AddHearts(Hearts)
                 end
@@ -2187,6 +2203,8 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
 
             if not ForceCard then
 
+                Isaac.RunCallback("CARD_SHOT", Player, CardShot.Index, true)
+
                 if not Game:GetRoom():IsClear()
                    and (mod.Saved.Player[PIndex].Progress.Room.Shots < Player:GetCustomCacheValue("hands")
                         or mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR)) then
@@ -2204,7 +2222,7 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
                         Player:AnimateSad()
                     end
 
-                    Isaac.RunCallback("CARD_SHOT", Player, CardShot.Index, true)
+                    Isaac.RunCallback("CARD_SCORE", Player, CardShot.Index, true)
                 end
             end
 

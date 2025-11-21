@@ -643,7 +643,7 @@ end
 ---@param TextParams integer? I don't reccomend using Wrap here
 function mod:RenderGenericButton(Position, Scale, BaseColor, Pressed, Text, TextScale, AdaptToTextSize, TextParams, TextKcolor, SubText)
 
-    TextParams = TextParams or 0
+    TextParams = mod.StringRenderingParams.Centered
     --TextParams = TextParams | mod.StringRenderingParams.Centered
     TextKcolor = TextKcolor or KColor.White
 
@@ -2981,8 +2981,9 @@ local function TJimboRunInfo(Player, PIndex)
 
     local Text = mod:GetEIDString("T_Jimbo", "RunInfo", "Hands")
     local TextScale = Vector.One * 0.5
+    local Params = mod.StringRenderingParams.Centered
     
-    mod:RenderGenericButton(ButtonPos, Size, mod.EffectColors.RED, IsPressed, Text, TextScale)
+    mod:RenderGenericButton(ButtonPos, Size, mod.EffectColors.RED, IsPressed, Text, TextScale, false, Params)
 
 
     RunInfoHUD:SetFrame(1)
@@ -2995,7 +2996,7 @@ local function TJimboRunInfo(Player, PIndex)
 
     Text = mod:GetEIDString("T_Jimbo", "RunInfo", "Deck")
     
-    mod:RenderGenericButton(ButtonPos, Size, mod.EffectColors.RED, IsPressed, Text, TextScale)
+    mod:RenderGenericButton(ButtonPos, Size, mod.EffectColors.RED, IsPressed, Text, TextScale, false, Params)
 
 
     RunInfoHUD:SetFrame(2)
@@ -3008,7 +3009,7 @@ local function TJimboRunInfo(Player, PIndex)
 
     Text = mod:GetEIDString("T_Jimbo", "RunInfo", "Blinds")
     
-    mod:RenderGenericButton(ButtonPos, Size, mod.EffectColors.RED, IsPressed, Text, TextScale)
+    mod:RenderGenericButton(ButtonPos, Size, mod.EffectColors.RED, IsPressed, Text, TextScale, false, Params)
 
     end
 
@@ -3369,8 +3370,9 @@ local function TJimboRunInfo(Player, PIndex)
         end
 
         TextScale = Vector.One
+        TextParams = mod.StringRenderingParams.Centered
         
-        mod:RenderGenericButton(RenderPos, Size, ButtonColor, IsPressed, Text, TextScale, false, nil, TextKcolor)
+        mod:RenderGenericButton(RenderPos, Size, ButtonColor, IsPressed, Text, TextScale, false, TextParams, TextKcolor)
 
 
         Frame = RunInfoHUD:GetNullFrame("Overlay Positions 3")
@@ -3423,8 +3425,9 @@ local function TJimboRunInfo(Player, PIndex)
         IsPressed = false
         TextKcolor = KColor.White
         Text = mod:GetEIDString("T_Jimbo", "RunInfo", "Skip")
+        TextParams = mod.StringRenderingParams.Centered
             
-        mod:RenderGenericButton(RenderPos, Size, ButtonColor, IsPressed, Text, TextScale)
+        mod:RenderGenericButton(RenderPos, Size, ButtonColor, IsPressed, Text, TextScale, false, TextParams)
 
 
         Frame = RunInfoHUD:GetNullFrame("Overlay Positions 3")
@@ -3537,7 +3540,7 @@ local function TJimboRunInfo(Player, PIndex)
 
         TextScale = Vector.One
         
-        mod:RenderGenericButton(RenderPos, Size, ButtonColor, IsPressed, Text, TextScale, false, nil, TextKcolor)
+        mod:RenderGenericButton(RenderPos, Size, ButtonColor, IsPressed, Text, TextScale, false, TextParams, TextKcolor)
 
         RunInfoHUD:SetFrame(2)
 
@@ -3690,7 +3693,7 @@ local function TJimboRunInfo(Player, PIndex)
 
         TextScale = Vector.One
         
-        mod:RenderGenericButton(RenderPos, Size, ButtonColor, IsPressed, Text, TextScale)
+        mod:RenderGenericButton(RenderPos, Size, ButtonColor, IsPressed, Text, TextScale, false, TextParams)
 
 
         RunInfoHUD:SetFrame(4)

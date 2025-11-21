@@ -169,15 +169,7 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
 
                 Values[1] = tostring(Progress)
 
-            else--[[if Joker == mod.Jokers.ABSTRACT_JOKER 
-               or Joker == mod.Jokers.RED_CARD
-               or Joker == mod.Jokers.FORTUNETELLER
-               or Joker == mod.Jokers.SACRIFICIAL_DAGGER
-               or Joker == mod.Jokers.FLASH_CARD
-               or Joker == mod.Jokers.SWASHBUCKLER
-               or Joker == mod.Jokers.RIDE_BUS
-               or Joker == mod.Jokers.SPARE_TROUSERS
-               or Joker == mod.Jokers.POPCORN then]]
+            else
                
                 Progress = Progress or mod:GetJokerInitialProgress(Joker, true, T_Jimbo)
 
@@ -863,9 +855,11 @@ do
     EID:addIcon("REG_Golden","Golden",0,8,8,6,7, CoopMenu)
     EID:addIcon("REG_Blue","Blue",0,8,8,6,7, CoopMenu)
     
-
     EID:addIcon("REG_Planet","Planet",0,8,8,6,7, CoopMenu)
     EID:addIcon("REG_Spectral","Spectral",0,8,8,6,7, CoopMenu)
+
+    EID:addIcon("REG_Hand","Hands",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_HSize","HSize",0,8,8,6,7, CoopMenu)
 
 end
 
@@ -1202,7 +1196,7 @@ local function JimboGroundPickupsCallback(descObj)
             if OnlyJimbo then
                 descObj.Description = Desc
             else
-                EID:appendToDescription(descObj, "#{{PlayerJimbo}} "..Desc)
+                EID:appendToDescription(descObj, "#{{REG_Jimbo}} "..Desc)
             end
 
             descObj.Description = mod:ReplaceBalatroMarkups(descObj.Description, mod.EID_DescType.CONSUMABLE, descObj.ObjSubType, false)
