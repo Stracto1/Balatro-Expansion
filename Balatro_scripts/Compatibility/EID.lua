@@ -861,6 +861,8 @@ do
     EID:addIcon("REG_Hand","Hands",0,8,8,6,7, CoopMenu)
     EID:addIcon("REG_HSize","HSize",0,8,8,6,7, CoopMenu)
 
+    EID:addIcon("REG_Comedy","Comedy",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Tragedy","Tragedy",0,8,8,6,7, CoopMenu)
 end
 
 EID:addColor("B_Black", mod.BalatroKColorBlack)
@@ -1167,10 +1169,7 @@ EID:addDescriptionModifier("Balatro Inventory Overview", BalatroInventoryConditi
 local function JimboGroundPickupsCondition(descObj)
 
     if PlayerManager.AnyoneIsPlayerType(Balatro_Expansion.Characters.JimboType) 
-       and (descObj.ObjType == EntityType.ENTITY_PICKUP
-           and descObj.ObjVariant == PickupVariant.PICKUP_TAROTCARD
-               or (descObj.ObjVariant == PickupVariant.PICKUP_TRINKET 
-                   and ItemsConfig:GetTrinket(descObj.ObjSubType & ~mod.EditionFlag.ALL):HasCustomTag("balatro"))) then
+       and descObj.ObjType == EntityType.ENTITY_PICKUP then
 
         return true
     end
@@ -1207,9 +1206,12 @@ local function JimboGroundPickupsCallback(descObj)
         local Joker = descObj.ObjSubType & ~mod.EditionFlag.ALL
         local Edition = (descObj.ObjSubType & mod.EditionFlag.ALL) >> mod.EDITION_FLAG_SHIFT
         
-        descObj.Description = mod:GetEIDString("Jimbo", "Jokers", Joker)..mod:GetEIDString("Jimbo", "JokerEdition", Edition)
+        descObj.Description = (mod:GetEIDString("Jimbo", "Jokers", Joker) or "")..mod:GetEIDString("Jimbo", "JokerEdition", Edition)
         
         descObj.Description = mod:ReplaceBalatroMarkups(descObj.Description, mod.EID_DescType.JOKER, Joker, false)
+    
+    else
+        descObj.Description = mod:ReplaceBalatroMarkups(descObj.Description, mod.EID_DescType.NONE, descObj.ObjSubType, false)
     end
     
     return descObj

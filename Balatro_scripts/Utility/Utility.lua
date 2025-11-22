@@ -2002,17 +2002,18 @@ end
 
 
 function mod:TryGamble(Player, RNG, Chance)
-    Chance = Chance * (2 ^ #mod:GetJimboJokerIndex(Player, mod.Jokers.OOPS_6))
+    Chance = Chance * (2 ^ mod:GetPlayerTrinketAmount(Player, mod.Jokers.OOPS_6))
+
+    local Roll
+
     if RNG then
-        if RNG:RandomFloat() < Chance then
-            return true
-        end
+
+        Roll = RNG:RandomFloat()
     else
-        if math.random() < Chance then
-            return true
-        end
+        Roll = math.random()
     end
-    return false
+
+    return Roll < Chance, Roll
 end
 
 ---@param SellSlot integer?

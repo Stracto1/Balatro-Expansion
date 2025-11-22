@@ -361,27 +361,21 @@ function mod:ShopItemChanger(Pickup,Variant, SubType, ReqVariant, ReqSubType, rN
         local PlanetChance = PlayerManager.GetNumCollectibles(mod.Vouchers.PlanetMerch) * 0.07 + PlayerManager.GetNumCollectibles(mod.Vouchers.PlanetTycoon) * 0.1
         local TarotChance = PlayerManager.GetNumCollectibles(mod.Vouchers.TarotMerch) * 0.07 + PlayerManager.GetNumCollectibles(mod.Vouchers.TarotTycoon) * 0.1
 
-        TarotChance = TarotChance + 0.05*#mod:GetJimboJokerIndex(Game:GetPlayer(0),mod.Jokers.CARTOMANCER)
+        TarotChance = TarotChance + 0.05*mod:GetTotalTrinketAmount(mod.Jokers.CARTOMANCER)
 
+
+        local DiceMult = 2^mod:GetTotalTrinketAmount(mod.Jokers.OOPS_6)
+
+        TarotChance = TarotChance*DiceMult
+        PlanetChance = PlanetChance*DiceMult
 
         if TarotChance + PlanetChance > 1 then --if the sum of the chances is higher than 1 even it out
-            local Rapporto = PlanetChance / TarotChance
+            local Mult = 1 / (TarotChance + PlanetChance)
 
-            TarotChance = 1/(Rapporto+1)
-            PlanetChance = 1-PlanetChance
+            TarotChance = TarotChance*Mult
+            PlanetChance = PlanetChance*Mult
         end
 
-
-        --MULTIPLAYER - PLACEHOLDER
-        --[[
-        for i,Player in ipairs(PlayerManager.GetPlayers()) do
-            if Player:GetPlayerType() == mod.Characters.JimboType then
-                for i=1, mod:GetValueRepetitions(mod.Saved.Player[PIndex].Inventory.Jokers, TrinketType.OOPS) do
-                    PlanetChance = PlanetChance * 2
-                    TarotChance = TarotChance * 2
-                end
-            end
-        end]]--
         TarotChance = TarotChance + PlanetChance
 
         local CardRoll = Game:GetPlayer(0):GetDropRNG():RandomFloat()
@@ -2096,10 +2090,10 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
 
             local Chance = 0.5 * NumArrows
 
-            if math.random() <= Chance then
+            if mod:TryGamble(Player, nil, Chance) then
                 Tear:AddTearFlags(TearFlags.TEAR_SLOW)
             end
-            if math.random() <= Chance then
+            if mod:TryGamble(Player, nil, Chance) then
                 Tear:AddTearFlags(TearFlags.TEAR_CONFUSION)
             end
 
@@ -2108,7 +2102,7 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
                 
                 local CharmChance = NumArrows > 0 and 1 or 0.5
 
-                if math.random() <= CharmChance then
+                if mod:TryGamble(Player, CharmChance) then
                     Tear:AddTearFlags(TearFlags.TEAR_CHARM)
                 end
             end
@@ -2138,9 +2132,9 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
 
             local NumBlood = mod:GetPlayerTrinketAmount(Player, mod.Jokers.BLOODSTONE)
 
-            local Chance = 0.1 * NumBlood
+            local Chance = 0.2 * NumBlood
 
-            if math.random() <= Chance then
+            if mod:TryGamble(Player, nil, Chance) then
                 Tear:AddTearFlags(TearFlags.TEAR_CHARM)
             end
 

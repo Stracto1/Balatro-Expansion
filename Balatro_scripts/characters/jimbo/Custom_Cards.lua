@@ -1,6 +1,5 @@
 ---@diagnostic disable: inject-field
 local mod = Balatro_Expansion
-local ItemsConfig = Isaac.GetItemConfig()
 local Game = Game()
 local sfx = SFXManager()
 
@@ -18,8 +17,8 @@ local PlanetCardToItem = {[mod.Planets.PLUTO] = CollectibleType.COLLECTIBLE_PLUT
                           [mod.Planets.CERES] = mod.Collectibles.CERES,
                           [mod.Planets.SUN] = CollectibleType.COLLECTIBLE_SOL}
 
-local MegaChance = 0.15 --0.10 originally
-local JumboChance = 0.55 --0.4 originally
+local MegaChance = 0.20 --0.10 originally
+local JumboChance = 0.5 --0.4 originally
 
 local SoulChance = 0.003
 local HoleChance = 0.003
@@ -312,6 +311,7 @@ function mod:CardPacks(card, Player,_)
     end
 
     local PIndex = Player:GetData().TruePlayerIndex
+    local ChanceMult = 2^mod:GetPlayerTrinketAmount(Player, mod.Jokers.OOPS_6)
 
     if card == mod.Packs.STANDARD then
         Isaac.RunCallback("PACK_OPENED",Player,card)
@@ -320,26 +320,14 @@ function mod:CardPacks(card, Player,_)
 
         local Size = 3 + Player:GetCollectibleNum(mod.Vouchers.Crystal)
 
-        if Player:HasCollectible(mod.Vouchers.Illusion) then
-            
-            local EditionRoll = PackRng:RandomFloat()
+        local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2*ChanceMult 
 
-            if EditionRoll <= JumboChance then
-                Size = Size + 2
-            end
+ 
+        if EditionRoll <= JumboChance*ChanceMult then
 
-            if EditionRoll <= JumboChance then
-
-                if EditionRoll <= MegaChance then
-                    mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.Purposes.MegaFlag
-                    mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!", mod.EffectType.ENTITY, Player)
-                
-                else
-                    mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!", mod.EffectType.ENTITY, Player)
-                end
-            end
-
+            Size = Size + 2
         end
+        
 
         mod.SelectionParams[PIndex].PackOptions = {}
 
@@ -351,7 +339,17 @@ function mod:CardPacks(card, Player,_)
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
                                               mod.SelectionParams.Purposes.StandardPack)
 
+        if EditionRoll <= MegaChance*ChanceMult then
+            mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].Purpose + mod.SelectionParams.Purposes.MegaFlag
+            mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!", mod.EffectType.ENTITY, Player)
+        
+        elseif EditionRoll <= JumboChance*ChanceMult then
+
+            mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Jumbo!", mod.EffectType.ENTITY, Player)
+        end
+
     elseif card == mod.Packs.ARCANA then
+
         Isaac.RunCallback("PACK_OPENED",Player,card)
 
         local PackRng = Player:GetCardRNG(mod.Packs.ARCANA)
@@ -367,10 +365,12 @@ function mod:CardPacks(card, Player,_)
             end
         end
 
+
+        local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2*ChanceMult 
+
         local Size = 3 + Player:GetCollectibleNum(mod.Vouchers.Crystal)
 
-        local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
-        if EditionRoll <= JumboChance then
+        if EditionRoll <= JumboChance*ChanceMult then
             Size = Size + 2
         end
 
@@ -394,9 +394,9 @@ function mod:CardPacks(card, Player,_)
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
         mod.SelectionParams.Purposes.TarotPack)
 
-        if EditionRoll <= JumboChance then
+        if EditionRoll <= JumboChance*ChanceMult  then
         
-            if EditionRoll <= MegaChance then
+            if EditionRoll <= MegaChance*ChanceMult  then
                 mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose + mod.SelectionParams.Purposes.MegaFlag
                 mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!", mod.EffectType.ENTITY, Player)
             else
@@ -413,8 +413,9 @@ function mod:CardPacks(card, Player,_)
         
         local Size = 3 + Player:GetCollectibleNum(mod.Vouchers.Crystal)
 
-        local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
-        if EditionRoll <= JumboChance then
+        local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2*ChanceMult 
+
+        if EditionRoll <= JumboChance*ChanceMult  then
             Size = Size + 2
         end
 
@@ -436,9 +437,9 @@ function mod:CardPacks(card, Player,_)
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
         mod.SelectionParams.Purposes.CelestialPack)
 
-        if EditionRoll <= JumboChance then
+        if EditionRoll <= JumboChance*ChanceMult  then
     
-            if EditionRoll <= MegaChance then
+            if EditionRoll <= MegaChance*ChanceMult  then
                 mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose + mod.SelectionParams.Purposes.MegaFlag
                 mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!", mod.EffectType.ENTITY, Player)
             else
@@ -454,8 +455,8 @@ function mod:CardPacks(card, Player,_)
 
         local Size = 2 + Player:GetCollectibleNum(mod.Vouchers.Crystal)
 
-        local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
-        if EditionRoll <= JumboChance then
+        local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2*ChanceMult 
+        if EditionRoll <= JumboChance*ChanceMult  then
             Size = Size + 2
         end
 
@@ -481,9 +482,9 @@ function mod:CardPacks(card, Player,_)
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
                                               mod.SelectionParams.Purposes.SpectralPack)
 
-        if EditionRoll <= JumboChance then
+        if EditionRoll <= JumboChance*ChanceMult  then
         
-            if EditionRoll <= MegaChance then
+            if EditionRoll <= MegaChance*ChanceMult  then
                 mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose + mod.SelectionParams.Purposes.MegaFlag
                 mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!", mod.EffectType.ENTITY, Player)
             else
@@ -498,8 +499,8 @@ function mod:CardPacks(card, Player,_)
 
         local Size = 2 + Player:GetCollectibleNum(mod.Vouchers.Crystal)
 
-        local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2
-        if EditionRoll <= JumboChance then
+        local EditionRoll = Player:HasCollectible(mod.Vouchers.Illusion) and PackRng:RandomFloat() or 2*ChanceMult 
+        if EditionRoll <= JumboChance*ChanceMult  then
             Size = Size + 2
         end
 
@@ -508,9 +509,9 @@ function mod:CardPacks(card, Player,_)
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.PACK,
                                               mod.SelectionParams.Purposes.BuffonPack)
 
-        if EditionRoll <= JumboChance then
+        if EditionRoll <= JumboChance*ChanceMult  then
     
-            if EditionRoll <= MegaChance then
+            if EditionRoll <= MegaChance*ChanceMult  then
                 mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams[PIndex].PackPurpose + mod.SelectionParams.Purposes.MegaFlag
                 mod:CreateBalatroEffect(Player, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Mega!", mod.EffectType.ENTITY, Player)
             else

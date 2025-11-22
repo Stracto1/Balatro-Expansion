@@ -125,9 +125,6 @@ mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_MORPH, NoRerolls)
 
 ---@param Player EntityPlayer
 local function VouchersAdded(_,Item,_,_,_,_,Player)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType then
-        return
-    end
 
     if Item == mod.Vouchers.Hieroglyph or Item == mod.Vouchers.Petroglyph then
         Player:UseActiveItem(CollectibleType.COLLECTIBLE_FORGET_ME_NOW, UseFlag.USE_NOANIM|UseFlag.USE_MIMIC)

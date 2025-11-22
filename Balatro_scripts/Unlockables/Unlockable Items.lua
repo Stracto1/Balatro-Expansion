@@ -2361,7 +2361,9 @@ local function OnRoomClear(_, Player)
             local MaskRNG = Player:GetCollectibleRNG(mod.Collectibles.TRAGICOMEDY)
             local ComedicChance = MaskRNG:RandomFloat()
 
-            if ComedicChance <= 0.4 or Player:HasCollectible(CollectibleType.COLLECTIBLE_POLAROID) then
+            if ComedicChance <= 0.4 
+               or Player:HasCollectible(CollectibleType.COLLECTIBLE_POLAROID)
+               or Player:HasCollectible(CollectibleType.COLLECTIBLE_SOCKS) then
                 mod.Saved.Player[PIndex].ComedicState = mod.Saved.Player[PIndex].ComedicState + ComedicState.COMEDY
 
             end

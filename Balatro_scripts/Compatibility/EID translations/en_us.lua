@@ -175,9 +175,9 @@ Descriptions.Jimbo.Jokers[mod.Jokers.BRAINSTORM] = "{{REG_Retrigger}} Copies the
 Descriptions.Jimbo.Jokers[mod.Jokers.MADNESS] = "Destroys another random Joker and gains {{ColorMult}}X0.1{{CR}} Damage Mult. every {{ColorYellorange}}Small and Big Blind{{CR}} cleared#{{Blank}} {{ColorGray}}(Currently {{ColorMult}}X[[VALUE1]]{{ColorGray}} Damage Mult.)"
 Descriptions.Jimbo.Jokers[mod.Jokers.MR_BONES] = "Revive at Full Hp if only {{ColorYellorange}}1{{CR}} of the floor's blinds is uncleared #!!! Unavailable blinds count as cleared #{{ColorMint}}[[CHANCE]] in 5 Chance{{CR}} to activate {{Collectible545}} Book of the Dead on room clear"
 Descriptions.Jimbo.Jokers[mod.Jokers.ONIX_AGATE] = "{{Damage}} {{REG_Club}} {{ColorChips}}Club{{CR}} cards give {{ColorMult}}+0.07{{CR}} Damage when scored #{{Blank}} {{ColorGray}}(Currently {{ColorMult}}+[[VALUE1]]{{ColorGray}} Damage) #{{Bomb}} {{ColorClub}}Club{{CR}} cards explosions are more frequent, bigger and deal more damage"
-Descriptions.Jimbo.Jokers[mod.Jokers.ARROWHEAD] = "{{Tears}} {{REG_Spade}} {{ColorSpade}}Spade{{CR}} cards give {{ColorChips}}+0.5{{CR}} Tears when scored #{{Blank}} {{ColorGray}}(Currently {{ColorChips}}+[[VALUE1]]{{ColorGray}} Tears) #{{Confusion}} {{ColorSpade}}Spade{{CR}} cards have a 50% Chance to slow and confuse"
-Descriptions.Jimbo.Jokers[mod.Jokers.BLOODSTONE] = "{{Damage}} {{REG_Heart}} {{ColorMult}}Heart{{CR}} cards have a {{ColorMint}}[[CHANCE]] in 2 Chance{{CR}} to give {{ColorMult}}X1.05{{CR}} Damage Mult. when scored #{{Charm}} {{ColorMult}}Heart{{CR}} cards gain 10% Chance to charm"
-Descriptions.Jimbo.Jokers[mod.Jokers.ROUGH_GEM] = "{{Coin}} {{REG_Diamond}} {{ColorYellorange}}Diamond{{CR}} cards have a {{ColorMint}}[[CHANCE]] in 2 Chance{{CR}} to spawn a {{Coin} {{ColorYellorange}}Temporary }Penny{{CR}} when scored #{{Collectible506}} {{REG_Diamond}} {{ColorYellorange}}Diamond{{CR}} cards also have the {{ColorYellorange}}Backstabber{{CR}} effect"
+Descriptions.Jimbo.Jokers[mod.Jokers.ARROWHEAD] = "{{Tears}} {{REG_Spade}} {{ColorSpade}}Spade{{CR}} cards give {{ColorChips}}+0.5{{CR}} Tears when scored #{{Blank}} {{ColorGray}}(Currently {{ColorChips}}+[[VALUE1]]{{ColorGray}} Tears) #{{Confusion}} {{ColorSpade}}Spade{{CR}} cards have a {{ColorMint}}[[CHANCE]] in 2 Chance{{CR}} to slow and confuse"
+Descriptions.Jimbo.Jokers[mod.Jokers.BLOODSTONE] = "{{Damage}} {{REG_Heart}} {{ColorMult}}Heart{{CR}} cards have a {{ColorMint}}[[CHANCE]] in 2 Chance{{CR}} to give {{ColorMult}}X1.05{{CR}} Damage Mult. when scored #{{REG_Heart}} {{ColorMult}}Heart{{CR}} cards leave a bigger and stronger creep pool #{{Charm}} {{ColorMult}}Heart{{CR}} cards have a {{ColorMint}}[[CHANCE]] in 5 Chance{{CR}} to charm"
+Descriptions.Jimbo.Jokers[mod.Jokers.ROUGH_GEM] = "{{Coin}} {{REG_Diamond}} {{ColorYellorange}}Diamond{{CR}} cards have a {{ColorMint}}[[CHANCE]] in 2 Chance{{CR}} to spawn a {{Coin} {{ColorYellorange}}Temporary Penny{{CR}} when scored #{{Collectible506}} {{REG_Diamond}} {{ColorYellorange}}Diamond{{CR}} cards also have the {{ColorYellorange}}Backstabber{{CR}} effect"
 
 Descriptions.Jimbo.Jokers[mod.Jokers.GROS_MICHAEL] = "{{Damage}} {{ColorMult}}+0.75{{CR}} Damage #{{Warning}} {{ColorMint}}[[CHANCE]] in 6 Chance{{CR}} of getting destroyed on Blind clear"
 Descriptions.Jimbo.Jokers[mod.Jokers.CAVENDISH] = "{{Damage}} {{ColorMult}}X1.5{{CR}} Damage Mult. #{{Warning}} {{ColorMint}}[[CHANCE]] in 1000 Chance{{CR}} of getting destroyed on Blind clear"
@@ -347,6 +347,9 @@ Descriptions.JokerSynergies[mod.Jokers.GOLDEN_TICKET][CollectibleType.COLLECTIBL
 Descriptions.JokerSynergies[mod.Jokers.CREDIT_CARD] = {}
 Descriptions.JokerSynergies[mod.Jokers.CREDIT_CARD][CollectibleType.COLLECTIBLE_MONEY_EQUALS_POWER] = "{{Coin}} Being in debt counts as having half of the maximum amount of coins #{{Colorgray}} (it's not a bug, but a feature)" --ye ok it's actually a bug
 
+Descriptions.JokerSynergies[mod.Jokers.SOCK_BUSKIN] = {}
+Descriptions.JokerSynergies[mod.Jokers.SOCK_BUSKIN][mod.Collectibles.TRAGICOMEDY] = "Both masks are always active"
+
 
 --inverts the table to make collectible synergy descriptions lookup faster
 Descriptions.ItemJokerSynergies = {}
@@ -396,7 +399,7 @@ Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_HALLOWED_GROUND] = "#{{R
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_STAR_OF_BETHLEHEM] = "#{{REG_Jimbo}} Player cards are {{REG_Retrigger}} {{ColorYellorange}}Retriggered{{CR}} while inside the aura"
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_POUND_OF_FLESH] = "#{{REG_Jimbo}} {{REG_Diamond}} {{ColorYellorange}}Diamonds{{CR}} and {{REG_Heart}} {{ColorMult}}Hearts{{CR}} are considered as the same suit"
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_TMTRAINER] = "#{{REG_Jimbo}} All cards in the deck get randomized on pickup"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_CUPIDS_ARROW] = "#{{REG_Jimbo}} {{REG_Spade}}{{ColorSpades}}Spade{{CR}}cards have a 50% Chance to {{Charm}} Charm enemies"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_CUPIDS_ARROW] = "#{{REG_Jimbo}} {{REG_Spade}}{{ColorSpades}}Spade{{CR}}cards have a {{ColorMint}}[[CHANCE]] in 2 Chance{{R}} to {{Charm}} Charm enemies"
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_HALO] = "#{{REG_Jimbo}} {{REG_Diamond}} {{ColorYellorange}}Diamond{{CR}}cards gain a {{Collectible331}} God Head-like aura #{{REG_Diamond}} Cards held in hand become{{ColorYellorange}}Diamond{{CR}}cards on pickup"
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_MONEY_EQUALS_POWER] = "#{{REG_Jimbo}} {{REG_Diamond}} {{ColorYellorange}}Diamond{{CR}}cards give {{ColorMult}}+0.01{{CR}} Damage per {{ColoraYellorange}}5{{CR}} coins held when scored"
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_MITRE] = "#{{REG_Jimbo}} Tears given by {{REG_Bonus}} {{ColorYellorange}}Bouns enhancements{{CR}} are doubled"
@@ -719,7 +722,7 @@ Descriptions.Jimbo.Consumables[Card.CARD_LOVERS] = "{{REG_Wild}} Turn {{ColorYel
 Descriptions.Jimbo.Consumables[Card.CARD_CHARIOT] = "{{REG_Steel}} Turn {{ColorYellorange}}1{{CR}} card from your hand into a {{ColorYellorange}}Steel Card"
 Descriptions.Jimbo.Consumables[Card.CARD_JUSTICE] = "{{REG_Glass}} Turn {{ColorYellorange}}1{{CR}} card from your hand into a {{ColorYellorange}}Glass Card"
 Descriptions.Jimbo.Consumables[Card.CARD_HERMIT] = "Doubles you current money #{{IND}}!!! Can give up to {{ColorYellorange}}20$"
-Descriptions.Jimbo.Consumables[Card.CARD_WHEEL_OF_FORTUNE] = "{{ColorMint}}25% Chance{{CR}} to give a random {{ColorYellorange}}Edition{{CR}} to a Joker in your inventory #{{IND}}!!! Cannot replace existing editions"
+Descriptions.Jimbo.Consumables[Card.CARD_WHEEL_OF_FORTUNE] = "{{ColorMint}}[[CHANCE]] in 4 Chance{{CR}} to give a random {{ColorYellorange}}Edition{{CR}} to a Joker in your inventory #{{IND}}!!! Cannot replace existing editions"
 Descriptions.Jimbo.Consumables[Card.CARD_STRENGTH] = "Raise the Rank of up to {{ColorYellorange}}2{{CR}} cards by 1 #{{IND}}!!! Kings chosen become Aces"
 Descriptions.Jimbo.Consumables[Card.CARD_HANGED_MAN] = "Destroys up to {{ColorYellorange}}2{{CR}} cards from your hand"
 Descriptions.Jimbo.Consumables[Card.CARD_DEATH] = "Choose {{ColorYellorange}}2{{CR}} cards, the {{ColorYellorange}}second{{CR}} card chosen becomes the {{ColorYellorange}}first"
@@ -1034,14 +1037,14 @@ Descriptions.T_Jimbo.Vouchers[mod.Vouchers.Clearance] = "Everything in the shop 
 Descriptions.T_Jimbo.Vouchers[mod.Vouchers.Liquidation] = "Everything in the shop is {{ColorYellorange}}50% off#{{ColorGray}}(rounded down)"
 Descriptions.T_Jimbo.Vouchers[mod.Vouchers.Overstock] = "{{ColorYellorange}}+1{{CR}} Item available in the shop"
 Descriptions.T_Jimbo.Vouchers[mod.Vouchers.OverstockPlus] = Descriptions.T_Jimbo.Vouchers[mod.Vouchers.Overstock]
-Descriptions.T_Jimbo.Vouchers[mod.Vouchers.Hone] = "Special {{ColorRainbow}}Editions{{CR}} are {{ColorYellorange}}2X{{CR}} more likely to Appear"
-Descriptions.T_Jimbo.Vouchers[mod.Vouchers.GlowUp] = "Special {{ColorRainbow}}Editions{{CR}} are {{ColorYellorange}}4X{{CR}} more likely to Appear"
+Descriptions.T_Jimbo.Vouchers[mod.Vouchers.Hone] = "Special {{ColorRainbow}}Editions{{CR}} are {{ColorYellorange}}2X{{CR}} more likely to appear"
+Descriptions.T_Jimbo.Vouchers[mod.Vouchers.GlowUp] = "Special {{ColorRainbow}}Editions{{CR}} are {{ColorYellorange}}4X{{CR}} more likely to appear"
 Descriptions.T_Jimbo.Vouchers[mod.Vouchers.RerollSurplus] = "{{ColorMint}}Rerolls{{CR}} cost {{ColorYellorange}}2${{CR}} less"
 Descriptions.T_Jimbo.Vouchers[mod.Vouchers.RerollGlut] = "{{ColorMint}}Rerolls{{CR}} cost and additional {{ColorYellorange}}2${{CR}} less"
 Descriptions.T_Jimbo.Vouchers[mod.Vouchers.Crystal] = "{{ColorYellorange}}+1{{CR}} consumable slot"
 Descriptions.T_Jimbo.Vouchers[mod.Vouchers.Omen] = "{{ColorBlue}}Spectral{{CR}} cards may appear in {{ColorYellorange}}Arcana Packs"
-Descriptions.T_Jimbo.Vouchers[mod.Vouchers.Telescope] = "{{ColorYellorange}}Celestial Packs{{CR}} always contain the {{colorCyan}}Planet{{CR}} for your most played {{ColorYellorange}}Poker hand"
-Descriptions.T_Jimbo.Vouchers[mod.Vouchers.Observatory] = "{{ColorCyan}}Planets{{CR}} you hold give {{ColorMult}}X1.5{{CR}} for their respective {{ColorYellorange}}Poker hand"
+Descriptions.T_Jimbo.Vouchers[mod.Vouchers.Telescope] = "{{ColorYellorange}}Celestial Packs{{CR}} always contain the {{colorCyan}}Planet{{CR}} for your most played poker hand"
+Descriptions.T_Jimbo.Vouchers[mod.Vouchers.Observatory] = "{{ColorCyan}}Planets{{CR}} you hold give {{ColorMult}}X1.5{{CR}} Molt for their respective Poker hand"
 Descriptions.T_Jimbo.Vouchers[mod.Vouchers.TarotMerch] = "{{ColorPink}}Tarot{{CR}} cards appear{{ColorYellorange}}2X{{CR}} more frequently"
 Descriptions.T_Jimbo.Vouchers[mod.Vouchers.TarotTycoon] = "{{ColorPink}}Tarot{{CR}} cards appear{{ColorYellorange}}4X{{CR}} more frequently"
 Descriptions.T_Jimbo.Vouchers[mod.Vouchers.PlanetMerch] = "{{ColorCyan}}Planet{{CR}} cards appear{{ColorYellorange}}2X{{CR}} more frequently"
@@ -1051,60 +1054,60 @@ Descriptions.T_Jimbo.Vouchers[mod.Vouchers.MoneyTree] = "Raise the Interest cap 
 Descriptions.T_Jimbo.Vouchers[mod.Vouchers.Blank] = "{{ColorGray}}Does nothing?"
 Descriptions.T_Jimbo.Vouchers[mod.Vouchers.Antimatter] = "{{ColorSpade}}+1{{CR}} Joker slot"
 Descriptions.T_Jimbo.Vouchers[mod.Vouchers.MagicTrick] = "{{ColorYellorange}}Playing cards{{CR}} can appear in shop"
-Descriptions.T_Jimbo.Vouchers[mod.Vouchers.Illusion] = "{{ColorYellorange}}Playing cards{{CR}} in shop can have and {{ColorYellorange}}Enhancement{{CR}},{{ColorYellorange}}Edition{{CR}} and/or {{ColorYellorange}}Seal"
+Descriptions.T_Jimbo.Vouchers[mod.Vouchers.Illusion] = "{{ColorYellorange}}Playing cards{{CR}} in shop can have {{ColorYellorange}}Enhancements{{CR}},{{ColorYellorange}}Editions{{CR}} and/or {{ColorYellorange}}Seals"
 Descriptions.T_Jimbo.Vouchers[mod.Vouchers.Hieroglyph] = "{{ColorYellorange}}-1{{CR}} Ante#{{ColorChips}}-1{{CR}} Hand every round"
 Descriptions.T_Jimbo.Vouchers[mod.Vouchers.Petroglyph] = "{{ColorYellorange}}-1{{CR}} Ante#{{ColorMult}}-1{{CR}} Discard every round"
 Descriptions.T_Jimbo.Vouchers[mod.Vouchers.Director] = "{{ColorPink}}Reroll{{CR}} boss blind {{ColorYellorange}}Once{{CR}} per Ante#({{ColorYellorange}}10${{CR}} per reroll)"
 Descriptions.T_Jimbo.Vouchers[mod.Vouchers.Retcon] = "{{ColorPink}}Reroll{{CR}} boss blind {{ColorYellorange}}Unlimited{{CR}} times per Ante#({{ColorYellorange}}10${{CR}} per reroll)"
 
 if EID then
-    EID:addCollectible(mod.Vouchers.Grabber, "{{REG_Jimbo}} {{ColorBlue}} +5 playable cards{{CR}} every room", "Grabber", FileLanguage)
-    EID:addCollectible(mod.Vouchers.NachoTong, "{{REG_Jimbo}} {{ColorBlue}} +5 additional playable cards{{CR}} every room", "Nacko Tong", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Grabber, "{{REG_Jimbo}} {{ColorChips}}+5{{CR}} {{REG_Hand}} playable cards every room", "Grabber", FileLanguage)
+    EID:addCollectible(mod.Vouchers.NachoTong, "{{REG_Jimbo}} {{ColorChips}}+5{{CR}} {{REG_Hand}} playable cards every room", "Nacho Tong", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.Wasteful, "{{REG_Jimbo}} {{Heart}}{{ColorBlue}} +1 Health up", "Wasteful", FileLanguage)
-    EID:addCollectible(mod.Vouchers.Recyclomancy, "{{REG_Jimbo}} {{Heart}}{{ColorBlue}} +1 Health up", "Recyclomancy", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Wasteful, "{{REG_Jimbo}} {{ColorMult}}+1{{CR}} {{Heart}} Health up", "Wasteful", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Recyclomancy, "{{REG_Jimbo}} {{ColorMult}}+1{{CR}} {{Heart}} Health up", "Recyclomancy", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.Overstock, "{{REG_Jimbo}} Every future shop will have 1 additional Joker for sale", "Overstock", FileLanguage)
-    EID:addCollectible(mod.Vouchers.OverstockPlus, "{{REG_Jimbo}} Every future shop will have 1 additional Joker for sale", "Overstock Plus", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Overstock, "{{REG_Jimbo}} Every future shop will have 1 additional {{REG_Joker}} Joker for sale", "Overstock", FileLanguage)
+    EID:addCollectible(mod.Vouchers.OverstockPlus, "{{REG_Jimbo}} Every future shop will have 1 additional {{REG_Joker}} Joker for sale", "Overstock Plus", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.Clearance, "{{REG_Jimbo}} Everything is discounted by {{ColorYellorange}} 25%{{CR}} #!!! Prices are rounded down", "Clearance Sale", FileLanguage)
-    EID:addCollectible(mod.Vouchers.Liquidation, "{{REG_Jimbo}} Everything is discounted by {{ColorYellorange}} 50%{{CR}} #!!! Prices are rounded down", "Liquidation", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Clearance, "{{REG_Jimbo}} Everything is discounted by {{ColorYellorange}}25% #{{IND}}!!! Prices are rounded down", "Clearance Sale", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Liquidation, "{{REG_Jimbo}} Everything is discounted by {{ColorYellorange}}50% #{{IND}}!!! Prices are rounded down", "Liquidation", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.Hone, "{{REG_Jimbo}} Special {{ColorRainbow}}Editions{{CR}} become {{ColorYellorange}}2x{{CR}} more likely to appear", "Hone", FileLanguage)
-    EID:addCollectible(mod.Vouchers.GlowUp, "{{REG_Jimbo}} Special {{ColorRainbow}}Editions{{CR}} become {{ColorYellorange}}4x{{CR}} more likely to appear", "Glow Up", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Hone, "{{REG_Jimbo}} Special {{ColorRainbow}}Editions{{CR}} are {{ColorYellorange}}2x{{CR}} more likely to appear", "Hone", FileLanguage)
+    EID:addCollectible(mod.Vouchers.GlowUp, "{{REG_Jimbo}} Special {{ColorRainbow}}Editions{{CR}} are {{ColorYellorange}}4x{{CR}} more likely to appear", "Glow Up", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.RerollSurplus, "{{REG_Jimbo}} Activating a {{RestockMachine}} Restock Machine gives back {{ColorYellorange}}1 {{Coin}} Coins", "Reroll Surplus", FileLanguage)
-    EID:addCollectible(mod.Vouchers.RerollGlut, "{{REG_Jimbo}} Activating a {{RestockMachine}} Restock Machine gives back {{ColorYellorange}}2 {{Coin}} Coins", "Reroll Glut", FileLanguage)
+    EID:addCollectible(mod.Vouchers.RerollSurplus, "{{REG_Jimbo}} Activating a {{RestockMachine}} Restock Machine gives back {{ColorYellorange}}1{{CR}} {{Coin}} Coin", "Reroll Surplus", FileLanguage)
+    EID:addCollectible(mod.Vouchers.RerollGlut, "{{REG_Jimbo}} Activating a {{RestockMachine}} Restock Machine gives back {{ColorYellorange}}2{{CR}} {{Coin}} Coins", "Reroll Glut", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.Crystal, "{{REG_Jimbo}} Every {{ColorYellorange}}Booster Pack{{CR}} has 1 more option to choose from", "Crystal Ball", FileLanguage)
-    EID:addCollectible(mod.Vouchers.Omen, "{{REG_Jimbo}} {{ColorPink}}Arcana Packs{{CR}} may contain spectral cards", "Omen Globe", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Crystal, "{{REG_Jimbo}} Every {{ColorYellorange}}Booster Pack{{CR}} has {{ColorYellorange}}1{{CR}} more option to choose from", "Crystal Ball", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Omen, "{{REG_Jimbo}} {{ColorPink}}Arcana Packs{{CR}} may contain {{ColorBlue}}Spectral{{CR}} cards", "Omen Globe", FileLanguage)
 
     EID:addCollectible(mod.Vouchers.Telescope, "{{REG_Jimbo}} Skipping a {{ColorCyan}}Celestial Pack{{CR}} creates {{ColorYellorange}}2{{CR}} additional random {{ColorCyan}}Planet Cards", "Telescope", FileLanguage)
-    EID:addCollectible(mod.Vouchers.Observatory, "{{REG_Jimbo}} Triggering a card while holding it's respective {{ColorCyan}}Planet Card{{CR}} gives {{Damage}}{{ColorMult}} X1.15{{CR}} Damage Mult.#{{Planetarium}} Having the respective Planetarium item also counts", "Observatory", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Observatory, "{{REG_Jimbo}} Cards triggered while holding it's respective {{ColorCyan}}Planet Card{{CR}} gives {{Damage}}{{ColorMult}} X1.15{{CR}} Damage Mult.#{{IND}}{{Planetarium}} Having the respective Planetarium item also counts", "Observatory", FileLanguage)
 
     EID:addCollectible(mod.Vouchers.Blank, "{{REG_Jimbo}} {{ColorFade}}Nothing?", "Blank", FileLanguage)
-    EID:addCollectible(mod.Vouchers.Antimatter, "{{REG_Jimbo}} Adds a permanent {{ColorYellorange}}Joker Slot{{CR}} to the inventorycon pickup", "Antimatter", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Antimatter, "{{REG_Jimbo}} {{ColorYellorange}}+1{{CR}} {{REG_Joker}} Joker Slot", "Antimatter", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.Brush, "{{REG_Jimbo}} Gives {{ColorChips}}+1 Hand Size", "Brush", FileLanguage)
-    EID:addCollectible(mod.Vouchers.Palette, "{{REG_Jimbo}} Gives {{ColorChips}}+1 additional Hand Size", "Palette", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Brush, "{{REG_Jimbo}} {{ColorChips}}+1{{CR}} {{REG_HSize}} Hand Size", "Brush", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Palette, "{{REG_Jimbo}} {{ColorChips}}+1{{CR}} {{REG_HSize}} Hand Size", "Palette", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.Director, "{{Coin}} Triggers the {{Collectible105}} D6 effect for 5 coins", "Director's Cut", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Director, "{{Coin}} Rerolls all pedestal items in the room for 5 coins", "Director's Cut", FileLanguage)
     EID:addCollectible(mod.Vouchers.Retcon, "{{Coin}} Triggers the {{Collectible283}} D100 effect for 5 coins", "Retcon", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.Hieroglyph, "{{REG_Jimbo}} Activates the {{Collectible127}} Forget Me Now! effect upon pickup", "Hieroglyph", FileLanguage)
-    EID:addCollectible(mod.Vouchers.Petroglyph, "{{REG_Jimbo}} Activates the {{Collectible127}} Forget Me Now! effect upon pickup", "Petroglyph", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Hieroglyph, "{{REG_Retrigger}} Restarts the current floor on pickup", "Hieroglyph", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Petroglyph, "{{REG_Retrigger}} Restarts the current floor on pickup", "Petroglyph", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.MagicTrick, "{{REG_Jimbo}} {{ColorMint}} 25% Chance{{CR}} to be able to choose one more option from a pack #Can trigger Multiple times", "Magic Trick", FileLanguage)
-    EID:addCollectible(mod.Vouchers.Illusion, "{{REG_Jimbo}} Every pack opened has a{{ColorMint}} 55% Chance{{CR}} to contain {{ColorYellorange}}2{{CR}} more options and a {{ColorMint}} 15% Chance{{CR}} to let the player choose {{ColorYellorange}}1{{CR}} more option", "Observatory", FileLanguage)
+    EID:addCollectible(mod.Vouchers.MagicTrick, "{{ColorMint}}[[CHANCE]] in 4 Chance{{CR}} for packs to let the player choose an extra option after the previous one #{{IND}} Can trigger Multiple times", "Magic Trick", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Illusion, "{{ColorMint}}[[CHANCE]] in 2 Chance{{CR}} for a pack to contain {{ColorYellorange}}2{{CR}} extra options #{{ColorMint}}[[CHANCE]] in 5 Chance{{CR}} for packs to let the player choose {{ColorYellorange}}1{{CR}} more option", "Illusion", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.MoneySeed, "{{REG_Jimbo}} Maximum interest increased to {{ColorYellorange}}10$", "Money Seed", FileLanguage)
-    EID:addCollectible(mod.Vouchers.MoneyTree, "{{REG_Jimbo}} Maximum interest increased to {{ColorYellorange}}20$", "Money Tree", FileLanguage)
+    EID:addCollectible(mod.Vouchers.MoneySeed, "{{REG_Jimbo}} Maximum interest increased to {{ColorYellorange}}10{{CR}} {{Coin}} Coins", "Money Seed", FileLanguage)
+    EID:addCollectible(mod.Vouchers.MoneyTree, "{{REG_Jimbo}} Maximum interest increased to {{ColorYellorange}}20{{CR}} {{Coin}} Coins", "Money Tree", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.PlanetMerch, "{{REG_Jimbo}} Every pickup has a {{ColorMint}}7% Chance{{CR}} to be replaced with a random {{ColorCyan}}Planet Card", "Planet Merchant", FileLanguage)
-    EID:addCollectible(mod.Vouchers.PlanetTycoon, "{{REG_Jimbo}} Every pickup has an additional {{ColorMint}}10% Chance{{CR}} to be replaced with a random {{ColorCyan}}Planet Card", "Planet Tycoon", FileLanguage)
+    EID:addCollectible(mod.Vouchers.PlanetMerch, "{{REG_Planet}} Every pickup has a {{ColorMint}}[[CHANCE]] in 15 Chance{{CR}} to be replaced with a random {{ColorCyan}}Planet Card", "Planet Merchant", FileLanguage)
+    EID:addCollectible(mod.Vouchers.PlanetTycoon, "{{REG_Planet}} Every pickup has an additional {{ColorMint}}[[CHANCE]] in 10 Chance{{CR}} to be replaced with a random {{ColorCyan}}Planet Card", "Planet Tycoon", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.TarotMerch, "{{REG_Jimbo}} Every pickup has a {{ColorMint}}7% Chance{{CR}} to be replaced with a random {{ColorPink}}Tarot Card", "Tarot Merchant", FileLanguage)
-    EID:addCollectible(mod.Vouchers.TarotTycoon, "{{REG_Jimbo}} Every pickup has an additional {{ColorMint}}10% Chance{{CR}} to be replaced with a random {{ColorPink}}Tarot Card", "Tarot Tycoon", FileLanguage)
+    EID:addCollectible(mod.Vouchers.TarotMerch, "{{Card}} Every pickup has a {{ColorMint}}[[CHANCE]] in 15 Chance{{CR}} to be replaced with a random {{ColorPink}}Tarot Card", "Tarot Merchant", FileLanguage)
+    EID:addCollectible(mod.Vouchers.TarotTycoon, "{{Card}} Every pickup has an additional {{ColorMint}}[[CHANCE]] in 10 Chance{{CR}} to be replaced with a random {{ColorPink}}Tarot Card", "Tarot Tycoon", FileLanguage)
 end
 
 
@@ -1115,18 +1118,18 @@ end
 
 if EID then
 
-EID:addCollectible(mod.Collectibles.BALOON_PUPPY, "Familiar that reflects enemy shots and deals 5 contact damage per second #Explodes dealing 3 x Isaac's Damage after taking enough damage #If Isaac takes damage, starts chasing down enemies", "Baloon Puppy",FileLanguage)		
-EID:addCollectible(mod.Collectibles.BANANA, "Isaac shoots a devastating banana that creates a {{Collectible483}} Mama Mega! explosion on contact #!!! Upon use becomes {{Collectible"..mod.Collectibles.EMPTY_BANANA.."}} Empty Banana", "Banana",FileLanguage)		
-EID:addCollectible(mod.Collectibles.EMPTY_BANANA, "Leaves a banana peel on the ground #Enemies that slip on the peels take damage basing on how fast they were moving", "Empty Banana",FileLanguage)		
+EID:addCollectible(mod.Collectibles.BALOON_PUPPY, "Familiar that reflects enemy shots and deals 5 contact damage per second #After taking enough hits, explodes dealing {{ColorYellorange}}3 x Isaac's Damage{{CR}} to nerby enemies #If Isaac takes damage, starts chasing down enemies", "Baloon Puppy",FileLanguage)		
+EID:addCollectible(mod.Collectibles.BANANA, "Aim and shoot a devastating banana that creates a {{Collectible483}} Mama Mega! explosion upon landing #!!! Upon use becomes {{Collectible"..mod.Collectibles.EMPTY_BANANA.."}} Empty Banana", "Banana",FileLanguage)		
+EID:addCollectible(mod.Collectibles.EMPTY_BANANA, "Leaves a banana peel on the ground #Enemies can slip on the peels, taking damage and becoming {{Confusion}} confused #{{IND}} Damage dealt scales with how fast the enemies were moving", "Empty Banana",FileLanguage)		
 EID:addCollectible(mod.Collectibles.CLOWN, "50% of enemies get either the {{Charm}} Charm or {{Fear}} Fear effect applied when standing close to Isaac", "Clown Costume",FileLanguage)		
-EID:addCollectible(mod.Collectibles.CRAYONS, "While moving, create a trail of crayon dust that applies status effects #Effects applied change basing the dust's color #!!! Dust color changes every new room", "Box of Crayons",FileLanguage)		
-EID:addCollectible(mod.Collectibles.FUNNY_TEETH, "Spawns a familiar that chases enemies dealing 15 damage per second #{{Chargeable}} Needs to be recharged by standing near it after being active for some time", "Funny Teeth",FileLanguage)		
-EID:addCollectible(mod.Collectibles.HORSEY, "Spawns a familiar that jumps in an L pattern, creating damaging shockwaves upon landing #!!! The shockwaves cannot hurt Isaac", "Horsey",FileLanguage)		
-EID:addCollectible(mod.Collectibles.LAUGH_SIGN, "An audience reacts live to Isaac's actions #{{BossRoom}} Clearing a boss room rewards the player with random pickups #Taking damage launches tomatoes that leave a damaging creep and apply {{Bait}} Bait upon landing", "Laugh Sign",FileLanguage)		
+EID:addCollectible(mod.Collectibles.CRAYONS, "While moving, create a trail of crayon dust that applies various status effects #{{IND}} Effect applied changes basing the dust's color #Dust color changes every new room", "Box of Crayons",FileLanguage)		
+EID:addCollectible(mod.Collectibles.FUNNY_TEETH, "Familiar that chases enemies dealing 15 damage per second #{{IND}}Damage dealt raises slightly basing on current floor #{{Chargeable}} After being active for some time needs to be recharged by standing near it ", "Funny Teeth",FileLanguage)		
+EID:addCollectible(mod.Collectibles.HORSEY, "Familiar that jumps in an L pattern, creating damaging shockwaves upon landing #{{IND}}!!! The shockwaves cannot hurt Isaac", "Horsey",FileLanguage)		
+EID:addCollectible(mod.Collectibles.LAUGH_SIGN, "An audience reacts live to Isaac's actions #{{BossRoom}} Clearing a boss room rewards with random pickups #Taking damage launches tomatoes that leave a damaging creep and apply {{Bait}} Bait upon landing", "Laugh Sign",FileLanguage)		
 EID:addCollectible(mod.Collectibles.LOLLYPOP, "{{Timer}} A lollypop spawns on the ground every 25 seconds spent in an uncleared room #{{Collectible93}} Picking up the lollypops grants the Gamekid! effect for 5.5 seconds #!!! A maximum of 3 lollypops can be on the ground at once", "Lollypop",FileLanguage)		
 EID:addCollectible(mod.Collectibles.POCKET_ACES, "{{Luck}} Tears have an 8% Chance to become Ace cards #Ace cards deal the product of Isaac's {{Damage}} Damage and {{Tears}} Tears stat worth of damage", "Pocket Aces",FileLanguage)		
-EID:addCollectible(mod.Collectibles.TRAGICOMEDY, "40% Chance to wear a comedy or tragedy mask upon clearing a room #\1 The comedy mask grants: {{Tears}} +1 Firedelay, {{Speed}} +0.2 Speed and {{Luck}} +2 Luck #\1 Wearing a tragedy mask grants: {{Tears}} +0.5 Firedelay, {{Damage}} +1 Flat Damage and {{Range}} +2.5 Range #!!! both mask can be worn at once", "Tragicomedy",FileLanguage)		
-EID:addCollectible(mod.Collectibles.UMBRELLA, "Isaac opens an umbrella, causing anvils to fall on top of him every 5 ~ 7 seconds #Anvils create damaging shockwaves when landing #Anvils can be reflected by the umbrella, sending them thorwards a near enemy #!!! Using the item again stops the anvils from falling", "Umbrella",FileLanguage)		
+EID:addCollectible(mod.Collectibles.TRAGICOMEDY, "40% Chance to wear a {{REG_Comedy}} comedy or {{REG_Tragedy}} tragedy mask on room clear #{{IND}}!!! Both can be worn at once #{{REG_Comedy}} The comedy mask grants: #{{IND}}{{Tears}} +1 Firedelay #{{IND}}{{Speed}} +0.2 Speed  #{{IND}}{{Luck}} +2 Luck #{{REG_Tragedy}} The tragedy mask grants: #{{IND}}{{Tears}} +0.5 Firedelay,  #{{IND}}{{Damage}} +1 Flat Damage #{{IND}}{{Range}} +2.5 Range", "Tragicomedy",FileLanguage)		
+EID:addCollectible(mod.Collectibles.UMBRELLA, "On use Isaac opens an umbrella, causing avils to fall on top of him every 5 ~ 7 seconds #{{IND}} Anvils create shockwaves upon landing #{{IND}} Anvils can be reflected by the umbrella, sending them thorwards a near enemy #{{IND}}!!! Shockwaves only hurt Isaac if the anvil wasn't reflected #!!! Using the item again closes the umbrella and stops the anvils from falling", "Umbrella",FileLanguage)		
 
 for i = 1, Balatro_Expansion.TastyCandyNum do --puts every candy stage
 
@@ -1139,9 +1142,9 @@ EID:addTrinket(mod.Trinkets.PENNY_SEEDS, "{{Coin}} Gain 1 coin per 5 coin isaac 
 EID:addCollectible(mod.Collectibles.THE_HAND, "{{Card}} Up to 5 cards or runes can be stored in the active item #!!! Cards in excess will be destroyed #{{Chargeable}} Holding the item uses the cards stored in the order shown # Press [DROP] key to cycle the held cards # Also collects pickups and deals damage to enemies hit", "The Hand",FileLanguage)		
 EID:addCard(mod.JIMBO_SOUL, "{{Timer}} For the current Room, balances Isaac's Damage and Tears stats #{{Blank}} {{ColorGray}}(Effect lasts longer if used multiple times)", "Soul of Jimbo", FileLanguage)
 EID:addTrinket(mod.Jokers.CHAOS_THEORY, "{{Collectible402}} All pickups spawned are randomised", "Chaos Theory", FileLanguage)		
-EID:addCollectible(mod.Collectibles.ERIS, "Enemies around Isaac are increasingly slowed the closer they are to him #After being slowed enough, enemies take 3% of their remaining health worth of damage per tick #{{Blank}} \7 (Min. 0.1)", "Eris",FileLanguage)		
+EID:addCollectible(mod.Collectibles.ERIS, "{{Freezing}} Isaac gains a freezing aura that progressively slows enemies #After being slowed enough, enemies take 3% of their remaining health worth of damage per tick {{ColorGray}}(Min. 0.1)", "Eris",FileLanguage)		
 EID:addCollectible(mod.Collectibles.PLANET_X, "{{Planetarium}} Gain the effect of a random Planetarium item every room clear", "Planet X",FileLanguage)		
-EID:addCollectible(mod.Collectibles.CERES, "Familiar that blocks projectiles and deals 1 contact damage per second #When hit, creates asteroid bits that can block up to 2 shots and deal twice Isaac's damage", "Ceres",FileLanguage)		
+EID:addCollectible(mod.Collectibles.CERES, "Orbiting familiar that blocks projectiles and deals 1 contact damage per second #When hit, creates asteroid bits that can block up to 2 shots and deal twice Isaac's damage", "Ceres",FileLanguage)		
 
 
 Descriptions.ItemItemSynergies = {}
@@ -1151,8 +1154,8 @@ Descriptions.ItemItemSynergies[mod.Collectibles.FUNNY_TEETH] = {[CollectibleType
                                                                 [CollectibleType.COLLECTIBLE_ROTTEN_TOMATO] = "# Chance to apply {{Bait}} Bait to enemies",
                                                                 [CollectibleType.COLLECTIBLE_MIDAS_TOUCH] = "# Chance to {{Coin}} Goldify enemies",
                                                                 [CollectibleType.COLLECTIBLE_DEAD_TOOTH] = "# Chance to {{Poison}} Poison enemies",
-                                                                [CollectibleType.COLLECTIBLE_CHARM_VAMPIRE] = "# Chance to heal its owner FOR {{HalfHeart}} half red{{ColorMult}}Heart{{CR}}when killing an enemy",
-                                                                [CollectibleType.COLLECTIBLE_SERPENTS_KISS] = "# Chance to {{Poison}} Poison enemies and to drop a {{BlackHeart}} on every kill",
+                                                                [CollectibleType.COLLECTIBLE_CHARM_VAMPIRE] = "# Chance to heal its owner FOR {{HalfHeart}} half red heart when killing an enemy",
+                                                                [CollectibleType.COLLECTIBLE_SERPENTS_KISS] = "# Chance to {{Poison}} Poison enemies #Chance to drop a {{BlackHeart}} black heart on every kill",
                                                                 [CollectibleType.COLLECTIBLE_DOG_TOOTH] = "# Gains more speed and damage",
                                                                 [CollectibleType.COLLECTIBLE_TOUGH_LOVE] = "# Deals 35% more damage",
                                                                 [CollectibleType.COLLECTIBLE_MAW_OF_THE_VOID] = "# When recharged, fires a smaller {{Collectible399}} Maw of the void ring"}
@@ -1160,13 +1163,18 @@ Descriptions.ItemItemSynergies[mod.Collectibles.CLOWN] = {[CollectibleType.COLLE
                                                             }
 Descriptions.ItemItemSynergies[mod.Collectibles.HORSEY] = {[CollectibleType.COLLECTIBLE_BFFS] = "# Increased shockwave range",
                                                             }
+Descriptions.ItemItemSynergies[mod.Collectibles.TRAGICOMEDY] = {[CollectibleType.COLLECTIBLE_POLAROID] = "# The {{REG_Comedy}} comedy mask is always active",
+                                                                [CollectibleType.COLLECTIBLE_SOCKS] = "# The {{REG_Comedy}} comedy mask is always active",
+                                                                [CollectibleType.COLLECTIBLE_NEGATIVE] = "# The {{REG_Tragedy}} tragedy mask is always active",
+                                                                [CollectibleType.COLLECTIBLE_DUALITY] = "# Both masks are always active",
+                                                                }
 Descriptions.ItemItemSynergies[mod.Collectibles.HEIRLOOM] = {[CollectibleType.COLLECTIBLE_TELEKINESIS] = "# Gain {{Collectible2}} Homing shots",
                                                             }
 Descriptions.ItemItemSynergies[mod.Collectibles.THE_HAND] = {[CollectibleType.COLLECTIBLE_BOOK_OF_VIRTUES] = "# Shoots a wisp per card held when swung",
-                                                             [CollectibleType.COLLECTIBLE_MIDAS_TOUCH] = "# Deals +0.25 damage per {{Coin}} coin held to enemie and has a Chance to turn them in golden statues",
+                                                             [CollectibleType.COLLECTIBLE_MIDAS_TOUCH] = "# Deals +0.25 damage per {{Coin}} coin held # Chance to turn enemies hit in golden statues",
                                                              [CollectibleType.COLLECTIBLE_KNOCKOUT_DROPS] = "# Doubles damage dealt to enemies and increases the knockback strength",
-                                                             [CollectibleType.COLLECTIBLE_SERPENTS_KISS] = "# Chance to poinson enemies hit",
-                                                             [CollectibleType.COLLECTIBLE_VIRUS] = "# Chance to poison enemies hit",
+                                                             [CollectibleType.COLLECTIBLE_SERPENTS_KISS] = "# Chance to {{Poison}} poinson enemies hit",
+                                                             [CollectibleType.COLLECTIBLE_VIRUS] = "# Chance to {{Poison}} poinson enemies hit",
                                                              [CollectibleType.COLLECTIBLE_TELEKINESIS] = "# Deflects projectiles hit",
                                                              [mod.Collectibles.THE_HAND] = "# 5 more cards can be held at once",
                                                             }
