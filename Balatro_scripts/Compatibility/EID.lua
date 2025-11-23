@@ -27,7 +27,7 @@ local EID_DescAllingnment = {TOP = 1,
 
 local EID_Descriptions = {}
 
-mod.EIDSupportedLanguages = {"en_us"}
+mod.EIDSupportedLanguages = {"en_us","it"}
 
 
 for _, LanguageCode in ipairs(mod.EIDSupportedLanguages) do

@@ -37,9 +37,9 @@ local function UpdateCostumes(Teeth)
 
     Sprite:LoadGraphics()
 
-    for i,Layer in ipairs(Sprite:GetAllLayers()) do
-        print(Layer:GetLayerID(), Layer:GetSpritesheetPath(), Layer:IsVisible())
-    end
+    --for i,Layer in ipairs(Sprite:GetAllLayers()) do
+    --    print(Layer:GetLayerID(), Layer:GetSpritesheetPath(), Layer:IsVisible())
+    --end
 end
 
 

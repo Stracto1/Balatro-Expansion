@@ -1165,6 +1165,10 @@ function mod:DeterminePokerHand(Player)
 
     if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
 
+        if not mod.Saved.EnableHand then
+            return ElegibleHandTypes
+        end
+
         for i,Selected in ipairs(mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.HAND]) do
             --print(i)
             if Selected then
@@ -1177,7 +1181,7 @@ function mod:DeterminePokerHand(Player)
             table.insert(RealHand, mod.Saved.Player[PIndex].FullDeck[index])
         end
     else
-        return 0
+        return ElegibleHandTypes
     end
 
     if #RealHand > 0 then --shoud never happen but you never know...
@@ -2211,7 +2215,7 @@ function mod:GetJokerInitialProgress(Joker, Tainted, Player)
 
         end
 
-        Prog = Prog or tonumber(string.gsub(Config:GetCustomTags()[3],"%:",""), 10)
+        Prog = Prog or tonumber(string.gsub(Config:GetCustomTags()[3],":",""), 10)
 
     elseif Tainted == false then
         ---@type EntityPlayer
@@ -3854,7 +3858,14 @@ local function JimboAddTrinket(_, Player, Trinket, _, StopEvaluation)
 
     mod.Counters.SinceSelect = 0
 
+ 
     mod.Saved.LastJokerRenderIndex = mod.Saved.LastJokerRenderIndex + 1
+
+    local NewRender = mod.Saved.LastJokerRenderIndex
+    local OldRender = mod.Saved.Player[PIndex].Inventory[EmptySlot].RenderIndex
+
+    mod.JokerFullPosition[NewRender] = mod.JokerFullPosition[OldRender]
+    mod.JokerFullPosition[OldRender] = nil
 
     --print("added", JokerType, "to", EmptySlot)
 
@@ -4813,7 +4824,9 @@ function mod:IsHostileRoomSpawn(Type, Variant, SubType)
            and Type ~= EntityType.ENTITY_SLOT
            and Type ~= StbGridType.PRESSURE_PLATE --the "puzzle" plates
            and Type ~= EntityType.ENTITY_PICKUP --why tf is this even needed
+           --these sometimes just don't appear in rooms
            and Type ~= EntityType.ENTITY_RAGLING
+           and Type ~= EntityType.ENTITY_SUCKER
 end
 
 
@@ -5181,11 +5194,6 @@ function mod:PlaceBlindRoomsForReal()
     StageAPI.ChooseRoomLayout(roomList, seed, shape, rtype, requireRoomType, ignoreDoors, doors, disallowIDs)
 
 end]]
-
-
-
-
-
 
 
 --VV sorry, didn't put many comments on these functions and I'm too lazy to do so now (I'll def regret this)
@@ -6531,7 +6539,6 @@ function mod:RenderCard(Params, Position, Offset, Scale, Rotation, ForceCovered,
 end
 
 
-local PLANET_STEP = 8
 
 function mod:PlanetUpgradeAnimation(HandType, LevelsGiven, BaseInterval)
 

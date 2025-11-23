@@ -25,10 +25,7 @@ DiscardChargeSprite.Offset = Vector(-17,-25)
 local HandChargeSprite = Sprite("gfx/ui/chargebar_the_hand.anm2")
 local CHARGE_BAR_OFFSET = Vector(17,-25)
 
-
-local HandsBar = Sprite("gfx/Cards_Bar.anm2")
 local HandsBarV2 = Sprite("gfx/Cards_Bar V2.anm2")
-local HandsBarFilling = Sprite("gfx/Cards_Bar_Filling.anm2")
 
 local CardFrame = Sprite("gfx/ui/CardSelection.anm2")
 CardFrame:SetAnimation("Frame")
@@ -36,8 +33,6 @@ CardFrame:SetAnimation("Frame")
 local CHARGED_ANIMATION = HandChargeSprite:GetAnimationData("StartCharged"):GetLength() - 1 --the length of an animation for chargebars
 local CHARGED_LOOP_ANIMATION = HandChargeSprite:GetAnimationData("Charged"):GetLength() - 1
 
---local DECK_RENDERING_POSITION = Vector(110,15) --in screen coordinates
---local HAND_RENDERING_POSITION = Vector(40,30) --in screen coordinates
 local INVENTORY_RENDERING_POSITION = Vector(10,10)
 
 --local DECK_RENDERING_POSITION = Isaac.WorldToRenderPosition(Isaac.ScreenToWorld(Vector(760,745)))
@@ -283,15 +278,8 @@ function mod:JimboStatsHUD(offset,_,Position,_,Player)
         MultPos = MultPos + Vector(8, 10)
     end
 
-    --TODO fix line
     mod:RenderGenericButton(ChipsPos, ChipsScale, mod.EffectColors.BLUE, false, ChipsString, Vector(0.5,0.5), false, 0)
     mod:RenderGenericButton(MultPos, MultScale, mod.EffectColors.RED, false, MultString, Vector(0.5,0.5), false, 0)
-
-   
-
-    --mod.Fonts.Balatro:DrawStringScaled(ChipsString, ChipsPos.X-6,ChipsPos.Y-3,0.5,0.5,KColor.White)
-    --mod.Fonts.Balatro:DrawStringScaled(MultString, MultPos.X-6,MultPos.Y-3,0.5,0.5,KColor.White)
-
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.JimboStatsHUD)
 
@@ -438,62 +426,6 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, BlindProgressHUD)
 
 
 
-
-function mod:HandBarRender(offset,_,Position,_,Player)
-
-    if Player:GetPlayerType() ~= mod.Characters.JimboType then
-        return
-    end
-    local PIndex = Player:GetData().TruePlayerIndex
-    local PlayerRenderMult = PIndex%2 == 0 and -1 or 1
-
-    ----if true then return end
-
-    --print(mod.Saved.Player[PIndex])
-    if mod.Saved.Player[PIndex].FirstDeck and not Game:GetRoom():IsClear() then
-        --HandsBar:SetFrame("Charge On", Frame)
-        HandsBarFilling.Color:SetColorize(0.25,0.51,1,1)
-    else
-        --HandsBar:SetFrame("Charge Off", Frame)
-        HandsBarFilling.Color:SetColorize(1,0,0,1)
-    end
-
-    local HandsRemaining = Player:GetCustomCacheValue("hands")
-    local PartialHands
-    local Offset = Vector(0, 14)*PlayerRenderMult + Vector(3, 2)*Options.HUDOffset
-
-    while HandsRemaining > 0 do --up to 35 are displayed in 1 bar, then a sencond one appears and so on
-
-        PartialHands = math.min(HandsRemaining, 35.0)
-        local FullBarShots =  PartialHands - HandsRemaining + mod.Saved.Player[PIndex].Progress.Room.Shots
-
-        local Animation = HandsBarFilling:GetAnimationData("Charge On_"..tostring(PartialHands))
-
-    ---@diagnostic disable-next-line: need-check-nil
-        local Frame = Animation:GetLength() --full bar
-
-        if not mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR) then
-    ---@diagnostic disable-next-line: need-check-nil
-            Frame = Animation:GetLength() - math.ceil(math.min(FullBarShots/PartialHands, 1)*Animation:GetLength())
-        end
-
-        --HandsBar:PlayOverlay("overlay_"..tostring(Player:GetCustomCacheValue("hands")))
-
-    ---@diagnostic disable-next-line: need-check-nil
-        HandsBar:SetFrame(Animation:GetName(), 0)
-    ---@diagnostic disable-next-line: need-check-nil
-        HandsBarFilling:SetFrame(Animation:GetName(), Frame)
-
-
-        HandsBar:Render(Position + Offset)
-        HandsBarFilling:Render(Position + Offset)
-
-        HandsRemaining = HandsRemaining - PartialHands
-        Offset = Offset + Vector(0,10)
-    end
-end
---mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.HandBarRender)
-
 function mod:HandBarV2Render(offset,_,Position,_,Player)
 
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
@@ -599,7 +531,7 @@ function mod:JimboHandRender(Player, Offset)
             -------------------------------------------------------------
 
             local Rotation = 0
-            local ValueOffset = Vector(-2,0)
+            local ValueOffset = mod.Saved.Player[PIndex].CurrentHand[i+1] and Vector(-2,0) or Vector.Zero
             local Scale = Vector.One*ScaleMult
             local ForceCovered = false
             local Thin = false

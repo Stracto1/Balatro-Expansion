@@ -199,7 +199,7 @@ function mod:PlayerIsAbleToUseCard(Player, Consumable)
         elseif SpectralMaxSelection[Consumable]
                and (not mod.Saved.EnableHand --if selection is impossible
                     or (HandSelectNum > SpectralMaxSelection[Consumable] 
-                         or mod.SelectionParams[PIndex].SelectionNum <= 0)) then
+                         or HandSelectNum <= 0)) then
                    
             return false
         end
@@ -530,7 +530,14 @@ local function TJimboUsePlanet(card, Player, UseFlags)
     
     mod.Saved.Player[Player:GetData().TruePlayerIndex].LastCardUsed = card
 
-    return mod:PlanetUpgradeAnimation(PlanetHandType, 1)
+
+    local Interval = mod:PlanetUpgradeAnimation(PlanetHandType, 1)
+
+    Isaac.CreateTimer(function ()
+        Isaac.RunCallback(mod.Callbalcks.HAND_UPDATE, Player)
+    end, Interval, 1, true)
+
+    return Interval
 end
 --mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.PlanetCards)
 

@@ -1,5 +1,5 @@
 <costumes anm2root="gfx/characters/">
-    <costume id="110" anm2path="joker_hat.anm2" type="none" priority="1000" forceBodyColor="true" forceHeadColor="true" overwriteColor="true" skinColor="0" />
+    <costume id="110" anm2path="joker_hat.anm2" type="none" priority="99" forceBodyColor="true" forceHeadColor="true" overwriteColor="true" skinColor="0" />
     <costume id="111" anm2path="joker_full_costume.anm2" type="none" priority="1000" forceBodyColor="true" forceHeadColor="true" overwriteColor="true" skinColor="0" />
 
     <costume id="112" anm2path="tragicomedy_mask_costume.anm2" type="none" priority="100"/>

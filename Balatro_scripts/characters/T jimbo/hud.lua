@@ -643,7 +643,7 @@ end
 ---@param TextParams integer? I don't reccomend using Wrap here
 function mod:RenderGenericButton(Position, Scale, BaseColor, Pressed, Text, TextScale, AdaptToTextSize, TextParams, TextKcolor, SubText)
 
-    TextParams = mod.StringRenderingParams.Centered
+    TextParams = TextParams or mod.StringRenderingParams.Centered
     --TextParams = TextParams | mod.StringRenderingParams.Centered
     TextKcolor = TextKcolor or KColor.White
 

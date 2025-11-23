@@ -124,7 +124,7 @@
     <trinket gfx="to_the_moon_trinket.png" name="To the Moon" description="Never give up" customtags="!4 1 :0 ?uncommon balatro money" achievement="PermaLocked"/>
     <trinket gfx="juggler_trinket.png" customcache="handsize" name="Juggler" description="Sick moves!" customtags="!4 1 :0 ?common balatro activate" achievement="PermaLocked"/>
     <trinket gfx="drunkard_trinket.png" customcache="discards" name="Drunkard" description="*YUCH*" customtags="!4 1 :0 ?common balatro activate" achievement="PermaLocked"/>
-    <trinket cache="damage" gfx="lucky_cat_trinket.png" name="Lucky Cat" description="Fortune is on your side" customtags="!6 1 :i ?uncommon balatro multm copy" achievement="PermaLocked"/>
+    <trinket cache="damage" gfx="lucky_cat_trinket.png" name="Lucky Cat" description="Fortune is on your side" customtags="!6 1 :1 ?uncommon balatro multm copy" achievement="PermaLocked"/>
     <trinket cache="damage" gfx="baseball_card_trinket.png" name="Baseball Card" description="A collector's dream" customtags="!8 1 :0 ?rare balatro multm copy" achievement="PermaLocked"/>
     <trinket gfx="diet_cola_trinket.png" name="Diet Cola" description="Sugar free!" customtags="!7 1 :0 ?uncommon balatro activate copy" achievement="PermaLocked"/>
 

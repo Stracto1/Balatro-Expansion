@@ -109,7 +109,7 @@ local UMBRELLA_VAR = {OPENED = 1, CLOSED = 0}
 --local UMBRELLA_CAPSULE = {MULTI = Vector(4.5, 2.5), SIZE = 10}
 
 
-local MAX_LOLLYPOP_COOLDOWN = 600
+local MAX_LOLLYPOP_COOLDOWN = 750
 local LollypopPicker = WeightedOutcomePicker()
 LollypopPicker:AddOutcomeFloat(1, 1)
 LollypopPicker:AddOutcomeFloat(2, 1)
@@ -1466,7 +1466,7 @@ function mod:EffectUpdate(Effect)
                     if next(Enemies) then
                         local Target = mod:GetRandom(Enemies)
 
-                        local FlightTime = ((Data.FallingSpeed^2 + 2*Data.FallingAcceleration*Effect.SpriteOffset.Y)^0.5 - Data.FallingSpeed)*2/Data.FallingAcceleration
+                        local FlightTime = ((Data.Reg_SpriteSpeed.Y^2 + 2*Data.REG_SpriteAccel.Y*Effect.SpriteOffset.Y)^0.5 - Data.Reg_SpriteSpeed.Y)*2/Data.REG_SpriteAccel.Y
 
                         Effect.Velocity = (Target.Position + Target.Velocity - Effect.Position)/FlightTime
 
@@ -1607,7 +1607,7 @@ function mod:EffectUpdate(Effect)
 
             local AnvilSpawnFrame = UmbrellaData.REG_AnvilFrame or 0
             
-            if Effect.FrameCount >= AnvilSpawnFrame and false then
+            if Effect.FrameCount >= AnvilSpawnFrame then
                 
                 local Anvil = Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.ANVIL, Effect.Position, 
                                          Vector.Zero, Effect.Parent, 0, 1):ToEffect()
@@ -1834,54 +1834,6 @@ mod:AddCallback(ModCallbacks.MC_POST_PICKUP_UPDATE, PickupUpdate)
 
 ----------ITEM EFFECTS---------
 -------------------------------
-
-
----@param Player EntityPlayer
-function mod:SpawnCrayonCreep(Player)
-
-    if Player:HasCollectible(mod.Collectibles.CRAYONS) then
-        
-        if Player.Velocity:Length() > 0.25 and Player.FrameCount % math.floor(3/Player.MoveSpeed) == 0 then
- 
-            local Powder = Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.CRAYON_POWDER,
-                                      Player.Position, Vector.Zero, Player, Player:GetData().CrayonColor or 1, 1):ToEffect()
-
-            Powder:SetTimeout(100)
-        end
-
-    elseif Player:HasCollectible(mod.Collectibles.LOLLYPOP) then
-
-        if Game:GetRoom():IsClear() then
-            return
-        end
-
-        local Data = Player:GetData()
-
-        if Player:GetEffects():GetCollectibleEffectNum(CollectibleType.COLLECTIBLE_GAMEKID) > 0 then --timer advances only while vulnerable
-            return
-        end
-
-        Data.LollypopCooldown = Data.LollypopCooldown and (Data.LollypopCooldown - 1) or MAX_LOLLYPOP_COOLDOWN
-    
-        if Data.LollypopCooldown <= 0 then
-
-            local LollypopNum = 0
-            for _, _ in ipairs(Isaac.FindByType(EntityType.ENTITY_PICKUP, mod.Pickups.LOLLYPOP)) do
-                LollypopNum = LollypopNum + 1
-            end
-
-            if LollypopNum >= 3 then
-                return
-            end
-
-            Game:Spawn(EntityType.ENTITY_PICKUP, mod.Pickups.LOLLYPOP, Isaac.GetRandomPosition(), Vector.Zero,
-                       nil, LollypopPicker:PickOutcome(Player:GetCollectibleRNG(mod.Collectibles.LOLLYPOP)), math.max(Random(), 1))
-
-            Data.LollypopCooldown = MAX_LOLLYPOP_COOLDOWN
-        end
-    end
-end
-mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, mod.SpawnCrayonCreep, PlayerVariant.PLAYER)
 
 
 local function OnNewRoom()
@@ -2162,6 +2114,51 @@ local function OnPlayerUpdate(_,Player)
 
     end
 
+    if Player:HasCollectible(mod.Collectibles.CRAYONS) then
+        
+        if Player.Velocity:Length() > 0.25 and Player.FrameCount % math.floor(3/Player.MoveSpeed) == 0 then
+ 
+            local Powder = Game:Spawn(EntityType.ENTITY_EFFECT, mod.Effects.CRAYON_POWDER,
+                                      Player.Position, Vector.Zero, Player, Player:GetData().CrayonColor or 1, 1):ToEffect()
+
+            Powder:SetTimeout(100)
+        end
+    end
+
+
+    if Player:HasCollectible(mod.Collectibles.LOLLYPOP) then
+
+        if Game:GetRoom():IsClear() then
+            return
+        end
+
+        local Data = Player:GetData()
+
+        --if Player:GetEffects():GetCollectibleEffectNum(CollectibleType.COLLECTIBLE_GAMEKID) > 0 then --timer advances only while vulnerable
+        --    return
+        --end
+
+        Data.REG_LollypopCD = Data.REG_LollypopCD and (Data.REG_LollypopCD - 1) or MAX_LOLLYPOP_COOLDOWN
+
+        if Data.REG_LollypopCD <= 0 then
+
+            local LollypopNum = 0
+            for _, _ in ipairs(Isaac.FindByType(EntityType.ENTITY_PICKUP, mod.Pickups.LOLLYPOP)) do
+                LollypopNum = LollypopNum + 1
+            end
+
+            if LollypopNum >= 3 then
+                return
+            end
+
+            local Pos = Game:GetRoom():GetRandomPosition(20)
+
+            Game:Spawn(EntityType.ENTITY_PICKUP, mod.Pickups.LOLLYPOP, Pos, Vector.Zero,
+                       nil, LollypopPicker:PickOutcome(Player:GetCollectibleRNG(mod.Collectibles.LOLLYPOP)), math.max(Random(), 1))
+
+            Data.REG_LollypopCD = MAX_LOLLYPOP_COOLDOWN
+        end
+    end
 
 end
 mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, OnPlayerUpdate)
@@ -2822,7 +2819,7 @@ local function PennySeedsPayout()
             local Slave = Game:Spawn(mod.Entities.BALATRO_TYPE, mod.Entities.NPC_SLAVE, Player.Position, Vector.Zero, nil, mod.Entities.DIRT_COLOR_HELPER_SUBTYPE, 1):ToNPC()
             Slave:UpdateDirtColor(true)
             
-            local ParticleColor = Slave:GetDirtColor()
+            local ParticleColor = Color(1,1,1,1,0,0,0,Slave:GetDirtColor().R,Slave:GetDirtColor().G,Slave:GetDirtColor().B,1)
             
             Game:SpawnParticles(Player.Position, ParticleVariant, 3, 2.5, ParticleColor)
             Game:SpawnParticles(Player.Position, ParticleVariant, 3, 0.75, ParticleColor)

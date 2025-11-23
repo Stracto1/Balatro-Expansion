@@ -1184,8 +1184,14 @@ function mod:ScoreHand(Player)
 
                 mod:AddCardToDeck(Player, CopyCard, 1, true)
             end
-        end
 
+        elseif Joker == mod.Jokers.SPACE_JOKER then
+
+            if mod:TryGamble(Player, Player:GetTrinketRNG(mod.Jokers.SPACE_JOKER), 0.25) then
+                
+                CurrentInterval = CurrentInterval + mod:PlanetUpgradeAnimation(HandType, 1, CurrentInterval)
+            end
+        end
 
         ::SKIP_SLOT::
     end

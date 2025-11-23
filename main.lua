@@ -778,6 +778,17 @@ if not loaded and REPENTANCE_PLUS then
     Balatro_Expansion.Fonts.Balatro = Font("font/upheavalmini.fnt") --basically a placeholder until I understand how to make it work anywayproperly
 end
 
+Balatro_Expansion.Fonts.Balatro, loaded = Font("mods/balatro_expansion/resources/font/balatro plus 16 4.fnt")
+print(loaded)
+
+local function asasas()
+    
+    Balatro_Expansion.Fonts.Balatro:DrawStringScaled("ABC abc", 150, 100, 1,1, KColor.White)
+    Balatro_Expansion.Fonts.Balatro:DrawStringScaled("ABC abc", 150, 150, 0.5,0.5, KColor.White)
+end
+Balatro_Expansion:AddCallback(ModCallbacks.MC_POST_RENDER, asasas)
+
+
 --Balatro_Expansion.Fonts.Balatro_Small, loaded = Font("mods/balatro_expansion/resources/font/Balatro_Font3.fnt")
 --
 --if not loaded then

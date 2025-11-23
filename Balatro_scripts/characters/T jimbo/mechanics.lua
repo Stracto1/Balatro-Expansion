@@ -1376,6 +1376,9 @@ function mod:UpdateCurrentHandType(Player)
     elseif mod.Saved.EnableHand then
         mod.Saved.PossibleHandTypes = mod:DeterminePokerHand(Player)
         mod.Saved.HandType = mod:GetHandTypeFromFlag(mod.Saved.PossibleHandTypes)
+    else
+        mod.Saved.PossibleHandTypes = mod.HandFlags.NONE
+        mod.Saved.HandType = mod.HandTypes.NONE
     end
 
 
@@ -2787,6 +2790,8 @@ local function OnBlindClear(_, BlindData)
             local PlatePos = Room:GetCenterPos() + Vector(0, 80)
 
             mod:SpawnBalatroPressurePlate(PlatePos, mod.Grids.PlateVariant.CASHOUT, TotalGain)
+
+            mod.Saved.HandType = mod.HandTypes.NONE
 
             local Level = Game:GetLevel()
 
