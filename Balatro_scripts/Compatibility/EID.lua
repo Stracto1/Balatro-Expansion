@@ -235,8 +235,6 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
 
             if Joker == mod.Jokers.TO_DO_LIST then
 
-                print(Progress)
-
                 Progress = Progress or mod:GetJokerInitialProgress(Joker, true)
 
                 local Hand = mod:GetEIDString("HandTypeName", Progress)
@@ -360,7 +358,7 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
 
             elseif LastUsed == Card.CARD_FOOL then
 
-                Values[1] = "{{ColorMult}}"..mod:GetEIDString("CossumablesName", Card.CARD_FOOL).."{{B_Black}}"
+                Values[1] = "{{ColorMult}}"..mod:GetEIDString("ConsumablesName", Card.CARD_FOOL).."{{B_Black}}"
 
             elseif LastUsed <= Card.CARD_WORLD then
 
@@ -385,7 +383,6 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
             end
 
             Values[1] = "{{ColorYellow}}"..tostring(math.min(50, TOtalSell)).."{{B_Black}}"
-
         end
 
     elseif Type == mod.EID_DescType.BLIND then
@@ -540,7 +537,7 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
                         end
                     end
 
-                    Values[1] = "{{ColorYellorange}}"..Enahncements.."{{ColorGray}} Enhanced cards"
+                    Values[1] = "{{ColorYellorange}}"..Enahncements.."{{ColorGray}} "..mod:GetEIDString("Other", "Enhanced")
                 end
 
             elseif Joker == mod.Jokers.LOYALTY_CARD then
@@ -817,6 +814,8 @@ end
 ---@diagnostic disable: need-check-nil
 if  EID then
 
+EID:setModIndicatorName("TBoI: Regambled")
+EID:setModIndicatorIcon("REG_Jimbo")
 
 EID:addEntity(1000, mod.Effects.DESC_HELPER, 0, "", "")
 EID:addEntity(1000, mod.Effects.DESC_HELPER, mod.Effects.PLATE_HELPER_SUBTYPE, "", "")
@@ -826,43 +825,43 @@ EID:addEntity(1000, mod.Effects.DESC_HELPER, mod.Effects.PLATE_HELPER_SUBTYPE, "
 do
     local CoopMenu = Sprite("gfx/ui/hud_eid_jimbo.anm2")
 
-    EID:addIcon("REG_Jimbo","Idle",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Jimbo","Idle",0,12,8,6,5, CoopMenu)
 
-    EID:addIcon("REG_Spade","Spade",0,8,8,6,7, CoopMenu)
-    EID:addIcon("REG_Heart","Heart",0,8,8,6,7, CoopMenu)
-    EID:addIcon("REG_Club","Club",0,8,8,6,7, CoopMenu)
-    EID:addIcon("REG_Diamond","Diamond",0,8,8,6,7, CoopMenu)
-    EID:addIcon("REG_Retrigger","Retrigger",0,8,8,6,7, CoopMenu)
-    EID:addIcon("REG_Face","Face",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Spade","Spade",0,12,8,6,5, CoopMenu)
+    EID:addIcon("REG_Heart","Heart",0,12,8,6,5, CoopMenu)
+    EID:addIcon("REG_Club","Club",0,12,8,6,5, CoopMenu)
+    EID:addIcon("REG_Diamond","Diamond",0,12,8,6,5, CoopMenu)
+    EID:addIcon("REG_Retrigger","Retrigger",0,12,8,6,5, CoopMenu)
+    EID:addIcon("REG_Face","Face",0,12,8,6,5, CoopMenu)
 
-    EID:addIcon("REG_Bonus","Bonus",0,8,8,6,7, CoopMenu)
-    EID:addIcon("REG_Mult","Mult",0,8,8,6,7, CoopMenu)
-    EID:addIcon("REG_Glass","Glass",0,8,8,6,7, CoopMenu)
-    EID:addIcon("REG_Steel","Steel",0,8,8,6,7, CoopMenu)
-    EID:addIcon("REG_Gold","Gold",0,8,8,6,7, CoopMenu)
-    EID:addIcon("REG_Wild","Wild",0,8,8,6,7, CoopMenu)
-    EID:addIcon("REG_Stone","Stone",0,8,8,6,7, CoopMenu)
-    EID:addIcon("REG_Lucky","Lucky",0,8,8,6,7, CoopMenu)
-    EID:addIcon("REG_Joker","Joker",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Bonus","Bonus",0,12,8,6,5, CoopMenu)
+    EID:addIcon("REG_Mult","Mult",0,12,8,6,5, CoopMenu)
+    EID:addIcon("REG_Glass","Glass",0,12,8,6,5, CoopMenu)
+    EID:addIcon("REG_Steel","Steel",0,12,8,6,5, CoopMenu)
+    EID:addIcon("REG_Gold","Gold",0,12,8,6,5, CoopMenu)
+    EID:addIcon("REG_Wild","Wild",0,12,8,6,5, CoopMenu)
+    EID:addIcon("REG_Stone","Stone",0,12,8,6,5, CoopMenu)
+    EID:addIcon("REG_Lucky","Lucky",0,12,8,6,5, CoopMenu)
+    EID:addIcon("REG_Joker","Joker",0,12,8,6,5, CoopMenu)
 
-    EID:addIcon("REG_Foil","Foil",0,8,8,6,7, CoopMenu)
-    EID:addIcon("REG_Holo","Holo",0,8,8,6,7, CoopMenu)
-    EID:addIcon("REG_Poly","Poly",0,8,8,6,7, CoopMenu)
-    EID:addIcon("REG_Nega","Nega",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Foil","Foil",0,12,8,6,5, CoopMenu)
+    EID:addIcon("REG_Holo","Holo",0,12,8,6,5, CoopMenu)
+    EID:addIcon("REG_Poly","Poly",0,12,8,6,5, CoopMenu)
+    EID:addIcon("REG_Nega","Nega",0,12,8,6,5, CoopMenu)
 
-    EID:addIcon("REG_Red","Red",0,8,8,6,7, CoopMenu)
-    EID:addIcon("REG_Purple","Purple",0,8,8,6,7, CoopMenu)
-    EID:addIcon("REG_Golden","Golden",0,8,8,6,7, CoopMenu)
-    EID:addIcon("REG_Blue","Blue",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Red","Red",0,12,8,6,5, CoopMenu)
+    EID:addIcon("REG_Purple","Purple",0,12,8,6,5, CoopMenu)
+    EID:addIcon("REG_Golden","Golden",0,12,8,6,5, CoopMenu)
+    EID:addIcon("REG_Blue","Blue",0,12,8,6,5, CoopMenu)
     
-    EID:addIcon("REG_Planet","Planet",0,8,8,6,7, CoopMenu)
-    EID:addIcon("REG_Spectral","Spectral",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Planet","Planet",0,12,8,6,5, CoopMenu)
+    EID:addIcon("REG_Spectral","Spectral",0,12,8,6,5, CoopMenu)
 
-    EID:addIcon("REG_Hand","Hands",0,8,8,6,7, CoopMenu)
-    EID:addIcon("REG_HSize","HSize",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Hand","Hands",0,12,8,6,5, CoopMenu)
+    EID:addIcon("REG_HSize","HSize",0,12,8,6,5, CoopMenu)
 
-    EID:addIcon("REG_Comedy","Comedy",0,8,8,6,7, CoopMenu)
-    EID:addIcon("REG_Tragedy","Tragedy",0,8,8,6,7, CoopMenu)
+    EID:addIcon("REG_Comedy","Comedy",0,12,8,6,5, CoopMenu)
+    EID:addIcon("REG_Tragedy","Tragedy",0,12,8,6,5, CoopMenu)
 end
 
 EID:addColor("B_Black", mod.BalatroKColorBlack)

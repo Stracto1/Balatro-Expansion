@@ -2,6 +2,43 @@
 local mod = Balatro_Expansion
 
 
+----TUTORIAL FOR YOU BEAUTIFUL TRANSLATORS!!!------
+---------------------------------------------------
+
+--be sure to modify the file language variable right after this tutorial with the appropriate EID language code (it's a one time thing!)
+
+--only translate things inside the quotes ("..."), NOT the variables' name
+
+--things written inside brackets ({{...}} / [[...]]) need to be kept intact, thay are names needed for symbols and procedurally generated text
+    --you can however move them freely in the string to make it have sense
+    --most of the [[...]] are variable numbers, but sometimes they are shorter words or entire phrases
+        --you can check EID.lua to see what each of them is, but feel free to ask directly if that's too confusing!
+
+--in general try to mantain the style of the balatro descriptions, so:
+    --Balatro-related terms shoud be kept as similar as possible to the original game
+    --Keep things short without any overcomplications
+    --Important terms should be highlighted with {{ColorYellorange}}...{{CR}}
+    --Specific things shuch as the suits should always be colored correctly and preceded with they respective symbo (too lazy to make a list)
+        --DO NOT put symbols inside the T_Jimbo descriptions, they will not be diplayed correctly if you do
+
+--stuff added/modified after the original release is marked with UPDATE_X, so they're easier to spot
+
+--don't rush this out, 1100+ lines are A LOT and will def take some time so try to not force yourself into doing this if you don't want!
+
+
+--------SPECIAL CHARACTERS LIST--------
+--many special characters are f-ed up in rendering so u need to write them as raw symbols
+    --I suggest writing stuff normally and then replace everithing with whatever command your editor has 
+
+--go here to see the ones tou need: https://wofsauge.github.io/IsaacDocs/rep/images/tutorial_special_chars/b3.png
+--(some might not be compatible with the font used)
+
+---------------------------------------
+
+--All of that said, good luck!
+-------------------------------------------------
+-------------------------------------------------
+
 local FileLanguage = "en_us" --REMEMBER TO MODIFY ME!!
 local Descriptions = {}
 
@@ -45,11 +82,13 @@ Descriptions.Other.NotCleared = "Upcoming"
 
 
 Descriptions.Other.Active = "{{ColorYellorange}}Active!"
-Descriptions.Other.NotActive = "{{ColorRed}}Not active!"
+Descriptions.Other.NotActive = "{{ColorMult}}Not active!"
 Descriptions.Other.Compatible = "{{ColorMint}}Compatible"
 Descriptions.Other.Incompatible = "{{ColorMult}}Incompatible"
 Descriptions.Other.Ready = "{{ColorYellorange}}Ready!"
 Descriptions.Other.NotReady = "{{ColorRed}}Not ready!"
+
+Descriptions.Other.Enhanced = "Enhanced cards"
 
 Descriptions.Other.Rounds = "Rounds"
 Descriptions.Other.HandSize = "Hand Size" --as in the Balatro stat
@@ -189,7 +228,7 @@ Descriptions.Jimbo.Jokers[mod.Jokers.CARTOMANCER] = "{{Card}} Spawns a random {{
 Descriptions.Jimbo.Jokers[mod.Jokers.LOYALTY_CARD] = "{{Damage}} {{ColorMult}}X2{{CR}} Damage Mult. once every 6 rooms cleared #{{Blank}} {{ColorGray}} [[VALUE1]]"
 Descriptions.Jimbo.Jokers[mod.Jokers.SUPERNOVA] = "{{Damage}} Cards scored give {{ColorMult}}+0.01{{CR}} Damage per time a card with the same {{ColorYellorange}}Rank{{CR}} got played in the current room"
 Descriptions.Jimbo.Jokers[mod.Jokers.DELAYED_GRATIFICATION] = "{{Coin}} {{ColorYellorange}}+1 Coin{{CR}} per {{Heart}}{{ColorMult}}Heart{{CR}}when clearing a room at {{ColorYellorange}}full health{{CR}} #{{Timer}} Both the {{BossRoom}} Bossrush and {{Hush}} Hush door open regardless of the ingame timer"
-Descriptions.Jimbo.Jokers[mod.Jokers.EGG] = "{Coin}} The sell value of this Joker increases by {{ColorYellorange}}3 Coins{{CR}} on blind clear #Gain a tears-blocking familiar"
+Descriptions.Jimbo.Jokers[mod.Jokers.EGG] = "{{Coin}} The sell value of this Joker increases by {{ColorYellorange}}3 Coins{{CR}} on blind clear #Gain a tears-blocking familiar"
 Descriptions.Jimbo.Jokers[mod.Jokers.DNA] = "If the {{ColorYellorange}}First{{CR}} card played of a {{ColorYellorange}}Blind{{CR}} hits an enemy, add a copy of that card to the deck #{{Blank}} {{ColorGray}}(Currently: [[VALUE1]]{{ColorGray}}) #{{Collectible658}} Spawns a Mini-Isaac on room clear"
 Descriptions.Jimbo.Jokers[mod.Jokers.SMEARED_JOKER] = " {{REG_Heart}} {{ColorMult}}Hearts{{CR}} and {{REG_Diamond}} {{ColorYellorange}}Diamonds{{CR}} count as the same suit # {{REG_Spade}} {{ColorSpade}}Spades{{CR}} and {{REG_Club}} {{ColorBlue}}Clubs{{CR}} count as the same suit"
 
@@ -427,7 +466,8 @@ Descriptions.JimboSynergies[mod.Collectibles.POCKET_ACES] = "#{{REG_Jimbo}} Adds
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_HYPERCOAGULATION] = "#{{REG_Jimbo}} {{REG_Heart}} {{ColorMult}}Heart{{CR}} cards fired gain the {{Collectible224}} Cricket's body split effect"
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_CANDY_HEART] = "#{{REG_Jimbo}} {{REG_Heart}}{{ColorMult}}Heart{{CR}}cards added gain a random {{ColorYellorange}}Enhancement{{CR}} if they didn't have one"
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_WHORE_OF_BABYLON] = "#{{REG_Jimbo}} Damage given by {{REG_Mult}} {{ColorYellorange}}Mult enhancements{{CR}} are doubled"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_ABADDON] = "#{{REG_Jimbo}} {{REG_Spade}}{{ColorSpades}}Spade{{CR}}cards deal 10% more damage"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_ABADDON] = "#{{REG_Jimbo}} {{REG_Spade}}{{ColorSpades}}Spade{{CR}} cards deal 10% more damage"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_ABADDON] = "#{{REG_Jimbo}} Items on sale cost {{ColorYellorange}}1 {{Coin}} less #!!! {{ColorGray}}Normal effect does not activte"
 
 
 mod.EVIL_ITEMS = {CollectibleType.COLLECTIBLE_ABADDON,
@@ -1082,7 +1122,7 @@ if EID then
     EID:addCollectible(mod.Vouchers.Crystal, "{{REG_Jimbo}} Every {{ColorYellorange}}Booster Pack{{CR}} has {{ColorYellorange}}1{{CR}} more option to choose from", "Crystal Ball", FileLanguage)
     EID:addCollectible(mod.Vouchers.Omen, "{{REG_Jimbo}} {{ColorPink}}Arcana Packs{{CR}} may contain {{ColorBlue}}Spectral{{CR}} cards", "Omen Globe", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.Telescope, "{{REG_Jimbo}} Skipping a {{ColorCyan}}Celestial Pack{{CR}} creates {{ColorYellorange}}2{{CR}} additional random {{ColorCyan}}Planet Cards", "Telescope", FileLanguage)
+    EID:addCollectible(mod.Vouchers.Telescope, "{{REG_Jimbo}} Skipping a {{ColorCyan}}Celestial Pack{{CR}} creates {{ColorYellorange}}2{{CR}} additional random {{REG_Planet}} {{ColorCyan}}Planet Cards", "Telescope", FileLanguage)
     EID:addCollectible(mod.Vouchers.Observatory, "{{REG_Jimbo}} Cards triggered while holding it's respective {{ColorCyan}}Planet Card{{CR}} gives {{Damage}}{{ColorMult}} X1.15{{CR}} Damage Mult.#{{IND}}{{Planetarium}} Having the respective Planetarium item also counts", "Observatory", FileLanguage)
 
     EID:addCollectible(mod.Vouchers.Blank, "{{REG_Jimbo}} {{ColorFade}}Nothing?", "Blank", FileLanguage)

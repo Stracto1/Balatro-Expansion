@@ -3,7 +3,6 @@ local mod = Balatro_Expansion
 local ItemsConfig = Isaac.GetItemConfig()
 local Game = Game()
 local sfx = SFXManager()
-local Level = Game:GetLevel()
 
 local MAX_SEED_VALUE = 2^32 - 1
 local EPSILON = 1e-3
@@ -2218,6 +2217,7 @@ function mod:GetJokerInitialProgress(Joker, Tainted, Player)
         Prog = Prog or tonumber(string.gsub(Config:GetCustomTags()[3],":",""), 10)
 
     elseif Tainted == false then
+        
         ---@type EntityPlayer
         local Jimbo = Player or PlayerManager.FirstPlayerByType(mod.Characters.JimboType)
         local PIndex = Jimbo:GetData().TruePlayerIndex
@@ -2778,8 +2778,6 @@ function mod:RandomJoker(Rng, PlaySound, ForcedRarity, AllowDuplicates, Amount)
               and (Trinket.Joker ~= mod.Jokers.STONE_JOKER or HasEnh[mod.Enhancement.STONE])
               and (JokerAchievement == mod.Achievements.PERMA_LOCK --(almost) all jokers
                    or Isaac.GetPersistentGameData():Unlocked(JokerAchievement)) --currently only for Chaos Theory
-
-    
     
         Trinket.Edition = mod.Edition.BASE
 
@@ -2791,7 +2789,7 @@ function mod:RandomJoker(Rng, PlaySound, ForcedRarity, AllowDuplicates, Amount)
             
         else
 
-            local EditionChance = 0.04*EdMult --chance to get a non-negative edition
+            local EditionChance = NEGATIVE_CHANCE + 0.04*EdMult --chance to get a non-negative edition
 
             if EditionRoll <= EditionChance then
                 

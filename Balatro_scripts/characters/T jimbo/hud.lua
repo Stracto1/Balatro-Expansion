@@ -109,8 +109,8 @@ local HAND_RENDERING_HEIGHT = 30 --in screen coordinates
 
 local BASE_BUBBLE_HEIGHT = 11
 local CASHOUT_STRING_X_OFFSET = -39
-local BALATRO_BASE_LINE_HEIGHT = mod.Fonts.Balatro:GetBaselineHeight()
-local BALATRO_LINE_HEIGHT = mod.Fonts.Balatro:GetLineHeight()
+local BALATRO_BASE_LINE_HEIGHT = mod.Fonts.Balatro:GetBaselineHeight() - 2
+local BALATRO_LINE_HEIGHT = mod.Fonts.Balatro:GetLineHeight() - 2
 
 
 
@@ -578,7 +578,8 @@ function mod:RenderBalatroStyle(String, Position, Params, StartFrame, Scale, Kco
             --Y_Offset = Y_Offset - BALATRO_BASE_LINE_HEIGHT*BaseScale.Y * EnlargedScale/2 --*Scale.Y
         end
 
-        Y_Offset = Y_Offset - BALATRO_BASE_LINE_HEIGHT*Scale.Y/2 --centers the letter height wise
+
+        Y_Offset = Y_Offset - (BALATRO_BASE_LINE_HEIGHT-3)*Scale.Y --centers the letter height wise
 
         mod.Fonts.Balatro:DrawStringScaled(c,
                                            XPos + X_Offset,
