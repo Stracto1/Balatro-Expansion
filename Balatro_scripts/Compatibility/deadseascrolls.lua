@@ -405,7 +405,7 @@ menu.regambledJimboSettings = {
         {   str = 'hand card scale',
             choices = {'50%','100%'},
             setting = 1,
-            variable = 'ragambledHandScale',
+            variable = 'REG_HandScale',
 
             load = function ()
                 return mod.Saved.DSS.Jimbo.HandScale and (mod.Saved.DSS.Jimbo.HandScale*2) or 1
@@ -421,7 +421,7 @@ menu.regambledJimboSettings = {
         --{   str = 'hand hud position',
         --    choices = {'player','hearts',},
         --    setting = 1,
-        --    variable = 'ragambledHandPosition',
+        --    variable = 'REG_HandPosition',
 
         --    load = function ()
         --        return mod.Saved.DSS.Jimbo.HandHUDPosition or 1
@@ -443,7 +443,7 @@ menu.regambledTaintedJimboSettings = {
         {   str = 'custom eid desc',
             choices = {'disabled','enabled'},
             setting = 2,
-            variable = 'ragambledTJimboDesc',
+            variable = 'REG_TJimboDesc',
 
             load = function ()
 
@@ -464,7 +464,7 @@ menu.regambledTaintedJimboSettings = {
         {   str = 'hand combat opacity',
             choices = {'0.25','0.5','0.75','1',},
             setting = 2,
-            variable = 'ragambledTJimboOpacity',
+            variable = 'REG_TJimboOpacity',
 
             load = function ()
                 return mod.Saved.DSS.T_Jimbo.VulnerableHandOpacity * 4
@@ -480,7 +480,7 @@ menu.regambledTaintedJimboSettings = {
         {   str = 'show full deck',
             choices = {'disabled','enabled',},
             setting = 1,
-            variable = 'ragambledTJimboFullDeck',
+            variable = 'REG_TJimboFullDeck',
 
             load = function ()
                 return mod.Saved.DSS.T_Jimbo.ShowUnavailableCards and 2 or 1
@@ -495,10 +495,30 @@ menu.regambledTaintedJimboSettings = {
 
         LINE_BREAK,
 
+        {   str = 'ante scaling',
+            choices = {'white','green','purple'},
+            setting = 1,
+            variable = 'REG_TJimboScale',
+
+            load = function ()
+                return mod.Saved.DSS.T_Jimbo.BaseHands
+            end,
+
+            store = function (var)
+                mod.Saved.DSS.T_Jimbo.BaseHands = var
+
+                for _,Player in ipairs(PlayerManager.GetPlayers()) do 
+                    Player:AddCustomCacheTag(mod.CustomCache.HAND_NUM, true)
+                end
+            end,
+
+            tooltip = {strset = {"how", "difficult?"}}
+        },
+
         {   str = 'base hands',
             choices = {'1','2','3','4','5','6',},
             setting = 4,
-            variable = 'ragambledTJimboBaseHands',
+            variable = 'REG_TJimboBaseHands',
 
             load = function ()
                 return mod.Saved.DSS.T_Jimbo.BaseHands
@@ -517,7 +537,7 @@ menu.regambledTaintedJimboSettings = {
         {   str = 'base discards',
             choices = {'1','2','3','4','5','6'},
             setting = 4,
-            variable = 'ragambledTJimboBaseDiscards',
+            variable = 'REG_TJimboBaseDiscards',
 
             load = function ()
                 return mod.Saved.DSS.T_Jimbo.BaseDiscards
@@ -536,7 +556,7 @@ menu.regambledTaintedJimboSettings = {
         {   str = 'inner mutiplier',
             choices = {'1','1.25','1.50','1.75','2'},
             setting = 4,
-            variable = 'ragambledTJimboOoRDamage',
+            variable = 'REG_TJimboOoRDamage',
 
             load = function ()
                 return  (mod.Saved.DSS.T_Jimbo.InnerRangeDamage // 0.25) - 3
@@ -551,7 +571,7 @@ menu.regambledTaintedJimboSettings = {
         {   str = 'vulnerability',
             choices = {'when needed','always'},
             setting = 4,
-            variable = 'ragambledTJimboVulnerability',
+            variable = 'REG_TJimboVulnerability',
 
             load = function ()
                 return mod.Saved.DSS.T_Jimbo.Vulnerability and 2 or 1

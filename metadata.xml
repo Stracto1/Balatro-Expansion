@@ -32,23 +32,22 @@
 	[*]Wathever Language you need ([i]still looking for translators btw![/i])
        [/list]
 
-[*]Many customisable parameters available through the Dead Sea Scrolls menu
+[*]Many customizable parameters available through the Dead Sea Scrolls menu
 [/list]
 
 [img]https://i.ibb.co/zVcHYdc8/warning.png[/img]
 
 [list]
-[*]Due to the (shitty) way the normal character was made, there may be problems with local coop [i](please report ani issues so i can try my best to fix them!)[/i]
-[*][b]The tainted character was not built to work neither in co-op or with modded floors/enemies[/b], so expect toencounter many bugs/softlocks if that's your case!
+[*]Due to the (shitty) way the normal character was made, there may be problems with local coop [i](please report any issues so I can try my best to fix them!)[/i]
+[*][b]The tainted character was not built to work neither in co-op or with modded floors/enemies[/b], so expect to encounter many bugs/softlocks if that's your case!
 	[list][*]I'd love to make it StageAPI-compatible, but since I litterally couldn't understand shi from the docs given that's most likely not gonna happen ([i][u]if you know your thing with it and wanna help please let me know![/u][/i])[/list]
 [*][b]The use of [url=https://steamcommunity.com/sharedfiles/filedetails/?id=836319872]EID[/url] is very recommended[/b] since ya know, Balatro was made with fully available descriptions in mind
 [/list]
 
 [img]https://i.ibb.co/mr7D99Xc/end.png[/img]
 
-
 </description>
-    <version>1.46</version>
+    <version>1.49</version>
     <visibility>Private</visibility>
     <tag id="Lua"/>
     <tag id="Items"/>

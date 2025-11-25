@@ -744,6 +744,8 @@ function mod:FamiliarUpdate(Familiar)
 
     elseif Familiar.Variant == mod.Familiars.TEETH then
 
+        GridCollisionClass.
+
         Familiar.FlipX = Familiar.Velocity.X < 0
 
         if Familiar.State == TeethStates.IDLE
@@ -763,7 +765,7 @@ function mod:FamiliarUpdate(Familiar)
 
             elseif (Familiar.Player.Position - Familiar.Position):Length() > 60 then
 
-                Familiar:GetPathFinder():FindGridPath(Familiar.Player.Position, 0.9, 0, false)
+                Familiar:GetPathFinder():FindGridPath(Familiar.Player.Position, 0.9, 0, true)
 
                 Familiar.State = TeethStates.IDLE
             else
@@ -780,6 +782,14 @@ function mod:FamiliarUpdate(Familiar)
             elseif CanStop then
 
                 Sprite:Play("Idle")
+            end
+
+            if Sprite:IsEventTriggered("CanSleep")
+               or Game:GetFrameCount() % 57 == 0 then
+
+                local Splat = Game:Spawn(1000, EffectVariant.BLOOD_SPLAT, Familiar.Position, Vector.Zero, Familiar, 0, 1):ToEffect()
+
+                Splat.SpriteScale = Vector(0.5, 0.5)
             end
 
             --only decrease charge if it's chasing something
@@ -1942,7 +1952,7 @@ function mod:ActiveUse(Item, Rng, Player, Flags, Slot, VarData)
         Banan.State = BananaState.FLYING
 
         Data.REG_SpriteSpeed = Vector(0,-math.random()*10 - 6)
-        Data.REG_SpriteAccel = 1 or math.random()*1.5 + 1
+        Data.REG_SpriteAccel = Vector(0, math.random()*1.5 + 1)
 
         --local RotOffset = (Game:GetFrameCount()%360)/360
 
@@ -2214,25 +2224,6 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_TEAR_DEATH, mod.BananaExplosion)
 
 
-function mod:ResetBananaCharge()
-
-    for i,Player in ipairs(PlayerManager.GetPlayers()) do
-
-        for Slot = ActiveSlot.SLOT_PRIMARY, ActiveSlot.SLOT_POCKET2 do    
-            local Item = Player:GetActiveItem(Slot)
-
-            if Item == mod.Collectibles.EMPTY_BANANA then
-                
-                Player:AnimateCollectible(mod.Collectibles.BANANA, "UseItem")
-                Player:AddCollectible(mod.Collectibles.BANANA, 1, true, Slot)
-                sfx:Play(SoundEffect.SOUND_BEEP)
-            end
-        end
-    end
-end
---mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.ResetBananaCharge)
-
-
 ---@param Entity Entity
 function mod:EntityBananaSlip(Entity)
 
@@ -2395,14 +2386,33 @@ local function OnRoomClear(_, Player)
 
     mod.Saved.Player[PIndex].InnateItems.Planet_X = {}
 
-    for i = 1, Player:GetCollectibleNum(mod.Collectibles.PLANET_X) do
 
-        local PickedItem = PLANET_X_PICKER:PickOutcome(Player:GetCollectibleRNG(mod.Collectibles.PLANET_X))
+    if Player:HasCollectible(mod.Collectibles.PLANET_X) then
+
+        local Poof = Game:Spawn(1000, EffectVariant.POOF02, Player.Position, Vector.Zero, nil, 0, 1):ToEffect()
+
+        Poof:FollowParent(Player)
+        Poof.RenderZOffset = -1
+
+        Poof.Color = Color(1,1,1,1,0,0,0,mod.EffectColors.BLUE.R,mod.EffectColors.BLUE.G,mod.EffectColors.BLUE.B, 1)
+
+        local Poof2 = Game:Spawn(1000, EffectVariant.POOF02, Player.Position, Vector.Zero, nil, 2, 1):ToEffect()
+
+        Poof2.Color = Poof.Color
+
+        sfx:Play(mod.Sounds.PLASMA, 1, 2, false, 1.2)
         
-        PlanetX_Items[i] = PickedItem
 
-        Player:AddInnateCollectible(PickedItem, 1)
-        mod.Saved.Player[PIndex].InnateItems.Planet_X[i] = PickedItem
+        for i = 1, Player:GetCollectibleNum(mod.Collectibles.PLANET_X) do
+
+            local PickedItem = PLANET_X_PICKER:PickOutcome(Player:GetCollectibleRNG(mod.Collectibles.PLANET_X))
+
+            PlanetX_Items[i] = PickedItem
+
+            Player:AddInnateCollectible(PickedItem, 1)
+            mod.Saved.Player[PIndex].InnateItems.Planet_X[i] = PickedItem
+        end
+
     end
     
 
@@ -2683,8 +2693,8 @@ local function ErisAreaEffect(_, Player)
 
         local Data = Enemy:GetData()
 
-        Data.ErisUnfreezeTime = Data.ErisUnfreezeTime or 0
-        Data.CurrentErisSlowValue = Data.CurrentErisSlowValue or 0
+        Data.REG_UnfreezeTime = Data.REG_UnfreezeTime or 0
+        Data.REG_ErisSlow = Data.REG_ErisSlow or 0
 
         local Distance = Enemy.Position:Distance(Player.Position)
 
@@ -2692,23 +2702,23 @@ local function ErisAreaEffect(_, Player)
 
             local SlowFactor = 1 - math.min(ERIS_MAX_RADIUS, Distance + ERIS_MIN_RADIUS)/ERIS_MAX_RADIUS
             local ExtraSlowValue = mod:ExponentLerp(ERIS_MIN_SLOW, ERIS_MAX_SLOW, SlowFactor, 1.85)
-            local StartingSlow = Data.CurrentErisSlowValue or 0
+            local StartingSlow = Data.REG_ErisSlow or 0
 
-            local FinalSlow =ExtraSlowValue + StartingSlow
+            local FinalSlow = ExtraSlowValue + StartingSlow
 
-            Data.CurrentErisSlowValue = FinalSlow
-            Data.ErisUnfreezeTime = 0
+            Data.REG_ErisSlow = FinalSlow
+            Data.REG_UnfreezeTime = 0
 
         else --enemy starts to unfreeze if outside of the radius
 
-            Data.ErisUnfreezeTime = Data.ErisUnfreezeTime + 1
+            Data.REG_UnfreezeTime = Data.REG_UnfreezeTime + 1
 
-            Data.CurrentErisSlowValue = Data.CurrentErisSlowValue - 0.01*(1+Data.ErisUnfreezeTime*0.05) 
+            Data.REG_ErisSlow = Data.REG_ErisSlow - 0.01*(1+Data.REG_UnfreezeTime*0.08) 
         end
 
-        Data.CurrentErisSlowValue = mod:Clamp(Data.CurrentErisSlowValue, 0, 0.95)
+        Data.REG_ErisSlow = mod:Clamp(Data.REG_ErisSlow, 0, 0.95)
 
-        local SlowValue = Data.CurrentErisSlowValue
+        local SlowValue = Data.REG_ErisSlow
     
 
         local PLAYER_REF = EntityRef(Player)
@@ -2718,8 +2728,7 @@ local function ErisAreaEffect(_, Player)
             Enemy:AddIce(PLAYER_REF, 3)
 
             Enemy:TakeDamage(math.max(Enemy.HitPoints*0.03, 0.1), 0, PLAYER_REF, 2)
-
-            --Enemy:TakeDamage(Player.Damage*0.25+0.1, 0, PLAYER_REF, 2)
+            Enemy:AddIce(PLAYER_REF, 3)
         end
 
         if SlowValue >= 0.02 then
@@ -2728,7 +2737,7 @@ local function ErisAreaEffect(_, Player)
             SlowColor:SetColorize(0, 0.75, 0.85, SlowValue)
 
             Enemy:AddSlowing(PLAYER_REF, 7, SlowValue, Color.Default)
-            Enemy:SetColor(SlowColor, 5, 10, true, false)
+            Enemy:SetColor(SlowColor, 10, 10, true, false)
 
             Enemy:SetSlowingCountdown(7)
         end
@@ -3243,9 +3252,6 @@ local function WispUpdate(_, Wisp)
 
         Wisp.OrbitDistance = Vector(20, 20)
         Wisp.OrbitSpeed = 0.05
-        
-        
-        --Wisp.Position = 
 
         Wisp.Velocity = (Wisp:GetOrbitPosition(Target.Position) - Wisp.Position)
     end

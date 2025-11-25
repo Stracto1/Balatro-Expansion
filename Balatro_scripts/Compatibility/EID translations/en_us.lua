@@ -1182,7 +1182,7 @@ EID:addTrinket(mod.Trinkets.PENNY_SEEDS, "{{Coin}} Gain 1 coin per 5 coin isaac 
 EID:addCollectible(mod.Collectibles.THE_HAND, "{{Card}} Up to 5 cards or runes can be stored in the active item #!!! Cards in excess will be destroyed #{{Chargeable}} Holding the item uses the cards stored in the order shown # Press [DROP] key to cycle the held cards # Also collects pickups and deals damage to enemies hit", "The Hand",FileLanguage)		
 EID:addCard(mod.JIMBO_SOUL, "{{Timer}} For the current Room, balances Isaac's Damage and Tears stats #{{Blank}} {{ColorGray}}(Effect lasts longer if used multiple times)", "Soul of Jimbo", FileLanguage)
 EID:addTrinket(mod.Jokers.CHAOS_THEORY, "{{Collectible402}} All pickups spawned are randomised", "Chaos Theory", FileLanguage)		
-EID:addCollectible(mod.Collectibles.ERIS, "{{Freezing}} Isaac gains a freezing aura that progressively slows enemies #After being slowed enough, enemies take 3% of their remaining health worth of damage per tick {{ColorGray}}(Min. 0.1)", "Eris",FileLanguage)		
+EID:addCollectible(mod.Collectibles.ERIS, "{{Freezing}} Isaac gains a freezing aura that progressively slows enemies #After being slowed enough, enemies take 3% of their remaining health worth of damage per tick {{ColorGray}}(Min. 0.1) #{{IND}}{{Freezing}} Enemies killed while in this state are become frozen statues", "Eris",FileLanguage)		
 EID:addCollectible(mod.Collectibles.PLANET_X, "{{Planetarium}} Gain the effect of a random Planetarium item every room clear", "Planet X",FileLanguage)		
 EID:addCollectible(mod.Collectibles.CERES, "Orbiting familiar that blocks projectiles and deals 1 contact damage per second #When hit, creates asteroid bits that can block up to 2 shots and deal twice Isaac's damage", "Ceres",FileLanguage)		
 

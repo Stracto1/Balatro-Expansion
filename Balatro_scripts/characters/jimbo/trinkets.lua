@@ -5531,7 +5531,7 @@ local function OnTakeDamage(_,Player,Amount,Flags,Source,_)
     Player = Player:ToPlayer()
 
     if not Player or Player:GetPlayerType() == mod.Characters.TaintedJimbo
-       or not Source.Entity then
+       or not Source then
         return
     end
 

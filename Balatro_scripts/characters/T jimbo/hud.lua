@@ -60,31 +60,6 @@ local LeftSideStringFrames = {
                               ChooseNextBlind = 22, EnemyMaxHP = 23, EnemyPortrait = 24,
                               Q_Action = 25, Q_Bind = 26, E_Action = 27, E_Bind = 28
                               }
---[[
-local LeftSideStringPositions = {}
-
-for _,Frame in pairs(LeftSideStringFrames) do
-
-    LeftSideHUD:SetOverlayFrame(Frame)
-
-    LeftSideStringPositions[Frame] = LeftSideHUD:GetOverlayNullFrame("String Positions"):GetPos()
-end
-
-
-local LeftSideStringKColors = {[LeftSideStringFrames.ScoreRequirement] = mod.EffectKColors.RED,
-                               [LeftSideStringFrames.Reward] = mod.EffectKColors.YELLOW,
-                               [LeftSideStringFrames.ShopSlogan] = mod.EffectKColors.YELLOW,
-                               [LeftSideStringFrames.ScoreRequirement] = mod.EffectKColors.RED,
-                               [LeftSideStringFrames.HandsRemaining] = mod.EffectKColors.BLUE,
-                               [LeftSideStringFrames.DiscardsRemaining] = mod.EffectKColors.RED,
-                               [LeftSideStringFrames.Money] = mod.EffectKColors.YELLOW,
-                               [LeftSideStringFrames.AnteLevel] = mod.EffectKColors.YELLOW}
-
-local LeftSideStringParams = {[LeftSideStringFrames.ChooseNextBlind] = mod.StringRenderingParams.Swoosh | mod.StringRenderingParams.Wavy | mod.StringRenderingParams.Centered,
-                              [LeftSideStringFrames.ShopSlogan] = mod.StringRenderingParams.Swoosh | mod.StringRenderingParams.Peaking | mod.StringRenderingParams.Centered,
-                              [LeftSideStringFrames.HandType] = mod.StringRenderingParams.Swoosh | mod.StringRenderingParams.Wavy | mod.StringRenderingParams.Enlarge | mod.StringRenderingParams.Centered,
-                              [LeftSideStringFrames.ShopSlogan] = mod.StringRenderingParams.Peaking | mod.StringRenderingParams.Centered}
-]]
 
 
 local RunInfoHUD = Sprite("gfx/ui/Balatro_run_info_HUD.anm2")
@@ -233,7 +208,7 @@ mod:AddCallback(ModCallbacks.MC_POST_RENDER, MoveCameraToRightBorder)
 local function RightMoveShader(_,Name) --this shader makes the whole game shifted closer to the right screen border, this allows for larger HUDs on the left side
     if Name == "Right Border Shift" then
 
-        local Params = {CameraOffset = {0.0,0.0}}
+        local Params = {CameraOffset = {0,0}}
 
         if not PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo)
            or mod:BossIntroIsPlaying()
@@ -3962,7 +3937,7 @@ local function CashoutBubbleRender(_,Effect, Offset)
     CashoutBubbleSprite.Offset = Vector.Zero
     CashoutBubbleSprite:Render(PlatePos)
 
-    local MiddleScale = (mod:Clamp(NumStrings-1, 1, 5) * BALATRO_BASE_LINE_HEIGHT * 1.5 + BALATRO_BASE_LINE_HEIGHT*0.25)/10 --maximum of 4 strings at a time
+    local MiddleScale = (mod:Clamp(NumStrings-1, 1, 5) * BALATRO_BASE_LINE_HEIGHT * 1.5)/10 --maximum of 4 strings at a time
 
     local TopPos = PlatePos - Vector(0, BASE_BUBBLE_HEIGHT * MiddleScale)
 
@@ -4049,7 +4024,7 @@ local function CashoutBubbleRender(_,Effect, Offset)
 
         mod:RenderBalatroStyle(ScreenString.String, TopPos + CurrentStringOffset, DefaultParams, ScreenString.StartFrame + string.len(ScreenString.Name)*2 + 40, Vector.One, Color)
     
-        CurrentStringOffset.Y = CurrentStringOffset.Y + BALATRO_BASE_LINE_HEIGHT*1.75
+        CurrentStringOffset.Y = CurrentStringOffset.Y + BALATRO_BASE_LINE_HEIGHT*1.5
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_EFFECT_RENDER, CashoutBubbleRender, mod.Effects.DIALOG_BUBBLE)

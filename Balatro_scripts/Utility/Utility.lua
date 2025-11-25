@@ -4752,8 +4752,11 @@ function mod:IsBlindFinisher(Blind)
 end
 
 
-local AnteScaling = {300, 1000, 3200, 9000, 25000, 60000, 110000, 200000, 320000, 450000, 630000, 880000, 1100000} --equal to purple stake's requirements but extended due to some routes being too long
-                  --{300, 900, 2600, 8000, 20000, 36000, 60000, 100000} --green stake
+local AnteScaling = {}
+AnteScaling[1] = {300, 800, 2000, 5000, 11000, 20000, 35000, 50000, 80000, 125000, 180000, 250000, 300000} 
+AnteScaling[2] = {300, 900, 2600, 8000, 20000, 36000, 60000, 100000, 160000, 250000, 360000, 500000, 650000} 
+AnteScaling[3] = {300, 1000, 3200, 9000, 25000, 60000, 110000, 200000, 320000, 450000, 630000, 880000, 1100000} 
+
 local BlindScaling = {[mod.BLINDS.SMALL] = 1,
                       [mod.BLINDS.BIG] = 1.5,
                       [mod.BLINDS.BOSS] = 2,
@@ -4767,18 +4770,20 @@ function mod:GetBlindScoreRequirement(Blind)
 
     local Score
 
+    local ActiveScaling = AnteScaling[mod.Saved.DSS.T_Jimbo.Scaling]
+
     if mod.Saved.AnteLevel <= 0 then
 
         Score = 1/(1 - mod.Saved.AnteLevel) * 100 --(0 --> 100 || -1 --> 50 and so on)
 
-    elseif AnteScaling[mod.Saved.AnteLevel] then
-        Score = AnteScaling[mod.Saved.AnteLevel]
+    elseif ActiveScaling[mod.Saved.AnteLevel] then
+        Score = ActiveScaling[mod.Saved.AnteLevel]
 
     else --stole this bit directly from the Game's source code (how tf do you even come up with this?)
 
-        local NumFixedAntes = #AnteScaling
+        local NumFixedAntes = #ActiveScaling
     
-        local a, b, c, d, k = AnteScaling[NumFixedAntes],1.6,mod.Saved.AnteLevel-NumFixedAntes, 1 + 0.2*(mod.Saved.AnteLevel-NumFixedAntes), 0.75
+        local a, b, c, d, k = ActiveScaling[NumFixedAntes],1.6,mod.Saved.AnteLevel-NumFixedAntes, 1 + 0.2*(mod.Saved.AnteLevel-NumFixedAntes), 0.75
         
         Score = math.floor(a*(b+(k*c)^d)^c)
         

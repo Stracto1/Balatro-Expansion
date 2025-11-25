@@ -1128,7 +1128,7 @@ Balatro_Expansion.Saved.DSS = {
                                          VulnerableHandOpacity = 0.5,
                                          ShowUnavailableCards = false,
                                          CustomEID = true,
-                                         LowerScaling = false,
+                                         Scaling = 1,
                                 },
                                 
                                 General={},
