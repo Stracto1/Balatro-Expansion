@@ -910,8 +910,11 @@ local function NoJokerCollision(_, Pickup, Collider, _)
     ---@type EntityPlayer
     local Player = Collider:ToPlayer()
 
-    if Player
-       and Player:GetPlayerType() ~= mod.Characters.TaintedJimbo
+    if not Player then
+        return
+    end
+
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo
        and (Player:GetPlayerType() ~= mod.Characters.JimboType
             or mod:JimboHasTrinket(Player, mod.Jokers.CAMPFIRE))  then
         return    

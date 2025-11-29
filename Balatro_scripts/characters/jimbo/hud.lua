@@ -198,7 +198,7 @@ function mod:JimboStatsHUD(offset,_,Position,_,Player)
 
     -------STATS COUNTER RENDERING---------
     
-    local ChipsPos = Vector(18,108) + Vector(20, 12)*Options.HUDOffset
+    local ChipsPos = Vector(18,94) + offset
     local MultPos = ChipsPos + Vector(0,12)
 
     
@@ -284,16 +284,16 @@ end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.JimboStatsHUD)
 
 
-
+local BlindPos
 local SINCE_CLEAR = {[mod.BLINDS.SMALL] = 0,
                      [mod.BLINDS.BIG] = 0,
                      [mod.BLINDS.BOSS] = 0}
 local BLIND_WIDTH = 22
-local function BlindProgressHUD(offset,_,Position,_,Player)
+local function BlindProgressHUD(_,offset,_,Position,_,Player)
 
     --------BLIND PROGRESS-----------
     
-    if Minimap:GetState() ~= MinimapState.NORMAL or Game:GetLevel():GetStage() == LevelStage.STAGE8
+    if Game:GetLevel():GetStage() == LevelStage.STAGE8
        or not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType) then
         return
     end
@@ -313,11 +313,23 @@ local function BlindProgressHUD(offset,_,Position,_,Player)
         NumAvailable = NumAvailable + 1
     end
 
+    local TargetPos = Vector(Isaac.GetScreenWidth()/2 - (BLIND_WIDTH/2)*(NumAvailable-1),0) + Vector(0, offset.Y) + Minimap:GetShakeOffset()
 
-    local BaseRenderPos = Vector(Isaac.GetScreenWidth()/2 - (BLIND_WIDTH/2)*(NumAvailable-1),13) + Vector(0, 14)*Options.HUDOffset + Minimap:GetShakeOffset()
+    if Minimap:GetState() == MinimapState.EXPANDED then
 
-    --BlindInicator:Render(RenderPos)
+        TargetPos.Y = 48
+    else
+        TargetPos.Y = -20
+    end
 
+    BlindPos = BlindPos or TargetPos
+
+    local BaseRenderPos = BlindPos + (TargetPos - BlindPos)/10
+    BlindPos = BaseRenderPos + Vector.Zero
+
+    if BlindPos.Y < -15 then
+        return
+    end
 
     if SmallAvailable then --and mod.Saved.SmallCleared ~= mod.BlindProgress.DEFEATED then
     
@@ -471,6 +483,11 @@ function mod:HandBarV2Render(offset,_,Position,_,Player)
         HandsBarV2:Render(Position + Offset)
 
         Offset = Offset + Vector(10,0)
+
+        if Partial == 20 then
+            
+            Offset = Offset + Vector(-50,9)
+        end
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.HandBarV2Render)
@@ -484,8 +501,9 @@ function mod:JimboHandRender(Player, Offset)
         return
     end
 
-    --if true then return end
-
+    if mod.Saved.DSS.Jimbo.HandHUDPosition ~= 1 then
+        return
+    end
     
     local PIndex = Player:GetData().TruePlayerIndex
 
@@ -503,6 +521,7 @@ function mod:JimboHandRender(Player, Offset)
     end
 
     local BaseRenderPos = PlayerScreenPos + Offset + Vector(-7 *(#mod.Saved.Player[PIndex].CurrentHand-1), 26)* ScaleMult
+
 
     local RenderPos = BaseRenderPos + Vector.Zero
     local TrueOffset = {}
@@ -582,11 +601,124 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_RENDER, mod.JimboHandRender,PlayerVariant.PLAYER)
 
 
+local ScaleMult = 0.5
+---@param Player EntityPlayer
+function mod:JimboHandRender2(Offset, Sprite, Position, _, Player)
+
+    if mod.Saved.DSS.Jimbo.HandHUDPosition ~= 2 then
+        return
+    end
+
+    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.Saved.Player[1] then
+        return
+    end
+    
+    local PIndex = Player:GetData().TruePlayerIndex
+    local RenderMult = PIndex%2 == 0 and -1 or 1
+
+    local TargetScale = mod.Saved.DSS.Jimbo.HandScale
+    
+    if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.HAND then
+        TargetScale = 1 --while selecting the the cards gets bigger
+    end
+    if ScaleMult ~= TargetScale then
+        --ScaleMult = mod:Lerp(ScaleMult,TargetScale, mod.SelectionParams[PIndex].Frames/100)
+        ScaleMult = mod:Lerp(1.5 - TargetScale,TargetScale, mod.SelectionParams[PIndex].Frames/5)
+    end
+
+    local BaseRenderPos = Position -- + Vector(-7 *(#mod.Saved.Player[PIndex].CurrentHand-1), 26)* ScaleMult
+    
+    if PIndex <= 2 then --top of the screen
+        BaseRenderPos.Y = 12
+    else
+        BaseRenderPos.Y = Isaac.GetScreenHeight() - 12
+    end
+    
+    BaseRenderPos = BaseRenderPos + Offset + (Vector(12, -3) + Vector(16, 0)*TargetScale)*RenderMult
+
+    local RenderPos = BaseRenderPos + Vector.Zero
+    local TrueOffset = {}
+
+    
+    for i, Pointer in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
+        local Card = mod.Saved.Player[PIndex].FullDeck[Pointer]
+        if Card then
+
+            if mod.SelectionParams[PIndex].SelectedCards[i] and mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.HAND then
+                RenderPos.Y = RenderPos.Y - 8
+            end
+             --moves up selected cards
+
+            mod.CardFullPoss[Pointer] = mod.CardFullPoss[Pointer] or RenderPos --check nil
+
+            TrueOffset[Pointer] = Vector(mod:Lerp(mod.CardFullPoss[Pointer].X, RenderPos.X, mod.Counters.SinceShift/5)
+                               ,mod:Lerp(mod.CardFullPoss[Pointer].Y, RenderPos.Y, mod.Counters.SinceSelect/1.25))
+            
+
+            if TrueOffset[Pointer].X == RenderPos.X and TrueOffset[Pointer].Y == RenderPos.Y then
+                mod.CardFullPoss[Pointer] = RenderPos + Vector.Zero
+            end
+
+
+            -------------------------------------------------------------
+
+            local Rotation = 0
+            local ValueOffset = mod.Saved.Player[PIndex].CurrentHand[i+1] and Vector(-2*RenderMult,0) or Vector.Zero
+            local Scale = Vector.One*ScaleMult
+            local ForceCovered = false
+            local Thin = false
+
+            mod:RenderCard(Card, TrueOffset[Pointer], ValueOffset, Scale,Rotation, ForceCovered, Thin)
+        end
+
+        RenderPos = Vector(RenderPos.X + 14*ScaleMult, BaseRenderPos.Y)
+    end
+
+    if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.HAND then
+
+        --last confirm option
+        RenderPos = BaseRenderPos + Vector(14 * (#mod.Saved.Player[PIndex].CurrentHand), 0)
+        CardFrame:SetFrame(HUD_FRAME.Hand)
+        CardFrame:Render(RenderPos)
+
+
+        RenderPos = BaseRenderPos + Vector(14 * (mod.SelectionParams[PIndex].Index - 1) * ScaleMult, 0)
+
+        if mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams[PIndex].Index] then
+            RenderPos.Y = RenderPos.Y - 8
+        end
+
+        CardFrame.Scale = Vector(ScaleMult, ScaleMult)
+        CardFrame:SetFrame(HUD_FRAME.CardFrame)
+        CardFrame:Render(RenderPos)
+    else
+        ------DECK RENDERING----------
+
+        local CardsLeft = math.max((#mod.Saved.Player[PIndex].FullDeck - mod.Saved.Player[PIndex].DeckPointer)+1, 0)
+
+        --shows how many cards are left in the deck
+        DeckSprite:SetFrame("idle", math.ceil(CardsLeft/8))
+
+        DeckSprite.Scale = Vector.One*ScaleMult
+
+        DeckSprite:Render(BaseRenderPos - Vector(18,0)*ScaleMult)
+
+
+        RenderPos = BaseRenderPos + Vector(14 * (#mod.Saved.Player[PIndex].CurrentHand - 1) * ScaleMult, 0)
+
+        CardFrame.Scale = Vector(ScaleMult, ScaleMult)
+        CardFrame:SetFrame(HUD_FRAME.CardFrame)
+        CardFrame:Render(RenderPos)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_PLAYERHUD_RENDER_HEARTS, mod.JimboHandRender2)
+
+
 --handles the charge bar when the player is selecting cards
 ---@param Player EntityPlayer
 function mod:JimboPackRender(_,_,_,_,Player)
 
-    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+    if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
         return
     end
     local PIndex = Player:GetData().TruePlayerIndex

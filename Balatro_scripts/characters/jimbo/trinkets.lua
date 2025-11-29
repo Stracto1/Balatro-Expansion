@@ -3771,7 +3771,7 @@ function mod:TearsJokers(Player, _)
             if IsJimbo then
                 local NumCards = #mod.Saved.Player[PIndex].FullDeck - mod.Saved.Player[PIndex].DeckPointer + 1
  
-                Tears = NumCards*0.2
+                Tears = NumCards*0.15
             end
 
             local NumEnemies = 0
@@ -6007,7 +6007,7 @@ mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, ExplodeCorn, mod.Effects.KER
 ---@param Source EntityRef
 local function ImmuneToPOPExp(_, Player, _,_, Source)
 
-    if Source and Source.Entity.Type == 1000
+    if Source.Entity and Source.Entity.Type == 1000
        and Source.Entity.Variant == mod.Effects.KERNEL then
         return false
     end

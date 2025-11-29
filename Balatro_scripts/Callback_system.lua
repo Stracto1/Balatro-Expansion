@@ -311,6 +311,7 @@ function mod:InitPlayerValues(Player)
     mod.SelectionParams[PIndex].OptionsNum = 0 --total amount of options
     mod.SelectionParams[PIndex].MaxSelectionNum = 0 --how many things you can choose at a time
     mod.SelectionParams[PIndex].SelectionNum = 0 --how many things you choosing
+    mod.SelectionParams[PIndex].SelectedCards = {false,false,false,false,false}
     mod.SelectionParams[PIndex].PackPurpose = mod.SelectionParams.Purposes.NONE --used for TJimbo to not lose the current pack's purpose while doing other stuff 
 
     mod.Saved.Player[PIndex].InnateItems = {}
@@ -518,10 +519,7 @@ function mod:InitJimboValues(PIndex, Tainted)
         mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.CONSUMABLES] = {false,false}
         
         mod.SelectionParams[PIndex].PlayedCards = {} --contains the deck indexes of cards played from your hand
-        mod.SelectionParams[PIndex].ScoringCards = 0
-
-    else
-        mod.SelectionParams[PIndex].SelectedCards = {false,false,false,false,false}
+        mod.SelectionParams[PIndex].ScoringCards = 0        
     end
 end
 

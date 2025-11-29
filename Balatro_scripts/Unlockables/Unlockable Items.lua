@@ -155,9 +155,11 @@ local PLANET_X_PICKER = WeightedOutcomePicker() --setup as the game starts to in
 
 local ERIS_MAX_RADIUS = 165
 local ERIS_MIN_RADIUS = 20
-local ERIS_MAX_SLOW = 0.075
-local ERIS_MIN_SLOW = 0.005
+local ERIS_MAX_SLOW = 0.09
+local ERIS_MIN_SLOW = 0.008
 
+local ERIS_WIND_SPRITE = Sprite("gfx/characters/eris_wind.anm2")
+ERIS_WIND_SPRITE.Offset = Vector(0, -15)
 
 local PENNY_TRINKET_POOLS = {[BackdropType.BASEMENT] = {TrinketType.TRINKET_BUTT_PENNY,
                                                         TrinketType.TRINKET_COUNTERFEIT_PENNY,
@@ -1184,7 +1186,7 @@ function mod:FamiliarCollision(Familiar, Collider,_)
 
             local SpecialDropRoll = CeresRNG:RandomFloat()
 
-            if SpecialDropRoll <= 0.001 then -- 1 in 1000 chance
+            if SpecialDropRoll <= 0.0001 then -- 1 in 1000 chance
             
                 local ColliderAngle = math.ceil((-Collider.Velocity):GetAngleDegrees())
 
@@ -1196,7 +1198,7 @@ function mod:FamiliarCollision(Familiar, Collider,_)
             
                 NumPieces = NumPieces - 1
             
-            elseif SpecialDropRoll >= 0.999 then -- also 1 in 1000 chance
+            elseif SpecialDropRoll >= 0.9999 then -- also 1 in 1000 chance
 
                 local ColliderAngle = math.ceil((-Collider.Velocity):GetAngleDegrees())
 
@@ -1208,6 +1210,8 @@ function mod:FamiliarCollision(Familiar, Collider,_)
             
                 NumPieces = NumPieces - 1
             end
+
+            Game:SpawnParticles(Familiar.Position, EffectVariant.TOOTH_PARTICLE, 3 + 2*NumPieces, 2, COLOR_CERES)
 
             for i = 1, NumPieces do
 
@@ -1225,8 +1229,6 @@ function mod:FamiliarCollision(Familiar, Collider,_)
 
 
                 Meteor:ClearEntityFlags(EntityFlag.FLAG_APPEAR)
-
-                Game:SpawnParticles(Familiar.Position, EffectVariant.TOOTH_PARTICLE, 5, 2, COLOR_CERES)
             end
             
             if NumPieces > 0 then
@@ -2425,12 +2427,15 @@ local function OnRoomClear(_, Player)
         
         if mod:Contained(mod.Trinkets.TASTY_CANDY, TrueTrinket) and TrueTrinket ~= HeldTrinket then
             
-            local NewCandy = HeldTrinket + 1
-
-            if mod:Contained(mod.Trinkets.TASTY_CANDY, NewCandy & ~TrinketType.TRINKET_GOLDEN_FLAG) then
+            if Player:GetTrinketRNG(mod.Trinkets.TASTY_CANDY[1]):RandomFloat() <= 0.2 then
                 
-                Player:TryRemoveTrinket(HeldTrinket)
-                Player:AddTrinket(NewCandy)
+                local NewCandy = HeldTrinket + 1
+
+                if mod:Contained(mod.Trinkets.TASTY_CANDY, NewCandy & ~TrinketType.TRINKET_GOLDEN_FLAG) then
+
+                    Player:TryRemoveTrinket(HeldTrinket)
+                    Player:AddTrinket(NewCandy)
+                end
             end
         end
     end
@@ -2685,7 +2690,8 @@ local function ErisAreaEffect(_, Player)
 
     for _, Enemy in ipairs(Isaac.GetRoomEntities()) do
 
-        if not Enemy:IsActiveEnemy() then
+        if not Enemy:IsActiveEnemy()
+           or Enemy:HasEntityFlags(EntityFlag.FLAG_ICE_FROZEN) then
             goto SKIP_ENEMY
         end
 
@@ -2727,7 +2733,9 @@ local function ErisAreaEffect(_, Player)
 
             Enemy:AddIce(PLAYER_REF, 3)
 
-            Enemy:TakeDamage(math.max(Enemy.HitPoints*0.03, 0.1), 0, PLAYER_REF, 2)
+            if not Enemy:IsBoss() then
+                Enemy:TakeDamage(math.max(Enemy.HitPoints*0.04, 0.1), 0, PLAYER_REF, 2)
+            end
             Enemy:AddIce(PLAYER_REF, 3)
         end
 
@@ -2737,7 +2745,7 @@ local function ErisAreaEffect(_, Player)
             SlowColor:SetColorize(0, 0.75, 0.85, SlowValue)
 
             Enemy:AddSlowing(PLAYER_REF, 7, SlowValue, Color.Default)
-            Enemy:SetColor(SlowColor, 10, 10, true, false)
+            Enemy:SetColor(SlowColor, 10, 1, true, false)
 
             Enemy:SetSlowingCountdown(7)
         end
@@ -2748,6 +2756,22 @@ local function ErisAreaEffect(_, Player)
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, ErisAreaEffect)
+
+
+local function ErisWindRender(_, Player, Offset)
+
+    if not Player:HasCollectible(mod.Collectibles.ERIS) then
+        return
+    end
+
+
+    ERIS_WIND_SPRITE:SetFrame("Idle", math.floor(Game:GetFrameCount()/2 % ERIS_WIND_SPRITE:GetAnimationData("Idle"):GetLength()))
+    ERIS_WIND_SPRITE.Rotation = Game:GetFrameCount() % 360
+
+    ERIS_WIND_SPRITE:Render(Isaac.WorldToScreen(Player.Position))
+end
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_RENDER, ErisWindRender)
+
 
 
 local function PennySeedsPayout()
@@ -2764,94 +2788,105 @@ local function PennySeedsPayout()
         local CoinsPlanted = (Player:GetNumCoins() // 5) * Multiplier
 
         Isaac.CreateTimer(function ()
+
+            local Delay = 0
+
+            for i = 1, CoinsPlanted do
             
-        Isaac.CreateTimer(function ()
-            
-            local CoinVariant
-            local CoinSub
-            local CoinPosition
+                Isaac.CreateTimer(function ()
+                
+                    local CoinVariant
+                    local CoinSub
+                    local CoinPosition
 
-            local PennyRNG = Player:GetTrinketRNG(mod.Trinkets.PENNY_SEEDS)
+                    local PennyRNG = Player:GetTrinketRNG(mod.Trinkets.PENNY_SEEDS)
 
-            local VariantRoll = PennyRNG:RandomFloat()
+                    local VariantRoll = PennyRNG:RandomFloat()
 
-            if VariantRoll <= 0.001 then
+                    if VariantRoll <= 0.001 then
 
-                CoinVariant = PickupVariant.PICKUP_COLLECTIBLE
-                CoinSub = CollectibleType.COLLECTIBLE_QUARTER
+                        CoinVariant = PickupVariant.PICKUP_COLLECTIBLE
+                        CoinSub = CollectibleType.COLLECTIBLE_QUARTER
 
-                CoinPosition = Isaac.GetCollectibleSpawnPosition(Player.Position)
+                        CoinPosition = Isaac.GetCollectibleSpawnPosition(Player.Position)
 
-                Player:AnimateHappy()
-                --sfx:Play(SoundEffect.SOUND_)
+                        Player:AnimateHappy()
+                        --sfx:Play(SoundEffect.SOUND_)
 
 
-            elseif VariantRoll <= 0.01 then
+                    elseif VariantRoll <= 0.01 then
 
-                CoinVariant = PickupVariant.PICKUP_TRINKET
+                        CoinVariant = PickupVariant.PICKUP_TRINKET
 
-                local Pool = PENNY_TRINKET_POOLS[Game:GetRoom():GetBackdropType()] or PENNY_TRINKET_POOLS.DEFAULT
-                CoinSub = mod:GetRandom(Pool, PennyRNG)
+                        local Pool = PENNY_TRINKET_POOLS[Game:GetRoom():GetBackdropType()] or PENNY_TRINKET_POOLS.DEFAULT
+                        CoinSub = mod:GetRandom(Pool, PennyRNG)
 
-                if not Isaac.GetPersistentGameData():Unlocked(ItemsConfig:GetTrinket(CoinSub).AchievementID) then
-                    CoinVariant = nil
-                    CoinSub = nil
-                else
-                    Player:AnimateHappy()
-                end
-            end
-
-            CoinVariant = CoinVariant or PickupVariant.PICKUP_COIN
-            CoinSub = CoinSub or CoinSubType.COIN_PENNY
-            CoinPosition = CoinPosition or Player.Position
-
-            if Player:HasGoldenTrinket(mod.Trinkets.PENNY_SEEDS) then
-            
-                if PennyRNG:RandomFloat() <= 0.05 then
-
-                    if CoinVariant == PickupVariant.PICKUP_TRINKET then
-                        CoinSub = CoinSub + TrinketType.TRINKET_GOLDEN_FLAG
-
-                    elseif CoinVariant == PickupVariant.PICKUP_COIN then
-                        CoinSub = CoinSubType.COIN_GOLDEN
+                        if not Isaac.GetPersistentGameData():Unlocked(ItemsConfig:GetTrinket(CoinSub).AchievementID) then
+                            CoinVariant = nil
+                            CoinSub = nil
+                        else
+                            Player:AnimateHappy()
+                        end
                     end
-                end
+
+                    CoinVariant = CoinVariant or PickupVariant.PICKUP_COIN
+                    CoinSub = CoinSub or CoinSubType.COIN_PENNY
+                    CoinPosition = CoinPosition or Player.Position
+
+                    if Player:HasGoldenTrinket(mod.Trinkets.PENNY_SEEDS) then
+                    
+                        if PennyRNG:RandomFloat() <= 0.05 then
+
+                            if CoinVariant == PickupVariant.PICKUP_TRINKET then
+                                CoinSub = 0 --CoinSub + TrinketType.TRINKET_GOLDEN_FLAG
+
+                            elseif CoinVariant == PickupVariant.PICKUP_COIN then
+                                CoinSub = CoinSubType.COIN_GOLDEN
+                            end
+                        end
+                    end
+
+                    Game:Spawn(EntityType.ENTITY_PICKUP, CoinVariant, CoinPosition, RandomVector()*3,
+                               Player, CoinSub, mod:RandomSeed(PennyRNG))
+
+
+                    local BackType = Game:GetRoom():GetBackdropType()
+                    local ParticleVariant = GROUND_PARTICLE[BackType] or GROUND_PARTICLE.DEFAULT
+
+                    local Slave = Game:Spawn(mod.Entities.BALATRO_TYPE, mod.Entities.NPC_SLAVE, Player.Position, Vector.Zero, nil, mod.Entities.DIRT_COLOR_HELPER_SUBTYPE, 1):ToNPC()
+                    Slave:UpdateDirtColor(true)
+
+                    local ParticleColor 
+
+                    if BackType ~= BackdropType.CELLAR then
+                        ParticleColor = Color(1,1,1,1,0,0,0,Slave:GetDirtColor().R,Slave:GetDirtColor().G,Slave:GetDirtColor().B,1)
+                    end
+
+                    Game:SpawnParticles(Player.Position, ParticleVariant, 3, 2.5, ParticleColor)
+                    Game:SpawnParticles(Player.Position, ParticleVariant, 2, 0.75, ParticleColor)
+
+
+                    if BackType == BackdropType.WOMB
+                       or BackType == BackdropType.SCARRED_WOMB
+                       or BackType == BackdropType.UTERO
+                       or BackType == BackdropType.SCARRED_WOMB
+                       or BackType == BackdropType.CORPSE
+                       or BackType == BackdropType.CORPSE2
+                       or BackType == BackdropType.CORPSE3
+                       or BackType == BackdropType.CORPSE_ENTRANCE then
+
+                        sfx:Play(SoundEffect.SOUND_MEATY_DEATHS, 0.35, 2, false, math.random()*0.2 + 0.9)
+
+                    else
+                        sfx:Play(SoundEffect.SOUND_SHOVEL_DIG, 0.35, 2, false, math.random()*0.2 + 1.2)
+                    end
+
+                end, Delay, 1, true)
+
+                Delay = Delay + 4 + math.floor(12/i)
             end
 
-            Game:Spawn(EntityType.ENTITY_PICKUP, CoinVariant, CoinPosition, RandomVector()*3,
-                       Player, CoinSub, mod:RandomSeed(PennyRNG))
-
-
-            local BackType = Game:GetRoom():GetBackdropType()
-            local ParticleVariant = GROUND_PARTICLE[BackType] or GROUND_PARTICLE.DEFAULT
-
-            local Slave = Game:Spawn(mod.Entities.BALATRO_TYPE, mod.Entities.NPC_SLAVE, Player.Position, Vector.Zero, nil, mod.Entities.DIRT_COLOR_HELPER_SUBTYPE, 1):ToNPC()
-            Slave:UpdateDirtColor(true)
-            
-            local ParticleColor = Color(1,1,1,1,0,0,0,Slave:GetDirtColor().R,Slave:GetDirtColor().G,Slave:GetDirtColor().B,1)
-            
-            Game:SpawnParticles(Player.Position, ParticleVariant, 3, 2.5, ParticleColor)
-            Game:SpawnParticles(Player.Position, ParticleVariant, 3, 0.75, ParticleColor)
-
-            
-            if BackType == BackdropType.WOMB
-               or BackType == BackdropType.SCARRED_WOMB
-               or BackType == BackdropType.UTERO
-               or BackType == BackdropType.SCARRED_WOMB
-               or BackType == BackdropType.CORPSE
-               or BackType == BackdropType.CORPSE2
-               or BackType == BackdropType.CORPSE3
-               or BackType == BackdropType.CORPSE_ENTRANCE then
-
-                sfx:Play(SoundEffect.SOUND_MEATY_DEATHS, 0.35, 2, false, math.random()*0.2 + 0.9)
-
-            else
-                sfx:Play(SoundEffect.SOUND_SHOVEL_DIG, 0.35, 2, false, math.random()*0.2 + 1.2)
-            end
-
-        end, 4, CoinsPlanted, true)
-
-        end, 7, 1, true)
+        end, 15, 1, true)
         
         end
         ::SKIP_PLAYER::
@@ -3216,20 +3251,20 @@ local function GuaranteeBeggarPayout(_, Slot, Player)
 
     --degrades the candy by one use
 
-    --if not HasGoldenCandy then
+    local CurrentCandy = Player:GetTrinket(CandySlot) & ~(TrinketType.TRINKET_GOLDEN_FLAG | mod.EditionFlag.ALL)
+    local NewCandy = CurrentCandy - 1
 
-        local CurrentCandy = Player:GetTrinket(CandySlot)
-        local NewCandy = CurrentCandy - 1
+    if mod:Contained(mod.Trinkets.TASTY_CANDY, NewCandy) then 
+        Player:TryRemoveTrinket(CurrentCandy)
+        Player:AddTrinket(NewCandy, false)
 
-        if mod:Contained(mod.Trinkets.TASTY_CANDY, NewCandy) then 
-            Player:TryRemoveTrinket(CurrentCandy)
-            Player:AddTrinket(NewCandy, false)
+        sfx:Play(SoundEffect.SOUND_BONE_BREAK, 1, 2, false, 1.1)
 
-        else
-            Player:TryRemoveTrinket(mod.Trinkets.TASTY_CANDY[1])
+        Game:SpawnParticles(Player.Position, EffectVariant.TOOTH_PARTICLE, 4, 0.5, mod.EffectColors.YELLOW)
 
-        end
-    --end
+    else
+        Player:TryRemoveTrinket(mod.Trinkets.TASTY_CANDY[1])
+    end
 
     Sprite:Play("PayPrize")
     Slot:SetState(2)
@@ -3274,4 +3309,7 @@ local function RemoveUnwantedEntities()
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_ROOM_EXIT, RemoveUnwantedEntities)
+
+
+
 

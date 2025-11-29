@@ -126,11 +126,80 @@ local GoodWeaponTypes = {
 ---@param Player EntityPlayer
 function mod:JimboInputHandle(Player)
 
-    if Player:GetPlayerType() ~= mod.Characters.JimboType then
+    if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
         return
     end
+
+    local IsJimbo = Player:GetPlayerType() == mod.Characters.JimboType
     local PIndex = Player:GetData().TruePlayerIndex
 
+    local Data = Player:GetData()
+
+
+    ----------SELECTION INPUT / INPUT COOLDOWN------------
+    if mod.SelectionParams[PIndex].Mode ~= mod.SelectionParams.Modes.NONE then --while in the card selection menu cheks for inputs
+        -------------INPUT HANDLING-------------------(big ass if statements ik lol)
+
+        --confirming/canceling 
+        if  Input.IsActionTriggered(ButtonAction.ACTION_MENUCONFIRM, Player.ControllerIndex)
+            and not Input.IsActionPressed(ButtonAction.ACTION_ITEM, Player.ControllerIndex)--usually they share buttons
+            or Input.IsMouseBtnPressed(MouseButton.LEFT) then
+
+            mod:Select(Player)
+        end
+
+
+        --pressing left moving the selection
+        if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTLEFT, Player.ControllerIndex) then
+
+            if mod.SelectionParams[PIndex].Index > 1 then
+                mod.SelectionParams[PIndex].Index = mod.SelectionParams[PIndex].Index - 1
+            end
+        end
+
+        --pressing right moving the selection
+        if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTRIGHT, Player.ControllerIndex) then
+            if mod.SelectionParams[PIndex].Index <= mod.SelectionParams[PIndex].OptionsNum then
+
+                mod.SelectionParams[PIndex].Index = mod.SelectionParams[PIndex].Index + 1
+            end
+        end
+    
+        Player.Velocity = Vector.Zero
+
+    elseif IsJimbo then --not selecting anything
+    
+        
+        if Input.IsActionTriggered(ButtonAction.ACTION_DROP, Player.ControllerIndex) then
+
+            local LastCard = mod.Saved.Player[PIndex].CurrentHand[#mod.Saved.Player[PIndex].CurrentHand]
+
+            table.remove(mod.Saved.Player[PIndex].CurrentHand)
+            table.insert(mod.Saved.Player[PIndex].CurrentHand,1 ,LastCard)
+
+            mod.Counters.SinceShift = 0
+        end
+    
+        if Input.IsButtonPressed(Keyboard.KEY_LEFT_ALT, Player.ControllerIndex)
+           or Input.IsButtonPressed(Keyboard.KEY_RIGHT_ALT, Player.ControllerIndex) then
+
+            Data.ALThold = Data.ALThold + 1
+            if Data.ALThold == 40 then --if held long enough starts the inventory selection
+                mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.INVENTORY, mod.SelectionParams.Purposes.NONE)
+                Data.ALThold = 0
+            end
+        else
+            Data.ALThold = 0
+        end
+    end
+
+
+    if not IsJimbo then
+        return
+    end
+
+    Data.SinceCardShoot = Data.SinceCardShoot + 1
+    
     -- got this from "sybil pseudoregalia" on the modding of isaac discord (my savior tbh) and modified it a bit
     ---------------------------------------
     local Weapon = Player:GetWeapon(1)
@@ -174,68 +243,6 @@ function mod:JimboInputHandle(Player)
         end
     end
     ----------------------------------------
-
-    local Data = Player:GetData()
-
-    Data.SinceCardShoot = Data.SinceCardShoot + 1
-
-    ----------SELECTION INPUT / INPUT COOLDOWN------------
-    if mod.SelectionParams[PIndex].Mode ~= mod.SelectionParams.Modes.NONE then --while in the card selection menu cheks for inputs
-        -------------INPUT HANDLING-------------------(big ass if statements ik lol)
-
-        --confirming/canceling 
-        if  Input.IsActionTriggered(ButtonAction.ACTION_MENUCONFIRM, Player.ControllerIndex)
-            and not Input.IsActionPressed(ButtonAction.ACTION_ITEM, Player.ControllerIndex)--usually they share buttons
-            or Input.IsMouseBtnPressed(MouseButton.LEFT) then
-
-            mod:Select(Player)
-
-        end
-
-
-        --pressing left moving the selection
-        if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTLEFT, Player.ControllerIndex) then
-
-            if mod.SelectionParams[PIndex].Index > 1 then
-                mod.SelectionParams[PIndex].Index = mod.SelectionParams[PIndex].Index - 1
-
-            end
-        end
-
-        --pressing right moving the selection
-        if Input.IsActionTriggered(ButtonAction.ACTION_SHOOTRIGHT, Player.ControllerIndex) then
-            if mod.SelectionParams[PIndex].Index <= mod.SelectionParams[PIndex].OptionsNum then
-
-                mod.SelectionParams[PIndex].Index = mod.SelectionParams[PIndex].Index + 1
-            end
-        end
-    
-        Player.Velocity = Vector.Zero
-    else --not selecting anything
-    
-        
-        if Input.IsActionTriggered(ButtonAction.ACTION_DROP, Player.ControllerIndex) then
-
-            local LastCard = mod.Saved.Player[PIndex].CurrentHand[#mod.Saved.Player[PIndex].CurrentHand]
-
-            table.remove(mod.Saved.Player[PIndex].CurrentHand)
-            table.insert(mod.Saved.Player[PIndex].CurrentHand,1 ,LastCard)
-
-            mod.Counters.SinceShift = 0
-        end
-    
-        if Input.IsButtonPressed(Keyboard.KEY_LEFT_ALT, Player.ControllerIndex)
-           or Input.IsButtonPressed(Keyboard.KEY_RIGHT_ALT, Player.ControllerIndex) then
-
-            Data.ALThold = Data.ALThold + 1
-            if Data.ALThold == 40 then --if held long enough starts the inventory selection
-                mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.INVENTORY, mod.SelectionParams.Purposes.NONE)
-                Data.ALThold = 0
-            end
-        else
-            Data.ALThold = 0
-        end
-    end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.JimboInputHandle)
 
@@ -644,33 +651,73 @@ local function AddOneMoreShop()
         local StartPos = Vector(StartIndex % 13, StartIndex // 13)
 
         local ValidIndexes = Level:FindValidRoomPlacementLocations(ExtraShop, Dimension.NORMAL, false, false)
-
+        local TrulyValidIndexes = {} --keep in memory valid indexes skipped due to distance from spawn
 
         local RoomDesc
 
         for _,Index in ipairs(ValidIndexes) do
 
+            local TrulyValid = false --the valid indexes allow the shop to be only attached to the secret rooms...
+
+            local Neighbours = Level:GetNeighboringRooms(Index, RoomShape.ROOMSHAPE_1x1, Dimension.NORMAL)
+
+            for _,Neigh in pairs(Neighbours) do
+                
+                if Neigh.Data.Type == RoomType.ROOM_DEFAULT then --check manually if it touched another room
+                    TrulyValid = true
+                end
+            end
+
+
+            if not TrulyValid then
+                goto SKIP_ROOM
+            end
+
+            do
+
             local RoomPos = Vector(Index % 13, Index // 13)
 
-            if IsSmallFloor
-               or math.abs(RoomPos.X - StartPos.X) > 1
-                  and math.abs(RoomPos.Y - StartPos.Y) > 1 then --keep a slight distance from the starting room if possible
+            local ValidDistence = IsSmallFloor
+                                  or math.abs(RoomPos.X - StartPos.X) > 1
+                                     and math.abs(RoomPos.Y - StartPos.Y) > 1
 
-
+            if ValidDistence then --keep a slight distance from the starting room if possible
+            
                 RoomDesc = Level:TryPlaceRoom(ExtraShop, Index, Dimension.NORMAL)
 
-                if RoomDesc then
+                if RoomDesc then --break if the room got placed
+                    break
+                end
+            else
+                TrulyValidIndexes[#TrulyValidIndexes+1] = Index
+            end
+
+            end
+
+            ::SKIP_ROOM::
+        end
+
+        if not RoomDesc then
+            
+            for _,Index in ipairs(TrulyValidIndexes) do
+                
+                RoomDesc = Level:TryPlaceRoom(ExtraShop, Index, Dimension.NORMAL)
+
+                if RoomDesc then --break if the room got placed
                     break
                 end
             end
         end
 
-        Isaac.CreateTimer(
-            function()
-                RoomDesc.DisplayFlags = 5
 
-                Level:UpdateVisibility()
+        if RoomDesc then
+            Isaac.CreateTimer(
+                function()
+                    RoomDesc.DisplayFlags = 5
+
+                    Level:UpdateVisibility()
             end, 1, 1, true)
+        end
     end
 
 end
@@ -1279,11 +1326,15 @@ end
 mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, mod.JimboTakeDamage, EntityType.ENTITY_PLAYER)
 
 
+local UsedHourglass = false
+
 ---@param Player EntityPlayer
 ---@param HpType AddHealthType
 function mod:JimboOnlyRedHearts(Player, Amount, HpType, _)
 
-    if Amount == 0 or Player:GetPlayerType() ~= mod.Characters.JimboType then
+    if Amount == 0
+       or UsedHourglass
+       or Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
     
@@ -1334,6 +1385,12 @@ function mod:JimboDeadCatFix(Player, Amount, HpType,_)
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_ADD_HEARTS, mod.JimboDeadCatFix)
 
+function mod:JimboHourglassFix()
+
+    UsedHourglass = not UsedHourglass
+end
+mod:AddCallback(ModCallbacks.MC_PRE_GLOWING_HOURGLASS_LOAD, mod.JimboHourglassFix)
+mod:AddCallback(ModCallbacks.MC_POST_GLOWING_HOURGLASS_LOAD, mod.JimboHourglassFix)
 
 
 ---@param Familiar EntityFamiliar
@@ -1909,8 +1966,6 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.HandsCache, mod.Custo
 ----------------------------------------------
 
 
-
-
 --applies the additional effects for the card tears
 ---@param Tear EntityTear
 ---@param Collider Entity
@@ -1927,7 +1982,10 @@ function mod:OnTearCardCollision(Tear,Collider,_)
         return
     end
 
-    if Collider.Type == EntityType.ENTITY_FIREPLACE then
+    if Collider.Type == EntityType.ENTITY_FIREPLACE
+       and (Collider.Variant == 0 --normal fire 
+            or Collider.Variant == 1 --red fire 
+            or Collider.Variant == 11) then --coals from dudes in mines  
         Collider:Kill()
     end
 

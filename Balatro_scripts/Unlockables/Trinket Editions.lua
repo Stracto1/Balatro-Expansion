@@ -96,9 +96,17 @@ mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT, mod.EditionedTrinketSprite, Pi
 ---@param Player EntityPlayer
 function mod:RegisterEditionAdded(Player, Trinket, FirstTime)
 
+    if not mod.GameStarted then
+        Isaac.CreateTimer(function ()
+            mod:RegisterEditionAdded(Player, Trinket, FirstTime)
+        end, 0, 1, true)
+
+        return
+    end
+
     local PlayerType = Player:GetPlayerType()
     local PIndex = Player:GetData().TruePlayerIndex
-
+    
     local LastTouchedTrinket = mod.Saved.Player[PIndex].LastTouchedTrinket
 
     if PlayerType == mod.Characters.JimboType
@@ -109,15 +117,19 @@ function mod:RegisterEditionAdded(Player, Trinket, FirstTime)
         return
     end
 
+    if LastTouchedTrinket == 0 then
+        LastTouchedTrinket = Trinket
+    end
+
 
     local TrinketSubType = Trinket + 0
 
     local TrueTrinket = LastTouchedTrinket & ~mod.EditionFlag.ALL
     local TrinketEdition = (LastTouchedTrinket & mod.EditionFlag.ALL) >> mod.EDITION_FLAG_SHIFT
 
-    if TrinketEdition == mod.Edition.BASE then
-        return
-    end
+    --if TrinketEdition == mod.Edition.BASE then
+    --    return
+    --end
     
 
     local TrinketSlot
@@ -154,6 +166,8 @@ function mod:RegisterEditionAdded(Player, Trinket, FirstTime)
     mod.Saved.Player[PIndex].Inventory[TrinketSlot].Edition = TrinketEdition
 
     Player:AddCacheFlags(EditionCaches[TrinketEdition], true)
+
+    mod.Saved.Player[PIndex].LastTouchedTrinket = 0
 end
 mod:AddCallback(ModCallbacks.MC_POST_TRIGGER_TRINKET_ADDED, mod.RegisterEditionAdded)
 

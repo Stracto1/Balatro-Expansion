@@ -274,8 +274,8 @@ Descriptions.Jimbo.Jokers[mod.Jokers.BURGLAR] = "!!! Sets your Hp to {{ColorRed}
 Descriptions.Jimbo.Jokers[mod.Jokers.BLACKBOARD] = "{{Damage}} {{ColorMult}}X2{{CR}} Damage Mult. if all cards held are {{ColorSpade}}Spades{{CR}} or {{ColorChips}}Clubs"
 Descriptions.Jimbo.Jokers[mod.Jokers.RUNNER] = "{{Tears}} Gains {{ColorChips}}+1.5{{CR}} Tears when entering an {{ColorYellorange}}unexplored{{CR}} room while holding a {{ColorYellorange}}Straight{{CR}} #{{Tears}} Gives {{ColorChips}}+Tears{{CR}} equal to double your {{Speed}} Speed stat#{{Blank}}(Currently {{ColorChips}}+[[VALUE1]]{{ColorGray}} Chips) #{{Speed}} +0.1 Speed"
 Descriptions.Jimbo.Jokers[mod.Jokers.SPLASH] = "{{REG_Retrigger}} Scores all cards in hand upon entering an {{ColorYellorange}}hostile{{CR}} room"
-Descriptions.Jimbo.Jokers[mod.Jokers.BLUE_JOKER] = "{{Tears}} {{ColorChips}}+0.2{{CR}} Tears per remaining card in your deck#{{Blank}} {{ColorGray}}(Currently {{ColorChips}}+[[VALUE1]]{{ColorGray}} Tears)"
-Descriptions.Jimbo.Jokers[mod.Jokers.SIXTH_SENSE] = "{{Card}} If the {{ColorYellorange}}First{{CR}} card played in a {{ColorYellorange}}Blind{{CR}} is a {{ColorYellorange}}6{{CR}} and hits an enemy, destroy it and spawn a {{ColorBlue}}Spectral Pack{{CR}} #{{Collectible3}} 1 every 4 tears shot gains homing"
+Descriptions.Jimbo.Jokers[mod.Jokers.BLUE_JOKER] = "{{Tears}} {{ColorChips}}+0.15{{CR}} Tears per remaining card in your deck#{{Blank}} {{ColorGray}}(Currently {{ColorChips}}+[[VALUE1]]{{ColorGray}} Tears)"
+Descriptions.Jimbo.Jokers[mod.Jokers.SIXTH_SENSE] = "{{REG_Spectral}} If the {{ColorYellorange}}First{{CR}} card played in a {{ColorYellorange}}Blind{{CR}} is a {{ColorYellorange}}6{{CR}} and hits an enemy, destroy it and spawn a {{ColorBlue}}Spectral Pack{{CR}} #{{Collectible3}} 1 every 4 tears shot gains homing"
 Descriptions.Jimbo.Jokers[mod.Jokers.CONSTELLATION] = "{{Damage}} Gains {{ColorMult}}+0.05X{{CR}} Damage Mult. every time a {{ColorCyan}}Planet Card{{CR}} is used while holding it #{{Blank}} {{ColorGray}}(Currently {{ColorMult}}X[[VALUE1]]{{ColorGray}} Damage Mult.) #{{Collectible}} {{ColorYellorange}}Star-related{{CR}} items held give {{ColorMult}}X1.1{{CR}} Damage Mult."
 Descriptions.Jimbo.Jokers[mod.Jokers.HIKER] = "{{Coin}} Cards gain a {{ColorYellorange}}permanent{{CR}} {{ColorMult}}+0.02{{CR}} Tears upgrade when scored"
 Descriptions.Jimbo.Jokers[mod.Jokers.FACELESS] = "{{Coin}} {{ColorYellorange}}+3 Coins{{CR}} when discarding at least {{ColorYellorange}}2{{CR}} {{REG_Face}} Face cards at once #If only {{ColorYellorange}}champion{{CR}} enemies are left in the room, they are {{ColorYellorange}}killed instantly{{CR}} #{{IND}}{{REG_Face}} Enemies killed spawn a {{ColorYellorange}}vanishing penny"
@@ -467,7 +467,7 @@ Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_HYPERCOAGULATION] = "#{{
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_CANDY_HEART] = "#{{REG_Jimbo}} {{REG_Heart}}{{ColorMult}}Heart{{CR}}cards added gain a random {{ColorYellorange}}Enhancement{{CR}} if they didn't have one"
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_WHORE_OF_BABYLON] = "#{{REG_Jimbo}} Damage given by {{REG_Mult}} {{ColorYellorange}}Mult enhancements{{CR}} are doubled"
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_ABADDON] = "#{{REG_Jimbo}} {{REG_Spade}}{{ColorSpades}}Spade{{CR}} cards deal 10% more damage"
-Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_ABADDON] = "#{{REG_Jimbo}} Items on sale cost {{ColorYellorange}}1 {{Coin}} less #!!! {{ColorGray}}Normal effect does not activte"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_STEAM_SALE] = "#{{REG_Jimbo}} Items on sale cost {{ColorYellorange}}1 {{Coin}} coin less #!!! {{ColorGray}}Normal effect does not activte"
 
 
 mod.EVIL_ITEMS = {CollectibleType.COLLECTIBLE_ABADDON,
@@ -1148,6 +1148,16 @@ if EID then
 
     EID:addCollectible(mod.Vouchers.TarotMerch, "{{Card}} Every pickup has a {{ColorMint}}[[CHANCE]] in 15 Chance{{CR}} to be replaced with a random {{ColorPink}}Tarot Card", "Tarot Merchant", FileLanguage)
     EID:addCollectible(mod.Vouchers.TarotTycoon, "{{Card}} Every pickup has an additional {{ColorMint}}[[CHANCE]] in 10 Chance{{CR}} to be replaced with a random {{ColorPink}}Tarot Card", "Tarot Tycoon", FileLanguage)
+
+
+    Descriptions.PackSynergies = {}
+    Descriptions.PackSynergies[mod.Vouchers.Crystal] = "#{{Collectible"..mod.Vouchers.Crystal.."}} {{ColorYellorange}}+1{{CR}} available option"
+    Descriptions.PackSynergies[mod.Vouchers.Omen] = "#{{Collectible"..mod.Vouchers.Omen.."}} May contain {{ColorBlue}}Spectral cards{{CR}}"
+    Descriptions.PackSynergies[mod.Vouchers.Telescope] = "#{{Collectible"..mod.Vouchers.Telescope.."}} If options are skipped, spawns 2 additional {{ColorCyan}}Planet cards"
+    Descriptions.PackSynergies[mod.Vouchers.MagicTrick] = "#{{Collectible"..mod.Vouchers.MagicTrick.."}} When a choice is taken, {{ColorMint}}[[CHANCE]] in 4 Chance{{CR}} to allow an additional one"
+    Descriptions.PackSynergies[mod.Vouchers.Illusion] = "#{{Collectible"..mod.Vouchers.Illusion.."}} {{ColorMint}}[[CHANCE]] in 2 Chance{{CR}} to have {{ColorYellorange}}+1{{CR}} available option #{{Collectible"..mod.Vouchers.Illusion.."}} {{ColorMint}}[[CHANCE]] in 5 Chance{{CR}} to allow an extra choice"
+
+
 end
 
 
@@ -1157,6 +1167,13 @@ end
 -------------------------------------
 
 if EID then
+
+EID:addCard(mod.Packs.ARCANA, "{{Card}} Allows to choose 1 out of 3 {{ColorPink}}Tarot cards{{CR}} to get immediantly", "Arcana Pack", FileLanguage)
+EID:addCard(mod.Packs.CELESTIAL, "{{REG_Planet}} Allows to choose 1 out of 3 {{ColorCyan}}Planet cards{{CR}} to get immediantly", "Celestial Pack", FileLanguage)
+EID:addCard(mod.Packs.SPECTRAL, "{{REG_Spectral}} Allows to choose 1 out of 3 {{ColorBlue}}Spectral cards{{CR}} to get immediantly", "Spectral Pack", FileLanguage)
+EID:addCard(mod.Packs.BUFFON, "{{REG_Joker}} Allows to choose 1 out of 3 {{ColorYellorange}}Jokers{{CR}} to get immediantly #!!! {{ColorGray}}(Does not require space)", "Buffon Pack", FileLanguage)
+EID:addCard(mod.Packs.STANDARD, "{{REG_HSize}} Allows to choose 1 out of 3 {{ColorYellorange}}Playing cards{{CR}} to get immediantly", "Standard Pack", FileLanguage)
+
 
 EID:addCollectible(mod.Collectibles.BALOON_PUPPY, "Familiar that reflects enemy shots and deals 5 contact damage per second #After taking enough hits, explodes dealing {{ColorYellorange}}3 x Isaac's Damage{{CR}} to nerby enemies #If Isaac takes damage, starts chasing down enemies", "Baloon Puppy",FileLanguage)		
 EID:addCollectible(mod.Collectibles.BANANA, "Aim and shoot a devastating banana that creates a {{Collectible483}} Mama Mega! explosion upon landing #!!! Upon use becomes {{Collectible"..mod.Collectibles.EMPTY_BANANA.."}} Empty Banana", "Banana",FileLanguage)		
@@ -1174,6 +1191,7 @@ EID:addCollectible(mod.Collectibles.UMBRELLA, "On use Isaac opens an umbrella, c
 for i = 1, Balatro_Expansion.TastyCandyNum do --puts every candy stage
 
     EID:addTrinket(Balatro_Expansion.Trinkets.TASTY_CANDY[i], "{{Beggar}} Guarantees a payout when interacting with any beggar #!!! Uses left: {{ColorYellorange}}"..i, "Tasty Candy", FileLanguage)		
+    EID:addGoldenTrinketMetadataAdditive(mod.Trinkets.TASTY_CANDY[i], "{{ColorGold}}20% chance to restore an use on room clear", nil, nil, FileLanguage)
 end
 
 
@@ -1182,9 +1200,13 @@ EID:addTrinket(mod.Trinkets.PENNY_SEEDS, "{{Coin}} Gain 1 coin per 5 coin isaac 
 EID:addCollectible(mod.Collectibles.THE_HAND, "{{Card}} Up to 5 cards or runes can be stored in the active item #!!! Cards in excess will be destroyed #{{Chargeable}} Holding the item uses the cards stored in the order shown # Press [DROP] key to cycle the held cards # Also collects pickups and deals damage to enemies hit", "The Hand",FileLanguage)		
 EID:addCard(mod.JIMBO_SOUL, "{{Timer}} For the current Room, balances Isaac's Damage and Tears stats #{{Blank}} {{ColorGray}}(Effect lasts longer if used multiple times)", "Soul of Jimbo", FileLanguage)
 EID:addTrinket(mod.Jokers.CHAOS_THEORY, "{{Collectible402}} All pickups spawned are randomised", "Chaos Theory", FileLanguage)		
-EID:addCollectible(mod.Collectibles.ERIS, "{{Freezing}} Isaac gains a freezing aura that progressively slows enemies #After being slowed enough, enemies take 3% of their remaining health worth of damage per tick {{ColorGray}}(Min. 0.1) #{{IND}}{{Freezing}} Enemies killed while in this state are become frozen statues", "Eris",FileLanguage)		
+EID:addCollectible(mod.Collectibles.ERIS, "{{Freezing}} Isaac gains a freezing aura that progressively slows enemies #After being slowed enough, non-boss enemies take 4% of their remaining health worth of damage per tick {{ColorGray}}(Min. 0.1) #{{IND}}{{Freezing}} Enemies killed while in this state are become frozen statues", "Eris",FileLanguage)		
 EID:addCollectible(mod.Collectibles.PLANET_X, "{{Planetarium}} Gain the effect of a random Planetarium item every room clear", "Planet X",FileLanguage)		
 EID:addCollectible(mod.Collectibles.CERES, "Orbiting familiar that blocks projectiles and deals 1 contact damage per second #When hit, creates asteroid bits that can block up to 2 shots and deal twice Isaac's damage", "Ceres",FileLanguage)		
+
+EID:addGoldenTrinketMetadataAdditive(mod.Trinkets.PENNY_SEEDS, "{{ColorGold}}Coins spawned can be of any kind #{{ColorGold}}5% chance for trinkets spawned to be golden #{{IND}}!!! {{ColorGray}}(Golden variants need to be unlocked to appear)", nil, nil, FileLanguage)
+EID:addGoldenTrinketMetadataAdditive(mod.Jokers.CHAOS_THEORY, "{{ColorGold}}Also gives the {{Collectible402}} Chaos effect", nil, nil, FileLanguage)
+
 
 
 Descriptions.ItemItemSynergies = {}

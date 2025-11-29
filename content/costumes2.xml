@@ -13,12 +13,12 @@
     <costume id="45" anm2path="heirloom_costume.anm2" type="passive" priority="10"/> 
 
     <costume id="47" anm2path="planet_x_costume.anm2" type="passive" priority="10"/> 
-    <costume id="48" anm2path="eris_costume.anm2" type="passive" priority="50" forceBodyColor="true" forceHeadColor="true" overwriteColor="true" skinColor="0" /> 
+    <costume id="48" anm2path="eris_costume.anm2" type="passive" priority="20" forceBodyColor="true" forceHeadColor="true" overwriteColor="true" skinColor="0" /> 
 
-    <costume id="0" anm2path="hand_costume.anm2" type="active" priority="10"/> 
-    <costume id="1" anm2path="double_hand_costume.anm2" type="none" priority="15"/> 
+    <costume id="0" anm2path="hand_costume.anm2" type="active" priority="0"/> 
+    <costume id="1" anm2path="double_hand_costume.anm2" type="none" priority="5"/> 
 
-    <costume id="2" anm2path="hand_schoolbag_costume.anm2" type="none" priority="11"/> 
-    <costume id="3" anm2path="double_hand_schoolbag_costume.anm2" type="none" priority="16"/> 
+    <costume id="2" anm2path="hand_schoolbag_costume.anm2" type="none" priority="1"/> 
+    <costume id="3" anm2path="double_hand_schoolbag_costume.anm2" type="none" priority="6"/> 
 
 </costumes>

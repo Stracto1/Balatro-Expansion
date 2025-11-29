@@ -3807,11 +3807,12 @@ local function JimboAddTrinket(_, Player, Trinket, _, StopEvaluation)
 
         local LastTouched = mod.Saved.Player[PIndex].LastTouchedTrinket
     
-        if (Trinket & ~mod.EditionFlag.ALL) ~= (LastTouched & ~mod.EditionFlag.ALL) then
+        if (Trinket & ~mod.EditionFlag.ALL) ~= (LastTouched & ~mod.EditionFlag.ALL)
+           or LastTouched == 0 then
             
             TrueSubType = Trinket
         else
-            TrueSubType = mod.Saved.Player[PIndex].LastTouchedTrinket
+            TrueSubType = LastTouched
         end
     
     else

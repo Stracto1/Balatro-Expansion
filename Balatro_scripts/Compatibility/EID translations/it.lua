@@ -237,8 +237,8 @@ Descriptions.Jimbo.Jokers[mod.Jokers.BURGLAR] = "!!! Fissa gli Hp a {{ColorRed}}
 Descriptions.Jimbo.Jokers[mod.Jokers.BLACKBOARD] = "{{Damage}} {{ColorMult}}X2{{CR}} Molt. di Danno se tutte le carte in mano sono di {{ColorSpade}}Picche{{CR}} o {{ColorChips}}Fiori"
 Descriptions.Jimbo.Jokers[mod.Jokers.RUNNER] = "{{Tears}} Ottiene {{ColorChips}}+1.5{{CR}} Lacrime entrando in una stanza ostile {{ColorYellorange}}inesplorata{{CR}} tenendo una {{ColorYellorange}}Scala{{CR}} #{{Tears}} Gives {{ColorChips}}+Lacrime{{CR}} equal to double your {{Speed}} Speed stat#{{Blank}}(Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}} Fiches) #{{Speed}} +0.1 Speed"
 Descriptions.Jimbo.Jokers[mod.Jokers.SPLASH] = "{{REG_Retrigger}} Attiva le carte tenute in mano entrando in una stanza {{ColorYellorange}}ostile"
-Descriptions.Jimbo.Jokers[mod.Jokers.BLUE_JOKER] = "{{Tears}} {{ColorChips}}+0.2{{CR}} Lacrime per carta rimenente nel mazzo #{{Blank}} {{ColorGray}}(Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}} Lacrime)"
-Descriptions.Jimbo.Jokers[mod.Jokers.SIXTH_SENSE] = "{{Card}} Se la {{ColorYellorange}}prima{{CR}} carta attivata di un {{ColorYellorange}}Buio{{CR}} \232 un {{ColorYellorange}}6{{CR}} e colpisce un nemico, si distrugge e crea una {{ColorBlue}}Busta Spettrale{{CR}} #{{Collectible3}} 1 lacrima ogni 4 ottiene homing"
+Descriptions.Jimbo.Jokers[mod.Jokers.BLUE_JOKER] = "{{Tears}} {{ColorChips}}+0.15{{CR}} Lacrime per carta rimenente nel mazzo #{{Blank}} {{ColorGray}}(Attualmente {{ColorChips}}+[[VALUE1]]{{ColorGray}} Lacrime)"
+Descriptions.Jimbo.Jokers[mod.Jokers.SIXTH_SENSE] = "{{REG_Spectral}} Se la {{ColorYellorange}}prima{{CR}} carta attivata di un {{ColorYellorange}}Buio{{CR}} \232 un {{ColorYellorange}}6{{CR}} e colpisce un nemico, si distrugge e crea una {{ColorBlue}}Busta Spettrale{{CR}} #{{Collectible3}} 1 lacrima ogni 4 ottiene homing"
 Descriptions.Jimbo.Jokers[mod.Jokers.CONSTELLATION] = "{{Damage}} Ottiene {{ColorMult}}+0.05X{{CR}} Molt. di Danno ogni {{ColorCyan}}Carta Pianeta{{CR}} uasta #{{Blank}} {{ColorGray}}(Attualmente {{ColorMult}}X[[VALUE1]]{{ColorGray}} Molt. di Danno) #{{Collectible}} Gli oggetti {{ColorYellorange}}Stellari{{CR}} avuti danno {{ColorMult}}X1.1{{CR}} Molt. di Danno"
 Descriptions.Jimbo.Jokers[mod.Jokers.HIKER] = "{{Coin}} Le carte ottengono {{ColorMult}}+0.02{{CR}} Lacrime {{ColorYellorange}}permanenti{{CR}} quando attivate"
 Descriptions.Jimbo.Jokers[mod.Jokers.FACELESS] = "{{Coin}} {{ColorYellorange}}+3 Monete{{CR}} scartando almeno {{ColorYellorange}}2{{CR}} {{REG_Face}} Figure insieme #Se solo nemici {{ColorYellorange}}champion{{CR}} sono presenti, vengono tutti {{ColorYellorange}}uccisi istantaneamente{{CR}} #{{IND}}{{Coin}} I nemici uccisi creano una {{ColorYellorange}}moneta temporanea"
@@ -430,6 +430,7 @@ Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_HYPERCOAGULATION] = "#{{
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_CANDY_HEART] = "#{{REG_Jimbo}} Le carte di {{REG_Heart}} {{ColorMult}}Cuori{{CR}} aggiunte ottengono un {{ColorYellorange}}Potenziamento{{CR}} casuale se non avevano uno"
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_WHORE_OF_BABYLON] = "#{{REG_Jimbo}} Il danno dato dai {{REG_Mult}} {{ColorYellorange}}Potensiamenti Molt{{CR}} \232 raddoppiato"
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_ABADDON] = "#{{REG_Jimbo}} Le carte di {{REG_Spade}} {{ColorSpade}}Picche{{CR}} infliggono 10% di danno aggiuntivo"
+Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_STEAM_SALE] = "#{{REG_Jimbo}} Gli oggetti in vendita costano {{ColorYellorange}}1 {{Coin}} moneta in meno #!!! {{ColorGray}}Effetto base disabilitato"
 
 
 mod.EVIL_ITEMS = {CollectibleType.COLLECTIBLE_ABADDON,
@@ -1108,11 +1109,20 @@ if EID then
     EID:addCollectible(mod.Vouchers.MoneySeed, "{{REG_Jimbo}} Interessi massimi aumentati a {{ColorYellorange}}10{{CR}} {{Coin}} Monete", "Seme del Successo", FileLanguage)
     EID:addCollectible(mod.Vouchers.MoneyTree, "{{REG_Jimbo}} Interessi massimi aumentati a {{ColorYellorange}}20{{CR}} {{Coin}} Monete", "Albero di Soldi", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.PlanetMerch, "{{REG_Planet}} Ogni pickup ha {{ColorMint}}[[CHANCE]] probabilit\224 su 15{{CR}} di essere rimpiazzato con una {{REG_Planet}} {{ColorCyan}}Carta Pianeta{{CR}} casuale", "Mercante di Pieneti", FileLanguage)
-    EID:addCollectible(mod.Vouchers.PlanetTycoon, "{{REG_Planet}} Ogni pickup ha {{ColorMint}}[[CHANCE]] probabilit\224 su 10{{CR}} aggiuntiva di essere rimpiazzato con una {{REG_Planet}} {{ColorCyan}}Carta Pianeta{{CR}} casuale", "Magnate di Pianeti", FileLanguage)
+    EID:addCollectible(mod.Vouchers.PlanetMerch, "{{REG_Planet}} Ogni pickup ha {{ColorMint}}[[CHANCE]] probabilit\224 su 15{{CR}} di essere rimpiazzato con una {{ColorCyan}}Carta Pianeta{{CR}} casuale", "Mercante di Pieneti", FileLanguage)
+    EID:addCollectible(mod.Vouchers.PlanetTycoon, "{{REG_Planet}} Ogni pickup ha {{ColorMint}}[[CHANCE]] probabilit\224 su 10{{CR}} aggiuntiva di essere rimpiazzato con una {{ColorCyan}}Carta Pianeta{{CR}} casuale", "Magnate di Pianeti", FileLanguage)
 
-    EID:addCollectible(mod.Vouchers.TarotMerch, "{{Card}} Ogni pickup ha {{ColorMint}}[[CHANCE]] probabilit\224 su 15{{CR}} di essere rimpiazzato con un {{Card}} {{ColorPink}}Tarocco{{CR}} casuale", "Mercante di Tarocchi", FileLanguage)
-    EID:addCollectible(mod.Vouchers.TarotTycoon, "{{Card}} Ogni pickup ha {{ColorMint}}[[CHANCE]] probabilit\224 su 10{{CR}} aggiuntiva di essere rimpiazzato con un {{Card}} {{ColorPink}}Tarot Card{{CR}} casuale", "Magnate di Tarocchi", FileLanguage)
+    EID:addCollectible(mod.Vouchers.TarotMerch, "{{Card}} Ogni pickup ha {{ColorMint}}[[CHANCE]] probabilit\224 su 15{{CR}} di essere rimpiazzato con un {{ColorPink}}Tarocco{{CR}} casuale", "Mercante di Tarocchi", FileLanguage)
+    EID:addCollectible(mod.Vouchers.TarotTycoon, "{{Card}} Ogni pickup ha {{ColorMint}}[[CHANCE]] probabilit\224 su 10{{CR}} aggiuntiva di essere rimpiazzato con un {{ColorPink}}Tarot Card{{CR}} casuale", "Magnate di Tarocchi", FileLanguage)
+
+
+    Descriptions.PackSynergies = {}
+    Descriptions.PackSynergies[mod.Vouchers.Crystal] = "#{{Collectible"..mod.Vouchers.Crystal.."}} {{ColorYellorange}}+1{{CR}} opzione disponibile"
+    Descriptions.PackSynergies[mod.Vouchers.Omen] = "#{{Collectible"..mod.Vouchers.Omen.."}} Pu\242 contenere {{ColorBlue}}carte Spettrali{{CR}}"
+    Descriptions.PackSynergies[mod.Vouchers.Telescope] = "#{{Collectible"..mod.Vouchers.Telescope.."}} Se le opzioni vengono saltate, crea 2 {{ColorCyan}}Carte Pianeta{{CR}} aggiuntive"
+    Descriptions.PackSynergies[mod.Vouchers.MagicTrick] = "#{{Collectible"..mod.Vouchers.MagicTrick.."}} Dopo aver preso una scelta, {{ColorMint}}[[CHANCE]] probabilit\225 su 4{{CR}} di permetterne una aggiuntiva"
+    Descriptions.PackSynergies[mod.Vouchers.Illusion] = "#{{Collectible"..mod.Vouchers.Illusion.."}} {{ColorMint}}[[CHANCE]] probabilit\225 su 2{{CR}} di avere {{ColorYellorange}}+1{{CR}} opzione disponibile #{{Collectible"..mod.Vouchers.Illusion.."}} {{ColorMint}}[[CHANCE]] probabilit\225 su 5{{CR}} di permettere un scelta aggiuntiva"
+
 end
 
 
@@ -1122,6 +1132,13 @@ end
 -------------------------------------
 
 if EID then
+
+EID:addCard(mod.Packs.ARCANA, "{{Card}} Permette di scegliere 1 {{ColorPink}}Tarocco{{CR}} su 3 da ottenere immediatamente", "Busta Arcana", FileLanguage)
+EID:addCard(mod.Packs.CELESTIAL, "{{REG_Planet}} Permette di scegliere 1 {{ColorCyan}}carta Pianeta{{CR}} su 3 da ottenere immediatamente", "Busta Celestiale", FileLanguage)
+EID:addCard(mod.Packs.SPECTRAL, "{{REG_Spectral}} Permette di scegliere 1 {{ColorBlue}}carta Spettrale{{CR}} su 2 da ottenere immediatamente", "Busta Spettrale", FileLanguage)
+EID:addCard(mod.Packs.BUFFON, "{{REG_Joker}} Permette di scegliere 1 {{ColorYellorange}}Jolly{{CR}} su 3 da ottenere immediatamente #!!! {{ColorGray}}(Non richiede spazio)", "Busta Buffone", FileLanguage)
+EID:addCard(mod.Packs.STANDARD, "{{REG_HSize}} Permette di scegliere 1 {{ColorYellorange}}carta da gioco{{CR}} su 3 da aggiungere al mazzo", "Busta Standard", FileLanguage)
+
 
 EID:addCollectible(mod.Collectibles.BALOON_PUPPY, "Famiglio che riflette i proiettili nemici e infligge 5 danni da contatto al secondo #Dopo aver subito abbastanza danno, esplode infliggendo {{ColorTellorange}}3 x Danno di Isaac{{CR}} ai nemici vicini #Inizia a inseguire i nemici se Isaac prende danno", "Cucciolo Pallone",FileLanguage)		
 EID:addCollectible(mod.Collectibles.BANANA, "Mira e spara una banana devastante che crea un'esplosione {{Collectible483}} Mama Mega! all'atterraggio #!!! Diventa {{Collectible"..mod.Collectibles.EMPTY_BANANA.."}} Buccia di Banana dopo l'uso", "Banana",FileLanguage)		
@@ -1139,6 +1156,7 @@ EID:addCollectible(mod.Collectibles.UMBRELLA, "All'uso Isaac apre un ombrello, f
 for i = 1, Balatro_Expansion.TastyCandyNum do --puts every candy stage
 
     EID:addTrinket(Balatro_Expansion.Trinkets.TASTY_CANDY[i], "{{Beggar}} Garantisce un premio interagendo con un beggar qualunque #!!! Usi rimasti: {{ColorYellorange}}"..i, "Caramela Gustosa", FileLanguage)		
+    EID:addGoldenTrinketMetadataAdditive(mod.Trinkets.TASTY_CANDY[i], "{{ColorGold}}20% di probabilità di ripristinare un uso completando una stanza", nil, nil, FileLanguage)
 end
 
 
@@ -1147,9 +1165,12 @@ EID:addTrinket(mod.Trinkets.PENNY_SEEDS, "{{Coin}} Crea una moneta per ogni 5 mo
 EID:addCollectible(mod.Collectibles.THE_HAND, "{{Card}} Up to 5 cards or runes can be stored in the active item #!!! Cards in excess will be destroyed #{{Chargeable}} Holding the item uses the cards stored in the order shown # Press [DROP] key to cycle the held cards # Also collects pickups and deals Danno to enemies hit", "The Hand",FileLanguage)		
 EID:addCard(mod.JIMBO_SOUL, "{{Timer}} Per una stanza, bilancia il danno e le lacrime di Isaac #La durata aumenta se usata pi\242 volte", "Soul of Jimbo", FileLanguage)
 EID:addTrinket(mod.Jokers.CHAOS_THEORY, "{{Collectible402}} Tutti i pickup creati sono casuali", "Chaos Theory", FileLanguage)		
-EID:addCollectible(mod.Collectibles.ERIS, "{{Freezing}} Isaac ottiene un'aura congelante che rallenta progressivamente i nemici #Se rallentati abbastanza, I nemici subiscono danno ogni tick uguale al 3% dei loro HP attuali {{ColorGray}}(Min. 0.1) #{{IND}}{{Freezing}} I nemici uccisi in questo stato vengono congelati", "Erice",FileLanguage)		
+EID:addCollectible(mod.Collectibles.ERIS, "{{Freezing}} Isaac ottiene un'aura congelante che rallenta progressivamente i nemici #Se rallentati abbastanza, I nemici subiscono danno ogni tick pari al 4% dei loro HP attuali {{ColorGray}}(Min. 0.1) #{{IND}}{{Freezing}} I nemici uccisi in questo stato vengono congelati", "Erice",FileLanguage)		
 EID:addCollectible(mod.Collectibles.PLANET_X, "{{Planetarium}} Ottieni l'effetto di un oggetto del planetario casuale ogni stanza completata", "Pianeta X",FileLanguage)		
 EID:addCollectible(mod.Collectibles.CERES, "Famiglio orbitale che blocca i prioettili nemici e infligge 1 danno da contatto ogni secondo #Quando colpito, crea dei frammenti di asteroide che bloccano fino a 2 proiettili nemici e infligge 2 x il danno di Isaac", "Cerere",FileLanguage)		
+
+EID:addGoldenTrinketMetadataAdditive(mod.Trinkets.PENNY_SEEDS, "{{ColorGold}}Le monete create posso essere di ogni tipo #{{ColorGold}}5% di probabilità per i trinket creati di essere dorati #{{IND}}!!! {{ColorGray}}(solo se sbloccati)", nil, nil, FileLanguage)
+EID:addGoldenTrinketMetadataAdditive(mod.Jokers.CHAOS_THEORY, "{{ColorGold}}Ottieni anche l'effetto di {{Collectible402}} Chaos", nil, nil, FileLanguage)
 
 
 Descriptions.ItemItemSynergies = {}

@@ -84,9 +84,6 @@ local HAND_RENDERING_HEIGHT = 30 --in screen coordinates
 
 local BASE_BUBBLE_HEIGHT = 11
 local CASHOUT_STRING_X_OFFSET = -39
-local BALATRO_BASE_LINE_HEIGHT = mod.Fonts.Balatro:GetBaselineHeight() - 2
-local BALATRO_LINE_HEIGHT = mod.Fonts.Balatro:GetLineHeight() - 2
-
 
 
 local CardHUDWidth = 13
@@ -309,7 +306,7 @@ function mod:RenderBalatroStyle(String, Position, Params, StartFrame, Scale, Kco
                     Lines[NumLines] = {Offset = Vector.Zero}
 
                     Offset.X = 0
-                    Offset.Y = Offset.Y + mod.Fonts.Balatro:GetLineHeight()*Scale.Y
+                    Offset.Y = Offset.Y + mod.BALATRO_LINE_HEIGHT*Scale.Y
                     StartFrame = StartFrame + string.len(Word)*2
                 end
 
@@ -338,7 +335,7 @@ function mod:RenderBalatroStyle(String, Position, Params, StartFrame, Scale, Kco
                     Lines[NumLines] = {Offset = Vector.Zero}
 
                     Offset.X = 0
-                    Offset.Y = Offset.Y + mod.Fonts.Balatro:GetLineHeight()*Scale.Y*1.5
+                    Offset.Y = Offset.Y + mod.BALATRO_BASE_LINE_HEIGHT*Scale.Y*1.5
                     StartFrame = StartFrame + string.len(Word)*2
 
                     if string.len(After) > 0 then
@@ -452,13 +449,13 @@ function mod:RenderBalatroStyle(String, Position, Params, StartFrame, Scale, Kco
         end
 
 
-        Position.Y = Position.Y - ((RenderedLines - 1) * BALATRO_LINE_HEIGHT*0.75* Scale.Y)
+        Position.Y = Position.Y - ((RenderedLines - 1) * mod.BALATRO_LINE_HEIGHT*0.75* Scale.Y)
 
         for i = 1, RenderedLines do
             
             mod:RenderBalatroStyle(Lines[i], Position, Params, StartFrame, Scale, Kcolor, BoxWidth, Sound)
 
-            Position.Y = Position.Y + BALATRO_LINE_HEIGHT*1.5 * Scale.Y
+            Position.Y = Position.Y + (mod.BALATRO_LINE_HEIGHT + 2)* Scale.Y
 
             StartFrame = StartFrame + 2*string.len(Lines[i])
         end
@@ -550,11 +547,11 @@ function mod:RenderBalatroStyle(String, Position, Params, StartFrame, Scale, Kco
 
             X_Offset = X_Offset - CharWidth * EnlargedScale/2 --* Scale.X
 
-            --Y_Offset = Y_Offset - BALATRO_BASE_LINE_HEIGHT*BaseScale.Y * EnlargedScale/2 --*Scale.Y
+            --Y_Offset = Y_Offset - mod.BALATRO_BASE_LINE_HEIGHT*BaseScale.Y * EnlargedScale/2 --*Scale.Y
         end
 
 
-        Y_Offset = Y_Offset - (BALATRO_BASE_LINE_HEIGHT-3)*Scale.Y --centers the letter height wise
+        Y_Offset = Y_Offset - (mod.BALATRO_BASE_LINE_HEIGHT-3)*Scale.Y --centers the letter height wise
 
         mod.Fonts.Balatro:DrawStringScaled(c,
                                            XPos + X_Offset,
@@ -629,11 +626,11 @@ function mod:RenderGenericButton(Position, Scale, BaseColor, Pressed, Text, Text
         
         Scale.X = math.max(Scale.X, mod.Fonts.Balatro:GetStringWidth(Text)*TextScale.X + 2)
 
-        local TextHeight = BALATRO_BASE_LINE_HEIGHT*TextScale.Y
+        local TextHeight = mod.BALATRO_BASE_LINE_HEIGHT*TextScale.Y
 
         if SubText then
             
-            TextHeight = TextHeight + BALATRO_LINE_HEIGHT*0.75 + BALATRO_BASE_LINE_HEIGHT*0.5
+            TextHeight = TextHeight + mod.BALATRO_LINE_HEIGHT*0.75 + mod.BALATRO_BASE_LINE_HEIGHT*0.5
         end
 
         Scale.Y = math.max(Scale.Y, TextHeight + 4)
@@ -745,13 +742,13 @@ function mod:RenderGenericButton(Position, Scale, BaseColor, Pressed, Text, Text
         local TextPos = Position + GenericButtonSprite:GetNullFrame("Text Position"):GetPos()
 
         if SubText then
-            TextPos.Y = TextPos.Y - BALATRO_LINE_HEIGHT*0.375
+            TextPos.Y = TextPos.Y - mod.BALATRO_LINE_HEIGHT*0.375
         end
 
         mod:RenderBalatroStyle(Text, TextPos, TextParams, 0, TextScale, TextKcolor, Scale.X - 2)
 
         if SubText then
-            TextPos.Y = TextPos.Y + BALATRO_LINE_HEIGHT*0.75
+            TextPos.Y = TextPos.Y + mod.BALATRO_LINE_HEIGHT*0.75
 
             mod:RenderBalatroStyle(SubText, TextPos, TextParams, 0, Vector.One * 0.5, TextKcolor, Scale.X - 2)
         end
@@ -1494,7 +1491,7 @@ local function JimboInventoryHUD(Player, PIndex)
 
         CardFrame:SetFrame(HUD_FRAME.JokerFrame)
 
-        CardFrame:Render(FrameRenderPos)
+        CardFrame:Render(FrameRenderPos + Vector(0, 8)) --TODO maybe fix
     end
 end
 --mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, JimboInventoryHUD)
@@ -1947,7 +1944,7 @@ local function TJimbosLeftSideHUD(Player, PIndex)
             
             local ButtonPos = NullFrame:GetPos() + BlindInfoOffset
 
-            ButtonPos.Y = ButtonPos.Y - 20 - BALATRO_BASE_LINE_HEIGHT*Scale.Y*0.5*math.ceil(NumLines/2) - BALATRO_LINE_HEIGHT*Scale.Y*math.max(NumLines-1, 1)*0.75
+            ButtonPos.Y = ButtonPos.Y - 20 - mod.BALATRO_BASE_LINE_HEIGHT*Scale.Y*0.5*math.ceil(NumLines/2) - mod.BALATRO_LINE_HEIGHT*Scale.Y*math.max(NumLines-1, 1)*0.75
 
             local Pressed = Input.IsActionPressed(ButtonAction.ACTION_ITEM, Player.ControllerIndex)
                             or (mod.Saved.NumBossRerolls > 0 and not Player:HasCollectible(mod.Vouchers.Retcon))
@@ -2140,7 +2137,7 @@ local function TJimbosLeftSideHUD(Player, PIndex)
             
             local ButtonPos = NullFrame:GetPos() + PreviousBlindInfoOffset
 
-            ButtonPos.Y = ButtonPos.Y - 20 - BALATRO_BASE_LINE_HEIGHT*Scale.Y*0.5*math.ceil(NumLines/2) - BALATRO_LINE_HEIGHT*Scale.Y*math.max(NumLines-1, 1)*0.75
+            ButtonPos.Y = ButtonPos.Y - 20 - mod.BALATRO_BASE_LINE_HEIGHT*Scale.Y*0.5*math.ceil(NumLines/2) - mod.BALATRO_LINE_HEIGHT*Scale.Y*math.max(NumLines-1, 1)*0.75
 
             local Pressed = true
             local TextScale = Vector.One * 0.5
@@ -3015,9 +3012,12 @@ local function TJimboRunInfo(Player, PIndex)
 
         local CoveredSeen = false
 
-        --only counts the ramaining cards (didn't want to create the full deck option cause its not as useful)
         local CardCount = {Total = 0,
-                           Stone = 0, --separate counter for stone cards
+                           Stone = {[mod.Suits.Spade] = 0,
+                                    [mod.Suits.Heart] = 0,
+                                    [mod.Suits.Club] = 0,
+                                    [mod.Suits.Diamond] = 0
+                                    }, --separate counter for stone cards
                            [mod.Suits.Spade] = {},
                            [mod.Suits.Heart] = {},
                            [mod.Suits.Club] = {},
@@ -3059,14 +3059,14 @@ local function TJimboRunInfo(Player, PIndex)
         CardCount.Total = CardCount.Total + 1
 
         if Card.Enhancement == mod.Enhancement.STONE then
-            CardCount.Stone = CardCount.Stone + 1
+            CardCount.Stone[Card.Suit] = CardCount.Stone[Card.Suit] + 1
         
         else
-            TotalSuitCount[Card.Suit] = TotalSuitCount[Card.Suit] + 1
-            TotalRankCount[Card.Value] = TotalRankCount[Card.Value] + 1
-
             CardCount[Card.Suit][Card.Value] = CardCount[Card.Suit][Card.Value] or 0
             CardCount[Card.Suit][Card.Value] = CardCount[Card.Suit][Card.Value] + 1
+
+            TotalRankCount[Card.Value] = TotalRankCount[Card.Value] + 1
+            TotalSuitCount[Card.Suit] = TotalSuitCount[Card.Suit] + 1
         end
         
         ::CONTINUE::
@@ -3196,7 +3196,7 @@ local function TJimboRunInfo(Player, PIndex)
 
         for Suit = 1, mod.Suits.Diamond do
 
-        local SuitNum = TotalSuitCount[Suit]
+        local SuitNum = TotalSuitCount[Suit] + CardCount.Stone[Suit]
 
         RunInfoHUD:SetFrame(Suit)
         local Layer = RunInfoHUD:GetNullFrame("Overlay Positions 1")
@@ -3937,7 +3937,7 @@ local function CashoutBubbleRender(_,Effect, Offset)
     CashoutBubbleSprite.Offset = Vector.Zero
     CashoutBubbleSprite:Render(PlatePos)
 
-    local MiddleScale = (mod:Clamp(NumStrings-1, 1, 5) * BALATRO_BASE_LINE_HEIGHT * 1.5)/10 --maximum of 4 strings at a time
+    local MiddleScale = (mod:Clamp(NumStrings-1, 1, 5) * mod.BALATRO_BASE_LINE_HEIGHT * 1.5)/10 --maximum of 4 strings at a time
 
     local TopPos = PlatePos - Vector(0, BASE_BUBBLE_HEIGHT * MiddleScale)
 
@@ -3969,11 +3969,11 @@ local function CashoutBubbleRender(_,Effect, Offset)
 
         CurrentStringOffset.X = -CASHOUT_STRING_X_OFFSET - mod.Fonts.Balatro:GetStringWidth(BlindString.String)
 
-        CurrentStringOffset.Y = CurrentStringOffset.Y -- BALATRO_BASE_LINE_HEIGHT/4
+        CurrentStringOffset.Y = CurrentStringOffset.Y -- mod.BALATRO_BASE_LINE_HEIGHT/4
 
         mod:RenderBalatroStyle(BlindString.String, TopPos + CurrentStringOffset, DefaultParams, BlindString.StartFrame + string.len(BlindString.Name)*2 + 40, Vector.One, mod.EffectKColors.YELLOW)
 
-        CurrentStringOffset.Y = CurrentStringOffset.Y + BALATRO_BASE_LINE_HEIGHT
+        CurrentStringOffset.Y = CurrentStringOffset.Y + mod.BALATRO_BASE_LINE_HEIGHT
     end
     --------DIVIDER----------
 
@@ -3984,7 +3984,7 @@ local function CashoutBubbleRender(_,Effect, Offset)
 
         mod:RenderBalatroStyle(DivideString.Name, TopPos + CurrentStringOffset, DefaultParams, DivideString.StartFrame, Vector.One*0.5, KColor.White)
 
-        CurrentStringOffset.Y = CurrentStringOffset.Y + BALATRO_BASE_LINE_HEIGHT
+        CurrentStringOffset.Y = CurrentStringOffset.Y + mod.BALATRO_BASE_LINE_HEIGHT
     end
     ----------------------------
     ---------------------------
@@ -4020,11 +4020,11 @@ local function CashoutBubbleRender(_,Effect, Offset)
 
         CurrentStringOffset.X = -CASHOUT_STRING_X_OFFSET - mod.Fonts.Balatro:GetStringWidth(ScreenString.String) --+ DollarWidth
 
-        CurrentStringOffset.Y = CurrentStringOffset.Y -- BALATRO_BASE_LINE_HEIGHT/4
+        CurrentStringOffset.Y = CurrentStringOffset.Y -- mod.BALATRO_BASE_LINE_HEIGHT/4
 
         mod:RenderBalatroStyle(ScreenString.String, TopPos + CurrentStringOffset, DefaultParams, ScreenString.StartFrame + string.len(ScreenString.Name)*2 + 40, Vector.One, Color)
     
-        CurrentStringOffset.Y = CurrentStringOffset.Y + BALATRO_BASE_LINE_HEIGHT*1.5
+        CurrentStringOffset.Y = CurrentStringOffset.Y + mod.BALATRO_BASE_LINE_HEIGHT*1.5
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_EFFECT_RENDER, CashoutBubbleRender, mod.Effects.DIALOG_BUBBLE)
@@ -4088,10 +4088,10 @@ local function BlindBubbleRender(_,Effect, Offset)
         local NumLines = mod:GetNumLines(Text, Width, TextScale)
 
 
-        local MiddleSpace = BALATRO_BASE_LINE_HEIGHT*1.5*NumLines
-        MiddleSpace = MiddleSpace - MiddleSpace%0.5
+        local MiddleSpace = mod.BALATRO_BASE_LINE_HEIGHT*NumLines*TextScale.Y*0.75
+        MiddleSpace = (MiddleSpace - MiddleSpace%0.5)*2 + 7
 
-        local TextMiddleSpace = BALATRO_BASE_LINE_HEIGHT*1.5*(NumLines - 1)
+        local TextMiddleSpace = mod.BALATRO_BASE_LINE_HEIGHT*(NumLines - 1)*TextScale.Y
 
         local TopOffset = Vector(0, -MiddleSpace)
         local TextOffset = Vector(0, -TextMiddleSpace/2)

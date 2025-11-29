@@ -91,7 +91,7 @@ local function splitLine(str, splitLength)
 end
 
 local dss = include("Balatro_scripts.Utility.dssmenucore")
-local dssMod = dss.init("Dead Sea Scrolls (Tboi: Regambled)", MenuProvider)
+local dssMod = dss.init("Tboi: Regambled", MenuProvider)
 
 local LINE_BREAK = {str="", nosel=true}
 
@@ -244,7 +244,7 @@ local itemData = {
         Type = "Trinket",
         Name = "Soul of Jimbo",
         UnlockMethod = "Unlocked by beating Boss Rush and Hush as T.Jimbo",
-        Description = "Gain a coin per 5 cents held on new floor",
+        Description = "balances isaac's damage and tears stats for one room",
         Achievement = mod.Achievements.Consumables[mod.JIMBO_SOUL]
     },
 
@@ -418,27 +418,28 @@ menu.regambledJimboSettings = {
             tooltip = {strset = {"how big?"}}
         },
 
-        --{   str = 'hand hud position',
-        --    choices = {'player','hearts',},
-        --    setting = 1,
-        --    variable = 'REG_HandPosition',
+        {   str = 'hand hud position',
+            choices = {'player','hearts',},
+            setting = 1,
+            variable = 'REG_HandPosition',
 
-        --    load = function ()
-        --        return mod.Saved.DSS.Jimbo.HandHUDPosition or 1
-        --    end,
+            load = function ()
+                return mod.Saved.DSS.Jimbo.HandHUDPosition or 1
+            end,
    
-        --    store = function (var)
-        --        mod.Saved.DSS.Jimbo.HandHUDPosition = var
-        --    end,
+            store = function (var)
+                mod.Saved.DSS.Jimbo.HandHUDPosition = var
+            end,
    
-        --    tooltip = {strset = {"which do you", "prefer?"}}
-        --},
+            tooltip = {strset = {"which do you", "prefer?"}}
+        },
 
     }
 }
 
 menu.regambledTaintedJimboSettings = {
     title = "t.jimbo settings",
+    
     buttons = {
         {   str = 'custom eid desc',
             choices = {'disabled','enabled'},
@@ -501,15 +502,11 @@ menu.regambledTaintedJimboSettings = {
             variable = 'REG_TJimboScale',
 
             load = function ()
-                return mod.Saved.DSS.T_Jimbo.BaseHands
+                return mod.Saved.DSS.T_Jimbo.Scaling
             end,
 
             store = function (var)
-                mod.Saved.DSS.T_Jimbo.BaseHands = var
-
-                for _,Player in ipairs(PlayerManager.GetPlayers()) do 
-                    Player:AddCustomCacheTag(mod.CustomCache.HAND_NUM, true)
-                end
+                mod.Saved.DSS.T_Jimbo.Scaling = var
             end,
 
             tooltip = {strset = {"how", "difficult?"}}
@@ -563,7 +560,7 @@ menu.regambledTaintedJimboSettings = {
             end,
 
             store = function (var)
-                mod.Saved.DSS.T_Jimbo.OutOfRangeDamage = 1 + (var-1)*0.25
+                mod.Saved.DSS.T_Jimbo.InnerRangeDamage = 1 + (var-1)*0.25
             end,
 
             tooltip = {strset = {"how", "much?"}}
@@ -635,8 +632,8 @@ menu.unlockManager = {
                     activeItem = {
                         Gfx = "gfx/ui/jimbo_dss_icon.png",
                         ScaleFactor = Vector.Zero,
-                        Name = "Jimbo",
-                        Description = "instead of shooting tears, jimbo trows cards at enemies, dealing damage equal to the product of his tears and damage stat. Cards can be scored a limited amount of times per room, giving him extra stats. Shops have special stocks of of jokers for him to use.",
+                        Name = "jimbo",
+                        Description = "instead of shooting tears, jimbo trows cards at enemies, dealing damage equal to the product of his tears and damage stat. cards can be scored a limited amount of times per room, giving him extra stats. shops have special stocks of of jokers for him to use.",
                         Unlocked = true,
                         UnlockMethod = "\"Have fun\""
                     }
@@ -830,14 +827,14 @@ menu.lockAllConfirmation = {
         LINE_BREAK,
         LINE_BREAK,
         {
-            str = "Nope!",
+            str = "nope!",
             inline = true,
             func = function (_, _, tbl)
                 dssMod.back(tbl)
             end
         },
         {
-            str = "Yessir!",
+            str = "yessir!",
             inline = true,
             func = function (_, _, tbl)
 
@@ -869,14 +866,14 @@ menu.unlockAllConfirmation = {
         LINE_BREAK,
         LINE_BREAK,
         {
-            str = "Nope!",
+            str = "nope!",
             inline = true,
             func = function (_, _, tbl)
                 dssMod.back(tbl)
             end
         },
         {
-            str = "Yessir!",
+            str = "yessir!",
             inline = true,
             func = function (_, _, tbl)
 
@@ -981,7 +978,7 @@ menu.credits = {
         { str = "first things first", fsize = 3, nosel = true},
         { str = "=================================", fsize = 1, nosel = true},
         { str = "catinsurance", tooltip = {strset = {"original","creator of", "this menu's","setup"}} },
-        { str = "NegativeNEV", tooltip = {strset = {"awesome","fella"}}},
+        { str = "negativenev", tooltip = {strset = {"awesome","fella"}}},
         { str = "balatro/local thunk", tooltip = {strset = {"original", "inspiration"}}},
         LINE_BREAK,
         { str = "active contributors", fsize = 3, nosel = true},

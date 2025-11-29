@@ -1218,6 +1218,56 @@ end
 EID:addDescriptionModifier("Balatro Jimbo ground pickups", JimboGroundPickupsCondition, JimboGroundPickupsCallback)
 
 
+local function PackSynergyCondition(descObj)
+
+    if descObj.ObjType == EntityType.ENTITY_PICKUP
+       and descObj.ObjVariant == PickupVariant.PICKUP_TAROTCARD
+       and descObj.ObjSubType == mod.Packs.ARCANA
+           or descObj.ObjSubType == mod.Packs.CELESTIAL
+           or descObj.ObjSubType == mod.Packs.SPECTRAL
+           or descObj.ObjSubType == mod.Packs.BUFFON
+           or descObj.ObjSubType == mod.Packs.STANDARD then
+
+        return true
+    end
+end
+
+local function PackSynergyCallback(descObj)
+
+    if PlayerManager.AnyoneHasCollectible(mod.Vouchers.Crystal) then
+        
+        descObj.Description = descObj.Description..mod:GetEIDString("PackSynergies", mod.Vouchers.Crystal)
+    end
+
+    if PlayerManager.AnyoneHasCollectible(mod.Vouchers.Omen)
+       and descObj.ObjSubType == mod.Packs.ARCANA then
+        
+        descObj.Description = descObj.Description..mod:GetEIDString("PackSynergies", mod.Vouchers.Omen)
+    end
+
+    if PlayerManager.AnyoneHasCollectible(mod.Vouchers.Telescope)
+       and descObj.ObjSubType == mod.Packs.CELESTIAL then
+        
+        descObj.Description = descObj.Description..mod:GetEIDString("PackSynergies", mod.Vouchers.Omen)
+    end
+
+    if PlayerManager.AnyoneHasCollectible(mod.Vouchers.MagicTrick) then
+        
+        descObj.Description = descObj.Description..mod:GetEIDString("PackSynergies", mod.Vouchers.MagicTrick)
+    end
+
+    if PlayerManager.AnyoneHasCollectible(mod.Vouchers.Illusion) then
+        
+        descObj.Description = descObj.Description..mod:GetEIDString("PackSynergies", mod.Vouchers.Illusion)
+    end
+    
+    return descObj
+end
+EID:addDescriptionModifier("REG_Pack_Synergy", PackSynergyCondition, PackSynergyCallback)
+
+
+
+
 
 local function BalatroExtraDescCondition(descObj)
     if descObj.ObjType == EntityType.ENTITY_PICKUP and descObj.ObjVariant == PickupVariant.PICKUP_TAROTCARD 
@@ -2136,10 +2186,9 @@ function mod:RenderObjectDescription()
         EID_Desc.NumLines = mod:RenderBalatroStyle(EID_Desc.Description, Vector(-1000,-1000), Params, 0, Vector.One/2, mod.BalatroKColorBlack, BoxWidth)
     end
 
-    local LineHeight = mod.Fonts.Balatro:GetLineHeight()
     local _,NumLineForced = string.gsub(EID_Desc.Description, "#", "#")
 
-    BubbleScale.Y = math.ceil(((EID_Desc.NumLines-NumLineForced-1)*LineHeight + NumLineForced*LineHeight*1.5)/2 + 10)
+    BubbleScale.Y = math.ceil(((EID_Desc.NumLines-NumLineForced-1 + NumLineForced*1.5)*mod.BALATRO_LINE_HEIGHT)/2 + 10)
 
     BubbleScale = BubbleScale/10
 

@@ -778,6 +778,9 @@ if not loaded and REPENTANCE_PLUS then
     Balatro_Expansion.Fonts.Balatro = Font("font/upheavalmini.fnt") --basically a placeholder until I understand how to make it work properly
 end
 
+Balatro_Expansion.BALATRO_BASE_LINE_HEIGHT = Balatro_Expansion.Fonts.Balatro:GetBaselineHeight() - 2
+Balatro_Expansion.BALATRO_LINE_HEIGHT = Balatro_Expansion.Fonts.Balatro:GetLineHeight() - 2
+
 end
 ---@diagnostic disable-next-line: redundant-parameter
 Balatro_Expansion.Fonts.pftempest = Font("font/pftempestasevencondensed.fnt")
@@ -1123,7 +1126,7 @@ Balatro_Expansion.Saved.DSS = {
                                 T_Jimbo={
                                          BaseHands = 4,
                                          BaseDiscards = 4,
-                                         InnerRangeDamage = 0.5,
+                                         InnerRangeDamage = 1.5,
                                          Vulnerability = false,
                                          VulnerableHandOpacity = 0.5,
                                          ShowUnavailableCards = false,
@@ -1288,6 +1291,9 @@ include("Balatro_scripts.Unlockables.Trinket Editions")
 include("Balatro_scripts.Unlockables.Stupid Gaper")
 include("Balatro_scripts.Unlockables.chaos theory")
 include("Balatro_scripts.Unlockables.teeth costumes")
+
+include("Balatro_scripts.Unlockables.costumes") --specific synergies
+
 
 --include("Balatro_scripts.Trinket_Callbacks")
 
