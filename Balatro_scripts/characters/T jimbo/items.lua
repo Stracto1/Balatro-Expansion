@@ -138,6 +138,31 @@ mod:AddCallback(ModCallbacks.MC_PRE_ADD_COLLECTIBLE, RemoveDirectorForRetcon)
 
 
 
+
+---@param Pickup EntityPickup
+---@param Player Entity
+local function PrePickupCollision(_, Pickup, Player)
+
+    if Pickup.Variant ~= mod.Pickups.PLAYING_CARD then
+        return
+    end
+
+    Player = Player:ToPlayer()
+
+    if not Player then
+        return
+    end
+        
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo
+       and Player:GetPlayerType() ~= mod.Characters.JimboType then
+        
+        return false
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_COLLISION, PrePickupCollision)
+
+
+
 ---@param Pickup EntityPickup
 ---@param Player Entity
 local function PickupCollision(_, Pickup, Player)
@@ -151,31 +176,19 @@ local function PickupCollision(_, Pickup, Player)
     if not Player then
         return
     end
-
-    if Pickup.Variant == mod.Pickups.PLAYING_CARD then
-
-        print("collision")
         
-        if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo then
-            
-            Pickup:Remove()
-            return
-        end
+    local card = mod:PlayingCardSubTypeToParams(Pickup.SubType)
 
-        local card = mod:PlayingCardSubTypeToParams(Pickup.SubType)
-
-        Game:GetHUD():ShowItemText(mod:GetCardName(card), "Better play it well!")
-        
-        Player:AnimatePickup(Pickup:GetSprite())
+    Game:GetHUD():ShowItemText(mod:GetCardName(card), "Better play it well!")
+    
+    Player:AnimatePickup(Pickup:GetSprite())
 
 
-        mod:AddCardToDeck(Player, card)
+    mod:AddCardToDeck(Player, card)
 
-        Pickup:Remove()
-    end
-
+    Pickup:Remove()
 end
-mod:AddCallback(ModCallbacks.MC_POST_PICKUP_COLLISION, PickupCollision)
+mod:AddCallback(ModCallbacks.MC_POST_PICKUP_COLLISION, PickupCollision, mod.Pickups.PLAYING_CARD)
 
 
 

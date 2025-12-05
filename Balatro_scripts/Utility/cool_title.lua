@@ -49,7 +49,8 @@ function mod:Tast()
 
     elseif Input.IsMouseBtnPressed(MouseButton.LEFT) then
 
-        if CardState ~= CARD_STATES.PICKED_UP
+        if Options.MouseControl
+           and CardState ~= CARD_STATES.PICKED_UP
            and MousePos.X >= CardIdlePos.X - 20 and MousePos.X <= CardIdlePos.X + 20
            and MousePos.Y >= CardIdlePos.Y - 30 and MousePos.Y <= CardIdlePos.Y + 30 then
 
@@ -90,12 +91,16 @@ function mod:Tast()
 
         LastCardPos = CardIdlePos
 
-        local Difference = MousePos - CardIdlePos
-        local Distance = MousePos:Distance(CardIdlePos)
-
         local SpriteSuffix = ""
-        if Distance > 9 and Distance < 27 then
-            SpriteSuffix = mod:HeadDirectionToString(Difference)
+
+        if Options.MouseControl then
+
+            local Difference = MousePos - CardIdlePos
+            local Distance = MousePos:Distance(CardIdlePos)
+            
+            if Distance > 9 and Distance < 27 then
+                SpriteSuffix = mod:HeadDirectionToString(Difference)
+            end
         end
 
         Title:ReplaceSpritesheet(4, "gfx/ui/main menu/logo card"..SpriteSuffix..".png", true)

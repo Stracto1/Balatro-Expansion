@@ -157,8 +157,22 @@ function mod:ActiveItemsNewEffect(Type, ItemRNG, Player, Flags)
     end
 
     if Type == CollectibleType.COLLECTIBLE_SMELTER then
-        mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.INVENTORY,
-                                                      mod.SelectionParams.Purposes.SMELTER)
+
+        local ok = false --hat to hold a joker
+
+        for i,v in ipairs(mod.Saved.Player[Player:GetData().TruePlayerIndex].Inventory) do
+            if v.Joker ~= 0 then
+                ok = true
+                break
+            end
+        end
+
+        if ok then 
+            mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.INVENTORY,
+                                                          mod.SelectionParams.Purposes.SMELTER)
+        else
+            return {Discharge = false,Remove = false, ShowAnim = false}
+        end
     end
 end
 mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.ActiveItemsNewEffect)

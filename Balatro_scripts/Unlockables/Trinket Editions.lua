@@ -165,7 +165,8 @@ function mod:RegisterEditionAdded(Player, Trinket, FirstTime)
     mod.Saved.Player[PIndex].Inventory[TrinketSlot].Joker = TrueTrinket
     mod.Saved.Player[PIndex].Inventory[TrinketSlot].Edition = TrinketEdition
 
-    Player:AddCacheFlags(EditionCaches[TrinketEdition], true)
+    Isaac.RunCallback(mod.Callbalcks.JOKER_ADDED, Player, TrueTrinket, TrinketEdition, TrinketSlot)
+    Isaac.RunCallback(mod.Callbalcks.INVENTORY_CHANGE, Player)
 
     mod.Saved.Player[PIndex].LastTouchedTrinket = 0
 end
@@ -221,7 +222,10 @@ function mod:RegisterEditionRemoved(Player, Trinket)
                                                                Edition = mod.Edition.BASE,
                                                                Progress = 0,
                                                                RenderIndex = 0}
+
         end
+
+        Isaac.RunCallback(mod.Callbalcks.INVENTORY_CHANGE, Player)
 
         return
     end
@@ -241,7 +245,8 @@ function mod:RegisterEditionRemoved(Player, Trinket)
     mod.Saved.Player[PIndex].Inventory[TrinketSlot].Progress = 0
 
 
-    Player:AddCacheFlags(EditionCaches[EditionRemoved], true)
+    Isaac.RunCallback(mod.Callbalcks.INVENTORY_CHANGE, Player)
+    --Player:AddCacheFlags(EditionCaches[EditionRemoved], true)
 
 
     for _,Pickup in ipairs(Isaac.FindByType(5, 350, Trinket)) do

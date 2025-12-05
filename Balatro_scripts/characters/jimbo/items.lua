@@ -124,10 +124,21 @@ mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_MORPH, NoRerolls)
 
 
 ---@param Player EntityPlayer
-local function VouchersAdded(_,Item,_,_,_,_,Player)
+local function VouchersAdded(_,Item,_,FirstTime,_,_,Player)
 
     if Item == mod.Vouchers.Hieroglyph or Item == mod.Vouchers.Petroglyph then
         Player:UseActiveItem(CollectibleType.COLLECTIBLE_FORGET_ME_NOW, UseFlag.USE_NOANIM|UseFlag.USE_MIMIC)
+    end
+
+    if Item == mod.Vouchers.Wasteful or Item == mod.Vouchers.Recyclomancy then
+        
+        if Player:GetPlayerType() ~= mod.Characters.JimboType then
+            Player:AddMaxHearts(2, false)
+        end
+
+        if FirstTime then
+            Player:SetFullHearts()
+        end
     end
 end
 mod:AddPriorityCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE,CallbackPriority.LATE, VouchersAdded)
@@ -235,7 +246,9 @@ local PlanetariumToValue = {
     CollectibleType.COLLECTIBLE_TERRA,
     CollectibleType.COLLECTIBLE_MARS,
     CollectibleType.COLLECTIBLE_NEPTUNUS,
-    nil,nil,nil,
+    mod.Collectibles.PLANET_X,
+    mod.Collectibles.CERES,
+    mod.Collectibles.ERIS,
     CollectibleType.COLLECTIBLE_SOL}
 
 ---@param Player EntityPlayer
@@ -244,7 +257,8 @@ local function CardShotVouchers(_,Player,ShotCard,Evaluate)
         return
     end
 
-    if Player:HasCollectible(mod.Vouchers.Observatory) then
+    if Player:HasCollectible(mod.Vouchers.Observatory)
+       and ShotCard.Enhancement ~= mod.Enhancement.STONE then
 
         if Player:HasCollectible(PlanetariumToValue[ShotCard.Value]) then
             mod:IncreaseJimboStats(Player, 0,0,1.15, true, true)
@@ -286,7 +300,10 @@ local function DirectorVoucher(_,Item,Rng, Player, Flags,_,_)
 
             sfx:Play(mod.Sounds.MONEY)
 
-            Player:AddWisp(Item, Player.Position)
+            if Player:HasCollectible(CollectibleType.COLLECTIBLE_BOOK_OF_VIRTUES) then
+
+                Player:AddWisp(Item, Player.Position)
+            end
 
             return true
         end
@@ -301,7 +318,10 @@ local function DirectorVoucher(_,Item,Rng, Player, Flags,_,_)
 
             sfx:Play(mod.Sounds.MONEY)
 
-            Player:AddWisp(Item, Player.Position)
+            if Player:HasCollectible(CollectibleType.COLLECTIBLE_BOOK_OF_VIRTUES) then
+
+                Player:AddWisp(Item, Player.Position)
+            end
 
             return true
         end
@@ -318,14 +338,8 @@ mod:AddCallback(ModCallbacks.MC_USE_ITEM, DirectorVoucher)
 ---@param Familiar EntityFamiliar
 local function VoucherWispCollision(_, Familiar,  Collider)
 
-    local PtrHash = GetPtrHash(Collider)
-
-    local Data = Familiar:GetData()
-    Data.REG_HitList = Data.REG_HitList or {}
-
     if Familiar.SubType ~= mod.Vouchers.Director
-       and Familiar.SubType ~= mod.Vouchers.Retcon
-       or mod:Contained(Data.REG_HitList, PtrHash) then
+       and Familiar.SubType ~= mod.Vouchers.Retcon then
         return
     end
 
@@ -337,9 +351,16 @@ local function VoucherWispCollision(_, Familiar,  Collider)
         return    
     end
 
-    Data.REG_HitList[#Data.REG_HitList+1] = PtrHash
-
     Game:DevolveEnemy(Collider)
+
+    local OldCollisoinClass = Familiar.EntityCollisionClass + 0
+    Familiar.EntityCollisionClass = EntityCollisionClass.ENTCOLL_NONE
+
+    Isaac.CreateTimer(function ()
+        if Familiar:Exists() then
+            Familiar.EntityCollisionClass = OldCollisoinClass
+        end
+    end, 8, 1, true)
 end
 mod:AddCallback(ModCallbacks.MC_POST_FAMILIAR_COLLISION, VoucherWispCollision, FamiliarVariant.WISP)
 

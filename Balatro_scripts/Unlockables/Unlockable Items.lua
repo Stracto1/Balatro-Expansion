@@ -2,11 +2,12 @@
 local mod = Balatro_Expansion
 local Game = Game()
 local ItemsConfig = Isaac.GetItemConfig()
+local ItemsPool = Game:GetItemPool()
 local sfx = SFXManager()
 
 local HORSEY_RADIUS = 20
 local HORSEY_MAX_JUMP_DELAY = 90
-local HORSEY_JUMP_COOLDOWN = HORSEY_MAX_JUMP_DELAY - 35
+local HORSEY_JUMP_COOLDOWN = HORSEY_MAX_JUMP_DELAY - 20
 
 local HorseyState = {}
 HorseyState.IDLE = 1 --waiting for something to jump on or to cooldown to reache 0
@@ -42,7 +43,7 @@ BananaState.IDLE = 1 --waiting for someone stupid enough to fall for it
 BananaState.FLYING = 2 --in mid-air from initial throw
 BananaState.SLIP = 3 --disappearing
 
-local PUPPY_RESPAWN_TIMER = 270
+local PUPPY_RESPAWN_TIMER = 240
 local PuppyState = {}
 PuppyState.IDLE = 1 --chilling with isaac while still attached
 PuppyState.ATTACK = 2 --disappearing
@@ -109,7 +110,8 @@ local UMBRELLA_VAR = {OPENED = 1, CLOSED = 0}
 --local UMBRELLA_CAPSULE = {MULTI = Vector(4.5, 2.5), SIZE = 10}
 
 
-local MAX_LOLLYPOP_COOLDOWN = 750
+local MAX_LOLLYPOP_COOLDOWN = 540
+local LOLLYPOP_DURATION = 120
 local LollypopPicker = WeightedOutcomePicker()
 LollypopPicker:AddOutcomeFloat(1, 1)
 LollypopPicker:AddOutcomeFloat(2, 1)
@@ -306,20 +308,21 @@ end
 
 local HEIRLOOM_COIN_UPGRADES = {[CoinSubType.COIN_PENNY] = {NewSubType = CoinSubType.COIN_DOUBLEPACK, Chance = 0.5},
                                 [CoinSubType.COIN_DOUBLEPACK] = {NewSubType = CoinSubType.COIN_NICKEL, Chance = 0.4},
-                                [CoinSubType.COIN_NICKEL] = {NewSubType = CoinSubType.COIN_DIME, Chance = 0.12},
+                                [CoinSubType.COIN_NICKEL] = {NewSubType = CoinSubType.COIN_DIME, Chance = 0.2},
                                 [CoinSubType.COIN_DIME] = {NewSubType = CoinSubType.COIN_GOLDEN, Chance = 0.2},}
 
-local PICKUP_GOLDEN_SUB = {[PickupVariant.PICKUP_BOMB] = {NewSubType = BombSubType.BOMB_GOLDEN, Chance = 0.075},
-                           [PickupVariant.PICKUP_KEY] = {NewSubType = KeySubType.KEY_GOLDEN, Chance = 0.075},
-                           [PickupVariant.PICKUP_HEART] = {NewSubType = HeartSubType.HEART_GOLDEN, Chance = 0.06},
-                           [PickupVariant.PICKUP_LIL_BATTERY] = {NewSubType = BatterySubType.BATTERY_GOLDEN, Chance = 0.08},}
-                
-local GOLDEN_PILL_CHANCE = 0.095
-local GOLDEN_TRINKET_CHANCE = 0.075
+local PICKUP_GOLD_CHANCE = 0.075
+local GOLDEN_ITEM_CHANCE = 0.025 --only if Epiphany is active and they are unlocked
 
-local PICKUP_GOLDEN_VARIANT = {[PickupVariant.PICKUP_CHEST] = {NewVariant = PickupVariant.PICKUP_LOCKEDCHEST, Chance = 0.065},
-                               [PickupVariant.PICKUP_MIMICCHEST] = {NewVariant = PickupVariant.PICKUP_LOCKEDCHEST, Chance = 0.065},
-                               [PickupVariant.PICKUP_SPIKEDCHEST] = {NewVariant = PickupVariant.PICKUP_LOCKEDCHEST, Chance = 0.065},
+
+local PICKUP_GOLDEN_SUB = {[PickupVariant.PICKUP_BOMB] = {NewSubType = BombSubType.BOMB_GOLDEN},
+                           [PickupVariant.PICKUP_KEY] = {NewSubType = KeySubType.KEY_GOLDEN},
+                           [PickupVariant.PICKUP_HEART] = {NewSubType = HeartSubType.HEART_GOLDEN},
+                           [PickupVariant.PICKUP_LIL_BATTERY] = {NewSubType = BatterySubType.BATTERY_GOLDEN},}
+
+local PICKUP_GOLDEN_VARIANT = {[PickupVariant.PICKUP_CHEST] = {NewVariant = PickupVariant.PICKUP_LOCKEDCHEST},
+                               [PickupVariant.PICKUP_MIMICCHEST] = {NewVariant = PickupVariant.PICKUP_LOCKEDCHEST},
+                               [PickupVariant.PICKUP_SPIKEDCHEST] = {NewVariant = PickupVariant.PICKUP_LOCKEDCHEST},
                                }
 
 local GOLDEN_PICKUP_ACHIEVEMENTS = {[PickupVariant.PICKUP_COIN] = Achievement.GOLDEN_PENNY,
@@ -327,8 +330,6 @@ local GOLDEN_PICKUP_ACHIEVEMENTS = {[PickupVariant.PICKUP_COIN] = Achievement.GO
                                     [PickupVariant.PICKUP_HEART] = Achievement.GOLDEN_HEARTS,
                                     [PickupVariant.PICKUP_LIL_BATTERY] = Achievement.GOLDEN_BATTERY,
                                     }
-
-local GOLDEN_ITEM_CHANCE = 0.015 --only if Epiphany is active and they are unlocked
 
 local GoldTurnSfx
 
@@ -344,7 +345,7 @@ local function SetupPlanetXPool()
 
     PLANET_X_PICKER:ClearOutcomes()
 
-    local PlanetPool = Game:GetItemPool():GetCollectiblesFromPool(ItemPoolType.POOL_PLANETARIUM)
+    local PlanetPool = ItemsPool:GetCollectiblesFromPool(ItemPoolType.POOL_PLANETARIUM)
 
     for _,Registration in ipairs(PlanetPool) do
 
@@ -439,7 +440,7 @@ local function UnlockNormalItems(_,Type)
             GameData:TryUnlock(mod.Achievements.Entities.A_STUPID_IDEA)
         end
 
-        if Isaac.AllMarksFilled(mod.Characters.TaintedJimbo) ~= 0 then
+        if Isaac.AllMarksFilled(mod.Characters.TaintedJimbo) == 2 then
             GameData:TryUnlock(mod.Achievements.Items.FORGOTTEN_PLANETS)
         end
     end
@@ -674,6 +675,7 @@ function mod:FamiliarUpdate(Familiar)
 
 
         Familiar.FlipX = Familiar.Velocity.X < 0
+        Familiar.SizeMulti = Vector.One*(Familiar:GetMultiplier()^0.5)
 
         local Grid = Game:GetRoom():GetGridEntityFromPos(Familiar.Position)
 
@@ -740,6 +742,7 @@ function mod:FamiliarUpdate(Familiar)
 
                 Familiar.HitPoints = Familiar.MaxHitPoints
                 Familiar.State = PuppyState.IDLE
+
                 Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.POOF01, Familiar.Position, Vector.Zero, Familiar, 0, 1)
             end
         end
@@ -877,6 +880,8 @@ function mod:FamiliarUpdate(Familiar)
 
     elseif Familiar.Variant == mod.Familiars.CERES then
 
+        Familiar.SizeMulti = Vector.One*(Familiar:GetMultiplier()^0.5)
+
         Familiar.OrbitLayer = 5074
         Familiar.OrbitDistance = Vector(110, 109.6)
         Familiar.OrbitSpeed = 0.01
@@ -970,7 +975,7 @@ function mod:FamiliarCollision(Familiar, Collider,_)
                 Familiar:GetSprite():Play("Explode")
                 Familiar.FireCooldown = PUPPY_RESPAWN_TIMER
 
-                for _, Entity in ipairs(Isaac.FindInRadius(Familiar.Position,30,EntityPartition.ENEMY|EntityPartition.BULLET)) do
+                for _, Entity in ipairs(Isaac.FindInRadius(Familiar.Position,30*Familiar.SizeMulti.X,EntityPartition.ENEMY|EntityPartition.BULLET)) do
 
                     local NPC = Entity:ToNPC()
                     local Bullet = Entity:ToProjectile()
@@ -1055,7 +1060,7 @@ function mod:FamiliarCollision(Familiar, Collider,_)
             local AdditionalMult = 1 + 0.15*Familiar.Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_DOG_TOOTH)
                                      + 0.35*Familiar.Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_TOUGH_LOVE)
 
-            local DamageDealt = 1.4 + 0.2*Game:GetLevel():GetAbsoluteStage()
+            local DamageDealt = 1.5 + 0.25*Game:GetLevel():GetAbsoluteStage()
             DamageDealt = DamageDealt * Familiar:GetMultiplier() * AdditionalMult
 
             --Familiar.CollisionDamage = DamageDealt
@@ -1171,22 +1176,23 @@ function mod:FamiliarCollision(Familiar, Collider,_)
 
             Collided = true
 
-            if NPC:IsVulnerableEnemy() then
-                NPC:TakeDamage(0.1*Multiplier, 0, EntityRef(Familiar), 2)
-            end
+        --  if NPC:IsVulnerableEnemy() then
+        --      NPC:TakeDamage(0.1*Multiplier, 0, EntityRef(Familiar), 2)
+        --  end
         end
 
         if Familiar.FireCooldown <= 0 and Collided then
             
             local MinPieces = math.floor(Multiplier)
 
-            local NumPieces = math.random(MinPieces, MinPieces + 2)
+            local NumPieces = math.random(MinPieces, MinPieces + 3)
 
             local CeresRNG = Familiar.Player:GetCollectibleRNG(mod.Collectibles.CERES)
 
             local SpecialDropRoll = CeresRNG:RandomFloat()
 
-            if SpecialDropRoll <= 0.0001 then -- 1 in 1000 chance
+            if SpecialDropRoll <= 0.0001
+               and ItemsPool:HasTrinket(TrinketType.TRINKET_LUCKY_ROCK) then -- 1 in 10000 chance
             
                 local ColliderAngle = math.ceil((-Collider.Velocity):GetAngleDegrees())
 
@@ -1197,8 +1203,11 @@ function mod:FamiliarCollision(Familiar, Collider,_)
                            RockSpeed, Familiar, TrinketType.TRINKET_LUCKY_ROCK, mod:RandomSeed(Familiar:GetDropRNG()))
             
                 NumPieces = NumPieces - 1
+
+                ItemsPool:RemoveTrinket(TrinketType.TRINKET_LUCKY_ROCK)
             
-            elseif SpecialDropRoll >= 0.9999 then -- also 1 in 1000 chance
+            elseif SpecialDropRoll >= 0.9999
+                   and ItemsPool:HasTrinket(TrinketType.TRINKET_SHINY_ROCK) then -- also 1 in 10000 chance
 
                 local ColliderAngle = math.ceil((-Collider.Velocity):GetAngleDegrees())
 
@@ -1209,6 +1218,8 @@ function mod:FamiliarCollision(Familiar, Collider,_)
                            RockSpeed, Familiar, TrinketType.TRINKET_SHINY_ROCK, mod:RandomSeed(Familiar:GetDropRNG()))
             
                 NumPieces = NumPieces - 1
+
+                ItemsPool:RemoveTrinket(TrinketType.TRINKET_SHINY_ROCK)
             end
 
             Game:SpawnParticles(Familiar.Position, EffectVariant.TOOTH_PARTICLE, 3 + 2*NumPieces, 2, COLOR_CERES)
@@ -1295,7 +1306,7 @@ function mod:EffectUpdate(Effect)
 
         local PowderRef = EntityRef(Effect)
         local Player = Effect.SpawnerEntity:ToPlayer()
-        local Damage = Player and Player.Damage/2 or 1
+        local Damage = Player and (Player.Damage/4 + 1) or 1
 
         for _,Entity in ipairs(Isaac.FindInCapsule(Effect:GetCollisionCapsule())) do
 
@@ -1330,14 +1341,14 @@ function mod:EffectUpdate(Effect)
 
                 elseif Effect.SubType == ColorSubType.WHITE then
 
-                    Entity:AddSlowing(PowderRef, 30, 0.7, Color(1.5,1.5,1.5,1)) --PLACEHOLDER COLOR
+                    Entity:AddSlowing(PowderRef, 30, 0.65, Color(1.5,1.5,1.5,1)) --PLACEHOLDER COLOR
                     Entity:SetSlowingCountdown(30)
 
 
                 elseif Effect.SubType == ColorSubType.PINK then
 
-                    Entity:AddCharmed(PowderRef, 30)
-                    Entity:SetCharmedCountdown(30)
+                    Entity:AddCharmed(PowderRef, 20)
+                    Entity:SetCharmedCountdown(20)
 
                 elseif Effect.SubType == ColorSubType.PURPLE then
 
@@ -1352,7 +1363,7 @@ function mod:EffectUpdate(Effect)
                 elseif Effect.SubType == ColorSubType.YELLOW then
 
                     local Laser = EntityLaser.ShootAngle(LaserVariant.ELECTRIC, Entity.Position, math.random(-180, 180), 2, Vector.Zero, Effect)
-                    Laser.MaxDistance = math.random()*45 + 40
+                    Laser.MaxDistance = math.random()*40 + 35
                     Laser.CollisionDamage = Damage
                 end
             end
@@ -1529,16 +1540,16 @@ function mod:EffectUpdate(Effect)
                 local Shock = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.SHOCKWAVE, Effect.Position,
                                          Vector.Zero, nil, 0, 1):ToEffect()
 
-                Shock:SetRadii(10,25)
+                Shock:SetRadii(10,75)
 
-                Isaac.CreateTimer(function ()
-                    Shock = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.SHOCKWAVE, Effect.Position,
-                                       Vector.Zero, nil, 0, 1):ToEffect()
-
-                    Shock:SetRadii(35,75)
-                end, 10, 1, false)
-                    
-                --Shock.Parent = Effect.SpawnerEntity
+                --Isaac.CreateTimer(function ()
+                --    Shock = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.SHOCKWAVE, Effect.Position,
+                --                       Vector.Zero, nil, 0, 1):ToEffect()
+--
+                --    Shock:SetRadii(35,75)
+--
+                --    Shock.Parent = Effect.SpawnerEntity
+                --end, 10, 1, false)
             end
 
             if FellOnWater then
@@ -1723,13 +1734,13 @@ local function EffectRender(_,Effect)
     if Effect.Variant == mod.Effects.TOMATO then
 
         local Data = Effect:GetData()
-        if not Data.LaughingSpawn then --already landed
+        if not Data.REG_LaughSpawn then --already landed
 
             local AnimIdx = Effect.State % (TomatoAnimations.NUM_VARIANTS + 1)
 
             if Effect.FrameCount == 150 then
-                Effect:GetSprite():Play("Disappear"..tostring(AnimIdx))
-            elseif Effect:GetSprite():IsFinished("Disappear"..tostring(AnimIdx)) then
+                Effect:GetSprite():Play("Disappear"..AnimIdx)
+            elseif Effect:GetSprite():IsFinished("Disappear"..AnimIdx) then
 
                 Effect:Remove()
                 return
@@ -1739,11 +1750,11 @@ local function EffectRender(_,Effect)
 
         if Effect.SpriteScale.Y == 1 then --just landed
 
-            Data.RenderFrames = nil
-            Data.LaughingSpawn = nil
-            Data.StartThrowOffset = nil
-            Data.StartThrowRotation = nil
-            Data.TargetThrowRotation = nil
+            Data.REG_RenderFrames = nil
+            Data.REG_LaughSpawn = nil
+            Data.REG_StartThrowOff = nil
+            Data.REG_StartThrowRot = nil
+            Data.REG_TargetThrowRot = nil
             Effect.DepthOffset = 0
             Effect.SpriteRotation = 0
 
@@ -1755,7 +1766,8 @@ local function EffectRender(_,Effect)
             sfx:Play(SoundEffect.SOUND_MEAT_IMPACTS)
             Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_PARTICLE, Effect.Position,
                        RandomVector()*3,Effect,0,1)
-
+            local Splat = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.BLOOD_SPLAT, Effect.Position,Vector.Zero,Effect,0,1)
+            Splat.SpriteScale = Vector.One*1.1
 
 
             local Creep = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.PLAYER_CREEP_RED, Effect.Position, 
@@ -1765,19 +1777,19 @@ local function EffectRender(_,Effect)
             Creep.Timeout = 600
             Creep:Update()
 
-            for _,Enemy in ipairs(Isaac.FindInRadius(Effect.Position, 35, EntityPartition.ENEMY)) do
+            for _,Enemy in ipairs(Isaac.FindInRadius(Effect.Position, 45, EntityPartition.ENEMY)) do
 
                 Enemy:AddBaited(EntityRef(Effect), 120)
             end
         else
 
-            Data.RenderFrames = Data.RenderFrames + 1
+            Data.REG_RenderFrames = Data.REG_RenderFrames + 1
 
-            Effect.SpriteOffset.Y = mod:ExponentLerp(Data.StartThrowOffset.Y, 0, Data.RenderFrames/300, 0.95)
-            Effect.SpriteOffset.X = mod:Lerp(Data.StartThrowOffset.X, 0, Data.RenderFrames/900)
+            Effect.SpriteOffset.Y = mod:ExponentLerp(Data.REG_StartThrowOff.Y, 0, Data.REG_RenderFrames/300, 0.95)
+            Effect.SpriteOffset.X = mod:Lerp(Data.REG_StartThrowOff.X, 0, Data.REG_RenderFrames/900)
 
-            Effect.SpriteScale = Vector.One * mod:ExponentLerp(2.25, 1, Data.RenderFrames/75, 2.5)
-            Effect.SpriteRotation = mod:ExponentLerp(Data.StartThrowRotation, Data.TargetThrowRotation, Data.RenderFrames/75, 0.9)
+            Effect.SpriteScale = Vector.One * mod:ExponentLerp(2.25, 1, Data.REG_RenderFrames/75, 2.5)
+            Effect.SpriteRotation = mod:ExponentLerp(Data.REG_StartThrowRot, Data.REG_TargetThrowRot, Data.REG_RenderFrames/75, 0.9)
         end
 
     elseif Effect.Variant == mod.Effects.ANVIL then
@@ -1810,7 +1822,7 @@ local function PickupCollision(_, Pickup, Player)
 
         local Effects = Player:GetEffects()
         Effects:AddCollectibleEffect(CollectibleType.COLLECTIBLE_GAMEKID, true, 1)
-        Effects:GetCollectibleEffect(CollectibleType.COLLECTIBLE_GAMEKID).Cooldown = 165
+        Effects:GetCollectibleEffect(CollectibleType.COLLECTIBLE_GAMEKID).Cooldown = LOLLYPOP_DURATION
 
         Pickup:GetSprite():Play("Collect")
         Pickup.EntityCollisionClass = EntityCollisionClass.ENTCOLL_NONE
@@ -2063,6 +2075,10 @@ mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.ActiveUse)
 ---@param Player EntityPlayer
 local function OnPlayerUpdate(_,Player)
 
+    if not mod.GameStarted then
+        return
+    end
+
     local ShootDirection = Player:GetShootingInput()
 
     if Player:GetItemState() == mod.Collectibles.BANANA
@@ -2146,10 +2162,6 @@ local function OnPlayerUpdate(_,Player)
 
         local Data = Player:GetData()
 
-        --if Player:GetEffects():GetCollectibleEffectNum(CollectibleType.COLLECTIBLE_GAMEKID) > 0 then --timer advances only while vulnerable
-        --    return
-        --end
-
         Data.REG_LollypopCD = Data.REG_LollypopCD and (Data.REG_LollypopCD - 1) or MAX_LOLLYPOP_COOLDOWN
 
         if Data.REG_LollypopCD <= 0 then
@@ -2159,16 +2171,20 @@ local function OnPlayerUpdate(_,Player)
                 LollypopNum = LollypopNum + 1
             end
 
-            if LollypopNum >= 3 then
+            if LollypopNum >= 2 + Player:GetCollectibleNum(mod.Collectibles.LOLLYPOP) then
                 return
             end
 
-            local Pos = Game:GetRoom():GetRandomPosition(20)
+            local Room = Game:GetRoom()
+
+            local Pos = Room:FindFreePickupSpawnPosition(Room:GetRandomPosition(40), 20, false, false)
 
             Game:Spawn(EntityType.ENTITY_PICKUP, mod.Pickups.LOLLYPOP, Pos, Vector.Zero,
                        nil, LollypopPicker:PickOutcome(Player:GetCollectibleRNG(mod.Collectibles.LOLLYPOP)), math.max(Random(), 1))
 
-            Data.REG_LollypopCD = MAX_LOLLYPOP_COOLDOWN
+            local Cooldown = math.max(LOLLYPOP_DURATION*2.5,MAX_LOLLYPOP_COOLDOWN - 15*(Player:GetCollectibleNum(mod.Collectibles.LOLLYPOP) - 1))
+
+            Data.REG_LollypopCD = Cooldown
         end
     end
 
@@ -2416,30 +2432,6 @@ local function OnRoomClear(_, Player)
         end
 
     end
-    
-
-
-    for i = 0, Player:GetMaxTrinkets() - 1 do
-
-        local HeldTrinket = Player:GetTrinket(i)
-
-        local TrueTrinket = HeldTrinket & ~TrinketType.TRINKET_GOLDEN_FLAG
-        
-        if mod:Contained(mod.Trinkets.TASTY_CANDY, TrueTrinket) and TrueTrinket ~= HeldTrinket then
-            
-            if Player:GetTrinketRNG(mod.Trinkets.TASTY_CANDY[1]):RandomFloat() <= 0.2 then
-                
-                local NewCandy = HeldTrinket + 1
-
-                if mod:Contained(mod.Trinkets.TASTY_CANDY, NewCandy & ~TrinketType.TRINKET_GOLDEN_FLAG) then
-
-                    Player:TryRemoveTrinket(HeldTrinket)
-                    Player:AddTrinket(NewCandy)
-                end
-            end
-        end
-    end
-
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TRIGGER_ROOM_CLEAR, OnRoomClear)
 
@@ -2460,8 +2452,8 @@ function mod:LaughSignEffect(Type, Player)
                                           Isaac.GetRandomPosition(), Vector.Zero, Player, 0, 1):ToEffect()
 
                 local Data = Tomato:GetData()
-                Data.LaughingSpawn = true
-                Data.RenderFrames = 0
+                Data.REG_LaughSpawn = true
+                Data.REG_RenderFrames = 0
 
                 local RandomAnimIdx = math.random(1, TomatoAnimations.NUM_VARIANTS)
 
@@ -2472,9 +2464,9 @@ function mod:LaughSignEffect(Type, Player)
                 --starts from off screen
                 Tomato.SpriteOffset = Vector(math.random(-110, 110),Isaac.GetScreenHeight() - Isaac.WorldToScreen(Tomato.Position).Y + 40)
                 Tomato.SpriteScale = Vector.One * 2.25
-                Data.StartThrowOffset = Tomato.SpriteOffset
-                Data.StartThrowRotation = math.random()*-360 - 360
-                Data.TargetThrowRotation = RandomAnimIdx == 1 and -45 or 45 --replace this with a table if more animations appear(not gonna happen)
+                Data.REG_StartThrowOff = Tomato.SpriteOffset
+                Data.REG_StartThrowRot = math.random()*-360 - 360
+                Data.REG_TargetThrowRot = RandomAnimIdx == 1 and -45 or 45 --replace this with a table if more animations appear(not gonna happen)
 
                 Tomato.DepthOffset = 1000
 
@@ -2488,7 +2480,7 @@ function mod:LaughSignEffect(Type, Player)
         sfx:Play(mod.Sounds.APPLAUSE, 1, 120, false, math.random()*0.1 + 0.95)
         local Timer = 10
         local Room = Game:GetRoom()
-        for i=1, 5 do
+        for i=1, 5 + Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_ROTTEN_TOMATO)*2 do
             
             Isaac.CreateTimer(function ()
 
@@ -2497,14 +2489,14 @@ function mod:LaughSignEffect(Type, Player)
                                           NullPickupSubType.NO_COLLECTIBLE_CHEST, math.max(Random(),1))
 
                 local Data = Pickup:GetData()
-                Data.LaughingSpawn = true
-                Data.RenderFrames = 0
+                Data.REG_LaughSpawn = true
+                Data.REG_RenderFrames = 0
 
                 --starts from off screen
                 Pickup.SpriteOffset = Vector(math.random(-110, 110),Isaac.GetScreenHeight() - Isaac.WorldToScreen(Pickup.Position).Y + 40)
                 Pickup.SpriteScale = Vector.One * 2.25
-                Data.StartThrowOffset = Pickup.SpriteOffset
-                Data.StartThrowRotation = math.random()*-360 - 360
+                Data.REG_StartThrowOff = Pickup.SpriteOffset
+                Data.REG_StartThrowRot = math.random()*-360 - 360
                 Pickup.DepthOffset = 1000
 
 
@@ -2537,7 +2529,7 @@ local function WaitForPickupLanding(_, Pickup, Collider)
 
     local Data = Pickup:GetData()
 
-    if Data.LaughingSpawn then
+    if Data.REG_LaughSpawn then
         return true
     end
 end
@@ -2548,16 +2540,16 @@ mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_COLLISION, WaitForPickupLanding)
 local function PickupThrowParabola(_, Pickup)
 
     local Data = Pickup:GetData()
-    if not Data.LaughingSpawn then
+    if not Data.REG_LaughSpawn then
         return
     end
 
     if Pickup.SpriteScale.Y == 1 then --pickup landed
         
-        Data.RenderFrames = nil
-        Data.LaughingSpawn = nil
-        Data.StartThrowOffset = nil
-        Data.StartThrowRotation = nil
+        Data.REG_RenderFrames = nil
+        Data.REG_LaughSpawn = nil
+        Data.REG_StartThrowOff = nil
+        Data.REG_StartThrowRot = nil
 
         if Pickup.Variant == PickupVariant.PICKUP_BOMB
            and Pickup.SubType == BombSubType.BOMB_TROLL or Pickup.SubType == BombSubType.BOMB_SUPERTROLL then
@@ -2570,13 +2562,13 @@ local function PickupThrowParabola(_, Pickup)
         end
     else
         
-        Data.RenderFrames = Data.RenderFrames + 1
+        Data.REG_RenderFrames = Data.REG_RenderFrames + 1
 
-        Pickup.SpriteOffset.Y = mod:ExponentLerp(Data.StartThrowOffset.Y, 0, Data.RenderFrames/300, 0.95)
-        Pickup.SpriteOffset.X = mod:Lerp(Data.StartThrowOffset.X, 0, Data.RenderFrames/900)
+        Pickup.SpriteOffset.Y = mod:ExponentLerp(Data.REG_StartThrowOff.Y, 0, Data.REG_RenderFrames/300, 0.95)
+        Pickup.SpriteOffset.X = mod:Lerp(Data.REG_StartThrowOff.X, 0, Data.REG_RenderFrames/900)
 
-        Pickup.SpriteScale = Vector.One * mod:ExponentLerp(2.25, 1, Data.RenderFrames/75, 2,5)
-        Pickup.SpriteRotation =mod:ExponentLerp(Data.StartThrowRotation, 0, Data.RenderFrames/75, 0.9)
+        Pickup.SpriteScale = Vector.One * mod:ExponentLerp(2.25, 1, Data.REG_RenderFrames/75, 2,5)
+        Pickup.SpriteRotation =mod:ExponentLerp(Data.REG_StartThrowRot, 0, Data.REG_RenderFrames/75, 0.9)
     end
 
 end
@@ -2632,7 +2624,7 @@ local function PocketAcesTrigger(_, Tear)
         return
     end
 
-    local CardChance = (1 + Player.Luck/3)/13
+    local CardChance = (3 + Player.Luck)/39
 
     if math.random() >= CardChance then
         return
@@ -2684,7 +2676,8 @@ mod:AddCallback(ModCallbacks.MC_USE_ITEM, EvaluateOnCandySmelt, CollectibleType.
 ---@param Player EntityPlayer
 local function ErisAreaEffect(_, Player)
 
-    if not Player:HasCollectible(mod.Collectibles.ERIS) or Game:GetFrameCount() % 3 ~= 0 then
+    if not Player:HasCollectible(mod.Collectibles.ERIS) or Game:GetFrameCount() % 3 ~= 0
+       or not mod.GameStarted then
         return
     end
 
@@ -2704,10 +2697,15 @@ local function ErisAreaEffect(_, Player)
 
         local Distance = Enemy.Position:Distance(Player.Position)
 
-        if Distance <= ERIS_MAX_RADIUS then
 
-            local SlowFactor = 1 - math.min(ERIS_MAX_RADIUS, Distance + ERIS_MIN_RADIUS)/ERIS_MAX_RADIUS
-            local ExtraSlowValue = mod:ExponentLerp(ERIS_MIN_SLOW, ERIS_MAX_SLOW, SlowFactor, 1.85)
+        local MAX_RADIUS = ERIS_MAX_RADIUS*(1 + 0.1*Player:GetTrinketMultiplier(TrinketType.TRINKET_ICE_CUBE))
+        local MAX_SLOW = ERIS_MAX_SLOW*(1 + 0.2*Player:GetTrinketMultiplier(TrinketType.TRINKET_ICE_CUBE))
+
+
+        if Distance <= MAX_RADIUS then
+
+            local SlowFactor = 1 - math.min(MAX_RADIUS, Distance + ERIS_MIN_RADIUS)/ERIS_MAX_RADIUS
+            local ExtraSlowValue = mod:ExponentLerp(ERIS_MIN_SLOW, MAX_SLOW, SlowFactor, 1.85)
             local StartingSlow = Data.REG_ErisSlow or 0
 
             local FinalSlow = ExtraSlowValue + StartingSlow
@@ -2816,16 +2814,19 @@ local function PennySeedsPayout()
 
                     elseif VariantRoll <= 0.01 then
 
-                        CoinVariant = PickupVariant.PICKUP_TRINKET
-
                         local Pool = PENNY_TRINKET_POOLS[Game:GetRoom():GetBackdropType()] or PENNY_TRINKET_POOLS.DEFAULT
+
+                        CoinVariant = PickupVariant.PICKUP_TRINKET
                         CoinSub = mod:GetRandom(Pool, PennyRNG)
 
-                        if not Isaac.GetPersistentGameData():Unlocked(ItemsConfig:GetTrinket(CoinSub).AchievementID) then
+                        if not Isaac.GetPersistentGameData():Unlocked(ItemsConfig:GetTrinket(CoinSub).AchievementID)
+                           or not ItemsPool:HasTrinket(CoinSub) then
+
                             CoinVariant = nil
                             CoinSub = nil
                         else
                             Player:AnimateHappy()
+                            ItemsPool:RemoveTrinket(CoinSub)
                         end
                     end
 
@@ -2835,14 +2836,13 @@ local function PennySeedsPayout()
 
                     if Player:HasGoldenTrinket(mod.Trinkets.PENNY_SEEDS) then
                     
-                        if PennyRNG:RandomFloat() <= 0.05 then
+                        if CoinVariant == PickupVariant.PICKUP_TRINKET
+                           and PennyRNG:RandomFloat() <= 0.05 then
 
-                            if CoinVariant == PickupVariant.PICKUP_TRINKET then
-                                CoinSub = 0 --CoinSub + TrinketType.TRINKET_GOLDEN_FLAG
+                            CoinSub = CoinSub + TrinketType.TRINKET_GOLDEN_FLAG
 
-                            elseif CoinVariant == PickupVariant.PICKUP_COIN then
-                                CoinSub = CoinSubType.COIN_GOLDEN
-                            end
+                        elseif CoinVariant == PickupVariant.PICKUP_COIN then
+                            CoinSub = 0
                         end
                     end
 
@@ -2926,7 +2926,7 @@ local function ModifyPickups(_, Pickup, Variant, SubType, ReqVariant, ReqSubType
 
             if PICKUP_GOLDEN_SUB[Variant] then
 
-                if UpgradeRoll <= PICKUP_GOLDEN_SUB[Variant].Chance then
+                if UpgradeRoll <= PICKUP_GOLD_CHANCE then
 
                     if Variant == PickupVariant.PICKUP_BOMB 
                        and (SubType == BombSubType.BOMB_TROLL
@@ -2948,7 +2948,7 @@ local function ModifyPickups(_, Pickup, Variant, SubType, ReqVariant, ReqSubType
 
             elseif PICKUP_GOLDEN_VARIANT[Variant] then
 
-                if UpgradeRoll <= PICKUP_GOLDEN_VARIANT[Variant].Chance then
+                if UpgradeRoll <= PICKUP_GOLD_CHANCE then
 
                     ReturnTable[1] = PICKUP_GOLDEN_VARIANT[Variant].NewVariant
 
@@ -2978,8 +2978,6 @@ local function ModifyPickups(_, Pickup, Variant, SubType, ReqVariant, ReqSubType
         end
     end
 
-    
-
     return ReturnTable
 end
 mod:AddPriorityCallback(ModCallbacks.MC_POST_PICKUP_SELECTION, CallbackPriority.LATE, ModifyPickups)
@@ -2999,7 +2997,7 @@ local function ModifyPills()
 
             local UpgradeRoll = GoldenRNG:RandomFloat()
 
-            if UpgradeRoll <= GOLDEN_PILL_CHANCE then
+            if UpgradeRoll <= PICKUP_GOLD_CHANCE then
                 
                 return PillColor.PILL_GOLD
             end
@@ -3025,7 +3023,7 @@ local function ModifyTrinkets(_, SelectedTrinket)
 
             local UpgradeRoll = GoldenRNG:RandomFloat()
 
-            if UpgradeRoll <= GOLDEN_TRINKET_CHANCE then
+            if UpgradeRoll <= PICKUP_GOLD_CHANCE then
                 
                 return SelectedTrinket | TrinketType.TRINKET_GOLDEN_FLAG
             end
@@ -3071,7 +3069,7 @@ end
 --DisableGoldPedestal used in the original code isn't necessary since with RGON there no need to morph the pickup
 local function EpiphanyGoldenItems(_, Pickup)
 
-    if not Ephiphany then
+    if not Ephiphany or not PlayerManager.AnyoneHasCollectible(mod.Collectibles.HEIRLOOM) then
         return
     end
 
@@ -3089,13 +3087,29 @@ local function EpiphanyGoldenItems(_, Pickup)
 		return
 	end
 
-	local rng = Pickup:GetDropRNG()
-
-	local roll = rng:RandomFloat()
-
 	run_save.goldActiveList = run_save.goldActiveList or {}
 
-	local isGold = GOLDEN_ITEM_CHANCE >= roll or run_save.goldActiveList[tostring(Pickup.SubType)]
+    local GoodRoll = false
+
+    for _,Player in ipairs(PlayerManager.GetPlayers()) do
+
+        local GoldenRNG = Player:GetCollectibleRNG(mod.Collectibles.HEIRLOOM)
+
+        for i = 1, Player:GetCollectibleNum(mod.Collectibles.HEIRLOOM) do
+
+            if GoldenRNG:RandomFloat() <= PICKUP_GOLD_CHANCE then
+                
+                GoodRoll = true
+                break
+            end
+        end
+
+        if GoodRoll then
+            break
+        end
+    end
+
+	local isGold = GoodRoll or run_save.goldActiveList[tostring(Pickup.SubType)]
 
 
 	if Ephiphany:GetAchievement("GOLDEN_COLLECTIBLE") > 0
@@ -3135,7 +3149,7 @@ local function StatEvaluation(_,Player, Cache)
                 Player.MoveSpeed = Player.MoveSpeed + 0.2
             end
             if Cache & CacheFlag.CACHE_LUCK == CacheFlag.CACHE_LUCK then
-                Player.Luck = Player.Luck + 2
+                Player.Luck = Player.Luck + 3
             end
         end
         if mod.Saved.Player[PIndex].ComedicState & ComedicState.TRAGEDY == ComedicState.TRAGEDY then
@@ -3144,7 +3158,7 @@ local function StatEvaluation(_,Player, Cache)
                 Player.MaxFireDelay = Player.MaxFireDelay - mod:CalculateTearsUp(Player.MaxFireDelay, 0.5)
             end
             if Cache & CacheFlag.CACHE_DAMAGE == CacheFlag.CACHE_DAMAGE then
-                Player.Damage = Player.Damage + 1
+                Player.Damage = Player.Damage + 1.5
             end
             if Cache & CacheFlag.CACHE_RANGE == CacheFlag.CACHE_RANGE then
                 Player.TearRange = Player.TearRange + 100
@@ -3255,8 +3269,13 @@ local function GuaranteeBeggarPayout(_, Slot, Player)
     local NewCandy = CurrentCandy - 1
 
     if mod:Contained(mod.Trinkets.TASTY_CANDY, NewCandy) then 
-        Player:TryRemoveTrinket(CurrentCandy)
-        Player:AddTrinket(NewCandy, false)
+
+        if not HasGoldenCandy
+           or Player:GetTrinketRNG(mod.Trinkets.TASTY_CANDY[1]):RandomFloat() > 0.33 then
+
+            Player:TryRemoveTrinket(CurrentCandy)
+            Player:AddTrinket(NewCandy, false)
+        end
 
         sfx:Play(SoundEffect.SOUND_BONE_BREAK, 1, 2, false, 1.1)
 

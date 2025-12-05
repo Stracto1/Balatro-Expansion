@@ -315,12 +315,12 @@
     </entity>
 
     <entity name="Baloon Puppy" anm2path="baloon_puppy_familiar.anm2" id="3" 
-    	shodowSize="11" friction="0.9" collisionInterval="3" collisionDamage="0.5" collisionRadius="16" collisionsMass="1" baseHP="16" 
+    	shodowSize="11" friction="0.9" collisionInterval="3" collisionDamage="0.75" collisionRadius="16" collisionsMass="1" baseHP="16" 
         gridCollision="none" tags="cansacrifice">
     </entity>
 
     <entity name="Planet Ceres" anm2path="ceres_planet_familiar.anm2" id="3" 
-    	shodowSize="12" friction="0.7" collisionInterval="3" collisionRadius="19" collisionsMass="1"
+    	shodowSize="12" friction="0.7" collisionInterval="3" collisionDamage="0.5" collisionRadius="19" collisionsMass="1"
         gridCollision="none" tags="cansacrifice" customtags="familiarblockprojectiles">
     </entity>
 

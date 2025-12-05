@@ -1,6 +1,6 @@
 ---@diagnostic disable: redundant-parameter
 
-Balatro_Expansion = RegisterMod("Balatro Expansion", 1)
+Balatro_Expansion = RegisterMod("TBoI: Regambled", 1)
 
 
 Balatro_Expansion.HOLD_THRESHOLD = 10 --if time is EQUAL OR HIGHER then it's probably holding
@@ -273,7 +273,7 @@ Balatro_Expansion.Collectibles.PLANET_X = Isaac.GetItemIdByName("Planet X")
 Balatro_Expansion.Collectibles.CERES = Isaac.GetItemIdByName("Ceres")
 Balatro_Expansion.Collectibles.ERIS = Isaac.GetItemIdByName("Eris")
 Balatro_Expansion.Collectibles.HEIRLOOM = Isaac.GetItemIdByName("Heirloom")
-Balatro_Expansion.Collectibles.THE_HAND = Isaac.GetItemIdByName("The hand")
+Balatro_Expansion.Collectibles.THE_HAND = Isaac.GetItemIdByName("The Hand")
 
 
 
@@ -760,7 +760,7 @@ Balatro_Expansion.StringRenderingParams = {Swoosh = 1,--appears slowly (30 chars
                                            Wrap = 8, --goes new line when needed (BoxWidth is necessary!)
                                            Centered = 16, --centers the text
                                            Enlarge = 32, --enlarges chars starting from the first (alligned with swoosh)
-                                           RightAllinged = 64, --allignaes to tthe right
+                                           RightAllinged = 64, --allignes to the right
                                            EID = 128 --also includes wrap, but doesn't center the lines height wise
                                            }
 
@@ -768,10 +768,10 @@ Balatro_Expansion.Fonts = {}
 do
 
 local loaded
-Balatro_Expansion.Fonts.Balatro, loaded = Font("mods/balatro_expansion/resources/font/balatro plus 16 7.fnt")
+Balatro_Expansion.Fonts.Balatro, loaded = Font("mods/TBoI Regambled/resources/font/balatro plus 16 7.fnt")
 
 if not loaded then
-    Balatro_Expansion.Fonts.Balatro, loaded = Font("mods/balatro_expansion_3308293502/resources/font/balatro plus 16 7.fnt")
+    Balatro_Expansion.Fonts.Balatro, loaded = Font("mods/tboi regambled_3615514307/resources/font/balatro plus 16 7.fnt")
 end
 
 if not loaded and REPENTANCE_PLUS then

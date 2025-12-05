@@ -7,7 +7,7 @@
     <costume id="114" anm2path="tragic_mask_costume.anm2" type="none" priority="100"/>
 
     <costume id="34" anm2path="crayons_costume.anm2" type="passive" priority="1"/>  
-    <costume id="37" anm2path="clown_costume.anm2" type="passive" priority="1"/>  
+    <costume id="37" anm2path="clown_costume.anm2" type="passive" priority="1" forceHeadColor="true" overwriteColor="true" skinColor="0"/>  
     <costume id="40" anm2path="lollypop_costume.anm2" type="passive" priority="10" hasSkinAlt="true"/> 
 
     <costume id="45" anm2path="heirloom_costume.anm2" type="passive" priority="10"/> 

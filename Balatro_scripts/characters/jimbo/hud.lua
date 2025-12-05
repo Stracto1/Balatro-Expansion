@@ -74,7 +74,7 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
 
     HeartSprite.Offset = PIndex == 0 and Vector(-35,0) or Vector.Zero
 
-    local PlayerRenderMult = PIndex%2 == 0 and -1 or 1
+    local PlayerRenderMult = Player:GetPlayerIndex()%2 == 1 and -1 or 1
 
     TrinketSprite.Scale = ScaleMult
 
@@ -86,7 +86,7 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
     if IsCoop then
         BasePos = HeartPosition + Vector(0,8)
 
-        if PIndex%2 == 1 then --adds heart offset
+        if Player:GetPlayerIndex()%2 == 0 then --adds heart offset
             BasePos = BasePos + (Game:GetLevel():GetCurses()&LevelCurse.CURSE_OF_THE_UNKNOWN ~= 0 and Vector(15,0) or (math.min(12,Player:GetEffectiveMaxHearts())* Vector(6,0))) * PlayerRenderMult
         
         else --adds offset if player has an active
@@ -198,7 +198,7 @@ function mod:JimboStatsHUD(offset,_,Position,_,Player)
 
     -------STATS COUNTER RENDERING---------
     
-    local ChipsPos = Vector(18,94) + offset
+    local ChipsPos = Vector(26,115) + offset
     local MultPos = ChipsPos + Vector(0,12)
 
     
@@ -317,7 +317,7 @@ local function BlindProgressHUD(_,offset,_,Position,_,Player)
 
     if Minimap:GetState() == MinimapState.EXPANDED then
 
-        TargetPos.Y = 48
+        TargetPos.Y = 48 + offset.Y
     else
         TargetPos.Y = -20
     end
@@ -443,8 +443,9 @@ function mod:HandBarV2Render(offset,_,Position,_,Player)
     if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
+
     local PIndex = Player:GetData().TruePlayerIndex
-    local PlayerRenderMult = PIndex%2 == 0 and -1 or 1
+    local PlayerRenderMult = Player:GetPlayerIndex()%2 == 1 and -1 or 1
 
     ----if true then return end
     
@@ -497,7 +498,7 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.HandBarV2Render
 local ScaleMult = 0.5
 ---@param Player EntityPlayer
 function mod:JimboHandRender(Player, Offset)
-    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.Saved.Player[1] then
+    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted then
         return
     end
 
@@ -609,12 +610,12 @@ function mod:JimboHandRender2(Offset, Sprite, Position, _, Player)
         return
     end
 
-    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.Saved.Player[1] then
+    if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted then
         return
     end
     
     local PIndex = Player:GetData().TruePlayerIndex
-    local RenderMult = PIndex%2 == 0 and -1 or 1
+    local RenderMult = Player:GetPlayerIndex()%2 == 1 and -1 or 1
 
     local TargetScale = mod.Saved.DSS.Jimbo.HandScale
     
@@ -772,8 +773,10 @@ function mod:JimboPackRender(_,_,_,_,Player)
 
             WobblyEffect[i] = Vector(0,math.sin(math.rad(mod.SelectionParams[PIndex].Frames*5+i*95))*1.5)
 
+            local TrinketPos = mod:CoolVectorLerp(PlayerPos, RenderPos + WobblyEffect[i], mod.SelectionParams[PIndex].Frames/10)
+
             TrinketSprite:SetCustomShader(mod.EditionShaders[card.Edition])
-            TrinketSprite:Render(mod:CoolVectorLerp(PlayerPos, RenderPos + WobblyEffect[i], mod.SelectionParams[PIndex].Frames/10))
+            TrinketSprite:Render(TrinketPos + Vector(0, 8))
 
             RenderPos.X = RenderPos.X + PACK_CARD_DISTANCE + CardHUDWidth
 
@@ -814,6 +817,7 @@ function mod:JimboPackRender(_,_,_,_,Player)
 
     if TruePurpose == mod.SelectionParams.Purposes.BuffonPack then
         CardFrame:SetFrame(HUD_FRAME.JokerFrame)
+        RenderPos.Y = RenderPos.Y + 8
     else
         CardFrame:SetFrame(HUD_FRAME.CardFrame)
     end

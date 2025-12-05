@@ -53,16 +53,18 @@ void main(void)
 	vec2 pa = vec2(1.0+PixelationAmountOut, 1.0+PixelationAmountOut) / TextureSizeOut;
 	vec4 Color = Color0 * texture2D(Texture0, PixelationAmountOut > 0.0 ? TexCoord0 - mod(TexCoord0, pa) + pa * 0.5 : TexCoord0);
 	
+	if (Color.a == 0.0)
+		discard;
+
 	vec3 ColorHSV = rgb2hsv(Color.rgb);
 
-	if ((Color.r <= (8.0/255.0))&&(Color.gb == vec2(0))) //mf nicalis black i hate you
+	if ((Color.r <= (8.0/255.0))&&(Color.gb == vec2(0.0))) //mf nicalis black i hate you
 		ColorHSV.g = 0;
 
 	ColorHSV.b = 1 - ColorHSV.b + ColorHSV.g*0.56; //inverts the value of the color, but reducing the effect for saturated values
 
 	ColorHSV.r = (1 - ColorHSV.r) + 0.18; //inverts and moves the hue a bit
 	Color.rgb = hsv2rgb(ColorHSV.rgb);
-
 
 	float YshinePoint = -1.75*TrueCoord.x + 0.18; //where the shine effect peak should be
 
@@ -72,6 +74,7 @@ void main(void)
 
 	Color.rgb = mix(Color.rgb, vec3(0.9,0.9,1), clamp(0.31*cos(Distance * 12),0.0, 0.6)); //make it shine!
 	
+
 	gl_FragColor = Color;
 }
 

@@ -9,6 +9,7 @@ local PlanetCardToItem = {[mod.Planets.PLUTO] = CollectibleType.COLLECTIBLE_PLUT
                           [mod.Planets.VENUS] = CollectibleType.COLLECTIBLE_VENUS,
                           [mod.Planets.URANUS] = CollectibleType.COLLECTIBLE_URANUS,
                           [mod.Planets.JUPITER] = CollectibleType.COLLECTIBLE_JUPITER,
+                          [mod.Planets.EARTH] = CollectibleType.COLLECTIBLE_TERRA,
                           [mod.Planets.SATURN] = CollectibleType.COLLECTIBLE_SATURNUS,
                           [mod.Planets.MARS] = CollectibleType.COLLECTIBLE_MARS,
                           [mod.Planets.NEPTUNE] = CollectibleType.COLLECTIBLE_NEPTUNUS,

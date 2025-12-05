@@ -144,13 +144,7 @@ function mod:CreateBalatroEffect(Index, Colour, Sound, Text, EffectType, Player,
     if IsEntity then
 
         EffectParams[EffectSlot].Position = EntityPtr(Index)
-
-        if Index:ToPlayer() and IsTaintedJimbo then
-            
-            EffectParams[EffectSlot].Offset = Vector(30,20)
-        else
-            EffectParams[EffectSlot].Offset = Vector(0,20)
-        end
+        EffectParams[EffectSlot].Offset = Vector(0,20)
 
     elseif EffectType == mod.EffectType.HAND then
 
@@ -244,7 +238,7 @@ function mod:RenderEffect(_,_,_,_,_)
 
             elseif Entity:Exists() then
 
-                RenderPos = Entity.SpriteOffset + Isaac.WorldToScreen(Entity.Position + Entity.PositionOffset) + Params.Offset
+                RenderPos = Entity.SpriteOffset + mod:HUDWorldToScreen(Entity.Position + Entity.PositionOffset) + Params.Offset
             
                 EffectParams[Slot].LastPos = RenderPos
             else

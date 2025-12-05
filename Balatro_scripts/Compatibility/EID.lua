@@ -279,7 +279,7 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
                 if Progress == 2 then
                     Values[1] = mod:GetEIDString("Other", "Ready")
                 else
-                    Values[1] = "{{ColorYellorange}}"..tostring(Progress).."/2{{ColorGray}}"..mod:GetEIDString("Other", "Rounds")
+                    Values[1] = "{{REG_Yellow}}"..tostring(Progress).."/2{{ColorGray}}"..mod:GetEIDString("Other", "Rounds")
                 end
 
                     
@@ -354,19 +354,15 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
         
             if not LastUsed then
                 
-                Values[1] = "{{ColorMult}}"..mod:GetEIDString("Other","NONE").."{{B_Black}}"
+                Values[1] = "{{REG_CMult}}"..mod:GetEIDString("Other","NONE").."{{REG_Black}}"
 
             elseif LastUsed == Card.CARD_FOOL then
 
-                Values[1] = "{{ColorMult}}"..mod:GetEIDString("ConsumablesName", Card.CARD_FOOL).."{{B_Black}}"
+                Values[1] = "{{REG_CMult}}"..mod:GetConsumableName(Card.CARD_FOOL).."{{REG_Black}}"
 
-            elseif LastUsed <= Card.CARD_WORLD then
+            else--if LastUsed <= Card.CARD_WORLD then
 
-                Values[1] = "{{ColorMint}}"..mod:GetEIDString("ConsumablesName", LastUsed).."{{B_Black}}"
-            else
-                local Config = ItemsConfig:GetCard(card)
-
-                Values[1] = Config.Name
+                Values[1] = "{{REG_Mint}}"..mod:GetConsumableName(LastUsed).."{{REG_Black}}"
             end
 
 
@@ -382,7 +378,7 @@ local function GetT_JimboDescriptionValues(Type, Subtype, Index)
                 end
             end
 
-            Values[1] = "{{ColorYellow}}"..tostring(math.min(50, TOtalSell)).."{{B_Black}}"
+            Values[1] = "{{ColorYellow}}"..tostring(math.min(50, TOtalSell)).."{{REG_Black}}"
         end
 
     elseif Type == mod.EID_DescType.BLIND then
@@ -537,7 +533,7 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
                         end
                     end
 
-                    Values[1] = "{{ColorYellorange}}"..Enahncements.."{{ColorGray}} "..mod:GetEIDString("Other", "Enhanced")
+                    Values[1] = "{{REG_Yellow}}"..Enahncements.."{{ColorGray}} "..mod:GetEIDString("Other", "Enhanced")
                 end
 
             elseif Joker == mod.Jokers.LOYALTY_CARD then
@@ -647,7 +643,7 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
                 elseif Progress == 3 then
                     Values[1] = mod:GetEIDString("Other", "Ready")
                 else
-                    Values[1] = "{{ColorYellorange}}"..Progress.."/3{{ColorGray}}"..mod:GetEIDString("Other", "Rounds")
+                    Values[1] = "{{REG_Yellow}}"..Progress.."/3{{ColorGray}}"..mod:GetEIDString("Other", "Rounds")
                 end
                 
 
@@ -718,24 +714,24 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
         
             if not LastUsed then
                 
-                Values[2] = "{{ColorMult}}"..mod:GetEIDString("Other","NONE").."{{CR}}"
+                Values[2] = "{{REG_CMult}}"..mod:GetEIDString("Other","NONE").."{{CR}}"
 
                 Values[1] = "!!! "
             elseif LastUsed == Card.CARD_FOOL then
 
-                Values[2] = "{{ColorMult}}"..mod:GetEIDString("ConsumablesName", Card.CARD_FOOL).."{{CR}}"
+                Values[2] = "{{REG_CMult}}"..mod:GetEIDString("ConsumablesName", Card.CARD_FOOL).."{{CR}}"
 
                 Values[1] = "!!! "
 
             elseif LastUsed <= Card.CARD_WORLD then --the vanilla tarots have their name fucked up 
 
-                Values[2] = "{{ColorMint}}"..mod:GetEIDString("ConsumablesName", LastUsed).."{{CR}}"
+                Values[2] = "{{REG_Mint}}"..mod:GetEIDString("ConsumablesName", LastUsed).."{{CR}}"
 
                 Values[1] = "{{Card"..LastUsed.."}} "
             else
                 local Config = ItemsConfig:GetCard(LastUsed)
 
-                Values[2] = "{{ColorMint}}"..Config.Name.."{{CR}}"
+                Values[2] = "{{REG_Mint}}"..Config.Name.."{{CR}}"
 
                 Values[1] = "{{Card"..LastUsed.."}} "
             end
@@ -787,7 +783,7 @@ function mod:ReplaceBalatroMarkups(String, DescType, DescSubType, Tainted, Index
     if Tainted then
         
         if mod.Saved.DSS.T_Jimbo.CustomEID then
-            String = String.gsub(String, "%{%{CR%}%}", "{{B_Black}}")
+            String = String.gsub(String, "%{%{CR%}%}", "{{REG_Black}}")
         end
     end
 
@@ -864,14 +860,14 @@ do
     EID:addIcon("REG_Tragedy","Tragedy",0,12,8,6,5, CoopMenu)
 end
 
-EID:addColor("B_Black", mod.BalatroKColorBlack)
+EID:addColor("REG_Black", mod.BalatroKColorBlack)
 
-EID:addColor("ColorMint", mod.EffectKColors.GREEN)--KColor(0.36, 0.87, 0.51, 1)) --taken from the Balatro Jokers mod
-EID:addColor("ColorYellorange", mod.EffectKColors.YELLOW)--KColor(238/255, 186/255, 49/255, 1))
-EID:addColor("ColorChips",  mod.EffectKColors.BLUE)--KColor(49/255, 140/255, 238/255, 1))
-EID:addColor("ColorMult", mod.EffectKColors.RED)-- KColor(238/255, 49/255, 66/255, 1))
-EID:addColor("ColorGlass", KColor(0.85, 0.85, 1, 0.6))
-EID:addColor("ColorSpade", KColor(33/255, 6/255, 54/255, 1))
+EID:addColor("REG_Mint", mod.EffectKColors.GREEN)--KColor(0.36, 0.87, 0.51, 1)) --taken from the Balatro Jokers mod
+EID:addColor("REG_Yellow", mod.EffectKColors.YELLOW)--KColor(238/255, 186/255, 49/255, 1))
+EID:addColor("REG_CChips",  mod.EffectKColors.BLUE)--KColor(49/255, 140/255, 238/255, 1))
+EID:addColor("REG_CMult", mod.EffectKColors.RED)-- KColor(238/255, 49/255, 66/255, 1))
+EID:addColor("REG_CGlass", KColor(0.85, 0.85, 1, 0.6))
+EID:addColor("REG_CSpade", KColor(33/255, 6/255, 54/255, 1))
 
 
 
@@ -961,7 +957,7 @@ local function BalatroInventoryCallback(descObj)
 
                     Icon = "{{Shop}}"
                     Name = mod:GetEIDString("Other", "SellJoker")
-                    Description = "#{{CurrentCard}} {{ColorYellorange}}"..JokerName.."{{CR}} "..mod:GetEIDString("Other", "SellsFor").." {{ColorYellow}}"..tostring(mod:GetJokerCost(SelectedCard.Joker, SelectedCard.Edition, SelectedSlots, Player)).."${{CR}}"
+                    Description = "#{{CurrentCard}} {{REG_Yellow}}"..JokerName.."{{CR}} "..mod:GetEIDString("Other", "SellsFor").." {{ColorYellow}}"..tostring(mod:GetJokerCost(SelectedCard.Joker, SelectedCard.Edition, SelectedSlots, Player)).."${{CR}}"
 
                 else --not selling anything and confirm button
 
@@ -997,7 +993,7 @@ local function BalatroInventoryCallback(descObj)
                 if Rarity == "common" then
                     RarityColor = "{{ColorCyan}}"
                 elseif Rarity == "uncommon" then
-                    RarityColor = "{{ColorMint}}"
+                    RarityColor = "{{REG_Mint}}"
                 elseif Rarity == "rare" then
                     RarityColor = "{{ColorRed}}"
                 else
@@ -1017,9 +1013,9 @@ local function BalatroInventoryCallback(descObj)
                 local SellString
 
                 if SelectedCard.Joker == mod.Jokers.EGG then
-                    SellString = " #{{Shop}} "..mod:GetEIDString("Other", "SellsFor").." {{ColorYellorange}}"..mod.Saved.Player[PIndex].Inventory[mod.SelectionParams[PIndex].Index].Progress.."${{CR}}"
+                    SellString = " #{{Shop}} "..mod:GetEIDString("Other", "SellsFor").." {{REG_Yellow}}"..mod.Saved.Player[PIndex].Inventory[mod.SelectionParams[PIndex].Index].Progress.."${{CR}}"
                 else
-                    SellString = " #{{Shop}} "..mod:GetEIDString("Other", "SellsFor").." {{ColorYellorange}}"..mod:GetJokerCost(SelectedCard.Joker, SelectedCard.Edition, mod.SelectionParams[PIndex].Index, Player).."${{CR}}"
+                    SellString = " #{{Shop}} "..mod:GetEIDString("Other", "SellsFor").." {{REG_Yellow}}"..mod:GetJokerCost(SelectedCard.Joker, SelectedCard.Edition, mod.SelectionParams[PIndex].Index, Player).."${{CR}}"
                 end
 
 
@@ -1062,7 +1058,7 @@ local function BalatroInventoryCallback(descObj)
                 if Rarity == "common" then
                     RarityColor = "{{ColorCyan}}"
                 elseif Rarity == "uncommon" then
-                    RarityColor = "{{ColorMint}}"
+                    RarityColor = "{{REG_Mint}}"
                 elseif Rarity == "rare" then
                     RarityColor = "{{ColorRed}}"
                 else
@@ -1094,7 +1090,7 @@ local function BalatroInventoryCallback(descObj)
 
                 Name = CardName
 
-                local BaseEffect = "{{ColorChips}}+"..mod:RoundBalatroStyle(mod:GetValueScoring(SelectedCard.Value) + 0.02*SelectedCard.Upgrades, 8).."{{CR}} "..mod:GetEIDString("Other", "ChipsScored")
+                local BaseEffect = "{{REG_CChips}}+"..mod:RoundBalatroStyle(mod:GetValueScoring(SelectedCard.Value) + 0.02*SelectedCard.Upgrades, 8).."{{CR}} "..mod:GetEIDString("Other", "ChipsScored")
                 local EnhancementEffect = mod:GetEIDString("Jimbo", "Enhancement", SelectedCard.Enhancement)
                 local SealEffect = mod:GetEIDString("Jimbo", "Seal", SelectedCard.Seal)
                 local EditionEffect = mod:GetEIDString("Jimbo", "CardEdition", SelectedCard.Edition)
@@ -1291,7 +1287,7 @@ local function BalatroExtraDescCallback(descObj)
         if descObj.ObjSubType == Card.CARD_FOOL then
 
 
-            local CardName = mod.Saved.LastCardUsed and "{{ColorMint}}"..EID:getObjectName(5,300,mod.Saved.LastCardUsed).."{{CR}}" or "{{ColorRed}}None{{CR}}"
+            local CardName = mod.Saved.LastCardUsed and "{{REG_Mint}}"..EID:getObjectName(5,300,mod.Saved.LastCardUsed).."{{CR}}" or "{{ColorRed}}None{{CR}}"
 
             BaseDesc = BaseDesc..CardName
 
@@ -1346,13 +1342,15 @@ end
 EID:addDescriptionModifier("Balatro Extra descriptions", BalatroExtraDescCondition, BalatroExtraDescCallback)
 
 
-local function BalatroItemSynergyCondition(descObj)
+------SYNERGY----
+
+local function ItemSynergyCondition(descObj)
     if descObj.ObjType == EntityType.ENTITY_PICKUP 
        and descObj.ObjVariant == PickupVariant.PICKUP_COLLECTIBLE then
         return true
     end
 end
-local function BalatroTiemSynergyCallback(descObj)
+local function TiemSynergyCallback(descObj)
 
     if PlayerManager.AnyoneIsPlayerType(Balatro_Expansion.Characters.JimboType) then
         
@@ -1384,14 +1382,68 @@ local function BalatroTiemSynergyCallback(descObj)
         end
     end
 
+    if mod:HasEIDString("ItemTrinketSynergies", descObj.ObjSubType) then
 
+        for Trinket,_ in pairs(mod:GetEIDString("ItemTrinketSynergies", descObj.ObjSubType, nil, true)) do
 
+            if PlayerManager.AnyoneHasTrinket(Trinket) then
 
+                EID:appendToDescription(descObj, mod:GetEIDString("ItemTrinketSynergies", descObj.ObjSubType, Trinket))
+            end
+        end
+    end
 
     return descObj
 end
-EID:addDescriptionModifier("Balatro Item Synergies", BalatroItemSynergyCondition, BalatroTiemSynergyCallback)
+EID:addDescriptionModifier("REG Item Synergies", ItemSynergyCondition, TiemSynergyCallback)
 
+
+local function TrinketSynergyCondition(descObj)
+    if descObj.ObjType == EntityType.ENTITY_PICKUP 
+       and descObj.ObjVariant == PickupVariant.PICKUP_TRINKET then
+        return true
+    end
+end
+local function TrinketSynergyCallback(descObj)
+
+    local SubType = descObj.ObjSubType & ~(mod.EditionFlag.ALL | TrinketType.TRINKET_GOLDEN_FLAG)
+
+    if PlayerManager.AnyoneIsPlayerType(Balatro_Expansion.Characters.JimboType) then
+        
+        if mod:HasEIDString("JimboSynergies", descObj.ObjSubType) then
+
+            EID:appendToDescription(descObj, mod:GetEIDString("JimboSynergies", descObj.ObjSubType))
+        end
+
+        if mod:HasEIDString("ItemJokerSynergies", descObj.ObjSubType) then
+
+            for Joker,_ in pairs(mod:GetEIDString("ItemJokerSynergies", descObj.ObjSubType, nil, true)) do
+
+                if mod:GetTotalTrinketAmount(Joker) > 0 then
+
+                    EID:appendToDescription(descObj, "#{{Trinket"..Joker.."}}"..mod:GetEIDString("ItemJokerSynergies", descObj.ObjSubType, Joker))
+                end
+            end
+        end
+    end
+
+    if mod:HasEIDString("TrinketItemSynergies", SubType) then
+
+        for Item,_ in pairs(mod:GetEIDString("TrinketItemSynergies", SubType, nil, true)) do
+
+            if PlayerManager.AnyoneHasCollectible(Item) then
+
+                EID:appendToDescription(descObj, mod:GetEIDString("TrinketItemSynergies", SubType, Item))
+            end
+        end
+    end
+
+    return descObj
+end
+EID:addDescriptionModifier("REG Item Synergies", TrinketSynergyCondition, TrinketSynergyCallback)
+
+
+---------
 
 local function BalatroOffsetCondition(descObj)
     --specifically player 0 cause its in the top left
@@ -1755,7 +1807,7 @@ local function TJimboDescriptionsCallback(descObj)
 
         if ObjectToDescribe.Entity == GetPtrHash(descObj.Entity) then --caches the previous variables to save time
         
-            local Histeresys = 15
+            local Histeresys = 25
         
             local RenderLeft
 
@@ -1915,8 +1967,6 @@ local function TJimboDescriptionsCallback(descObj)
                 ObjectToDescribe.SubType = descObj.ObjSubType --not really needed
 
                 Result = true
-            else
-                print("not balatrational")
             end
 
 
@@ -1989,12 +2039,12 @@ local function TJimboDescriptionsCallback(descObj)
 
             if card.Enhancement ~= mod.Enhancement.STONE then
             
-                TriggerDesc = TriggerDesc.."{{ColorChips}}+"..tostring(mod:GetValueScoring(card.Value) + 5*card.Upgrades).."{{B_Black}}Chips"
+                TriggerDesc = TriggerDesc.."{{REG_CChips}}+"..tostring(mod:GetValueScoring(card.Value) + 5*card.Upgrades).."{{REG_Black}}Chips"
             end
 
             --hiker upgrades
             --if card.Upgrades > 0 then
-            --    TriggerDesc = TriggerDesc.."#{{ColorChips}}+"..tostring(5*card.Upgrades).."{{B_Black}} Extra Chips"
+            --    TriggerDesc = TriggerDesc.."#{{REG_CChips}}+"..tostring(5*card.Upgrades).."{{REG_Black}} Extra Chips"
             --end
 
             TriggerDesc = TriggerDesc..mod:GetEIDString("T_Jimbo","Enhancement",card.Enhancement)

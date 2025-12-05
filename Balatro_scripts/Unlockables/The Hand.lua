@@ -78,8 +78,6 @@ local function UseSingleHandyCard(Player)
     for _,Player in ipairs(PlayerManager.GetPlayers()) do
 
         local PIndex = Player:GetData().TruePlayerIndex
-
-        print(mod.SelectionParams[PIndex].Mode)
     
         if mod.SelectionParams[PIndex].Mode ~= mod.SelectionParams.Modes.NONE then
             SomeoneIsSelecting = true
@@ -89,8 +87,6 @@ local function UseSingleHandyCard(Player)
     end
     
     if SomeoneIsSelecting then
-
-        print("delayed")
 
         Isaac.CreateTimer(function ()
             UseSingleHandyCard(Player)
@@ -187,7 +183,8 @@ mod:AddCallback(ModCallbacks.MC_POST_TRIGGER_COLLECTIBLE_REMOVED, ResizeHandCard
 ---@param Player EntityPlayer
 local function HandInputs(_, Player)
 
-    if not Player:HasCollectible(mod.Collectibles.THE_HAND) then
+    if not Player:HasCollectible(mod.Collectibles.THE_HAND)
+      or not mod.GameStarted then
         return
     end
 
@@ -364,9 +361,7 @@ local function HandPickupCollision(_, Effect)
             
             local AnimLength = CardSprite:GetAnimationData("Collect"):GetLength()
 
-            local CardConfig = ItemsConfig:GetCard(Pickup.SubType)
-
-            Game:GetHUD():ShowItemText(CardConfig.Name, CardConfig.Description)
+            Game:GetHUD():ShowItemText(mod:GetConsumableName(Pickup.SubType), "You better play it well!")
 
             Isaac.CreateTimer(function ()
                 Pickup:Remove()
@@ -475,7 +470,7 @@ local function HandPickupCollision(_, Effect)
 
 
 
-    local HandDamage = Player.SpriteScale:Length()*2 + 4
+    local HandDamage = Player.SpriteScale.X*3.5 + 4
 
     if Player:HasCollectible(CollectibleType.COLLECTIBLE_MIDAS_TOUCH) then
         

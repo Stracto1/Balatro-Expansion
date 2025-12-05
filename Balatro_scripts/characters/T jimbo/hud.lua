@@ -14,7 +14,6 @@ local SpecialCardsSprite = Sprite("gfx/ui/PackSpecialCards.anm2")
 
 local DeckSprite = Sprite("gfx/ui/Deck Stages.anm2")
 local TrinketSprite = Sprite("gfx/005.350_trinket_custom.anm2")
-TrinketSprite.Offset = Vector(0, 8)
 
 local BlindChipsSprite = Sprite("gfx/ui/Blind Chips.anm2")
 
@@ -90,7 +89,7 @@ local CardHUDWidth = 13
 local PACK_CARD_DISTANCE = 10
 local DECK_RENDERING_POSITION = Vector(-15,-20) --in screen coordinates
 --local DECK_RENDERING_POSITION = Vector(450,250) --in screen coordinates
-local INVENTORY_RENDERING_HEIGHT = 25
+local INVENTORY_RENDERING_HEIGHT = 34
 local JOKER_AREA_WIDTH = 125
 local CONSUMABLE_CENTER_OFFSET = 150
 local CONSUMABLE_AREA_WIDTH = 75
@@ -1491,7 +1490,7 @@ local function JimboInventoryHUD(Player, PIndex)
 
         CardFrame:SetFrame(HUD_FRAME.JokerFrame)
 
-        CardFrame:Render(FrameRenderPos + Vector(0, 8)) --TODO maybe fix
+        CardFrame:Render(FrameRenderPos)
     end
 end
 --mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, JimboInventoryHUD)
@@ -3360,7 +3359,7 @@ local function TJimboRunInfo(Player, PIndex)
         TextParams = mod.StringRenderingParams.Centered | mod.StringRenderingParams.EID
 
 
-        Text = mod:GetEIDString("T_Jimbo", "LeftHUD", "Reward").." {{ColorYellorange}}"..string.rep("$", mod:GetBlindReward(mod.BLINDS.SMALL))
+        Text = mod:GetEIDString("T_Jimbo", "LeftHUD", "Reward").." {{REG_Yellow}}"..string.rep("$", mod:GetBlindReward(mod.BLINDS.SMALL))
 
         mod:RenderBalatroStyle(Text, RenderPos, TextParams, 0, TextScale, TextKcolor, Size.X)
 
@@ -3529,7 +3528,7 @@ local function TJimboRunInfo(Player, PIndex)
         TextParams = mod.StringRenderingParams.Centered | mod.StringRenderingParams.EID
 
 
-        Text = mod:GetEIDString("T_Jimbo", "LeftHUD", "Reward").." {{ColorYellorange}}"..string.rep("$", mod:GetBlindReward(mod.BLINDS.BIG))
+        Text = mod:GetEIDString("T_Jimbo", "LeftHUD", "Reward").." {{REG_Yellow}}"..string.rep("$", mod:GetBlindReward(mod.BLINDS.BIG))
 
         mod:RenderBalatroStyle(Text, RenderPos, TextParams, 0, TextScale, TextKcolor, Size.X)
 
@@ -3683,7 +3682,7 @@ local function TJimboRunInfo(Player, PIndex)
         TextParams = mod.StringRenderingParams.Centered | mod.StringRenderingParams.EID
 
 
-        Text = mod:GetEIDString("T_Jimbo", "LeftHUD", "Reward").." {{ColorYellorange}}"..string.rep("$", mod:GetBlindReward(mod.Saved.AnteBoss))
+        Text = mod:GetEIDString("T_Jimbo", "LeftHUD", "Reward").." {{REG_Yellow}}"..string.rep("$", mod:GetBlindReward(mod.Saved.AnteBoss))
 
         mod:RenderBalatroStyle(Text, RenderPos, TextParams, 0, TextScale, TextKcolor, Size.X)
 

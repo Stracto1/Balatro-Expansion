@@ -9,30 +9,59 @@ Challenges.Balatro = Isaac.GetChallengeIdByName("Balatro")
 
 
 ---@param InitPlayer EntityPlayer
-local function PlayerIndexUpdate(InitPlayer)
+local function PlayerIndexUpdate(_, InitPlayer)
 
-    local ControllersFound = {}
-    --local TrueIndex = 1
+    local PIndex = InitPlayer:GetCollectibleRNG(1):GetSeed().."_"..InitPlayer:GetCollectibleRNG(2):GetSeed()
+    InitPlayer:GetData().TruePlayerIndex = PIndex
+	
+    --Isaac.DebugString("REG INIT PLAYER: "..PIndex)
+    
+    if mod.Saved.Player[PIndex] then
 
-    for _,Player in ipairs(PlayerManager.GetPlayers()) do
-        local Data = Player:GetData()
-        --print("index: ",Player:GetPlayerIndex())
-        Data.TruePlayerIndex = Player:GetPlayerIndex() + 1 --needs to start from 1 or the json says no
-        
-        --if not mod:Contained(ControllersFound, Player.ControllerIndex) then
-        --    ControllersFound[#ControllersFound+1] = Player.ControllerIndex
-        --    TrueIndex = TrueIndex + 1
-        --end
+        for _,Group in pairs(mod.Saved.Player[PIndex].InnateItems or {}) do
+            for _,Item in ipairs(Group) do
+                InitPlayer:AddInnateCollectible(Item)
+            end
+        end
+    else
+        mod:InitPlayerValues(InitPlayer)
     end
 
+    --[[
+    for _,Player in ipairs(PlayerManager.GetPlayers()) do
+
+        print("index: ",Player:GetPlayerIndex(),"Type:", Player:GetPlayerType())
+
+        Players[#Players+1] = GetPtrHash(Player)
+        local Data = Player:GetData()
+        Data.TruePlayerIndex = Player:GetPlayerIndex() + Offset --needs to start from 1 or the json says no
+    
+
+        local Twin = Player:GetOtherTwin()
+
+        if Twin 
+           and (Player:GetPlayerType() == PlayerType.PLAYER_LAZARUS_B or Player:GetPlayerType() == PlayerType.PLAYER_LAZARUS2_B)
+           and not mod:Contained(GetPtrHash(Twin)) then
+
+            print("HAS TWIN")
+
+            Players[#Players+1] = GetPtrHash(Twin)
+            Offset = Offset + 1
+
+            local Data = Twin:GetData()
+            Data.TruePlayerIndex = Twin:GetPlayerIndex() + Offset
+        end
+    end
+    ]]
 end
-mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, PlayerIndexUpdate)
+mod:AddCallback(ModCallbacks.MC_PLAYER_INIT_POST_LEVEL_INIT_STATS, PlayerIndexUpdate)
 
 
 function mod:OnGameStart(Continued)
 
     if Continued and mod:HasData() then
 
+        --print("LOADED")
         mod.Saved = json.decode(mod:LoadData()) --restores every saved progress from the last run
 
         --mod.ItemManager:LoadData(mod.Saved.HiddenItemsData)
@@ -46,7 +75,7 @@ function mod:OnGameStart(Continued)
 
             local PIndex = Player:GetData().TruePlayerIndex
             if not PIndex then
-                PlayerIndexUpdate(Player)
+                PlayerIndexUpdate(_, Player)
                 PIndex = Player:GetData().TruePlayerIndex
             end
 
@@ -58,6 +87,8 @@ function mod:OnGameStart(Continued)
         end
         
     else
+
+        --print("REFRESHED")
 
         mod.Saved.HandOrderingMode = mod.HandOrderingModes.Rank
         mod.Saved.RunInfoMode = mod.RunInfoModes.OFF
@@ -292,7 +323,7 @@ function mod:InitPlayerValues(Player)
 
     local PIndex = Player:GetData().TruePlayerIndex
     if not PIndex then
-        PlayerIndexUpdate(Player)
+        PlayerIndexUpdate(nil, Player)
         PIndex = Player:GetData().TruePlayerIndex
     end
 
@@ -436,6 +467,7 @@ function mod:InitJimboValues(PIndex, Tainted)
 
         mod.Saved.Player[PIndex].TrueDamageValue = 1 --used to surpass the usual 0.5 minimum damage cap
         mod.Saved.Player[PIndex].TrueTearsValue = 1
+        mod.Saved.Player[PIndex].LastDiscardNum = 0
 
         mod.Saved.Player[PIndex].Progress = {} --values used for jokers
         mod.Saved.Player[PIndex].Progress.GiftCardExtra = {0,0,0}
@@ -529,29 +561,24 @@ function mod:SaveStorage(IsExit)
 
     if mod.GameStarted then --needed since POST_NEW_LEVEL goes before GAME_STARTED 
 
-        --mod.Saved.HiddenItemsData = mod.ItemManager:GetSaveData()
-
+        --print("SAVED")
         mod:SaveData(json.encode(mod.Saved))
     end
     if type(IsExit) ~= "nil" then --this variable exists only when the GAME_EXIT callback is called
         mod.GameStarted = false
-
-        --[[
-        for _,Player in ipairs(PlayerManager.GetPlayers()) do
-            if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
-                local PIndex = Player:GetData().TruePlayerIndex
-
-                for _ , v in ipairs(mod.SelectionParams[PIndex].PlayedCards) do
-                
-                    table.insert(mod.Saved.Player[PIndex].CurrentHand, v)
-                end
-            end
-        end]]
-        --print("is now false")
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.SaveStorage)
 mod:AddPriorityCallback(ModCallbacks.MC_POST_NEW_LEVEL,CallbackPriority.LATE, mod.SaveStorage)
+
+
+function DeletePlayerData(_, IsExit)
+
+    --print("DELETED")
+
+    mod.Saved.Player = {}
+end
+mod:AddPriorityCallback(ModCallbacks.MC_PRE_GAME_EXIT, CallbackPriority.LATE, DeletePlayerData)
 
 
 local function ResetJimboValues()

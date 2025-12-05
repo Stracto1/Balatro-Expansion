@@ -52,15 +52,15 @@ void main(void){
 	vec4 Color = Color0 * texture2D(Texture0, PixelationAmountOut > 0.0 ? TexCoord0 - mod(TexCoord0, pa) + pa * 0.5 : TexCoord0);
 	vec3 ColorHSV = rgb2hsv(Color.rgb);
 
-	float enable = 1; 
+	float enable = 1.0; 
 	if (((ColorHSV.b <= 0.3)&&(ColorHSV.g <= 0.4))||(ColorHSV.b <= 0.04))
 		enable = 0.1; //black-ish doesn't get affected by the shader
 
-	TrueCoord.y = 1 - TrueCoord.y; //unflips the y coordinate
-	TrueCoord.xy = fract(TrueCoord * 8); //makes the pattern repeat over the texture
+	TrueCoord.y = 1.0 - TrueCoord.y; //unflips the y coordinate
+	TrueCoord.xy = fract(TrueCoord * 8.0); //makes the pattern repeat over the texture
 
-	float mixAmount = step(TrueCoord.x/2,TrueCoord.y)*step(TrueCoord.y,1-TrueCoord.x/2);//this basically decides whether it's green or red
-	vec3 Red = vec3(1,0.65 * TrueCoord.x,0);			//the colors vary a little basing on the position
+	float mixAmount = step(TrueCoord.x/2.0,TrueCoord.y)*step(TrueCoord.y,1.0-TrueCoord.x/2.0);//this basically decides whether it's green or red
+	vec3 Red = vec3(1.0,0.65 * TrueCoord.x,0.0);			//the colors vary a little basing on the position
 	vec3 Green = vec3(0.2,1.1 - TrueCoord.x, 0.9 * TrueCoord.x);
 	vec3 PureColor = mix(Red,Green, mixAmount); 		//decides of it's red or green
 	

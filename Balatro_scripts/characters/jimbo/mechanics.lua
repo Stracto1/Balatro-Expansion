@@ -126,7 +126,8 @@ local GoodWeaponTypes = {
 ---@param Player EntityPlayer
 function mod:JimboInputHandle(Player)
 
-    if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
+    if Player:GetPlayerType() == mod.Characters.TaintedJimbo
+       or not mod.GameStarted then
         return
     end
 
@@ -583,30 +584,15 @@ function mod:FloorModifier(LevelGen,RoomConfig,Seed)
 
             local NewRoom = RoomConfigHolder.GetRandomRoom(Seed,false, StbType.SPECIAL_ROOMS, RoomType.ROOM_SHOP, RoomShape.ROOMSHAPE_1x1,-1,-1,0,10,0, ShopQuality)
 
-            Isaac.CreateTimer(
-            function()
-                Level:GetRoomByIdx(RoomIndex).DisplayFlags = 5
-
-                Level:UpdateVisibility()
-            end, 1, 1, true)
-
             return NewRoom --replaces the room with the new one
         end
-
-    elseif RoomConfig.Type == RoomType.ROOM_BOSS then
-        Isaac.CreateTimer(
-        function()
-            Level:GetRoomByIdx(RoomIndex).DisplayFlags = 5
-
-            Level:UpdateVisibility()
-        end, 1, 1, true)
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_LEVEL_PLACE_ROOM, mod.FloorModifier)
 
 
 
-local function AddOneMoreShop()
+local function PostLevelSetup()
 
     if not PlayerManager.AnyoneIsPlayerType(mod.Characters.JimboType)
        or Game:IsGreedMode() then
@@ -628,53 +614,29 @@ local function AddOneMoreShop()
 
 
     local MissingShops = NeededShops - NumShops
+
+    local ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_3
+
+    if PlayerManager.AnyoneHasCollectible(mod.Vouchers.OverstockPlus) then
+        ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_5
+    elseif PlayerManager.AnyoneHasCollectible(mod.Vouchers.Overstock) then
+        ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_4
+    end
+
+    local Seed = Level:GetDungeonPlacementSeed()
+    local IsSmallFloor = Level:GetStage() <= LevelStage.STAGE1_2 or Level:IsAscent()
+    local StartIndex = Level:GetStartingRoomIndex()
+    local StartPos = Vector(StartIndex % 13, StartIndex // 13)
     
     for i = 1, MissingShops do
 
-        local Level = Game:GetLevel()
-
-        local ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_3
-
-        if PlayerManager.AnyoneHasCollectible(mod.Vouchers.OverstockPlus) then
-            ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_5
-        elseif PlayerManager.AnyoneHasCollectible(mod.Vouchers.Overstock) then
-            ShopQuality = RoomSubType.SHOP_KEEPER_LEVEL_4
-        end
-
-        local Seed = Level:GetDungeonPlacementSeed()
-
         local ExtraShop = RoomConfigHolder.GetRandomRoom(Seed,false, StbType.SPECIAL_ROOMS, RoomType.ROOM_SHOP, RoomShape.ROOMSHAPE_1x1,-1,-1,0,10,0, ShopQuality)
 
-        local IsSmallFloor = Level:GetStage() <= LevelStage.STAGE1_2 or Level:IsAscent()
-
-        local StartIndex = Level:GetStartingRoomIndex()
-        local StartPos = Vector(StartIndex % 13, StartIndex // 13)
-
         local ValidIndexes = Level:FindValidRoomPlacementLocations(ExtraShop, Dimension.NORMAL, false, false)
-        local TrulyValidIndexes = {} --keep in memory valid indexes skipped due to distance from spawn
 
         local RoomDesc
 
         for _,Index in ipairs(ValidIndexes) do
-
-            local TrulyValid = false --the valid indexes allow the shop to be only attached to the secret rooms...
-
-            local Neighbours = Level:GetNeighboringRooms(Index, RoomShape.ROOMSHAPE_1x1, Dimension.NORMAL)
-
-            for _,Neigh in pairs(Neighbours) do
-                
-                if Neigh.Data.Type == RoomType.ROOM_DEFAULT then --check manually if it touched another room
-                    TrulyValid = true
-                end
-            end
-
-
-            if not TrulyValid then
-                goto SKIP_ROOM
-            end
-
-            do
-
             local RoomPos = Vector(Index % 13, Index // 13)
 
             local ValidDistence = IsSmallFloor
@@ -688,40 +650,27 @@ local function AddOneMoreShop()
                 if RoomDesc then --break if the room got placed
                     break
                 end
-            else
-                TrulyValidIndexes[#TrulyValidIndexes+1] = Index
             end
-
-            end
-
-            ::SKIP_ROOM::
-        end
-
-        if not RoomDesc then
-            
-            for _,Index in ipairs(TrulyValidIndexes) do
-                
-                RoomDesc = Level:TryPlaceRoom(ExtraShop, Index, Dimension.NORMAL)
-
-                if RoomDesc then --break if the room got placed
-                    break
-                end
-            end
-        end
-
-
-        if RoomDesc then
-            Isaac.CreateTimer(
-                function()
-                    RoomDesc.DisplayFlags = 5
-
-                    Level:UpdateVisibility()
-            end, 1, 1, true)
         end
     end
 
+    local Rooms = Level:GetRooms()
+
+    for i = 0, Rooms.Size - 1 do
+        
+        local Room = Rooms:Get(i)
+
+        if Room.Data.Type == RoomType.ROOM_SHOP
+           or Room.Data.Type == RoomType.ROOM_BOSS then
+
+            Room.DisplayFlags = 5
+        end
+    end
+
+    Level:UpdateVisibility()
+
 end
-mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, AddOneMoreShop)
+mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, PostLevelSetup)
 
 
 
@@ -1037,10 +986,10 @@ function mod:AddRoomsCleared(IsBoss, Hostile)
         for i,Player in ipairs(PlayerManager.GetPlayers()) do
             if Player:GetPlayerType() == mod.Characters.JimboType then
 
-                if not Player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT) then
-                    ---@diagnostic disable-next-line: param-type-mismatch
+                --if not Player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT) then
+                ---@diagnostic disable-next-line: param-type-mismatch
                     mod:StatReset(Player, true, true, true, false, true)
-                end
+                --end
 
                 if Hostile then
                     mod:FullDeckShuffle(Player)
@@ -1161,11 +1110,11 @@ function mod:GiveRewards(BlindType)
     for _,Player in ipairs(PlayerManager:GetPlayers()) do
         if Player:GetPlayerType() == mod.Characters.JimboType then
 
-            if not Game:IsGreedMode() 
-               and Player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT) then
-            
-                mod:StatReset(Player, true, true, true, false, true)
-            end
+            --if not Game:IsGreedMode() 
+            --   and Player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT) then
+            --
+            --    mod:StatReset(Player, true, true, true, false, true)
+            --end
 
             ToTheMoonNum = ToTheMoonNum + #mod:GetJimboJokerIndex(Player, mod.Jokers.TO_THE_MOON)
 
@@ -1254,37 +1203,6 @@ function mod:JimboTakeDamage(Player,Amount,_,Source,_)
 
     local PIndex = Player:GetData().TruePlayerIndex
 
-    if Amount ~= 0 then
-        --at this point always returns false to swap the normal damage with a "custom" one
-
-        --only remove one eternal/rotten heart if he has any
-        if Player:GetEternalHearts() ~= 0  then
-
-            Player:AddEternalHearts(-1)
-
-        elseif Player:GetRottenHearts() ~= 0 then
-
-            Player:AddRottenHearts(-1)   
-            Player:AddHearts(-1) --rotten hearts leave you with half a red heart(??)
-
-        elseif Player:GetBoneHearts() ~= 0 then
-
-            if Player:GetHearts() > Player:GetMaxHearts() then --if a bone heart is filled
-                Player:AddHearts(-2)
-            else
-                Player:AddBoneHearts(-2)
-                sfx:Play(SoundEffect.SOUND_BONE_SNAP)
-            end
-
-        else
-            Player:AddHearts(-2)
-        end
-        Player:TakeDamage(0, DamageFlag.DAMAGE_FAKE, Source, 0) --take fake damage
-        Player:SetMinDamageCooldown(80)
-
-        return false
-    end
-
 
     --||DISCARD MECHANIC||
     if mod.SelectionParams[PIndex].Mode == mod.SelectionParams.Modes.NONE then
@@ -1330,21 +1248,19 @@ local UsedHourglass = false
 
 ---@param Player EntityPlayer
 ---@param HpType AddHealthType
-function mod:JimboOnlyRedHearts(Player, Amount, HpType, _)
+function mod:MaxHpNerfHearts(Player, Amount, HpType, _)
 
     if Amount == 0
        or UsedHourglass
        or Player:GetPlayerType() ~= mod.Characters.JimboType then
         return
     end
-    
-    if (HpType | AddHealthType.SOUL == AddHealthType.SOUL or
-       HpType | AddHealthType.BLACK == AddHealthType.BLACK) then
 
-        Player:AddBlueFlies(Amount * 2, Player.Position, Player)
-        return 0 -- no hearts given
 
-    elseif HpType & AddHealthType.MAX == AddHealthType.MAX and not mod.HpEnable and mod.GameStarted then --can't get hp us normally
+    if HpType & AddHealthType.MAX == AddHealthType.MAX 
+       and not mod.HpEnable 
+       and mod.GameStarted
+       and Player:GetMaxHearts() ~= 0 then --can't get hp us normally
        
         if Amount > 0 then
     
@@ -1361,29 +1277,10 @@ function mod:JimboOnlyRedHearts(Player, Amount, HpType, _)
             
         end
         return 0
-
-    elseif HpType & AddHealthType.RED == AddHealthType.RED then
-
-        return Amount + (Amount % 2)
     end
 end
-mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_ADD_HEARTS, mod.JimboOnlyRedHearts)
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_ADD_HEARTS, mod.MaxHpNerfHearts)
 
-
----@param Player EntityPlayer
-function mod:JimboDeadCatFix(Player, Amount, HpType,_)
-    if Amount == 0 or Player:GetPlayerType() ~= mod.Characters.JimboType then
-        return
-    end
-    
-    if HpType & AddHealthType.MAX == AddHealthType.MAX and mod.GameStarted then --can't get hp ups normally
-        if Player:GetMaxHearts() == 0 and Player:GetBrokenHearts() < Player:GetHeartLimit() then
-            Player:AddMaxHearts(2)
-        end
-    end
-
-end
-mod:AddCallback(ModCallbacks.MC_POST_PLAYER_ADD_HEARTS, mod.JimboDeadCatFix)
 
 function mod:JimboHourglassFix()
 
@@ -1511,8 +1408,8 @@ function GreedmodeLastWaveClear()
         
             if Player:GetPlayerType() == mod.Characters.JimboType then
             
-                if not Player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT)
-                   or BlindCleared == mod.BLINDS.BOSS then
+                if --not Player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT) or
+                   BlindCleared == mod.BLINDS.BOSS then
                 
                     ---@diagnostic disable-next-line: param-type-mismatch
                     mod:StatReset(Player, true, true, true, false, true)
@@ -1823,6 +1720,10 @@ function mod:InventorySizeCache(Player, Cache, Value)
 
     Value = 3 --base starting point
 
+    if Player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT) then
+        Value = Value + 1*Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_BIRTHRIGHT)
+    end
+
     if Player:HasCollectible(mod.Vouchers.Antimatter) then
         Value = Value + 1
     end
@@ -1887,6 +1788,8 @@ end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.HandSizeCache, mod.CustomCache.HAND_SIZE)
 
 
+local DiscardEval = true
+
 ---@param Player EntityPlayer
 function mod:DiscardNumCache(Player, Cache, Value)
     if Player:GetPlayerType() ~= mod.Characters.JimboType or not mod.GameStarted
@@ -1894,7 +1797,19 @@ function mod:DiscardNumCache(Player, Cache, Value)
         return
     end
 
-    Value = 4 --base starting point
+    if DiscardEval then
+
+        DiscardEval = false
+    else
+        Isaac.CreateTimer(function ()
+            DiscardEval = true
+        end, 0, 1, true)
+        return
+    end
+
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    Value = 0
 
     if Player:HasCollectible(mod.Vouchers.Wasteful) then
         Value = Value + 1
@@ -1910,20 +1825,27 @@ function mod:DiscardNumCache(Player, Cache, Value)
     
     Value = Value + #mod:GetJimboJokerIndex(Player, mod.Jokers.DRUNKARD)
 
-    --Value = Value - 2*#mod:GetJimboJokerIndex(Player, mod.Jokers.BURGLAR)
+    mod.HpEnable = true
 
+    local OldExtra = mod.Saved.Player[PIndex].LastDiscardNum
+    local NewExtra = Value * 2
 
     if mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR) then
-        Value = 2
+
+        NewExtra = 4 - Player:GetMaxHearts()
+
+        Player:AddMaxHearts(NewExtra)
+    else
+
+        Player:AddMaxHearts(NewExtra - OldExtra)
     end
 
-    --Value = math.max(1, Value) --minimum 1 discard
 
-    mod.HpEnable = true
-    Player:AddMaxHearts(Value*2 - Player:GetMaxHearts())
     mod.HpEnable = false
 
-    return Value
+    mod.Saved.Player[PIndex].LastDiscardNum = NewExtra
+
+    return NewExtra
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CUSTOM_CACHE, mod.DiscardNumCache, mod.CustomCache.DISCARD_NUM)
 

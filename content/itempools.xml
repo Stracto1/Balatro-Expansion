@@ -10,17 +10,20 @@
         <Item Name="Funny Teeth" DecreaseBy="1" RemoveOn="0.1" Weight="1"/>
         <Item Name="Umbrella" DecreaseBy="1" RemoveOn="0.1" Weight="1"/>
         <Item Name="Baloon Puppy" DecreaseBy="1" RemoveOn="0.1" Weight="1"/>
-        <Item Name="Pocket Aces" DecreaseBy="0.7" RemoveOn="0.1" Weight="1"/>
+        <Item Name="Pocket Aces" DecreaseBy="1" RemoveOn="0.1" Weight="0.7"/>
     </Pool>
     <Pool Name="greedTreasure">
-        <Item Name="Quick Draw" DecreaseBy="1" RemoveOn="0.1" Weight="1"/>
-        <Item Name="Deader Eye" DecreaseBy="1" RemoveOn="0.1" Weight="1"/>
-        <Item Name="Tumbleweed" DecreaseBy="1" RemoveOn="0.1" Weight="1"/>
-        <Item Name="Little Ram" DecreaseBy="1" RemoveOn="0.1" Weight="1"/>
-        <Item Name="Armed Bombs" DecreaseBy="1" RemoveOn="0.1" Weight="1"/>
-        <Item Name="Chewing Tobacco" DecreaseBy="1" RemoveOn="0.1" Weight="1"/>
-        <Item Name="Glass Bullets" DecreaseBy="1" RemoveOn="0.1" Weight="1"/>
-        <Item Name="Holster" DecreaseBy="1" RemoveOn="0.1" Weight="1"/>
+        <Item Name="Horsey" DecreaseBy="1" RemoveOn="0.1" Weight="1"/>
+        <Item Name="Box of Crayons" DecreaseBy="1" RemoveOn="0.1" Weight="1"/>
+        <Item Name="Banana" DecreaseBy="1" RemoveOn="0.1" Weight="1"/>
+        <Item Name="Clown Costume" DecreaseBy="1" RemoveOn="0.1" Weight="1"/>
+        <Item Name="Tragicomedy" DecreaseBy="1" RemoveOn="0.1" Weight="1"/>
+        <Item Name="Laugh Sign" DecreaseBy="1" RemoveOn="0.1" Weight="1"/>
+        <Item Name="Lollypop" DecreaseBy="1" RemoveOn="0.1" Weight="1"/>
+        <Item Name="Funny Teeth" DecreaseBy="1" RemoveOn="0.1" Weight="1"/>
+        <Item Name="Umbrella" DecreaseBy="1" RemoveOn="0.1" Weight="1"/>
+        <Item Name="Baloon Puppy" DecreaseBy="1" RemoveOn="0.1" Weight="1"/>
+        <Item Name="Pocket Aces" DecreaseBy="1" RemoveOn="0.1" Weight="0.7"/>
     </Pool>
 
     <Pool Name="craneGame">
@@ -30,7 +33,7 @@
 
     <Pool Name="shop">
         <Item Name="The Hand" DecreaseBy="1" RemoveOn="0.1" Weight="1"/>
-        <Item Name="Heirloom" DecreaseBy="0.6" RemoveOn="0.1" Weight="1"/>
+        <Item Name="Heirloom" DecreaseBy="1" RemoveOn="0.1" Weight="0.6"/>
     </Pool>
     <Pool Name="babyShop">
         <Item Name="Horsey" DecreaseBy="1" RemoveOn="0.1" Weight="1"/>
@@ -39,8 +42,8 @@
     </Pool>
 
     <Pool Name="goldenChest">
-        <Item Name="The Hand" DecreaseBy="1" RemoveOn="0.1" Weight="1"/>
-        <Item Name="Heirloom" DecreaseBy="0.2" RemoveOn="0.1" Weight="1"/>
+        <Item Name="The Hand" DecreaseBy="1" RemoveOn="0.1" Weight="0.5"/>
+        <Item Name="Heirloom" DecreaseBy="1" RemoveOn="0.1" Weight="0.2"/>
 
     </Pool>
 
@@ -74,6 +77,8 @@
     <Pool Name="ultraSecret">
         <Item Name="Lollypop" DecreaseBy="1" RemoveOn="0.1" Weight="1"/>
         <Item Name="Funny Teeth" DecreaseBy="1" RemoveOn="0.1" Weight="1"/>
+        <Item Name="Clown Costume" DecreaseBy="1" RemoveOn="0.1" Weight="1"/>
+        <Item Name="Pocket Aces" DecreaseBy="1" RemoveOn="0.1" Weight="1"/>
     </Pool>
 
     

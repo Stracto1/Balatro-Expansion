@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <metadata>
-    <name>Tboi: Regambled</name>
-    <directory>balatro_expansion</directory>
-    <id>3308293502</id>
+    <name>[RGON] TBoI: Regambled</name>
+    <directory>tboi regambled</directory>
+    <id>3615514307</id>
     <description>[img]https://i.ibb.co/CKj6BFwk/main-logo.png[/img]
 
 [list]
 [*]Ever had [i]FUN[/i] while playing [url=https://store.steampowered.com/app/2379780/Balatro/]Balatro[/url]?
-[*]Ever wanted to play [url=https://store.steampowered.com/app/2379780/Balatro/]Balatro[/url] even when your not?
+[*]Ever wanted to play [url=https://store.steampowered.com/app/2379780/Balatro/]Balatro[/url] even when you're not?
 [/list]
 
 [h2]LOOK NO FURTHER![/h2]
@@ -17,7 +17,7 @@
 [img]https://i.ibb.co/b5xLwCxK/content.png[/img]
 
 [list]
-[*]A Whole new character with completely custom mechanics (+ its very freaky Tainted version)
+[*]A whole new character with completely custom mechanics (+ its very freaky Tainted version)
 	[list][*]both with all Balatro's original 150 jokers, vouchers, tarots and everything else for you to experiment with[/list]
 [*]full completion mark unlocks, varying from complete jokes all the way to fresh new items and trinkets
 [/list]
@@ -29,7 +29,7 @@
        [list]
 	[*]English (Stracto)
 	[*]Italian (Stracto)
-	[*]Wathever Language you need ([i]still looking for translators btw![/i])
+	[*]Whatever language you need ([i]still looking for translators btw![/i])
        [/list]
 
 [*]Many customizable parameters available through the Dead Sea Scrolls menu
@@ -40,16 +40,18 @@
 [list]
 [*]Due to the (shitty) way the normal character was made, there may be problems with local coop [i](please report any issues so I can try my best to fix them!)[/i]
 [*][b]The tainted character was not built to work neither in co-op or with modded floors/enemies[/b], so expect to encounter many bugs/softlocks if that's your case!
-	[list][*]I'd love to make it StageAPI-compatible, but since I litterally couldn't understand shi from the docs given that's most likely not gonna happen ([i][u]if you know your thing with it and wanna help please let me know![/u][/i])[/list]
-[*][b]The use of [url=https://steamcommunity.com/sharedfiles/filedetails/?id=836319872]EID[/url] is very recommended[/b] since ya know, Balatro was made with fully available descriptions in mind
+	[list][*]I'd love to make it StageAPI-compatible, but since I literally couldn't understand shi from the docs given that's most likely not gonna happen ([i][u]if you know your thing with it and wanna help please let me know![/u][/i])[/list]
+[*][b]The use of [url=https://steamcommunity.com/sharedfiles/filedetails/?id=836319872]EID[/url] is highly recommended[/b] since ya know, Balatro was made with fully available descriptions in mind
+[*]There's currently a known conflict with [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2978501842]Giga bombs synergies[/url] that causes a crash when a run is started, the exact cause is still being studied but until I find a solution i suggest to unsubscribe from it while playing this mod.
 [/list]
 
 [img]https://i.ibb.co/mr7D99Xc/end.png[/img]
 
 If you appreciate my work, then please consider donating to my [url=https://ko-fi.com/stracto]Ko-fi[/url]! Anything is more than enough to make me happy! (even nothing)
-</description>
-    <version>1.52</version>
-    <visibility>Private</visibility>
+
+If you want to report a game crash happening then you can also send isaac's log file [url=https://docs.google.com/forms/d/e/1FAIpQLSfdArvAd_6DrneTHrTfqT9ZZn_WIMv7W7xK6wpz71tulD_Q8g/viewform?usp=dialog]here[/url] to help me understand better the issue!</description>
+    <version>1.21</version>
+    <visibility>Public</visibility>
     <tag id="Lua"/>
     <tag id="Items"/>
     <tag id="Active Items"/>
@@ -58,7 +60,6 @@ If you appreciate my work, then please consider donating to my [url=https://ko-f
     <tag id="Pickups"/>
     <tag id="Player Characters"/>
     <tag id="Familiars"/>
-    <tag id="Babies"/>
     <tag id="Graphics"/>
     <tag id="Shaders"/>
     <tag id="Sound Effects"/>

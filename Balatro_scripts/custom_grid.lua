@@ -212,14 +212,17 @@ function mod:UpdateBalatroPlate(Plate,Init)
 
     local SomeoneIsSelecting = false
 
-    for i,Player in ipairs(PlayerManager.GetPlayers()) do
-        
-        local PIndex = Player:GetData().TruePlayerIndex
+    if mod.GameStarted then
 
-        if mod.SelectionParams[PIndex].Mode ~= mod.SelectionParams.Modes.NONE then
-            SomeoneIsSelecting = true
+        for i,Player in ipairs(PlayerManager.GetPlayers()) do
 
-            break
+            local PIndex = Player:GetData().TruePlayerIndex
+
+            if mod.SelectionParams[PIndex].Mode ~= mod.SelectionParams.Modes.NONE then
+                SomeoneIsSelecting = true
+
+                break
+            end
         end
     end
 

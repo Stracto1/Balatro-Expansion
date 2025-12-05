@@ -1451,19 +1451,21 @@ function mod:ActivateCurrentHand(Player)
     local PIndex = Player:GetData().TruePlayerIndex
 
     local TargetPosition
+    local HandTarget
     
 
     for _,Target in ipairs(Isaac.FindByType(EntityType.ENTITY_EFFECT, EffectVariant.TARGET)) do
         
         local Player = Target.Parent and Target.Parent:ToPlayer() or nil
         if Player and Player:GetPlayerType() == mod.Characters.TaintedJimbo then
+            HandTarget = Target
             TargetPosition = Target.Position
             Target:Remove()
         end
     end
 
     if not TargetPosition then
-        print("couldn't find shit, sorry!")
+        Isaac.DebugString("couldn't find shit, sorry!")
         return
     end
 
@@ -1528,33 +1530,35 @@ function mod:ActivateCurrentHand(Player)
         end
     end, 2, 1, true)
 
-
-    for _, Enemy in ipairs(Isaac.FindInRadius(TargetPosition, 
+    Isaac.CreateTimer(function ()
+        for _, Enemy in ipairs(Isaac.FindInRadius(TargetPosition, 
                                               EFFECT_RANGE,
                                               EntityPartition.ENEMY)) do
-        if Enemy:IsActiveEnemy() then
+            if Enemy:IsActiveEnemy() then
 
-            --print(Enemy:IsVulnerableEnemy())
+                --print(Enemy:IsVulnerableEnemy())
 
-            if Enemy:IsVulnerableEnemy() then
+                if Enemy:IsVulnerableEnemy() then
 
-                Enemy:TakeDamage(math.ceil(FullHandDamage*(1 - InnerRangeMult)),
-                                 DamageFlags, EntityRef(Player), 0)
+                    Enemy:TakeDamage(math.ceil(FullHandDamage*(InnerRangeMult - 1)),
+                                     DamageFlags, EntityRef(HandTarget), 0)
 
-                Game:SpawnParticles(Enemy.Position, EffectVariant.BLOOD_PARTICLE, 3, 3.5, BloodColor)
+                    Game:SpawnParticles(Enemy.Position, EffectVariant.BLOOD_PARTICLE, 3, 3.5, BloodColor)
 
-            else--if not Enemy:IsBoss() then --invulnerable enemies take damage only if inside the radius
+                else--if not Enemy:IsBoss() then --invulnerable enemies take damage only if inside the radius
 
-                Enemy:TakeDamage(0, DamageFlags, EntityRef(Player), 0)
-            
-                Enemy.HitPoints = Enemy.HitPoints - FullHandDamage*0.5
+                    Enemy:TakeDamage(0, DamageFlags, EntityRef(Player), 0)
+                
+                    Enemy.HitPoints = Enemy.HitPoints - FullHandDamage*0.5
 
-                HitColor = Color(1.5, 1,1,1, 0.25)
+                    HitColor = Color(1.5, 1,1,1, 0.25)
 
-                Enemy:SetColor(HitColor, 2, 50, false, false)
+                    Enemy:SetColor(HitColor, 2, 50, false, false)
+                end
             end
         end
-    end
+    end, 2, 1, true)
+    
 
     
 
@@ -1581,7 +1585,7 @@ function mod:ActivateCurrentHand(Player)
 
         if not BlindGotCleared then
 
-            print("room isn't cleared")
+            Isaac.DebugString("room isn't cleared")
 
             Isaac.RunCallback(mod.Callbalcks.POST_HAND_PLAY, Player)
         end
@@ -2356,7 +2360,7 @@ local function OnBlindStart(_, BlindData)
 
             Isaac.CreateTimer(function ()
                 mod:UseSkipTag(JuggleIndex)
-                print("juggle is used at", JuggleIndex )
+                Isaac.DebugString("REG juggle is used at "..JuggleIndex)
             end, Interval, 1, true)
 
             Interval = Interval + 20
@@ -2456,7 +2460,7 @@ local function OnTagAdded(_, TagAdded)
 
     if not T_Jimbo then
         
-        print("wtf why isn't Jimbo here")
+        Isaac.DebugString("wtf why isn't Jimbo here")
         return
     end
 
@@ -2882,14 +2886,14 @@ function mod:InitializeAnte(NewFloor)
 
         if TrueLevel % 2 == 0 then
 
-            print("old stage:", Level:GetStage())
+            Isaac.DebugString("REG old stage: ".. Level:GetStage())
 
 
             Level:SetNextStage()
             
             CurrentStage = TrueLevel - 1 --fixes the offset created
 
-            print("new stage:", TrueLevel)
+            Isaac.DebugString("REG new stage: "..TrueLevel)
         end
     end
 
@@ -3809,11 +3813,11 @@ local function PrintRoomInfo()
     --ROTGUT DUNGEON 1010 2 ---> 1020 3
 
     local Data = Game:GetLevel():GetCurrentRoomDesc().Data
-    print("------ROOM--------")
-    print(mod:GetValueIndex(RoomType, Data.Type, true), Data.Variant, Data.Subtype)
+    Isaac.DebugString("------ROOM--------")
+    Isaac.DebugString(mod:GetValueIndex(RoomType, Data.Type, true).." "..Data.Variant.." "..Data.Subtype)
     --print(mod.Saved.SmallCleared)
-    print("--------------")
+    Isaac.DebugString("--------------")
 
 
 end
---mod:AddCallback(ModCallbacks.MC_POST_UPDATE, PrintRoomInfo)
+--mod:AddCallback(ModCallbacks.MC_POST_UPDATE, Isaac.DebugStringRoomInfo)

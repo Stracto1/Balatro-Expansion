@@ -53,7 +53,7 @@ void main(void)
 
 	vec3 ColorHSV = rgb2hsv(Color.rgb);
 
-	int mult = 1; 
+	int mult = 1.0; 
 	if (((ColorHSV.b <= 0.3)&&(ColorHSV.g <= 0.4))||(ColorHSV.b <= 0.04))
 		mult = 0.1; //black-ish doesn't get affected as much by the shader
 
@@ -61,9 +61,9 @@ void main(void)
 	vec2 Center = vec2(0.5,0.5); //center of the circles
 
 	float Distance = distance(TrueCoord,Center);
-	vec3 Blue = vec3(0.3,0.52,1);
+	vec3 Blue = vec3(0.3,0.52,1.0);
 
-	vec3 FinalColor = mix(Blue , vec3(1), 0.6 * cos(Distance * 75)*cos(Distance * 75) ); //makes pixels that touch the circles brighter
+	vec3 FinalColor = mix(Blue , vec3(1.0), 0.6 * cos(Distance * 75)*cos(Distance * 75.0) ); //makes pixels that touch the circles brighter
 	Color.rgb = mix(Color.rgb, FinalColor, 0.33 * mult); 
 
 	gl_FragColor = Color;

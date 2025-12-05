@@ -30,7 +30,7 @@ local function Randomize(_, Pickup, Variant, SubType, ReqVariant, ReqSubType, Rn
         return
     end
 
-    if PlayerManager.AnyoneHasTrinket(mod.Jokers.CHAOS_THEORY) then
+    if mod:GetTotalTrinketAmount(mod.Jokers.CHAOS_THEORY) ~= 0 then
 
         NewPickupSpawned = true
 
@@ -46,13 +46,12 @@ mod:AddPriorityCallback(ModCallbacks.MC_POST_PICKUP_SELECTION, CallbackPriority.
 
 local function AddGoldenEffect(_, Player, Trinket, _)
 
-    if Player:GetTrinketMultiplier(Trinket) > 1 then
+    if Player:HasGoldenTrinket(Trinket) then
         
         local PIndex = Player:GetData().TruePlayerIndex
 
         Player:AddInnateCollectible(CollectibleType.COLLECTIBLE_CHAOS, 1)
         mod.Saved.Player[PIndex].InnateItems.General[#mod.Saved.Player[PIndex].InnateItems.General+1] = CollectibleType.COLLECTIBLE_CHAOS
-
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_TRIGGER_TRINKET_ADDED, AddGoldenEffect, mod.Jokers.CHAOS_THEORY)
@@ -60,7 +59,7 @@ mod:AddCallback(ModCallbacks.MC_POST_TRIGGER_TRINKET_ADDED, AddGoldenEffect, mod
 
 local function RemoveGoldenEffect(_, Player, Trinket)
 
-    if Player:GetTrinketMultiplier(Trinket) > 1 then
+    if not Player:HasGoldenTrinket(Trinket) then
         
         local PIndex = Player:GetData().TruePlayerIndex
 
@@ -72,7 +71,7 @@ local function RemoveGoldenEffect(_, Player, Trinket)
 
             table.remove(mod.Saved.Player[PIndex].InnateItems.General, ChaosI)
 
-            mod.Saved.Player[PIndex].InnateItems.General[#mod.Saved.Player[PIndex].InnateItems.General+1] = CollectibleType.COLLECTIBLE_CHAOS
+            --mod.Saved.Player[PIndex].InnateItems.General[#mod.Saved.Player[PIndex].InnateItems.General+1] = CollectibleType.COLLECTIBLE_CHAOS
         end
     end
 end

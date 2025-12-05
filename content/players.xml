@@ -3,15 +3,15 @@
         skin="character_jimbo.png"
         nameimage="playername_jimbo.png"
         
-        heartcontainers="8"
-        redhearts="8"
+        heartcontainers="6"
+        redhearts="6"
         speedmodifier="0"
         firedelaymodifier="0"
         damagemodifier="0"
         rangemodifier="1"
         luckmodifier="1"
         modcostume="110"
-        birthright="Scaling big"
+        birthright="Joker up"
 
         coins="4"
 

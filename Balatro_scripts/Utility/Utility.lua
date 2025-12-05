@@ -26,16 +26,12 @@ DoorSides.DOWN = 3
 mod.SCREEN_TO_WORLD_RATIO = Vector.One --from what i understood, Isaac.ScreenToWorld uses the monitor's coordinates instead of normal coordinates (wtf nicalis fr)
 local function FindScreenToWorldRatio()
 
-    if not Options.MouseControl then
-        Isaac.CenterCursor()
-    end
+    local CenterScreenPos = Vector(Options.WindowPosX,Options.WindowPosY) + Vector(Options.WindowWidth, Options.WindowHeight)/2
     
-    local NormalCoord = Isaac.WorldToScreen(Input.GetMousePosition(true)) --the actual game's screen coords
-    local FuckedCoord = Input.GetMousePosition(false) --the monitor's screen coords
+    local NormalCoord = Isaac.WorldToScreen(Isaac.ScreenToWorld(CenterScreenPos)) --the actual game's screen coords
+    local FuckedCoord = CenterScreenPos --the monitor's screen coords
 
-    if NormalCoord.X > 10 and NormalCoord.Y > 10 then
-        mod.SCREEN_TO_WORLD_RATIO =  FuckedCoord/NormalCoord 
-    end
+    mod.SCREEN_TO_WORLD_RATIO =  FuckedCoord/NormalCoord 
 end
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, FindScreenToWorldRatio)
 
@@ -2486,7 +2482,10 @@ function mod:AddJimboInventorySlots(Player, Amount)
 
     if Amount >= 0 then
         for i=1,Amount do --just adds empty spaces to fill
-            table.insert(mod.Saved.Player[PIndex].Inventory, {["Joker"] = 0,["Edition"]=mod.Edition.BASE})
+
+            mod.Saved.LastJokerRenderIndex = mod.Saved.LastJokerRenderIndex + 1
+        
+            table.insert(mod.Saved.Player[PIndex].Inventory, {["Joker"] = 0,["Edition"]=mod.Edition.BASE,["Progress"]=0,["RenderIndex"]=mod.Saved.LastJokerRenderIndex})
 
             mod.Saved.Player[PIndex].Progress.GiftCardExtra[#mod.Saved.Player[PIndex].Inventory] = 0
 
@@ -2595,6 +2594,28 @@ function mod:SellJoker(Player, Slot, Multiplier)
     end
 
     return true
+end
+
+function mod:GetConsumableName(Consumable, AllCaps)
+
+    local Config = ItemsConfig:GetCard(Consumable)
+
+    if not Config then return "CARD ERROR" end
+
+    local Name = Config.Name
+
+    if Consumable < Card.NUM_CARDS then --vanilla card (cmon why do this man)
+    
+        Name = string.sub(Name, 2, string.len(Name)-5)
+        Name = string.gsub(Name, "_", " ")
+        Name = string.gsub(Name, " R$", "?") --" REVERSED")
+    end
+
+    if AllCaps then
+        Name = string.upper(Name)
+    end
+
+    return Name
 end
 
 
@@ -2797,7 +2818,7 @@ function mod:RandomJoker(Rng, PlaySound, ForcedRarity, AllowDuplicates, Amount)
             end
         end
 
-        --Trinket.Edition = mod.Edition.POLYCROME
+        --Trinket.Edition = mod.Edition.NEGATIVE
 
         if PlaySound then
             sfx:Play(EditionSound[Trinket.Edition])
@@ -3629,7 +3650,7 @@ function mod:CardValueToName(Value, IsEID, OnlyInitial)
 
 
     if IsEID then
-        String = "{{ColorYellorange}}"..String.."{{CR}}"
+        String = "{{REG_Yellow}}"..String.."{{CR}}"
     end
 
     return String
@@ -3641,7 +3662,7 @@ function mod:CardSuitToName(Suit, IsEID)
 
     if Suit == mod.Suits.Spade then
         if IsEID then
-            return "{{ColorSpade}}Spades{{CR}}"
+            return "{{REG_CSpade}}Spades{{CR}}"
         end
         return "Spades"
     elseif Suit == mod.Suits.Heart then
@@ -3651,12 +3672,12 @@ function mod:CardSuitToName(Suit, IsEID)
         return "Hearts"
     elseif Suit == mod.Suits.Club then
         if IsEID then
-            return "{{ColorChips}}Clubs{{CR}}"
+            return "{{REG_CChips}}Clubs{{CR}}"
         end
         return "Clubs"
     elseif Suit == mod.Suits.Diamond then
         if IsEID then
-            return "{{ColorYellorange}}Diamonds{{CR}}"
+            return "{{REG_Yellow}}Diamonds{{CR}}"
         end
         return "Diamonds"
     end
@@ -3911,6 +3932,21 @@ function mod:AddCardToDeck(Player, CardTable,Amount, PutInHand)
     if Amount <= 0 then
         return
     end
+
+    if Player:GetPlayerType() ~= mod.Characters.TaintedJimbo
+       and Player:GetPlayerType() ~= mod.Characters.JimboType then
+
+        Variant = mod.Pickups.PLAYING_CARD
+        SubType =  mod:PlayingCardParamsToSubType(CardTable)
+
+        for i=1, Amount do
+            Game:Spawn(5, Variant, Player.Position, RandomVector()*3, Player, SubType, mod:RandomSeed(Player:GetDropRNG()))
+        end
+        
+        return
+    end
+
+
 
     if Player:HasCollectible(CollectibleType.COLLECTIBLE_BOGO_BOMBS)
        and mod:IsSuit(Player, CardTable, mod.Suits.Club) then
@@ -5748,6 +5784,9 @@ function mod:Select(Player)
                     SelectedCards[mod.SelectionParams[PIndex].Index] = true
 
                 elseif CurrentPurpose == mod.SelectionParams.Purposes.SMELTER then --DSS TO BE ADDED
+                    
+                    SelectedCards[mod.SelectionParams[PIndex].Index] = true
+                
                     mod:UseSelection(Player)
                     mod:SwitchCardSelectionStates(Player,mod.SelectionParams.Modes.NONE,mod.SelectionParams.Purposes.NONE)
     

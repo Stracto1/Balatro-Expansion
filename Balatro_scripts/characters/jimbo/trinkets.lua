@@ -680,7 +680,7 @@ end
                                 + Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_SOUL, true) 
                                 + Player:GetCollectibleNum(CollectibleType.COLLECTIBLE_SCAPULAR)
 
-        TearsToGet = TearsToGet + 0.75*Triggers*Multiplier
+        TearsToGet = TearsToGet + 0.5*Triggers*Multiplier
 
     elseif ShotCard.Enhancement == mod.Enhancement.GLASS then
 
@@ -1266,10 +1266,10 @@ function mod:OnBlindClear(BlindType)
             end
             
             mod:CreateBalatroEffect(Index, mod.EffectColors.YELLOW, 
-                                    mod.Sounds.ACTIVATE, "+"..tostring(MoneyAmount).."$",mod.EffectType.JOKER, Player)
+                                    mod.Sounds.ACTIVATE, "+"..MoneyAmount.."$",mod.EffectType.JOKER, Player)
             --on boss beaten it upgrades
             if BlindType == mod.BLINDS.BOSS then
-                mod.Saved.Player[PIndex].Inventory[Index].Progress = mod.Saved.Player[PIndex].Inventory[Index].Progress + 1
+                mod.Saved.Player[PIndex].Inventory[Index].Progress = mod.Saved.Player[PIndex].Inventory[Index].Progress + 2
                 
                 mod:CreateBalatroEffect(Index, mod.EffectColors.YELLOW, 
                                     mod.Sounds.ACTIVATE, "Upgrade!",mod.EffectType.JOKER, Player)
@@ -1278,7 +1278,7 @@ function mod:OnBlindClear(BlindType)
         elseif Joker == mod.Jokers.GOLDEN_JOKER then
 
             --spawns this many coins
-            local MoneyAmmount = 3
+            local MoneyAmmount = 5
             for i=1, MoneyAmmount do
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN,
                            Player.Position, RandomVector()*3, Player,
@@ -1618,7 +1618,7 @@ function mod:OnBlindClear(BlindType)
 
         if mod.Saved.Player[PIndex].FullDeck[index].Enhancement == mod.Enhancement.GOLDEN then
 
-            for i=0, MimeNum * 2 do
+            for i=1, 2 + MimeNum * 2 do
                 Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COIN, Player.Position,
                 RandomVector() * 4, Player, CoinSubType.COIN_PENNY, mod:RandomSeed(Player:GetTrinketRNG(mod.Jokers.GOLDEN_JOKER)))
             end
@@ -2216,7 +2216,7 @@ function mod:OnNewRoomJokers()
                         ShotCard.Index = Index
 
                         for i=0, MimeNum do
-                            mod:OnCardScore(Player, ShotCard, false) --triggers every card in hand
+                            OnCardScore(_, Player, ShotCard, false) --triggers every card in hand
                         end
                     end
 
@@ -2905,6 +2905,7 @@ function mod:CopyAdjustments(Player)
     local IsJimbo = Player:GetPlayerType() == mod.Characters.JimboType
     local PIndex = Player:GetData().TruePlayerIndex
 
+    if IsJimbo then
     --FIRST it deternimes the bb / bs copied joker
     for Index, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
 
@@ -2938,6 +2939,7 @@ function mod:CopyAdjustments(Player)
         end
     end
 
+    end
 
     --SECOND it does other suff
     for Index, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
@@ -2962,7 +2964,7 @@ function mod:CopyAdjustments(Player)
         if Joker == -1 then
         elseif Joker == 0 then --if the slot is empty
 
-            if not Copied then
+            if not Copied and IsJimbo then
                 mod.Saved.Player[PIndex].Progress.GiftCardExtra[Index] = 0
             end
 
@@ -3077,10 +3079,10 @@ function mod:CopyAdjustments(Player)
         end
     end
 
-
     if mod:JimboHasTrinket(Player, mod.Jokers.ROCKET) then
         
         if not Player:HasCollectible(CollectibleType.COLLECTIBLE_ROCKET_IN_A_JAR, false, false) then
+
             Player:AddInnateCollectible(CollectibleType.COLLECTIBLE_ROCKET_IN_A_JAR)
             table.insert(mod.Saved.Player[PIndex].InnateItems.General, CollectibleType.COLLECTIBLE_ROCKET_IN_A_JAR)
         end
@@ -3403,6 +3405,8 @@ function mod:ItemAddedEval(Type,_,_,_,_,Player)
     local PIndex = Player:GetData().TruePlayerIndex
 
     local Config = ItemsConfig:GetCollectible(Type)
+
+    --print(PIndex, mod.Saved.Player[PIndex])
 
     for Index, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
 
@@ -3870,7 +3874,10 @@ function mod:DamageJokers(Player,_)
             goto skip_joker
         end
         if Joker == mod.Jokers.JOKER then
-            mod:IncreaseJimboStats(Player, 0, PlayerDamage(Player, 0.2), 1, false, false)
+
+            if IsJimbo then
+                mod:IncreaseJimboStats(Player, 0, PlayerDamage(Player, 0.2), 1, false, false)
+            end
         
         elseif Joker == mod.Jokers.ABSTRACT_JOKER then
             local NumJokers = 0
@@ -4403,7 +4410,7 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, SecondaryNewRoom)
 
 local function SecondaryPEffect(_, Player)
 
-    if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
+    if Player:GetPlayerType() == mod.Characters.TaintedJimbo or not mod.GameStarted then
         return
     end
 
@@ -5531,7 +5538,7 @@ local function OnTakeDamage(_,Player,Amount,Flags,Source,_)
     Player = Player:ToPlayer()
 
     if not Player or Player:GetPlayerType() == mod.Characters.TaintedJimbo
-       or not Source then
+       or not Source.Entity then
         return
     end
 
@@ -5670,7 +5677,7 @@ mod:AddPriorityCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.JimboStatPriority.JO
 
 local function MarbleTintedRocks(_, Type, Variant, SubType, Index, Seed)
 
-    if Type ~= StbGridType.ROCK then
+    if Type ~= StbGridType.ROCK or not mod.GameStarted then
         return
     end
 
@@ -5678,7 +5685,7 @@ local function MarbleTintedRocks(_, Type, Variant, SubType, Index, Seed)
 
     for _, Player in ipairs(PlayerManager.GetPlayers()) do
 
-        for i = 1, #mod:GetJimboJokerIndex(Player, mod.Jokers.MARBLE_JOKER) do
+        for i = 1, mod:GetPlayerTrinketAmount(Player, mod.Jokers.MARBLE_JOKER) do
             
             if mod:TryGamble(Player, Player:GetTrinketRNG(mod.Jokers.MARBLE_JOKER), Chance) then
                 
