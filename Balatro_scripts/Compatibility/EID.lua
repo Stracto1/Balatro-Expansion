@@ -27,6 +27,7 @@ local EID_DescAllingnment = {TOP = 1,
 
 local EID_Descriptions = {}
 
+--KEEP en as the first one!
 mod.EIDSupportedLanguages = {"en_us","it"}
 
 
@@ -468,12 +469,10 @@ local function GetJimboDescriptionValues(Type, Subtype, Index)
 
                 Progress = Progress or mod:GetJokerInitialProgress(Joker, false)
 
-                Values[1] = Progress + 2*Jimbo.MoveSpeed
-                
+                Values[1] = Progress + mod:round(2*Jimbo.MoveSpeed, 2)
 
             else --[[if Joker == mod.Jokers.STONE_JOKER
                    or Joker == mod.Jokers.ICECREAM
-                   or Joker == mod.Jokers.RUNNER
                    or Joker == mod.Jokers.SQUARE_JOKER
                    or Joker == mod.Jokers.WEE_JOKER
                    or Joker == mod.Jokers.BULL then]]
@@ -1001,7 +1000,7 @@ local function BalatroInventoryCallback(descObj)
                 end
 
                 Icon = "{{CurrentCard}}"
-                Name = RarityColor..EID:getObjectName(5, 350, SelectedCard.Joker).."{{CR}}#{{Blank}}"
+                Name = RarityColor..EID:getObjectName(5, 350, SelectedCard.Joker)
 
 
 
@@ -1035,7 +1034,7 @@ local function BalatroInventoryCallback(descObj)
             if not SelectedCard then -- the skip option
 
                 Icon = ""
-                Name = mod:GetEIDString("Other", "SkipName").."#{{Blank}}"
+                Name = mod:GetEIDString("Other", "SkipName").."#{{Blank}} "
                 Description = mod:GetEIDString("Other", "SkipDesc") --wasn't able to find an api function for this
 
                 goto FINISH
@@ -1066,7 +1065,7 @@ local function BalatroInventoryCallback(descObj)
                 end
 
                 Icon = "{{CurrentCard}}"
-                Name = RarityColor..EID:getObjectName(5, 350, SelectedCard.Joker).."#{{Blank}}"
+                Name = RarityColor..EID:getObjectName(5, 350, SelectedCard.Joker).."#{{Blank}} "
 
                 local BaseDesc = mod:GetEIDString("Jimbo","Jokers",SelectedCard.Joker)
 
@@ -1077,20 +1076,26 @@ local function BalatroInventoryCallback(descObj)
 
                 Description = Description..EditionDesc
 
+                Description = mod:ReplaceBalatroMarkups(Description, mod.EID_DescType.JOKER, SelectedCard.Joker, false, SelectIndex)
+
             elseif Balatro_Expansion.SelectionParams[PIndex].Purpose == Balatro_Expansion.SelectionParams.Purposes.StandardPack then 
 
                 Icon = "{{RedCard}}"
 
                 local CardName = mod:GetCardName(SelectedCard, true)
-                
+                local BaseEffect = ""
+
                 if SelectedCard.Enhancement ~= mod.Enhancement.STONE then
-                    
+
+                    Icon = "{{RedCard}}"
                     CardName = CardName.."{{ColorCyan}} "..mod:GetEIDString("Other", "LV")..tostring(mod.Saved.CardLevels[SelectedCard.Value] + 1).."{{CR}}"
+                    BaseEffect = "{{REG_CChips}}+"..mod:RoundBalatroStyle(mod:GetValueScoring(SelectedCard.Value) + 0.02*SelectedCard.Upgrades, 8).."{{CR}} "..mod:GetEIDString("Other", "ChipsScored")            
+                else
+                    Icon = "{{REG_Stone}}"
                 end
 
-                Name = CardName
-
-                local BaseEffect = "{{REG_CChips}}+"..mod:RoundBalatroStyle(mod:GetValueScoring(SelectedCard.Value) + 0.02*SelectedCard.Upgrades, 8).."{{CR}} "..mod:GetEIDString("Other", "ChipsScored")
+                Name = CardName.."#{{Blank}} "
+                
                 local EnhancementEffect = mod:GetEIDString("Jimbo", "Enhancement", SelectedCard.Enhancement)
                 local SealEffect = mod:GetEIDString("Jimbo", "Seal", SelectedCard.Seal)
                 local EditionEffect = mod:GetEIDString("Jimbo", "CardEdition", SelectedCard.Edition)
@@ -1099,7 +1104,8 @@ local function BalatroInventoryCallback(descObj)
 
                 Description = CardAttributes
 
-            
+                Description = mod:ReplaceBalatroMarkups(Description, mod.EID_DescType.CARD, 0, false, SelectIndex)
+
             else
                 local TrueCard = Balatro_Expansion:FrameToSpecialCard(SelectedCard)
 
@@ -1113,6 +1119,9 @@ local function BalatroInventoryCallback(descObj)
                 Name = EID:getObjectName(5, 300, TrueCard).."#{{Blank}}"
 
                 Description = mod:GetEIDString("Jimbo", "Consumables", TrueCard)
+
+                Description = mod:ReplaceBalatroMarkups(Description, mod.EID_DescType.CONSUMABLE, TrueCard, false, SelectIndex)
+
             end
 
         elseif Balatro_Expansion.SelectionParams[PIndex].Mode == Balatro_Expansion.SelectionParams.Modes.HAND then
@@ -1129,30 +1138,37 @@ local function BalatroInventoryCallback(descObj)
                 goto FINISH
             end
 
-            Icon = "{{RedCard}}"
-
             local CardName = mod:GetCardName(SelectedCard, true)
+            local BaseEffect = ""
 
             if SelectedCard.Enhancement ~= mod.Enhancement.STONE then
 
-                CardName = CardName.."{{ColorCyan}} "..mod:GetEIDString("Other", "LV")..tostring(mod.Saved.CardLevels[SelectedCard.Value] + 1).."{{CR}}"
+                Icon = "{{RedCard}}"
+                CardName = CardName.."{{ColorCyan}} "..mod:GetEIDString("Other", "LV")..tostring(mod.Saved.CardLevels[SelectedCard.Value] + 1)
+                BaseEffect = "{{REG_CChips}}+"..mod:RoundBalatroStyle(mod:GetValueScoring(SelectedCard.Value) + 0.02*SelectedCard.Upgrades, 8).."{{CR}} "..mod:GetEIDString("Other", "ChipsScored")            
+            else
+                Icon = "{{REG_Stone}}"
             end
 
-            Name = CardName
+            Name = CardName.."#{{Blank}} "
+
 
             local EnhancementEffect = mod:GetEIDString("Jimbo", "Enhancement", SelectedCard.Enhancement)
             local SealEffect = mod:GetEIDString("Jimbo", "Seal", SelectedCard.Seal)
 
             local EditionEffect = mod:GetEIDString("Jimbo", "CardEdition", SelectedCard.Edition)
 
-            local CardAttributes = EnhancementEffect..SealEffect..EditionEffect
+            local CardAttributes = BaseEffect..EnhancementEffect..SealEffect..EditionEffect
 
             Description = CardAttributes
+
+            Description = mod:ReplaceBalatroMarkups(Description, mod.EID_DescType.CARD, 0, false, SelectIndex)
+
         end
 
         ::FINISH::
 
-        EID:appendToDescription(descObj, "#"..Icon.." "..Name.."# "..Description)
+        EID:appendToDescription(descObj, "#"..Icon.." "..Name.."#"..Description)
 
         ::skip_player::
     end
@@ -1365,7 +1381,7 @@ local function TiemSynergyCallback(descObj)
 
                 if mod:GetTotalTrinketAmount(Joker) > 0 then
 
-                    EID:appendToDescription(descObj, "#{{Trinket"..Joker.."}}"..mod:GetEIDString("ItemJokerSynergies", descObj.ObjSubType, Joker))
+                    EID:appendToDescription(descObj, "#{{Trinket"..Joker.."}} "..mod:GetEIDString("ItemJokerSynergies", descObj.ObjSubType, Joker))
                 end
             end
         end
@@ -1410,18 +1426,13 @@ local function TrinketSynergyCallback(descObj)
 
     if PlayerManager.AnyoneIsPlayerType(Balatro_Expansion.Characters.JimboType) then
         
-        if mod:HasEIDString("JimboSynergies", descObj.ObjSubType) then
+        if mod:HasEIDString("JokerSynergies", descObj.ObjSubType) then
 
-            EID:appendToDescription(descObj, mod:GetEIDString("JimboSynergies", descObj.ObjSubType))
-        end
+            for Item,_ in pairs(mod:GetEIDString("JokerSynergies", descObj.ObjSubType, nil, true)) do
 
-        if mod:HasEIDString("ItemJokerSynergies", descObj.ObjSubType) then
+                if PlayerManager.AnyoneHasCollectible(Item) then
 
-            for Joker,_ in pairs(mod:GetEIDString("ItemJokerSynergies", descObj.ObjSubType, nil, true)) do
-
-                if mod:GetTotalTrinketAmount(Joker) > 0 then
-
-                    EID:appendToDescription(descObj, "#{{Trinket"..Joker.."}}"..mod:GetEIDString("ItemJokerSynergies", descObj.ObjSubType, Joker))
+                    EID:appendToDescription(descObj, "#{{Collectible"..Item.."}} "..mod:GetEIDString("JokerSynergies", descObj.ObjSubType, Item))
                 end
             end
         end
@@ -1440,7 +1451,7 @@ local function TrinketSynergyCallback(descObj)
 
     return descObj
 end
-EID:addDescriptionModifier("REG Item Synergies", TrinketSynergyCondition, TrinketSynergyCallback)
+EID:addDescriptionModifier("REG Joker Synergies", TrinketSynergyCondition, TrinketSynergyCallback)
 
 
 ---------
@@ -1572,6 +1583,7 @@ end
 local function TJimboDescriptionsCallback(descObj)
 
     local Result = false
+    local IsEntity = false
     local T_Jimbo = PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo)
 
     local PIndex 
@@ -1784,6 +1796,8 @@ local function TJimboDescriptionsCallback(descObj)
         end
 
         Result = true
+        IsEntity = true
+
         ObjectToDescribe.Entity = GetPtrHash(descObj.Entity)
 
         EID_Desc.NumLines = nil
@@ -1983,6 +1997,8 @@ local function TJimboDescriptionsCallback(descObj)
 
         if Result then
 
+            IsEntity = true
+
             local RenderLeft = T_Jimbo.Position.X > descObj.Entity.Position.X
 
             local LateralOffset
@@ -2158,8 +2174,13 @@ local function TJimboDescriptionsCallback(descObj)
 
     end
 
-    EID_Desc.Name = mod:ReplaceBalatroMarkups(EID_Desc.Name, mod.EID_DescType.NONE, 0, true, PlayerSelection.Index)
-    EID_Desc.Description = mod:ReplaceBalatroMarkups(EID_Desc.Description, ObjectToDescribe.Type, ObjectToDescribe.SubType, true, PlayerSelection.Index)
+    local Index
+    if not IsEntity then
+        Index = PlayerSelection.Index
+    end
+
+    EID_Desc.Name = mod:ReplaceBalatroMarkups(EID_Desc.Name, mod.EID_DescType.NONE, 0, true, Index)
+    EID_Desc.Description = mod:ReplaceBalatroMarkups(EID_Desc.Description, ObjectToDescribe.Type, ObjectToDescribe.SubType, true, Index)
 
     ObjectToDescribe.Position.Y = ObjectToDescribe.Position.Y - ObjectToDescribe.Position.Y%0.5
     ObjectToDescribe.Position.X = ObjectToDescribe.Position.X - ObjectToDescribe.Position.X%0.5

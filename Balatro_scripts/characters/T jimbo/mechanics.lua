@@ -998,7 +998,32 @@ function mod:SpawnShopItems(Rerolled, CouponUsed)
                 Entity:Remove()
             end
         end
+
+    else
+
+        local Level = Game:GetLevel()
+
+        if Level:GetStage() == LevelStage.STAGE1_2 and Level:IsAltStage() then
+
+            local Grid = 78
+
+            local ItemPos = Room:GetGridPosition(Grid)
+
+            local Variant, SubType = 100, CollectibleType.COLLECTIBLE_KNIFE_PIECE_1
+
+
+            Item = Game:Spawn(EntityType.ENTITY_PICKUP, Variant, ItemPos,
+                                    Vector.Zero, nil, SubType, mod:RandomSeed(mod.RNGs.SHOP)):ToPickup()
+
+
+            ---@diagnostic disable-next-line: need-check-nil
+            Item:MakeShopItem(-2)
+        end
     end
+
+
+
+
 
     local NumItems = 2
 
@@ -1036,32 +1061,18 @@ function mod:SpawnShopItems(Rerolled, CouponUsed)
 
         ::SKIP_ITEM::
     end
-
-    local Level = Game:GetLevel()
-
-    if Level:GetStage() == LevelStage.STAGE1_2 and Level:IsAltStage() then
-        
-        local Grid = 78
-
-        local ItemPos = Room:GetGridPosition(Grid)
-
-        local Variant, SubType = 100, CollectibleType.COLLECTIBLE_KNIFE_PIECE_1
-
-
-        Item = Game:Spawn(EntityType.ENTITY_PICKUP, Variant, ItemPos,
-                                Vector.Zero, nil, SubType, mod:RandomSeed(mod.RNGs.SHOP)):ToPickup()
-
-
-        ---@diagnostic disable-next-line: need-check-nil
-        Item:MakeShopItem(-2)
-    end
-
 end
 
 
 --changes the shop items to be in a specific pattern
 local function ShopItemChanger()
 
+    local Player = PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo)
+
+    if not Player then return end
+
+
+    local PIndex = Player:GetData().TruePlayerIndex
     local Room = Game:GetRoom()
 
     if not PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo)
@@ -1069,6 +1080,49 @@ local function ShopItemChanger()
 
         return
     end
+
+    if PlayerManager.AnyoneHasCollectible(mod.Vouchers.RerollGlut) then
+        mod.Saved.RerollStartingPrice = 1
+    elseif PlayerManager.AnyoneHasCollectible(mod.Vouchers.RerollSurplus) then
+        mod.Saved.RerollStartingPrice = 3
+    else
+        mod.Saved.RerollStartingPrice = 5
+    end
+    
+    for i=#mod.Saved.SkipTags, 1, -1 do
+
+        local Tag = mod.Saved.SkipTags[i]
+        
+        if Tag == mod.SkipTags.D6 then
+            
+            mod:UseSkipTag(i)
+            mod.Saved.RerollStartingPrice = 0
+
+            break --don't use more then one
+        end
+    end
+
+    local ForceFree
+
+    for i, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
+        
+        if Slot.Joker == mod.Jokers.CHAOS_CLOWN then
+        
+            if mod.Saved.Player[PIndex].Inventory[i].Progress == 1 then
+                
+                mod.Saved.Player[PIndex].Inventory[i].Progress = 0
+
+                ForceFree = 0
+
+                break
+            end
+        end
+    end
+
+    OnSpawnPrice = ForceFree and 0 or (mod.Saved.RerollStartingPrice + 0)
+
+    mod:SpawnBalatroPressurePlate(Room:GetGridPosition(56), mod.Grids.PlateVariant.REROLL, OnSpawnPrice)
+
 
     if Room:IsFirstVisit() then --removes any item that was previously put in the shop ant the restock machine
         
@@ -1080,62 +1134,7 @@ local function ShopItemChanger()
             end
         end
 
-
-        if PlayerManager.AnyoneHasCollectible(mod.Vouchers.RerollGlut) then
-            mod.Saved.RerollStartingPrice = 1
-        elseif PlayerManager.AnyoneHasCollectible(mod.Vouchers.RerollSurplus) then
-            mod.Saved.RerollStartingPrice = 3
-        else
-            mod.Saved.RerollStartingPrice = 5
-        end
-        
-        for i, Tag in ipairs(mod.Saved.SkipTags) do
-            
-            if Tag == mod.SkipTags.D6 then
-                
-                mod:UseSkipTag(i)
-                mod.Saved.RerollStartingPrice = 0
-
-                break --don't use more then one
-            end
-        end
-
-        local OnSpawnPrice
-
-        for _, Player in ipairs(PlayerManager.GetPlayers()) do
-            
-            if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
-                
-                local PIndex = Player:GetData().TruePlayerIndex
-
-                for i, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
-                    
-                    if Slot.Joker == mod.Jokers.CHAOS_CLOWN then
-                    
-                        if mod.Saved.Player[PIndex].Inventory[i].Progress == 1 then
-                            
-                            mod.Saved.Player[PIndex].Inventory[i].Progress = 0
-
-                            OnSpawnPrice = 0
-
-                            break
-                        end
-                    end
-                end
-
-                if OnSpawnPrice then
-                    break
-                end
-            end
-        end
-
-        OnSpawnPrice = OnSpawnPrice or (mod.Saved.RerollStartingPrice + 0)
-
-
         mod:SpawnBalatroPressurePlate(Room:GetGridPosition(86), mod.Grids.PlateVariant.SHOP_EXIT, 0)
-
-        mod:SpawnBalatroPressurePlate(Room:GetGridPosition(56), mod.Grids.PlateVariant.REROLL, OnSpawnPrice)
-
 
         local Voucher = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COLLECTIBLE, Room:GetGridPosition(95),
                                    Vector.Zero, nil, mod.Saved.AnteVoucher, mod:RandomSeed(mod.RNGs.SHOP)):ToPickup()
@@ -1157,14 +1156,16 @@ local function ShopItemChanger()
 
     local CouponTag = false
 
-    for i, Tag in ipairs(mod.Saved.SkipTags) do
+    for i=#mod.Saved.SkipTags, 1, -1 do
+
+        local Tag = mod.Saved.SkipTags[i]
 
         if Tag == mod.SkipTags.VOUCHER then
 
             mod:UseSkipTag(i)
             
             local Voucher = Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COLLECTIBLE, Room:FindFreePickupSpawnPosition(Room:GetGridPosition(95),0, true),
-                                   Vector.Zero, nil, mod.Saved.AnteVoucher, mod:RandomSeed(mod.RNGs.SHOP)):ToPickup()
+                                   Vector.Zero, nil, 0, mod:RandomSeed(mod.RNGs.SHOP)):ToPickup()
 
             ---@diagnostic disable-next-line: need-check-nil
             Voucher:MakeShopItem(-2)
@@ -1308,9 +1309,6 @@ function mod:UpdateRerollPrice(RerollPlate)
             end
         end
 
-    end
-
-    if not RerollPlate then
         return
     end
 
@@ -1320,34 +1318,36 @@ function mod:UpdateRerollPrice(RerollPlate)
 
     local NumClowns = 0
 
-    for _, Player in ipairs(PlayerManager.GetPlayers()) do
+  
+    local Player = PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo)
             
-        if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
+    if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
+        
+        local PIndex = Player:GetData().TruePlayerIndex
+
+        for i, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
             
-            local PIndex = Player:GetData().TruePlayerIndex
+            if Slot.Joker == mod.Jokers.CHAOS_CLOWN then
+            
+                NumClowns = NumClowns + 1
 
-            for i, Slot in ipairs(mod.Saved.Player[PIndex].Inventory) do
-                
-                if Slot.Joker == mod.Jokers.CHAOS_CLOWN then
-                
-                    NumClowns = NumClowns + 1
-
-                    if mod.Saved.Player[PIndex].Inventory[i].Progress == 1 then
+                if mod.Saved.Player[PIndex].Inventory[i].Progress == 1 then
+                    
+                    if not NewPrice and OldPrice ~= 0 then --only the first time deactivates a chaos clown
                         
-                        if not NewPrice and OldPrice ~= 0 then --only the first time deactivates a chaos clown
-                            
-                            mod.Saved.Player[PIndex].Inventory[i].Progress = 0
-                        end
-
-                        NewPrice = 0
+                        mod.Saved.Player[PIndex].Inventory[i].Progress = 0
                     end
+
+                    NewPrice = 0
                 end
             end
         end
     end
 
+    print(mod.Saved.RerollStartingPrice, mod.Saved.NumShopRerolls, NumClowns)
 
-    NewPrice = NewPrice or (mod.Saved.RerollStartingPrice + (mod.Saved.NumShopRerolls - NumClowns))
+
+    NewPrice = NewPrice or (mod.Saved.RerollStartingPrice + mod.Saved.NumShopRerolls - NumClowns)
     
 
     RerollPlate.VarData = NewPrice
@@ -1369,16 +1369,25 @@ function mod:UpdateCurrentHandType(Player)
         for i,v in ipairs(mod.SelectionParams[PIndex].PackOptions) do
             if mod.SelectionParams[PIndex].SelectedCards[mod.SelectionParams.Modes.PACK][i] then
                 Planet = mod:FrameToSpecialCard(v)
+                break
             end
         end
 
-        local PlanetHandType = (Planet - mod.Planets.PLUTO + 2) --gets the equivalent handtype
+        if Planet == mod.Spectrals.BLACK_HOLE then
 
-        mod.Saved.HandType = PlanetHandType
+            mod.Saved.HandType = mod.ALL_HAND_TYPES["-"]
+        else
+            local PlanetHandType = (Planet - mod.Planets.PLUTO + 2) --gets the equivalent handtype
+
+            mod.Saved.HandType = PlanetHandType
+        end
+        
 
     elseif mod.Saved.EnableHand then
         mod.Saved.PossibleHandTypes = mod:DeterminePokerHand(Player)
         mod.Saved.HandType = mod:GetHandTypeFromFlag(mod.Saved.PossibleHandTypes)
+
+        --print(mod.Saved.HandType)
     else
         mod.Saved.PossibleHandTypes = mod.HandFlags.NONE
         mod.Saved.HandType = mod.HandTypes.NONE
@@ -1700,9 +1709,10 @@ local function ClearBlindOnEnemyDeath(_,NPC)
 
     --print("Alldead:", AllDead)
 
-    if AllDead and not mod:IsRotgutDungeon()
-               and not mod:IsDogmaBossRoom()
-               and not mod:IsBeastBossRoom() then
+    if AllDead
+       and not mod:IsRotgutDungeon()       
+       and not mod:IsDogmaBossRoom()
+       and not mod:IsBeastBossRoom() then
 
         BlindGotCleared = true
 
@@ -1715,12 +1725,13 @@ local function ClearBlindOnEnemyDeath(_,NPC)
         return
     end
 
+    --print(mod.Saved.HandsRemaining)
+
     if mod.Saved.HandsRemaining <= 0 then
 
         for i, Player in ipairs(PlayerManager.GetPlayers()) do
 
             if Player:GetPlayerType() == mod.Characters.TaintedJimbo then
-                --special bosses give you unlimited hands 
 
                 local PIndex = Player:GetData().TruePlayerIndex
 
@@ -2103,7 +2114,6 @@ local function OnBlindButtonPressed(_, Plate)
         else
             mod.Saved.BlindBeingPlayed = mod.BLINDS.SHOP | mod.BLINDS.WAITING_CASHOUT
 
-
             if mod:IsChestDarkRoomBossRoom() then
 
                 Game:GetRoom():TrySpawnMegaSatanRoomDoor(true)
@@ -2350,7 +2360,9 @@ local function OnBlindStart(_, BlindData)
 
     mod.Saved.NumJuggleUsed = 0
 
-    for i,Tag in ipairs(mod.Saved.SkipTags) do
+    for i=#mod.Saved.SkipTags, 1, -1 do
+
+        local Tag = mod.Saved.SkipTags[i]
         
         if Tag == mod.SkipTags.JUGGLE then
 
@@ -2407,7 +2419,7 @@ mod:AddCallback(mod.Callbalcks.BLIND_START, OnBlindStart)
 -----FUNCTION NEEDED FOR PACK SKIP TAGS-----
 ---------------------------------------------
 
-local function SkipTagPackOpen(PackType)
+local function SkipTagPackOpen(PackType, i)
                          
     local SomeoneIsSelecting = false
 
@@ -2429,7 +2441,7 @@ local function SkipTagPackOpen(PackType)
         end, 1, 1, true)
     else
         PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo):AddCard(PackType)
-        mod:UseSkipTag(1)
+        mod:UseSkipTag(i)
     end
 end
 
@@ -2466,7 +2478,9 @@ local function OnTagAdded(_, TagAdded)
 
     local PIndex = T_Jimbo:GetData().TruePlayerIndex
       
-    for i,Tag in ipairs(mod.Saved.SkipTags) do
+    for i=#mod.Saved.SkipTags, 1, -1 do
+
+        local Tag = mod.Saved.SkipTags[i]
 
         if Tag == mod.SkipTags.BOSS then
 
@@ -2476,7 +2490,7 @@ local function OnTagAdded(_, TagAdded)
             
                 mod:RerollBossBlind()
 
-                mod:UseSkipTag(1) --boss tags are used only when obtained, so they are always first
+                mod:UseSkipTag(i) --boss tags are used only when obtained, so they are always first
 
             end, Interval, 1, true)
 
@@ -2488,7 +2502,7 @@ local function OnTagAdded(_, TagAdded)
                 T_Jimbo:AddCoins(Money)
 
                 mod:CreateBalatroEffect(T_Jimbo, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(Money).."$",  mod.EffectType.ENTITY, T_Jimbo)
-                mod:UseSkipTag(1)
+                mod:UseSkipTag(i)
             
             end, Interval, 1, true)
 
@@ -2506,7 +2520,7 @@ local function OnTagAdded(_, TagAdded)
                 T_Jimbo:AddCoins(Money)
 
                 mod:CreateBalatroEffect(T_Jimbo, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(Money).."$",  mod.EffectType.ENTITY, T_Jimbo)
-                mod:UseSkipTag(1)
+                mod:UseSkipTag(i)
 
             end, Interval, 1, true)
 
@@ -2520,7 +2534,7 @@ local function OnTagAdded(_, TagAdded)
                 T_Jimbo:AddCoins(Money)
 
                 mod:CreateBalatroEffect(T_Jimbo, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(Money).."$",  mod.EffectType.ENTITY, T_Jimbo)
-                mod:UseSkipTag(1)
+                mod:UseSkipTag(i)
 
             end, Interval, 1, true)
             
@@ -2529,12 +2543,12 @@ local function OnTagAdded(_, TagAdded)
             Interval = Interval + 20
 
             Isaac.CreateTimer(function ()
-                    local Money = math.min(40, T_Jimbo:GetNumCoins())
+                local Money = math.min(40, T_Jimbo:GetNumCoins())
 
-                    T_Jimbo:AddCoins(Money)
+                T_Jimbo:AddCoins(Money)
 
-                    mod:CreateBalatroEffect(T_Jimbo, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(Money).."$",  mod.EffectType.ENTITY, T_Jimbo)
-                    mod:UseSkipTag(1)
+                mod:CreateBalatroEffect(T_Jimbo, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(Money).."$",  mod.EffectType.ENTITY, T_Jimbo)
+                mod:UseSkipTag(i)
 
             end, Interval, 1, true)
         elseif Tag == mod.SkipTags.TOP_UP then
@@ -2557,38 +2571,38 @@ local function OnTagAdded(_, TagAdded)
                         end
                     end
                 end
-                mod:UseSkipTag(1)
+                mod:UseSkipTag(i)
 
             end, Interval, 1, true)
 
         elseif Tag == mod.SkipTags.STANDARD then
 
             Isaac.CreateTimer(function ()
-                SkipTagPackOpen(mod.Packs.MEGA_STANDARD)
+                SkipTagPackOpen(mod.Packs.MEGA_STANDARD, i)
             end, Interval, 1, true)
 
         elseif Tag == mod.SkipTags.CHARM then
 
             Isaac.CreateTimer(function ()
-                SkipTagPackOpen(mod.Packs.MEGA_ARCANA)
+                SkipTagPackOpen(mod.Packs.MEGA_ARCANA, i)
             end, Interval, 1, true)
 
         elseif Tag == mod.SkipTags.BUFFON then
 
             Isaac.CreateTimer(function ()
-                SkipTagPackOpen(mod.Packs.MEGA_BUFFON)
+                SkipTagPackOpen(mod.Packs.MEGA_BUFFON, i)
             end, Interval, 1, true)
 
         elseif Tag == mod.SkipTags.METEOR then
 
             Isaac.CreateTimer(function ()
-                SkipTagPackOpen(mod.Packs.MEGA_CELESTIAL)
+                SkipTagPackOpen(mod.Packs.MEGA_CELESTIAL, i)
             end, Interval, 1, true)
 
         elseif Tag == mod.SkipTags.ETHEREAL then
 
             Isaac.CreateTimer(function ()
-                SkipTagPackOpen(mod.Packs.SPECTRAL)
+                SkipTagPackOpen(mod.Packs.SPECTRAL, i)
             end, Interval, 1, true)
 
         elseif Tag & mod.SkipTags.ORBITAL ~= 0 then
@@ -2597,7 +2611,7 @@ local function OnTagAdded(_, TagAdded)
 
             Isaac.CreateTimer(function ()
 
-                mod:UseSkipTag(1)
+                mod:UseSkipTag(i)
 
             end, Interval, 1, true)
 
@@ -2627,7 +2641,7 @@ local function OnTagAdded(_, TagAdded)
 
 
                 mod:CreateBalatroEffect(T_Jimbo, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(Money).."$",  mod.EffectType.ENTITY, T_Jimbo)
-                mod:UseSkipTag(1)
+                mod:UseSkipTag(i)
 
             end, Interval, 1, true)
 
@@ -2647,7 +2661,7 @@ local function OnTagAdded(_, TagAdded)
                 end
 
                 mod:CreateBalatroEffect(T_Jimbo, mod.EffectColors.YELLOW, mod.Sounds.MONEY, "+"..tostring(Money).."$",  mod.EffectType.ENTITY, T_Jimbo)
-                mod:UseSkipTag(1)
+                mod:UseSkipTag(i)
 
             end, Interval, 1, true)
 
@@ -3642,11 +3656,17 @@ local function RemoveUnwantedDoors(_, Door)
 
     if ShouldKeep then
 
+        --print(mod.AnimationIsPlaying, mod.Saved.BlindBeingPlayed == mod.BLINDS.WAITING_CASHOUT)
+
         if mod.AnimationIsPlaying or mod.Saved.BlindBeingPlayed == mod.BLINDS.WAITING_CASHOUT then
 
             Door:Close(true)
         else
-            Door:TryUnlock(T_Jimbo)
+            if Door:IsLocked() 
+               and (not Door.TargetRoomType == RoomType.ROOM_SECRET_EXIT
+                    or Game:GetLevel():GetStage() ~= LevelStage.STAGE3_2) then
+                Door:TryUnlock(T_Jimbo, true)
+            end
         end
 
     else
@@ -3782,7 +3802,9 @@ local function OpenStrangeDoor(_, Player, Index, Door)
     end
 
 
-    if Door.TargetRoomIndex == -10 and Door.TargetRoomType == RoomType.ROOM_SECRET_EXIT then
+    if Door.TargetRoomIndex == -10 
+       and Door.TargetRoomType == RoomType.ROOM_SECRET_EXIT
+       and Game:GetLevel():GetStage() == LevelStage.STAGE3_2 then
         
         mod:SwitchCardSelectionStates(Player, mod.SelectionParams.Modes.INVENTORY, mod.SelectionParams.Purposes.SECRET_EXIT) --| mod.SelectionParams.Purposes.FORCED_FLAG)
     end

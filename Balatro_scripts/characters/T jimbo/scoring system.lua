@@ -639,13 +639,16 @@ local function TriggerCard(Player, CardPointer, CardIndex)
 
         for _, Index in ipairs(mod:GetJimboJokerIndex(Player, mod.Jokers.CHAOS_THEORY)) do
 
-            local NewCardSubType = mod:PlayingCardParamsToSubType(Card)
+            Isaac.CreateTimer(function ()
+                local NewCardSubType = mod:PlayingCardParamsToSubType(mod.Saved.Player[PIndex].FullDeck[CardPointer])
 
-            local NewCardRNG = RNG(Player:GetTrinketRNG(mod.Jokers.CHAOS_THEORY):PhantomInt(NewCardSubType) + 1)
+                local NewCardRNG = RNG(Player:GetTrinketRNG(mod.Jokers.CHAOS_THEORY):PhantomInt(NewCardSubType) + 1)
 
-            mod.Saved.Player[PIndex].FullDeck[CardPointer] = mod:RandomPlayingCard(NewCardRNG, true)
+                mod.Saved.Player[PIndex].FullDeck[CardPointer] = mod:RandomPlayingCard(NewCardRNG, true)
 
-            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.BLUE, mod.Sounds.ACTIVATE, "Chaos!", mod.EffectType.HAND_FROM_JOKER | Index, CardPointer)
+            end, CurrentInterval, 1, true)
+                
+            GeneralBalatroEffect(Player, PIndex, mod.EffectColors.YELLOW, mod.Sounds.ACTIVATE, "Chaos!", mod.EffectType.HAND_FROM_JOKER | Index, CardPointer)
         end
 
 
@@ -2830,7 +2833,9 @@ local function CashoutEvaluation(_, BlindBeaten)
     TotalGain = TotalGain + Interests
 
 
-    for i, Tag in ipairs(mod.Saved.SkipTags) do
+    for i=#mod.Saved.SkipTags, 1, -1 do
+
+        local Tag = mod.Saved.SkipTags[i]
         
         if Tag == mod.SkipTags.INVESTMENT and (BlindBeaten & mod.BLINDS.BOSS ~= 0) then
             

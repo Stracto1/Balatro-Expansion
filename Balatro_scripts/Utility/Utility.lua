@@ -31,7 +31,7 @@ local function FindScreenToWorldRatio()
     local NormalCoord = Isaac.WorldToScreen(Isaac.ScreenToWorld(CenterScreenPos)) --the actual game's screen coords
     local FuckedCoord = CenterScreenPos --the monitor's screen coords
 
-    mod.SCREEN_TO_WORLD_RATIO =  FuckedCoord/NormalCoord 
+    mod.SCREEN_TO_WORLD_RATIO =  FuckedCoord/NormalCoord
 end
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, FindScreenToWorldRatio)
 
@@ -872,7 +872,7 @@ end
 local function effectTest(_, Effect)
 
     
-        print(Effect.Type, Effect.Variant, Effect.SubType, EntityConfig.GetEntity(Effect.Type, Effect.Variant, Effect.SubType):GetName())
+        --print(Effect.Type, Effect.Variant, Effect.SubType, EntityConfig.GetEntity(Effect.Type, Effect.Variant, Effect.SubType):GetName())
 end
 --mod:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT, effectTest)
 
@@ -1760,20 +1760,22 @@ end
 
 function mod:GetJimboTriggerableCards(Player)
 
-    if Player:GetPlayerType() ~= mod.Characters.JimboType or Game:GetRoom():IsClear() then
+    if Player:GetPlayerType() ~= mod.Characters.JimboType then
         return 0
     end
 
     local PIndex = Player:GetData().TruePlayerIndex
 
+    if not mod.Saved.Player[PIndex].FirstDeck then
+        return 0
+    end
+
     if mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR) then
         
-        if not mod.Saved.Player[PIndex].FirstDeck then
-            return 0
-        end
-
         return #mod.Saved.Player[PIndex].FullDeck - mod.Saved.Player[PIndex].DeckPointer + 1
     end
+
+    --print("Triggerable: ", Player:GetCustomCacheValue(mod.CustomCache.HAND_NUM) - mod.Saved.Player[PIndex].Progress.Room.Shots)
 
     return Player:GetCustomCacheValue(mod.CustomCache.HAND_NUM) - mod.Saved.Player[PIndex].Progress.Room.Shots
 
@@ -2054,7 +2056,10 @@ function mod:GetJokerCost(Joker, Edition, SellSlot, Player)
 end
 
 function mod:GetJokerRarity(Joker)
-    return string.gsub(ItemsConfig:GetTrinket(Joker):GetCustomTags()[4],"%?","")
+
+    local RarityTag = ItemsConfig:GetTrinket(Joker):GetCustomTags()[4] or "?common"
+
+    return string.gsub(RarityTag, "%?", "")
 end
 
 function mod:GetJokerInitialProgress(Joker, Tainted, Player)
@@ -2063,6 +2068,7 @@ function mod:GetJokerInitialProgress(Joker, Tainted, Player)
 
     local Prog
     if Tainted then
+
 
         local T_Jimbo = Player or PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo)
         local PIndex = T_Jimbo:GetData().TruePlayerIndex
@@ -3389,7 +3395,9 @@ function mod:RandomShopItem(Rng)
     local ShopItemPicker = WeightedOutcomePicker()
 
 
-    for i, Tag in ipairs(mod.Saved.SkipTags) do
+    for i=#mod.Saved.SkipTags, 1, -1 do
+
+        local Tag = mod.Saved.SkipTags[i]
 
         if Tag == mod.SkipTags.UNCOMMON then
 
@@ -3454,7 +3462,9 @@ function mod:RandomShopItem(Rng)
 
         if Joker.Edition == mod.Edition.BASE then
 
-            for i, Tag in ipairs(mod.Saved.SkipTags) do
+            for i=#mod.Saved.SkipTags, 1, -1 do
+
+                local Tag = mod.Saved.SkipTags[i]
 
                 if Tag == mod.SkipTags.FOIL then
                     mod:UseSkipTag(i)
@@ -3713,7 +3723,7 @@ end
 
 function mod:AddSkipTag(TagAdded, Doubled)
 
-    table.insert(mod.Saved.SkipTags, 1, TagAdded)
+    table.insert(mod.Saved.SkipTags, TagAdded)
     sfx:Play(mod.Sounds.ACTIVATE)
 
     local Interval = 8
@@ -3728,7 +3738,9 @@ function mod:AddSkipTag(TagAdded, Doubled)
 
         --local DoubleTagsUsed = 0
 
-        for i,Tag in ipairs(mod.Saved.SkipTags) do
+        for i=#mod.Saved.SkipTags, 1, -1 do
+
+            local Tag = mod.Saved.SkipTags[i]
 
             if Tag == mod.SkipTags.DOUBLE then
 
@@ -4352,7 +4364,6 @@ function mod:GetCardModifiers(Player, Card, Pointer)
         end
     end
 
-
     return CardModifiers
 end
 
@@ -4369,6 +4380,7 @@ function mod:EvaluateBlindData(BlindType)
     else
         mod.Saved.BossBlindVarData = 0
     end
+
 
 end
 
@@ -4773,7 +4785,6 @@ function mod:RandomBossBlind(Rng, SpecialBoss)
         table.remove(mod.Saved.Pools.BossBlinds, mod:GetValueIndex(mod.Saved.Pools.BossBlinds, ChosenBoss, true))
     
     end
-
 
     return ChosenBoss
 end
@@ -5668,7 +5679,7 @@ function mod:Select(Player)
                 end
 
             --else
-            --    print("too many! (",mod.SelectionParams[PIndex].SelectionNum,"/",mod.SelectionParams[PIndex].MaxSelectionNum,")")
+            --    -print("too many! (",mod.SelectionParams[PIndex].SelectionNum,"/",mod.SelectionParams[PIndex].MaxSelectionNum,")")
             end
             if CurrentPurpose == mod.SelectionParams.Purposes.HAND
                and IsTaintedJimbo then
@@ -5806,8 +5817,8 @@ function mod:Select(Player)
                         sfx:Play(mod.Sounds.SELECT,1,2,false, 1.2)
                     end, 3, 1, false)
 
-                    mod.Saved.Player[PIndex].Inventory[FirstI].Joker,mod.Saved.Player[PIndex].Inventory[SecondI].Joker =
-                    mod.Saved.Player[PIndex].Inventory[SecondI].Joker,mod.Saved.Player[PIndex].Inventory[FirstI].Joker
+                    mod.Saved.Player[PIndex].Inventory[FirstI],mod.Saved.Player[PIndex].Inventory[SecondI] =
+                    mod.Saved.Player[PIndex].Inventory[SecondI],mod.Saved.Player[PIndex].Inventory[FirstI]
 
                     
                     Isaac.RunCallback("INVENTORY_CHANGE", Player)
@@ -6574,8 +6585,8 @@ function mod:RenderCard(Params, Position, Offset, Scale, Rotation, ForceCovered,
 
     if Params.Modifiers & mod.Modifier.DEBUFFED ~= 0 then
         --renders another copy of the card on top of the original (just like the original Game!!)
+        
         JimboCards:SetCustomShader(mod.EditionShaders.DEBUFF)
-
         JimboCards:Render(Position)
     end
 
@@ -6675,10 +6686,15 @@ function mod:PlanetUpgradeAnimation(HandType, LevelsGiven, BaseInterval)
 
         mod.AnimationIsPlaying = OldAnimationIsPlaying --puts back the animation to where it was
 
-        if mod.Saved.BlindBeingPlayed == mod.BLINDS.NONE
-           or mod.Saved.BlindBeingPlayed & mod.BLINDS.SHOP ~= 0 then
+        --if mod.Saved.BlindBeingPlayed == mod.BLINDS.NONE
+        --   or mod.Saved.BlindBeingPlayed & mod.BLINDS.SHOP ~= 0 then
+
+            --print("PRE", mod.Saved.HandType)
+
             Isaac.RunCallback(mod.Callbalcks.HAND_UPDATE, PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo))
-        end
+        
+            --print("POST", mod.Saved.HandType)
+        --end
     end, Interval, 1, true)
 
 
@@ -6690,6 +6706,102 @@ function mod:PlanetUpgradeAnimation(HandType, LevelsGiven, BaseInterval)
         mod.Saved.HandsStat[mod.HandTypes.ROYAL_FLUSH].Mult = mod.Saved.HandsStat[mod.HandTypes.ROYAL_FLUSH].Mult + ExtraMult
         mod.Saved.HandsStat[mod.HandTypes.ROYAL_FLUSH].Chips = mod.Saved.HandsStat[mod.HandTypes.ROYAL_FLUSH].Chips + ExtraChips
     end
+
+    return Interval - BaseInterval --how long the animation lasted
+end
+
+function mod:BlackHoleUpgradeAnimation(LevelsGiven, BaseInterval)
+
+    if LevelsGiven == 0 then
+        return
+    end
+
+    local PIndex = PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo):GetData().TruePlayerIndex
+
+    for i,Hand in pairs(mod.HandTypes) do
+
+        local CurrentLevel = mod.Saved.HandLevels[Hand]
+
+        local HypotheticalLevel = CurrentLevel + LevelsGiven
+
+        --puts a cap to LevelsGained if it would make the level lower than 1
+        LevelsGiven = LevelsGiven + (math.max(1,HypotheticalLevel) - HypotheticalLevel)
+
+
+        local ExtraChips = mod.HandUpgrades[Hand].Chips * LevelsGiven
+        local ExtraMult = mod.HandUpgrades[Hand].Mult * LevelsGiven
+
+        mod.Saved.HandLevels[Hand] = mod.Saved.HandLevels[Hand] + LevelsGiven
+        mod.Saved.HandsStat[Hand].Mult = mod.Saved.HandsStat[Hand].Mult + ExtraMult
+        mod.Saved.HandsStat[Hand].Chips = mod.Saved.HandsStat[Hand].Chips + ExtraChips
+    end
+
+
+
+    BaseInterval = BaseInterval or 0
+    local OldAnimationIsPlaying = mod.AnimationIsPlaying and true or false --to make sure that there's no upvalue
+
+    mod.AnimationIsPlaying = true
+
+    local Interval = BaseInterval + 12 --initial wait
+
+
+    local FinalSign = mod:GetSignString(LevelsGiven) -- either "" or "+" basing on value
+    local StartSign = FinalSign == "-" and "+" or "-" -- either "" or "+" basing on value
+
+    mod.Saved.HandType = mod.ALL_HAND_TYPES[StartSign]
+
+
+    --shows the current stats
+    mod.Saved.MultValue = StartSign
+    mod.Saved.ChipsValue = StartSign
+
+    --increase chips
+    Isaac.CreateTimer(function ()
+        
+        mod.Saved.ChipsValue = FinalSign
+        sfx:Play(SoundEffect.SOUND_PLOP)
+
+    end, Interval, 1, true)
+
+    Interval = Interval + 12 --for this many frames keeps the "+num" rendered
+
+
+    --increase mult
+    Isaac.CreateTimer(function ()
+        
+        mod.Saved.MultValue = FinalSign
+        sfx:Play(SoundEffect.SOUND_PLOP)
+
+    end, Interval, 1, true)
+
+    Interval = Interval + 12 --for this many frames keeps the "+num" rendered
+
+    --increase the hand level itself
+    Isaac.CreateTimer(function ()
+
+        --can't go below 1
+        mod.Saved.HandType = mod.ALL_HAND_TYPES[FinalSign]
+        sfx:Play(SoundEffect.SOUND_PLOP)
+    end, Interval, 1, true)
+
+    Interval = Interval + 16 --ending wait
+
+
+    Isaac.CreateTimer(function ()
+
+        mod.AnimationIsPlaying = OldAnimationIsPlaying --puts back the animation to where it was
+
+        if mod.Saved.BlindBeingPlayed == mod.BLINDS.NONE
+           or mod.Saved.BlindBeingPlayed & mod.BLINDS.SHOP ~= 0 then
+
+            --print("PRE", mod.Saved.HandType)
+
+            Isaac.RunCallback(mod.Callbalcks.HAND_UPDATE, PlayerManager.FirstPlayerByType(mod.Characters.TaintedJimbo))
+        
+            --print("POST", mod.Saved.HandType)
+        end
+    end, Interval, 1, true)
 
     return Interval - BaseInterval --how long the animation lasted
 end

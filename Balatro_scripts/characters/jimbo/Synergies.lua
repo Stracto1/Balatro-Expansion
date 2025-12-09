@@ -297,7 +297,9 @@ function mod:OnItemPickup(Type, _,FirstTime,_,_, Player)
 
             local Seed = mod:PlayingCardParamsToSubType(Card)
 
-            mod.Saved.Player[PIndex].FullDeck[Index] = mod:RandomPlayingCard(Seed, false)
+            local CardRNG = RNG(Player:GetCollectibleRNG(Type):RandomInt(Seed))
+
+            mod.Saved.Player[PIndex].FullDeck[Index] = mod:RandomPlayingCard(CardRNG, false)
 
             Player:PlayExtraAnimation("Glitch")
         end

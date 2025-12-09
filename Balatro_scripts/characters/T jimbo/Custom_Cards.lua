@@ -962,34 +962,7 @@ local function TJimboUseSpectral(card, Player, UseFlags)
 
     elseif card == mod.Spectrals.BLACK_HOLE then
 
-        for _, Hand in ipairs(mod.HandTypes) do
-            mod.Saved.HandsStat[Hand].Chips = mod.Saved.HandsStat[Hand].Chips + mod.HandUpgrades[Hand].Chips
-            mod.Saved.HandsStat[Hand].Mult = mod.Saved.HandsStat[Hand].Mult + mod.HandUpgrades[Hand].Mult
-
-            mod.Saved.HandLevels[Hand] = mod.Saved.HandLevels[Hand] + 1
-        end
-
-        mod.Saved.ChipsValue = "-"
-        mod.Saved.MultValue = "-"
-
-        AnimationInterval = PLANET_FULL_INTERVAL
-
-        Isaac.CreateTimer(function ()
-
-            mod.Saved.ChipsValue = "+"
-        end, PLANET_STEP, 1, true)
-
-        Isaac.CreateTimer(function ()
-
-            mod.Saved.MultValue = "+"
-        end, PLANET_STEP*2, 1, true)
-
-
-        Isaac.CreateTimer(function ()
-
-
-        end, PLANET_STEP*3, 1, true)
-
+        AnimationInterval = mod:BlackHoleUpgradeAnimation(1, 0)
     end
 
     ::FINISH::

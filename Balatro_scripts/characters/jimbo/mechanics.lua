@@ -448,10 +448,14 @@ function mod:EnableJokerAnimations(Pickup)
 
     local Config = ItemsConfig:GetTrinket(Pickup.SubType)
     if not Config:HasCustomTag("balatro") then
+
+        Pickup:Remove()
+        Game:Spawn(5,350, Pickup.Position, Pickup.Velocity, Pickup.SpawnerEntity, 0, Pickup.InitSeed) --replaces non-balatro trinkets with a randon one
+
         return
     end
 
-    --using this an,2 enables the various joker animations such as the wobble for legendaries 
+    --using this anm2 enables the various joker animations such as the wobble for legendaries 
     local Tsprite = Pickup:GetSprite()
     local InitialAnimation = Tsprite:GetAnimation()
 
@@ -479,7 +483,7 @@ function mod:SetItemPrices(Variant,SubType,ShopID,Price)
         if Item and Item:HasCustomTag("balatro") then --vouchers
             Cost = 10
         else --any item in the game
-            Cost = Item.Quality *2 + 1
+            Cost = Item.Quality *2 + 2
         end
 
     elseif Variant == PickupVariant.PICKUP_TRINKET then --jokers
@@ -697,26 +701,24 @@ function mod:CalculateBlinds()
 
     if mod.Saved.SmallCleared == mod.BlindProgress.NOT_CLEARED then
         BlindsSkipped = BlindsSkipped + 1
-        SkippedFlag = SkippedFlag & mod.BLINDS.SMALL
+        SkippedFlag = SkippedFlag | mod.BLINDS.SMALL
     end
-    if mod.Saved.BigBlind == mod.BlindProgress.NOT_CLEARED then
+    if mod.Saved.BigCleared == mod.BlindProgress.NOT_CLEARED then
         BlindsSkipped = BlindsSkipped + 1
-        SkippedFlag = SkippedFlag & mod.BLINDS.BIG
+        SkippedFlag = SkippedFlag | mod.BLINDS.BIG
     end
     if mod.Saved.BossCleared == mod.BlindProgress.NOT_CLEARED then
         BlindsSkipped = BlindsSkipped + 1
-        SkippedFlag = SkippedFlag & mod.BLINDS.BOSS
+        SkippedFlag = SkippedFlag | mod.BLINDS.BOSS
     end
 
-
-
-
-    Isaac.CreateTimer(function ()
         
     local Interval = 10
     local PACK_INTEVAL = 5
 
-    if mod.Saved.SmallCleared == mod.BlindProgress.NOT_CLEARED then
+    local StartInterval = Interval + 0
+
+    Isaac.CreateTimer(function ()
 
         Isaac.CreateTimer(function ()
             Isaac.CreateTimer(function ()
@@ -726,52 +728,90 @@ function mod:CalculateBlinds()
                 Game:Spawn(5, 300, Jimbo.Position, RandomVector()*5, Jimbo, Pack, mod:RandomSeed(mod.RNGs.SKIP_TAGS))
 
             end, PACK_INTEVAL, NumPacks, true)
-            sfx:Play(mod.Sounds.SKIP_TAG, 1, 2, false, 0.95 + math.random()*0.1)
-        end, Interval, 1, true)
-
-        Interval = Interval + PACK_INTEVAL*NumPacks + 15
-
-        mod:CreateBalatroEffect(Jimbo, mod.EffectColors.YELLOW ,mod.Sounds.ACTIVATE, "Skipped!", mod.EffectType.ENTITY, Jimbo)
-    end
-    if mod.Saved.BigBlind == mod.BlindProgress.NOT_CLEARED then
-
-        Isaac.CreateTimer(function ()
-            Isaac.CreateTimer(function ()
-                
-                local Pack = mod:RandomPack(mod.RNGs.SKIP_TAGS, false)
-            
-                Game:Spawn(5, 300, Jimbo.Position, RandomVector()*5, Jimbo, Pack, mod:RandomSeed(mod.RNGs.SKIP_TAGS))
-            
-            end, PACK_INTEVAL, NumPacks, true)
 
             sfx:Play(mod.Sounds.SKIP_TAG, 1, 2, false, 0.95 + math.random()*0.1)
-        end, Interval, 1, true)
-
-        Interval = Interval + PACK_INTEVAL*NumPacks + 15
-
-        mod:CreateBalatroEffect(Jimbo, mod.EffectColors.YELLOW ,mod.Sounds.ACTIVATE, "Skipped!", mod.EffectType.ENTITY, Jimbo)
-    
-    end
-    if mod.Saved.BossCleared == mod.BlindProgress.NOT_CLEARED then
-
-        Isaac.CreateTimer(function ()
-            Isaac.CreateTimer(function ()
-                
-                local Pack = mod:RandomPack(mod.RNGs.SKIP_TAGS, false)
-            
-                Game:Spawn(5, 300, Jimbo.Position, RandomVector()*5, Jimbo, Pack, mod:RandomSeed(mod.RNGs.SKIP_TAGS))
-            
-            end, PACK_INTEVAL, NumPacks, true)
-            sfx:Play(mod.Sounds.SKIP_TAG, 1, 2, false, 0.95 + math.random()*0.1)
-        end, Interval, 1, true)
-
-        Interval = Interval + PACK_INTEVAL*NumPacks + 15
-
-        mod:CreateBalatroEffect(Jimbo, mod.EffectColors.YELLOW ,mod.Sounds.ACTIVATE, "Skipped!", mod.EffectType.ENTITY, Jimbo)
-    
-    end
+            mod:CreateBalatroEffect(Jimbo, mod.EffectColors.YELLOW ,mod.Sounds.ACTIVATE, "New floor!", mod.EffectType.ENTITY, Jimbo)
+        
+        end, StartInterval, 1, true)
 
     end,0,1,true)
+
+    Interval = Interval + PACK_INTEVAL*NumPacks + 18
+
+
+    if SkippedFlag & mod.BLINDS.SMALL ~= 0 then
+
+        local BlindInterval = Interval + 0
+
+        Isaac.CreateTimer(function ()
+
+            Isaac.CreateTimer(function ()
+                Isaac.CreateTimer(function ()
+
+                    local Pack = mod:RandomPack(mod.RNGs.SKIP_TAGS, false)
+
+                    Game:Spawn(5, 300, Jimbo.Position, RandomVector()*5, Jimbo, Pack, mod:RandomSeed(mod.RNGs.SKIP_TAGS))
+
+                end, PACK_INTEVAL, NumPacks, true)
+
+                sfx:Play(mod.Sounds.SKIP_TAG, 1, 2, false, 0.95 + math.random()*0.1)
+                mod:CreateBalatroEffect(Jimbo, mod.EffectColors.YELLOW ,mod.Sounds.ACTIVATE, "Skipped!", mod.EffectType.ENTITY, Jimbo)
+            
+            end, BlindInterval, 1, true)
+
+        end,0,1,true)
+
+        Interval = Interval + PACK_INTEVAL*NumPacks + 15
+    end
+    if SkippedFlag & mod.BLINDS.BIG ~= 0 then
+
+        local BlindInterval = Interval + 0
+
+        Isaac.CreateTimer(function ()
+
+            Isaac.CreateTimer(function ()
+                Isaac.CreateTimer(function ()
+
+                    local Pack = mod:RandomPack(mod.RNGs.SKIP_TAGS, false)
+                
+                    Game:Spawn(5, 300, Jimbo.Position, RandomVector()*5, Jimbo, Pack, mod:RandomSeed(mod.RNGs.SKIP_TAGS))
+                
+                end, PACK_INTEVAL, NumPacks, true)
+
+                sfx:Play(mod.Sounds.SKIP_TAG, 1, 2, false, 0.95 + math.random()*0.1)
+                mod:CreateBalatroEffect(Jimbo, mod.EffectColors.YELLOW ,mod.Sounds.ACTIVATE, "Skipped!", mod.EffectType.ENTITY, Jimbo)
+
+            end, BlindInterval, 1, true)
+
+        end,0,1,true)
+
+        Interval = Interval + PACK_INTEVAL*NumPacks + 15
+    end
+    if SkippedFlag & mod.BLINDS.BOSS ~= 0 then
+
+        local BlindInterval = Interval + 0
+
+        Isaac.CreateTimer(function ()
+
+            Isaac.CreateTimer(function ()
+                Isaac.CreateTimer(function ()
+
+                    local Pack = mod:RandomPack(mod.RNGs.SKIP_TAGS, false)
+                
+                    Game:Spawn(5, 300, Jimbo.Position, RandomVector()*5, Jimbo, Pack, mod:RandomSeed(mod.RNGs.SKIP_TAGS))
+                
+                end, PACK_INTEVAL, NumPacks + 1, true)
+
+                sfx:Play(mod.Sounds.SKIP_TAG, 1, 2, false, 0.95 + math.random()*0.1)
+
+                mod:CreateBalatroEffect(Jimbo, mod.EffectColors.YELLOW ,mod.Sounds.ACTIVATE, "Skipped!", mod.EffectType.ENTITY, Jimbo)
+
+            end, BlindInterval, 1, true)
+
+        end,0,1,true)
+
+        Interval = Interval + PACK_INTEVAL*NumPacks + 15    
+    end
 
 
     if BlindsSkipped ~= 0 then
@@ -788,7 +828,7 @@ function mod:CalculateBlinds()
     mod.Saved.BigCleared = BigAvailable and mod.BlindProgress.NOT_CLEARED or mod.BlindProgress.CLEARED
     mod.Saved.BossCleared = BossAvailable and mod.BlindProgress.NOT_CLEARED or mod.BlindProgress.CLEARED
 end
-mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.CalculateBlinds)
+mod:AddPriorityCallback(ModCallbacks.MC_POST_NEW_LEVEL, CallbackPriority.EARLY, mod.CalculateBlinds)
 --mod:AddPriorityCallback(ModCallbacks.MC_POST_GAME_STARTED, CallbackPriority.LATE,mod.CalculateBlinds)
 
 
@@ -970,12 +1010,29 @@ function mod:AddRoomsCleared(IsBoss, Hostile)
 
                 Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.HEART, Player.Position + RandomVector() * 5,Vector.Zero,nil,0,1)
                 
-                local Hearts = 2
+                local Hearts = 1
 
-                Hearts = Hearts + 2*#mod:GetJimboJokerIndex(Player, mod.Jokers.DRUNKARD)
-                Hearts = Hearts + 2*#mod:GetJimboJokerIndex(Player, mod.Jokers.MERRY_ANDY)
+                Hearts = Hearts + #mod:GetJimboJokerIndex(Player, mod.Jokers.DRUNKARD)
+                Hearts = Hearts + #mod:GetJimboJokerIndex(Player, mod.Jokers.MERRY_ANDY)
 
-                Player:AddHearts(Hearts)
+                local Room = Game:GetRoom()
+
+                local HalfHearts = Hearts%2
+                local FullHearts = (Hearts-(HalfHearts))/2
+                
+
+                for i=1, FullHearts do
+
+                    local Pos = Room:FindFreePickupSpawnPosition(Player.Position, 40)
+
+                    Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_HEART, Pos, Vector.Zero, Player, HeartSubType.HEART_FULL, mod:RandomSeed(Player:GetDropRNG()))
+                end
+                for i=1, HalfHearts do
+
+                    local Pos = Room:FindFreePickupSpawnPosition(Player.Position, 40)
+
+                    Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_HEART, Pos, Vector.Zero, Player, HeartSubType.HEART_HALF, mod:RandomSeed(Player:GetDropRNG()))
+                end
 
                 if Hostile then
                     mod:FullDeckShuffle(Player)
@@ -986,10 +1043,12 @@ function mod:AddRoomsCleared(IsBoss, Hostile)
         for i,Player in ipairs(PlayerManager.GetPlayers()) do
             if Player:GetPlayerType() == mod.Characters.JimboType then
 
-                --if not Player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT) then
+                local PIndex = Player:GetData().TruePlayerIndex
+
                 ---@diagnostic disable-next-line: param-type-mismatch
-                    mod:StatReset(Player, true, true, true, false, true)
-                --end
+                mod:StatReset(Player, true, true, true, false, true)
+
+                mod.Saved.Player[PIndex].FirstDeck = true
 
                 if Hostile then
                     mod:FullDeckShuffle(Player)
@@ -999,7 +1058,7 @@ function mod:AddRoomsCleared(IsBoss, Hostile)
                     Player:SetFullHearts()
                 else
 
-                    local Hearts = 1
+                    local Hearts = 2
 
                     Hearts = Hearts + #mod:GetJimboJokerIndex(Player, mod.Jokers.DRUNKARD)
                     Hearts = Hearts + #mod:GetJimboJokerIndex(Player, mod.Jokers.MERRY_ANDY)
@@ -1009,14 +1068,24 @@ function mod:AddRoomsCleared(IsBoss, Hostile)
                         
                         local Room = Game:GetRoom()
 
-                        for i=1, Hearts do
+                        local HalfHearts = Hearts%2
+                        local FullHearts = (Hearts-(HalfHearts))/2
+                        
+
+                        for i=1, FullHearts do
 
                             local Pos = Room:FindFreePickupSpawnPosition(Player.Position, 40)
 
                             Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_HEART, Pos, Vector.Zero, Player, HeartSubType.HEART_FULL, mod:RandomSeed(Player:GetDropRNG()))
                         end
+                        for i=1, HalfHearts do
+
+                            local Pos = Room:FindFreePickupSpawnPosition(Player.Position, 40)
+
+                            Game:Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_HEART, Pos, Vector.Zero, Player, HeartSubType.HEART_HALF, mod:RandomSeed(Player:GetDropRNG()))
+                        end
                     else
-                        Player:AddHearts(Hearts*2)
+                        Player:AddHearts(Hearts)
                     end
 
 
@@ -1062,12 +1131,12 @@ function mod:OnDeckShift(Player)
     --shuffle the deck if finished
     if not next(mod.Saved.Player[PIndex].CurrentHand) then
 
-        mod.Saved.Player[PIndex].FirstDeck = false
-
         if mod.Saved.Player[PIndex].FirstDeck and mod:GetJimboTriggerableCards(Player) > 0 then
-             --no more stat boosts from cards in the cuurent room
             Player:AnimateSad()
         end
+
+        mod.Saved.Player[PIndex].FirstDeck = false
+
         mod:FullDeckShuffle(Player)
     end
 
@@ -1122,26 +1191,20 @@ function mod:GiveRewards(BlindType)
 
             Isaac.CreateTimer(function ()
                 if BlindType == mod.BLINDS.SMALL then
-
-                    mod.Saved.SmallCleared = mod.BlindProgress.DEFEATED
                     
-                    Player:AddCoins(4)
+                    Player:AddCoins(3)
                     mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+4 $", mod.EffectType.ENTITY, Player)
                     --Isaac.RunCallback("BLIND_STARTED", mod.BLINDS.BIG)
 
                 elseif BlindType == mod.BLINDS.BIG then
 
-                    mod.Saved.BigCleared = mod.BlindProgress.DEFEATED
-
-                    Player:AddCoins(5)
+                    Player:AddCoins(4)
                     mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+5 $", mod.EffectType.ENTITY, Player)
                     --Isaac.RunCallback("BLIND_STARTED", mod.BLINDS.BOSS)
                     
                 elseif BlindType == mod.BLINDS.BOSS then
 
-                    mod.Saved.BossCleared = mod.BlindProgress.DEFEATED
-
-                    Player:AddCoins(6)
+                    Player:AddCoins(5)
                     mod:CreateBalatroEffect(Player,mod.EffectColors.YELLOW ,mod.Sounds.MONEY, "+6 $", mod.EffectType.ENTITY, Player)
     
                 end
@@ -1209,6 +1272,7 @@ function mod:JimboTakeDamage(Player,Amount,_,Source,_)
 
         Isaac.RunCallback("HAND_DISCARD", Player, #mod.Saved.Player[PIndex].CurrentHand) --various joker/card effects
 
+        --mod.CardFullPoss = {}
         mod:DiscardSwoosh(Player)
         
         for i = #mod.Saved.Player[PIndex].CurrentHand, 1, -1 do
@@ -1227,10 +1291,21 @@ function mod:JimboTakeDamage(Player,Amount,_,Source,_)
 
         for i=1, Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE) do
 
+            if not mod.Saved.Player[PIndex].FullDeck[mod.Saved.Player[PIndex].DeckPointer] then
+
+                if i == 1 then --has no more cards to draw
+                    
+                    mod:FullDeckShuffle(Player)
+
+                    mod.Saved.Player[PIndex].FirstDeck = false
+                end
+
+                break
+            end
+
             table.insert(mod.Saved.Player[PIndex].CurrentHand, 1, mod.Saved.Player[PIndex].DeckPointer)
             mod.Saved.Player[PIndex].DeckPointer = mod.Saved.Player[PIndex].DeckPointer + 1
         end
-
 
         Isaac.RunCallback("DECK_SHIFT", Player)
     end
@@ -1933,7 +2008,7 @@ function mod:OnTearCardCollision(Tear,Collider,_)
 
         local NumOnix = mod:GetPlayerTrinketAmount(Player, mod.Jokers.ONIX_AGATE)
     
-        local ExplodeChance = 0.2 + 0.25*NumOnix
+        local ExplodeChance = 0.33 + 0.25*NumOnix
 
         if Player:HasCollectible(CollectibleType.COLLECTIBLE_EXPLOSIVO)
            or Player:HasCollectible(CollectibleType.COLLECTIBLE_FIRE_MIND)
@@ -2180,18 +2255,12 @@ function mod:AddCardTearFalgs(Tear, Split, ForceCard)
                 Isaac.RunCallback("CARD_SHOT", Player, CardShot.Index, true)
 
                 if not Game:GetRoom():IsClear()
-                   and (mod.Saved.Player[PIndex].Progress.Room.Shots < Player:GetCustomCacheValue("hands")
-                        or mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR)) then
+                   and mod:GetJimboTriggerableCards(Player) > 0 then
 
                     mod.Saved.Player[PIndex].Progress.Room.Shots = mod.Saved.Player[PIndex].Progress.Room.Shots + 1
 
-                    --print(mod.Saved.Player[PIndex].FirstDeck)
-
-                    if (mod.Saved.Player[PIndex].Progress.Room.Shots == Player:GetCustomCacheValue("hands")
-                        and not mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR)) --with burglar you can play all your deck
-                        or 
-                        (not mod.Saved.Player[PIndex].FirstDeck
-                         and mod.Saved.Player[PIndex].Progress.Room.Shots == #mod.Saved.Player[PIndex].FullDeck) then 
+                    if mod.Saved.Player[PIndex].Progress.Room.Shots == Player:GetCustomCacheValue("hands")
+                        and not mod:JimboHasTrinket(Player, mod.Jokers.BURGLAR) then 
 
                         Player:AnimateSad()
                     end
@@ -2232,6 +2301,18 @@ function mod:BombFix(Bomb)
     end,0,1,false)
 end
 mod:AddCallback(ModCallbacks.MC_POST_FIRE_BOMB, mod.BombFix)
+
+
+local function SaturnusFix()
+    
+    for _, Player in ipairs(PlayerManager.GetPlayers()) do
+
+        if Player:GetPlayerType() == mod.Characters.JimboType then
+            Player:GetData().SinceCardShoot = 0
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_NEW_ROOM, SaturnusFix)
 
 
 function mod:SplitTears(Tear)

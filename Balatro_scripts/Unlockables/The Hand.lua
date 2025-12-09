@@ -572,12 +572,8 @@ local function MoveHeartsSprite(_, Offset, HeartSprite, Position,_, Player)
 
     --ItemsConfig:GetCard(mod.Spectrals.CRYPTID).ModdedCardFront:Render(Vector(150, 100))
 
-    local RENDER_MULT = 1
-
-    if PIndex % 2 == 0 then
-        RENDER_MULT = -RENDER_MULT
-    end
-
+    
+    local RENDER_MULT = Player:GetPlayerIndex()%2 == 1 and -1 or 1 --either goes from left to right or vice versa
 
 
     local RenderPos = InitialPosition + Vector(0, 4)*RENDER_MULT

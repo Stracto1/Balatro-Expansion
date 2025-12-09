@@ -30,20 +30,16 @@ void main(void)
 	// Pixelate
 	vec2 pa = vec2(1.0+PixelationAmountOut, 1.0+PixelationAmountOut) / TextureSizeOut;
 	vec4 Color = Color0 * texture2D(Texture0, PixelationAmountOut > 0.0 ? TexCoord0 - mod(TexCoord0, pa) + pa * 0.5 : TexCoord0);
-	
-	//vec4 Color = Color0 * texture2D(Texture0, TexCoord0);
-	int mult = 1.0; 
-	if (Color.rgb == vec3(0.0))
-		mult = 0.0; //pure black doesn't get affected by the shader
-
-	
+		
+ 
 	float LeftLineHeight = 1.66*TrueCoord.x - 0.33; // " / " segment of the x
 	float RightLineHeight = 1.0 - LeftLineHeight;     // " \ " segment of the x
 
 	vec3 Red = vec3(0.92,0.2,0.23);
 
 	
-	int RedEnable;
+	float RedEnable;
+	float mult = (Color.rgb == vec3(0.0)) ? 0.0 : 1.0; //pure black doesn't get affected by the shader
 
 	float Thickness = 0.1;
 	
@@ -51,14 +47,12 @@ void main(void)
 
 	RedEnable = RedEnable + step(abs(LeftLineHeight - TrueCoord.y), Thickness);
 	
-	RedEnable = min(RedEnable * mult, 1.0); // in the end either 0 or 1
+	RedEnable = min(RedEnable, 1.0); // in the end either 0 or 1
 
-	Color.rgb = mix(Color.rgb, Red, 0.5 * RedEnable); // red tint
 
-	Color.a = min(RedEnable, Color.a); // erases anything outside of the X
+	Color.rgb = mix(Color.rgb, Red, 0.5 * RedEnable * mult); // red tint
+	Color = RedEnable >= 1.0 ? Color : vec4(0.0);
 
-	//gl_FragColor = vec4(RedEnable);
 	gl_FragColor = Color;
-	//gl_FragColor = vec4(1);
 }
 

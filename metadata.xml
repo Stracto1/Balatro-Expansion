@@ -12,7 +12,7 @@
 
 [h2]LOOK NO FURTHER![/h2]
 
-[url=https://steamcommunity.com/sharedfiles/filedetails/?l=spanish&amp;id=3127536138][b]REPENTOGON[/b][/url] is required for the mod to function!
+[url=https://steamcommunity.com/sharedfiles/filedetails/?l=spanish&amp;id=3127536138]The latest version of [b]REPENTOGON[/b][/url] is required for the mod to function!
 
 [img]https://i.ibb.co/b5xLwCxK/content.png[/img]
 
@@ -42,7 +42,7 @@
 [*][b]The tainted character was not built to work neither in co-op or with modded floors/enemies[/b], so expect to encounter many bugs/softlocks if that's your case!
 	[list][*]I'd love to make it StageAPI-compatible, but since I literally couldn't understand shi from the docs given that's most likely not gonna happen ([i][u]if you know your thing with it and wanna help please let me know![/u][/i])[/list]
 [*][b]The use of [url=https://steamcommunity.com/sharedfiles/filedetails/?id=836319872]EID[/url] is highly recommended[/b] since ya know, Balatro was made with fully available descriptions in mind
-[*]There's currently a known conflict with [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2978501842]Giga bombs synergies[/url] that causes a crash when a run is started, the exact cause is still being studied but until I find a solution i suggest to unsubscribe from it while playing this mod.
+[*]There's currently a known conflict with [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2978501842]Giga bombs synergies[/url] that causes a crash when a run is started, the exact cause is still being studied but until I find a solution I suggest to disable it while playing this mod and vice versa.
 [/list]
 
 [img]https://i.ibb.co/mr7D99Xc/end.png[/img]
@@ -50,7 +50,7 @@
 If you appreciate my work, then please consider donating to my [url=https://ko-fi.com/stracto]Ko-fi[/url]! Anything is more than enough to make me happy! (even nothing)
 
 If you want to report a game crash happening then you can also send isaac's log file [url=https://docs.google.com/forms/d/e/1FAIpQLSfdArvAd_6DrneTHrTfqT9ZZn_WIMv7W7xK6wpz71tulD_Q8g/viewform?usp=dialog]here[/url] to help me understand better the issue!</description>
-    <version>1.21</version>
+    <version>1.30</version>
     <visibility>Public</visibility>
     <tag id="Lua"/>
     <tag id="Items"/>

@@ -182,6 +182,8 @@ function mod:JimboInventoryHUD(offset,HeartSprite,HeartPosition,_,Player)
         
         CardFrame:Render(RenderPos)
     end
+
+    mod:JimboStatsHUD(offset,HeartSprite,HeartPosition,_,Player)
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.JimboInventoryHUD)
 
@@ -281,7 +283,7 @@ function mod:JimboStatsHUD(offset,_,Position,_,Player)
     mod:RenderGenericButton(ChipsPos, ChipsScale, mod.EffectColors.BLUE, false, ChipsString, Vector(0.5,0.5), false, 0)
     mod:RenderGenericButton(MultPos, MultScale, mod.EffectColors.RED, false, MultString, Vector(0.5,0.5), false, 0)
 end
-mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.JimboStatsHUD)
+--mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.JimboStatsHUD)
 
 
 local BlindPos
@@ -454,7 +456,7 @@ function mod:HandBarV2Render(offset,_,Position,_,Player)
     local TotalHands = Player:GetCustomCacheValue(mod.CustomCache.HAND_NUM)
     local RemainingHands = mod:GetJimboTriggerableCards(Player)
 
-    if mod.Saved.Player[PIndex].FirstDeck 
+    if mod.Saved.Player[PIndex].FirstDeck
        and not Game:GetRoom():IsClear() then
 
         HandsBarV2.Color = mod.EffectColors.BLUE
@@ -929,19 +931,6 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_RENDER, mod.JimboBarRender)
 
 
-
-function mod:DiscardSwoosh(Player)
-    local PIndex = Player:GetData().TruePlayerIndex
-
-    local BaseRenderOff = Vector(-3.5 *(Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE)-1), 13 )
-
-    for i,v in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
-
-        mod.CardFullPoss[v] = BaseRenderOff --does a cool swoosh effect
-    end
-end
-
-
 ---@param Player EntityPlayer
 function mod:DebtIndicator(_,_,_,_,Player)
 
@@ -968,4 +957,15 @@ end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYERHUD_RENDER_HEARTS, mod.DebtIndicator)
 
 
+
+function mod:DiscardSwoosh(Player)
+    local PIndex = Player:GetData().TruePlayerIndex
+
+    local BaseRenderOff = Vector(-3.5 *(Player:GetCustomCacheValue(mod.CustomCache.HAND_SIZE)-1), 13 )
+
+    for i,v in ipairs(mod.Saved.Player[PIndex].CurrentHand) do
+
+        mod.CardFullPoss[v] = BaseRenderOff --does a cool swoosh effect
+    end
+end
 

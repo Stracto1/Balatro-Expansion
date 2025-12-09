@@ -107,7 +107,9 @@ Descriptions.HandTypeName = {[mod.HandTypes.NONE] = "",
                          [mod.HandTypes.ROYAL_FLUSH] = "Royal Flush",
                          [mod.HandTypes.FIVE] = "Five of a Kind",
                          [mod.HandTypes.FLUSH_HOUSE] = "Flush House",
-                         [mod.HandTypes.FIVE_FLUSH] = "Flush Five",}
+                         [mod.HandTypes.FIVE_FLUSH] = "Flush Five",
+                         [mod.ALL_HAND_TYPES["-"]] = "All Hands (-)",
+                         [mod.ALL_HAND_TYPES["+"]] = "All Hands (+)"}
 
 
 
@@ -269,6 +271,16 @@ Descriptions.T_Jimbo.RunInfo = {Hands = "Hands", --as in poker hands
                                 AtLeast = "Score at least"
                             }
 
+mod.EVIL_ITEMS = {CollectibleType.COLLECTIBLE_ABADDON,
+                  CollectibleType.COLLECTIBLE_BLACK_CANDLE,
+                  CollectibleType.COLLECTIBLE_CEREMONIAL_ROBES,
+                  CollectibleType.COLLECTIBLE_GOAT_HEAD,
+                  CollectibleType.COLLECTIBLE_BLACK_CANDLE,
+                  CollectibleType.COLLECTIBLE_MATCH_BOOK,
+                  CollectibleType.COLLECTIBLE_MISSING_NO,
+                  CollectibleType.COLLECTIBLE_FALSE_PHD,
+                  CollectibleType.COLLECTIBLE_SAFETY_PIN}
+
 --------------------------------------------
 --------------EID EXCLUSIVES----------------
 --------------------------------------------
@@ -290,7 +302,7 @@ Descriptions.Jimbo.Enhancement = {[mod.Enhancement.NONE]  = "",
                                   [mod.Enhancement.LUCKY] = "#{{REG_Lucky}} {{REG_Yellow}}Lucky Card{{CR}}: #{{IND}}{{Damage}} {{REG_Mint}}[[CHANCE]] in 5 Chance{{CR}} to give {{REG_CMult}}+0.2{{CR}} damage #{{IND}}{{Coin}} {{REG_Mint}}[[CHANCE]] in 20 Chance{{CR}} to give {{REG_Yellow}}10 Pennies",
                                   [mod.Enhancement.STEEL] = "#{{REG_Steel}} {{REG_Yellow}}Steel Card{{CR}}: #{{IND}}{{Damage}} {{REG_CMult}}X1.2{{CR}} Damage Mult. when {{REG_Yellow}}held{{CR}} in hand as an hostile room is entered",
                                   [mod.Enhancement.WILD]  = "#{{REG_Wild}} {{REG_Yellow}}Wild Card{{CR}}: #{{IND}} Is considered as every suit",
-                                  [mod.Enhancement.STONE] = "#{{REG_Stone}} {{REG_Yellow}}Stone Card{{CR}}: #{{IND}}{{Tears}} {{REG_CChips}}+1.25{{CR}} Tears when scored ##{{IND}}!!! Has no Rank or Suit"
+                                  [mod.Enhancement.STONE] = "{{IND}}{{Tears}} {{REG_CChips}}+1.25{{CR}} Tears when scored ##{{IND}}!!! Has no Rank or Suit"
                                   }
 
 Descriptions.Jimbo.Seal = {[mod.Seals.NONE] = "",
@@ -332,8 +344,8 @@ Descriptions.Jimbo.Jokers[mod.Jokers.ROCKET] = "{{Coin}} {{REG_Yellow}}+[[VALUE1
 Descriptions.Jimbo.Jokers[mod.Jokers.ODDTODD] = "{{Tears}} {{REG_Yellow}}Odd{{CR}} numbered cards give {{REG_CChips}}+0.31{{CR}} Tears when scored#{{Tears}} {{REG_CChips}}+0.15{{CR}} Tears per Collectible held if the total amount is odd"
 Descriptions.Jimbo.Jokers[mod.Jokers.EVENSTEVEN] = "{{Damage}} {{REG_Yellow}}Even{{CR}} numbered cards give {{REG_CMult}}+0.04{{CR}} Damage when scored #{{Damage}} {{REG_CMult}}+0.02{{CR}} Damage per Collectible held if the total amount is even"
 Descriptions.Jimbo.Jokers[mod.Jokers.HALLUCINATION] = "{{Card}} {{REG_Mint}}[[CHANCE]] in 2 Chance{{CR}} to spawn a random {{ColorPink}}Tarot{{CR}} card when opening a {{REG_Yellow}}Booster Pack{{CR}}#{{Collectible431}} Gives the Multidimensional Baby effect"
-Descriptions.Jimbo.Jokers[mod.Jokers.GREEN_JOKER] = "{{Damage}}{{REG_CMult}}+0.04{{CR}} Damage per room completed#{{Damage}}{{REG_CMult}}-0.16{{CR}}Damage on every hand discard #{{Blank}} {{ColorGray}}(Currently {{REG_CMult}}+[[VALUE1]]{{ColorGray}} Damage)"
-Descriptions.Jimbo.Jokers[mod.Jokers.RED_CARD] = "{{Damage}}{{REG_CMult}}+0.15{{CR}} Damage per {{REG_Yellow}}Booster Pack{{CR}} skipped #{{Blank}} {{ColorGray}}(Currently {{REG_CMult}}+[[VALUE1]]{{ColorGray}} Damage)"
+Descriptions.Jimbo.Jokers[mod.Jokers.GREEN_JOKER] = "{{Damage}}{{REG_CMult}}+0.03{{CR}} Damage per room completed#{{Damage}}{{REG_CMult}}-0.15{{CR}}Damage on every hand discarded #{{Blank}} {{ColorGray}}(Currently {{REG_CMult}}+[[VALUE1]]{{ColorGray}} Damage)"
+Descriptions.Jimbo.Jokers[mod.Jokers.RED_CARD] = "{{Damage}}{{REG_CMult}}+0.1{{CR}} Damage per {{REG_Yellow}}Booster Pack{{CR}} skipped #{{Blank}} {{ColorGray}}(Currently {{REG_CMult}}+[[VALUE1]]{{ColorGray}} Damage)"
 Descriptions.Jimbo.Jokers[mod.Jokers.VAGABOND] = "Spawns a random {{Card}}{{ColorPink}}Tarot{{CR}} card when clearing a room with {{REG_Yellow}}2 {{Coin}} Coins or less{{CR}} #{{Beggar}} {{REG_Mint}}[[CHANCE]] in 10 Chance{{CR}} to spawn a random {{REG_Yellow}}Beggar{{CR}} when clearing a room"
 Descriptions.Jimbo.Jokers[mod.Jokers.RIFF_RAFF] = "{{REG_Joker}} Spawns a random {{REG_CChips}}common{{CR}} Joker on Blind Clear"
 Descriptions.Jimbo.Jokers[mod.Jokers.GOLDEN_JOKER] = "{{Coin}} {{REG_Yellow}}+5 {{Coin}} Coins{{CR}} on Blind clear #{{Collectible202}} Enemies touched become {{REG_Yellow}}golden{{CR}} for a short time"
@@ -342,14 +354,14 @@ Descriptions.Jimbo.Jokers[mod.Jokers.BLUEPRINT] = "{{REG_Retrigger}} Copies the 
 Descriptions.Jimbo.Jokers[mod.Jokers.BRAINSTORM] = "{{REG_Retrigger}} Copies the effect of the leftmost held Joker"
 Descriptions.Jimbo.Jokers[mod.Jokers.MADNESS] = "Destroys another random Joker and gains {{REG_CMult}}X0.1{{CR}} Damage Mult. every {{REG_Yellow}}Small and Big Blind{{CR}} cleared#{{Blank}} {{ColorGray}}(Currently {{REG_CMult}}X[[VALUE1]]{{ColorGray}} Damage Mult.)"
 Descriptions.Jimbo.Jokers[mod.Jokers.MR_BONES] = "Revive at Full Hp if only {{REG_Yellow}}1{{CR}} of the floor's blinds is uncleared #!!! Unavailable blinds count as cleared #{{REG_Mint}}[[CHANCE]] in 5 Chance{{CR}} to activate {{Collectible545}} Book of the Dead on room clear"
-Descriptions.Jimbo.Jokers[mod.Jokers.ONIX_AGATE] = "{{Damage}} {{REG_Club}} {{REG_CChips}}Club{{CR}} cards give {{REG_CMult}}+0.07{{CR}} Damage when scored #{{Blank}} {{ColorGray}}(Currently {{REG_CMult}}+[[VALUE1]]{{ColorGray}} Damage) #{{Bomb}} {{ColorClub}}Club{{CR}} cards explosions are more frequent, bigger and deal more damage"
+Descriptions.Jimbo.Jokers[mod.Jokers.ONIX_AGATE] = "{{Damage}} {{REG_Club}} {{REG_CChips}}Club{{CR}} cards give {{REG_CMult}}+0.07{{CR}} Damage when scored #{{Blank}} {{ColorGray}}(Currently {{REG_CMult}}+[[VALUE1]]{{ColorGray}} Damage) #{{Bomb}} {{ColorClub}}Club{{CR}} cards' explosions are more frequent, bigger and deal more damage"
 Descriptions.Jimbo.Jokers[mod.Jokers.ARROWHEAD] = "{{Tears}} {{REG_Spade}} {{REG_CSpade}}Spade{{CR}} cards give {{REG_CChips}}+0.5{{CR}} Tears when scored #{{Blank}} {{ColorGray}}(Currently {{REG_CChips}}+[[VALUE1]]{{ColorGray}} Tears) #{{Confusion}} {{REG_CSpade}}Spade{{CR}} cards have a {{REG_Mint}}[[CHANCE]] in 2 Chance{{CR}} to slow and confuse"
 Descriptions.Jimbo.Jokers[mod.Jokers.BLOODSTONE] = "{{Damage}} {{REG_Heart}} {{REG_CMult}}Heart{{CR}} cards have a {{REG_Mint}}[[CHANCE]] in 2 Chance{{CR}} to give {{REG_CMult}}X1.05{{CR}} Damage Mult. when scored #{{REG_Heart}} {{REG_CMult}}Heart{{CR}} cards leave a bigger and stronger creep pool #{{Charm}} {{REG_CMult}}Heart{{CR}} cards have a {{REG_Mint}}[[CHANCE]] in 5 Chance{{CR}} to charm"
 Descriptions.Jimbo.Jokers[mod.Jokers.ROUGH_GEM] = "{{Coin}} {{REG_Diamond}} {{REG_Yellow}}Diamond{{CR}} cards have a {{REG_Mint}}[[CHANCE]] in 2 Chance{{CR}} to spawn a {{Coin} {{REG_Yellow}}Temporary Penny{{CR}} when scored #{{Collectible506}} {{REG_Diamond}} {{REG_Yellow}}Diamond{{CR}} cards also have the {{REG_Yellow}}Backstabber{{CR}} effect"
 
 Descriptions.Jimbo.Jokers[mod.Jokers.GROS_MICHAEL] = "{{Damage}} {{REG_CMult}}+0.75{{CR}} Damage #{{Warning}} {{REG_Mint}}[[CHANCE]] in 6 Chance{{CR}} of getting destroyed on Blind clear"
-Descriptions.Jimbo.Jokers[mod.Jokers.CAVENDISH] = "{{Damage}} {{REG_CMult}}X1.5{{CR}} Damage Mult. #{{Warning}} {{REG_Mint}}[[CHANCE]] in 1000 Chance{{CR}} of getting destroyed on Blind clear"
-Descriptions.Jimbo.Jokers[mod.Jokers.FLASH_CARD] = "{{Damage}} {{REG_CMult}}+0.02{{CR}} Damage per {{RestockMachine}} Restock machine activated #{{Collectible105}} {{Damage}} {{REG_CMult}}+0.02{{CR}} Damage per {{REG_Yellow}}Dice Item{{CR}} used #{{Blank}} {{ColorGray}}(Currently {{REG_CMult}}+[[VALUE1]]{{ColorGray}} Damage)"
+Descriptions.Jimbo.Jokers[mod.Jokers.CAVENDISH] = "{{Damage}} {{REG_CMult}}X2{{CR}} Damage Mult. #{{Warning}} {{REG_Mint}}[[CHANCE]] in 1000 Chance{{CR}} of getting destroyed on Blind clear"
+Descriptions.Jimbo.Jokers[mod.Jokers.FLASH_CARD] = "{{Damage}} {{REG_CMult}}+0.04{{CR}} Damage per {{RestockMachine}} Restock machine activated #{{Collectible105}} {{Damage}} {{REG_CMult}}+0.02{{CR}} Damage per {{REG_Yellow}}Dice Item{{CR}} used #{{Blank}} {{ColorGray}}(Currently {{REG_CMult}}+[[VALUE1]]{{ColorGray}} Damage)"
 Descriptions.Jimbo.Jokers[mod.Jokers.SACRIFICIAL_DAGGER] = "Destroys the Joker to its right and gains {{REG_CMult}}+0.08 x its sell value{{CR}} Damage on Blind clear #{{Blank}} {{colorGray}}(Currently {{ColorMukt}}+[[VALUE1]]{{ColorGray}} Damage) #{{Collectible705}} Activates Dark Arts for 2.5 seconds when entering an hostile room"
 Descriptions.Jimbo.Jokers[mod.Jokers.CLOUD_NINE] = "{{Coin}} {{REG_Yellow}}+1 Coin{{CR}} per {{REG_Yellow}}9{{CR}} in your Full Deck on Blind clear#{{Blank}} {{ColorGray}}(Currently  {{REG_Yellow}}[[VALUE1]]{{ColorGray}} Coins){{CR}} #{{Seraphim}} Gain Flight"
 Descriptions.Jimbo.Jokers[mod.Jokers.SWASHBUCKLER] = "{{Damage}} {{REG_CMult}}+0.07 x the total sell value of held Jokers{{CR}} Damage"
@@ -366,20 +378,20 @@ Descriptions.Jimbo.Jokers[mod.Jokers.WILY_JOKER] = "{{Tears}} {{REG_CChips}}+10{
 Descriptions.Jimbo.Jokers[mod.Jokers.CLEVER_JOKER] = "{{Tears}} {{REG_CChips}}+7{{CR}} Tears if a {{REG_Yellow}}Two-pair{{CR}} is held when entering a room"
 Descriptions.Jimbo.Jokers[mod.Jokers.DEVIOUS_JOKER] = "{{Tears}} {{REG_CChips}}+15{{CR}} Tears if a {{REG_Yellow}}Straight{{CR}} is held when entering a room"
 Descriptions.Jimbo.Jokers[mod.Jokers.CRAFTY_JOKER] = "{{Tears}} {{REG_CChips}}+12{{CR}} Tears if a {{REG_Yellow}}Flush{{CR}} is held when entering a room"
-Descriptions.Jimbo.Jokers[mod.Jokers.JOLLY_JOKER] = "{{Damage}} {{REG_CMult}}+1{{CR}} Damage if a {{REG_Yellow}}Pair{{CR}} is held when entering a room"
+Descriptions.Jimbo.Jokers[mod.Jokers.JOLLY_JOKER] = "{{Damage}} {{REG_CMult}}+0.75{{CR}} Damage if a {{REG_Yellow}}Pair{{CR}} is held when entering a room"
 Descriptions.Jimbo.Jokers[mod.Jokers.ZANY_JOKER] = "{{Damage}} {{REG_CMult}}+2{{CR}} Damage if a {{REG_Yellow}}Three of a kind{{CR}} is held when entering a room"
 Descriptions.Jimbo.Jokers[mod.Jokers.MAD_JOKER] = "{{Damage}} {{REG_CMult}}+1.75{{CR}} Damage if a {{REG_Yellow}}Two-pair{{CR}} is held when entering a room"
 Descriptions.Jimbo.Jokers[mod.Jokers.CRAZY_JOKER] = "{{Damage}} {{REG_CMult}}+3{{CR}} Damage if a {{REG_Yellow}}Straight{{CR}} is held when entering a room"
 Descriptions.Jimbo.Jokers[mod.Jokers.DROLL_JOKER] = "{{Damage}} {{REG_CMult}}+2.25{{CR}} Damage if a {{REG_Yellow}}Flush{{CR}} is held when entering a room"
 
-Descriptions.Jimbo.Jokers[mod.Jokers.MIME] = "{{REG_Retrigger}} {{REG_Yellow}}Retriggers{{CR}} all {{REG_Yellow}}held in hand{{CR}} effects #{{REG_Mint}}[[CHANCE]] in 5 Chance{{CR}} to copy the effect of an Active Item used"
+Descriptions.Jimbo.Jokers[mod.Jokers.MIME] = "{{REG_Retrigger}} {{REG_Yellow}}Retriggers{{CR}} all {{REG_Yellow}}held in hand{{CR}} effects #{{REG_Mint}}[[CHANCE]] in 3 Chance{{CR}} to copy the effect of an Active Item used"
 Descriptions.Jimbo.Jokers[mod.Jokers.FOUR_FINGER] = "{{REG_Yellow}}Flushes{{CR}} and {{REG_Yellow}}Straights{{CR}} only require 4 cards #Every fifth {{REG_Yellow}}non-boss{{CR}} enemy spawned gets killed immediantly"
 Descriptions.Jimbo.Jokers[mod.Jokers.LUSTY_JOKER] = "{{Damage}} {{REG_CMult}}Heart{{CR}} cards give {{REG_CMult}}+0.03{{CR}} Damage when scored"
 Descriptions.Jimbo.Jokers[mod.Jokers.GREEDY_JOKER] = "{{Damage}} {{REG_Yellow}}Diamond{{CR}} cards give {{REG_CMult}}+0.03{{CR}} Damage when scored"
 Descriptions.Jimbo.Jokers[mod.Jokers.WRATHFUL_JOKER] = "{{Damage}} {{REG_CSpade}}Spade{{CR}} cards give {{REG_CMult}}+0.03{{CR}} Damage when scored"
 Descriptions.Jimbo.Jokers[mod.Jokers.GLUTTONOUS_JOKER] = "{{Damage}} {{REG_CChips}}Club{{CR}} cards give {{REG_CMult}}+0.03{{CR}} Damage when scored"
-Descriptions.Jimbo.Jokers[mod.Jokers.MERRY_ANDY] = "{{Heart}} {{REG_Yellow}}+2{{CR}} Hp #{{REG_HSize}} {{REG_CMult}}-2{{CR}} Hand size #{{Heart}} Heal one extra heart on room clear"
-Descriptions.Jimbo.Jokers[mod.Jokers.HALF_JOKER] = "{{Damage}} {{REG_CMult}}+1.5{{CR}} Damage when {{REG_Yellow}}5 or less{{CR}} card have been played in the current room #{{REG_CMult}}+1{{CR}} Damage when having {{REG_Yellow}}3 or less{{CR}} cards in hand #{{Blank}} {{ColorGray}}(Currently {{REG_CMult}}+[[VALUE1]]{{ColorGray}} Damage)"
+Descriptions.Jimbo.Jokers[mod.Jokers.MERRY_ANDY] = "{{Heart}} {{REG_Yellow}}+2{{CR}} Hp #{{REG_HSize}} {{REG_CMult}}-2{{CR}} Hand size #{{Heart}} Heal an extra half heart on room clear"
+Descriptions.Jimbo.Jokers[mod.Jokers.HALF_JOKER] = "{{Damage}} {{REG_CMult}}+1.5{{CR}} Damage if {{REG_Yellow}}5 or less{{CR}} card have been played in the current room #{{REG_CMult}}+1{{CR}} Damage when having {{REG_Yellow}}3 or less{{CR}} cards in hand #{{Blank}} {{ColorGray}}(Currently {{REG_CMult}}+[[VALUE1]]{{ColorGray}} Damage)"
 Descriptions.Jimbo.Jokers[mod.Jokers.CREDIT_CARD] = "Allows to go in {{REG_Yellow}}debt{{CR}} #{{Shop}} Items on sale can only be bought with a maximum of {{REG_CMult}}-20${{CR}} debt #!!! {{REG_Yellow}}Interest{{CR}} and {{REG_Yellow}}coin held-based{{CR}} effects cannot trigger while in debt"
 
 Descriptions.Jimbo.Jokers[mod.Jokers.BANNER] = "{{Tears}} {{REG_CChips}}+1.5{{CR}} Tears per {{Heart}} {{REG_Yellow}}full heart{{CR}}#{{Blank}} {{ColorGray}}(Currently {{REG_CChips}}+[[VALUE1]]{{ColorGray}} Tears) #A banner spawns as an hostile room is entered #{{IND}}{{Tears}} Standing close to the banner gives {{REG_CChips}}+3{{CR}} Tears"
@@ -428,13 +440,13 @@ Descriptions.Jimbo.Jokers[mod.Jokers.PHOTOGRAPH] = "{{Damage}} The first {{REG_F
 Descriptions.Jimbo.Jokers[mod.Jokers.GIFT_CARD] = "{{Coin}} Every Joker held gains {{REG_Yellow}}+1{{CR}} selling value on blind clear #{{Shop}} Prices are reduced by {{REG_Yellow}}1 Coin"
 Descriptions.Jimbo.Jokers[mod.Jokers.TURTLE_BEAN] = "{{REG_HSize}} {{REG_Yellow}}+[[VALUE1]]{{CR}} Hand Size #{{IND}}!!! Loses {{ColorRed}}-1{{CR}} Hand Size on blind clear #{{Collectible594}} Grants the Jupiter effect"
 Descriptions.Jimbo.Jokers[mod.Jokers.EROSION] = "{{Damage}} Gains {{REG_CMult}}+0.15{{CR}} Damage when a card gets {{REG_Yellow}}Destroyed{{CR}} #{{Damage}} Gains {{REG_CMult}}+0.05{{CR}} Damage per {{REG_Yellow}}Tinted{{CR}} Rock {{REG_Yellow}}Destroyed{{CR}} #{{Blank}} {{ColorGray}}(Currently {{REG_CMult}}+[[VALUE1]]{{ColorGray}} Damage)"
-Descriptions.Jimbo.Jokers[mod.Jokers.RESERVED_PARK] = "{{Coin}}  {{REG_Face}} {{REG_Yellow}}Face{{CR}} cards held in hand have a {{REG_Mint}}[[CHANCE]] in 4 Chance{{CR}} to spawn a penny on room clear #{{Coin}} When killing an enemy, other {{REG_Yellow}}Champions{{CR}} create a {{REG_Yellow}}Vanishong penny"
+Descriptions.Jimbo.Jokers[mod.Jokers.RESERVED_PARK] = "{{Coin}}  {{REG_Face}} {{REG_Yellow}}Face{{CR}} cards held in hand have a {{REG_Mint}}[[CHANCE]] in 4 Chance{{CR}} to spawn a penny on room clear #{{Coin}} When killing an enemy, other {{REG_Yellow}}Champions{{CR}} create a {{REG_Yellow}}Vanishing penny"
 
 Descriptions.Jimbo.Jokers[mod.Jokers.MAIL_REBATE] = "{{Coin}} {{REG_Yellow}}+2 Coins{{CR}} per {{REG_Yellow}}[[VALUE1]]{{CR}} discarded #{{Blank}} {{ColorGray}}(Rank changes every room)"
-Descriptions.Jimbo.Jokers[mod.Jokers.TO_THE_MOON] = "{{Coin}} {{colorYellow}}Interests{{CR}} earned are {{REG_Yellow}}Doubled"
+Descriptions.Jimbo.Jokers[mod.Jokers.TO_THE_MOON] = "{{Coin}} {{REG_Yellow}}Interests{{CR}} earned are {{REG_Yellow}}Doubled"
 Descriptions.Jimbo.Jokers[mod.Jokers.JUGGLER] = "{{REG_HSize}} {{REG_Yellow}}+1{{CR}} Hand Size #\1 {{REG_Yellow}}+1{{CR}} consumable slot"
-Descriptions.Jimbo.Jokers[mod.Jokers.DRUNKARD] = "{{Heart}} {{REG_Yellow}}+1{{CR}} Health up #{{Heart}} Heal one extra heart on room clear"
-Descriptions.Jimbo.Jokers[mod.Jokers.LUCKY_CAT] = "{{Damage}} Gains {{REG_CMult}}X0.02{{CR}} Damage Mult. when a {{REG_Yellow}}Lucky Card{{CR}} triggers {{REG_Mint}}Succesfully{{CR}} or when a {{Slotmachine}} Slot pays out #{{Blank}} {{ColorGray}}(Currently {{REG_CMult}}X[[VALUE1]]{{ColorGray}} Damage Mult.)"
+Descriptions.Jimbo.Jokers[mod.Jokers.DRUNKARD] = "{{Heart}} {{REG_Yellow}}+1{{CR}} Health up #{{Heart}} Heal an extra half heart on room clear"
+Descriptions.Jimbo.Jokers[mod.Jokers.LUCKY_CAT] = "{{Damage}} Gains {{REG_CMult}}X0.02{{CR}} Damage Mult. when a {{REG_Yellow}}Lucky Card{{CR}} triggers {{REG_Mint}}Successfully{{CR}} or when a {{Slotmachine}} Slot pays out #{{Blank}} {{ColorGray}}(Currently {{REG_CMult}}X[[VALUE1]]{{ColorGray}} Damage Mult.)"
 Descriptions.Jimbo.Jokers[mod.Jokers.BASEBALL] = "{{Damage}} {{REG_CMult}}X1.25{{CR}} Damage Mult. per {{REG_Mint}}Uncommon{{CR}} Joker held #{{Damage}} Gives {{REG_CMult}}X1.1{{CR}} Damage Mult. per {{Quality2}} Item held #{{Blank}} {{ColorGray}}(Currently {{REG_CMult}}[[VALUE1]]{{ColorGray}} Damage Mult.)"
 Descriptions.Jimbo.Jokers[mod.Jokers.DIET_COLA] = "{{Shop}} {{REG_Yellow}}Selling{{CR}} this Joker activates the {{Collectible347}} Diplopia effect"
 
@@ -447,7 +459,7 @@ Descriptions.Jimbo.Jokers[mod.Jokers.SMILEY_FACE] = "{{Damage}} {{REG_Face}} {{R
 Descriptions.Jimbo.Jokers[mod.Jokers.CAMPFIRE] = "{{Damage}} Gains {{REG_CMult}}X0.2{{CR}} Damage Mult. per sold Joker this {{REG_Yellow}}Floor{{CR}} #!!! Jokers can be picked up at full inventory and are sold automatically without giving any coins #{{Blank}} {{ColorGray}}(Currently {{REG_CMult}}X[[VALUE1]]{{ColorGray}} Damage Mult.)"
 Descriptions.Jimbo.Jokers[mod.Jokers.CASTLE] = "{{Tears}} Gains {{REG_CChips}}+0.04{{CR}} Tears per {{REG_Yellow}}[[VALUE1]]{{CR}} discarded #{{ColorGray}}(Value changes every room) #{{Blank}} {{ColorGray}}(Currently {{REG_CChips}}+[[VALUE2]]{{ColorGray}} Tears)"
 Descriptions.Jimbo.Jokers[mod.Jokers.GOLDEN_TICKET] = "{{REG_Gold}} {{REG_Yellow}}Golden cards{{CR}} give {{REG_Yellow}}+1 {{Coin}} Coin{{CR}} when scored #{{Collectible202}} Every pickup has a {{REG_Mint}}[[CHANCE]] in 25 Chance{{CR}} to become its {{REG_Yellow}}Golden{{CR}} variant"
-Descriptions.Jimbo.Jokers[mod.Jokers.ACROBAT] = "{{Damage}} The {{REG_Yellow}}Last 5{{CR}} scoring cards give {{REG_CMult}}X1.1{{CR}} Damage Mult. when scored #{{Damage}} {{REG_CMult}}X1.5{{CR}} Damage Mult. during any {{Boss}} bossfight #{{Blank}} {{ColorGray}}(Currently [[VALUE1]] {{ColorGray}})"
+Descriptions.Jimbo.Jokers[mod.Jokers.ACROBAT] = "{{Damage}} The {{REG_Yellow}}Last 5{{CR}} scoring cards give {{REG_CMult}}X1.1{{CR}} Damage Mult. when scored #{{Damage}} {{REG_CMult}}X1.5{{CR}} Damage Mult. during any {{BossRoom}} bossfight #{{Blank}} {{ColorGray}}(Currently [[VALUE1]] {{ColorGray}})"
 Descriptions.Jimbo.Jokers[mod.Jokers.SOCK_BUSKIN] = '{{REG_Retrigger}} {{REG_Yellow}}Retriggers{{CR}} played {{REG_Face}} {{REG_Yellow}}Face{{CR}} cards #\1  {{REG_Yellow}}Retriggers{{CR}} "on champion kill" Joker effects'
 Descriptions.Jimbo.Jokers[mod.Jokers.TROUBADOR] = "{{REG_HSize}} {{REG_Yellow}}+2{{CR}} Hand Size #{{REG_Hand}} {{ColorBlue}}-5{{CR}} scoring cards"
 Descriptions.Jimbo.Jokers[mod.Jokers.THROWBACK] = "{{Damage}} {{REG_CMult}}X0.1{{CR}} Damage Mult. per {{REG_Yellow}}Blind{{CR}} skipped this run #{{Damage}} {{REG_CMult}}X0.02{{CR}} Damage Mult. per {{REG_Yellow}}Special room{{CR}} skipped this run #{{Blank}} {{ColorGray}}(Currently {{REG_CMult}}X[[VALUE1]]{{ColorGray}} Damage Mult.)"
@@ -475,7 +487,7 @@ Descriptions.Jimbo.Jokers[mod.Jokers.ASTRONOMER] = "{{Shop}} {{ColorCyan}}Planet
 Descriptions.Jimbo.Jokers[mod.Jokers.BURNT_JOKER] = "\1 Upgrades the {{ColorCyan}}level{{CR}} of {{REG_Yellow}}discarded{{CR}} if they hit an enemy"
 Descriptions.Jimbo.Jokers[mod.Jokers.BOOTSTRAP] = "{{Damage}} {{REG_CMult}}+0.05{{CR}} Damage per {{REG_Yellow}}5 {{Coin}} Coins{{CR}} held {{ColorGray}}#{{Blank}} (Currently {{REG_CMult}}+[[VALUE1]]{{ColorGray}} Damage) #Gain {{REG_Yellow}}Collision Damage{{CR}} equal to the amount of coins held"
 
-Descriptions.Jimbo.Jokers[mod.Jokers.CANIO] = "{{Damage}} Gains {{REG_CMult}}X0.25{{CR}} Damage Mult. when a {{REG_Face}} {{REG_Yellow}}Face{{CR}} card is {{REG_Yellow}}Destroyed{{CR}}#{{Blank}} {{ColorGray}}(Currently {{REG_CMult}}X[[VALUE1]]{{CR}} Damage Mult.) #{{DeathMark}} {{REG_Yellow}}Champion{{CR}} enemies are immediantly killed"
+Descriptions.Jimbo.Jokers[mod.Jokers.CANIO] = "{{Damage}} Gains {{REG_CMult}}X0.25{{CR}} Damage Mult. when a {{REG_Face}} {{REG_Yellow}}Face{{CR}} card is {{REG_Yellow}}Destroyed{{CR}}#{{Blank}} {{ColorGray}}(Currently {{REG_CMult}}X[[VALUE1]]{{ColorGray}} Damage Mult.) #{{DeathMark}} {{REG_Yellow}}Champion{{CR}} enemies are immediantly killed"
 Descriptions.Jimbo.Jokers[mod.Jokers.TRIBOULET] = "{{Damage}} {{REG_Yellow}}Kings{{CR}} and {{REG_Yellow}}Queens{{CR}} give {{REG_CMult}}X1.2{{CR}} Damage Mult. when scored"
 Descriptions.Jimbo.Jokers[mod.Jokers.YORICK] = "{{Damage}} Gains {{REG_CMult}}X0.25{{CR}} Damage Mult. every {{REG_Yellow}}23{{CR}} cards discarded #{{Blank}} {{ColorGray}}(Currently {{REG_CMult}}X[[VALUE1]]{{ColorGray}} Damage Mult.)"
 Descriptions.Jimbo.Jokers[mod.Jokers.CHICOT] = "{{Weakness}} Every {{REG_Yellow}}Boss{{CR}} is permanently weakened #Disables every curse"
@@ -598,20 +610,9 @@ Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_WHORE_OF_BABYLON] = "#{{
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_ABADDON] = "#{{REG_Jimbo}} {{REG_Spade}}{{REG_CSpades}}Spade{{CR}} cards deal 10% more damage"
 Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_STEAM_SALE] = "#{{REG_Jimbo}} Items on sale cost {{REG_Yellow}}1 {{Coin}} coin less #!!! {{ColorGray}}Normal effect does not activte"
 
-
-mod.EVIL_ITEMS = {CollectibleType.COLLECTIBLE_ABADDON,
-                  CollectibleType.COLLECTIBLE_BLACK_CANDLE,
-                  CollectibleType.COLLECTIBLE_CEREMONIAL_ROBES,
-                  CollectibleType.COLLECTIBLE_GOAT_HEAD,
-                  CollectibleType.COLLECTIBLE_BLACK_CANDLE,
-                  CollectibleType.COLLECTIBLE_MATCH_BOOK,
-                  CollectibleType.COLLECTIBLE_MISSING_NO,
-                  CollectibleType.COLLECTIBLE_FALSE_PHD,
-                  CollectibleType.COLLECTIBLE_SAFETY_PIN}
 for _,v in ipairs(mod.EVIL_ITEMS) do
     Descriptions.JimboSynergies[v] = Descriptions.JimboSynergies[CollectibleType.COLLECTIBLE_ABADDON]
 end
-
 
 
 Descriptions.T_Jimbo.Enhancement = {}
@@ -718,7 +719,7 @@ Descriptions.T_Jimbo.Jokers[mod.Jokers.POPCORN] = " {{REG_CMult}}+[[VALUE1]]{{CR
 Descriptions.T_Jimbo.Jokers[mod.Jokers.RAMEN] = " {{REG_CMult}}X[[VALUE1]]{{CR}} Mult#loses {{REG_CMult}}-0.01X{{CR}} per card discarded #{{Collectible682}} Gain a weaker copy of Worm Friend"
 Descriptions.T_Jimbo.Jokers[mod.Jokers.ROCKET] = "Earn {{REG_Yellow}}[[VALUE1]]${{CR}} at the end of round#Payout increases by {{REG_Yellow}}2${{CR}} when a boss blind is defeated"
 Descriptions.T_Jimbo.Jokers[mod.Jokers.ODDTODD] = "Played cards with {{REG_Yellow}}odd{{CR}} rank give {{REG_CChips}}+31{{CR}} Chips when scored"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.EVENSTEVEN] = "Played cards with {{REG_Yellow}}even{{CR}} rank give {{REG_CChips}}+4{{CR}} Mult when scored"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.EVENSTEVEN] = "Played cards with {{REG_Yellow}}even{{CR}} rank give {{REG_CMult}}+4{{CR}} Mult when scored"
 Descriptions.T_Jimbo.Jokers[mod.Jokers.HALLUCINATION] = "{{REG_Mint}}[[CHANCE]] in 2 Chance{{CR}} to create a{{ColorPink}}Tarot{{CR}} card when opening a {{REG_Yellow}}Booster Pack"
 Descriptions.T_Jimbo.Jokers[mod.Jokers.GREEN_JOKER] = "This gains {{REG_CMult}}+1{{CR}} Mult per hand played#{{REG_CMult}}-1{{CR}} Mult per discard #{{ColorGray}}(Currently {{REG_CMult}}+[[VALUE1]]{{ColorGray}} Mult)"
 Descriptions.T_Jimbo.Jokers[mod.Jokers.RED_CARD] = "Ottiene {{REG_CMult}}+3{{CR}} Mult per {{REG_Yellow}}Booster Pack{{CR}} skipped#{{ColorGray}}(Currently {{REG_CMult}}+[[VALUE1]]{{ColorGray}} Mult)"
@@ -738,7 +739,7 @@ Descriptions.T_Jimbo.Jokers[mod.Jokers.ROUGH_GEM] = "{{REG_Yellow}}Diamond{{CR}}
 Descriptions.T_Jimbo.Jokers[mod.Jokers.GROS_MICHAEL] = " {{REG_CMult}}+15{{CR}}Mult #{{REG_Mint}}[[CHANCE]] in 6 Chance{{CR}} of getting destoroyed every round"
 Descriptions.T_Jimbo.Jokers[mod.Jokers.CAVENDISH] = " {{REG_CMult}}X3{{CR}}Mult # {{REG_Mint}}[[CHANCE]] in 1000 Chance{{CR}} of getting destroyed every round"
 Descriptions.T_Jimbo.Jokers[mod.Jokers.FLASH_CARD] = "This gains {{REG_CMult}}+2{{CR}} Mult every {{REG_Yellow}}Shop{{REG_Mint}}Reroll #{{ColorGray}}(Currently {{REG_CMult}}+[[VALUE1]]{{ColorGray}} Mult)"
-Descriptions.T_Jimbo.Jokers[mod.Jokers.SACRIFICIAL_DAGGER] = "When a {{REG_Yellow}}blind{{CR}} is selcted, destroys the Joker to its right and gains {{REG_CMult}}+double its sell value{{CR}} Mult #{{ColorGrey}}(Currently {{REG_CMult}}+[[VALUE1]]{{ColorGray}})"
+Descriptions.T_Jimbo.Jokers[mod.Jokers.SACRIFICIAL_DAGGER] = "When a {{REG_Yellow}}blind{{CR}} is selcted, destroys the Joker to its right and gains {{REG_CMult}}+double its sell value{{CR}} Mult #{{ColorGray}}(Currently {{REG_CMult}}+[[VALUE1]]{{ColorGray}})"
 Descriptions.T_Jimbo.Jokers[mod.Jokers.CLOUD_NINE] = "Earn {{REG_Yellow}}1${{CR}} per {{REG_Yellow}}9{{CR}} in your {{REG_Yellow}}Full Deck{{CR}} at the end of round"
 Descriptions.T_Jimbo.Jokers[mod.Jokers.SWASHBUCKLER] = "Adds the sell value of other owned{{REG_Yellow}}Jokers{{CR}} to {{REG_CMult}}Mult# {{ColorGray}}(Currently {{REG_CMult}}+[[VALUE1]]{{ColorGray}} Mult)"
 Descriptions.T_Jimbo.Jokers[mod.Jokers.CARTOMANCER] = "When a {{REG_Yellow}}blind{{CR}} is selected, creates a{{ColorPink}}Tarot{{CR}} card"
@@ -1195,7 +1196,7 @@ for i = 1, Balatro_Expansion.TastyCandyNum do --puts every candy stage
     EID:addGoldenTrinketMetadataAdditive(mod.Trinkets.TASTY_CANDY[i], "{{ColorGold}}33% to not lose durability when used", nil, nil, FileLanguage)
 end
 
-EID:addCharacterInfo(mod.Characters.JimboType, "#Cards shot from your {{REG_HSize}} hand can be scored a limited amount of times per room or until the deck is reshuffled #Stats gained this way are reset every room cleared #Discard your hand by taking damage #Normal Hp ups taken are transformed into {{ColorYellornage}}booster packs #{{Shop}} Clear a blind by entering a {{REG_Yellow}}shop{{CR}} or defeating the floor's {{REG_Yellow}}boss{{CR}}, earning coins and interets #Skipping blinds by going to the next floor awards with free {{REG_Yellow}}booster packs{{CR}}", "Jimbo", FileLanguage)
+EID:addCharacterInfo(mod.Characters.JimboType, "#Cards shot from your {{REG_HSize}} hand can be scored a limited amount of times per room or until the deck is reshuffled #Stats gained this way are reset every room #Discard your hand by taking damage #Normal Hp ups taken are transformed into {{ColorYellornage}}booster packs #{{Shop}} Clear a blind by entering a {{REG_Yellow}}shop{{CR}} or defeating the floor's {{REG_Yellow}}boss{{CR}} #Skipping blinds by going to the next floor awards with {{REG_Yellow}}booster packs{{CR}}", "Jimbo", FileLanguage)
 EID:addBirthright(mod.Characters.JimboType, "{{REG_Joker}} +1 {{REG_Yellow}}Joker slot", "Jimbo", FileLanguage)
 
 EID:addCollectible(mod.Collectibles.HEIRLOOM, "{{Coin}} All coins have a Chance to get their value upgraded #{{Coin}} All pickups have a 7.5% chance to turn into their golden variant", "Heirloom",FileLanguage)		

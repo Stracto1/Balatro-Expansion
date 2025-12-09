@@ -31,8 +31,7 @@
                 
                 CameraOffsetOut = CameraOffset;
 
-//literally the only thing the shader does, commenting this uot makes everything work
-//also tried using manual casting with float() on both addends but nope
+//If it wasn't for my NVIDIA card I would've known from the start this made the whole screen black (kept this in for like 6 months)
                 //Position.x = Position.x + CameraOffset.x; 
 
                 gl_Position = Transform * vec4(Position.xyz, 1.0);

@@ -53,12 +53,10 @@ void main(void)
 
 	vec3 ColorHSV = rgb2hsv(Color.rgb);
 
-	int mult = 1.0; 
-	if (((ColorHSV.b <= 0.3)&&(ColorHSV.g <= 0.4))||(ColorHSV.b <= 0.04))
-		mult = 0.1; //black-ish doesn't get affected as much by the shader
+	float mult = (((ColorHSV.b <= 0.3)&&(ColorHSV.g <= 0.4))||(ColorHSV.b <= 0.04)) ? 0.1 : 1.0;
 
 
-	vec2 Center = vec2(0.5,0.5); //center of the circles
+	vec2 Center = vec2(0.515,0.5); //center of the circles
 
 	float Distance = distance(TrueCoord,Center);
 	vec3 Blue = vec3(0.3,0.52,1.0);

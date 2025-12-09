@@ -930,12 +930,12 @@ function mod:OnHandDiscard(Player, AmountDiscarded)
         elseif Joker == mod.Jokers.GREEN_JOKER and not Copied then
             local InitialProg = mod.Saved.Player[PIndex].Inventory[Index].Progress
             if InitialProg > 0 then
-                mod.Saved.Player[PIndex].Inventory[Index].Progress = mod.Saved.Player[PIndex].Inventory[Index].Progress - 0.16
+                mod.Saved.Player[PIndex].Inventory[Index].Progress = mod.Saved.Player[PIndex].Inventory[Index].Progress - 0.15
                 if mod.Saved.Player[PIndex].Inventory[Index].Progress < 0 then
                     mod.Saved.Player[PIndex].Inventory[Index].Progress = 0
                 end
                 
-                mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "-0.16",mod.EffectType.JOKER, Player)
+                mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "-0.15",mod.EffectType.JOKER, Player)
         
                 Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)
             end
@@ -1407,7 +1407,7 @@ function mod:OnBlindClear(BlindType)
 
         elseif Joker == mod.Jokers.CAVENDISH then
 
-            if not Copied and mod:TryGamble(Player,Player:GetTrinketRNG(mod.Jokers.CAVENDISH), 0.00025) then --1/4000 chance
+            if not Copied and mod:TryGamble(Player,Player:GetTrinketRNG(mod.Jokers.CAVENDISH), 0.001) then --1/1000 chance
                 mod.Saved.Player[PIndex].Inventory[Index].Joker = 0
                 mod.Saved.Player[PIndex].Inventory[Index].Edition = 0
 
@@ -1742,11 +1742,11 @@ function mod:OnPackSkipped(Player,Pack)
         if Joker == 0 then
         elseif Joker == mod.Jokers.RED_CARD then
 
-            local Increase = 0.15
+            local Increase = 0.1
 
-            mod.Saved.Player[PIndex].Inventory[Index].Progress = mod.Saved.Player[PIndex].Inventory[Index].Progress + 0.15
+            mod.Saved.Player[PIndex].Inventory[Index].Progress = mod.Saved.Player[PIndex].Inventory[Index].Progress + Increase
 
-            mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+"..PlayerDamage(Player, 0.15),mod.EffectType.JOKER, Player)
+            mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ACTIVATE, "+"..PlayerDamage(Player, Increase),mod.EffectType.JOKER, Player)
 
             Player:AddCacheFlags(CacheFlag.CACHE_DAMAGE, false)
         end
@@ -2263,7 +2263,7 @@ function mod:OnNewRoomJokers()
 
                     if HandType & mod.HandFlags.PAIR == mod.HandFlags.PAIR then
 
-                        local Mult = 1 * (MimeNum+1)
+                        local Mult = 0.75 * (MimeNum+1)
                     
                         mod:CreateBalatroEffect(Index, mod.EffectColors.RED, mod.Sounds.ADDMULT, "+"..tostring(Mult),mod.EffectType.JOKER, Player)
 
@@ -2823,7 +2823,7 @@ function mod:OnShopRestock(Partial)
             if Joker == 0 then
             elseif Joker == mod.Jokers.FLASH_CARD then
 
-                local Increase = 0.02
+                local Increase = 0.04
 
                 mod.Saved.Player[PIndex].Inventory[Index].Progress = mod.Saved.Player[PIndex].Inventory[Index].Progress + Increase
 
@@ -3592,7 +3592,7 @@ function mod:DeckModifyEval(Player, CardsAdded, CardsDestroyed)
                 end
             end
 
-            Is18 = Enahncements >= 18
+            local Is18 = Enahncements >= 18
             
             local Canon18 = Player:HasPlayerForm(PlayerForm.PLAYERFORM_ADULTHOOD) or Player:HasPlayerForm(PlayerForm.PLAYERFORM_MOM) or Player:HasPlayerForm(PlayerForm.PLAYERFORM_BOB)
 
@@ -3986,7 +3986,7 @@ function mod:DamageJokers(Player,_)
 
         elseif Joker == mod.Jokers.MYSTIC_SUMMIT then
 
-            local Damage = (Player:GetHearts() == 2) and 1.5 or 0
+            local Damage = (Player:GetHearts() <= 2) and 1.5 or 0
 
             if Damage ~= mod.Saved.Player[PIndex].Inventory[ProgressIndex].Progress and not Copied then
 
@@ -4167,7 +4167,7 @@ function mod:DamageMultJokers(Player,_)
                 and item.Hidden == false then
                 --and Player:HasCollectible(Item, true, true) then
                 
-                    Mult = Mult * 1.2^Player:GetCollectibleNum(item)
+                    Mult = Mult * 1.2^Player:GetCollectibleNum(item.ID)
                 end
             end
 
@@ -4416,32 +4416,33 @@ local function SecondaryPEffect(_, Player)
 
     for i=1, mod:GetPlayerTrinketAmount(Player, mod.Jokers.ICECREAM) do
 
-        local CreepScale
+        local CreepScale = 1
 
         if Player:GetPlayerType() == mod.Characters.JimboType then
 
             local Index = mod:GetJimboJokerIndex(Player, mod.Jokers.ICECREAM)[i]
 
-            CreepScale = 0.55 + mod.Saved.Player[Player:GetData().TruePLayerIndex].Inventory[Index].Progress * 0.06
-        else
-            CreepScale = 1
+            CreepScale = 0.55 + mod.Saved.Player[Player:GetData().TruePlayerIndex].Inventory[Index].Progress * 0.06
         end
 
-        if Game:GetFrameCount() % 8 == i or Game:GetFrameCount() % 9 == i then
+        if Game:GetFrameCount() % (8 + i) == 0 or Game:GetFrameCount() % (11 + i) == 0 then
 
-            local Creep = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.PLAYER_CREEP_WHITE, Player.Position,
+            local Creep = Game:Spawn(EntityType.ENTITY_EFFECT, EffectVariant.PLAYER_CREEP_HOLYWATER_TRAIL, Player.Position,
                                      Vector.Zero, Player, 0, 1):ToEffect()
+
+            Creep.CollisionDamage = 0
+
 
 
         ---@diagnostic disable-next-line: need-check-nil
             local Data = Creep:GetData()
-            Data.IsIcecreamB = true
-
-        ---@diagnostic disable-next-line: need-check-nil
-            Creep:GetSprite().Color:SetTint(0, 0.5, 0.8, 1)
+            Data.REG_CreamCreep = true
 
             Creep.SpriteScale = Vector.One*CreepScale
             Creep:Update()
+
+            --Creep.Color:SetOffset(-0.5,-0.5,-0.5)
+            --Creep.Color:SetTint(mod.EffectColors.BLUE.R, mod.EffectColors.BLUE.G, mod.EffectColors.BLUE.B, 1) 
         end
     end
 end
@@ -4658,7 +4659,7 @@ function mod:MimeActive(Type, RNG, Player, Flags,_,_)
 
         if Joker == mod.Jokers.MIME then
 
-            if mod:TryGamble(Player, RNG, 0.2) then
+            if mod:TryGamble(Player, RNG, 0.33) then
                 Player:UseActiveItem(Type, UseFlag.USE_NOANIM | UseFlag.USE_MIMIC)
         
                 mod:CreateBalatroEffect(Index, mod.EffectColors.YELLOW,mod.Sounds.ACTIVATE, "Again!",mod.EffectType.JOKER, Player)
@@ -5360,10 +5361,9 @@ function mod:IceCreamCreepFreeze(Effect)
 
     local Data = Effect:GetData()
 
-    if not Data.IsIcecreamB then
+    if not Data.REG_CreamCreep then
         return
     end
-
     
     local EffectCapsule = Effect:GetCollisionCapsule()
 
@@ -5371,13 +5371,14 @@ function mod:IceCreamCreepFreeze(Effect)
 
         if Entity:ToNPC() then
 
-            Entity:AddIce(EntityRef(Game:GetPlayer(0)),10)
+            Entity:AddSlowing(EntityRef(Effect.SpawnerEntity), 1, 0.5, Color(150 / 255, 150 / 255, 150 / 255))
+            Entity:AddIce(EntityRef(Effect.SpawnerEntity),10)
         end
 
     end
 
 end
-mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, mod.IceCreamCreepFreeze, EffectVariant.PLAYER_CREEP_WHITE)
+mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, mod.IceCreamCreepFreeze, EffectVariant.PLAYER_CREEP_HOLYWATER_TRAIL)
 
 
 

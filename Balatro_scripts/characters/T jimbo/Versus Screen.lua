@@ -26,7 +26,10 @@ local function ChangePortraitSprite(T_Jimbo)
 
         local Sprite = RoomTransition:GetPlayerExtraPortraitSprite()
 
-        Sprite:SetFrame(PortraitAnimations[math.random(1,4)], 0)
+        if Sprite then
+
+            Sprite:SetFrame(PortraitAnimations[math.random(1,4)], 0)
+        end
     end
 end
 

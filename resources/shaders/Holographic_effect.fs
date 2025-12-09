@@ -52,9 +52,7 @@ void main(void){
 	vec4 Color = Color0 * texture2D(Texture0, PixelationAmountOut > 0.0 ? TexCoord0 - mod(TexCoord0, pa) + pa * 0.5 : TexCoord0);
 	vec3 ColorHSV = rgb2hsv(Color.rgb);
 
-	float enable = 1.0; 
-	if (((ColorHSV.b <= 0.3)&&(ColorHSV.g <= 0.4))||(ColorHSV.b <= 0.04))
-		enable = 0.1; //black-ish doesn't get affected by the shader
+	float enable = (((ColorHSV.b <= 0.3)&&(ColorHSV.g <= 0.4))||(ColorHSV.b <= 0.04)) ? 0.1 : 1.0;
 
 	TrueCoord.y = 1.0 - TrueCoord.y; //unflips the y coordinate
 	TrueCoord.xy = fract(TrueCoord * 8.0); //makes the pattern repeat over the texture

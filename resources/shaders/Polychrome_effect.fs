@@ -53,18 +53,11 @@ void main(void)
 	//vec4 Color = Color0 * texture2D(Texture0, TexCoord0);
 	vec3 ColorHSV = rgb2hsv(Color.rgb);
 
-	float Strength = 0.7;
-	if (((((ColorHSV.b <= 0.3)||(ColorHSV.b >= 0.87))&&(ColorHSV.g <= 0.48)))||(ColorHSV.b <= 0.04))
-	{
-		Strength = 0.55; //Greyscales aren't affected as much
-		ColorHSV.g = ColorHSV.g + 0.19*(1.0 - ColorHSV.g);
-	}
-	else
-	{
-		float Sin = 0.19*sin((0.6*ColorHSV.g + 0.72)*3.1415);
+	float GreyScale = (((((ColorHSV.b <= 0.3)||(ColorHSV.b >= 0.87))&&(ColorHSV.g <= 0.48)))||(ColorHSV.b <= 0.04)) ? 1.0 : 0.0;
 
-	    ColorHSV.g = ColorHSV.g + Sin;
-	}
+	float Strength = GreyScale == 1.0 ? 0.55 : 0.7;
+	ColorHSV.g += GreyScale == 1.0 ? (0.22*sin((0.6*ColorHSV.g + 0.72)*3.1415)) : (0.19*(1.0 - ColorHSV.g));
+	
 
 	vec2 Center = vec2(0.6,0.65);//center of the elipse
 

@@ -147,7 +147,7 @@ mod:AddCallback(ModCallbacks.MC_PRE_MINIMAP_RENDER, CancelMinimapHUD)
 
 local BossIntroTime = 0
 local OldCameraStyle
-local BaseRoomWidth = 15 * 26
+local BaseRoomWidth = 13 * 26
 local CameraOffset = Vector.Zero
 
 function mod:BossIntroIsPlaying()
@@ -161,7 +161,7 @@ function mod:BossIntroIsPlaying()
 end
 
 function mod:HUDWorldToScreen(Position)
-    return Isaac.WorldToScreen(Position) + CameraOffset/2
+    return Isaac.WorldToScreen(Position) + CameraOffset
 end
 
 local function MoveCameraToRightBorder()
@@ -194,8 +194,8 @@ local function MoveCameraToRightBorder()
     end
 
 
-    CameraOffset.X = math.ceil(CameraOffset.X)
-    CameraOffset.Y = math.ceil(CameraOffset.Y)
+    CameraOffset.X = math.ceil(CameraOffset.X/2)
+    CameraOffset.Y = math.ceil(CameraOffset.Y/2)
 
 end
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, MoveCameraToRightBorder)
@@ -212,7 +212,7 @@ local function RightMoveShader(_,Name) --this shader makes the whole game shifte
 
             return Params
         else
-            Params.CameraOffset = {CameraOffset.X / Isaac.GetScreenWidth(), CameraOffset.Y / Isaac.GetScreenHeight()}
+            Params.CameraOffset = {CameraOffset.X*2 / Isaac.GetScreenWidth(), CameraOffset.Y*2 / Isaac.GetScreenHeight()}
         end
 
 
@@ -1439,6 +1439,11 @@ local function JimboInventoryHUD(Player, PIndex)
 
         local Slot = mod.Saved.Player[PIndex].Inventory[mod.SelectionParams[PIndex].Index]
 
+        if not Slot then
+            return
+        end
+
+
         RenderPos[Slot.RenderIndex] = RenderPos[Slot.RenderIndex] or Vector(-100, 0) --out of screen for a frame
 
         local FrameRenderPos = RenderPos[Slot.RenderIndex]
@@ -1520,6 +1525,7 @@ local function JimboConsumableRender(Player, PIndex)
     local TargetRenderPos = BasePos
 
     local RenderPos = {}
+    SpecialCardsSprite.Scale = Vector.One
 
     --print(BasePos)
 
@@ -1536,7 +1542,6 @@ local function JimboConsumableRender(Player, PIndex)
 
         TargetRenderPos.X = TargetRenderPos.X + CardStep
         TargetRenderPos.Y = BasePos.Y
-
 
         mod.ConsumableFullPosition[i] = mod.ConsumableFullPosition[i] or TargetRenderPos
 
@@ -1617,7 +1622,9 @@ local function SkipTagsHUD(Player, PIndex)
 
     RenderPos.Y = RenderPos.Y - 15
 
-    for i, Tag in ipairs(mod.Saved.SkipTags) do
+    for i=#mod.Saved.SkipTags, 1, -1 do
+
+        local Tag = mod.Saved.SkipTags[i]
 
         RenderPos.Y = RenderPos.Y - 14
 
@@ -2316,11 +2323,13 @@ local function TJimbosLeftSideHUD(Player, PIndex)
     
     elseif mod.Saved.HandType ~= mod.HandTypes.NONE then
 
-        local LV = mod:GetEIDString("Other", "LV")
+        local LV = mod.Saved.HandLevels[mod.Saved.HandType] 
+                   and (mod:GetEIDString("Other", "LV")..mod.Saved.HandLevels[mod.Saved.HandType])
+                   or ""
 
         local Hand = mod:GetEIDString("HandTypeName", mod.Saved.HandType)
 
-        String = Hand.." "..LV..tostring(mod.Saved.HandLevels[mod.Saved.HandType])
+        String = Hand.." "..LV
     else
         String = ""
     end
@@ -2609,13 +2618,12 @@ local function TJimbosLeftSideHUD(Player, PIndex)
 
         if Consumable then
 
-            if mod:PlayerIsAbleToUseCard(Player, Consumable.Card) then
+            if mod:PlayerIsAbleToUseCard(Player, mod:FrameToSpecialCard(Consumable.Card)) then
 
                 Q_Layer:SetColor(mod.EffectColors.RED) --Q is for card use
             else
                 Q_Layer:SetColor(DefaultColor)
             end
-
 
             E_Layer:SetColor(mod.EffectColors.GREEN) --E is for selling a consumable
 
@@ -4184,11 +4192,7 @@ mod:AddCallback(ModCallbacks.MC_POST_EFFECT_RENDER, RerollPriceRender, mod.Effec
 
 ---@param Pickup EntityPickup
 local function CustomPickupSprites(_, Pickup)
-
-    if not PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then
-        return
-    end
-
+    
     if Pickup.Variant == mod.Pickups.PLAYING_CARD then
 
         Pickup.EntityCollisionClass = EntityCollisionClass.ENTCOLL_ALL
@@ -4210,7 +4214,8 @@ local function CustomPickupSprites(_, Pickup)
         CardSprite:SetLayerFrame(2, Params.Enhancement)
         CardSprite:SetLayerFrame(3, Params.Seal)
 
-    elseif Pickup.Variant == PickupVariant.PICKUP_TAROTCARD then
+    elseif Pickup.Variant == PickupVariant.PICKUP_TAROTCARD
+           and PlayerManager.AnyoneIsPlayerType(mod.Characters.TaintedJimbo) then
 
         if mod:Contained(mod.Packs, Pickup.SubType) then
 
@@ -4294,7 +4299,10 @@ local function Counters()
     end 
 
 
-    if mod.Saved.HandType == LastHandType then
+    if mod.Saved.HandType == LastHandType
+       or mod.Saved.HandType == mod.ALL_HAND_TYPES["+"]
+       or mod.Saved.HandType == mod.ALL_HAND_TYPES["-"] then
+
         SinceHandTypeChange = SinceHandTypeChange + 1
 
     else
@@ -4304,8 +4312,12 @@ local function Counters()
             SinceMultChange = 0
             SinceChipChange = 0
 
-            LastChipValue = mod.Saved.ChipsValue
-            LastMultValue = mod.Saved.MultValue
+            if type(mod.Saved.ChipsValue) ~= "string" then
+                LastChipValue = mod.Saved.ChipsValue
+            end
+            if type(mod.Saved.MultValue) ~= "string" then
+                LastMultValue = mod.Saved.MultValue
+            end
         end
 
         LastHandType = mod.Saved.HandType + 0

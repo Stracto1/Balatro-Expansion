@@ -24,7 +24,7 @@ Balatro_Expansion.Jokers.ABSTRACT_JOKER = Isaac.GetTrinketIdByName("Abstract jok
 Balatro_Expansion.Jokers.MISPRINT = Isaac.GetTrinketIdByName("Misprint")
 Balatro_Expansion.Jokers.JOKER_STENCIL = Isaac.GetTrinketIdByName("Joker stencil")
 Balatro_Expansion.Jokers.STONE_JOKER = Isaac.GetTrinketIdByName("Stone joker")
-Balatro_Expansion.Jokers.ICECREAM = Isaac.GetTrinketIdByName("Ice cream")
+Balatro_Expansion.Jokers.ICECREAM = Isaac.GetTrinketIdByName("Icecream")
 Balatro_Expansion.Jokers.POPCORN = Isaac.GetTrinketIdByName("Popcorn")
 Balatro_Expansion.Jokers.RAMEN = Isaac.GetTrinketIdByName("Ramen")
 Balatro_Expansion.Jokers.ROCKET = Isaac.GetTrinketIdByName("Rocket")
@@ -627,6 +627,8 @@ Balatro_Expansion.HandTypes.FLUSH_HOUSE = 12
 Balatro_Expansion.HandTypes.FIVE_FLUSH = 13
 Balatro_Expansion.HandTypes.ROYAL_FLUSH = 14
 
+Balatro_Expansion.ALL_HAND_TYPES = {["+"] = 1000, ["-"] = 2000} --for black hole animation
+
 Balatro_Expansion.HandFlags = {}
 Balatro_Expansion.HandFlags.NONE = 1 << 1
 Balatro_Expansion.HandFlags.HIGH_CARD = 1 << 2
@@ -1006,6 +1008,7 @@ end
 
 
 Balatro_Expansion.HandUpgrades = {}
+Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.NONE] = {Chips = 0, Mult = 0}
 Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.HIGH_CARD] = {Chips = 10, Mult = 1}
 Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.PAIR] = {Chips = 15, Mult = 1}
 Balatro_Expansion.HandUpgrades[Balatro_Expansion.HandTypes.TWO_PAIR] = {Chips = 20, Mult = 1}

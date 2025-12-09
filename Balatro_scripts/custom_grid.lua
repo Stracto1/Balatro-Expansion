@@ -319,7 +319,10 @@ function mod:ResetPlatesData()
 
                 local Door = Grid:ToDoor()
 
-                if Door and Door.TargetRoomIndex == -10 and Door.TargetRoomType == RoomType.ROOM_SECRET_EXIT then
+                if Door 
+                   and Door.TargetRoomIndex == -10 
+                   and Door.TargetRoomType == RoomType.ROOM_SECRET_EXIT
+                   and Game:GetLevel():GetStage() == LevelStage.STAGE3_2 then --downpour and mines door are the exact same goddamit
             
                     local Sprite = Door:GetSprite()
 
